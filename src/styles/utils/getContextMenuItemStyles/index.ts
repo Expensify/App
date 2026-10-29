@@ -1,4 +1,5 @@
 import variables from '@styles/variables';
+
 import type GetContextMenuItemStyle from './types';
 
 const getContextMenuItemStyles: GetContextMenuItemStyle = (styles, windowWidth) => {

@@ -2,7 +2,7 @@
 
 >Storybook is an open source tool for building UI components and pages in isolation. It streamlines UI development, testing, and documentation.
 
-At Expensify, we primarily use [Storybook](https://storybook.js.org/) to provide interactive documentation of our design system. This helps bridge the gap between design and engineering to encourage code reusibility and improve communication.
+At Expensify, we primarily use [Storybook](https://storybook.js.org/) to provide interactive documentation of our design system. This helps bridge the gap between design and engineering to encourage code reusability and improve communication.
 
 ### Building and Deploying Storybook
 

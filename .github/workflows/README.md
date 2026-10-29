@@ -8,7 +8,7 @@ name: CI
 on: pull_request
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - id: myTrueAction
         uses: Expensify/my-action-outputs-true@main
@@ -42,12 +42,12 @@ Due to the large, ever-growing history of this repo, do not do any full-fetches 
 
 ```yaml
 # Bad
-- uses: actions/checkout@v4
+- uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
   with:
     fetch-depth: 0
 
 # Good
-- uses: actions/checkout@v4
+- uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
 ```
 
 ```sh
@@ -61,9 +61,16 @@ git fetch origin tag 1.0.0-0 --no-tags --depth=1 # This will fetch the latest co
 git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fetch all commits from the 1.0.1-0 tag, except for those that are reachable from the 1.0.0-0 tag.
 ```
 
+## Which checkout action to use
+
+- **Linux jobs:** use `useblacksmith/checkout`. Blacksmith's Linux runners grant a sticky disk in ~0.3s, so its persistent "git-mirror" cache makes the clone much faster.
+- **macOS jobs:** use upstream `actions/checkout`. Blacksmith's macOS runners have no sticky-disk agent, so the mirror cache can never work there - `useblacksmith/checkout` blocks ~75s on a gRPC probe to `192.168.127.1` before timing out and falling back to a plain clone anyway.
+
+`runs-on` is static per job, so pick the action per job rather than detecting the runner at runtime.
+
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.
-1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v4`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
+1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
 1. **Do use** the `pull_request` trigger as it does not send internal secrets and only grants a _read_ `GITHUB_TOKEN`.
 1. If an untrusted (i.e: not maintained by GitHub) external action needs access to any secret (`GITHUB_TOKEN` or internal secret), use the commit hash of the workflow to prevent a modification of underlying source code at that version. For example:
     1. **Bad:** `hmarr/auto-approve-action@v2.0.0` Relies on the tag
@@ -80,20 +87,14 @@ git fetch origin tag 1.0.1-0 --no-tags --shallow-exclude=1.0.0-0 # This will fet
 
 ## Secrets
 The GitHub workflows require a large list of secrets to deploy, notify and test the code:
-1. `LARGE_SECRET_PASSPHRASE` - decrypts secrets stored in various encrypted files stored in GitHub repository. To create updated versions of these encrypted files, refer to steps 1-4 of [this encrypted secrets help page](https://docs.github.com/en/actions/reference/encrypted-secrets#limits-for-secrets) using the `LARGE_SECRET_PASSPHRASE`.
-   1. `android/app/my-upload-key.keystore.gpg`
-   1. `android/app/android-fastlane-json-key.json.gpg`
-   1. `ios/NewApp_AdHoc.mobileprovision`
-   1. `ios/NewApp_AdHoc_Notification_Service.mobileprovision`
-   1. `ios/NewApp_AppStore.mobileprovision.gpg`
-   1. `ios/NewApp_AppStore_Notification_Service.mobileprovision.gpg`
-   1. `ios/Certificates.p12.gpg`
 1. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
+1. `SLACK_RETEST_USER_TOKEN` - Read-only Slack user token with `channels:history` access to `#deployer` and `#retests`, used to link automated retest requests to their Cherry Pick Request threads
 1. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
 1. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub
 1. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 1. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 1. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
+1. `APPLE_TEAM_ID` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `AWS_ACCESS_KEY_ID` - Required for hosting website and desktop compiled code
 1. `AWS_SECRET_ACCESS_KEY` - Required for hosting website and desktop compiled code
@@ -104,10 +105,15 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_DEMO_PASSWORD` - Demo account password used for https://appstoreconnect.apple.com/
 1. `BROWSERSTACK` - Used to access Browserstack's API
 
+We use 1Password for many secrets and in general use two different actions from 1Password to fetch secrets:
+
+1. `1password/install-cli-action` - This action is used to install 1Password cli `op` and is used to grab **files** using the `op read` command.
+1. `1password/load-secrets-action` - This action is used to fetch **strings** from 1Password.
+
 ### Important note about Secrets
 Secrets are available by default in most workflows. The exception to the rule is callable workflows. If a workflow is triggered by the `workflow_call` event, it will only have access to repo secrets if the workflow that called it passed in the secrets explicitly (for example, using `secrets: inherit`).
 
-Furthermore, secrets are not accessible in actions. If you need to access a secret in an action, you must declare it as an input and pass it in. GitHub _should_ still obfuscate the value of the secret in workflow run logs.
+Furthermore, secrets are not accessible in actions. If you need to access a secret in an action, _you must declare it as an input and pass it in_. GitHub _should_ still obfuscate the value of the secret in workflow run logs.
 
 ## Actions
 
@@ -133,14 +139,25 @@ If you make any changes to an action's implementation, you must always recompile
 
 ### How are actions compiled?
 
-In order to bundle actions with their dependencies into a single Node.js executable script, we use [`ncc`](https://github.com/vercel/ncc). In order to make this easier, we've added an `npm` script to `package.json`, so you can just run `npm run gh-actions-build`. If you create a new action, make sure that you update `.github/scripts/buildActions.sh` to include your new action. Also, be sure that you always run `npm install` before recompiling if you added new dependencies, or they won't be included in the bundled executable. :)
+In order to bundle actions with their dependencies into a single Node.js executable script, we use [`esbuild`](https://esbuild.github.io/). In order to make this easier, we've added an `npm` script to `package.json`, so you can just run `npm run gh-actions-build`, which runs `.github/scripts/buildActions.ts` via `bun`. If you create a new action, drop its TypeScript source in `.github/actions/javascript/<actionName>/<actionName>.ts` — `buildActions.ts` discovers every such file automatically. Also, be sure that you always run `npm install` before recompiling if you added new dependencies, or they won't be included in the bundled executable. :)
+
+The compiled `index.js` files are real [ECMAScript modules](https://nodejs.org/api/esm.html) (see the `"type": "module"` in [`.github/actions/javascript/package.json`](../actions/javascript/package.json)), not CommonJS. In practice this only matters if you're writing a new action from scratch:
+
+- `@actions/core`, `@actions/github`, and the `@octokit/*` plugin chain are ESM-only as of the major versions this repo uses, so importing them "just works" the same as any other dependency.
+- If an action needs its own CLI entry-point guard (i.e. code that should only run when the file is executed directly, not when it's imported elsewhere, like from a test), use `import.meta.main` (Node 24+) instead of `require.main === module`:
+  ```ts
+  if (import.meta.main) {
+      run();
+  }
+  ```
+- Avoid giving a file both an entry guard *and* letting it be imported by another bundled entry point (e.g. a test helper imported by both an action and its unit test) — esbuild flattens every bundled file into one shared module scope, so if two guarded files end up in the same bundle, both guards fire. If a file needs to be both a library (importable, no side effects) and a script (runnable directly), split it into a guard-free library file plus a separate, unconditionally-executing `*-cli.ts`/`*-cli.mts` entry point that only the CLI ever imports (see `scripts/compressSvg.mts` / `scripts/compressSvg-cli.mts` and `scripts/bumpVersion.ts` / `scripts/bumpVersion-cli.ts` for examples of this pattern).
 
 **Note:** If you have a Windows machine, the compiled output will be different than on a Unix machine, which will cause test failures in your PR. So you'll need to run the compilation script on a Mac or Linux machine instead, using whatever means suits you (i.e: another physical device, Docker container, EC2 instance, etc...)
 
 ### Important tips about creating GitHub Actions
 
 - When calling your GitHub Action from one of our workflows, you must:
-    - First call `@actions/checkout`.
+    - First call `useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121` (`# v1`).
     - Use the relative path of the action in GitHub from the root of this repo, like so:
       ```yaml
       - name: Generate Version

@@ -4,13 +4,37 @@
 
 Styles can either be theme-related or not. "Theme-related" means that a style contains some sort of color attributes (backgroundColor, color, borderColor). "Non-theme-related" styles may not contain no color attributes.
 
-All non-theme-related styles must be defined in the `/styles` directory and `styles.js` contains the final export after gathering all appropriate styles. Unlike some React Native applications, we are not using `StyleSheet.create()` and instead store styles as plain JS objects. There are also many helper styles available for direct use in components.
+All non-theme-related styles must be defined in the `/styles` directory and `styles.js` contains the final export after gathering all appropriate styles. There are also many helper styles available for direct use in components.
+
+The styles are grouped into:
+- `staticStyles` - object wrapped into `StyleSheet.create()` which contains static styles based on the `theme`.
+- `dynamicStyles` - object that contains functions which return dynamic styles
+- `plainStyles` - object that contains styles, which cannot be wrapped by StyleSheet.create eg. because of requirements of 3rd party libraries
 
 All styles that contain theme colors have to be defined in the `ThemeStylesProvider` component, as those need to be dynamically created and animated.
 
 These helper styles are loosely based on the [Bootstrap system of CSS utility helper classes](https://getbootstrap.com/docs/5.0/utilities/spacing/) and are typically incremented by units of `4`.
 
 **Note:** Not all helpers from Bootstrap exist, so it may be necessary to create the helper style we need.
+
+## Type and Responsive Spacing Come From Tokens
+
+Two kinds of values must never be written by hand in a component: font sizes and the paddings or margins that change between narrow and wide layouts.
+
+- **Type**: use `<Text variant="...">` (see `src/styles/typography.ts`). Raw `fontSize` / `lineHeight` are blocked by `rulesdir/no-raw-typography`.
+- **Responsive insets**: use `useLayoutSpacing()` (see `src/styles/layoutSpacing.ts`). It resolves `cardPadding` and `pageGutter` for the current layout and returns ready styles (`cardGap`, the space between stacked cards, is also read directly by the style sheet for the Home layout). Writing the card inset by hand, `shouldUseNarrowLayout ? styles.ph5 : styles.ph8` or any other `5`/`8` inset pair, is blocked by `rulesdir/no-layout-spacing-conditional`.
+
+```tsx
+// Bad - the card inset is decided here, so every card row has to agree by hand
+const {shouldUseNarrowLayout} = useResponsiveLayout();
+<View style={[styles.flexRow, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]} />
+
+// Good - the inset is a token, resolved once for the current layout
+const {cardPaddingHorizontal} = useLayoutSpacing();
+<View style={[styles.flexRow, cardPaddingHorizontal]} />
+```
+
+Spacing that is not a card inset or page gutter (for example a `pb2` vs `pb5` rhythm tweak) is still written with the helper styles. If you need a new responsive inset, add it to `layoutSpacing.ts` rather than writing the ternary.
 
 ## When to Create a New Style
 
@@ -41,12 +65,12 @@ On the other hand, if we are copying and pasting some chunks of JSX from one pla
 
 ## Use the "Rule of Three"
 
-In order to resist the urge to preoptimize and have many single-use components, we've adopted a main principle:
+In order to resist the urge to pre-optimize and have many single-use components, we've adopted a main principle:
 
 Any array of styles associated with a single type of React element that has at least 3 identical usages should be refactored into:
 
-- A new resusable style that can be used in many places e.g. `styles.button`
-- If that style has modifiers or style variations, then those styles should follow a naming convention of `styles.elementModifer` e.g. `styles.buttonSuccess`
+- A new reusable style that can be used in many places e.g. `styles.button`
+- If that style has modifiers or style variations, then those styles should follow a naming convention of `styles.elementModifier` e.g. `styles.buttonSuccess`
 - If a reusable style has 3 or more modifiers, it should be refactored into a component with props to modify the styles e.g.
 
 ```jsx

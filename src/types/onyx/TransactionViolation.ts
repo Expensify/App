@@ -1,5 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
+import type {RuleFilterNode} from './RuleFilters';
 
 /**
  * Names of violations.
@@ -29,6 +34,11 @@ type TransactionViolationData = {
 
     /** Limit that the transaction violated */
     formattedLimit?: string;
+
+    currency?: string;
+
+    /** Limit amount that the transaction violated */
+    amount?: number;
 
     /** Percentage amount of conversion surcharge applied to the transaction */
     surcharge?: number;
@@ -84,19 +94,48 @@ type TransactionViolationData = {
     /** List of duplicate transactions */
     duplicates?: string[];
 
-    /** Type of the RTER violation */
     rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>;
+
+    /** A generic message to display to the user */
+    message?: string;
+
+    /** Backend-defined override for the violation's target field */
+    field?: string;
 
     /** Message to display to the user */
     tooltip?: string;
+
+    /** What prohibitive expense rule did they break? */
+    prohibitedExpenseRule?: string | string[];
+
+    /** Comment that triggered the violation */
+    comment?: string;
+
+    /** Card ID associated with the violation (used to determine if it's a personal or company card) */
+    cardID?: number;
+
+    /** List of fields that failed to scan (e.g., ["merchant", "date", "amount"]) */
+    missingFields?: string[];
+
+    /** Start date of the rate's valid range (for customUnitRateOutOfDateRange) */
+    startDate?: string;
+
+    /** End date of the rate's valid range (for customUnitRateOutOfDateRange) */
+    endDate?: string;
+
+    /** Number of nights the limit was averaged over, for overLimit/overCategoryLimit on a multi-day reservation */
+    nights?: number;
+
+    /** ID of the rule that triggered this violation */
+    ruleID?: number;
+
+    /** Filters from the rule that triggered this violation */
+    filters?: RuleFilterNode;
 };
 
 /** Model of a transaction violation */
 type TransactionViolation = {
-    /** Type of transaction violation */
     type: ValueOf<typeof CONST.VIOLATION_TYPES>;
-
-    /** Name of the transaction violation */
     name: ViolationName;
 
     /** Additional violation information to provide the user */
@@ -109,5 +148,8 @@ type TransactionViolation = {
 /** Collection of transaction violations */
 type TransactionViolations = TransactionViolation[];
 
-export type {TransactionViolation, ViolationName, ViolationType, ViolationDataType, TransactionViolationData};
+/** Collection of mock transaction violations, indexed by transactionViolations_${transactionID} */
+type TransactionViolationsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>;
+
+export type {TransactionViolation, ViolationName, ViolationType, ViolationDataType, TransactionViolationsCollectionDataSet};
 export default TransactionViolations;

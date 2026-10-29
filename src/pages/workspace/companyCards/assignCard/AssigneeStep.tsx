@@ -1,188 +1,366 @@
-import React, {useMemo, useState} from 'react';
-import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
-import useDebouncedState from '@hooks/useDebouncedState';
+
+import useInitialSelection from '@hooks/useInitialSelection';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import usePolicy from '@hooks/usePolicy';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+
+import {setDraftInviteAccountID} from '@libs/actions/Card';
+import {searchUserInServer} from '@libs/actions/Report';
+import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardName} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+import {
+    canMemberWrite,
+    canRoleCreateExpenses,
+    filterGuideAndAccountManager,
+    getGuideAndAccountManagerInfo,
+    getIneligibleInvitees,
+    isDeletedPolicyEmployee,
+    shouldHideExpensifyTeamCardholder,
+} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
+import tokenizedSearch from '@libs/tokenizedSearch';
+
 import Navigation from '@navigation/Navigation';
-import * as CompanyCards from '@userActions/CompanyCards';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
-const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
+import {Str} from 'expensify-common';
+import React, {useEffect, useState} from 'react';
+import {Keyboard} from 'react-native';
 
-type AssigneeStepProps = {
-    // The policy that the card will be issued under
-    policy: OnyxEntry<OnyxTypes.Policy>;
+type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
+
+type AssigneeListItem = ListItem & {
+    value: string;
 };
 
-function AssigneeStep({policy}: AssigneeStepProps) {
-    const {translate} = useLocalize();
+function AssigneeStep({route}: AssigneeStepProps) {
+    const policyID = route.params.policyID;
+    const feed = route.params.feed;
+    const cardID = route.params.cardID;
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
+    const policy = usePolicy(policyID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [personalDetails] = useAllPersonalDetails();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const employeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {})]);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    // Seed the selection from the already-assigned cardholder (e.g. when returning to this step in edit mode) so
+    // Next continues with the saved cardholder instead of demanding a fresh selection. Matches CardSelectionStep.
+    const [selectedAssignee, setSelectedAssignee] = useState<ListItem | undefined>(() => {
+        const assignedEmail = assignCard?.cardToAssign?.email;
+        if (!assignedEmail) {
+            return undefined;
+        }
+        return {
+            login: assignedEmail,
+            accountID: employeePersonalDetails[assignedEmail]?.accountID,
+            keyForList: assignedEmail,
+        };
+    });
+    const [shouldShowError, setShouldShowError] = useState(false);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
+    const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
 
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${assignCard?.data?.bankName ?? ''}`);
-    const filteredCardList = CardUtils.getFilteredCardList(list);
+    const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
+    const excludedUsers: Record<string, boolean> = {};
+    for (const login of ineligibleInvites) {
+        excludedUsers[login] = true;
+    }
+
+    const {assignedGuideEmail, accountManagerLogin, exclusions: softExclusions} = getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails);
+
+    const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+        includeUserToInvite: canInviteMembers,
+        excludeLogins: excludedUsers,
+        excludeFromSuggestionsOnly: softExclusions,
+        includeRecentReports: canInviteMembers,
+        shouldInitialize: didScreenTransitionEnd,
+    });
 
     const isEditing = assignCard?.isEditing;
+    // Freeze the assignee selected when the list opened so it can be pinned to the top of long member lists.
+    const initialAssigneeEmail = useInitialSelection(assignCard?.cardToAssign?.email, {resetOnFocus: true});
 
-    const [selectedMember, setSelectedMember] = useState(assignCard?.data?.email ?? '');
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [shouldShowError, setShouldShowError] = useState(false);
+    const submit = (assignee: ListItem) => {
+        const personalDetail = employeePersonalDetails[assignee?.login ?? ''];
+        const assigneeLogin = personalDetail?.login ?? '';
+        const formattedAssigneeLogin = Str.isSMSLogin(assigneeLogin) ? formatPhoneNumber(assigneeLogin) : assigneeLogin;
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : formattedAssigneeLogin;
+        const defaultCardName = getDefaultCardName(memberName);
+        // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the currently selected assignee.
+        const customCardName = assignCard?.cardToAssign?.isCustomCardNameEdited ? (assignCard?.cardToAssign?.customCardName ?? defaultCardName) : defaultCardName;
+        const cardToAssign: Partial<AssignCardData> = {
+            email: assignee?.login ?? '',
+            customCardName,
+        };
 
-    const selectMember = (assignee: ListItem) => {
         Keyboard.dismiss();
-        setSelectedMember(assignee.login ?? '');
-        setShouldShowError(false);
-    };
 
-    const submit = () => {
-        if (!selectedMember) {
-            setShouldShowError(true);
+        const routeParams = {policyID, feed, cardID};
+
+        if (assignee?.login === assignCard?.cardToAssign?.email) {
+            if (assignCard?.cardToAssign?.encryptedCardNumber) {
+                cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
+                cardToAssign.cardName = assignCard.cardToAssign.cardName;
+                // Preserve any start date the user already picked based on the saved data rather than `isEditing`.
+                // `isEditing` is false on the header-back-then-Next round trip, so keying off it here would wipe the
+                // chosen date. In a fresh flow `useAssignCard` seeds FROM_BEGINNING for CSV feeds. For other feeds
+                // `startDate`/`dateOption` are undefined, so both helpers fall back to today/CUSTOM.
+                cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
+                cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
+                setAssignCardStepAndData({
+                    cardToAssign,
+                    isEditing: false,
+                });
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
+                return;
+            }
+            setAssignCardStepAndData({
+                cardToAssign,
+                isEditing: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
             return;
         }
 
-        const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(selectedMember);
-        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
+        if (!policy?.employeeList?.[assignee?.login ?? '']) {
+            if (!canInviteMembers) {
+                return;
+            }
+            setAssignCardStepAndData({
+                cardToAssign: {
+                    invitingMemberEmail: assignee?.login ?? '',
+                    invitingMemberAccountID: assignee?.accountID ?? undefined,
+                },
+            });
+            setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID ?? undefined, policyID);
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute(routeParams));
+            return;
+        }
 
-        const nextStep = CardUtils.hasOnlyOneCardToAssign(filteredCardList) ? CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE : CONST.COMPANY_CARD.STEP.CARD;
-
-        CompanyCards.setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
-            data: {
-                email: selectedMember,
-                cardName: CardUtils.getDefaultCardName(memberName),
-            },
+        if (assignCard?.cardToAssign?.encryptedCardNumber) {
+            cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
+            cardToAssign.cardName = assignCard.cardToAssign.cardName;
+            // Preserve the saved start date based on the data, not `isEditing` (see the matching branch above).
+            cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
+            cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
+            setAssignCardStepAndData({
+                cardToAssign,
+                isEditing: false,
+            });
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
+            return;
+        }
+        setAssignCardStepAndData({
+            cardToAssign,
             isEditing: false,
         });
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
+    };
+
+    const selectAssignee = (assignee: ListItem) => {
+        setSelectedAssignee(assignee);
+        setShouldShowError(false);
+    };
+
+    const assignSelectedCardholder = () => {
+        if (!selectedAssignee) {
+            setShouldShowError(true);
+            return;
+        }
+        submit(selectedAssignee);
     };
 
     const handleBackButtonPress = () => {
+        // When editing the cardholder from the Confirmation step, the assignee step is the only screen left in the RHP
+        // stack, so a bare goBack() would dismiss the whole modal. Navigate back to Confirmation explicitly instead
+        // (mirroring CardSelectionStep). Plain wizard back-navigation (isEditing false) falls through to goBack().
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+            setAssignCardStepAndData({
                 isEditing: false,
             });
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
             return;
         }
         Navigation.goBack();
     };
 
-    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
-    const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
+    // Hide Expensify staff from member and search results, but keep the current cardholder visible while editing.
+    const isHiddenExpensifyStaff = (login: string | null | undefined) => shouldHideExpensifyTeamCardholder(login, initialAssigneeEmail, policy?.owner, session?.email);
 
-    const membersDetails = useMemo(() => {
-        let membersList: ListItem[] = [];
-        if (!policy?.employeeList) {
-            return membersList;
-        }
-
-        Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
-            if (PolicyUtils.isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+    const membersDetails: AssigneeListItem[] = [];
+    if (policy?.employeeList) {
+        for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
+            if (isDeletedPolicyEmployee(policyEmployee, isOffline) || (policyEmployee.role && !canRoleCreateExpenses(policyEmployee.role))) {
+                continue;
             }
 
-            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-            membersList.push({
+            if (isHiddenExpensifyStaff(email)) {
+                continue;
+            }
+
+            const personalDetail = employeePersonalDetails[email];
+            membersDetails.push({
                 keyForList: email,
                 text: personalDetail?.displayName,
                 alternateText: email,
                 login: email,
+                value: email,
                 accountID: personalDetail?.accountID,
-                isSelected: selectedMember === email,
+                isSelected: selectedAssignee?.login === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
                     },
                 ],
             });
-        });
-
-        membersList = OptionsListUtils.sortAlphabetically(membersList, 'text');
-
-        return membersList;
-    }, [isOffline, policy?.employeeList, selectedMember]);
-
-    const sections = useMemo(() => {
-        if (!debouncedSearchTerm) {
-            return [
-                {
-                    data: membersDetails,
-                    shouldShow: true,
-                },
-            ];
         }
 
-        const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
-        const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
+        sortAlphabetically(membersDetails, 'text', localeCompare);
+    }
 
-        return [
-            {
-                title: undefined,
-                data: filteredOptions,
-                shouldShow: true,
-            },
-        ];
-    }, [membersDetails, debouncedSearchTerm]);
+    // Pin the currently-assigned member to the top of the full member list, then reuse the pinned list for both
+    // the base list and the search source below so it stays pinned while searching (when it still matches).
+    // moveInitialSelectionToTop no-ops for lists under the search-box threshold.
+    const orderedMembersDetails = moveInitialSelectionToTop(membersDetails, initialAssigneeEmail ? [initialAssigneeEmail] : []);
+    let assignees: ListItem[] = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
+    if (debouncedSearchTerm && areOptionsInitialized) {
+        const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
+        const filteredMembers = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
+        const filteredOptions = tokenizedSearch(filteredMembers, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-    const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        const options = canInviteMembers
+            ? [
+                  ...filteredOptions,
+                  ...availableOptions.selectedOptions,
+                  ...availableOptions.recentOptions,
+                  ...availableOptions.personalDetails,
+                  ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+              ]
+            : filteredOptions;
 
-        return OptionsListUtils.getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
-    }, [debouncedSearchTerm, sections]);
+        assignees = options
+            .filter((option) => !isHiddenExpensifyStaff(option.login))
+            .map((option) => ({
+                ...option,
+                keyForList: option.keyForList ?? option.login ?? '',
+                isSelected: !!selectedAssignee?.login && selectedAssignee.login === option.login,
+            }));
+    } else if (debouncedSearchTerm) {
+        assignees = [];
+    }
+
+    useEffect(() => {
+        if (!canInviteMembers) {
+            return;
+        }
+
+        searchUserInServer(debouncedSearchTerm);
+    }, [canInviteMembers, debouncedSearchTerm]);
+
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const headerMessage = (() => {
+        if (assignees.length > 0) {
+            return '';
+        }
+        if (CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        return getHeaderMessage(translate, searchValue, countryCode);
+    })();
+
+    const textInputOptions = {
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
 
     return (
-        <InteractiveStepWrapper
-            wrapperID={AssigneeStep.displayName}
-            handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
-            headerTitle={translate('workspace.companyCards.assignCard')}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
-            <SelectionList
-                textInputLabel={textInputLabel}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
-                onSelectRow={selectMember}
-                initiallyFocusedOptionKey={selectedMember}
-                shouldUpdateFocusedIndex
-            />
-            <FormAlertWithSubmitButton
-                buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onSubmit={submit}
-                isAlertVisible={shouldShowError}
-                containerStyles={styles.ph5}
-                message={translate('common.error.pleaseSelectOne')}
-                buttonStyles={styles.mb5}
-            />
-        </InteractiveStepWrapper>
+            <InteractiveStepWrapper
+                wrapperID="AssigneeStep"
+                handleBackButtonPress={handleBackButtonPress}
+                headerTitle={translate('workspace.companyCards.assignCard')}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
+            >
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
+                <SelectionList
+                    // Reset the list instance when the frozen selection changes on re-entry, so returning via the back
+                    // button remounts the list scrolled to the top with the selected assignee pinned and visible.
+                    key={initialAssigneeEmail ?? ''}
+                    data={assignees}
+                    onSelectRow={selectAssignee}
+                    ListItem={UserListItem}
+                    textInputOptions={textInputOptions}
+                    initiallyFocusedItemKey={selectedAssignee?.keyForList}
+                    shouldScrollToFocusedIndexOnMount={false}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized}
+                    isLoadingNewOptions={canInviteMembers && !!isSearchingForUsers}
+                    disableMaintainingScrollPosition
+                    shouldUpdateFocusedIndex
+                    addBottomSafeAreaPadding
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
+                    footerContent={
+                        <FormAlertWithSubmitButton
+                            buttonText={translate('common.next')}
+                            onSubmit={assignSelectedCardholder}
+                            isAlertVisible={shouldShowError}
+                            containerStyles={[!shouldShowError && styles.mt5]}
+                            message={translate('workspace.companyCards.pleaseSelectACardholder')}
+                            shouldShowLoadingImmediatelyOnPress={false}
+                            // Selecting a cardholder is a local-state-only step (no network call), so Next must stay
+                            // usable offline. Without this the button is force-disabled offline (regression #97426).
+                            enabledWhenOffline
+                        />
+                    }
+                />
+            </InteractiveStepWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
-
-AssigneeStep.displayName = 'AssigneeStep';
 
 export default AssigneeStep;

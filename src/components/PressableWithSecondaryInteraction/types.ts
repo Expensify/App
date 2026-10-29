@@ -1,15 +1,12 @@
-import type {GestureResponderEvent} from 'react-native';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
+
 import type {ParsableStyle} from '@styles/utils/types';
 
+import type {GestureResponderEvent} from 'react-native';
+
 type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {
-    /** The function that should be called when this pressable is pressed */
     onPress?: (event?: GestureResponderEvent) => void;
-
-    /** The function that should be called when this pressable is pressedIn */
     onPressIn?: (event?: GestureResponderEvent) => void;
-
-    /** The function that should be called when this pressable is pressedOut */
     onPressOut?: (event?: GestureResponderEvent) => void;
 
     /**
@@ -20,8 +17,8 @@ type PressableWithSecondaryInteractionProps = PressableWithFeedbackProps & {
      */
     onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
-    /** Prevent the default ContextMenu on web/Desktop */
-    preventDefaultContextMenu?: boolean;
+    /** Prevent the default ContextMenu on web */
+    preventDefaultContextMenu?: boolean | ((event: MouseEvent) => boolean);
 
     /** Use Text instead of Pressable to create inline layout.
      * It has few limitations in comparison to Pressable.

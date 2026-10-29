@@ -1,0 +1,195 @@
+import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
+
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
+
+import CONST from '@src/CONST';
+
+import type {NativeSyntheticEvent} from 'react-native';
+
+import React from 'react';
+
+import type {SearchListItem} from './SearchList/ListItem/types';
+import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
+
+import useSearchListViewState from './hooks/useSearchListViewState';
+import AnimatedExitRow from './primitives/AnimatedExitRow';
+import SelectionTopBar from './primitives/SelectionTopBar';
+import BaseSearchList from './SearchList/BaseSearchList';
+import TransactionListItem from './SearchList/ListItem/TransactionListItem';
+import SearchListViewLayout from './SearchListViewLayout';
+
+type ExpenseFlatSearchViewProps = CommonSearchViewProps & TransactionViewExtras;
+
+const keyExtractor = (item: SearchListItem, index: number) => item.keyForList ?? `${index}`;
+
+const isRowDeleted = (item: SearchListItem) => item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+/**
+ * The flat-expense Search list.
+ *
+ * Rendered by `<Search>` as a child of the selection providers (so it reads the real
+ * `toggle`/`toggleAll`/`selectedTransactions`). The shared list state and interactions come from
+ * `useSearchListViewState`, and the surrounding chrome (horizontal scroll, header bar, long-press menu)
+ * from `SearchListViewLayout`; this view only owns the flat-expense specifics: the `TransactionListItem`
+ * renderer and single-pass visibility/selection counts.
+ * `TransactionListItem` is the only row renderer here, so the group/sticky/chat/task branches of
+ * `SearchList` do not apply. Keyboard navigation is inherited from `BaseSearchList`; `newTransactions`
+ * flows into `extraData` so the list re-renders when a freshly-created expense lands.
+ */
+function ExpenseFlatSearchView({
+    queryJSON,
+    data,
+    columns,
+    canSelectMultiple,
+    isActionColumnWide,
+    columnSizeOptions,
+    isAttendeesEnabledForMovingPolicy,
+    nonPersonalAndWorkspaceCards,
+    policyCategories,
+    policyTags,
+    isMobileSelectionModeEnabled,
+    SearchTableHeader: searchTableHeader,
+    tableHeaderVisible,
+    hasLoadedAllTransactions,
+    newTransactions,
+    onSelectRow,
+    ListFooterComponent,
+    onEndReached,
+    onLayout,
+    onScroll,
+    onViewableItemsChanged,
+    contentContainerStyle,
+    containerStyle,
+}: ExpenseFlatSearchViewProps) {
+    const {type} = queryJSON;
+    // Normalize copied expense rows so their grid cells paste as one space-separated row.
+    useCopySelectionEvent();
+
+    const {
+        isOffline,
+        isKeyboardShown,
+        safeAreaPaddingBottomStyle,
+        isLargeScreenWidth,
+        toggle,
+        toggleAll,
+        selectedTransactions,
+        listRef,
+        hasItemsBeingRemoved,
+        lastPaymentMethod,
+        personalPolicyID,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+        handleUndelete,
+        onLongPressRow,
+        modal,
+        handleSelectRow,
+        scrollToListIndex,
+    } = useSearchListViewState({data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow: false});
+
+    // Flat lists have no group children to skip, so visibility is computed straight off the rendered rows.
+    const isItemVisible = (item: SearchListItem) => !isRowDeleted(item) || isOffline;
+    const firstVisibleIndex = data.findIndex(isItemVisible);
+    const lastVisibleIndex = data.findLastIndex(isItemVisible);
+
+    // Flat-expense selection counts: no empty groups, no group flattening — a single pass over the rows.
+    const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
+    const totalItems = data.filter((item) => !isRowDeleted(item)).length;
+
+    const renderItem = (item: SearchListItem, index: number, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
+        const isDisabled = isRowDeleted(item);
+        // Only expense row exits animate; invoice and trip transaction lists do not (matches the legacy per-type gate).
+        const shouldApplyAnimation = type === CONST.SEARCH.DATA_TYPES.EXPENSE && index < data.length - 1;
+
+        return (
+            <AnimatedExitRow
+                shouldApplyAnimation={shouldApplyAnimation}
+                hasItemsBeingRemoved={hasItemsBeingRemoved}
+                isRowExiting={isDisabled}
+            >
+                <TransactionListItem
+                    showTooltip
+                    onSelectRow={handleSelectRow}
+                    onLongPressRow={onLongPressRow}
+                    onSelectionButtonPress={toggle}
+                    canSelectMultiple={canSelectMultiple}
+                    item={item}
+                    columns={columns}
+                    isDisabled={isDisabled}
+                    lastPaymentMethod={lastPaymentMethod}
+                    personalPolicyID={personalPolicyID}
+                    userBillingGracePeriodEnds={userBillingGracePeriodEnds}
+                    ownerBillingGracePeriodEnd={ownerBillingGracePeriodEnd}
+                    nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                    onFocus={onFocus}
+                    onUndelete={handleUndelete}
+                    isFirstItem={index === firstVisibleIndex}
+                    isLastItem={index === lastVisibleIndex && !ListFooterComponent}
+                />
+            </AnimatedExitRow>
+        );
+    };
+
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
+    const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
+
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={false}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
+    return (
+        <SearchListViewLayout
+            columns={columns}
+            type={type}
+            isActionColumnWide={isActionColumnWide}
+            columnSizeOptions={columnSizeOptions}
+            isHeaderVisible={!!searchTableHeader}
+            dataKey={data}
+            data={data}
+            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+            policyCategories={policyCategories}
+            policyTags={policyTags}
+            isKeyboardShown={isKeyboardShown}
+            safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
+            containerStyle={containerStyle}
+        >
+            <BaseSearchList
+                selectionTopBar={selectionTopBar}
+                data={data}
+                renderItem={renderItem}
+                onSelectRow={handleSelectRow}
+                keyExtractor={keyExtractor}
+                onScroll={onScroll}
+                onViewableItemsChanged={onViewableItemsChanged}
+                showsVerticalScrollIndicator={false}
+                ref={listRef}
+                columns={columns}
+                scrollToIndex={scrollToListIndex}
+                flattenedItemsLength={data.length}
+                onEndReached={onEndReached}
+                onEndReachedThreshold={0.75}
+                ListFooterComponent={ListFooterComponent}
+                onLayout={onLayout}
+                contentContainerStyle={contentContainerStyle}
+                newTransactions={newTransactions}
+                isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+            />
+            {modal}
+        </SearchListViewLayout>
+    );
+}
+
+ExpenseFlatSearchView.displayName = 'ExpenseFlatSearchView';
+
+export default ExpenseFlatSearchView;

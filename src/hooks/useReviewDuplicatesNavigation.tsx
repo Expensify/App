@@ -1,7 +1,11 @@
-import {useEffect, useMemo, useState} from 'react';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+
+import {useEffect, useState} from 'react';
 
 type StepName = 'description' | 'merchant' | 'category' | 'billable' | 'tag' | 'taxCode' | 'reimbursable' | 'confirmation';
 
@@ -9,7 +13,7 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     const [nextScreen, setNextScreen] = useState<StepName>();
     const [prevScreen, setPrevScreen] = useState<StepName>();
     const [currentScreenIndex, setCurrentScreenIndex] = useState(0);
-    const intersection = useMemo(() => CONST.REVIEW_DUPLICATES_ORDER.filter((element) => stepNames.includes(element)), [stepNames]);
+    const intersection = CONST.REVIEW_DUPLICATES_ORDER.filter((element) => stepNames.includes(element));
 
     useEffect(() => {
         if (currentScreenName === 'confirmation') {
@@ -27,28 +31,32 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     const goBack = () => {
         switch (prevScreen) {
             case 'merchant':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT.getRoute(threadReportID)));
                 break;
             case 'category':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY.getRoute(threadReportID)));
                 break;
             case 'tag':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG.getRoute(threadReportID)));
                 break;
             case 'description':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION.getRoute(threadReportID)));
                 break;
             case 'taxCode':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE.getRoute(threadReportID)));
                 break;
             case 'reimbursable':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE.getRoute(threadReportID)));
                 break;
             case 'billable':
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE.getRoute(threadReportID)));
                 break;
             default:
-                Navigation.goBack(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadReportID, backTo));
+                if (backTo) {
+                    Navigation.goBack(backTo as Route);
+                    return;
+                }
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(threadReportID)));
                 break;
         }
     };
@@ -56,28 +64,28 @@ function useReviewDuplicatesNavigation(stepNames: string[], currentScreenName: S
     const navigateToNextScreen = () => {
         switch (nextScreen) {
             case 'merchant':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_MERCHANT.getRoute(threadReportID)));
                 break;
             case 'category':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_CATEGORY.getRoute(threadReportID)));
                 break;
             case 'tag':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAG.getRoute(threadReportID)));
                 break;
             case 'description':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION.getRoute(threadReportID)));
                 break;
             case 'taxCode':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_TAX_CODE.getRoute(threadReportID)));
                 break;
             case 'reimbursable':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE.getRoute(threadReportID)));
                 break;
             case 'billable':
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW_BILLABLE.getRoute(threadReportID)));
                 break;
             default:
-                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(threadReportID, backTo));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION.getRoute(threadReportID)));
                 break;
         }
     };

@@ -1,99 +1,196 @@
-import React, {useCallback, useEffect} from 'react';
-import Animated, {runOnJS, useAnimatedStyle, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
-import Text from '@components/Text';
+import Button from '@components/Button';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getMostRecentActiveDEWApproveFailedAction} from '@libs/ReportActionsUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import SettlementButton from '.';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportActions, ReportMetadata} from '@src/types/onyx';
+
+import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useState} from 'react';
+import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 import type SettlementButtonProps from './types';
+
+import SettlementButton from '.';
 
 type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isPaidAnimationRunning: boolean;
     onAnimationFinish: () => void;
+    isApprovedAnimationRunning: boolean;
+    shouldAddTopMargin?: boolean;
+    canIOUBePaid: boolean;
+
+    /** Whether this is a DEW approval that needs backend validation before showing "Approved" */
+    isDEWApproval?: boolean;
+
+    reportID?: string;
 };
 
-function AnimatedSettlementButton({isPaidAnimationRunning, onAnimationFinish, isDisabled, ...settlementButtonProps}: AnimatedSettlementButtonProps) {
+const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingExpenseAction;
+const hasActiveDEWApproveFailedSelector = (reportActions: OnyxEntry<ReportActions>) => !!getMostRecentActiveDEWApproveFailedAction(reportActions);
+
+function AnimatedSettlementButton({
+    isPaidAnimationRunning,
+    isApprovedAnimationRunning,
+    onAnimationFinish,
+    shouldAddTopMargin = false,
+    isDisabled,
+    canIOUBePaid,
+    wrapperStyle,
+    sentryLabel,
+    isDEWApproval,
+    reportID,
+    ...settlementButtonProps
+}: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const buttonScale = useSharedValue(1);
-    const buttonOpacity = useSharedValue(1);
-    const paymentCompleteTextScale = useSharedValue(0);
-    const paymentCompleteTextOpacity = useSharedValue(1);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Checkmark']);
+    const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
+    const [pendingExpenseAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
+
+    // A blocked DEW approval is NOT an API failure (the approve request succeeds and `pendingExpenseAction` clears to
+    // null exactly like a successful approval) — the backend signals the block with a DEW_APPROVE_FAILED report action.
+    // So unlike submit, we cannot detect failure from `pendingExpenseAction`; we read the action instead.
+    const [hasActiveDEWApproveFailed = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: hasActiveDEWApproveFailedSelector});
+    // Latch that the approval has actually reached the pending state. We only evaluate success/failure after this,
+    // otherwise the startup window (before the optimistic `pendingExpenseAction = APPROVE` is applied)
+    // would prematurely complete/abort and skip the loading state.
+    const [hasEnteredPending, setHasEnteredPending] = useState(false);
+
+    const isDEWApprovalAnimation = isDEWApproval && isApprovedAnimationRunning;
+    if (isDEWApprovalAnimation && pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.APPROVE && !hasEnteredPending) {
+        setHasEnteredPending(true);
+    } else if (!isApprovedAnimationRunning && hasEnteredPending) {
+        setHasEnteredPending(false);
+    }
+
+    // For a DEW approval the optimistic animation starts immediately, but the report only reaches the approved state
+    // once the backend confirms. It is complete only after it entered the pending state,and the pending action is cleared
+    // (null) while DEW approval hasn't failed. Until then keep it loading.
+    const isDEWApprovalComplete = !!isDEWApprovalAnimation && hasEnteredPending && !pendingExpenseAction && !hasActiveDEWApproveFailed;
+    const isDEWApprovalLoading = !!isDEWApprovalAnimation && !isDEWApprovalComplete;
+    const isDEWApprovalFailed = !!isDEWApprovalAnimation && hasEnteredPending && !pendingExpenseAction && hasActiveDEWApproveFailed;
+
+    const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBS_UP_DURATION;
+    const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
+    const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
+    const buttonMarginTop = useSharedValue<number>(gap);
     const height = useSharedValue<number>(variables.componentSizeNormal);
-    const buttonMarginTop = useSharedValue<number>(styles.expenseAndReportPreviewTextButtonContainer.gap);
-    const buttonStyles = useAnimatedStyle(() => ({
-        transform: [{scale: buttonScale.value}],
-        opacity: buttonOpacity.value,
-    }));
-    const paymentCompleteTextStyles = useAnimatedStyle(() => ({
-        transform: [{scale: paymentCompleteTextScale.value}],
-        opacity: paymentCompleteTextOpacity.value,
-        position: 'absolute',
-        alignSelf: 'center',
-    }));
+    const [canShow, setCanShow] = useState(true);
+    const [minWidth, setMinWidth] = useState<number>(0);
+
     const containerStyles = useAnimatedStyle(() => ({
-        height: height.value,
+        height: height.get(),
         justifyContent: 'center',
-        overflow: 'hidden',
-        marginTop: buttonMarginTop.value,
+        ...(shouldAddTopMargin && {marginTop: buttonMarginTop.get()}),
     }));
-    const buttonDisabledStyle = isPaidAnimationRunning
-        ? {
-              opacity: 1,
-              ...styles.cursorDefault,
-          }
-        : undefined;
 
-    const resetAnimation = useCallback(() => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        buttonScale.value = 1;
-        buttonOpacity.value = 1;
-        paymentCompleteTextScale.value = 0;
-        paymentCompleteTextOpacity.value = 1;
-        height.value = variables.componentSizeNormal;
-        buttonMarginTop.value = styles.expenseAndReportPreviewTextButtonContainer.gap;
-    }, [buttonScale, buttonOpacity, paymentCompleteTextScale, paymentCompleteTextOpacity, height, buttonMarginTop, styles.expenseAndReportPreviewTextButtonContainer.gap]);
+    const willShowPaymentButton = canIOUBePaid && isApprovedAnimationRunning;
 
-    useEffect(() => {
-        if (!isPaidAnimationRunning) {
-            resetAnimation();
+    const finishAnimationAndReset = () => {
+        setMinWidth(0);
+        setCanShow(true);
+        height.set(variables.componentSizeNormal);
+        buttonMarginTop.set(shouldAddTopMargin ? gap : 0);
+        onAnimationFinish();
+    };
+
+    const onButtonExitComplete: () => void = () => {
+        'worklet';
+
+        if (shouldAddTopMargin) {
+            buttonMarginTop.set(withTiming(willShowPaymentButton ? gap : 0, {duration: buttonDuration}));
+        }
+        if (willShowPaymentButton) {
+            scheduleOnRN(finishAnimationAndReset);
             return;
         }
-        // eslint-disable-next-line react-compiler/react-compiler
-        buttonScale.value = withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION});
-        buttonOpacity.value = withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION});
-        paymentCompleteTextScale.value = withTiming(1, {duration: CONST.ANIMATION_PAID_DURATION});
+        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(finishAnimationAndReset)));
+    };
 
-        // Wait for the above animation + 1s delay before hiding the component
-        const totalDelay = CONST.ANIMATION_PAID_DURATION + CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
-        height.value = withDelay(
-            totalDelay,
-            withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}, () => runOnJS(onAnimationFinish)()),
-        );
-        buttonMarginTop.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
-        paymentCompleteTextOpacity.value = withDelay(totalDelay, withTiming(0, {duration: CONST.ANIMATION_PAID_DURATION}));
-    }, [isPaidAnimationRunning, onAnimationFinish, buttonOpacity, buttonScale, height, paymentCompleteTextOpacity, paymentCompleteTextScale, buttonMarginTop, resetAnimation]);
+    const buttonAnimation = new Keyframe({
+        from: {
+            opacity: 1,
+            transform: [{scale: 1}],
+        },
+        to: {
+            opacity: 0,
+            transform: [{scale: 0}],
+        },
+    })
+        .delay(buttonDelay)
+        .duration(buttonDuration)
+        .withCallback(onButtonExitComplete);
+
+    let icon;
+    if (isApprovedAnimationRunning) {
+        icon = expensifyIcons.ThumbsUp;
+    } else if (isPaidAnimationRunning) {
+        icon = expensifyIcons.Checkmark;
+    }
+
+    const animatedViewRef = (el: ComponentRef<typeof View> | null) => {
+        if (!el || !isAnimationRunning) {
+            return;
+        }
+        setMinWidth((el as unknown as HTMLElement).getBoundingClientRect?.().width ?? 0);
+    };
+
+    useEffect(() => {
+        if (!isAnimationRunning || (isDEWApprovalAnimation && !isDEWApprovalComplete)) {
+            return;
+        }
+        const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY);
+        return () => clearTimeout(timer);
+    }, [isAnimationRunning, isDEWApprovalComplete, isDEWApprovalAnimation]);
+
+    useEffect(() => {
+        if (!isDEWApprovalFailed) {
+            return;
+        }
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCanShow(false);
+    }, [isDEWApprovalFailed]);
 
     return (
-        <Animated.View style={containerStyles}>
-            {isPaidAnimationRunning && (
-                <Animated.View style={paymentCompleteTextStyles}>
-                    <Text style={[styles.buttonMediumText]}>{translate('iou.paymentComplete')}</Text>
+        <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
+            {isAnimationRunning && canShow && (
+                <Animated.View
+                    ref={animatedViewRef}
+                    exiting={buttonAnimation}
+                >
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        isLoading={isDEWApprovalLoading}
+                    >
+                        {!!icon && <Button.Icon src={icon} />}
+                        <Button.Text>{isApprovedAnimationRunning ? translate('iou.approved') : translate('iou.paymentComplete')}</Button.Text>
+                    </Button>
                 </Animated.View>
             )}
-            <Animated.View style={buttonStyles}>
+            {!isAnimationRunning && (
                 <SettlementButton
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...settlementButtonProps}
-                    isDisabled={isPaidAnimationRunning || isDisabled}
-                    disabledStyle={buttonDisabledStyle}
+                    wrapperStyle={wrapperStyle}
+                    isDisabled={isDisabled}
+                    sentryLabel={sentryLabel}
                 />
-            </Animated.View>
+            )}
         </Animated.View>
     );
 }
-
-AnimatedSettlementButton.displayName = 'AnimatedSettlementButton';
 
 export default AnimatedSettlementButton;

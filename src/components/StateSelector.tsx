@@ -1,15 +1,22 @@
-import {useIsFocused} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useEffect, useRef} from 'react';
-import type {ForwardedRef} from 'react';
-import type {View} from 'react-native';
 import useGeographicalStateAndCountryFromRoute from '@hooks/useGeographicalStateAndCountryFromRoute';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ComponentRef, ForwardedRef} from 'react';
+import type {View} from 'react-native';
+
+import {useIsFocused} from '@react-navigation/native';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useEffect, useRef} from 'react';
+
 import type {MenuItemProps} from './MenuItem';
+
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 
 type State = keyof typeof COMMON_CONST.STATES;
@@ -18,29 +25,21 @@ type StateSelectorProps = {
     /** Form error text. e.g when no state is selected */
     errorText?: string;
 
-    /** Current selected state  */
     value?: State | '';
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string) => void;
 
-    /** Label to display on field */
     label?: string;
-
-    /** Any additional styles to apply */
     wrapperStyle?: MenuItemProps['wrapperStyle'];
 
     /** Callback to call when the picker modal is dismissed */
     onBlur?: () => void;
 
-    /** object to get route details from */
-    stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE | typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function StateSelector(
-    {errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE}: StateSelectorProps,
-    ref: ForwardedRef<View>,
-) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, ref}: StateSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -71,10 +70,10 @@ function StateSelector(
         // This helps prevent issues where the component might not update correctly if the state is controlled by both the parent and the URL.
         Navigation.setParams({state: undefined});
 
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
-    const title = stateCode && Object.keys(COMMON_CONST.STATES).includes(stateCode) ? translate(`allStates.${stateCode}.stateName`) : '';
+    const title = stateCode && stateCode in COMMON_CONST.STATES ? translate(`allStates.${stateCode}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
@@ -84,22 +83,18 @@ function StateSelector(
             shouldShowRightIcon
             title={title}
             // Label can be an empty string
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             description={label || translate('common.state')}
             brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
             errorText={errorText}
             onPress={() => {
-                const activeRoute = Navigation.getActiveRoute();
                 didOpenStateSelector.current = true;
-                Navigation.navigate(stateSelectorRoute.getRoute(stateCode, activeRoute, label));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_STATE.getRoute(stateCode, label)));
             }}
             wrapperStyle={wrapperStyle}
         />
     );
 }
 
-StateSelector.displayName = 'StateSelector';
-
-export default React.forwardRef(StateSelector);
+export default StateSelector;
 
 export type {State};

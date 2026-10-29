@@ -1,5 +1,9 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputProps, TextInputSelectionChangeEventData, TextStyle} from 'react-native';
-import type {FileObject} from '@components/AttachmentModal';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {Ref} from 'react';
+import type {StyleProp, TextInput, TextInputProps, TextInputSelectionChangeEvent, TextStyle} from 'react-native';
 
 type TextSelection = {
     start: number;
@@ -7,67 +11,77 @@ type TextSelection = {
     positionX?: number;
     positionY?: number;
 };
-type CustomSelectionChangeEvent = NativeSyntheticEvent<TextInputSelectionChangeEventData> & {
-    positionX?: number;
-    positionY?: number;
+type CustomSelectionChangeEvent = {
+    nativeEvent: {
+        selection: TextInputSelectionChangeEvent['nativeEvent']['selection'] & Pick<TextSelection, 'positionX' | 'positionY'>;
+    };
 };
 
-type ComposerProps = Omit<TextInputProps, 'onClear'> & {
-    /** Indicate whether input is multiline */
-    multiline?: boolean;
+type WebComposerRef = Pick<TextInput, 'clear' | 'blur' | 'focus' | 'isFocused'> & {
+    readonly scrollTop: number;
+    setSelection?: never;
+    setNativeProps?: never;
+    preventFocusOnFirstResponderOnce?: never;
+};
 
-    /** Maximum number of lines in the text input */
-    maxLines?: number;
+type ComposerRef = TextInput | WebComposerRef;
 
-    /** The default value of the comment box */
-    defaultValue?: string;
+type ComposerProps = Omit<TextInputProps, 'onClear' | 'onSelectionChange'> &
+    ForwardedFSClassProps & {
+        /** Indicate whether input is multiline */
+        multiline?: boolean;
 
-    /** The value of the comment box */
-    value?: string;
+        /** Maximum number of lines in the text input */
+        maxLines?: number;
 
-    /**
-     * Callback when the input was cleared using the .clear ref method.
-     * The text parameter will be the value of the text that was cleared.
-     */
-    onClear?: (text: string) => void;
+        /** The default value of the comment box */
+        defaultValue?: string;
 
-    /** Callback method handle when the input is changed  */
-    onChangeText?: (numberOfLines: string) => void;
+        /** The value of the comment box */
+        value?: string;
 
-    /** Callback method to handle pasting a file */
-    onPasteFile?: (file: FileObject) => void;
+        /**
+         * Callback when the input was cleared using the .clear ref method.
+         * The text parameter is empty if live-markdown has not initialized its value.
+         */
+        onClear?: (text: string) => void;
 
-    /** General styles to apply to the text input */
-    // eslint-disable-next-line react/forbid-prop-types
-    style?: StyleProp<TextStyle>;
+        /** Callback method handle when the input is changed  */
+        onChangeText?: (numberOfLines: string) => void;
 
-    /** Whether or not this TextInput is disabled. */
-    isDisabled?: boolean;
+        /** Callback method to handle pasting a file */
+        onPasteFile?: (files: FileObject | FileObject[]) => void;
 
-    /** Set focus to this component the first time it renders.
+        /** General styles to apply to the text input */
+
+        style?: StyleProp<TextStyle>;
+
+        /** Whether or not this TextInput is disabled. */
+        isDisabled?: boolean;
+
+        /** Set focus to this component the first time it renders.
   Override this in case you need to set focus on one field out of many, or when you want to disable autoFocus */
-    autoFocus?: boolean;
+        autoFocus?: boolean;
 
-    /** Update selection position on change */
-    onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
+        /** Update selection position on change */
+        onSelectionChange?: (event: CustomSelectionChangeEvent) => void;
 
-    /** Selection Object */
-    selection?: TextSelection;
+        selection?: TextSelection;
+        shouldCalculateCaretPosition?: boolean;
 
-    /** Should we calculate the caret position */
-    shouldCalculateCaretPosition?: boolean;
+        /** Function to check whether composer is covered up or not */
+        checkComposerVisibility?: () => boolean;
 
-    /** Function to check whether composer is covered up or not */
-    checkComposerVisibility?: () => boolean;
+        isComposerFullSize?: boolean;
 
-    /** Whether the sull composer is open */
-    isComposerFullSize?: boolean;
+        /** Should make the input only scroll inside the element avoid scroll out to parent */
+        shouldContainScroll?: boolean;
 
-    /** Should make the input only scroll inside the element avoid scroll out to parent */
-    shouldContainScroll?: boolean;
+        /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
+        isGroupPolicyReport?: boolean;
 
-    /** Indicates whether the composer is in a group policy report. Used for disabling report mentioning style in markdown input */
-    isGroupPolicyReport?: boolean;
-};
+        /** Ref exposing imperative methods on the underlying text input */
+        ref?: Ref<ComposerRef>;
+    };
 
-export type {TextSelection, ComposerProps, CustomSelectionChangeEvent};
+export type {TextSelection, ComposerProps, CustomSelectionChangeEvent, ComposerRef, WebComposerRef};

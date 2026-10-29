@@ -1,35 +1,53 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TabSelector from '@components/TabSelector/TabSelector';
 import Text from '@components/Text';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {useDerivedIsEmptyReport} from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToConciergeChatAndDeleteReport} from '@libs/actions/Report';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
+import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getViolatingReportIDForRBRInLHN, hasExpensifyGuidesEmails} from '@libs/ReportUtils';
+
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import Debug from '@userActions/Debug';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {pendingExpenseActionSelector} from '@selectors/ReportMetaData';
+import React from 'react';
+import {View} from 'react-native';
+
 import DebugReportActions from './DebugReportActions';
 
-type DebugReportPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;
+type DebugReportPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;
 
 type Metadata = {
     title: string;
@@ -51,25 +69,75 @@ function DebugReportPage({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [pendingExpenseActionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
+    const {isOffline} = useNetwork();
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID],
+    });
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
+    const {isBetaEnabled} = usePermissions();
+    const isDefaultRoomsBetaEnabled = isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
+    const currentUserPersonalDetail = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = currentUserPersonalDetail;
+    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
+    const isReportArchived = useReportIsArchived(reportID);
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+    const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
+    const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
 
-    const metadata = useMemo<Metadata[]>(() => {
-        if (!report) {
-            return [];
-        }
-
-        const shouldDisplayViolations = ReportUtils.shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const shouldDisplayReportViolations = ReportUtils.isReportOwner(report) && ReportUtils.hasReportViolations(reportID);
-        const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
-        const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report) ?? {};
-        const {reason: reasonRBR, reportAction: reportActionRBR} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, reportActions, hasViolations) ?? {};
+    let metadata: Metadata[];
+    if (!report) {
+        metadata = [];
+    } else {
+        const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
+        const hasViolations = !!shouldDisplayViolations;
+        const {reason: reasonGBR, reportAction: reportActionGBR} =
+            DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, currentUserLogin ?? '', currentUserAccountID, pendingExpenseActionMetadata, isReportArchived, transactionViolations) ??
+            {};
+        const {reason: reasonRBR, reportAction: reportActionRBR} =
+            DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                report,
+                chatReport,
+                reportActions,
+                transactions,
+                transactionViolations,
+                hasViolations,
+                reportAttributes?.reportErrors ?? {},
+                isOffline,
+                currentUserAccountID,
+                isReportArchived,
+            ) ?? {};
         const hasRBR = !!reasonRBR;
         const hasGBR = !hasRBR && !!reasonGBR;
-        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN(report, hasRBR);
-
-        return [
+        const reasonLHN = DebugUtils.getReasonForShowingRowInLHN({
+            report,
+            chatReport,
+            isDefaultRoomsBetaEnabled,
+            doesReportHaveViolations: shouldDisplayViolations,
+            hasRBR,
+            isReportArchived,
+            isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
+            draftComment,
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID,
+            conciergeReportID,
+            hasGuidesEmails,
+            derivedIsEmptyReport,
+            transactionViolations,
+        });
+        metadata = [
             {
                 title: translate('debug.visibleInLHN'),
                 subtitle: translate(`debug.${!!reasonLHN}`),
@@ -112,7 +180,90 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, reportActions, reportID, transactionViolations, translate]);
+    }
+
+    const icons = useMemoizedLazyExpensifyIcons(['Eye']);
+
+    const detailsTab = (
+        <DebugDetails
+            formType={CONST.DEBUG.FORMS.REPORT}
+            data={report}
+            onSave={(data) => {
+                Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
+            }}
+            onDelete={() => {
+                navigateToConciergeChatAndDeleteReport(
+                    reportID,
+                    conciergeReportID,
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed,
+                    reportOwnerPersonalDetail,
+                    currentUserPersonalDetail,
+                    conciergePersonalDetail,
+                    true,
+                    true,
+                );
+            }}
+            validate={DebugUtils.validateReportDraftProperty}
+        >
+            <View style={[styles.mb5, styles.ph5, styles.gap5]}>
+                {metadata?.map(({title, subtitle, message, action}) => (
+                    <View
+                        key={title}
+                        style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}
+                    >
+                        <View style={[styles.flexRow, styles.justifyContentBetween]}>
+                            <Text style={styles.h4}>{title}</Text>
+                            <Text>{subtitle}</Text>
+                        </View>
+                        {!!message && <Text style={styles.textSupporting}>{message}</Text>}
+                        {!!action && (
+                            <Button onPress={action.callback}>
+                                <Button.Text>{action.name}</Button.Text>
+                            </Button>
+                        )}
+                    </View>
+                ))}
+                <Button
+                    onPress={() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
+                    }}
+                >
+                    <Button.Icon src={icons.Eye} />
+                    <Button.Text>{translate('debug.viewReport')}</Button.Text>
+                </Button>
+                {!!transactionID && (
+                    <Button
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
+                        }}
+                    >
+                        <Button.Text>{translate('debug.viewTransaction')}</Button.Text>
+                    </Button>
+                )}
+            </View>
+        </DebugDetails>
+    );
+
+    const jsonTab = <DebugJSON data={report ?? {}} />;
+
+    const reportActionsTab = <DebugReportActions reportID={reportID} />;
+
+    const routes: DebugTabNavigatorRoutes = [
+        {
+            name: CONST.DEBUG.DETAILS,
+            content: detailsTab,
+        },
+        {
+            name: CONST.DEBUG.JSON,
+            content: jsonTab,
+        },
+        {
+            name: CONST.DEBUG.REPORT_ACTIONS,
+            content: reportActionsTab,
+        },
+    ];
 
     if (!report) {
         return <NotFoundPage />;
@@ -122,8 +273,8 @@ function DebugReportPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
-            testID={DebugReportPage.displayName}
+            shouldEnableMinHeight={canUseTouchScreen()}
+            testID="DebugReportPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -131,68 +282,14 @@ function DebugReportPage({
                         title={`${translate('debug.debug')} - ${translate('debug.report')}`}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <OnyxTabNavigator
-                        id={CONST.TAB.DEBUG_TAB_ID}
-                        tabBar={TabSelector}
-                    >
-                        <TopTab.Screen name={CONST.DEBUG.DETAILS}>
-                            {() => (
-                                <DebugDetails
-                                    formType={CONST.DEBUG.FORMS.REPORT}
-                                    data={report}
-                                    onSave={(data) => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
-                                    }}
-                                    onDelete={() => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
-                                        navigateToConciergeChatAndDeleteReport(reportID, true, true);
-                                    }}
-                                    validate={DebugUtils.validateReportDraftProperty}
-                                >
-                                    <View style={[styles.mb5, styles.ph5, styles.gap5]}>
-                                        {metadata?.map(({title, subtitle, message, action}) => (
-                                            <View style={[StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.p5, styles.br4, styles.flexColumn, styles.gap2]}>
-                                                <View style={[styles.flexRow, styles.justifyContentBetween]}>
-                                                    <Text style={styles.h4}>{title}</Text>
-                                                    <Text>{subtitle}</Text>
-                                                </View>
-                                                {!!message && <Text style={styles.textSupporting}>{message}</Text>}
-                                                {!!action && (
-                                                    <Button
-                                                        text={action.name}
-                                                        onPress={action.callback}
-                                                    />
-                                                )}
-                                            </View>
-                                        ))}
-                                        <Button
-                                            text={translate('debug.viewReport')}
-                                            onPress={() => {
-                                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-                                            }}
-                                            icon={Expensicons.Eye}
-                                        />
-                                        {!!transactionID && (
-                                            <Button
-                                                text={translate('debug.viewTransaction')}
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
-                                                }}
-                                            />
-                                        )}
-                                    </View>
-                                </DebugDetails>
-                            )}
-                        </TopTab.Screen>
-                        <TopTab.Screen name={CONST.DEBUG.JSON}>{() => <DebugJSON data={report ?? {}} />}</TopTab.Screen>
-                        <TopTab.Screen name={CONST.DEBUG.REPORT_ACTIONS}>{() => <DebugReportActions reportID={reportID} />}</TopTab.Screen>
-                    </OnyxTabNavigator>
+                    <DebugTabNavigator
+                        id={CONST.DEBUG.FORMS.REPORT}
+                        routes={routes}
+                    />
                 </View>
             )}
         </ScreenWrapper>
     );
 }
-
-DebugReportPage.displayName = 'DebugReportPage';
 
 export default DebugReportPage;

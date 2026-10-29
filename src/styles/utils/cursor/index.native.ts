@@ -8,10 +8,16 @@ const cursor: CursorStyles = {
     cursorUnset: {},
     cursorAuto: {},
     cursorZoomIn: {},
+    cursorGrab: {},
     cursorGrabbing: {},
     cursorZoomOut: {},
     cursorInitial: {},
     cursorText: {},
+    cursorEwResize: {},
+    cursorColResize: {},
+    cursorNsResize: {},
+    cursorNeswResize: {},
+    cursorNwseResize: {},
 };
 
 export default cursor;

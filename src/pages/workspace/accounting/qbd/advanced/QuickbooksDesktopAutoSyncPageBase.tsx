@@ -1,0 +1,103 @@
+import ConnectionLayout from '@components/ConnectionLayout';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {updateQuickbooksDesktopAutoSync} from '@libs/actions/connections/QuickbooksDesktop';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
+import {clearQBDErrorField} from '@userActions/Policy/Policy';
+
+import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React from 'react';
+
+type QuickbooksDesktopAutoSyncPageBaseParams = {
+    policy: OnyxEntry<Policy>;
+    navigateBackTo?: Route;
+};
+
+function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksDesktopAutoSyncPageBaseParams) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const policyID = policy?.id;
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const config = policy?.connections?.quickbooksDesktop?.config;
+    const {autoSync, pendingFields} = config ?? {};
+    const accountingMethod = config?.export?.accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH;
+    const pendingAction =
+        settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
+
+    const goBack = () => {
+        Navigation.goBack(
+            navigateBackTo ??
+                (policyID
+                    ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))
+                    : undefined),
+        );
+    };
+
+    return (
+        <ConnectionLayout
+            displayName="QuickbooksDesktopAutoSyncPageBase"
+            headerTitle="common.settings"
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            contentContainerStyle={styles.pb2}
+            titleStyle={styles.ph5}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
+            onBackButtonPress={goBack}
+        >
+            <ToggleSettingOptionRow
+                key={translate('workspace.accounting.autoSync')}
+                title={translate('workspace.accounting.autoSync')}
+                subtitle={translate('workspace.qbd.advancedConfig.autoSyncDescription')}
+                switchAccessibilityLabel={translate('workspace.qbd.advancedConfig.autoSyncDescription')}
+                isActive={!!autoSync?.enabled}
+                wrapperStyle={[styles.pv2, styles.mh5]}
+                shouldPlaceSubtitleBelowSwitch
+                onToggle={() => {
+                    if (!policyID) {
+                        return;
+                    }
+                    updateQuickbooksDesktopAutoSync(policyID, !autoSync?.enabled);
+                }}
+                pendingAction={pendingAction}
+                errors={getLatestErrorField(config ?? {}, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC)}
+                onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC)}
+            />
+            {!!autoSync?.enabled && (
+                <OfflineWithFeedback pendingAction={pendingAction}>
+                    <MenuItemField
+                        value={
+                            accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
+                                ? translate(`workspace.qbd.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
+                                : translate(`workspace.qbd.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
+                        }
+                        name={translate('workspace.qbd.accountingMethods.label')}
+                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD.getRoute(policyID))}
+                    />
+                </OfflineWithFeedback>
+            )}
+        </ConnectionLayout>
+    );
+}
+
+export default QuickbooksDesktopAutoSyncPageBase;

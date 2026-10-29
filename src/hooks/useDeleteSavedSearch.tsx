@@ -1,46 +1,45 @@
-import React, {useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
+
+import {deleteSavedSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as SearchActions from '@userActions/Search';
+import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
+
+import useConfirmModal from './useConfirmModal';
 import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 
 export default function useDeleteSavedSearch() {
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [hashToDelete, setHashToDelete] = useState(0);
     const {translate} = useLocalize();
+    const {currentSearchKey} = useSearchQueryContext();
+    const {showConfirmModal} = useConfirmModal();
+    const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
 
-    const showDeleteModal = (hash: number) => {
-        setIsDeleteModalVisible(true);
-        setHashToDelete(hash);
+    const handleDeleteSavedSearch = (savedSearchID: string) => {
+        showConfirmModal({
+            title: translate('search.deleteSavedSearch'),
+            prompt: translate('search.deleteSavedSearchConfirm'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            deleteSavedSearch(savedSearchID);
+
+            if (savedSearchID === searchKeyToSavedSearchID(currentSearchKey)) {
+                const query = lastExpensesSearchQuery ?? buildCannedSearchQuery();
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
+            }
+        });
     };
 
-    const handleDelete = () => {
-        SearchActions.deleteSavedSearch(hashToDelete);
-        setIsDeleteModalVisible(false);
-        SearchActions.clearAdvancedFilters();
-        Navigation.navigate(
-            ROUTES.SEARCH_CENTRAL_PANE.getRoute({
-                query: SearchQueryUtils.buildCannedSearchQuery(),
-            }),
-        );
-    };
-
-    function DeleteConfirmModal() {
-        return (
-            <ConfirmModal
-                title={translate('search.deleteSavedSearch')}
-                onConfirm={handleDelete}
-                onCancel={() => setIsDeleteModalVisible(false)}
-                isVisible={isDeleteModalVisible}
-                prompt={translate('search.deleteSavedSearchConfirm')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-        );
-    }
-
-    return {showDeleteModal, DeleteConfirmModal};
+    return {showDeleteModal: handleDeleteSavedSearch};
 }

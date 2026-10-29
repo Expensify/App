@@ -1,0 +1,365 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
+import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
+import Lightbox from '@components/Lightbox';
+
+import CONST from '@src/CONST';
+
+import type ReactNative from 'react-native';
+
+import React from 'react';
+
+import createSharedValueMock from '../utils/createSharedValueMock';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+jest.mock('@components/Image', () => {
+    const MockReact = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
+    function MockImage({priority, testID, ...props}: {priority?: string; testID?: string}) {
+        return MockReact.createElement(View, {
+            testID: testID ?? 'image',
+            accessibilityHint: priority ?? 'none',
+            ...props,
+        });
+    }
+    return {
+        __esModule: true,
+        default: MockReact.memo(MockImage),
+    };
+});
+
+jest.mock('@components/ActivityIndicator', () => {
+    const MockReact = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
+    return {__esModule: true, default: () => MockReact.createElement(View, {testID: 'activity-indicator'})};
+});
+
+jest.mock('@components/ImageLoadTimeoutNotice', () => {
+    const MockReact = jest.requireActual<typeof React>('react');
+    const {View, Pressable} = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        __esModule: true,
+        default: ({onRetry}: {onRetry: () => void}) =>
+            MockReact.createElement(View, {testID: 'load-timeout-notice'}, MockReact.createElement(Pressable, {testID: 'retry-button', onPress: onRetry})),
+    };
+});
+
+let mockIsOffline = false;
+
+jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
+
+jest.mock('@components/Lightbox/numberOfConcurrentLightboxes', () => ({
+    __esModule: true,
+    default: 3,
+}));
+
+jest.mock('@components/MultiGestureCanvas', () => {
+    const MockReact = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        __esModule: true,
+        default: ({children}: {children: React.ReactNode}) => MockReact.createElement(View, {testID: 'multi-gesture-canvas'}, children),
+        DEFAULT_ZOOM_RANGE: {min: 1, max: 5},
+    };
+});
+
+function createPagerItems(count: number) {
+    return Array.from({length: count}, (_, i) => ({
+        source: `https://example.com/image-${i}.png`,
+        previewSource: `https://example.com/image-${i}-preview.png`,
+        index: i,
+        isActive: false,
+        attachmentID: `attachment-${i}`,
+    }));
+}
+
+function createStateValue(activePage: number, itemCount: number): AttachmentCarouselPagerStateContextType {
+    return {
+        pagerItems: createPagerItems(itemCount),
+        activePage,
+        isPagerScrolling: createSharedValueMock(false),
+        isScrollEnabled: createSharedValueMock(true),
+        pagerRef: {current: null},
+    };
+}
+
+function createActionsValue(): AttachmentCarouselPagerActionsContextType {
+    return {
+        onTap: jest.fn(),
+        onScaleChanged: jest.fn(),
+        onSwipeDown: jest.fn(),
+    };
+}
+
+async function renderLightboxInCarousel(
+    attachmentID: string | undefined,
+    uri: string,
+    stateValue: AttachmentCarouselPagerStateContextType,
+    actionsValue: AttachmentCarouselPagerActionsContextType,
+) {
+    render(
+        <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
+            <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
+                <Lightbox
+                    attachmentID={attachmentID}
+                    uri={uri}
+                />
+            </AttachmentCarouselPagerActionsContext.Provider>
+        </AttachmentCarouselPagerStateContext.Provider>,
+    );
+
+    await waitForBatchedUpdatesWithAct();
+
+    fireEvent(screen.getByTestId('lightbox-wrapper'), 'onLayout', {
+        nativeEvent: {layout: {width: 400, height: 800}},
+    });
+
+    await waitForBatchedUpdatesWithAct();
+}
+
+describe('Lightbox', () => {
+    describe('page resolution with missing attachmentID', () => {
+        it('should resolve page correctly using source fallback when attachmentID is undefined', async () => {
+            const stateValue: AttachmentCarouselPagerStateContextType = {
+                pagerItems: [
+                    {source: 'https://example.com/a.png', index: 0, isActive: false, attachmentID: undefined},
+                    {source: 'https://example.com/b.png', index: 1, isActive: false, attachmentID: undefined},
+                    {source: 'https://example.com/c.png', index: 2, isActive: true, attachmentID: undefined},
+                ],
+                activePage: 2,
+                isPagerScrolling: createSharedValueMock(false),
+                isScrollEnabled: createSharedValueMock(true),
+                pagerRef: {current: null},
+            };
+            const actionsValue = createActionsValue();
+
+            // Lightbox for the 3rd image (index 2) should resolve to page 2, not page 0
+            await renderLightboxInCarousel(undefined, 'https://example.com/c.png', stateValue, actionsValue);
+
+            // The active page lightbox should render the multi-gesture-canvas
+            expect(screen.getByTestId('multi-gesture-canvas')).toBeTruthy();
+        });
+    });
+
+    describe('page resolution when attachment is not found in pagerItems', () => {
+        it('should fall back to page 0 and still render when findIndex returns -1', async () => {
+            const stateValue = createStateValue(0, 5);
+            const actionsValue = createActionsValue();
+
+            // Use an attachmentID and uri that don't match any pagerItem — findIndex returns -1, should fallback to page 0
+            await renderLightboxInCarousel('non-existent-id', 'https://example.com/unknown.png', stateValue, actionsValue);
+
+            // Page 0 === activePage 0, so this should be active and render the lightbox
+            expect(screen.getByTestId('multi-gesture-canvas')).toBeTruthy();
+            expect(screen.getAllByTestId('image').length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('fallback rendering range', () => {
+        it('should not render any image for distant pages outside FALLBACK_OFFSET range', async () => {
+            const stateValue = createStateValue(15, 30);
+            const actionsValue = createActionsValue();
+
+            await renderLightboxInCarousel('attachment-0', 'https://example.com/image-0.png', stateValue, actionsValue);
+
+            expect(screen.queryAllByTestId('image')).toHaveLength(0);
+        });
+
+        it('should render fallback image for pages within FALLBACK_OFFSET range', async () => {
+            const stateValue = createStateValue(15, 30);
+            const actionsValue = createActionsValue();
+
+            await renderLightboxInCarousel('attachment-13', 'https://example.com/image-13.png', stateValue, actionsValue);
+
+            expect(screen.getAllByTestId('image').length).toBeGreaterThan(0);
+        });
+
+        it('should render lightbox image for the active page', async () => {
+            const stateValue = createStateValue(15, 30);
+            const actionsValue = createActionsValue();
+
+            await renderLightboxInCarousel('attachment-15', 'https://example.com/image-15.png', stateValue, actionsValue);
+
+            expect(screen.getByTestId('multi-gesture-canvas')).toBeTruthy();
+            expect(screen.getAllByTestId('image').length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('image priority', () => {
+        it('should assign HIGH priority to the active page image', async () => {
+            const stateValue = createStateValue(5, 30);
+            const actionsValue = createActionsValue();
+
+            await renderLightboxInCarousel('attachment-5', 'https://example.com/image-5.png', stateValue, actionsValue);
+
+            const images = screen.getAllByTestId('image');
+            expect(images.length).toBeGreaterThan(0);
+            for (const image of images) {
+                expect(image.props.accessibilityHint).toBe(CONST.IMAGE_LOADING_PRIORITY.HIGH);
+            }
+        });
+
+        it('should assign NORMAL priority to non-active pages within the lightbox visible range', async () => {
+            const stateValue = createStateValue(5, 30);
+            const actionsValue = createActionsValue();
+
+            // attachment-4 is one page before active (5), within lightbox window (NUMBER_OF_CONCURRENT_LIGHTBOXES=3, offset=1)
+            await renderLightboxInCarousel('attachment-4', 'https://example.com/image-4.png', stateValue, actionsValue);
+
+            const images = screen.getAllByTestId('image');
+            expect(images.length).toBeGreaterThan(0);
+            for (const image of images) {
+                expect(image.props.accessibilityHint).toBe(CONST.IMAGE_LOADING_PRIORITY.NORMAL);
+            }
+        });
+
+        it('should assign LOW priority to fallback images outside the lightbox window', async () => {
+            const stateValue = createStateValue(15, 30);
+            const actionsValue = createActionsValue();
+
+            // attachment-13 is 2 pages away from active (15), within FALLBACK_OFFSET but outside lightbox window (offset=1)
+            await renderLightboxInCarousel('attachment-13', 'https://example.com/image-13.png', stateValue, actionsValue);
+
+            const images = screen.getAllByTestId('image');
+            expect(images.length).toBeGreaterThan(0);
+            for (const image of images) {
+                expect(image.props.accessibilityHint).toBe(CONST.IMAGE_LOADING_PRIORITY.LOW);
+            }
+        });
+    });
+
+    describe('image that never finishes loading', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+            mockIsOffline = false;
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        function renderStandaloneLightbox() {
+            const onError = jest.fn();
+            render(
+                <Lightbox
+                    uri="https://example.com/receipt.jpg"
+                    onError={onError}
+                />,
+            );
+            fireEvent(screen.getByTestId('lightbox-wrapper'), 'onLayout', {
+                nativeEvent: {layout: {width: 400, height: 800}},
+            });
+            return {onError};
+        }
+
+        it('stops the spinner and offers a retry when the load runs past the timeout', () => {
+            // Given a lightbox whose image never emits onLoad or onError
+            const {onError} = renderStandaloneLightbox();
+            expect(screen.getByTestId('activity-indicator')).toBeTruthy();
+
+            // When the spinner has been on screen for the whole timeout
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+
+            // Then the spinner is replaced by a retry option, and the parent is not told the load failed
+            expect(screen.queryByTestId('activity-indicator')).toBeNull();
+            expect(screen.getByTestId('retry-button')).toBeTruthy();
+            expect(onError).not.toHaveBeenCalled();
+        });
+
+        it('still shows an image that loads after the timeout', () => {
+            // Given a load that already timed out
+            const {onError} = renderStandaloneLightbox();
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+            expect(screen.getByTestId('retry-button')).toBeTruthy();
+
+            // When the slow load finally finishes
+            fireEvent(screen.getByTestId('image'), 'load', {nativeEvent: {width: 100, height: 100}});
+
+            // Then the timeout notice goes away and no failure is reported
+            expect(screen.queryByTestId('retry-button')).toBeNull();
+            expect(onError).not.toHaveBeenCalled();
+        });
+
+        it('restarts the load and the timer when retry is pressed', () => {
+            // Given a load that already timed out
+            const {onError} = renderStandaloneLightbox();
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+
+            // When the user presses retry
+            fireEvent.press(screen.getByTestId('retry-button'));
+
+            // Then the spinner shows again on a remounted image and gets a fresh timeout
+            expect(screen.getByTestId('activity-indicator')).toBeTruthy();
+            expect(screen.queryByTestId('retry-button')).toBeNull();
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+            expect(screen.getByTestId('retry-button')).toBeTruthy();
+            expect(onError).not.toHaveBeenCalled();
+        });
+
+        it('keeps the timeout notice when a stalled load later errors', () => {
+            // Given a load that already timed out
+            const {onError} = renderStandaloneLightbox();
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+
+            // When the transport finally gives up and the image reports an error
+            fireEvent(screen.getByTestId('image'), 'error');
+
+            // Then the user still sees the timeout notice, since a slow load is not a missing attachment
+            expect(screen.getByTestId('retry-button')).toBeTruthy();
+            expect(onError).not.toHaveBeenCalled();
+        });
+
+        it('hides the spinner when the image fails to load', () => {
+            // Given a lightbox whose image is loading
+            const {onError} = renderStandaloneLightbox();
+
+            // When the image reports an error
+            fireEvent(screen.getByTestId('image'), 'error');
+
+            // Then the spinner goes away instead of spinning over the parent's error UI
+            expect(onError).toHaveBeenCalledTimes(1);
+            expect(screen.queryByTestId('activity-indicator')).toBeNull();
+        });
+
+        it('does not report a timeout for an image that loads before the timeout', () => {
+            // Given a lightbox whose image is loading
+            const {onError} = renderStandaloneLightbox();
+
+            // When the image loads and the timeout then passes
+            fireEvent(screen.getByTestId('image'), 'load', {nativeEvent: {width: 100, height: 100}});
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+
+            // Then the timer was cleared with the spinner and never reports an error
+            expect(screen.queryByTestId('activity-indicator')).toBeNull();
+            expect(onError).not.toHaveBeenCalled();
+        });
+
+        it('does not report a timeout while offline', () => {
+            // Given the device is offline while the lightbox image is loading
+            mockIsOffline = true;
+            const {onError} = renderStandaloneLightbox();
+
+            // When the timeout passes
+            act(() => {
+                jest.advanceTimersByTime(CONST.TIMING.IMAGE_LOAD_CEILING_TIMEOUT);
+            });
+
+            // Then no timeout notice is offered, so the image can still load once the device is back online
+            expect(screen.queryByTestId('retry-button')).toBeNull();
+            expect(onError).not.toHaveBeenCalled();
+        });
+    });
+});

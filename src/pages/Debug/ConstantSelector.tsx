@@ -1,10 +1,20 @@
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
+import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {ComponentRef, ForwardedRef} from 'react';
+import type {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
 import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
-import type {ValueOf} from 'type-fest';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 type ConstantSelectorProps = {
     /** Form error text. e.g when no constant is selected */
@@ -16,7 +26,6 @@ type ConstantSelectorProps = {
     /** Current selected constant  */
     value?: string;
 
-    /** Name of the field */
     name: string;
 
     /** inputID used by the Form component */
@@ -27,9 +36,13 @@ type ConstantSelectorProps = {
     formType: ValueOf<typeof CONST.DEBUG.FORMS>;
 
     policyID?: string;
+
+    /** The ref is required by InputWrapper, even though it's not used in this component yet */
+    ref: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange}: ConstantSelectorProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function ConstantSelector({formType, policyID, errorText = '', name, value, onInputChange, ref}: ConstantSelectorProps) {
     const fieldValue = (useRoute().params as Record<string, string> | undefined)?.[name];
 
     useEffect(() => {
@@ -49,19 +62,26 @@ function ConstantSelector({formType, policyID, errorText = '', name, value, onIn
     }, [fieldValue, name, onInputChange]);
 
     return (
-        <MenuItemWithTopDescription
-            title={value}
-            description={name}
-            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={errorText}
-            onPress={() => {
-                Navigation.navigate(ROUTES.DETAILS_CONSTANT_PICKER_PAGE.getRoute(formType, name, value, policyID, Navigation.getActiveRoute()));
-            }}
-            shouldShowRightIcon
-        />
+        <MenuItem.Root
+            onPress={callFunctionIfActionIsAllowed(() => {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.getRoute(formType, name, value, policyID)));
+            })}
+        >
+            <MenuItemField.Row
+                name={name}
+                value={value}
+            >
+                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
-
-ConstantSelector.displayName = 'ConstantSelector';
 
 export default ConstantSelector;

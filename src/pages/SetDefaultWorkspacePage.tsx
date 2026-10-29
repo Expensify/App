@@ -1,0 +1,135 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {useSession} from '@components/OnyxListItemProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+
+import useDebouncedState from '@hooks/useDebouncedState';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceList from '@hooks/useWorkspaceList';
+
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {canCreateExpensesOnPolicy, isGroupPolicy} from '@libs/PolicyUtils';
+
+import type {MoneyRequestNavigatorParamList} from '@navigation/types';
+
+import {setNameValuePair} from '@userActions/User';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+type SetDefaultWorkspacePageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.SET_DEFAULT_WORKSPACE>;
+
+function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
+    const {navigateTo} = route.params ?? {};
+    const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const {translate, localeCompare} = useLocalize();
+
+    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const isAppLoadPending = useIsAppLoadPending();
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+
+    const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
+    const session = useSession();
+
+    const [draftPolicyID, setDraftPolicyID] = useState<string>();
+
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
+
+    const selectPolicy = (selectedPolicyID?: string) => {
+        if (!selectedPolicyID) {
+            return;
+        }
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`];
+
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, selectedPolicyID, activePolicyID ?? '');
+
+        // Without a destination, the caller handles what comes next once it is back in focus.
+        if (navigateTo && policy?.areCategoriesEnabled) {
+            Navigation.navigate(navigateTo);
+            return;
+        }
+
+        Navigation.goBack();
+    };
+
+    const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
+        policies,
+        currentUserLogin: session?.email,
+        shouldShowPendingDeletePolicy: false,
+        selectedPolicyIDs: draftPolicyID ? [draftPolicyID] : undefined,
+        // This page never pinned a workspace to the top, so don't start now that checking a row sets selectedPolicyIDs.
+        shouldSortSelectedToTop: false,
+        searchTerm: debouncedSearchTerm,
+        localeCompare,
+        additionalFilter: (newPolicy) => isGroupPolicy(newPolicy) && canCreateExpensesOnPolicy(newPolicy),
+    });
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => selectPolicy(draftPolicyID),
+        isDisabled: !draftPolicyID,
+    };
+
+    const textInputOptions = {
+        label: shouldShowSearchInput ? translate('common.search') : undefined,
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+    };
+
+    return (
+        <ScreenWrapper
+            testID="SetDefaultWorkspacePage"
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldEnableMaxHeight
+        >
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                        <HeaderWithBackButton
+                            title={translate('workspace.common.setAsDefault')}
+                            onBackButtonPress={Navigation.goBack}
+                        />
+                    </CollapsibleHeaderOnKeyboard>
+                    {shouldShowLoadingIndicator ? (
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                        </View>
+                    ) : (
+                        <SelectionList<WorkspaceListItemType>
+                            data={data}
+                            ListItem={UserListItem}
+                            textInputOptions={textInputOptions}
+                            onSelectRow={(option) => setDraftPolicyID(option.policyID)}
+                            confirmButtonOptions={confirmButtonOptions}
+                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            disableMaintainingScrollPosition
+                            addBottomSafeAreaPadding
+                            shouldFooterBeInsideList={shouldFooterBeInsideList}
+                        />
+                    )}
+                </>
+            )}
+        </ScreenWrapper>
+    );
+}
+
+export default SetDefaultWorkspacePage;

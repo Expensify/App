@@ -15,6 +15,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         lastMessageText: unknown;
         lastVisibleActionCreated: unknown;
         lastReadTime: unknown;
+        manuallyMarkedUnreadReportActionID: unknown;
         lastReadSequenceNumber: unknown;
         lastMentionedTime: unknown;
         policyAvatar: unknown;
@@ -26,19 +27,29 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         policyID: unknown;
         reportName: unknown;
         reportID: string;
-        reportActionID: unknown;
         chatReportID: unknown;
         stateNum: unknown;
         statusNum: unknown;
         writeCapability: unknown;
         type: unknown;
+        created: unknown;
+        submitted: unknown;
+        approved: unknown;
+        paid: unknown;
+        submitterUserID: unknown;
+        submitterPayrollID: unknown;
+        orderDealNumbers: unknown;
+        debitedAmount: unknown;
+        debitedCurrency: unknown;
+        creditedAmount: unknown;
+        creditedCurrency: unknown;
+        withdrawalIDs: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
-        lastMessageTranslationKey: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
-        isOptimisticReport: unknown;
         managerID: unknown;
+        supportTicketCalendarLink: unknown;
         lastVisibleActionLastModified: unknown;
         lastMessageHtml: unknown;
         lastActorAccountID: unknown;
@@ -47,15 +58,24 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         participants: unknown;
         total: unknown;
         unheldTotal: unknown;
+        unheldNonReimbursableTotal: unknown;
+        reimbursableTotal: unknown;
+        unheldReimbursableTotal: unknown;
         currency: unknown;
         errorFields: unknown;
+        errors: unknown;
         isWaitingOnBankAccount: unknown;
+        canCancelReimbursement: unknown;
+        isWaitingForCancelledReimbursement: unknown;
         isCancelledIOU: unknown;
+        hasReportBeenRetracted: unknown;
+        hasReportBeenReopened: unknown;
+        isExportedToIntegration: unknown;
+        hasExportError: unknown;
         iouReportID: unknown;
         preexistingReportID: unknown;
         nonReimbursableTotal: unknown;
         privateNotes: unknown;
-        pendingChatMembers: unknown;
         fieldList: unknown;
         permissions: unknown;
         tripData: {
@@ -63,8 +83,23 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
             endDate: unknown;
             tripID: unknown;
         };
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         private_isArchived: unknown;
+        welcomeMessage: unknown;
+        agentZeroProcessingRequestIndicator: unknown;
+        nextStep: {
+            messageKey: unknown;
+            icon: unknown;
+            actorAccountID: unknown;
+            eta: {
+                etaKey: unknown;
+                dateTime: unknown;
+                autoReportingFrequency: unknown;
+                autoReportingOffset: unknown;
+                autoReportingOffsetSecondSemiMonthly: unknown;
+                timeZone: unknown;
+            };
+        };
+        transactionCount: unknown;
     },
     PolicyReportField['fieldID']
 >;

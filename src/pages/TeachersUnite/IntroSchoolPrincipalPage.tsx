@@ -1,8 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -10,73 +5,102 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as LoginUtils from '@libs/LoginUtils';
+
+import {addErrorMessage} from '@libs/ErrorUtils';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {generateReportID} from '@libs/ReportUtils';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+import {isValidPersonName} from '@libs/ValidationUtils';
+
 import TeachersUnite from '@userActions/TeachersUnite';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IntroSchoolPrincipalForm';
-import type {LoginList} from '@src/types/onyx';
 
-type IntroSchoolPrincipalPageOnyxProps = {
-    loginList: OnyxEntry<LoginList>;
-};
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
-type IntroSchoolPrincipalPageProps = IntroSchoolPrincipalPageOnyxProps;
-
-function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
+function IntroSchoolPrincipalPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM);
+    const {localCurrencyCode, login, accountID} = useCurrentUserPersonalDetails();
+    const optimisticReportID = useRef(generateReportID());
+    const hasSubmittedRef = useRef(false);
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (hasSubmittedRef.current && formState && !formState.isLoading && !formState.errors) {
+            Navigation.dismissModalWithReport({reportID: optimisticReportID.current});
+            hasSubmittedRef.current = false;
+        }
+    }, [formState, isProduction]);
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
+        hasSubmittedRef.current = true;
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID);
+        TeachersUnite.addSchoolPrincipal(
+            values.firstName.trim(),
+            values.partnerUserID.trim(),
+            values.lastName.trim(),
+            policyID,
+            localCurrencyCode,
+            login ?? '',
+            accountID,
+            optimisticReportID.current,
+        );
     };
 
     /**
      * @returns - An object containing the errors for each inputID
      */
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM> = {};
 
-            if (!values.firstName || !ValidationUtils.isValidPersonName(values.firstName)) {
-                ErrorUtils.addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
-            }
-            if (!values.lastName || !ValidationUtils.isValidPersonName(values.lastName)) {
-                ErrorUtils.addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
-            }
-            if (!values.partnerUserID) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterEmail'));
-            }
-            if (values.partnerUserID && props.loginList?.[values.partnerUserID.toLowerCase()]) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
-            }
-            if (values.partnerUserID && !Str.isValidEmail(values.partnerUserID)) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterValidEmail'));
-            }
-            if (values.partnerUserID && LoginUtils.isEmailPublicDomain(values.partnerUserID)) {
-                ErrorUtils.addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
-            }
+        if (!values.firstName || !isValidPersonName(values.firstName)) {
+            addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
+        } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
+            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
+        }
+        if (!values.lastName || !isValidPersonName(values.lastName)) {
+            addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
+        } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
+            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
+        }
+        if (!values.partnerUserID) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterEmail'));
+        }
+        if (values.partnerUserID && loginList?.[values.partnerUserID.toLowerCase()]) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
+        }
+        if (values.partnerUserID && !Str.isValidEmail(values.partnerUserID)) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterValidEmail'));
+        }
+        if (values.partnerUserID && isEmailPublicDomain(values.partnerUserID)) {
+            addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.tryDifferentEmail'));
+        }
 
-            return errors;
-        },
-        [props.loginList, translate],
-    );
+        return errors;
+    };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={IntroSchoolPrincipalPage.displayName}
+            includeSafeAreaPaddingBottom
+            testID="IntroSchoolPrincipalPage"
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
@@ -90,7 +114,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                 onSubmit={onSubmit}
                 submitButtonText={translate('common.letsStart')}
             >
-                <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerfiyExpense')}</Text>
+                <Text style={[styles.mb6]}>{translate('teachersUnitePage.schoolPrincipalVerifyExpense')}</Text>
                 <View>
                     <InputWrapper
                         InputComponent={TextInput}
@@ -99,8 +123,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
+                        autoComplete="given-name"
                     />
                 </View>
                 <View style={styles.mv4}>
@@ -111,8 +135,8 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         autoCapitalize="words"
+                        autoComplete="family-name"
                     />
                 </View>
                 <View>
@@ -125,6 +149,7 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"
+                        autoComplete="email"
                     />
                 </View>
             </FormProvider>
@@ -132,8 +157,4 @@ function IntroSchoolPrincipalPage(props: IntroSchoolPrincipalPageProps) {
     );
 }
 
-IntroSchoolPrincipalPage.displayName = 'IntroSchoolPrincipalPage';
-
-export default withOnyx<IntroSchoolPrincipalPageProps, IntroSchoolPrincipalPageOnyxProps>({
-    loginList: {key: ONYXKEYS.LOGIN_LIST},
-})(IntroSchoolPrincipalPage);
+export default IntroSchoolPrincipalPage;

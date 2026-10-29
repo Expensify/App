@@ -22,20 +22,23 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 
 - Identifying functions with heavy calculations.
 - Targeting functions that are frequently used throughout the app.
+- `measureFunction` benchmarks only produce durations, so CI does not run them. Put new ones in `tests/perf-local/*.perf-local.ts`.
+- Run them with `npm run perf-local -- --baseline` on the base and `npm run perf-local` on your branch, on the same machine, and put the numbers in the PR description.
+- `perf-local` and `perf-test` share `.reassure/baseline.perf` and `current.perf`, so don't mix them. Pair `perf-local -- --baseline` with `perf-local`, and `perf-test -- --baseline` with `perf-test`, or every entry shows up as added or removed.
 
-## Running tests locally 
+## Running tests locally
 
 - Checkout your base environment, eg. `git checkout main`.
-- Collect baseline metrics with `npx reassure --baseline`.
+- Collect baseline metrics with `npm run perf-test -- --baseline`.
 - Apply any desired changes (for testing purposes you can eg. try to slow down a list).
-- Collect current metrics with `npx reassure`.
-- Open up the resulting `output.md` / `output.json` (see console output) to compare the results.
+- Collect current metrics with `npm run perf-test`.
+- Open up the resulting `output1.md` (and possibly consecutive output files) / `output.json` (see console output) to compare the results.
 - With all that information, Reassure can present the render duration times as statistically significant or meaningless.
 
 ## Metrics for Regression Detection
 
 - **Render count**: If the number of renders increases by one compared to the baseline, it will be considered a performance regression, leading to a failed test. This metric helps detect unexpected changes in component rendering behavior. *NOTE: sometimes regressions are intentional. For instance, if a new functionality is added to the tested component, causing an additional re-render, this regression is expected.*
-- **Render duration**: A performance regression will occur if the measured rendering time is 20% higher than the baseline, resulting in a failed test. This threshold allows for reasonable fluctuations and accounts for changes that may lead to longer rendering times.
+- **Render duration**: Durations are reported but not gated, because the baseline and the branch run on different machines.
 
 ## Tips for Performance Testing with Reassure
 
@@ -65,7 +68,7 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 
     - Investigate the code changes that might be causing this and address them to maintain a stable render count. More info [here](https://github.com/Expensify/App/blob/fe9e9e3e31bae27c2398678aa632e808af2690b5/tests/perf-test/README.md?plain=1#L32).
     - It is important to run Reassure tests locally and see if our changes caused a regression.
-    - One of the potential factors that may influence variation in the number of renders is adding unnecesary providers to the component we want to test using ```<ComposeProviders>``` . Ensure that all providers are necessary for running the test.
+    - One of the potential factors that may influence variation in the number of renders is adding unnecessary providers to the component we want to test using ```<ComposeProviders>``` . Ensure that all providers are necessary for running the test.
 
 ## What can be tested (scenarios)
 

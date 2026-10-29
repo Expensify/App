@@ -1,11 +1,8 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import * as Localize from './Localize';
-import memoize from './memoize';
-import * as NumberFormatUtils from './NumberFormatUtils';
+import localeOrdinalMap from '@src/languages/localeOrdinalMap';
+import type Locale from '@src/types/onyx/Locale';
 
-type Locale = ValueOf<typeof CONST.LOCALES>;
+import memoize from './memoize';
+import {format, formatToParts} from './NumberFormatUtils';
 
 const STANDARD_DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-', ','];
 
@@ -14,12 +11,12 @@ const INDEX_MINUS_SIGN = 11;
 const INDEX_GROUP = 12;
 
 const getLocaleDigits = memoize(
-    (locale: Locale): string[] => {
+    (locale: Locale | undefined): string[] => {
         const localeDigits = [...STANDARD_DIGITS];
         for (let i = 0; i <= 9; i++) {
-            localeDigits[i] = NumberFormatUtils.format(locale, i);
+            localeDigits[i] = format(locale, i);
         }
-        NumberFormatUtils.formatToParts(locale, 1000000.5).forEach((part) => {
+        for (const part of formatToParts(locale, 1000000.5)) {
             switch (part.type) {
                 case 'decimal':
                     localeDigits[INDEX_DECIMAL] = part.value;
@@ -33,7 +30,7 @@ const getLocaleDigits = memoize(
                 default:
                     break;
             }
-        });
+        }
         return localeDigits;
     },
     {monitoringName: 'getLocaleDigits'},
@@ -47,7 +44,7 @@ const getLocaleDigits = memoize(
  *
  * @throws If `digit` is not a valid standard digit.
  */
-function toLocaleDigit(locale: Locale, digit: string): string {
+function toLocaleDigit(locale: Locale | undefined, digit: string): string {
     const index = STANDARD_DIGITS.indexOf(digit);
     if (index < 0) {
         throw new Error(`"${digit}" must be in ${JSON.stringify(STANDARD_DIGITS)}`);
@@ -63,7 +60,7 @@ function toLocaleDigit(locale: Locale, digit: string): string {
  *
  * @throws If `localeDigit` is not a valid locale digit.
  */
-function fromLocaleDigit(locale: Locale, localeDigit: string): string {
+function fromLocaleDigit(locale: Locale | undefined, localeDigit: string): string {
     const index = getLocaleDigits(locale).indexOf(localeDigit);
     if (index < 0) {
         throw new Error(`"${localeDigit}" must be in ${JSON.stringify(getLocaleDigits(locale))}`);
@@ -71,37 +68,33 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
     return STANDARD_DIGITS.at(index) ?? '';
 }
 
+// Constructing Intl.PluralRules is expensive, and this runs once per row in lists,
+// so the instance is cached per locale.
+const createOrdinalPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale, {type: 'ordinal'});
+const memoizedCreateOrdinalPluralRules = memoize(createOrdinalPluralRules);
+
 /**
- * Formats a number into its localized ordinal representation i.e 1st, 2nd etc
- * @param locale - The locale to use for formatting
+ * Formats a number into its localized ordinal representation, e.g. `1st` in English, `1.` in German
+ * or `第1` in Japanese.
+ *
+ * @param locale - The locale to use for formatting. Returns an empty string when absent, matching the
+ * placeholder on the locale context.
  * @param number - The number to format
- * @param writtenOrdinals - If true, returns the written ordinal (e.g. "first", "second") for numbers 1-10
  */
-function toLocaleOrdinal(locale: Locale, number: number, writtenOrdinals = false): string {
-    // Defaults to "other" suffix or "th" in English
-    let suffixKey: TranslationPaths = 'workflowsPage.frequencies.ordinals.other';
-
-    // Calculate last digit of the number to determine basic ordinality
-    const lastDigit = number % 10;
-
-    // Calculate last two digits to handle exceptions in the 11-13 range
-    const lastTwoDigits = number % 100;
-
-    if (writtenOrdinals && number >= 1 && number <= 10) {
-        return Localize.translate(locale, `workflowsPage.frequencies.ordinals.${number}` as TranslationPaths);
+function toLocaleOrdinal(locale: Locale | undefined, number: number): string {
+    if (!locale) {
+        return '';
     }
 
-    if (lastDigit === 1 && lastTwoDigits !== 11) {
-        suffixKey = 'workflowsPage.frequencies.ordinals.one';
-    } else if (lastDigit === 2 && lastTwoDigits !== 12) {
-        suffixKey = 'workflowsPage.frequencies.ordinals.two';
-    } else if (lastDigit === 3 && lastTwoDigits !== 13) {
-        suffixKey = 'workflowsPage.frequencies.ordinals.few';
-    }
+    // Ordinal rules vary far more than they appear to: English selects four categories, Italian two,
+    // and most locales only ever select `other`. Asking Intl avoids reimplementing English's rule and
+    // applying it everywhere.
+    const pluralRule = memoizedCreateOrdinalPluralRules(locale).select(number);
+    const localeOrdinalRules = localeOrdinalMap[locale];
 
-    const suffix = Localize.translate(locale, suffixKey);
-
-    return `${number}${suffix}`;
+    // Each locale declares only the categories it needs, so the selected one may be missing.
+    const rule = localeOrdinalRules[pluralRule] ?? localeOrdinalRules.other;
+    return rule(number);
 }
 
 export {toLocaleDigit, toLocaleOrdinal, fromLocaleDigit};

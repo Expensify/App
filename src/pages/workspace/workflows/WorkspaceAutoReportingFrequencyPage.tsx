@@ -1,107 +1,125 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import Button from '@components/Button';
+import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import Icon from '@components/Icon';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PillSelector from '@components/PillSelector';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+
+import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
+
+import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isGroupPolicy, isPendingDeletePolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+import type {AutoReportingFrequency} from '@libs/SubmissionScheduleUtils';
+import {FREQUENCIES, getFrequencyDisplayName, getSubmissionFrequencyHelperText, isSemiMonthlyOffsetOrderValid} from '@libs/SubmissionScheduleUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
-import * as Policy from '@userActions/Policy/Policy';
+
+import {clearPolicyErrorField, setWorkspaceAutoReportingFrequency, setWorkspaceAutoReportingOffset} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/WorkspaceSubmissionFrequencyForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type AutoReportingFrequencyKey = Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, 'instant'>;
-type Locale = ValueOf<typeof CONST.LOCALES>;
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
-type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY>;
+import AutoReportingSubmitOnRows from './AutoReportingSubmitOnRows';
+import useSubmissionFrequencyDraft from './useSubmissionFrequencyDraft';
 
-type WorkspaceAutoReportingFrequencyPageItem = {
-    text: string;
-    keyForList: string;
-    isSelected: boolean;
-    footerComponent?: React.ReactNode | null;
+type WorkspaceAutoReportingFrequencyPageProps = WithPolicyOnyxProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY>;
+
+type AutoReportingFrequencyDisplayNames = Record<Exclude<AutoReportingFrequency, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT>, string> & {
+    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]?: string;
 };
 
-type AutoReportingFrequencyDisplayNames = Record<AutoReportingFrequencyKey, string>;
+const getAutoReportingFrequencyDisplayNames = (translate: LocaleContextProps['translate'], isSubmitWorkspace = false): AutoReportingFrequencyDisplayNames => {
+    const displayNames: AutoReportingFrequencyDisplayNames = {
+        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: translate('workflowsPage.frequencies.monthly'),
+        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: translate('workflowsPage.frequencies.daily'),
+        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: translate('workflowsPage.frequencies.weekly'),
+        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: translate('workflowsPage.frequencies.twiceAMonth'),
+        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: translate('workflowsPage.frequencies.byTrip'),
+        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: translate('workflowsPage.frequencies.manually'),
+    };
 
-const getAutoReportingFrequencyDisplayNames = (locale: Locale): AutoReportingFrequencyDisplayNames => ({
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: Localize.translate(locale, 'workflowsPage.frequencies.monthly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: Localize.translate(locale, 'workflowsPage.frequencies.daily'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: Localize.translate(locale, 'workflowsPage.frequencies.weekly'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: Localize.translate(locale, 'workflowsPage.frequencies.twiceAMonth'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: Localize.translate(locale, 'workflowsPage.frequencies.byTrip'),
-    [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: Localize.translate(locale, 'workflowsPage.frequencies.manually'),
-});
+    if (!isSubmitWorkspace) {
+        displayNames[CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT] = translate('workflowsPage.frequencies.instant');
+    }
+
+    return displayNames;
+};
 
 function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoReportingFrequencyPageProps) {
-    const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
-
-    const {translate, preferredLocale, toLocaleOrdinal} = useLocalize();
+    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const {environmentURL} = useEnvironment();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Clock']);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+    const policyID = policy?.id;
 
-    const onSelectAutoReportingFrequency = (item: WorkspaceAutoReportingFrequencyPageItem) => {
-        Policy.setWorkspaceAutoReportingFrequency(policy?.id ?? '-1', item.keyForList as AutoReportingFrequencyKey);
+    useEffect(() => () => clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM), []);
+    const {selectedFrequency, isSavedFrequencySelected, offset, secondOffset, hasChanges} = useSubmissionFrequencyDraft(policy);
+    const [shouldShowOrderError, setShouldShowOrderError] = useState(false);
+    const isOffsetOrderValid = selectedFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY || isSemiMonthlyOffsetOrderValid({offset, secondOffset});
 
-        if (item.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY) {
+    const onSelectFrequency = (frequency: AutoReportingFrequency) => {
+        setDraftValues(ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM, {[INPUT_IDS.FREQUENCY]: frequency, [INPUT_IDS.OFFSET]: '', [INPUT_IDS.SECOND_OFFSET]: ''});
+    };
+
+    const save = () => {
+        if (!policyID || !selectedFrequency) {
             return;
         }
-
+        if (!isOffsetOrderValid) {
+            setShouldShowOrderError(true);
+            return;
+        }
+        const reviewWorkspaceSettingsTaskData = getReviewWorkspaceSettingsTaskCompletion();
+        if (!isSavedFrequencySelected) {
+            setWorkspaceAutoReportingFrequency(policyID, selectedFrequency, policy?.autoReportingFrequency, policy?.harvesting, reviewWorkspaceSettingsTaskData);
+        }
+        if (offset !== undefined && hasChanges) {
+            setWorkspaceAutoReportingOffset(
+                policyID,
+                offset,
+                policy?.autoReportingOffset,
+                isSavedFrequencySelected ? reviewWorkspaceSettingsTaskData : {},
+                secondOffset,
+                policy?.autoReportingOffsetSecondSemiMonthly,
+            );
+        }
         Navigation.goBack();
     };
 
-    const getDescriptionText = () => {
-        if (policy?.autoReportingOffset === undefined) {
-            return toLocaleOrdinal(1);
-        }
-        if (typeof policy?.autoReportingOffset === 'number') {
-            return toLocaleOrdinal(policy.autoReportingOffset);
-        }
-        if (typeof policy?.autoReportingOffset === 'string' && parseInt(policy?.autoReportingOffset, 10)) {
-            return toLocaleOrdinal(parseInt(policy.autoReportingOffset, 10));
-        }
-
-        return translate(`workflowsPage.frequencies.${policy?.autoReportingOffset}`);
-    };
-
-    const monthlyFrequencyDetails = () => (
-        <OfflineWithFeedback
-            pendingAction={policy?.pendingFields?.autoReportingOffset}
-            errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
-            onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET)}
-            errorRowStyles={[styles.ml7]}
-        >
-            <MenuItem
-                title={translate('workflowsPage.submissionFrequencyDateOfMonth')}
-                titleStyle={styles.textLabelSupportingNormal}
-                description={getDescriptionText()}
-                descriptionTextStyle={styles.textNormalThemeText}
-                wrapperStyle={styles.pr3}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.getRoute(policy?.id ?? ''))}
-                shouldShowRightIcon
-            />
-        </OfflineWithFeedback>
-    );
-
-    const autoReportingFrequencyItems: WorkspaceAutoReportingFrequencyPageItem[] = Object.keys(getAutoReportingFrequencyDisplayNames(preferredLocale)).map((frequencyKey) => ({
-        text: getAutoReportingFrequencyDisplayNames(preferredLocale)[frequencyKey as AutoReportingFrequencyKey] || '',
-        keyForList: frequencyKey,
-        isSelected: frequencyKey === autoReportingFrequency,
-        footerContent: frequencyKey === autoReportingFrequency && frequencyKey === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY ? monthlyFrequencyDetails() : null,
+    const autoReportingFrequencyDisplayNames = getAutoReportingFrequencyDisplayNames(translate, isSubmitPolicy(policy));
+    const frequencyOptions = FREQUENCIES.filter((frequency) => !!autoReportingFrequencyDisplayNames[frequency]).map((frequency) => ({
+        key: frequency,
+        text: getFrequencyDisplayName(frequency, translate),
     }));
+
+    const timezoneLink = `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID)}`;
 
     return (
         <AccessOrNotFoundWrapper
@@ -109,41 +127,84 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceAutoReportingFrequencyPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID="WorkspaceAutoReportingFrequencyPage"
             >
                 <FullPageNotFoundView
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                    shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !PolicyUtils.isPaidGroupPolicy(policy)}
+                    onBackButtonPress={goBackFromInvalidPolicy}
+                    onLinkPress={goBackFromInvalidPolicy}
+                    shouldShow={isEmptyObject(policy) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || !isGroupPolicy(policy)}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                    addBottomSafeAreaPadding
                 >
-                    <HeaderWithBackButton
-                        title={translate('workflowsPage.submissionFrequency')}
+                    <HeaderWithBackButtonAndTitle
+                        title={translate('common.frequency')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <OfflineWithFeedback
-                        pendingAction={policy?.pendingFields?.autoReportingFrequency}
-                        errors={ErrorUtils.getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
-                        onClose={() => Policy.clearPolicyErrorField(policy?.id ?? '-1', CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
-                        style={styles.flex1}
-                        contentContainerStyle={styles.flex1}
-                    >
-                        <SelectionList
-                            ListItem={RadioListItem}
-                            sections={[{data: autoReportingFrequencyItems}]}
-                            onSelectRow={onSelectAutoReportingFrequency}
-                            initiallyFocusedOptionKey={autoReportingFrequency}
-                            shouldUpdateFocusedIndex
+                    <ScrollView contentContainerStyle={styles.flexGrow1}>
+                        <OfflineWithFeedback
+                            pendingAction={policy?.pendingFields?.autoReportingFrequency}
+                            errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                            onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_FREQUENCY)}
+                            errorRowStyles={[styles.ph5]}
+                        >
+                            <Text
+                                variant="labelStrong"
+                                style={[styles.ph5, styles.pv1Half]}
+                            >
+                                {translate('workflowsPage.submitFrequency')}
+                            </Text>
+                            <PillSelector
+                                options={frequencyOptions}
+                                selectedKey={selectedFrequency}
+                                onSelect={onSelectFrequency}
+                                style={[styles.ph5, styles.pv1]}
+                            />
+                        </OfflineWithFeedback>
+                        <AutoReportingSubmitOnRows
+                            policy={policy}
+                            frequency={selectedFrequency}
+                            isSavedFrequencySelected={isSavedFrequencySelected}
+                            offset={offset}
+                            secondOffset={secondOffset}
                         />
-                    </OfflineWithFeedback>
+                    </ScrollView>
+                    <FixedFooter
+                        style={styles.mtAuto}
+                        addBottomSafeAreaPadding
+                    >
+                        {!!selectedFrequency && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+                                <Icon
+                                    src={expensifyIcons.Clock}
+                                    fill={theme.icon}
+                                />
+                                <View style={[styles.flex1, styles.ml3, styles.flexRow, styles.renderHTML]}>
+                                    <RenderHTML html={`<muted-text-label>${getSubmissionFrequencyHelperText(selectedFrequency, timezoneLink, translate)}</muted-text-label>`} />
+                                </View>
+                            </View>
+                        )}
+                        {shouldShowOrderError && !isOffsetOrderValid && (
+                            <FormHelpMessage
+                                message={translate('workflowsPage.submissionDatesOrderError')}
+                                style={styles.mb3}
+                            />
+                        )}
+                        <Button
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            onPress={save}
+                            isDisabled={!hasChanges}
+                        >
+                            <Button.KeyboardShortcut />
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
+                    </FixedFooter>
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
 
-WorkspaceAutoReportingFrequencyPage.displayName = 'WorkspaceAutoReportingFrequencyPage';
-export type {AutoReportingFrequencyDisplayNames, AutoReportingFrequencyKey};
 export {getAutoReportingFrequencyDisplayNames};
 export default withPolicy(WorkspaceAutoReportingFrequencyPage);

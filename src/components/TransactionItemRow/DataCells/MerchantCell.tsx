@@ -1,0 +1,117 @@
+import {EditableCell, useInlineEditState} from '@components/EditableCell';
+import type {EditableProps} from '@components/EditableCell/types';
+import TextInput from '@components/TextInput';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import TextWithTooltip from '@components/TextWithTooltip';
+
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
+import Parser from '@libs/Parser';
+import StringUtils from '@libs/StringUtils';
+
+import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {TextInput as RNTextInput} from 'react-native';
+
+import React, {useRef} from 'react';
+
+type MerchantOrDescriptionCellProps = {
+    merchantOrDescription: string;
+    shouldUseNarrowLayout?: boolean;
+    shouldShowTooltip: boolean;
+    isDescription?: boolean;
+} & EditableProps<string>;
+
+function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, shouldUseNarrowLayout, isDescription, canEdit, onSave}: MerchantOrDescriptionCellProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const inputRef = useRef<ComponentRef<typeof RNTextInput> | null>(null);
+
+    const text = !isDescription ? merchantOrDescription : StringUtils.lineBreaksToSpaces(Parser.htmlToText(merchantOrDescription));
+
+    // Normalize merchant values for save/equality checks (descriptions can keep whitespace)
+    const getNormalizedValue = (value: string) => (isDescription ? value : value.trim());
+
+    const {isEditing, localValue, setLocalValue, startEditing, save, cancelEditing} = useInlineEditState(
+        canEdit,
+        text,
+        onSave ? (value) => onSave(getNormalizedValue(value)) : undefined,
+        (value, originalValue) => getNormalizedValue(value) === getNormalizedValue(originalValue),
+    );
+
+    const isMultilineInput = isDescription;
+
+    const handleChangeText = (value: string) => {
+        // Sanitize line breaks on change for single line inputs.
+        if (!isMultilineInput) {
+            setLocalValue(StringUtils.lineBreaksToSpaces(value));
+            return;
+        }
+        setLocalValue(value);
+    };
+
+    const handleRef = (element: BaseTextInputRef | null) => {
+        inputRef.current = element as ComponentRef<typeof RNTextInput> | null;
+    };
+
+    // Multiline TextInputs with autoFocus default cursor to the beginning; manually position it at the end on focus
+    const handleFocus = () => {
+        requestAnimationFrame(() => {
+            const input = inputRef.current;
+            if (!input) {
+                return;
+            }
+
+            scrollToBottom(input);
+            moveSelectionToEnd(input);
+        });
+    };
+
+    const handleEscape = () => {
+        cancelEditing();
+        inputRef.current?.blur();
+    };
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing});
+
+    return (
+        <EditableCell
+            canEdit={canEdit}
+            isEditing={isEditing}
+            onStartEditing={startEditing}
+            editContent={
+                <TextInput
+                    ref={handleRef}
+                    accessibilityLabel={translate(isDescription ? 'common.description' : 'common.merchant')}
+                    value={localValue}
+                    onChangeText={handleChangeText}
+                    onBlur={save}
+                    onSubmitEditing={save}
+                    onFocus={handleFocus}
+                    autoFocus
+                    submitBehavior="blurAndSubmit"
+                    // EditableCell is responsible for the cell's hover and focus styles (border, background).
+                    // Suppress TextInput's own border and background to avoid visual conflicts.
+                    textInputContainerStyles={styles.editableCellInputStyle}
+                    touchableInputWrapperStyle={styles.editableCellInputStyle}
+                    hideFocusedState
+                    shouldApplyPaddingToContainer={false}
+                />
+            }
+        >
+            <TextWithTooltip
+                shouldShowTooltip={shouldShowTooltip}
+                text={localValue}
+                numberOfLines={1}
+                style={shouldUseNarrowLayout ? [styles.lh20, styles.pre, styles.justifyContentCenter, styles.flex1] : [styles.lineHeightXLarge]}
+                isSelectable
+            />
+        </EditableCell>
+    );
+}
+
+export default MerchantOrDescriptionCell;

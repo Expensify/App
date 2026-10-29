@@ -1,8 +1,13 @@
-import React from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type LoadingPageProps = {
     /** Method to trigger when pressing back button of the header */
@@ -13,18 +18,19 @@ type LoadingPageProps = {
 
 function LoadingPage({onBackButtonPress, title}: LoadingPageProps) {
     const styles = useThemeStyles();
+
     return (
-        <ScreenWrapper testID={LoadingPage.displayName}>
+        <ScreenWrapper testID="LoadingPage">
             <HeaderWithBackButton
                 onBackButtonPress={onBackButtonPress}
                 shouldShowBackButton
                 title={title}
             />
-            <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            </View>
         </ScreenWrapper>
     );
 }
-
-LoadingPage.displayName = 'LoadingPage';
 
 export default LoadingPage;

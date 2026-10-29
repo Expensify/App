@@ -1,35 +1,56 @@
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
-type DisplayNamesWithoutTooltipProps = {
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+
+import type {StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+
+type DisplayNamesWithoutTooltipProps = ForwardedFSClassProps & {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle?: string;
 
     /** Arbitrary styles of the displayName text */
     textStyles?: StyleProp<TextStyle>;
 
-    /** Number of lines before wrapping */
     numberOfLines?: number;
 
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
+
+    /** Overrides the text read by screen readers. */
+    accessibilityLabel?: string;
+
+    /** Whether this display name should be directly selectable inside pressable rows */
+    isSelectable?: boolean;
 };
 
-function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = '', renderAdditionalText}: DisplayNamesWithoutTooltipProps) {
+function DisplayNamesWithoutTooltip({
+    textStyles = [],
+    numberOfLines = 1,
+    fullTitle = '',
+    renderAdditionalText,
+    forwardedFSClass,
+    accessibilityLabel,
+    isSelectable = false,
+}: DisplayNamesWithoutTooltipProps) {
     const styles = useThemeStyles();
     return (
         <Text
+            accessibilityLabel={accessibilityLabel}
             style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
             numberOfLines={numberOfLines}
+            fsClass={forwardedFSClass}
+            selectable={isSelectable}
+            dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
         >
             {fullTitle}
             {renderAdditionalText?.()}
         </Text>
     );
 }
-
-DisplayNamesWithoutTooltip.displayName = 'DisplayNamesWithoutTooltip';
 
 export default DisplayNamesWithoutTooltip;

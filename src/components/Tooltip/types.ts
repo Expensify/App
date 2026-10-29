@@ -1,11 +1,13 @@
-import type {ReactNode} from 'react';
-import type React from 'react';
-import type {LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
+import type {BoundsObserver} from '@react-ng/bounds-observer';
+import type {ForwardedRef, ReactNode} from 'react';
+import type React from 'react';
+import type {GestureResponderEvent, LayoutRectangle, StyleProp, ViewStyle} from 'react-native';
+
 type SharedTooltipProps = {
-    /** The text to display in the tooltip. If text is ommitted, only children will be rendered. */
+    /** The text to display in the tooltip. If text is omitted, only children will be rendered. */
     text?: string;
 
     /** Maximum number of lines to show in tooltip */
@@ -22,13 +24,15 @@ type SharedTooltipProps = {
     /** Number of pixels to set max-width on tooltip  */
     maxWidth?: number;
 
+    /** Minimum width for a tooltip */
+    minWidth?: number;
+
     /** Render custom content inside the tooltip. Note: This cannot be used together with the text props. */
     renderTooltipContent?: () => ReactNode;
 
     /** Unique key of renderTooltipContent to rerender the tooltip when one of the key changes */
     renderTooltipContentKey?: string[];
 
-    /** The anchor alignment of the tooltip */
     anchorAlignment?: TooltipAnchorAlignment;
 
     /** Whether to display tooltip below the wrapped component */
@@ -40,18 +44,14 @@ type SharedTooltipProps = {
     /** Should render a fullscreen transparent overlay */
     shouldUseOverlay?: boolean;
 
-    /** Handles what to do when hiding the tooltip */
-    onHideTooltip?: () => void;
+    shouldTeleportPortalToModalLayer?: boolean;
+    onTooltipPress?: (event: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    computeHorizontalShiftForNative?: boolean;
 };
 
 type GenericTooltipState = {
-    /** Is tooltip visible */
     isVisible: boolean;
-
-    /** Show tooltip */
     showTooltip: () => void;
-
-    /** Hide tooltip */
     hideTooltip: () => void;
 
     /** Update the tooltip's target bounding rectangle */
@@ -61,23 +61,44 @@ type GenericTooltipState = {
 type GenericTooltipProps = SharedTooltipProps & {
     children: React.FC<GenericTooltipState>;
 
-    /** Whether to ignore TooltipSense activity and always triger animation */
+    /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
+    shouldRender?: boolean;
+
+    /** Whether to ignore TooltipSense activity and always trigger animation */
     shouldForceAnimate?: boolean;
+
+    isEducationTooltip?: boolean;
 };
 
 type TooltipProps = ChildrenProps &
     SharedTooltipProps & {
         /** passes this down to Hoverable component to decide whether to handle the scroll behaviour to show hover once the scroll ends */
         shouldHandleScroll?: boolean;
+
+        /** Whether the current screen or component is actively focused via navigation */
+        isFocused?: boolean;
+
+        ref?: ForwardedRef<BoundsObserver>;
     };
 
 type EducationalTooltipProps = ChildrenProps &
     SharedTooltipProps & {
-        /** Whether to automatically dismiss the tooltip after 5 seconds */
-        shouldAutoDismiss?: boolean;
-
         /** Whether the actual Tooltip should be rendered. If false, it's just going to return the children */
         shouldRender?: boolean;
+
+        /** Whether the tooltip content should be visible. When omitted, matches shouldRender. */
+        shouldDisplayTooltip?: boolean;
+
+        /** Whether the tooltip should hide when navigating */
+        shouldHideOnNavigate?: boolean;
+
+        /** Whether the tooltip should hide during scrolling */
+        shouldHideOnScroll?: boolean;
+
+        /** Whether the first display should stay hidden when the anchor starts off screen. Only applies with `shouldHideOnScroll`. */
+        shouldCheckVisibilityOnFirstDisplay?: boolean;
+
+        uniqueID?: string;
     };
 
 type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
@@ -86,4 +107,4 @@ type TooltipExtendedProps = (EducationalTooltipProps | TooltipProps) & {
 };
 
 export default TooltipProps;
-export type {EducationalTooltipProps, GenericTooltipProps, SharedTooltipProps, TooltipExtendedProps};
+export type {EducationalTooltipProps, GenericTooltipProps, SharedTooltipProps, TooltipExtendedProps, GenericTooltipState};

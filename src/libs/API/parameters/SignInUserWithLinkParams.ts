@@ -1,12 +1,12 @@
-import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 
 type SignInUserWithLinkParams = {
     accountID: number;
     validateCode?: string;
     twoFactorAuthCode?: string;
-    preferredLocale: ValueOf<typeof CONST.LOCALES> | null;
+    preferredLocale: Locale | null;
     deviceInfo: string;
+    authToken?: string;
 };
 
 export default SignInUserWithLinkParams;

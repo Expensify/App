@@ -1,62 +1,74 @@
-import 'core-js/proposals/promise-with-resolvers';
+import LoadingIndicator from '@components/LoadingIndicator';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {PDFDocumentProxy} from 'pdfjs-dist';
+
 // eslint-disable-next-line import/extensions
-import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.mjs';
-import React, {useMemo, useState} from 'react';
+import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import useThemeStyles from '@hooks/useThemeStyles';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import PDFThumbnailError from './PDFThumbnailError';
+
 import type PDFThumbnailProps from './types';
 
-if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
-}
+import PDFThumbnailError from './PDFThumbnailError';
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
+pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+
+// Use a root-relative URL so the CMap files (needed to render non-Latin fonts) resolve against
+// the server root instead of the current deep route. Shared by every react-pdf <Document> in the app.
+const PDF_DOCUMENT_OPTIONS = {
+    cMapUrl: '/cmaps/',
+    cMapPacked: true,
+};
+
+function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const [failedToLoad, setFailedToLoad] = useState(false);
 
-    const thumbnail = useMemo(
-        () => (
-            <Document
-                loading={<FullScreenLoadingIndicator />}
-                file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
-                options={{
-                    cMapUrl: 'cmaps/',
-                    cMapPacked: true,
-                }}
-                externalLinkTarget="_blank"
-                onPassword={onPassword}
-                onLoad={() => {
-                    setFailedToLoad(false);
-                }}
-                onLoadSuccess={() => {
-                    if (!onLoadSuccess) {
-                        return;
-                    }
-                    onLoadSuccess();
-                }}
-                onLoadError={() => {
-                    if (onLoadError) {
-                        onLoadError();
-                    }
-                    setFailedToLoad(true);
-                }}
-                error={() => null}
-            >
-                <View pointerEvents="none">
-                    <Thumbnail pageIndex={0} />
-                </View>
-            </Document>
-        ),
-        [isAuthTokenRequired, previewSourceURL, onPassword, onLoadError, onLoadSuccess],
+    const thumbnail = (
+        <Document
+            loading={<LoadingIndicator />}
+            file={previewSourceURL}
+            options={PDF_DOCUMENT_OPTIONS}
+            externalLinkTarget="_blank"
+            onPassword={onPassword}
+            onLoad={() => {
+                setFailedToLoad(false);
+            }}
+            onLoadSuccess={(pdf: PDFDocumentProxy) => {
+                if (!onLoadSuccess) {
+                    return;
+                }
+                onLoadSuccess(pdf.numPages);
+            }}
+            onLoadError={() => {
+                if (onLoadError) {
+                    onLoadError();
+                }
+                setFailedToLoad(true);
+            }}
+            error={() => null}
+        >
+            <View pointerEvents="none">
+                <Thumbnail pageIndex={0} />
+            </View>
+        </Document>
     );
 
     return (
         <View style={[style, styles.overflowHidden, failedToLoad && styles.h100]}>
-            <View style={[styles.w100, styles.h100, !failedToLoad && {...styles.alignItemsCenter, ...styles.justifyContentCenter}]}>
+            <View
+                style={[
+                    styles.w100,
+                    styles.h100,
+                    !failedToLoad && {
+                        ...styles.alignItemsCenter,
+                        ...styles.justifyContentCenter,
+                    },
+                ]}
+            >
                 {enabled && !failedToLoad && thumbnail}
                 {failedToLoad && <PDFThumbnailError />}
             </View>
@@ -65,4 +77,10 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
 }
 
 PDFThumbnail.displayName = 'PDFThumbnail';
-export default React.memo(PDFThumbnail);
+
+export default PDFThumbnail;
+
+// Re-exported so other PDF-rendering components reuse this file's worker setup
+// instead of importing pdfjs-dist/react-pdf directly.
+export {Document, Thumbnail, PDF_DOCUMENT_OPTIONS};
+export type {PDFDocumentProxy};

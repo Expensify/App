@@ -1,0 +1,73 @@
+import type {SearchQueryJSON} from '@components/Search/types';
+import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
+
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {SearchFilter} from '@libs/SearchUIUtils';
+import shouldAdjustScroll from '@libs/shouldAdjustScroll';
+
+import React, {useRef} from 'react';
+import {FlatList} from 'react-native';
+
+import type {FilterItem} from './useSearchFiltersBar';
+
+import SearchFilterBar from './SearchFilterBar';
+import SearchFiltersActionButtons from './SearchFiltersActionButtons';
+import useSearchFiltersBar from './useSearchFiltersBar';
+
+type SearchFiltersBarNarrowProps = {
+    queryJSON: SearchQueryJSON;
+};
+
+function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
+    const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
+    const scrollRef = useRef<FlatList<SearchFilter & FilterItem>>(null);
+    const {filters, hasErrors, shouldShowFiltersBarLoading, canReset, canSave, resetFilters} = useSearchFiltersBar(queryJSON);
+
+    const adjustScroll = (info: {distanceFromEnd: number}) => {
+        // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
+        // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
+        // To fix this, we detect when onEndReached is triggered due to an item deletion,
+        // and programmatically scroll to the end to fill the space.
+
+        if (!shouldAdjustScroll || info.distanceFromEnd > 0) {
+            return;
+        }
+        scrollRef.current?.scrollToEnd();
+    };
+
+    const renderFilterItem = ({item}: {item: SearchFilter & FilterItem}) => <SearchFilterBar item={item} />;
+
+    const data = shouldShowFiltersBarLoading || hasErrors ? [] : filters;
+
+    return (
+        <FlatList
+            horizontal
+            keyboardShouldPersistTaps="always"
+            style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, (!!data.length || canSave || canReset) && styles.mb4]}
+            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, pageGutter, styles.alignItemsCenter]}
+            ref={scrollRef}
+            showsHorizontalScrollIndicator={false}
+            data={data}
+            keyExtractor={(item) => item.id}
+            renderItem={renderFilterItem}
+            onEndReached={adjustScroll}
+            onEndReachedThreshold={0.75}
+            ListHeaderComponent={shouldShowFiltersBarLoading ? <SearchFiltersSkeleton shouldAnimate /> : null}
+            ListFooterComponent={
+                <SearchFiltersActionButtons
+                    canReset={canReset}
+                    canSave={canSave}
+                    resetFilters={resetFilters}
+                />
+            }
+        />
+    );
+}
+
+SearchFiltersBarNarrow.displayName = 'SearchFiltersBarNarrow';
+
+export default SearchFiltersBarNarrow;
+export type {SearchFiltersBarNarrowProps};

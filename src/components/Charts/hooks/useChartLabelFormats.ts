@@ -1,0 +1,56 @@
+import type {ChartDataPoint, LabelRotation, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import {canFontRenderText} from '@components/Charts/utils';
+import {LABEL_ROTATIONS} from '@components/Charts/VictoryTheme';
+
+import useLocalize from '@hooks/useLocalize';
+
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
+type UseChartLabelFormatsProps = {
+    data: ChartDataPoint[];
+    unit?: UnitWithFallback | string;
+    unitPosition?: UnitPosition;
+    labelSkipInterval?: number;
+    labelRotation?: LabelRotation;
+    truncatedLabels?: string[];
+    fontManager?: SkTypefaceFontProvider | null;
+};
+
+export default function useChartLabelFormats({data, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels, fontManager}: UseChartLabelFormatsProps) {
+    const {numberFormat} = useLocalize();
+
+    const displayUnit = typeof unit === 'string' ? unit : unit?.value;
+    const unitToDisplay = fontManager && !canFontRenderText(displayUnit, fontManager) ? (unit as UnitWithFallback)?.fallback : displayUnit;
+    const withUnit = (formatted: string) => {
+        if (!unitToDisplay) {
+            return formatted;
+        }
+        const separator = unitToDisplay.length > 1 ? ' ' : '';
+        if (unitPosition === 'right') {
+            return `${formatted}${separator}${unitToDisplay}`;
+        }
+        // A leading unit goes after the minus sign, so negatives read -$50k rather than $-50k.
+        const sign = /^[-\u2212]/.exec(formatted)?.[0] ?? '';
+        return `${sign}${unitToDisplay}${separator}${formatted.slice(sign.length)}`;
+    };
+    const formatValue = (value: number) => withUnit(numberFormat(value));
+    const formatCompactValue = (value: number) => withUnit(numberFormat(value, {notation: 'compact'}).replace('K', 'k'));
+
+    const formatLabel = (value: number) => {
+        const index = Math.round(value);
+
+        if (index % labelSkipInterval !== 0) {
+            return '';
+        }
+
+        const sourceToUse = labelRotation === LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
+
+        return sourceToUse.at(index) ?? '';
+    };
+
+    return {
+        formatLabel,
+        formatValue,
+        formatCompactValue,
+    };
+}

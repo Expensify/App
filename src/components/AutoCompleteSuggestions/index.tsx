@@ -1,15 +1,31 @@
-import React, {useEffect} from 'react';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import useWindowDimensionsForAutoCompleteSuggestions from '@hooks/useWindowDimensionsForAutoCompleteSuggestions';
+
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
 import CONST from '@src/CONST';
-import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
+
+import React, {useEffect} from 'react';
+
 import type {AutoCompleteSuggestionsProps, MeasureParentContainerAndCursor} from './types';
 
-const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean): number => {
+import AutoCompleteSuggestionsPortal from './AutoCompleteSuggestionsPortal';
+import getBottomSuggestionPadding from './AutoCompleteSuggestionsPortal/getBottomSuggestionPadding';
+import getLeftOffset from './getSuggestionsLeftOffset';
+import getSuggestionsViewportBottom from './getSuggestionsViewportBottom';
+
+const measureHeightOfSuggestionRows = (numRows: number, canBeBig: boolean, isInLandscapeMode: boolean): number => {
+    if (isInLandscapeMode) {
+        if (numRows > 1) {
+            // In landscape mode, we display a scrollable window with a height of 1.5 items, indicating that there are more items available beyond what is currently visible
+            return CONST.AUTO_COMPLETE_SUGGESTER.SMALL_CONTAINER_HEIGHT_FACTOR_LANDSCAPE_MODE * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+        }
+
+        return numRows * CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
+    }
     if (canBeBig) {
         if (numRows > CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_VISIBLE_SUGGESTIONS_IN_CONTAINER) {
             // On large screens, if there are more than 5 suggestions, we display a scrollable window with a height of 5 items, indicating that there are more items available
@@ -28,17 +44,20 @@ function isSuggestionMenuRenderedAbove(isEnoughSpaceAboveForBigMenu: boolean, is
 }
 
 type IsEnoughSpaceToRenderMenuAboveCursor = Pick<MeasureParentContainerAndCursor, 'y' | 'cursorCoordinates' | 'scrollValue'> & {
-    contentHeight: number;
+    menuHeight: number;
     topInset: number;
 };
-function isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight, topInset}: IsEnoughSpaceToRenderMenuAboveCursor): boolean {
-    return y + (cursorCoordinates.y - scrollValue) > contentHeight + topInset + CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE;
+function isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, menuHeight, topInset}: IsEnoughSpaceToRenderMenuAboveCursor): boolean {
+    const gapAboveCursor = Math.max(CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_BOX_MAX_SAFE_DISTANCE, getBottomSuggestionPadding(true));
+
+    return y + (cursorCoordinates.y - scrollValue) > menuHeight + gapAboveCursor + topInset;
 }
 
 const initialContainerState = {
     width: 0,
     left: 0,
     bottom: 0,
+    isMenuAbove: false,
     cursorCoordinates: {x: 0, y: 0},
 };
 
@@ -54,14 +73,15 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const isSuggestionMenuAboveRef = React.useRef<boolean>(false);
     const leftValue = React.useRef<number>(0);
     const prevLeftValue = React.useRef<number>(0);
-    const {windowHeight, windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {height: windowHeight, width: windowWidth} = useWindowDimensionsForAutoCompleteSuggestions();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const prevIsInLandscapeModeValue = React.useRef(isInLandscapeMode);
     const [suggestionHeight, setSuggestionHeight] = React.useState(0);
     const [containerState, setContainerState] = React.useState(initialContainerState);
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
-    const {keyboardHeight} = useKeyboardState();
-    const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+    const {keyboardHeight, isKeyboardAnimatingRef} = useKeyboardState();
+    const {paddingBottom: bottomInset, paddingTop: topInset} = StyleUtils.getPlatformSafeAreaPadding(insets ?? undefined);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -69,7 +89,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
             return () => {};
         }
         container.onpointerdown = (e) => {
-            if (DeviceCapabilities.hasHoverSupport()) {
+            if (hasHoverSupport()) {
                 return;
             }
             e.preventDefault();
@@ -80,7 +100,7 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     const suggestionsLength = props.suggestions.length;
 
     useEffect(() => {
-        if (!measureParentContainerAndReportCursor) {
+        if (!measureParentContainerAndReportCursor || isKeyboardAnimatingRef.current) {
             return;
         }
 
@@ -95,61 +115,98 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
                 xCoordinatesOfCursor + CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH > windowWidth
                     ? windowWidth - CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH
                     : xCoordinatesOfCursor;
-            const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-            const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
-            let bottomValue = windowHeight - (cursorCoordinates.y - scrollValue + y) - keyboardHeight;
+            const contentMaxHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
+            const contentMinHeight = measureHeightOfSuggestionRows(suggestionsLength, false, isInLandscapeMode);
+            // Read in the same tick as the composer measurement above, so both describe the same layout state.
+            const viewportBottom = getSuggestionsViewportBottom(windowHeight, keyboardHeight);
+            let bottomValue = viewportBottom - (cursorCoordinates.y - scrollValue + y);
             const widthValue = shouldUseNarrowLayout ? width : CONST.AUTO_COMPLETE_SUGGESTER.BIG_SCREEN_SUGGESTION_WIDTH;
 
-            const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMaxHeight, topInset});
-            const isEnoughSpaceToRenderMenuAboveForSmall = isEnoughSpaceToRenderMenuAboveCursor({y, cursorCoordinates, scrollValue, contentHeight: contentMinHeight, topInset});
+            const isEnoughSpaceToRenderMenuAboveForBig = isEnoughSpaceToRenderMenuAboveCursor({
+                y,
+                cursorCoordinates,
+                scrollValue,
+                menuHeight: StyleUtils.getAutoCompleteSuggestionContainerHeight(contentMaxHeight),
+                topInset,
+            });
 
-            const newLeftOffset = shouldUseNarrowLayout ? x : bigScreenLeftOffset;
+            // In landscape mode, we always render the menu above the cursor
+            const isEnoughSpaceToRenderMenuAboveForSmall =
+                isInLandscapeMode ||
+                isEnoughSpaceToRenderMenuAboveCursor({
+                    y,
+                    cursorCoordinates,
+                    scrollValue,
+                    menuHeight: StyleUtils.getAutoCompleteSuggestionContainerHeight(contentMinHeight),
+                    topInset,
+                });
+
+            const newLeftOffset = getLeftOffset(x, insets, bigScreenLeftOffset, shouldUseNarrowLayout, width, windowWidth, isInLandscapeMode);
             // If the suggested word is longer than 150 (approximately half the width of the suggestion popup), then adjust a new position of popup
             const isAdjustmentNeeded = Math.abs(prevLeftValue.current - bigScreenLeftOffset) > 150;
-            if (isInitialRender.current || isAdjustmentNeeded) {
-                isSuggestionMenuAboveRef.current = isSuggestionMenuRenderedAbove(isEnoughSpaceToRenderMenuAboveForBig, isEnoughSpaceToRenderMenuAboveForSmall);
+            const shouldRenderMenuAbove = isSuggestionMenuRenderedAbove(isEnoughSpaceToRenderMenuAboveForBig, isEnoughSpaceToRenderMenuAboveForSmall);
+            const hasRunOutOfSpaceAbove = isSuggestionMenuAboveRef.current && !shouldRenderMenuAbove;
+            if (isInitialRender.current || isAdjustmentNeeded || prevIsInLandscapeModeValue.current !== isInLandscapeMode || hasRunOutOfSpaceAbove) {
+                isSuggestionMenuAboveRef.current = shouldRenderMenuAbove;
                 leftValue.current = newLeftOffset;
                 isInitialRender.current = false;
                 prevLeftValue.current = newLeftOffset;
+                prevIsInLandscapeModeValue.current = isInLandscapeMode;
             }
 
             let measuredHeight = 0;
+            const isMenuAbove = isSuggestionMenuAboveRef.current && (isEnoughSpaceToRenderMenuAboveForBig || isEnoughSpaceToRenderMenuAboveForSmall);
             if (isSuggestionMenuAboveRef.current && isEnoughSpaceToRenderMenuAboveForBig) {
                 // calculation for big suggestion box above the cursor
-                measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
+                measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
             } else if (isSuggestionMenuAboveRef.current && isEnoughSpaceToRenderMenuAboveForSmall) {
                 // calculation for small suggestion box above the cursor
-                measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, false);
+                measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, false, isInLandscapeMode);
             } else {
                 // calculation for big suggestion box below the cursor
-                measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true);
-                bottomValue = windowHeight - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT - keyboardHeight;
+                measuredHeight = measureHeightOfSuggestionRows(suggestionsLength, true, isInLandscapeMode);
+                bottomValue = viewportBottom - y - cursorCoordinates.y + scrollValue - measuredHeight - CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT;
             }
+
             setSuggestionHeight(measuredHeight);
             setContainerState({
                 left: leftValue.current,
                 bottom: bottomValue,
                 width: widthValue,
+                isMenuAbove,
                 cursorCoordinates,
             });
         });
-    }, [measureParentContainerAndReportCursor, windowHeight, windowWidth, keyboardHeight, shouldUseNarrowLayout, suggestionsLength, bottomInset, topInset]);
+    }, [
+        measureParentContainerAndReportCursor,
+        windowHeight,
+        windowWidth,
+        keyboardHeight,
+        shouldUseNarrowLayout,
+        suggestionsLength,
+        bottomInset,
+        topInset,
+        isKeyboardAnimatingRef,
+        isInLandscapeMode,
+        insets,
+        StyleUtils,
+    ]);
 
-    if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || (containerState.cursorCoordinates.x === 0 && containerState.cursorCoordinates.y === 0)) {
+    // Prevent rendering if container dimensions are not set or if we have no suggestions
+    if ((containerState.width === 0 && containerState.left === 0 && containerState.bottom === 0) || !suggestionsLength) {
         return null;
     }
+
     return (
         <AutoCompleteSuggestionsPortal
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             left={containerState.left}
             width={containerState.width}
             bottom={containerState.bottom}
             measuredHeightOfSuggestionRows={suggestionHeight}
+            isMenuAbove={containerState.isMenuAbove}
         />
     );
 }
-
-AutoCompleteSuggestions.displayName = 'AutoCompleteSuggestions';
 
 export default AutoCompleteSuggestions;

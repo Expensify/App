@@ -1,0 +1,232 @@
+import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
+
+import type {ScrollableNodeHolder} from '@hooks/useVerticalScrollbarWidth/types';
+
+import CONST from '@src/CONST';
+
+import type {FlashListRef} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent, View} from 'react-native';
+
+import React, {createContext, useContext} from 'react';
+
+import type {TableListMetadata} from './buildTableListData';
+import type {ColumnResizeController} from './columnResize/useColumnResize/types';
+import type {FilterConfig} from './middlewares/filtering';
+import type {ActiveSorting, SortOrder} from './middlewares/sorting';
+import type {TableHeaderProps} from './TableHeader';
+import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
+
+/**
+ * The shape of the Table context value.
+ * This context is provided by the `<Table>` component and consumed by its sub-components.
+ *
+ * @template DataType - The type of items in the table's data array.
+ * @template ColumnKey - A string literal type representing the valid column keys.
+ */
+type TableContextValue<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string> = {
+    /** The title of the table when shown on smaller screens. */
+    title?: string;
+
+    /** Declarative content rendered as the FlashList header so it scrolls with the table rows. */
+    listHeaderElement?: React.ReactNode;
+
+    /** Declarative column-header child relocated into the table list when page content is present. */
+    tableHeaderElement?: React.ReactElement<TableHeaderProps>;
+
+    /** Empty-state element extracted from the table children; rendered by TableBody in its page-header empty layout. */
+    emptyStateElement?: React.ReactElement;
+
+    /** No-results element extracted from the table children; rendered by TableBody in its page-header empty layout. */
+    noResultsStateElement?: React.ReactElement;
+
+    /** Reference to the underlying FlashList for programmatic control. */
+    listRef: React.RefObject<FlashListRef<DataType> | null>;
+
+    /** Attached to the list alongside `listRef` so the table can measure the element that scrolls. */
+    measureScrollbarRef: (instance: ScrollableNodeHolder | null) => void;
+
+    /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
+    listContainerRef: React.RefObject<ComponentRef<typeof View> | null>;
+
+    /** Tracks the list scroll offset for the focused-input scroll helper; wired into the list's onScroll. */
+    trackScrollOffset: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
+    /** Scrolls the table list so the given input stays visible above the keyboard (no-op on web). */
+    scrollInputIntoView: (input: MeasurableInput) => void;
+
+    /** FlashList props passed through from the Table component. */
+    listProps: SharedListProps<DataType>;
+
+    /** Whether or not selection is enabled for the table */
+    selectionEnabled?: boolean;
+
+    /** The keys of the rows the selection currently covers. */
+    selectedKeys: string[];
+
+    /**
+     * Whether the floating bulk action bar is showing for the current selection. The list reads it too, because it has
+     * to reserve the space the bar floats over or its last rows sit behind the bar once scrolled to the bottom.
+     */
+    isBulkActionBarVisible: boolean;
+
+    /** Whether the selection UX should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
+    shouldEnableSelectionInNarrowPaneModal?: boolean;
+
+    /** The data array after filtering, searching, and sorting have been applied. */
+    processedData: Array<TableRow<DataType>>;
+
+    /** The original length of the data array before any processing. */
+    originalDataLength: number;
+
+    /** Column configuration for the table. */
+    columns: Array<TableColumn<ColumnKey, DataType>>;
+
+    /**
+     * The CSS grid tracks the header and every row must render, when the columns are sized from their content.
+     * `undefined` means the columns keep their static tracks (fixed widths and equal `1fr` shares).
+     */
+    dynamicGridTemplateColumns: string[] | undefined;
+
+    /** Row width when the columns overflow and the list scrolls horizontally, or `undefined` when they fit. A CSS expression while resizable, so drags need no re-render. */
+    scrollWidth: number | string | undefined;
+
+    /** Row box width while resizable, so the row background follows a drag. `undefined` otherwise. */
+    rowWidth: string | undefined;
+
+    /** Lets the header render column edge handles. `undefined` when resizing is off, which includes native and narrow layouts. */
+    columnResize: ColumnResizeController | undefined;
+
+    /** Width the rows are really given, so the measured area less any vertical scrollbar. `0` until the first layout. */
+    tableWidth: number;
+
+    /** Filter configuration for dropdown filters. */
+    filterConfig: FilterConfig<FilterKey> | undefined;
+
+    activeFilters: Partial<Record<FilterKey, string[]>>;
+
+    /** Currently active sorting configuration. */
+    activeSorting: ActiveSorting<ColumnKey>;
+
+    /** The column the table is initially sorted by, used as the reset target for sort controls. */
+    initialSortColumn: ColumnKey | undefined;
+
+    /** The order `initialSortColumn` is initially sorted in, used as the reset target for sort controls. */
+    initialSortOrder: SortOrder;
+
+    /** The column sorting is locked to on narrow layouts, where user sorting is ignored. */
+    narrowLayoutSortColumn: ColumnKey | undefined;
+
+    activeSearchString: string;
+
+    /** Methods exposed by the Table component for programmatic control. */
+    tableMethods: TableMethods<ColumnKey, FilterKey>;
+
+    /** Whether any filters differ from their default values. */
+    hasActiveFilters: boolean;
+
+    /** Whether search string is not empty. */
+    hasSearchString: boolean;
+
+    /** Synthetic row metadata shared by the FlashList data and table ref methods. */
+    tableListMetadata: TableListMetadata;
+
+    /** Whether the table has an empty result caused by search or filters. */
+    isEmptyResult: boolean;
+
+    /** Whether the default (unfiltered) view resolves to zero visible rows even though data exists (e.g. a default `isItemInFilter` hides everything). */
+    isDefaultViewEmpty: boolean;
+
+    /** Whether or not table selection is enabled on mobile */
+    isMobileSelectionEnabled: boolean;
+
+    /** Whether to use a narrow layout (e.g. on mobile screens). */
+    shouldUseNarrowTableLayout: boolean;
+
+    /** Whether `ListFooterComponent` renders as a continuation of the rows, so it owns the rounded bottom corners. */
+    shouldFooterRenderAsLastRow?: boolean;
+
+    /** Callback when the user changes the search string in the filter bar. */
+    onSearchStringChange?: (searchString: string) => void;
+};
+
+const defaultTableContextValue: TableContextValue<TableData, string> = {
+    listRef: React.createRef(),
+    measureScrollbarRef: () => {},
+    listContainerRef: React.createRef(),
+    trackScrollOffset: () => {},
+    scrollInputIntoView: () => {},
+    processedData: [],
+    originalDataLength: 0,
+    columns: [],
+    dynamicGridTemplateColumns: undefined,
+    scrollWidth: undefined,
+    rowWidth: undefined,
+    columnResize: undefined,
+    tableWidth: 0,
+    activeFilters: {},
+    activeSorting: {
+        columnKey: undefined,
+        order: 'asc',
+    },
+    initialSortColumn: undefined,
+    initialSortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+    narrowLayoutSortColumn: undefined,
+    activeSearchString: '',
+    tableMethods: {} as TableMethods<string, string>,
+    filterConfig: undefined,
+    listProps: {} as SharedListProps<TableData>,
+    hasActiveFilters: false,
+    hasSearchString: false,
+    tableListMetadata: {
+        hasPageHeader: false,
+        columnHeaderPlacement: CONST.TABLES.COLUMN_HEADER_PLACEMENT.NONE,
+        syntheticRowsBeforeData: 0,
+        stickyTableHeaderIndex: 0,
+        listDataRowOffset: 0,
+    },
+    isEmptyResult: false,
+    isDefaultViewEmpty: false,
+    selectedKeys: [],
+    isBulkActionBarVisible: false,
+    shouldUseNarrowTableLayout: false,
+    isMobileSelectionEnabled: false,
+};
+
+const TableContext = createContext(defaultTableContextValue);
+const TableRowSemanticIDContext = createContext<string | null | undefined>(undefined);
+
+/**
+ * Hook to access the Table context.
+ * Must be used within a `<Table>` provider.
+ *
+ * @template T - The type of items in the table's data array.
+ * @template ColumnKey - A string literal type representing the valid column keys.
+ *
+ * @throws {Error} If used outside of a Table provider.
+ *
+ * @example
+ * ```tsx
+ * function CustomTableComponent<T>() {
+ *   const { processedData, activeSorting } = useTableContext<T>();
+ *   // Use context data...
+ * }
+ * ```
+ */
+function useTableContext<DataType extends TableData, ColumnKey extends string = string>() {
+    const context = useContext(TableContext);
+
+    if (context === defaultTableContextValue && context.activeFilters === undefined) {
+        throw new Error('useTableContext must be used within a Table provider');
+    }
+
+    return context as unknown as TableContextValue<DataType, ColumnKey>;
+}
+
+function useTableRowSemanticID() {
+    return useContext(TableRowSemanticIDContext);
+}
+
+export default TableContext;
+export {TableRowSemanticIDContext, useTableContext, useTableRowSemanticID};
+export type {TableContextValue};

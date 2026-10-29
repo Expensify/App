@@ -1,37 +1,54 @@
-import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import Accordion from '@components/Accordion';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
+
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Parser from '@libs/Parser';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type ToggleSettingOptionRowProps = {
     /** Icon to be shown for the option */
     icon?: IconAsset;
 
-    /** Title of the option */
+    /** Icon to be shown for the option row */
+    rowIcon?: IconAsset;
+
     title?: string;
-
-    /** Custom title for the option */
     customTitle?: React.ReactNode;
-
-    /** Subtitle of the option */
     subtitle?: string | ReactNode;
-
-    /** Accessibility label for the switch */
     switchAccessibilityLabel: string;
 
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
 
-    /** Whether or not the text should be escaped */
+    /** When true with shouldPlaceSubtitleBelowSwitch, uses tighter title/subtitle spacing to match MenuItem rows */
+    shouldUseCompactSubtitleSpacing?: boolean;
+
+    /**
+     * Pins the switch near the top of the row instead of centering it against the whole title+subtitle block. Use this
+     * where rows of differing subtitle heights swap in and out of the same spot (e.g. tabs), so the switch stays put.
+     */
+    shouldAnchorSwitchToTop?: boolean;
+
     shouldEscapeText?: boolean;
 
     /** Whether should render subtitle as HTML or as Text */
@@ -40,13 +57,19 @@ type ToggleSettingOptionRowProps = {
     /** Used to apply styles to the outermost container */
     wrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Used to apply styles to the Title */
+    /** Used to apply styles to the row holding the title and the switch, leaving the sub menu items below it untouched */
+    toggleContainerStyles?: StyleProp<ViewStyle>;
+
     titleStyle?: StyleProp<TextStyle>;
 
-    /** Used to apply styles to the Subtitle */
+    /** Optional accessibility role for the title. Only set when the title is a section heading (e.g. CONST.ROLE.HEADER); omit for regular rows. */
+    titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
+
     subtitleStyle?: StyleProp<TextStyle>;
 
-    /** Whether the option is enabled or not */
+    /** Style for the container of a parsed (HTML) subtitle. Use it to match the spacing `subtitleStyle` gives a plain-text subtitle. */
+    parsedSubtitleContainerStyle?: StyleProp<ViewStyle>;
+    accordionStyle?: StyleProp<ViewStyle>;
     isActive: boolean;
 
     /** Callback to be called when the switch is toggled */
@@ -64,29 +87,41 @@ type ToggleSettingOptionRowProps = {
     /** Callback to close the error messages */
     onCloseError?: () => void;
 
-    /** Whether the toggle should be disabled */
     disabled?: boolean;
 
     /** Whether to show the lock icon even if the switch is enabled */
     showLockIcon?: boolean;
 
     /** Callback to fire when the switch is toggled in disabled state */
-    disabledAction?: () => void;
+    disabledAction?: () => void | Promise<void>;
+
+    /** Text to display in tooltip when the toggle is disabled */
+    disabledText?: string;
+
+    /** Callback to fire when the content area is pressed (only works when isActive is true) */
+    onPress?: () => void;
 };
 const ICON_SIZE = 48;
 
 function ToggleSettingOptionRow({
     icon,
+    rowIcon,
     title,
     customTitle,
     subtitle,
     subtitleStyle,
+    parsedSubtitleContainerStyle,
+    accordionStyle,
     switchAccessibilityLabel,
     shouldPlaceSubtitleBelowSwitch,
+    shouldUseCompactSubtitleSpacing = false,
+    shouldAnchorSwitchToTop = false,
     shouldEscapeText = undefined,
     shouldParseSubtitle = false,
     wrapperStyle,
+    toggleContainerStyles,
     titleStyle,
+    titleAccessibilityRole,
     onToggle,
     subMenuItems,
     isActive,
@@ -96,51 +131,113 @@ function ToggleSettingOptionRow({
     onCloseError,
     disabled = false,
     showLockIcon = false,
+    disabledText,
+    onPress,
 }: ToggleSettingOptionRowProps) {
     const styles = useThemeStyles();
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isActive);
+    const theme = useTheme();
 
-    const subtitleHtml = useMemo(() => {
-        if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
-            return '';
+    // We are disabling the announcement for subtitle if subtitle and switchAccessibilityLabel are equal
+    const areSubtitleAndSwitchAccessibilityLabelEqual = switchAccessibilityLabel === subtitle;
+
+    useEffect(() => {
+        isAccordionExpanded.set(isActive);
+    }, [isAccordionExpanded, isActive]);
+
+    const subtitleHtml =
+        !subtitle || !shouldParseSubtitle || typeof subtitle !== 'string'
+            ? ''
+            : Parser.replace(subtitle, {
+                  shouldEscapeText,
+              });
+
+    let textToWrap = '';
+    if (shouldParseSubtitle) {
+        textToWrap = subtitleHtml;
+    }
+    const processedSubtitle = textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
+
+    const subtitleSpacingStyle = (() => {
+        if (!shouldPlaceSubtitleBelowSwitch) {
+            return {...styles.mt1, ...styles.mr5};
         }
-        return Parser.replace(subtitle, {shouldEscapeText});
-    }, [subtitle, shouldParseSubtitle, shouldEscapeText]);
 
-    const processedSubtitle = useMemo(() => {
-        let textToWrap = '';
+        return shouldUseCompactSubtitleSpacing ? styles.mt1 : styles.mt3;
+    })();
 
-        if (shouldParseSubtitle) {
-            textToWrap = subtitleHtml;
+    let subTitleView;
+    if (typeof subtitle === 'string') {
+        if (!!subtitle && shouldParseSubtitle) {
+            subTitleView = (
+                <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle, parsedSubtitleContainerStyle]}>
+                    <RenderHTML html={processedSubtitle} />
+                </View>
+            );
+        } else {
+            /**
+             * We hide the subtitle from screen readers to avoid double announcements
+             * 'aria-hidden' is used for compatibility with iOS mWeb, while 'accessible={false}' works on iOS native.
+             */
+            subTitleView = (
+                <Text
+                    accessible={!areSubtitleAndSwitchAccessibilityLabelEqual}
+                    aria-hidden={areSubtitleAndSwitchAccessibilityLabelEqual}
+                    style={[styles.mutedNormalTextLabel, subtitleSpacingStyle, subtitleStyle]}
+                >
+                    {subtitle}
+                </Text>
+            );
         }
+    } else {
+        subTitleView = subtitle;
+    }
 
-        return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
-    }, [shouldParseSubtitle, subtitleHtml]);
+    const contentArea = (
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+            {!!icon && (
+                <Icon
+                    src={icon}
+                    height={ICON_SIZE}
+                    width={ICON_SIZE}
+                    additionalStyles={[styles.mr3]}
+                />
+            )}
+            {customTitle ?? (
+                <View style={[styles.flexColumn, styles.flex1, styles.mr6]}>
+                    <Text
+                        style={[styles.textNormal, styles.lh20, styles.textAlignVerticalCenter, titleStyle]}
+                        accessibilityRole={titleAccessibilityRole}
+                    >
+                        {title}
+                    </Text>
+                    {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
+                </View>
+            )}
+        </View>
+    );
 
-    const subTitleView = useMemo(() => {
-        if (typeof subtitle === 'string') {
-            if (!!subtitle && shouldParseSubtitle) {
-                return (
-                    <View style={[styles.flexRow, styles.renderHTML, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}]}>
-                        <RenderHTML html={processedSubtitle} />
-                    </View>
-                );
+    const shouldMakeContentPressable = isActive && onPress;
+    const shouldShowTooltip = disabled && !!disabledText;
+
+    // Keeps a top-anchored switch level with where it sits today on a single-line subtitle, so only multi-line rows shift.
+    const anchoredSwitchStyle = shouldAnchorSwitchToTop ? styles.mt2 : undefined;
+
+    const switchComponent = (
+        <Switch
+            disabledAction={disabledAction}
+            accessibilityLabel={
+                typeof subtitle === 'string' && subtitle && !areSubtitleAndSwitchAccessibilityLabelEqual ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel
             }
-            return <Text style={[styles.mutedNormalTextLabel, shouldPlaceSubtitleBelowSwitch ? styles.mt1 : {...styles.mt1, ...styles.mr5}, subtitleStyle]}>{subtitle}</Text>;
-        }
-
-        return subtitle;
-    }, [
-        subtitle,
-        shouldParseSubtitle,
-        styles.mutedNormalTextLabel,
-        styles.mt1,
-        styles.mr5,
-        styles.flexRow,
-        styles.renderHTML,
-        shouldPlaceSubtitleBelowSwitch,
-        subtitleStyle,
-        processedSubtitle,
-    ]);
+            onToggle={(isOn) => {
+                shouldAnimateAccordionSection.set(true);
+                onToggle(isOn);
+            }}
+            isOn={isActive}
+            disabled={disabled}
+            showLockIcon={showLockIcon}
+        />
+    );
 
     return (
         <OfflineWithFeedback
@@ -150,35 +247,53 @@ function ToggleSettingOptionRow({
             style={[wrapperStyle]}
             onClose={onCloseError}
         >
-            <View style={styles.pRelative}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                        {!!icon && (
-                            <Icon
-                                src={icon}
-                                height={ICON_SIZE}
-                                width={ICON_SIZE}
-                                additionalStyles={[styles.mr3]}
-                            />
-                        )}
-                        {customTitle ?? (
-                            <View style={[styles.flexColumn, styles.flex1]}>
-                                <Text style={[styles.textNormal, styles.lh20, titleStyle]}>{title}</Text>
-                                {!shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                            </View>
+            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                {!!rowIcon && (
+                    <Icon
+                        src={rowIcon}
+                        height={variables.iconSizeNormal}
+                        width={variables.iconSizeNormal}
+                        additionalStyles={[styles.mr5]}
+                        fill={theme.icon}
+                    />
+                )}
+                <View style={[styles.pRelative, styles.flex1]}>
+                    <View
+                        style={[
+                            styles.flexRow,
+                            shouldAnchorSwitchToTop ? styles.alignItemsStart : styles.alignItemsCenter,
+                            styles.justifyContentBetween,
+                            shouldPlaceSubtitleBelowSwitch && !shouldUseCompactSubtitleSpacing && styles.mnh40,
+                            toggleContainerStyles,
+                        ]}
+                    >
+                        <PressableWithoutFeedback
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                            onPress={shouldMakeContentPressable ? onPress : undefined}
+                            accessibilityLabel={title}
+                            role={shouldMakeContentPressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
+                            accessible={false}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TOGGLE_SETTINGS_ROW}
+                        >
+                            {contentArea}
+                        </PressableWithoutFeedback>
+                        {shouldShowTooltip ? (
+                            <Tooltip text={disabledText}>
+                                <View style={anchoredSwitchStyle}>{switchComponent}</View>
+                            </Tooltip>
+                        ) : (
+                            <View style={anchoredSwitchStyle}>{switchComponent}</View>
                         )}
                     </View>
-                    <Switch
-                        disabledAction={disabledAction}
-                        accessibilityLabel={switchAccessibilityLabel}
-                        onToggle={onToggle}
-                        isOn={isActive}
-                        disabled={disabled}
-                        showLockIcon={showLockIcon}
-                    />
+                    {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
+                    <Accordion
+                        isExpanded={isAccordionExpanded}
+                        style={accordionStyle}
+                        isToggleTriggered={shouldAnimateAccordionSection}
+                    >
+                        {subMenuItems}
+                    </Accordion>
                 </View>
-                {shouldPlaceSubtitleBelowSwitch && subtitle && subTitleView}
-                {isActive && subMenuItems}
             </View>
         </OfflineWithFeedback>
     );

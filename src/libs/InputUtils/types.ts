@@ -1,6 +1,7 @@
+import type {ComponentRef} from 'react';
 import type {TextInput} from 'react-native';
 
-type ScrollToBottom = (input: HTMLInputElement | TextInput) => void;
-type MoveSelectiontoEnd = (input: HTMLInputElement | TextInput) => void;
+type ScrollInput = (input: HTMLInputElement | HTMLTextAreaElement | HTMLDivElement | ComponentRef<typeof TextInput>) => void;
+type MoveSelectionToEnd = (input: HTMLInputElement | ComponentRef<typeof TextInput>) => void;
 
-export type {ScrollToBottom, MoveSelectiontoEnd};
+export type {ScrollInput, MoveSelectionToEnd};

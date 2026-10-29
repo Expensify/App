@@ -1,19 +1,29 @@
-import type {ReactElement} from 'react';
-import React, {useCallback, useEffect, useRef} from 'react';
-import {FlatList} from 'react-native-gesture-handler';
-import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
 import CONST from '@src/CONST';
+
+import type {ReactElement} from 'react';
+
+import React, {useEffect, useRef} from 'react';
+import {FlatList} from 'react-native-gesture-handler';
+import Animated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import type {AutoCompleteSuggestionsPortalProps} from './AutoCompleteSuggestionsPortal';
 import type {RenderSuggestionMenuItemProps} from './types';
 
 type ExternalProps<TSuggestion> = Omit<AutoCompleteSuggestionsPortalProps<TSuggestion>, 'left' | 'bottom'>;
 
-function BaseAutoCompleteSuggestions<TSuggestion>({
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function BaseAutoCompleteSuggestionsImpl({
     highlightedSuggestionIndex = 0,
     onSelect,
     accessibilityLabelExtractor,
@@ -21,53 +31,55 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
     suggestions,
     keyExtractor,
     measuredHeightOfSuggestionRows,
-}: ExternalProps<TSuggestion>) {
+}: ExternalProps<unknown>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const rowHeight = useSharedValue(0);
     const prevRowHeightRef = useRef<number>(measuredHeightOfSuggestionRows);
     const fadeInOpacity = useSharedValue(0);
-    const scrollRef = useRef<FlatList<TSuggestion>>(null);
+    const scrollRef = useRef<FlatList<unknown>>(null);
     /**
      * Render a suggestion menu item component.
      */
-    const renderItem = useCallback(
-        ({item, index}: RenderSuggestionMenuItemProps<TSuggestion>): ReactElement => (
-            <PressableWithFeedback
-                style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
-                hoverDimmingValue={1}
-                onMouseDown={(e) => e.preventDefault()}
-                onPress={() => onSelect(index)}
-                onLongPress={() => {}}
-                accessibilityLabel={accessibilityLabelExtractor(item, index)}
-            >
-                {renderSuggestionMenuItem(item, index)}
-            </PressableWithFeedback>
-        ),
-        [accessibilityLabelExtractor, renderSuggestionMenuItem, StyleUtils, highlightedSuggestionIndex, onSelect],
+    const renderItem = ({item, index}: RenderSuggestionMenuItemProps<unknown>): ReactElement => (
+        <PressableWithFeedback
+            style={({hovered}) => StyleUtils.getAutoCompleteSuggestionItemStyle(highlightedSuggestionIndex, CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT, hovered, index)}
+            hoverDimmingValue={1}
+            onMouseDown={(e) => e.preventDefault()}
+            onPress={() => onSelect(index)}
+            onLongPress={() => {}}
+            accessibilityLabel={accessibilityLabelExtractor(item, index)}
+            role={CONST.ROLE.MENUITEM}
+            sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.MENU_ITEM}
+        >
+            {renderSuggestionMenuItem(item, index)}
+        </PressableWithFeedback>
     );
 
     const innerHeight = CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTION_ROW_HEIGHT * suggestions.length;
 
     const animatedStyles = useAnimatedStyle(() => ({
-        opacity: fadeInOpacity.value,
-        ...StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.value),
+        opacity: fadeInOpacity.get(),
+        ...StyleUtils.getAutoCompleteSuggestionContainerStyle(rowHeight.get()),
     }));
 
     useEffect(() => {
         if (measuredHeightOfSuggestionRows === prevRowHeightRef.current) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            fadeInOpacity.value = withTiming(1, {
-                duration: 70,
-                easing: Easing.inOut(Easing.ease),
-            });
-            rowHeight.value = measuredHeightOfSuggestionRows;
+            fadeInOpacity.set(
+                withTiming(1, {
+                    duration: 70,
+                    easing: Easing.inOut(Easing.ease),
+                }),
+            );
+            rowHeight.set(measuredHeightOfSuggestionRows);
         } else {
-            fadeInOpacity.value = 1;
-            rowHeight.value = withTiming(measuredHeightOfSuggestionRows, {
-                duration: 100,
-                easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-            });
+            fadeInOpacity.set(1);
+            rowHeight.set(
+                withTiming(measuredHeightOfSuggestionRows, {
+                    duration: 100,
+                    easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+                }),
+            );
         }
 
         prevRowHeightRef.current = measuredHeightOfSuggestionRows;
@@ -80,16 +92,14 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
         // When using cursor control (moving the cursor with the space bar on the keyboard) on Android, moving the cursor too fast may cause an error.
         try {
             scrollRef.current.scrollToIndex({index: highlightedSuggestionIndex, animated: true});
-        } catch (e) {
-            // eslint-disable-next-line no-console
-        }
+        } catch (e) {}
     }, [highlightedSuggestionIndex]);
 
     return (
         <Animated.View
             style={[styles.autoCompleteSuggestionsContainer, animatedStyles]}
             onPointerDown={(e) => {
-                if (DeviceCapabilities.hasHoverSupport()) {
+                if (hasHoverSupport()) {
                     return;
                 }
                 e.preventDefault();
@@ -103,14 +113,17 @@ function BaseAutoCompleteSuggestions<TSuggestion>({
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     removeClippedSubviews={false}
-                    showsVerticalScrollIndicator={innerHeight > rowHeight.value}
+                    showsVerticalScrollIndicator={innerHeight > rowHeight.get()}
                     extraData={[highlightedSuggestionIndex, renderSuggestionMenuItem]}
+                    style={styles.overscrollBehaviorContain}
                 />
             </ColorSchemeWrapper>
         </Animated.View>
     );
 }
 
-BaseAutoCompleteSuggestions.displayName = 'BaseAutoCompleteSuggestions';
+function BaseAutoCompleteSuggestions<TSuggestion>(props: ExternalProps<TSuggestion>) {
+    return <BaseAutoCompleteSuggestionsImpl {...(props as ExternalProps<unknown>)} />;
+}
 
 export default BaseAutoCompleteSuggestions;

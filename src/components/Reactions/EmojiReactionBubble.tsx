@@ -1,12 +1,16 @@
-import React from 'react';
 import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import Text from '@components/Text';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ReactionListEvent} from '@pages/home/ReportScreenContext';
+
+import type {ReactionListEvent} from '@pages/inbox/ReactionListContext';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type EmojiReactionBubbleProps = {
     /**
@@ -30,7 +34,6 @@ type EmojiReactionBubbleProps = {
      */
     count?: number;
 
-    /** Whether it is for context menu so we can modify its style */
     isContextMenu?: boolean;
 
     /**
@@ -40,12 +43,20 @@ type EmojiReactionBubbleProps = {
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
+
+    ref?: PressableRef;
 };
 
-function EmojiReactionBubble(
-    {onPress, onReactionListOpen = () => {}, emojiCodes, hasUserReacted = false, count = 0, isContextMenu = false, shouldBlockReactions = false}: EmojiReactionBubbleProps,
-    ref: PressableRef,
-) {
+function EmojiReactionBubble({
+    onPress,
+    onReactionListOpen = () => {},
+    emojiCodes,
+    hasUserReacted = false,
+    count = 0,
+    isContextMenu = false,
+    shouldBlockReactions = false,
+    ref,
+}: EmojiReactionBubbleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -81,6 +92,7 @@ function EmojiReactionBubble(
             accessibilityLabel={emojiCodes.join('')}
             accessible
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            sentryLabel={CONST.SENTRY_LABEL.EMOJI_REACTIONS.REACTION_BUBBLE}
         >
             <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu)]}>{emojiCodes.join('')}</Text>
             {count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted)]}>{count}</Text>}
@@ -88,6 +100,4 @@ function EmojiReactionBubble(
     );
 }
 
-EmojiReactionBubble.displayName = 'EmojiReactionBubble';
-
-export default React.forwardRef(EmojiReactionBubble);
+export default EmojiReactionBubble;

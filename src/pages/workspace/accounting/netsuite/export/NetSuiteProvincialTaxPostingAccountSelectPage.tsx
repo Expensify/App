@@ -1,61 +1,67 @@
-import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+
+import {updateNetSuiteProvincialTaxPostingAccount} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {canUseProvincialTaxNetSuite, getNetSuiteTaxAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {canUseProvincialTaxNetSuite, getNetSuiteTaxAccountOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
 
 function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const netSuiteExportBackPath = policyID
+        ? createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path, getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))
+        : ROUTES.HOME;
 
-    const config = policy?.connections?.netsuite.options.config;
+    const config = policy?.connections?.netsuite?.options.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
-    const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
+    const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
 
-    const netsuiteTaxAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteTaxAccountOptions(policy ?? undefined, selectedSubsidiary?.country, config?.provincialTaxPostingAccount),
-        [config?.provincialTaxPostingAccount, policy, selectedSubsidiary?.country],
-    );
+    const netsuiteTaxAccountOptions: SelectorType[] = getNetSuiteTaxAccountOptions(policy ?? undefined, selectedSubsidiary?.country, config?.provincialTaxPostingAccount);
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuiteTaxAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteTaxAccountOptions]);
+    const initiallyFocusedOptionKey = netsuiteTaxAccountOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const updateTaxAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (config?.provincialTaxPostingAccount !== value) {
-                Connections.updateNetSuiteProvincialTaxPostingAccount(policyID, value, config?.provincialTaxPostingAccount);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID));
-        },
-        [policyID, config?.provincialTaxPostingAccount],
-    );
+    const updateTaxAccount = ({value}: SelectorType) => {
+        if (config?.provincialTaxPostingAccount !== value && policyID) {
+            updateNetSuiteProvincialTaxPostingAccount(policyID, value, config?.provincialTaxPostingAccount);
+        }
+        Navigation.goBack(netSuiteExportBackPath);
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TeleScope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noAccountsFound')}
-                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noAccountsFound')}
+            subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (
@@ -63,24 +69,21 @@ function NetSuiteProvincialTaxPostingAccountSelectPage({policy}: WithPolicyConne
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteProvincialTaxPostingAccountSelectPage.displayName}
-            sections={netsuiteTaxAccountOptions.length ? [{data: netsuiteTaxAccountOptions}] : []}
-            listItem={RadioListItem}
+            displayName="NetSuiteProvincialTaxPostingAccountSelectPage"
+            data={netsuiteTaxAccountOptions}
             onSelectRow={updateTaxAccount}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(netSuiteExportBackPath)}
             title="workspace.netsuite.journalEntriesProvTaxPostingAccount"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={!!config?.suiteTaxEnabled || !config?.syncOptions.syncTax || !canUseProvincialTaxNetSuite(selectedSubsidiary?.country)}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT)}
+            errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT)}
         />
     );
 }
-
-NetSuiteProvincialTaxPostingAccountSelectPage.displayName = 'NetSuiteProvincialTaxPostingAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteProvincialTaxPostingAccountSelectPage);

@@ -1,3 +1,6 @@
+import type {WebComposerRef} from '@components/Composer/types';
+
+import type {ComponentRef} from 'react';
 import type {TextInput} from 'react-native';
 
 type Selection = {
@@ -7,8 +10,8 @@ type Selection = {
     positionY?: number;
 };
 
-type FocusComposerWithDelay = (shouldDelay?: boolean, forcedSelectionRange?: Selection) => void;
+type FocusComposerWithDelay = (shouldDelay?: boolean, forcedSelectionRange?: Selection, forceKeyboardIfAlreadyFocused?: boolean) => Promise<void>;
 
-type InputType = TextInput | HTMLTextAreaElement;
+type InputType = ComponentRef<typeof TextInput> | HTMLTextAreaElement | WebComposerRef;
 
 export type {Selection, FocusComposerWithDelay, InputType};

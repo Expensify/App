@@ -1,8 +1,10 @@
-import * as core from '@actions/core';
-import * as github from '@actions/github';
 import {getJSONInput} from '@github/libs/ActionUtils';
+import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
+
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 
 async function run() {
     try {
@@ -25,7 +27,6 @@ async function run() {
             ({data}, done) => {
                 // For production deploys, look only at other production deploys.
                 // staging deploys can be compared with other staging deploys or production deploys.
-                // The reason is that the final staging release in each deploy cycle will BECOME a production release
                 const filteredData = isProductionDeploy ? data.filter((release) => !release.prerelease) : data;
 
                 // Release was in the last page, meaning the previous release is the first item in this page
@@ -61,16 +62,35 @@ async function run() {
         }
 
         console.log(`Looking for PRs deployed to ${deployEnv} between ${priorTag} and ${inputTag}`);
-        const prList = await GitUtils.getPullRequestsMergedBetween(priorTag, inputTag);
+        const prList = await GitUtils.getPullRequestsDeployedBetween(priorTag, inputTag, CONST.APP_REPO);
         console.log('Found the pull request list: ', prList);
         core.setOutput('PR_LIST', prList);
+
+        // Get Mobile-Expensify PRs deployed between the same tags
+        let mobileExpensifyPRList: number[] = [];
+        try {
+            mobileExpensifyPRList = await GitUtils.getPullRequestsDeployedBetween(priorTag, inputTag, CONST.MOBILE_EXPENSIFY_REPO);
+            console.log('Found Mobile-Expensify pull request list: ', mobileExpensifyPRList);
+        } catch (error) {
+            // Check if this is a forked repository
+            if (process.env.GITHUB_REPOSITORY !== `${CONST.GITHUB_OWNER}/${CONST.APP_REPO}`) {
+                console.warn(
+                    "⚠️ Unable to fetch Mobile-Expensify PRs because this workflow is running on a forked repository and secrets aren't accessible. This is expected for development/testing on forks.",
+                );
+            } else {
+                console.error('Failed to fetch Mobile-Expensify PRs from main repository:', error);
+                // Don't fail the entire workflow, just skip Mobile-Expensify PRs
+            }
+        }
+        core.setOutput('MOBILE_EXPENSIFY_PR_LIST', mobileExpensifyPRList);
     } catch (error) {
-        console.error((error as Error).message);
-        core.setFailed(error as Error);
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(message);
+        core.setFailed(error instanceof Error ? error : message);
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

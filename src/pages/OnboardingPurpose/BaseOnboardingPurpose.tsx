@@ -1,31 +1,50 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useImperativeHandle, useRef} from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
-import {useOnyx} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
-import OfflineIndicator from '@components/OfflineIndicator';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import OnboardingHeader from '@components/OnboardingHeader';
+import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
+
 import variables from '@styles/variables';
-import * as Welcome from '@userActions/Welcome';
+
+import {completeOnboarding} from '@userActions/Report';
+import {clearOnboardingMergeAccountBlocked, setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import INPUT_IDS from '@src/types/form/OnboardingWorkEmailForm';
 import type {OnboardingPurpose} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useIsFocused} from '@react-navigation/native';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {PUBLIC_DOMAINS_SET} from 'expensify-common';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+
 import type {BaseOnboardingPurposeProps} from './types';
 
 const selectableOnboardingChoices = Object.values(CONST.SELECTABLE_ONBOARDING_CHOICES);
@@ -38,31 +57,51 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
     return selectableOnboardingChoices.filter((choice) => customChoices.includes(choice));
 }
 
-const menuIcons = {
-    [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
-    [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: Illustrations.Abacus,
-    [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
-    [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: Illustrations.SplitBill,
-    [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: Illustrations.Binoculars,
-};
-
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const {windowHeight} = useWindowDimensions();
+    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'BriefcaseHandshake', 'CalculatorMoney', 'ReceiptUpload', 'PiggyBank']);
 
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const menuIcons = {
+        [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: illustrations.BriefcaseHandshake,
+        [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
+        [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
+        [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: illustrations.CalculatorMoney,
+        [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: illustrations.PiggyBank,
+        [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
+    };
+    const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const delegateAccountID = useDelegateAccountID();
+    const [conciergeReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const {onboardingMessages} = useOnboardingMessages();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
 
-    const theme = useTheme();
-    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
 
-    const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
+    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [adminsChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboardingAdminsChatReportID}`);
+    const [personalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [workEmailForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
+    const workEmail = workEmailForm?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const isValidated = isCurrentUserValidated(loginList, session?.email);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
+    const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
+    const isJoinWorkspaceNavigationPending = useRef(false);
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
+    const [customChoices = getEmptyArray<OnboardingPurpose>()] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
 
     const onboardingChoices = getOnboardingChoices(customChoices);
 
@@ -78,64 +117,157 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             iconStyles: [styles.mh3],
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.PURPOSE_ITEM,
             onPress: () => {
-                Welcome.setOnboardingPurposeSelected(choice);
-                Welcome.setOnboardingErrorMessage('');
+                if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && isJoinWorkspaceNavigationPending.current) {
+                    return;
+                }
+                if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+                    isJoinWorkspaceNavigationPending.current = true;
+                }
+
+                setOnboardingPurposeSelected(choice);
+                setOnboardingErrorMessage(null);
+
+                // A validated private-domain account already has the work email needed to look up joinable workspaces,
+                // so it skips straight to the list. A public-domain account has no work email on file regardless of
+                // validation, so it still needs to add one; an unvalidated private-domain one already has one and
+                // only needs to validate it.
+                if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+                    // A merge blocked earlier in onboarding leaves isMergingAccountBlocked set, which would make the work
+                    // email step reopen in its blocked state instead of showing the form.
+                    clearOnboardingMergeAccountBlocked();
+                    const isCurrentPrimaryPublicDomain = PUBLIC_DOMAINS_SET.has(session?.email?.split('@').at(1)?.toLowerCase() ?? '');
+                    if (isValidated && !isCurrentPrimaryPublicDomain) {
+                        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
+                        return;
+                    }
+                    Navigation.navigate(
+                        isCurrentPrimaryPublicDomain ? ROUTES.ONBOARDING_WORK_EMAIL.getRoute() : ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_PURPOSE.getRoute()),
+                    );
+                    return;
+                }
 
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
                 }
+
+                if (choice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
+                    return;
+                }
+
+                if (choice === CONST.ONBOARDING_CHOICES.EMPLOYER) {
+                    if (personalDetailsForm?.firstName) {
+                        autoCreateSubmitWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '');
+                        return;
+                    }
+
+                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
+                    return;
+                }
+
+                if (isPrivateDomainAndHasAccessiblePolicies && personalDetailsForm?.firstName) {
+                    if (isTrackOnboardingChoice(choice)) {
+                        autoCreateTrackWorkspace(personalDetailsForm.firstName, personalDetailsForm.lastName ?? '', choice);
+                        return;
+                    }
+                    completeOnboarding({
+                        engagementChoice: choice,
+                        onboardingMessage: onboardingMessages[choice],
+                        firstName: personalDetailsForm.firstName,
+                        lastName: personalDetailsForm.lastName,
+                        adminsChatReportID: onboardingAdminsChatReportID ?? undefined,
+                        onboardingPolicyID,
+                        companySize: onboardingCompanySize,
+                        introSelected,
+                        isSelfTourViewed,
+                        conciergeChat,
+                        adminsChatReport,
+                        currentUserAccountID,
+                        delegateAccountID,
+                    }).then(() => {
+                        navigateAfterOnboardingWithMicrotaskQueue(
+                            shouldUseNarrowLayout,
+                            isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                            conciergeReportID,
+                            reportNameValuePairs,
+                            isAnonymousUser,
+                            onboardingPolicyID,
+                            onboardingAdminsChatReportID,
+                            false,
+                        );
+                    });
+
+                    return;
+                }
+
                 Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
             },
         };
     });
     const isFocused = useIsFocused();
 
-    const handleOuterClick = useCallback(() => {
-        Welcome.setOnboardingErrorMessage(translate('onboarding.errorSelection'));
-    }, [translate]);
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        isJoinWorkspaceNavigationPending.current = false;
+    }, [isFocused]);
+
+    const handleOuterClick = () => {
+        setOnboardingErrorMessage('onboarding.errorSelection');
+    };
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);
     useImperativeHandle(isFocused ? OnboardingRefManager.ref : onboardingLocalRef, () => ({handleOuterClick}), [handleOuterClick]);
+
+    const getErrorMessage = () => {
+        if (!onboardingErrorMessage) {
+            return undefined;
+        }
+        // These merge-block messages interpolate the work email, so translate them with the email explicitly.
+        if (onboardingErrorMessage === 'onboarding.mergeBlockScreen.domainControlledSubtitle' || onboardingErrorMessage === 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle') {
+            return translate(onboardingErrorMessage, workEmail);
+        }
+        return translate(onboardingErrorMessage);
+    };
 
     if (isLoadingOnyxValue(onboardingErrorMessageResult)) {
         return null;
     }
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <View style={[{maxHeight}, styles.h100, styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8, safeAreaPaddingBottomStyle]}>
-                    <View style={onboardingIsMediumOrLargerScreenWidth && styles.mh3}>
-                        <HeaderWithBackButton
-                            shouldShowBackButton={false}
-                            iconFill={theme.iconColorfulBackground}
-                            progressBarPercentage={25}
-                        />
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            testID="BaseOnboardingPurpose"
+            style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
+        >
+            <View style={onboardingIsMediumOrLargerScreenWidth && styles.mh3}>
+                <OnboardingHeader shouldShowBackButton={false} />
+            </View>
+            <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
+                <View style={styles.flex1}>
+                    <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                        <Text
+                            style={styles.textHeadlineH1}
+                            accessibilityRole={CONST.ROLE.HEADER}
+                        >
+                            {translate('onboarding.purpose.title')}
+                        </Text>
                     </View>
-                    <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
-                        <View style={styles.flex1}>
-                            <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                                <Text style={styles.textHeadlineH1}>{translate('onboarding.purpose.title')} </Text>
-                            </View>
-                            <MenuItemList
-                                menuItems={menuItems}
-                                shouldUseSingleExecution
-                            />
-                        </View>
-                    </ScrollView>
-                    <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
-                        <FormHelpMessage message={onboardingErrorMessage} />
-                    </View>
-                    {isSmallScreenWidth && <OfflineIndicator />}
+                    <MenuItemList
+                        menuItems={menuItems}
+                        shouldUseSingleExecution
+                    />
                 </View>
-            )}
-        </SafeAreaConsumer>
+            </ScrollView>
+            <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
+                <FormHelpMessage message={getErrorMessage()} />
+            </View>
+        </ScreenWrapper>
     );
 }
 
-BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
-
 export default BaseOnboardingPurpose;
-
-export type {BaseOnboardingPurposeProps};

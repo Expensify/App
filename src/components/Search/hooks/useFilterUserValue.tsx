@@ -1,0 +1,32 @@
+import useLocalize from '@hooks/useLocalize';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import type {SearchFilter} from '@libs/SearchUIUtils';
+
+import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+function useFilterUserValue(accountIDs: SearchFilter['value']): string {
+    const {translate, formatPhoneNumber} = useLocalize();
+    const filterUserSelector = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
+        if (!Array.isArray(accountIDs) || !personalDetails) {
+            return null;
+        }
+        return accountIDs.map((currentAccountID) =>
+            temporaryGetDisplayNameOrDefault({
+                passedPersonalDetails: personalDetails[currentAccountID],
+                defaultValue: currentAccountID,
+                shouldFallbackToHidden: false,
+                translate,
+                formatPhoneNumber,
+            }),
+        );
+    };
+
+    const [displayNames] = useAllPersonalDetails(filterUserSelector);
+    return displayNames?.join(', ') ?? '';
+}
+
+export default useFilterUserValue;

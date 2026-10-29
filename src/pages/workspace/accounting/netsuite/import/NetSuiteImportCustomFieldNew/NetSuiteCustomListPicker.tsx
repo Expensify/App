@@ -1,67 +1,57 @@
-import React, {useState} from 'react';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {CustomListSelectorType} from '@pages/workspace/accounting/netsuite/types';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
-import NetSuiteCustomListSelectorModal from './NetSuiteCustomListSelectorModal';
+import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type NetSuiteCustomListPickerProps = {
-    /** Current value of the selected item */
     value?: string;
 
-    /** Current connected policy */
-    policy?: Policy;
-
-    /** Callback when the list item is selected */
-    onInputChange?: (value: string, key?: string) => void;
-
-    /** Id of the internalID input to be updated on input change */
-    internalIDInputID?: string;
+    /** Policy ID from the parent route's URL params (preferred over policy?.id because it is set before the Onyx policy record hydrates) */
+    policyID?: string;
 
     /** Form Error description */
     errorText?: string;
+
+    /** Whether the parent step is in edit mode, so the selector returns to the correct step on back */
+    isEditing?: boolean;
 };
 
-function NetSuiteCustomListPicker({value, policy, internalIDInputID, errorText, onInputChange = () => {}}: NetSuiteCustomListPickerProps) {
+function NetSuiteCustomListPicker({value, policyID, errorText, isEditing}: NetSuiteCustomListPickerProps) {
     const {translate} = useLocalize();
-    const [isPickerVisible, setIsPickerVisible] = useState(false);
-
-    const hidePickerModal = () => {
-        setIsPickerVisible(false);
-    };
-
-    const updateInput = (item: CustomListSelectorType) => {
-        onInputChange?.(item.value);
-        if (internalIDInputID) {
-            onInputChange(item.id, internalIDInputID);
-        }
-        hidePickerModal();
-    };
 
     return (
-        <>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                title={value}
-                description={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
-                onPress={() => setIsPickerVisible(true)}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-            />
-            <NetSuiteCustomListSelectorModal
-                isVisible={isPickerVisible}
-                currentCustomListValue={value ?? ''}
-                onCustomListSelected={updateInput}
-                onClose={hidePickerModal}
-                label={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
-                policy={policy}
-                onBackdropPress={Navigation.dismissModal}
-            />
-        </>
+        <MenuItem.Root
+            onPress={callFunctionIfActionIsAllowed(() => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR.getRoute(policyID, isEditing ? 'edit' : undefined));
+            })}
+        >
+            <MenuItemField.Row
+                name={translate('workspace.netsuite.import.importCustomFields.customLists.fields.listName')}
+                value={value}
+            >
+                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                <MenuItem.Chevron />
+            </MenuItemField.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 
-NetSuiteCustomListPicker.displayName = 'NetSuiteCustomListPicker';
 export default NetSuiteCustomListPicker;

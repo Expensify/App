@@ -1,26 +1,21 @@
+import OnboardingWrapper from '@components/OnboardingWrapper';
+
 import React from 'react';
-import {View} from 'react-native';
-import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import useThemeStyles from '@hooks/useThemeStyles';
-import BaseOnboardingPurpose from './BaseOnboardingPurpose';
+
 import type {OnboardingPurposeProps} from './types';
 
-function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
-    const styles = useThemeStyles();
+import BaseOnboardingPurpose from './BaseOnboardingPurpose';
 
+function OnboardingPurpose({...rest}: OnboardingPurposeProps) {
     return (
-        <FocusTrapForScreens>
-            <View style={styles.h100}>
-                <BaseOnboardingPurpose
-                    shouldUseNativeStyles={false}
-                    shouldEnableMaxHeight={false}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...rest}
-                />
-            </View>
-        </FocusTrapForScreens>
+        <OnboardingWrapper>
+            <BaseOnboardingPurpose
+                shouldUseNativeStyles={false}
+                shouldEnableMaxHeight={false}
+                {...rest}
+            />
+        </OnboardingWrapper>
     );
 }
 
-OnboardingPurpose.displayName = 'OnboardingPurpose';
 export default OnboardingPurpose;

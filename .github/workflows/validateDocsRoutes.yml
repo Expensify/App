@@ -9,9 +9,9 @@ on:
 jobs:
   verify:
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
-      - uses: actions/checkout@v4
+      - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - uses: ./.github/actions/composite/setupNode
 

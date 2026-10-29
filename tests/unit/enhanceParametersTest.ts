@@ -1,10 +1,17 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
+
 import pkg from '../../package.json';
 import CONFIG from '../../src/CONFIG';
 import enhanceParameters from '../../src/libs/Network/enhanceParameters';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+beforeAll(() => {
+    Onyx.init({
+        keys: ONYXKEYS,
+    });
+});
 
 beforeEach(() => Onyx.clear());
 

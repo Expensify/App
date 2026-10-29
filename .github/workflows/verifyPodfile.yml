@@ -1,4 +1,4 @@
-name: Verify Podfile
+name: Verify iOS native configuration
 
 on:
   pull_request:
@@ -6,19 +6,27 @@ on:
     branches-ignore: [staging, production]
     paths:
       - ios/**
-      - "package.json"
-      - "package-lock.json"
+      - 'package.json'
+      - 'package-lock.json'
+      - 'patches/react-native-nitro-sqlite/**'
+      - '.github/scripts/verifyNitroSQLiteDatabaseLocation.sh'
+      - '.github/scripts/nitroSQLiteDatabaseLocation/**'
+      - '.github/workflows/verifyPodfile.yml'
 
 jobs:
   verify:
     if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
-    runs-on: macos-latest
+    runs-on: blacksmith-6vcpu-macos-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+
+      - name: Verify native NitroSQLite database location
+        run: bash ./.github/scripts/verifyNitroSQLiteDatabaseLocation.sh
 
       - name: Verify podfile
         run: ./.github/scripts/verifyPodfile.sh

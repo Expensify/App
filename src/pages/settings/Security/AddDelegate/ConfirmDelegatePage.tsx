@@ -1,97 +1,104 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useState} from 'react';
-import type {ValueOf} from 'type-fest';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderPageLayout from '@components/HeaderPageLayout';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
-import useBeforeRemove from '@hooks/useBeforeRemove';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import DelegateMagicCodeModal from './DelegateMagicCodeModal';
 
-type ConfirmDelegatePageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
 function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
-    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const {translate, formatPhoneNumber} = useLocalize();
 
     const styles = useThemeStyles();
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
-    const showValidateActionModal = route.params.showValidateActionModal === 'true';
-    const {isOffline} = useNetwork();
 
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModal ?? false);
-
-    const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(login);
-    const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
+    const personalDetails = usePersonalDetailByLogin(login);
+    const avatarIcon = personalDetails?.avatar ?? icons.FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
-    const displayName = personalDetails?.displayName ?? formattedLogin;
-
-    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+    // An account that never set a name carries its login in `displayName`, which for SMS is the full
+    // `@expensify.sms` string. Format the resolved value so the title matches the description below it.
+    const displayName = formatPhoneNumber(personalDetails?.displayName ?? login ?? '');
 
     const submitButton = (
-        <Button
-            success
-            isDisabled={isOffline}
-            large
-            text={translate('delegate.addCopilot')}
+        <ButtonDisabledWhenOffline
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.LARGE}
             style={styles.mt6}
-            pressOnEnter
-            onPress={() => setIsValidateCodeActionModalVisible(true)}
-        />
+            onPress={() => {
+                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM_VALIDATE_CODE.getRoute(login, role));
+            }}
+        >
+            <Button.KeyboardShortcut />
+            <Button.Text>{translate('delegate.addCopilot')}</Button.Text>
+        </ButtonDisabledWhenOffline>
     );
 
     return (
         <HeaderPageLayout
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
             title={translate('delegate.addCopilot')}
-            testID={ConfirmDelegatePage.displayName}
+            testID="ConfirmDelegatePage"
             footer={submitButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
+            keyboardShouldPersistTaps="handled"
+            shouldShowOfflineIndicatorInWideScreen
         >
-            <Text style={[styles.ph5]}>{translate('delegate.confirmCopilot')}</Text>
-            <MenuItem
-                avatarID={personalDetails?.accountID ?? -1}
-                iconType={CONST.ICON_TYPE_AVATAR}
-                icon={avatarIcon}
-                title={displayName}
-                description={formattedLogin}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                title={translate('delegate.role', {role})}
-                description={translate('delegate.accessLevel')}
-                helperText={translate('delegate.roleDescription', {role})}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
-                shouldShowRightIcon
-            />
-            <DelegateMagicCodeModal
-                login={login}
-                role={role}
-                onClose={() => {
-                    if (!showValidateActionModal) {
-                        setIsValidateCodeActionModalVisible(false);
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.SETTINGS_SECURITY);
-                }}
-                isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
-            />
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <Text style={styles.ph5}>{translate('delegate.confirmCopilot')}</Text>
+                <MenuItem.Root>
+                    <MenuItem.Row>
+                        <MenuItem.Leading>
+                            <UserAvatar
+                                source={avatarIcon}
+                                accountID={personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                            />
+                        </MenuItem.Leading>
+                        <MenuItem.Content>
+                            <MenuItem.Title>{displayName}</MenuItem.Title>
+                            <MenuItem.Description>{formattedLogin}</MenuItem.Description>
+                        </MenuItem.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
+                <View>
+                    <MenuItemField
+                        name={translate('delegate.accessLevel')}
+                        value={translate('delegate.role', role)}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role, ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(login, role)))}
+                    />
+                    <FormHelpMessage
+                        isError={false}
+                        shouldShowRedDotIndicator={false}
+                        message={translate('delegate.roleDescription', role)}
+                        style={[styles.mt0, styles.ph5]}
+                    />
+                </View>
+            </DelegateNoAccessWrapper>
         </HeaderPageLayout>
     );
 }
-
-ConfirmDelegatePage.displayName = 'ConfirmDelegatePage';
 
 export default ConfirmDelegatePage;

@@ -1,29 +1,158 @@
-import 'core-js/features/array/at';
-// eslint-disable-next-line no-restricted-imports
-import type {CSSProperties} from 'react';
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import {PDFPreviewer} from 'react-fast-pdf';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import {useAttachmentCarouselPagerActions, useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import LoadingIndicator from '@components/LoadingIndicator';
+import MultiGestureCanvas from '@components/MultiGestureCanvas';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import {isMobile} from '@libs/Browser';
+import isHTMLElement from '@libs/isHTMLElement';
+
 import variables from '@styles/variables';
-import * as CanvasSize from '@userActions/CanvasSize';
+
+import {retrieveMaxCanvasArea, retrieveMaxCanvasHeight, retrieveMaxCanvasWidth} from '@userActions/CanvasSize';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Dimensions} from '@src/types/utils/Layout';
+
+// eslint-disable-next-line no-restricted-imports
+import type {CSSProperties, ReactNode} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {PDFPreviewer} from 'react-fast-pdf';
+import {View} from 'react-native';
+import {useAnimatedReaction, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
+import type {PDFViewProps} from './types';
+
+import focusPDFScrollerWhenReady from './focusPDFScrollerWhenReady';
 import PDFPasswordForm from './PDFPasswordForm';
-import type {PDFViewOnyxProps, PDFViewProps} from './types';
 
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
+const PDF_MIN_SCALE = 1;
+const PDF_SCROLL_DISABLED_SCALE = 2;
+const PDF_ZOOM_RANGE = {max: 5};
 
-function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, maxCanvasArea, maxCanvasHeight, maxCanvasWidth, style, isUsedAsChatAttachment, onLoadError}: PDFViewProps) {
+type MobilePDFGestureCanvasProps = {
+    children: (shouldDisablePDFScroll: boolean) => ReactNode;
+    onScaleChanged?: (scale: number) => void;
+};
+
+function MobilePDFGestureCanvas({children, onScaleChanged}: MobilePDFGestureCanvasProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const [canvasSize, setCanvasSize] = useState<Dimensions>();
+    const isPagerScrollingFallback = useSharedValue(false);
+    const isScrollEnabledFallback = useSharedValue(true);
+    const isTransformGestureActive = useSharedValue(false);
+    const state = useAttachmentCarouselPagerState();
+    const actions = useAttachmentCarouselPagerActions();
+    const [shouldDisablePDFScroll, setShouldDisablePDFScroll] = useState(false);
+    const shouldDisablePDFScrollRef = useRef(false);
+    const scaleRef = useRef(PDF_MIN_SCALE);
+    const isTransformingRef = useRef(false);
+    const lastScaleChangeSignalRef = useRef(PDF_MIN_SCALE);
+
+    const updateShouldDisablePDFScroll = (shouldBlockScroll: boolean) => {
+        if (shouldDisablePDFScrollRef.current === shouldBlockScroll) {
+            return;
+        }
+
+        shouldDisablePDFScrollRef.current = shouldBlockScroll;
+        setShouldDisablePDFScroll(shouldBlockScroll);
+    };
+
+    const notifyScaleChanged = (scale: number) => {
+        if (lastScaleChangeSignalRef.current === scale) {
+            return;
+        }
+
+        lastScaleChangeSignalRef.current = scale;
+        onScaleChanged?.(scale);
+        actions?.onScaleChanged?.(scale);
+    };
+
+    const updatePDFGestureState = () => {
+        const shouldBlockScroll = isTransformingRef.current || scaleRef.current > PDF_MIN_SCALE;
+
+        updateShouldDisablePDFScroll(shouldBlockScroll);
+        notifyScaleChanged(shouldBlockScroll ? PDF_SCROLL_DISABLED_SCALE : PDF_MIN_SCALE);
+    };
+
+    const updateCanvasSize = ({
+        nativeEvent: {
+            layout: {width, height},
+        },
+    }: LayoutChangeEvent) => {
+        if (!width || !height) {
+            return;
+        }
+
+        setCanvasSize((prevCanvasSize) => {
+            if (prevCanvasSize?.width === width && prevCanvasSize.height === height) {
+                return prevCanvasSize;
+            }
+
+            return {width, height};
+        });
+    };
+
+    const scaleChange = (scale: number) => {
+        scaleRef.current = scale;
+        updatePDFGestureState();
+    };
+
+    const transformGestureStateChange = (isTransforming: boolean) => {
+        isTransformingRef.current = isTransforming;
+        updatePDFGestureState();
+    };
+
+    useAnimatedReaction(
+        () => isTransformGestureActive.get(),
+        (isTransforming) => {
+            scheduleOnRN(transformGestureStateChange, isTransforming);
+        },
+    );
+
+    return (
+        <View
+            style={[styles.flex1, styles.w100, styles.h100]}
+            onLayout={updateCanvasSize}
+        >
+            {!!canvasSize && (
+                <MultiGestureCanvas
+                    canvasSize={canvasSize}
+                    contentSize={canvasSize}
+                    zoomRange={PDF_ZOOM_RANGE}
+                    pagerGesture={state?.pagerGesture}
+                    isUsedInCarousel={!!state?.pagerRef}
+                    shouldDisableTransformationGestures={state?.isPagerScrolling ?? isPagerScrollingFallback}
+                    isTransformGestureActive={isTransformGestureActive}
+                    isPagerScrollEnabled={state?.isScrollEnabled ?? isScrollEnabledFallback}
+                    onTap={actions?.onTap}
+                    onScaleChanged={scaleChange}
+                    shouldDisableSwipeDownToClose
+                    shouldPreventTouchEndDefault={false}
+                    externalGestureHandler={state?.externalGestureHandler}
+                >
+                    <View style={StyleUtils.getWidthAndHeightStyle(canvasSize.width, canvasSize.height)}>{children(shouldDisablePDFScroll)}</View>
+                </MultiGestureCanvas>
+            )}
+        </View>
+    );
+}
+
+function PDFView({onToggleKeyboard, fileName, onPress, isFocused, onScaleChanged, sourceURL, style, isUsedInAttachmentModal, isUsedAsChatAttachment, onLoadError, rotation}: PDFViewProps) {
     const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -32,43 +161,46 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
     const prevWindowHeight = usePrevious(windowHeight);
     const {translate} = useLocalize();
 
+    const [maxCanvasArea] = useOnyx(ONYXKEYS.MAX_CANVAS_AREA);
+    const [maxCanvasHeight] = useOnyx(ONYXKEYS.MAX_CANVAS_HEIGHT);
+    const [maxCanvasWidth] = useOnyx(ONYXKEYS.MAX_CANVAS_WIDTH);
+    const shouldUsePDFGestureZoom = isMobile() && !!isUsedInAttachmentModal && !isUsedAsChatAttachment;
+    const containerRef = useRef<View>(null);
+
     /**
      * On small screens notify parent that the keyboard has opened or closed.
      *
      * @param isKBOpen True if keyboard is open
      */
-    const toggleKeyboardOnSmallScreens = useCallback(
-        (isKBOpen: boolean) => {
-            if (!shouldUseNarrowLayout) {
-                return;
-            }
-            setIsKeyboardOpen(isKBOpen);
-            onToggleKeyboard?.(isKBOpen);
-        },
-        [shouldUseNarrowLayout, onToggleKeyboard],
-    );
+    const toggleKeyboardOnSmallScreens = (isKBOpen: boolean) => {
+        if (!shouldUseNarrowLayout) {
+            return;
+        }
+        setIsKeyboardOpen(isKBOpen);
+        onToggleKeyboard?.(isKBOpen);
+    };
 
     /**
      * Verify that the canvas limits have been calculated already, if not calculate them and put them in Onyx
      */
     const retrieveCanvasLimits = () => {
         if (!maxCanvasArea) {
-            CanvasSize.retrieveMaxCanvasArea();
+            retrieveMaxCanvasArea();
         }
 
         if (!maxCanvasHeight) {
-            CanvasSize.retrieveMaxCanvasHeight();
+            retrieveMaxCanvasHeight();
         }
 
         if (!maxCanvasWidth) {
-            CanvasSize.retrieveMaxCanvasWidth();
+            retrieveMaxCanvasWidth();
         }
     };
 
     useEffect(() => {
         retrieveCanvasLimits();
         // This rule needs to be applied so that this effect is executed only when the component is mounted
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -85,16 +217,38 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
         }
     }, [isKeyboardOpen, prevWindowHeight, toggleKeyboardOnSmallScreens, windowHeight]);
 
+    // The attachment modal has no initial focus target, so focus falls back to the body and arrow keys scroll the
+    // chat behind the modal. Focus the PDF scroller once it renders so arrow keys scroll the PDF instead.
+    useEffect(() => {
+        if (!isUsedInAttachmentModal || isUsedAsChatAttachment || isFocused === false || shouldUsePDFGestureZoom) {
+            return;
+        }
+
+        const container = containerRef.current;
+        if (!isHTMLElement(container)) {
+            return;
+        }
+
+        // Using || intentionally so an empty fileName falls back to the default label
+        return focusPDFScrollerWhenReady(container, fileName || translate('attachmentView.unknownFilename'));
+    }, [fileName, isFocused, isUsedAsChatAttachment, isUsedInAttachmentModal, shouldUsePDFGestureZoom, translate]);
+
     const renderPDFView = () => {
         const outerContainerStyle = [styles.w100, styles.h100, styles.justifyContentCenter, styles.alignItemsCenter];
 
-        return (
-            <View
-                style={outerContainerStyle}
-                tabIndex={0}
-            >
+        const renderPDFPreviewer = (shouldDisablePDFScroll = false) => {
+            const contentContainerStyle = {
+                ...(style as CSSProperties),
+                // While zoomed we hand vertical scrolling back to the browser (`pan-y`) instead of blocking all
+                // native scroll (`none`), so a multi-page PDF can still be scrolled to its other pages. The gesture
+                // canvas keeps owning horizontal panning and pinch zoom, and the browser's touch-action arbitration
+                // prevents the two from fighting over the same drag.
+                ...(shouldDisablePDFScroll ? {touchAction: 'pan-y'} : {}),
+            };
+
+            return (
                 <PDFPreviewer
-                    contentContainerStyle={style as CSSProperties}
+                    contentContainerStyle={contentContainerStyle}
                     file={sourceURL}
                     pageMaxWidth={variables.pdfPageMaxWidth}
                     isSmallScreen={shouldUseNarrowLayout}
@@ -102,7 +256,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
                     maxCanvasHeight={maxCanvasHeight}
                     maxCanvasArea={maxCanvasArea}
                     LoadingComponent={
-                        <FullScreenLoadingIndicator
+                        <LoadingIndicator
                             style={
                                 isUsedAsChatAttachment && [
                                     styles.chatItemPDFAttachmentLoading,
@@ -114,6 +268,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
                     }
                     shouldShowErrorComponent={false}
                     onLoadError={onLoadError}
+                    rotation={rotation}
                     renderPasswordForm={({isPasswordInvalid, onSubmit, onPasswordChange}) => (
                         <PDFPasswordForm
                             isFocused={!!isFocused}
@@ -123,17 +278,37 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
                         />
                     )}
                 />
+            );
+        };
+
+        const pdfPreviewer = renderPDFPreviewer();
+
+        const mobilePDFGestureCanvas = (
+            <MobilePDFGestureCanvas onScaleChanged={onScaleChanged}>{(shouldDisablePDFScroll) => renderPDFPreviewer(shouldDisablePDFScroll)}</MobilePDFGestureCanvas>
+        );
+
+        return (
+            <View
+                ref={containerRef}
+                style={outerContainerStyle}
+                tabIndex={0}
+            >
+                {shouldUsePDFGestureZoom ? mobilePDFGestureCanvas : pdfPreviewer}
             </View>
         );
     };
 
+    if (shouldUsePDFGestureZoom) {
+        return renderPDFView();
+    }
+
     return onPress ? (
         <PressableWithoutFeedback
-            onPress={onPress}
+            onPress={() => onPress()}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ROLE.BUTTON}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
+            sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
             {renderPDFView()}
         </PressableWithoutFeedback>
@@ -142,14 +317,4 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, max
     );
 }
 
-export default withOnyx<PDFViewProps, PDFViewOnyxProps>({
-    maxCanvasArea: {
-        key: ONYXKEYS.MAX_CANVAS_AREA,
-    },
-    maxCanvasHeight: {
-        key: ONYXKEYS.MAX_CANVAS_HEIGHT,
-    },
-    maxCanvasWidth: {
-        key: ONYXKEYS.MAX_CANVAS_WIDTH,
-    },
-})(memo(PDFView));
+export default PDFView;

@@ -1,0 +1,80 @@
+import ScreenWrapper from '@components/ScreenWrapper';
+import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useOnyx from '@hooks/useOnyx';
+import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
+
+import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {canMemberAssignElevatedRole, canMemberAssignRole, goBackFromInvalidPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React from 'react';
+
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
+import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
+
+type DynamicWorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoadingProps &
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE>;
+
+function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspaceInviteMessageRolePageProps) {
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const [roleFromOnyx, roleResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
+    // Submit workspaces only allow inviting editors. Keep this default aligned with WorkspaceInviteMessageComponent so the
+    // role row pre-selects Editor before the user picks anything.
+    const role = roleFromOnyx ?? (isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : CONST.POLICY.ROLE.USER);
+    const isOnyxLoading = isLoadingOnyxValue(roleResult);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path);
+    useRedirectSubmitWorkspaceFeatureUpgrade({
+        policy,
+        backTo: backPath,
+        upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
+        shouldDeferRedirect: isOnyxLoading,
+    });
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={!canMemberAssignElevatedRole(policy, currentUserLogin)}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
+        >
+            <ScreenWrapper
+                testID="WorkspaceInviteMessageRolePage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+            >
+                <WorkspaceMemberRoleList
+                    role={role}
+                    policy={policy}
+                    isLoading={isOnyxLoading}
+                    onSelectRole={({value}) => {
+                        if (!canMemberAssignRole(policy, currentUserLogin, value)) {
+                            return;
+                        }
+                        setWorkspaceInviteRoleDraft(route.params.policyID, value);
+                        Navigation.setNavigationActionToMicrotaskQueue(() => {
+                            Navigation.goBack(backPath);
+                        });
+                    }}
+                    navigateBackTo={backPath}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default withPolicyAndFullscreenLoading(DynamicWorkspaceInviteMessageRolePage);

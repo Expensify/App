@@ -1,23 +1,28 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceTaxesSettingsPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS>;
+import React from 'react';
+import {View} from 'react-native';
+
+type WorkspaceTaxesSettingsPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS>;
 
 function WorkspaceTaxesSettingsPage({
     route: {
@@ -28,29 +33,26 @@ function WorkspaceTaxesSettingsPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const menuItems = useMemo(
-        () => [
-            {
-                title: policy?.taxRates?.name,
-                description: translate('workspace.taxes.customTaxName'),
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME.getRoute(policyID)),
-                pendingAction: policy?.taxRates?.pendingFields?.name,
-            },
-            {
-                title: policy?.taxRates?.taxes?.[policy?.taxRates?.defaultExternalID]?.name,
-                description: translate('workspace.taxes.workspaceDefault'),
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.getRoute(policyID)),
-                pendingAction: policy?.taxRates?.pendingFields?.defaultExternalID,
-            },
-            {
-                title: policy?.taxRates?.taxes?.[policy?.taxRates?.foreignTaxDefault]?.name,
-                description: translate('workspace.taxes.foreignDefault'),
-                action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.getRoute(policyID)),
-                pendingAction: policy?.taxRates?.pendingFields?.foreignTaxDefault,
-            },
-        ],
-        [policy?.taxRates, policyID, translate],
-    );
+    const menuItems = [
+        {
+            title: policy?.taxRates?.name,
+            description: translate('workspace.taxes.customTaxName'),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME.getRoute(policyID)),
+            pendingAction: policy?.taxRates?.pendingFields?.name,
+        },
+        {
+            title: policy?.taxRates?.taxes?.[policy?.taxRates?.defaultExternalID]?.name,
+            description: translate('workspace.taxes.workspaceDefault'),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT.getRoute(policyID)),
+            pendingAction: policy?.taxRates?.pendingFields?.defaultExternalID,
+        },
+        {
+            title: policy?.taxRates?.taxes?.[policy?.taxRates?.foreignTaxDefault]?.name,
+            description: translate('workspace.taxes.foreignDefault'),
+            action: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT.getRoute(policyID)),
+            pendingAction: policy?.taxRates?.pendingFields?.foreignTaxDefault,
+        },
+    ];
 
     return (
         <AccessOrNotFoundWrapper
@@ -59,10 +61,14 @@ function WorkspaceTaxesSettingsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceTaxesSettingsPage.displayName}
+                testID="WorkspaceTaxesSettingsPage"
                 style={styles.defaultModalContainer}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    addBottomSafeAreaPadding
+                >
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         {menuItems.map((item) => (
@@ -70,12 +76,9 @@ function WorkspaceTaxesSettingsPage({
                                 key={item.description}
                                 pendingAction={item.pendingAction}
                             >
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon
-                                    title={item.title}
-                                    description={item.description}
-                                    style={[styles.moneyRequestMenuItem]}
-                                    titleStyle={styles.flex1}
+                                <MenuItemField
+                                    value={item.title}
+                                    name={item.description}
                                     onPress={item.action}
                                 />
                             </OfflineWithFeedback>
@@ -86,7 +89,5 @@ function WorkspaceTaxesSettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesSettingsPage.displayName = 'WorkspaceTaxesSettingsPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsPage);

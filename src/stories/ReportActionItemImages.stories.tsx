@@ -1,8 +1,10 @@
-import type {Meta, StoryFn} from '@storybook/react';
-import React from 'react';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {ReportActionItemImagesProps} from '@components/ReportActionItem/ReportActionItemImages';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
+
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
 
 type ReportActionItemImagesStory = StoryFn<typeof ReportActionItemImages>;
 
@@ -24,7 +26,6 @@ function Template(props: ReportActionItemImagesProps) {
         >
             {({hovered}) => (
                 <ReportActionItemImages
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
                     isHovered={hovered}
                 />
@@ -50,7 +51,6 @@ DisplayEReceipt.args = {
             thumbnail: '',
             transaction: {
                 transactionID: 'FAKE_3',
-                attendees: [{email: 'test@expensify.com'}],
                 amount: 1000,
                 currency: 'USD',
                 cardID: 5,
@@ -58,7 +58,7 @@ DisplayEReceipt.args = {
                 mccGroup: 'Commuter',
                 created: '2023-07-24 13:46:20',
                 hasEReceipt: true,
-                comment: {},
+                comment: {attendees: [{email: 'test@expensify.com', displayName: 'Test User', avatarUrl: ''}]},
                 reportID: 'REPORT_1',
             },
         },
@@ -75,7 +75,6 @@ DisplayMultipleEReceipts.args = {
             thumbnail: '',
             transaction: {
                 transactionID: 'FAKE_3',
-                attendees: [{email: 'test@expensify.com'}],
                 amount: 1000,
                 currency: 'USD',
                 cardID: 5,
@@ -83,7 +82,7 @@ DisplayMultipleEReceipts.args = {
                 mccGroup: 'Commuter',
                 created: '2023-07-24 13:46:20',
                 hasEReceipt: true,
-                comment: {},
+                comment: {attendees: [{email: 'test@expensify.com', displayName: 'Test User', avatarUrl: ''}]},
                 reportID: 'REPORT_1',
             },
         },
@@ -92,7 +91,6 @@ DisplayMultipleEReceipts.args = {
             thumbnail: '',
             transaction: {
                 transactionID: 'FAKE_5',
-                attendees: [{email: 'test@expensify.com'}],
                 amount: 230440,
                 currency: 'USD',
                 cardID: 4,
@@ -100,7 +98,7 @@ DisplayMultipleEReceipts.args = {
                 mccGroup: 'Goods',
                 created: '2022-03-21 13:46:20',
                 hasEReceipt: true,
-                comment: {},
+                comment: {attendees: [{email: 'test@expensify.com', displayName: 'Test User', avatarUrl: ''}]},
                 reportID: 'REPORT_2',
             },
         },
@@ -109,7 +107,6 @@ DisplayMultipleEReceipts.args = {
             thumbnail: '',
             transaction: {
                 transactionID: 'FAKE_2',
-                attendees: [{email: 'test@expensify.com'}],
                 amount: 1000,
                 currency: 'USD',
                 cardID: 4,
@@ -117,7 +114,7 @@ DisplayMultipleEReceipts.args = {
                 mccGroup: 'Airlines',
                 created: '2023-07-24 13:46:20',
                 hasEReceipt: true,
-                comment: {},
+                comment: {attendees: [{email: 'test@expensify.com', displayName: 'Test User', avatarUrl: ''}]},
                 reportID: 'REPORT_3',
             },
         },

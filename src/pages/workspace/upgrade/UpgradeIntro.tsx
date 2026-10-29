@@ -1,90 +1,163 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import Avatar from '@components/Avatar';
-import Badge from '@components/Badge';
-import Button from '@components/Button';
-import Icon from '@components/Icon';
-import * as Expensicon from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useOnyx from '@hooks/useOnyx';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
+
+import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
+import GenericFeaturesView from './GenericFeaturesView';
+import UpgradeIntroView from './UpgradeIntroView';
 
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    feature: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
+    feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
+    /** Whether is categorizing the expense */
+    isCategorizing?: boolean;
+    /** Whether is adding an unreported expense to a report */
+    isReporting?: boolean;
+    isDistanceRateUpgrade?: boolean;
+    policyID?: string;
+    backTo?: Route;
+    /** Target plan the user chose to upgrade to (drives Collect vs Control copy/pricing in the generic view) */
+    upgradePlanType?: ValueOf<typeof CONST.POLICY.TYPE>;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, upgradePlanType}: Props) {
     const styles = useThemeStyles();
-    const {isExtraSmallScreenWidth} = useResponsiveLayout();
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const isCurrentPolicySubmit = isSubmitPolicy(policy);
     const {translate} = useLocalize();
-    const isIllustration = feature.icon in Illustrations;
-    const iconSrc = isIllustration ? Illustrations[feature.icon as keyof typeof Illustrations] : Expensicon[feature.icon as keyof typeof Expensicon];
+    const preferredCurrency = usePreferredCurrency();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
+
+    const isSubmitFeature = isCurrentPolicySubmit && !!feature?.id && SUBMIT_FEATURE_IDS.has(feature.id);
+
+    const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
+    const matchesTeamPricingHeuristics = isCategorizing || isDistanceRateUpgrade || isReporting || isSubmitFeature || upgradePlanType === CONST.POLICY.TYPE.TEAM;
+    // An explicit upgradePlanType (chosen in the Plan RHP) is authoritative over the feature-based heuristics, so pricing matches the plan title shown in GenericFeaturesView.
+    const shouldUseTeamPricing = upgradePlanType === CONST.POLICY.TYPE.CORPORATE ? false : matchesTeamPricingHeuristics;
+    const formattedPrice = `${convertToShortDisplayString(CONST.SUBSCRIPTION_PRICES[upgradeCurrency][shouldUseTeamPricing ? CONST.POLICY.TYPE.TEAM : CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL], upgradeCurrency)} `;
+
+    const allIconNames = Object.values(CONST.UPGRADE_FEATURE_INTRO_MAPPING)
+        .map((feat) => feat?.icon)
+        .filter((icon) => icon !== undefined);
+    const illustrations = useMemoizedLazyIllustrations([
+        'FolderOpen',
+        'Tag',
+        'Coins',
+        'Rules',
+        'CompanyCard',
+        'PerDiem',
+        'ReportReceipt',
+        'CarIce',
+        'BlueShield',
+        'Pencil',
+        'Luggage',
+        'Workflows',
+        'Accounting',
+        'HandCard',
+        'InvoiceBlue',
+        'Members',
+        'Approval',
+        'NewUser',
+    ]);
+    const illustrationIcons = useMemoizedLazyExpensifyIcons([
+        'IntacctSquare',
+        'IntuitSquare',
+        'NetSuiteSquare',
+        'QBDSquare',
+        'QBOSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'CampfireSquare',
+        'BusinessCentralSquare',
+        'AdvancedApprovalsSquare',
+        'Unlock',
+    ]);
+    const imported = new Set([...Object.keys(illustrations), ...Object.keys(illustrationIcons)]);
+    const missing = allIconNames.filter((n): n is string => !!n && !imported.has(n));
+    if (missing.length) {
+        throw new Error(`Missing icons: ${missing.join(', ')}`);
+    }
+
+    /**
+     * If the feature is null or there is no policyID, it indicates the user is not associated with any specific workspace.
+     * In this case, the generic upgrade view should be shown.
+     * However, the policyID check is only necessary when the user is not coming from the "Categorize" option.
+     * The "isCategorizing" flag is set to true when the user accesses the "Categorize" option in the Self-DM whisper.
+     * In such scenarios, a separate Categories upgrade UI is displayed.
+     * Auto-pay approved reports requires Control but not advanced approvals, so it also uses the generic Control upgrade view.
+     */
+    if (!feature || feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id || (!isCategorizing && !isDistanceRateUpgrade && !isReporting && !policyID)) {
+        return (
+            <GenericFeaturesView
+                onUpgrade={onUpgrade}
+                buttonDisabled={buttonDisabled}
+                formattedPrice={formattedPrice}
+                loading={loading}
+                policyID={policyID}
+                backTo={backTo}
+                upgradePlanType={upgradePlanType}
+            />
+        );
+    }
+
+    const isIllustration = feature.icon in illustrations;
+    const isIllustrationIcon = feature.icon in illustrationIcons;
+    let iconSrc;
+    if (isIllustrationIcon) {
+        iconSrc = illustrationIcons[feature.icon as keyof typeof illustrationIcons];
+    } else if (isIllustration) {
+        iconSrc = illustrations[feature.icon as keyof typeof illustrations];
+    }
+
     const iconAdditionalStyles = feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id ? styles.br0 : undefined;
 
+    const getOnlyAvailableOnPlanHTML = () => {
+        const planParams = {formattedPrice, hasTeam2025Pricing};
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id || feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id) {
+            return translate('workspace.upgrade.approvals.onlyAvailableOnPlan', planParams);
+        }
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id) {
+            return translate('workspace.upgrade.rules.onlyAvailableOnPlanUnlimited', planParams);
+        }
+        return translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`, planParams);
+    };
+
+    const onlyAvailableOnPlanHTML = getOnlyAvailableOnPlanHTML();
+
+    const buttonText =
+        isCurrentPolicySubmit && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id
+            ? translate('workspace.upgrade.expensifyCard.upgradeButton')
+            : translate('common.upgrade');
+
     return (
-        <View style={styles.p5}>
-            <View style={styles.workspaceUpgradeIntroBox({isExtraSmallScreenWidth})}>
-                <View style={[styles.mb3, styles.flexRow, styles.justifyContentBetween]}>
-                    {!isIllustration ? (
-                        <Avatar
-                            source={iconSrc}
-                            type={CONST.ICON_TYPE_AVATAR}
-                        />
-                    ) : (
-                        <Icon
-                            src={iconSrc}
-                            width={48}
-                            height={48}
-                            additionalStyles={iconAdditionalStyles}
-                        />
-                    )}
-                    <Badge
-                        icon={Expensicon.Unlock}
-                        text={translate('workspace.upgrade.upgradeToUnlock')}
-                        success
-                    />
-                </View>
-                <View style={styles.mb5}>
-                    <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate(feature.title)}</Text>
-                    <Text style={[styles.textNormal, styles.textSupporting, styles.mb4]}>{translate(feature.description)}</Text>
-                    <Text style={[styles.textNormal, styles.textSupporting]}>
-                        {translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`)}
-                        <Text style={[styles.textSupporting, styles.textBold]}>{translate(`workspace.upgrade.pricing.amount`)}</Text>
-                        {translate(`workspace.upgrade.pricing.perActiveMember`)}
-                    </Text>
-                </View>
-                <Button
-                    isLoading={loading}
-                    text={translate('common.upgrade')}
-                    success
-                    onPress={onUpgrade}
-                    isDisabled={buttonDisabled}
-                    large
-                />
-            </View>
-            <View style={styles.mt6}>
-                <Text style={[styles.textNormal, styles.textSupporting]}>
-                    {translate('workspace.upgrade.note.upgradeWorkspace')}{' '}
-                    <TextLink
-                        style={[styles.link]}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION)}
-                    >
-                        {translate('workspace.upgrade.note.learnMore')}
-                    </TextLink>{' '}
-                    {translate('workspace.upgrade.note.aboutOurPlans')}
-                </Text>
-            </View>
-        </View>
+        <UpgradeIntroView
+            iconSrc={iconSrc}
+            isIllustration={isIllustration}
+            iconAdditionalStyles={iconAdditionalStyles}
+            title={translate(feature.title)}
+            description={translate(feature.description)}
+            onlyAvailableOnPlanHTML={onlyAvailableOnPlanHTML}
+            buttonText={buttonText}
+            onUpgrade={onUpgrade}
+            buttonDisabled={buttonDisabled}
+            loading={loading}
+        />
     );
 }
 

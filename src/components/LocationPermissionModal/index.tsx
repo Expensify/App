@@ -1,117 +1,182 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import usePolling from '@hooks/usePolling';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import getPlatform from '@libs/getPlatform';
+
+import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
+
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+
+import CONST from '@src/CONST';
+
+import {useEffect, useRef, useState} from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import ConfirmModal from '@components/ConfirmModal';
-import * as Illustrations from '@components/Icon/Illustrations';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
-import {getLocationPermission, requestLocationPermission} from '@pages/iou/request/step/IOURequestStepScan/LocationPermission';
-import CONST from '@src/CONST';
-import type {LocationPermissionModalProps} from './types';
 
-function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant}: LocationPermissionModalProps) {
-    const [hasError, setHasError] = useState(false);
+import type LocationPermissionModalProps from './types';
+
+const isPermissionGranted = (status: string) => status === RESULTS.GRANTED || status === RESULTS.LIMITED;
+
+function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDeny, onGrant, onInitialGetLocationCompleted}: LocationPermissionModalProps) {
     const [showModal, setShowModal] = useState(false);
+    const isGrantedExternallyRef = useRef(false);
+    const isModalActiveRef = useRef(false);
+    const dismissedViaBackdropRef = useRef(false);
+    const onGrantRef = useRef(onGrant);
+    const onDenyRef = useRef(onDeny);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {asset: ReceiptLocationMarker, isLoading: isLoadingIllustration} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
+    const {showConfirmModal, closeModal} = useConfirmModal();
 
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
+    // Keep refs up to date
     useEffect(() => {
-        if (!startPermissionFlow) {
+        onGrantRef.current = onGrant;
+        onDenyRef.current = onDeny;
+    }, [onGrant, onDeny]);
+
+    const grantPermission = () => {
+        isGrantedExternallyRef.current = true;
+        onGrantRef.current();
+    };
+
+    const checkPermission = async () => {
+        const status = await getLocationPermission();
+        if (!isPermissionGranted(status) || isGrantedExternallyRef.current) {
+            return;
+        }
+        grantPermission();
+    };
+
+    usePolling(checkPermission, CONST.TIMING.LOCATION_UPDATE_INTERVAL, showModal, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY);
+
+    useEffect(() => {
+        if (!startPermissionFlow || isLoadingIllustration) {
             return;
         }
 
-        getLocationPermission().then((status) => {
-            if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                return onGrant();
-            }
+        let ignore = false;
 
-            setShowModal(true);
-            setHasError(status === RESULTS.BLOCKED);
-        });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes
-    }, [startPermissionFlow]);
-
-    const handledBlockedPermission = (cb: () => void) => () => {
-        if (hasError) {
-            if (Linking.openSettings) {
-                Linking.openSettings();
-            } else {
-                onDeny?.();
-            }
+        const resetFlowState = () => {
+            isModalActiveRef.current = false;
             setShowModal(false);
-            return;
-        }
-        cb();
-    };
+            resetPermissionFlow();
+        };
 
-    const grantLocationPermission = handledBlockedPermission(() => {
-        requestLocationPermission()
-            .then((status) => {
-                if (status === RESULTS.GRANTED || status === RESULTS.LIMITED) {
-                    onGrant();
-                } else {
-                    onDeny();
-                }
-            })
-            .finally(() => {
-                setShowModal(false);
-                setHasError(false);
+        const handlePermissionFlow = async () => {
+            const status = await getLocationPermission();
+            if (ignore) {
+                return;
+            }
+
+            onInitialGetLocationCompleted?.();
+            if (isPermissionGranted(status)) {
+                grantPermission();
+                return;
+            }
+
+            const hasError = status === RESULTS.BLOCKED;
+            isGrantedExternallyRef.current = false;
+            setShowModal(true);
+            isModalActiveRef.current = true;
+
+            const locationErrorMessage = isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage';
+            const confirmText = !hasError ? translate('common.continue') : translate(isWeb ? 'common.buttonConfirm' : 'common.settings');
+
+            const {action} = await showConfirmModal({
+                shouldShowCancelButton: !(isWeb && hasError),
+                confirmText,
+                cancelText: translate('common.notNow'),
+                promptStyles: [styles.textLabelSupportingEmptyValue, styles.mb4],
+                title: translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle'),
+                titleContainerStyles: [styles.mt2, styles.mb0],
+                titleStyles: [styles.textHeadline],
+                iconSource: ReceiptLocationMarker,
+                iconFill: false,
+                iconWidth: 140,
+                iconHeight: 120,
+                shouldCenterIcon: true,
+                shouldReverseStackedButtons: true,
+                prompt: translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage'),
+                shouldHideOnBackdropPress: true,
+                onBackdropPress: () => {
+                    dismissedViaBackdropRef.current = true;
+                    resetFlowState();
+                },
+                isConfirmLoading: false,
             });
-    });
+            if (ignore) {
+                return;
+            }
 
-    const skipLocationPermission = () => {
-        onDeny();
-        setShowModal(false);
-        setHasError(false);
-    };
+            if (hasError) {
+                updateLastLocationPermissionPrompt();
+            }
 
-    const getConfirmText = (): string => {
-        if (!hasError) {
-            return translate('common.continue');
-        }
+            // Already handled by the visibility listener
+            if (isGrantedExternallyRef.current) {
+                resetFlowState();
+                return;
+            }
 
-        return isWeb ? translate('common.buttonConfirm') : translate('common.settings');
-    };
+            if (action !== ModalActions.CONFIRM) {
+                resetFlowState();
+                // A backdrop tap just dismisses the prompt - it's not an explicit denial, unlike tapping "Not now".
+                if (!dismissedViaBackdropRef.current) {
+                    onDenyRef.current(true);
+                }
+                dismissedViaBackdropRef.current = false;
+                return;
+            }
 
-    const closeModal = () => {
-        setShowModal(false);
-        resetPermissionFlow();
-    };
+            // When hasError (permission is blocked), close the modal and send the user to Settings.
+            // We need to close modal manually since the modal is still open (due to isConfirmLoading)
+            if (hasError && Linking.openSettings) {
+                Linking.openSettings();
+                closeModal();
+                resetFlowState();
+                return;
+            }
 
-    const locationErrorMessage = useMemo(() => (isWeb ? 'receipt.allowLocationFromSetting' : 'receipt.locationErrorMessage'), [isWeb]);
+            // For the blocked/error case without a settings deep link, re-check permission in case the user
+            // enabled it before continuing. Otherwise, actively request permission for the first-time prompt.
+            const result = hasError ? await getLocationPermission() : await requestLocationPermission();
+            if (ignore) {
+                return;
+            }
 
-    return (
-        <ConfirmModal
-            shouldShowCancelButton={!(isWeb && hasError)}
-            onModalHide={() => {
-                setHasError(false);
-                resetPermissionFlow();
-            }}
-            isVisible={showModal}
-            onConfirm={grantLocationPermission}
-            onCancel={skipLocationPermission}
-            onBackdropPress={closeModal}
-            confirmText={getConfirmText()}
-            cancelText={translate('common.notNow')}
-            promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}
-            title={translate(hasError ? 'receipt.locationErrorTitle' : 'receipt.locationAccessTitle')}
-            titleContainerStyles={[styles.mt2, styles.mb0]}
-            titleStyles={[styles.textHeadline]}
-            iconSource={Illustrations.ReceiptLocationMarker}
-            iconFill={false}
-            iconWidth={140}
-            iconHeight={120}
-            shouldCenterIcon
-            shouldReverseStackedButtons
-            prompt={translate(hasError ? locationErrorMessage : 'receipt.locationAccessMessage')}
-        />
-    );
+            closeModal();
+            resetFlowState();
+            if (isPermissionGranted(result)) {
+                grantPermission();
+            } else {
+                onDenyRef.current(false);
+            }
+        };
+
+        handlePermissionFlow();
+
+        return () => {
+            ignore = true;
+            if (!isModalActiveRef.current) {
+                return;
+            }
+            isModalActiveRef.current = false;
+            closeModal();
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- We only want to run this effect when startPermissionFlow changes, or once the prompt illustration settles
+    }, [startPermissionFlow, isLoadingIllustration]);
+
+    return null;
 }
-
-LocationPermissionModal.displayName = 'LocationPermissionModal';
 
 export default LocationPermissionModal;

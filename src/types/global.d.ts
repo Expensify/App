@@ -12,6 +12,12 @@ declare module '*.jpg' {
     export default value;
 }
 
+declare module '*.mp3' {
+    // Metro resolves assets to numeric registry IDs. Web bundlers resolve them to URL strings.
+    const value: number | string;
+    export default value;
+}
+
 declare module '*.svg' {
     import type React from 'react';
     import type {SvgProps} from 'react-native-svg';
@@ -30,7 +36,6 @@ declare module '*.lottie' {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface Window {
     setSupportToken: (token: string, email: string, accountID: number) => void;
-    markAllPolicyReportsAsRead: (policyID: string) => void;
 }
 
 // Allows to add generic type in require
@@ -38,4 +43,17 @@ interface Window {
 interface NodeRequire {
     // eslint-disable-next-line @typescript-eslint/prefer-function-type, @typescript-eslint/no-explicit-any
     <T = any>(id: string): T;
+}
+
+// Standalone declarations so these globals are also accessible without `global.` prefix
+// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
+declare var __moduleInitTimes: Record<number | string, number> | undefined;
+// eslint-disable-next-line no-var, no-underscore-dangle, @typescript-eslint/naming-convention
+declare var __moduleNames: Record<number, string> | undefined;
+
+// Define ArrayBuffer.transfer as its a relatively new API and not yet present in all environments
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+interface ArrayBuffer {
+    // Might be defined in browsers, in RN hermes it's not implemented yet
+    transfer?: (length: number) => ArrayBuffer;
 }

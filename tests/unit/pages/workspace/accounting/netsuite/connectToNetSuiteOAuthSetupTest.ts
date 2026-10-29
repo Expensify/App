@@ -1,0 +1,56 @@
+import Navigation from '@libs/Navigation/Navigation';
+
+import connectToNetSuiteOAuthSetup from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/connectToNetSuiteOAuthSetup.native';
+
+import {openLink} from '@userActions/Link';
+
+import ROUTES from '@src/ROUTES';
+
+const POLICY_ID = '123';
+const ACCOUNT_ID = 'TSTDRV1234567';
+const ENVIRONMENT_URL = 'https://new.expensify.com';
+
+jest.mock('@userActions/Link', () => ({
+    openLink: jest.fn(),
+}));
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    dismissModal: jest.fn(),
+}));
+
+const mockedOpenLink = jest.mocked(openLink);
+const mockedNavigate = jest.mocked(Navigation.navigate);
+const mockedDismissModal = jest.mocked(Navigation.dismissModal);
+
+describe('connectToNetSuiteOAuthSetup (native)', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('navigates to the in-app NetSuite setup screen', () => {
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL);
+
+        expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_NETSUITE_SETUP.getRoute(POLICY_ID, ACCOUNT_ID));
+    });
+
+    it('does not open an external browser tab', () => {
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL);
+
+        expect(mockedOpenLink).not.toHaveBeenCalled();
+    });
+
+    it('leaves the RHP open so the setup screen it just pushed stays mounted', () => {
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL);
+
+        expect(mockedDismissModal).not.toHaveBeenCalled();
+    });
+
+    it('passes isMigration to the setup route when migrating a TBA connection to OAuth', () => {
+        // Given a TBA → OAuth migration
+        // When the OAuth setup is triggered with isMigration: true
+        connectToNetSuiteOAuthSetup(POLICY_ID, ACCOUNT_ID, ENVIRONMENT_URL, true);
+
+        // Then the setup screen is opened with the migration flag so the backend knows to migrate
+        expect(mockedNavigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_NETSUITE_SETUP.getRoute(POLICY_ID, ACCOUNT_ID, true));
+    });
+});

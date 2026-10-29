@@ -1,18 +1,14 @@
-import type {ImageSource} from 'expo-image';
-import type {ImageRequireSource, ImageResizeMode, ImageStyle, ImageURISource, StyleProp} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
+
 import type CONST from '@src/CONST';
-import type {Session} from '@src/types/onyx';
+
+import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
+import type {ImageProps as RNImageProps, ImageRequireSource, ImageStyle, ImageURISource, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 type ExpoImageSource = ImageSource | number | ImageSource[];
 
 type ImageObjectPosition = ValueOf<typeof CONST.IMAGE_OBJECT_POSITION>;
-
-type ImageOnyxProps = {
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
 
 type ImageOnLoadEvent = {
     nativeEvent: {
@@ -28,16 +24,34 @@ type BaseImageProps = {
     /** Event for when the image is fully loaded and returns the natural dimensions of the image */
     onLoad?: (event: ImageOnLoadEvent) => void;
 
-    /** Styles for the Image */
+    /** Called when the image starts to load. */
+    onLoadStart?: () => void;
+
     style?: StyleProp<ImageStyle>;
+    cachePolicy?: ImagePrefetchOptions['cachePolicy'];
+
+    /** Priorities for completing loads. If more than one load is queued at a time,
+     *  the load with the higher priority will be started first.
+     *  Maps to SDWebImageHighPriority (iOS) and Glide.Priority.IMMEDIATE (Android). */
+    priority?: ValueOf<typeof CONST.IMAGE_LOADING_PRIORITY> | null;
+
+    /** Identity of the picture for the native view. Defaults to a key derived from the source, which clears the view every
+     *  time the same picture changes URI (a fresh attachment goes picker path, cache copy, remote URL). Ignored on web. */
+    recyclingKey?: string;
 };
 
 type ImageOwnProps = BaseImageProps & {
+    /** By default, when the image width is greater than its height, its aspectRatio is set to 1. If you want the aspectRatio to be calculated instead of set to 1 in these cases, set the value of this prop to true  */
+    shouldCalculateAspectRatioForWideImage?: boolean;
+
     /** Should an auth token be included in the image request */
     isAuthTokenRequired?: boolean;
 
     /** How should the image fit within its container */
-    resizeMode?: ImageResizeMode;
+    resizeMode?: RNImageProps['resizeMode'];
+
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** Event for when the image begins loading */
     onLoadStart?: () => void;
@@ -45,16 +59,24 @@ type ImageOwnProps = BaseImageProps & {
     /** Event for when the image finishes loading */
     onLoadEnd?: () => void;
 
-    /** Error handler */
     onError?: () => void;
 
-    /** Progress events while the image is downloading */
-    onProgress?: () => void;
+    /** Download progress. Not emitted on web, nor natively when the response has no Content-Length. */
+    onProgress?: (event: {loaded: number; total: number}) => void;
 
-    /** The object position of image */
     objectPosition?: ImageObjectPosition;
+
+    /**
+     *  Called when the image should wait for a valid session to reload
+     *  At the moment this function is called, the image is not in cache anymore
+     *  cf https://github.com/Expensify/App/issues/51888
+     */
+    waitForSession?: () => void;
+
+    /** If you want to calculate the image height dynamically instead of using aspectRatio, pass the width in this property */
+    imageWidthToCalculateHeight?: number;
 };
 
-type ImageProps = ImageOnyxProps & ImageOwnProps;
+type ImageProps = ImageOwnProps;
 
-export type {BaseImageProps, ImageOwnProps, ImageOnyxProps, ImageProps, ExpoImageSource, ImageOnLoadEvent, ImageObjectPosition};
+export type {BaseImageProps, ImageProps, ImageOnLoadEvent, ImageObjectPosition};

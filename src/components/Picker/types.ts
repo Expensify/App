@@ -1,9 +1,9 @@
-import type {ChangeEvent, Component, ReactElement} from 'react';
-import type {MeasureLayoutOnSuccessCallback, NativeMethods, StyleProp, ViewStyle} from 'react-native';
+import type {ChangeEvent, ForwardedRef, ReactElement} from 'react';
+import type {HostInstance, MeasureLayoutOnSuccessCallback, StyleProp, ViewStyle} from 'react-native';
 
 type MeasureLayoutOnFailCallback = () => void;
 
-type RelativeToNativeComponentRef = (Component<unknown> & Readonly<NativeMethods>) | number;
+type RelativeToNativeComponentRef = HostInstance | number;
 
 type BasePickerHandle = {
     focus: () => void;
@@ -26,7 +26,6 @@ type DefaultPickerEventsCallback = () => void;
 type PickerSize = 'normal' | 'small';
 
 type PickerItem<TPickerValue> = {
-    /** The value of the item that is being selected */
     value: TPickerValue;
 
     /** The text to display for the item */
@@ -45,6 +44,9 @@ type BasePickerProps<TPickerValue> = {
     /** BasePicker label */
     label?: string | null;
 
+    /** Accessibility label for screen readers */
+    accessibilityLabel?: string;
+
     /** Should the picker appear disabled? */
     isDisabled?: boolean;
 
@@ -57,7 +59,6 @@ type BasePickerProps<TPickerValue> = {
     /** Something to show as the placeholder before something is selected */
     placeholder?: PickerPlaceholder;
 
-    /** Error text to display */
     errorText?: string;
 
     /** Customize the BasePicker container */
@@ -69,7 +70,6 @@ type BasePickerProps<TPickerValue> = {
     /** The ID used to uniquely identify the input in a Form */
     inputID?: string;
 
-    /** Show disabled style when disabled */
     shouldAllowDisabledStyle?: boolean;
 
     /** Saves a draft of the input value when used in a form */
@@ -81,10 +81,7 @@ type BasePickerProps<TPickerValue> = {
     /** A callback method that is called when the value changes and it receives the selected value as an argument */
     onInputChange?: (value: TPickerValue, index?: number) => void;
 
-    /** Size of a picker component */
     size?: PickerSize;
-
-    /** An icon to display with the picker */
     icon?: (size: PickerSize) => ReactElement;
 
     /** Whether we should forward the focus/blur calls to the inner picker * */
@@ -98,6 +95,8 @@ type BasePickerProps<TPickerValue> = {
 
     /** Hint text that appears below the picker */
     hintText?: string;
+
+    ref?: ForwardedRef<BasePickerHandle>;
 };
 
-export type {BasePickerHandle, BasePickerProps, AdditionalPickerEventsCallback, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};
+export type {BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};

@@ -1,10 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
-
-/** Two factor authentication steps */
-type TwoFactorAuthStep = ValueOf<typeof CONST.TWO_FACTOR_AUTH_STEPS> | '';
 
 /** The role of the delegate */
 type DelegateRole = ValueOf<typeof CONST.DELEGATE_ROLE>;
@@ -14,13 +13,11 @@ type Delegate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** The email of the delegate */
     email: string;
 
-    /** The role of the delegate */
     role?: DelegateRole;
 
     /** Whether the user validation code was sent */
     validateCodeSent?: boolean;
 
-    /** Whether the user is loading */
     isLoading?: boolean;
 
     /** The accountID of a delegate when they aren't in the personalDetails. */
@@ -37,6 +34,9 @@ type DelegateErrors = {
 
     /** Errors while removing a delegate keyed by email */
     removeDelegate?: Record<string, OnyxCommon.Errors>;
+
+    /** Errors while removing a delegator keyed by email */
+    removeDelegator?: Record<string, OnyxCommon.Errors>;
 
     /** Errors while connecting as a delegate keyed by email */
     connect?: Record<string, OnyxCommon.Errors>;
@@ -60,6 +60,18 @@ type DelegatedAccess = {
     errorFields?: DelegateErrors;
 };
 
+/** Model of SMS delivery failure status */
+type SMSDeliveryFailureStatus = {
+    /** Whether the account is having trouble receiving SMS */
+    hasSMSDeliveryFailure: boolean;
+
+    /** The message associated with the SMS delivery failure */
+    message: string;
+
+    /** Whether a sign is loading */
+    isLoading?: boolean;
+};
+
 /** Model of user account */
 type Account = {
     /** Whether SAML is enabled for the current account */
@@ -71,8 +83,8 @@ type Account = {
     /** Is this account having trouble receiving emails? */
     hasEmailDeliveryFailure?: boolean;
 
-    /** URL to the assigned guide's appointment booking calendar */
-    guideCalendarLink?: string;
+    /** Whether an email unblock request is currently in flight */
+    isUnblockingEmail?: boolean;
 
     /** User recovery codes for setting up 2-FA */
     recoveryCodes?: string;
@@ -86,22 +98,27 @@ type Account = {
     /** Whether this account needs 2FA setup before it can be used. eg: 2FA is required when Xero integration is enabled */
     needsTwoFactorAuthSetup?: boolean;
 
-    /** Whether the account is validated */
+    /** Whether the account 2FA setup is in progress, driven by the frontend */
+    twoFactorAuthSetupInProgress?: boolean;
+
     validated?: boolean;
 
     /** The primaryLogin associated with the account */
     primaryLogin?: string;
 
+    adminsRoomReportID?: string;
+    accountManagerAccountID?: number;
+    accountManagerReportID?: string;
+    accountManagerCalendarLink?: string;
+    partnerManagerAccountID?: number;
+    partnerManagerEmail?: string;
+    partnerManagerCalendarLink?: string;
+
     /** The message to be displayed when code requested */
     message?: string;
 
-    /** Form that is being loaded */
     loadingForm?: ValueOf<typeof CONST.FORMS>;
-
-    /** Whether the user forgot their password */
     forgotPassword?: boolean;
-
-    /** Whether the account exists */
     accountExists?: boolean;
 
     /** Is the account / domain under domain control? */
@@ -116,22 +133,20 @@ type Account = {
     /** Authentication failure errors */
     errors?: OnyxCommon.Errors | null;
 
+    /** Errors related to specific account fields */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /** Pending account changes while requests are queued. */
+    pendingFields?: OnyxCommon.PendingFields<'exactOnlineWaitlist'>;
+
     /** Authentication success message */
     success?: string;
 
     /** Whether the two factor authentication codes were copied */
     codesAreCopied?: boolean;
 
-    /** Current two factor authentication step */
-    twoFactorAuthStep?: TwoFactorAuthStep;
-
-    /** Referral banners that the user dismissed */
     dismissedReferralBanners?: DismissedReferralBanners;
-
-    /** Indicates whether the user is an approved accountant */
     isApprovedAccountant?: boolean;
-
-    /** Indicates whether the user is a client of an approved accountant */
     isApprovedAccountantClient?: boolean;
 
     /** Indicates whether the user can downgrade current subscription plan */
@@ -145,7 +160,77 @@ type Account = {
 
     /** The users you can access as delegate and the users who can access your account as a delegate */
     delegatedAccess?: DelegatedAccess;
+
+    smsDeliveryFailureStatus?: SMSDeliveryFailureStatus;
+    guideDetails?: {
+        /** The email of the guide details */
+        email: string;
+        /** The calendar link of the guide details */
+        calendarLink: string;
+    };
+
+    /** Model of the getValidateCodeForAccountMerge API call */
+    getValidateCodeForAccountMerge?: {
+        /** Whether the validation code was sent */
+        isLoading?: boolean;
+
+        /** Whether the user validation code was sent */
+        validateCodeSent?: boolean;
+
+        /** Whether the user validation code was re-sent */
+        validateCodeResent?: boolean;
+
+        /** Errors while requesting the validation code */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Model of the mergeWithValidateCode API call */
+    mergeWithValidateCode?: {
+        /** Whether the API call is loading */
+        isLoading?: boolean;
+
+        /** Whether the account was merged successfully */
+        isAccountMerged?: boolean;
+
+        /** Errors while merging the account */
+        errors: OnyxCommon.Errors;
+    };
+
+    isSubscribedToNewsletter?: boolean;
+
+    /** Whether or not the user is on a public domain email account or not */
+    isFromPublicDomain?: boolean;
+
+    /** Whether the user's email domain is an internal Expensify domain (e.g. expensify.com) */
+    isFromInternalDomain?: boolean;
+
+    /** Whether this account can start a supportal session */
+    canSupportLogin?: boolean;
+
+    isUsingExpensifyCard?: boolean;
+    hasLoungeAccess?: boolean;
+
+    /** error associated with adding a secondary login */
+    error?: string;
+
+    /** Whether the user is an Expensify Guide */
+    isGuide?: boolean;
+
+    /** If user has accessible policies on a private domain */
+    hasAccessibleDomainPolicies?: boolean;
+
+    /** Errors for lock account */
+    lockAccount?: {
+        /** API errors when locking an account */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Epoch timestamp (in milliseconds) until which extended access is valid without requiring validateCode */
+    validateCodeExtendedAccessExpires?: number;
+
+    /** List of registered multifactor authentication public keys. Empty if the user had set up at some point but they have since been revoked. Undefined if the user had never set it up to begin with. */
+    multifactorAuthenticationPublicKeyIDs?: string[];
 };
 
 export default Account;
-export type {TwoFactorAuthStep, DelegateRole, DelegatedAccess, Delegate};
+export type {DelegateRole, DelegatedAccess, Delegate};

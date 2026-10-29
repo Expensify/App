@@ -1,131 +1,202 @@
-import {Audio} from 'expo-av';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import type * as Sentry from '@sentry/react-native';
 import type {NativeEventSubscription} from 'react-native';
-import {AppState, Linking, NativeModules, Platform} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx, {useOnyx} from 'react-native-onyx';
-import ConfirmModal from './components/ConfirmModal';
-import DeeplinkWrapper from './components/DeeplinkWrapper';
-import EmojiPicker from './components/EmojiPicker/EmojiPicker';
-import FocusModeNotification from './components/FocusModeNotification';
-import GrowlNotification from './components/GrowlNotification';
-import RequireTwoFactorAuthenticationModal from './components/RequireTwoFactorAuthenticationModal';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {AppState, Platform} from 'react-native';
+import Onyx from 'react-native-onyx';
+
+import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
+import type {Route} from './ROUTES';
+
+import {useInitialURLActions} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
-import UpdateAppModal from './components/UpdateAppModal';
-import * as CONFIG from './CONFIG';
+import CONFIG from './CONFIG';
 import CONST from './CONST';
+import DeepLinkHandler from './DeepLinkHandler';
+import DelegateAccessHandler from './DelegateAccessHandler';
+import FullstoryInitHandler from './FullstoryInitHandler';
+import FullstoryUserContextHandler from './FullstoryUserContextHandler';
+import GlobalModals from './GlobalModals';
+import useDebugShortcut from './hooks/useDebugShortcut';
+import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
+import useOnyx from './hooks/useOnyx';
+import useSaveMarketingAttribution from './hooks/useSaveMarketingAttribution';
 import {updateLastRoute} from './libs/actions/App';
-import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-import * as Report from './libs/actions/Report';
-import * as User from './libs/actions/User';
+import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
-import FS from './libs/Fullstory';
-import * as Growl from './libs/Growl';
+import {isSafari} from './libs/Browser';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
+// This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
+import './libs/NetworkState';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
-import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
-import './libs/Notification/PushNotification/subscribePushNotification';
-import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
-import StartupTimer from './libs/StartupTimer';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/UnreadIndicatorUpdater';
+import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
+import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
+import {scheduleInitialDatabaseSizeMeasurement} from './libs/telemetry/databaseSizeTracker';
+import reportFullyDrawn from './libs/telemetry/reportFullyDrawn';
+import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
-import PopoverReportActionContextMenu from './pages/home/report/ContextMenu/PopoverReportActionContextMenu';
-import * as ReportActionContextMenu from './pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {Route} from './ROUTES';
-import ROUTES from './ROUTES';
-import SplashScreenStateContext from './SplashScreenStateContext';
-import type {ScreenShareRequest} from './types/onyx';
+import PriorityModeHandler from './PriorityModeHandler';
+import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
-Onyx.registerLogger(({level, message}) => {
+Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
-        Log.alert(message);
+        Log.alert(message, parameters);
         console.error(message);
     } else if (level === 'hmmm') {
-        Log.hmmm(message);
+        Log.hmmm(message, parameters);
     } else {
-        Log.info(message);
+        Log.info(message, undefined, parameters);
     }
 });
 
-type ExpensifyProps = {
-    /** Whether the app is waiting for the server's response to determine if a room is public */
-    isCheckingPublicRoom: OnyxEntry<boolean>;
-
-    /** Whether a new update is available and ready to install. */
-    updateAvailable: OnyxEntry<boolean>;
-
-    /** Tells us if the sidebar has rendered */
-    isSidebarLoaded: OnyxEntry<boolean>;
-
-    /** Information about a screen share call requested by a GuidesPlus agent */
-    screenShareRequest: OnyxEntry<ScreenShareRequest>;
-
-    /** True when the user must update to the latest minimum version of the app */
-    updateRequired: OnyxEntry<boolean>;
-
-    /** Whether we should display the notification alerting the user that focus mode has been auto-enabled */
-    focusModeNotification: OnyxEntry<boolean>;
-
-    /** Last visited path in the app */
-    lastVisitedPath: OnyxEntry<string | undefined>;
-};
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
     const [isOnyxMigrated, setIsOnyxMigrated] = useState(false);
-    const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
+    const {splashScreenState} = useSplashScreenState();
+    const {setSplashScreenState} = useSplashScreenActions();
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
-    const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {preferredLocale} = useLocalize();
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
-    const [shouldShowRequire2FAModal, setShouldShowRequire2FAModal] = useState(false);
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
-    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
+    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
+    const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    useDebugShortcut();
+    useSaveMarketingAttribution();
 
     useEffect(() => {
-        if (!account?.needsTwoFactorAuthSetup || account.requiresTwoFactorAuth) {
-            return;
-        }
-        setShouldShowRequire2FAModal(true);
-    }, [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth]);
+        initializeTelemetryTrackers();
+        return () => {
+            cleanupTelemetryTrackers();
+        };
+    }, []);
 
-    const [initialUrl, setInitialUrl] = useState<string | null>(null);
+    const bootsplashSpan = useRef<Sentry.Span>(null);
+
+    const [initialUrl, setInitialUrl] = useState<string | null | undefined>(undefined);
+    const {setIsAuthenticatedAtStartup} = useInitialURLActions();
+
+    useEffect(() => {
+        bootsplashSpan.current =
+            startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
+                name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+            }) ?? null;
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
+            parentSpan: bootsplashSpan.current,
+        });
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK,
+            parentSpan: bootsplashSpan.current,
+        });
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
+            parentSpan: bootsplashSpan.current,
+        });
+    }, []);
+
+    const isAuthenticated = useIsAuthenticated();
 
     useEffect(() => {
         if (isCheckingPublicRoom) {
             return;
         }
+
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
+
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK);
+
+        // End the PUBLIC_ROOM_API span if it was started (it's started conditionally in openReportFromDeepLink)
+        // endSpan handles non-existent spans gracefully, so it's safe to call unconditionally
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_API);
+
         setAttemptedToOpenPublicRoom(true);
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            parentSpan: bootsplashSpan.current,
+        });
     }, [isCheckingPublicRoom]);
 
-    const isAuthenticated = useMemo(() => !!(session?.authToken ?? null), [session]);
-    const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
+    useEffect(() => {
+        if (!preferredLocale) {
+            return;
+        }
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
+    }, [preferredLocale]);
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom;
-    const shouldHideSplash =
-        shouldInit &&
-        (NativeModules.HybridAppModule ? splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN && isAuthenticated : splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE);
+    const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
+    const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
+
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
+    const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
+
+    // We store this in a ref to get the latest values in BootsplashMonitor callback
+    const gateStatusRef = useRef<BootsplashGateStatus | null>(null);
+    gateStatusRef.current = {
+        splashScreenState,
+        isOnyxMigrated,
+        isCheckingPublicRoom,
+        hasAttemptedToOpenPublicRoom,
+        isNavigationReady,
+        preferredLocale,
+        shouldInit,
+        shouldHideSplash,
+        isAuthenticated,
+        updateRequired,
+        lastVisitedPath,
+    };
+
+    useEffect(() => {
+        if (!shouldHideSplash) {
+            return;
+        }
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER,
+            parentSpan: bootsplashSpan.current,
+        });
+    }, [shouldHideSplash]);
+
+    useEffect(() => {
+        if (!shouldInit || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+            return;
+        }
+
+        // Clears OldDot UI after sign-out, if there's no OldDot UI left it has no effect.
+        HybridAppModule.clearOldDotAfterSignOut();
+    }, [shouldInit, splashScreenState]);
 
     const initializeClient = () => {
         if (!Visibility.isVisible()) {
             return;
         }
 
-        ActiveClientManager.init();
+        // Delay client init to avoid issues with delayed Onyx events on iOS. All iOS browsers use WebKit, which suspends events in background tabs.
+        // Events are flushed only when the tab becomes active again causing issues with client initialization.
+        // See: https://stackoverflow.com/questions/54095584/page-becomes-inactive-when-switching-tabs-on-ios
+        if (isSafari()) {
+            setTimeout(ActiveClientManager.init, 400);
+        } else {
+            ActiveClientManager.init();
+        }
     };
 
     const setNavigationReady = useCallback(() => {
@@ -137,22 +208,18 @@ function Expensify() {
 
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+        endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
+        endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+        reportFullyDrawn();
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
+        scheduleInitialDatabaseSizeMeasurement();
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
         // Initialize this client as being an active client
         ActiveClientManager.init();
-
-        // Used for the offline indicator appearing when someone is offline
-        const unsubscribeNetInfo = NetworkConnection.subscribeToNetInfo();
-
-        return unsubscribeNetInfo;
     }, []);
-
-    useEffect(() => {
-        // Initialize Fullstory lib
-        FS.init(userMetadata);
-    }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
     useEffect(() => {
@@ -160,29 +227,10 @@ function Expensify() {
     }, []);
 
     useEffect(() => {
-        setTimeout(() => {
-            const appState = AppState.currentState;
-            Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
+        return startBootsplashMonitor(gateStatusRef);
+    }, []);
 
-            if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                const propsToLog: Omit<ExpensifyProps & {isAuthenticated: boolean}, 'children' | 'session'> = {
-                    isCheckingPublicRoom,
-                    updateRequired,
-                    updateAvailable,
-                    isSidebarLoaded,
-                    screenShareRequest,
-                    focusModeNotification,
-                    isAuthenticated,
-                    lastVisitedPath,
-                };
-                Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
-            }
-        }, 30 * 1000);
-
-        // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
-        // it took for the main app itself to load.
-        StartupTimer.stop();
-
+    useEffect(() => {
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx().then(() => {
             // In case of a crash that led to disconnection, we want to remove all the push notifications.
@@ -195,29 +243,31 @@ function Expensify() {
 
         appStateChangeListener.current = AppState.addEventListener('change', initializeClient);
 
-        // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
-        Linking.getInitialURL().then((url) => {
-            setInitialUrl(url);
-            Report.openReportFromDeepLink(url ?? '');
+        setIsAuthenticatedAtStartup(isAuthenticated);
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.DEEP_LINK,
+            parentSpan: bootsplashSpan.current,
         });
 
-        // Open chat report from a deep link (only mobile native)
-        Linking.addEventListener('url', (state) => {
-            Report.openReportFromDeepLink(state.url);
-        });
+        if (CONFIG.IS_HYBRID_APP) {
+            HybridAppModule.onURLListenerAdded();
+        }
 
         return () => {
-            if (!appStateChangeListener.current) {
-                return;
-            }
-            appStateChangeListener.current.remove();
+            appStateChangeListener.current?.remove();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
     }, []);
 
-    // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
+    const didInitReconnectRef = useRef(false);
     useEffect(() => {
-        Audio.setAudioModeAsync({playsInSilentModeIOS: true});
+        if (didInitReconnectRef.current) {
+            return;
+        }
+        didInitReconnectRef.current = true;
+        initReconnect();
     }, []);
 
     useLayoutEffect(() => {
@@ -225,17 +275,19 @@ function Expensify() {
             return;
         }
         updateLastRoute('');
-        Navigation.navigate(lastRoute as Route);
-        // Disabling this rule because we only want it to run on the first render.
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [isNavigationReady]);
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            return;
-        }
-        setCrashlyticsUserId(session?.accountID ?? -1);
-    }, [isAuthenticated, session?.accountID]);
+        // On iOS, changing the Contacts permission in Settings forces the app to reload (see `goToSettings`).
+        // Restoring a deep RHP route (e.g. the money-request participant selector) directly on the boot frame
+        // kicks the react-navigation card's native-driver entering animation while the tree is still hydrating,
+        // which can crash with "Unable to find node on an unmounted component" when the card unmounts mid-transition.
+        // Defer the restore by one frame so the card is not mounted-then-unmounted mid-animation.
+        const restoreAnimationFrame = requestAnimationFrame(() => {
+            Navigation.navigate(lastRoute as Route);
+        });
+        return () => cancelAnimationFrame(restoreAnimationFrame);
+        // Disabling this rule because we only want it to run on the first render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isNavigationReady]);
 
     // Display a blank page until the onyx migration completes
     if (!isOnyxMigrated) {
@@ -247,58 +299,33 @@ function Expensify() {
     }
 
     return (
-        <DeeplinkWrapper
-            isAuthenticated={isAuthenticated}
-            autoAuthState={autoAuthState}
-            initialUrl={initialUrl ?? ''}
-        >
-            {shouldInit && (
-                <>
-                    <GrowlNotification ref={Growl.growlRef} />
-                    <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
-                    <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
-                    {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                    {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
-                    {screenShareRequest ? (
-                        <ConfirmModal
-                            title={translate('guides.screenShare')}
-                            onConfirm={() => User.joinScreenShare(screenShareRequest.accessToken, screenShareRequest.roomName)}
-                            onCancel={User.clearScreenShareRequest}
-                            prompt={translate('guides.screenShareRequest')}
-                            confirmText={translate('common.join')}
-                            cancelText={translate('common.decline')}
-                            isVisible
-                        />
-                    ) : null}
-                    {focusModeNotification ? <FocusModeNotification /> : null}
-                    {shouldShowRequire2FAModal ? (
-                        <RequireTwoFactorAuthenticationModal
-                            onSubmit={() => {
-                                setShouldShowRequire2FAModal(false);
-                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.HOME));
-                            }}
-                            isVisible
-                            description={translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}
-                        />
-                    ) : null}
-                </>
-            )}
-
+        <>
+            {shouldInit && <GlobalModals />}
+            <PriorityModeHandler />
+            <DelegateAccessHandler />
+            <FullstoryInitHandler />
+            <FullstoryUserContextHandler />
+            <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
-            {hasAttemptedToOpenPublicRoom && (
+            {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState
+                is computed once on mount. In HybridApp, getInitialURL() may never resolve (OldDot native
+                bridge), so we skip this guard to avoid blocking the app. */}
+            {hasAttemptedToOpenPublicRoom && (CONFIG.IS_HYBRID_APP || initialUrl !== undefined) && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
                     lastVisitedPath={lastVisitedPath as Route}
-                    initialUrl={initialUrl}
-                    shouldShowRequire2FAModal={shouldShowRequire2FAModal}
+                    initialUrl={initialUrl ?? null}
                 />
             )}
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-        </DeeplinkWrapper>
+            {(isSplashVisible || isSplashReadyToBeHidden) && (
+                <SplashScreenHider
+                    shouldHideSplash={shouldHideSplash}
+                    onHide={onSplashHide}
+                />
+            )}
+        </>
     );
 }
-
-Expensify.displayName = 'Expensify';
 
 export default Expensify;

@@ -1,26 +1,40 @@
-import React, {useCallback, useContext, useEffect, useMemo} from 'react';
-import {useSharedValue} from 'react-native-reanimated';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {usePlaybackContext} from './PlaybackContext';
-import type {VolumeContext} from './types';
 
-const Context = React.createContext<VolumeContext | null>(null);
+import React, {useContext, useEffect} from 'react';
+import {useSharedValue} from 'react-native-reanimated';
+
+import type {VolumeActionsContextType, VolumeStateContextType} from './types';
+
+import {usePlaybackStateContext} from './PlaybackContext';
+
+const VolumeStateContext = React.createContext<VolumeStateContextType | null>(null);
+const VolumeActionsContext = React.createContext<VolumeActionsContextType | null>(null);
 
 function VolumeContextProvider({children}: ChildrenProps) {
-    const {currentVideoPlayerRef, originalParent} = usePlaybackContext();
+    const {currentVideoPlayerRef, originalParent} = usePlaybackStateContext();
     const volume = useSharedValue(0);
+    // We need this field to remember the last value before clicking mute
+    const lastNonZeroVolume = useSharedValue(1);
 
-    const updateVolume = useCallback(
-        (newVolume: number) => {
-            if (!currentVideoPlayerRef.current) {
-                return;
-            }
-            currentVideoPlayerRef.current.setStatusAsync({volume: newVolume, isMuted: newVolume === 0});
-            // eslint-disable-next-line react-compiler/react-compiler
-            volume.value = newVolume;
-        },
-        [currentVideoPlayerRef, volume],
-    );
+    const updateVolume = (newVolume: number) => {
+        if (!currentVideoPlayerRef.current) {
+            return;
+        }
+        currentVideoPlayerRef.current.volume = newVolume;
+        currentVideoPlayerRef.current.muted = newVolume === 0;
+
+        volume.set(newVolume);
+    };
+
+    // This function ensures mute and unmute functionality. Overwriting lastNonZeroValue
+    // only in the case of mute guarantees that a pan gesture reducing the volume to zero won't cause
+    // us to lose this value. As a result, unmute restores the last non-zero value.
+    const toggleMute = () => {
+        if (volume.get() !== 0) {
+            lastNonZeroVolume.set(volume.get());
+        }
+        updateVolume(volume.get() === 0 ? lastNonZeroVolume.get() : 0);
+    };
 
     // We want to update the volume when currently playing video changes.
     // When originalParent changed we're sure that currentVideoPlayerRef is updated. So we can apply the new volume.
@@ -28,21 +42,33 @@ function VolumeContextProvider({children}: ChildrenProps) {
         if (!originalParent) {
             return;
         }
-        updateVolume(volume.value);
-    }, [originalParent, updateVolume, volume.value]);
+        updateVolume(volume.get());
+    }, [originalParent, updateVolume, volume]);
 
-    const contextValue = useMemo(() => ({updateVolume, volume}), [updateVolume, volume]);
-    return <Context.Provider value={contextValue}>{children}</Context.Provider>;
+    const stateValue = {volume, lastNonZeroVolume};
+    const actionsValue = {updateVolume, toggleMute};
+
+    return (
+        <VolumeStateContext.Provider value={stateValue}>
+            <VolumeActionsContext.Provider value={actionsValue}>{children}</VolumeActionsContext.Provider>
+        </VolumeStateContext.Provider>
+    );
 }
 
-function useVolumeContext() {
-    const volumeContext = useContext(Context);
-    if (!volumeContext) {
-        throw new Error('useVolumeContext must be used within a VolumeContextProvider');
+function useVolumeState() {
+    const context = useContext(VolumeStateContext);
+    if (!context) {
+        throw new Error('useVolumeState must be used within a VolumeContextProvider');
     }
-    return volumeContext;
+    return context;
 }
 
-VolumeContextProvider.displayName = 'VolumeContextProvider';
+function useVolumeActions() {
+    const context = useContext(VolumeActionsContext);
+    if (!context) {
+        throw new Error('useVolumeActions must be used within a VolumeContextProvider');
+    }
+    return context;
+}
 
-export {VolumeContextProvider, useVolumeContext};
+export {VolumeContextProvider, useVolumeState, useVolumeActions};

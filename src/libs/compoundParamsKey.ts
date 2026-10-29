@@ -1,0 +1,63 @@
+/** Pure compound-key derivation for PUSH_PARAMS history entries. Split out so `addPushParamsRouterExtension` can use it on native without pulling in the DOM-side focus-return machinery. */
+
+// NUL — never appears in route keys or JSON-stringified params, so no chance of collision.
+const COMPOUND_KEY_DELIMITER = '\x00';
+
+// Placeholder so JSON.stringify can't collapse an array containing undefined into an array containing null.
+const UNDEFINED_PLACEHOLDER = '\u0000undefined';
+
+// Keep nested and top-level keys in the same stable UTF-16 code-unit order.
+function compareEntryKeys([a]: readonly [string, unknown], [b]: readonly [string, unknown]): number {
+    if (a < b) {
+        return -1;
+    }
+    if (a > b) {
+        return 1;
+    }
+    return 0;
+}
+
+// URL-rehydrated params are always strings; PUSH_PARAMS dispatches may use numbers/booleans.
+// Top-level undefined is dropped by the caller's filter; nested undefined is preserved via UNDEFINED_PLACEHOLDER. This is asymmetric but inert because URL params are flat.
+// Assumes JSON-serializable params — non-plain objects (Date/RegExp) collapse to {} via Object.entries, acceptable since PUSH_PARAMS only carries URL-backed params.
+function normalizeForKey(value: unknown): unknown {
+    if (value === null) {
+        return null;
+    }
+    if (value === undefined) {
+        return UNDEFINED_PLACEHOLDER;
+    }
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+    }
+    if (Array.isArray(value)) {
+        return value.map(normalizeForKey);
+    }
+    if (typeof value === 'object') {
+        // Recursively sort so differently-ordered nested keys produce the same compound.
+        const objectEntries: Array<[string, unknown]> = Object.entries(value);
+        const entries = objectEntries.sort(compareEntryKeys).map(([k, v]) => [k, normalizeForKey(v)]);
+        return Object.fromEntries(entries);
+    }
+    return value;
+}
+
+/** Compound key for PUSH_PARAMS history (same route.key across params snapshots). */
+function compoundParamsKey(routeKey: string, params: unknown): string {
+    if (params == null) {
+        return `${routeKey}${COMPOUND_KEY_DELIMITER}`;
+    }
+    if (typeof params !== 'object') {
+        return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(normalizeForKey(params))}`;
+    }
+    // Explicit-undefined fields must match path-rehydrated (omitted) params.
+    const objectEntries: Array<[string, unknown]> = Object.entries(params);
+    const entries = objectEntries
+        .filter(([, value]) => value !== undefined)
+        .map(([k, v]) => [k, normalizeForKey(v)] as const)
+        .sort(compareEntryKeys);
+    return `${routeKey}${COMPOUND_KEY_DELIMITER}${JSON.stringify(entries)}`;
+}
+
+export default compoundParamsKey;
+export {COMPOUND_KEY_DELIMITER, normalizeForKey};

@@ -1,18 +1,15 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
-import type {ViewProps} from 'react-native';
+import React from 'react';
 import {View} from 'react-native';
 
-function FormElement(props: ViewProps, ref: ForwardedRef<View>) {
+import type {FormElementProps} from './index';
+
+function FormElement({ref, ...props}: FormElementProps) {
     return (
         <View
             ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
 }
 
-FormElement.displayName = 'FormElement';
-
-export default forwardRef(FormElement);
+export default FormElement;

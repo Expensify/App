@@ -6,25 +6,25 @@
  * @param commandName The name of the API command
  */
 export default function requireParameters(parameterNames: string[], parameters: Record<string, unknown>, commandName: string): void {
-    parameterNames.forEach((parameterName) => {
+    for (const parameterName of parameterNames) {
         if (parameterName in parameters && parameters[parameterName] !== null && parameters[parameterName] !== undefined) {
-            return;
+            continue;
         }
 
-        const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
+        const propertiesToRedact = new Set(['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode']);
         const parametersCopy = {...parameters};
-        Object.keys(parametersCopy).forEach((key) => {
-            if (!propertiesToRedact.includes(key.toString())) {
-                return;
+        for (const key of Object.keys(parametersCopy)) {
+            if (!propertiesToRedact.has(key.toString())) {
+                continue;
             }
 
             parametersCopy[key] = '<redacted>';
-        });
+        }
 
         const keys = Object.keys(parametersCopy).join(', ') || 'none';
 
         let error = `Parameter ${parameterName} is required for "${commandName}". `;
         error += `Supplied parameters: ${keys}`;
         throw new Error(error);
-    });
+    }
 }

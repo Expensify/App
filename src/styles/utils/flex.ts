@@ -42,6 +42,10 @@ export default {
         flexDirection: 'column',
     },
 
+    flexRowReverse: {
+        flexDirection: 'row-reverse',
+    },
+
     flexColumnReverse: {
         flexDirection: 'column-reverse',
     },
@@ -63,6 +67,10 @@ export default {
 
     justifyContentAround: {
         justifyContent: 'space-around',
+    },
+
+    justifyContentEvenly: {
+        justifyContent: 'space-evenly',
     },
 
     alignSelfStretch: {
@@ -89,6 +97,10 @@ export default {
         alignItems: 'center',
     },
 
+    alignContentCenter: {
+        alignContent: 'center',
+    },
+
     alignItemsEnd: {
         alignItems: 'flex-end',
     },
@@ -103,6 +115,10 @@ export default {
 
     flexWrap: {
         flexWrap: 'wrap',
+    },
+
+    flexNoWrap: {
+        flexWrap: 'nowrap',
     },
 
     flexGrow0: {
@@ -121,6 +137,10 @@ export default {
         flexGrow: 4,
     },
 
+    flexGrow100: {
+        flexGrow: 100,
+    },
+
     flexShrink2: {
         flexShrink: 2,
     },
@@ -135,6 +155,10 @@ export default {
 
     flexBasisAuto: {
         flexBasis: 'auto',
+    },
+
+    flexBasis100: {
+        flexBasis: '100%',
     },
 
     flexBasis0: {

@@ -1,10 +1,11 @@
-import lodashDebounce from 'lodash/debounce';
 import CONST from '@src/CONST';
+
+import lodashDebounce from 'lodash/debounce';
 
 let active = false;
 
 /**
- * Debounced function to deactive the TooltipSense after a specific time
+ * Debounced function to deactivate the TooltipSense after a specific time
  */
 const debouncedDeactivate = lodashDebounce(() => {
     active = false;

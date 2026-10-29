@@ -1,159 +1,273 @@
-import React, {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
 import Text from '@components/Text';
-import useDebouncedState from '@hooks/useDebouncedState';
+
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import useDefaultFundID from '@hooks/useDefaultFundID';
+import useInitialSelection from '@hooks/useInitialSelection';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+
+import {searchUserInServer} from '@libs/actions/Report';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
+import {
+    canMemberWrite,
+    canRoleCreateExpenses,
+    filterGuideAndAccountManager,
+    getGuideAndAccountManagerInfo,
+    getIneligibleInvitees,
+    isDeletedPolicyEmployee,
+    shouldHideExpensifyTeamCardholder,
+} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import sortAlphabetically from '@libs/sortAlphabetically';
+import tokenizedSearch from '@libs/tokenizedSearch';
+
 import Navigation from '@navigation/Navigation';
-import * as Card from '@userActions/Card';
+
+import {clearIssueNewCardFlow, getCardDefaultName, setDraftInviteAccountID, setIssueNewCardStepAndData} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {IssueNewCardData} from '@src/types/onyx/Card';
 
-const MINIMUM_MEMBER_TO_SHOW_SEARCH = 8;
+import type {OnyxEntry} from 'react-native-onyx';
 
-type AssigneeStepProps = {
-    // The policy that the card will be issued under
-    policy: OnyxEntry<OnyxTypes.Policy>;
+import React, {useEffect, useState} from 'react';
+
+type AssigneeListItem = ListItem & {
+    value: string;
 };
 
-function AssigneeStep({policy}: AssigneeStepProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+type AssigneeStepProps = {
+    /** The policy that the card will be issued under */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
+    stepNames: readonly string[];
+    startStepIndex: number;
+    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW>;
+};
+
+function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepProps) {
+    const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const {isOffline} = useNetwork();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const policyID = route.params.policyID;
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [personalDetails] = useAllPersonalDetails();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
+    const canInviteMembers = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.MEMBERS);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const currentAssigneeFirstName = usePersonalDetailByLogin(issueNewCard?.data?.assigneeEmail, (personalDetail) => {
+        return formatPhoneNumber(personalDetail?.firstName || issueNewCard?.data?.assigneeEmail || '');
+    });
+
+    const ineligibleInvites = getIneligibleInvitees(policy?.employeeList);
+    const excludedUsers: Record<string, boolean> = {};
+    for (const login of ineligibleInvites) {
+        excludedUsers[login] = true;
+    }
+
+    const {assignedGuideEmail, accountManagerLogin, exclusions: softExclusions} = getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails);
+
+    const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+        includeUserToInvite: canInviteMembers,
+        excludeLogins: excludedUsers,
+        excludeFromSuggestionsOnly: softExclusions,
+        includeRecentReports: canInviteMembers,
+        shouldInitialize: didScreenTransitionEnd,
+    });
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const defaultFundID = useDefaultFundID(policyID);
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const isEditing = issueNewCard?.isEditing;
 
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    // Freeze the assignee that was selected when this step opened so the pre-selected member stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
+    const initialAssigneeEmail = useInitialSelection(issueNewCard?.data?.assigneeEmail, {resetOnFocus: true});
 
     const submit = (assignee: ListItem) => {
         const data: Partial<IssueNewCardData> = {
             assigneeEmail: assignee?.login ?? '',
+            currency,
         };
 
-        if (isEditing && issueNewCard?.data?.cardTitle === Card.getCardDefaultName(PersonalDetailsUtils.getUserNameByEmail(issueNewCard?.data?.assigneeEmail, 'firstName'))) {
+        if (isEditing && issueNewCard?.data?.cardTitle === getCardDefaultName(currentAssigneeFirstName)) {
             // If the card title is the default card title, update it with the new assignee's name
-            data.cardTitle = Card.getCardDefaultName(PersonalDetailsUtils.getUserNameByEmail(assignee?.login ?? '', 'firstName'));
+            const newAssigneeFirstName = formatPhoneNumber(employeePersonalDetails[assignee?.login ?? '']?.firstName || assignee?.login || '');
+            data.cardTitle = getCardDefaultName(newAssigneeFirstName);
         }
 
-        Card.setIssueNewCardStepAndData({
+        if (!policy?.employeeList?.[assignee?.login ?? '']) {
+            if (!canInviteMembers) {
+                return;
+            }
+            setIssueNewCardStepAndData({
+                step: CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER,
+                data: {
+                    currency,
+                    invitingMemberEmail: assignee?.login ?? '',
+                    invitingMemberAccountID: assignee?.accountID ?? undefined,
+                },
+                policyID,
+            });
+            setDraftInviteAccountID(data.assigneeEmail, assignee?.accountID ?? undefined, policyID);
+            return;
+        }
+
+        setIssueNewCardStepAndData({
             step: isEditing ? CONST.EXPENSIFY_CARD.STEP.CONFIRMATION : CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
             data,
             isEditing: false,
+            policyID,
         });
     };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
             return;
         }
         Navigation.goBack();
-        Card.clearIssueNewCardFlow();
+        clearIssueNewCardFlow(policyID);
     };
 
-    const shouldShowSearchInput = policy?.employeeList && Object.keys(policy.employeeList).length >= MINIMUM_MEMBER_TO_SHOW_SEARCH;
-    const textInputLabel = shouldShowSearchInput ? translate('workspace.card.issueNewCard.findMember') : undefined;
+    // Hide Expensify staff from member and search results, but keep the current cardholder visible while editing.
+    const isHiddenExpensifyStaff = (login: string | null | undefined) => shouldHideExpensifyTeamCardholder(login, initialAssigneeEmail, policy?.owner, session?.email);
 
-    const membersDetails = useMemo(() => {
-        let membersList: ListItem[] = [];
-        if (!policy?.employeeList) {
-            return membersList;
-        }
-
-        Object.entries(policy.employeeList ?? {}).forEach(([email, policyEmployee]) => {
-            if (PolicyUtils.isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+    const membersDetails: AssigneeListItem[] = [];
+    if (policy?.employeeList) {
+        for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
+            if (isDeletedPolicyEmployee(policyEmployee, isOffline) || (policyEmployee.role && !canRoleCreateExpenses(policyEmployee.role))) {
+                continue;
             }
 
-            const personalDetail = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-            membersList.push({
+            if (isHiddenExpensifyStaff(email)) {
+                continue;
+            }
+
+            const personalDetail = employeePersonalDetails[email];
+            membersDetails.push({
                 keyForList: email,
+                value: email,
                 text: personalDetail?.displayName,
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
+                isSelected: issueNewCard?.data?.assigneeEmail === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
                     },
                 ],
             });
-        });
-
-        membersList = OptionsListUtils.sortAlphabetically(membersList, 'text');
-
-        return membersList;
-    }, [isOffline, policy?.employeeList]);
-
-    const sections = useMemo(() => {
-        if (!debouncedSearchTerm) {
-            return [
-                {
-                    data: membersDetails,
-                    shouldShow: true,
-                },
-            ];
         }
 
-        const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm).toLowerCase();
-        const filteredOptions = membersDetails.filter((option) => !!option.text?.toLowerCase().includes(searchValue) || !!option.alternateText?.toLowerCase().includes(searchValue));
+        sortAlphabetically(membersDetails, 'text', localeCompare);
+    }
 
-        return [
-            {
-                title: undefined,
-                data: filteredOptions,
-                shouldShow: true,
-            },
-        ];
-    }, [membersDetails, debouncedSearchTerm]);
+    // Pin the frozen initial assignee to the top of the full sorted list before any search filtering, so it keeps its top spot while searching (search filters the already-pinned list rather than reordering it).
+    const orderedMembersDetails = moveInitialSelectionToTop(membersDetails, initialAssigneeEmail ? [initialAssigneeEmail] : []);
 
-    const headerMessage = useMemo(() => {
-        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    let assignees: ListItem[] = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
+    if (debouncedSearchTerm && areOptionsInitialized) {
+        const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
+        const filteredMembersBeforeSearch = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
+        const filteredMembers = tokenizedSearch(filteredMembersBeforeSearch, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        return OptionsListUtils.getHeaderMessage(sections[0].data.length !== 0, false, searchValue);
-    }, [debouncedSearchTerm, sections]);
+        const options = canInviteMembers
+            ? [
+                  ...filteredMembers,
+                  ...availableOptions.selectedOptions,
+                  ...availableOptions.recentOptions,
+                  ...availableOptions.personalDetails,
+                  ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+              ]
+            : filteredMembers;
+
+        assignees = options
+            .filter((option) => !isHiddenExpensifyStaff(option.login))
+            .map((option) => ({
+                ...option,
+                keyForList: option.keyForList ?? option.login ?? '',
+            }));
+    } else if (debouncedSearchTerm) {
+        assignees = [];
+    }
+
+    useEffect(() => {
+        if (!canInviteMembers) {
+            return;
+        }
+
+        searchUserInServer(debouncedSearchTerm);
+    }, [canInviteMembers, debouncedSearchTerm]);
+
+    const searchValue = debouncedSearchTerm.trim().toLowerCase();
+    const headerMessage = (() => {
+        if (assignees.length > 0) {
+            return '';
+        }
+        if (CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        return getHeaderMessage(translate, searchValue, countryCode);
+    })();
+
+    const textInputOptions = {
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        value: searchTerm,
+        onChangeText: setSearchTerm,
+        headerMessage,
+    };
 
     return (
         <InteractiveStepWrapper
-            wrapperID={AssigneeStep.displayName}
+            wrapperID="AssigneeStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
+            enableEdgeToEdgeBottomSafeAreaPadding
+            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.whoNeedsCard')}</Text>
             <SelectionList
-                textInputLabel={textInputLabel}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
+                data={assignees}
                 onSelectRow={submit}
+                ListItem={UserListItem}
+                textInputOptions={textInputOptions}
+                isLoadingNewOptions={canInviteMembers && !!isSearchingForUsers}
+                initiallyFocusedItemKey={initialAssigneeEmail}
+                shouldScrollToFocusedIndexOnMount={false}
+                disableMaintainingScrollPosition
+                shouldUpdateFocusedIndex
+                addBottomSafeAreaPadding
             />
         </InteractiveStepWrapper>
     );
 }
-
-AssigneeStep.displayName = 'AssigneeStep';
 
 export default AssigneeStep;

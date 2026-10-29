@@ -1,9 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import Text from './Text';
 
@@ -20,7 +26,6 @@ type WorkspaceEmptyStateSectionProps = {
     /** The icon to display along with the title */
     icon: IconAsset;
 
-    /** Additional style for container */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Whether to apply card style to container */
@@ -30,12 +35,15 @@ type WorkspaceEmptyStateSectionProps = {
 function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shouldStyleAsCard = true, subtitleComponent}: WorkspaceEmptyStateSectionProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {pageGutterMargin, cardGapBottom} = useLayoutSpacing();
 
     return (
         <View
             style={[
                 styles.pageWrapper,
                 shouldStyleAsCard && styles.cardSectionContainer,
+                shouldStyleAsCard && pageGutterMargin,
+                shouldStyleAsCard && cardGapBottom,
                 styles.workspaceSection,
                 styles.ph8,
                 shouldUseNarrowLayout ? styles.pv10 : styles.pv12,
@@ -50,7 +58,12 @@ function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shou
 
             <View style={[styles.w100, styles.pt5]}>
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.w100, styles.mh1, styles.flexShrink1]}>
-                    <Text style={[styles.textHeadline, styles.emptyCardSectionTitle]}>{title}</Text>
+                    <Text
+                        style={[styles.textHeadline, styles.emptyCardSectionTitle]}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {title}
+                    </Text>
                 </View>
 
                 {(!!subtitle || !!subtitleComponent) && (
@@ -62,6 +75,5 @@ function WorkspaceEmptyStateSection({icon, subtitle, title, containerStyle, shou
         </View>
     );
 }
-WorkspaceEmptyStateSection.displayName = 'WorkspaceEmptyStateSection';
 
 export default WorkspaceEmptyStateSection;

@@ -1,0 +1,605 @@
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
+import ComposeProviders from '@components/ComposeProviders';
+import type FeatureTrainingComponent from '@components/FeatureTraining';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
+import {SearchContextProvider} from '@components/Search/SearchContextProvider';
+
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
+import type * as InFlightRequests from '@hooks/useInFlightRequests';
+import useNetwork from '@hooks/useNetwork';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import {ActionListContextProvider} from '@pages/inbox/ActionListContext';
+import type * as ReportActionIndexContexts from '@pages/inbox/report/ReportActionIndexContext';
+import type ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+
+import type * as CoreNavigation from '@react-navigation/core';
+
+import * as NativeNavigation from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
+import * as TestHelper from '../utils/TestHelper';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const FAKE_REPORT_ID = '100001';
+const FAKE_POLICY_ID = 'FAKE_POLICY_001';
+const FAKE_ACCOUNT_ID = 15593135;
+const FAKE_TRANSACTION_ID = 'FAKE_TXN_001';
+const FAKE_EMAIL = 'testuser@example.com';
+const MOCK_UNIFIED_LAST_ITEM_INDEX = 37;
+const mockScrollToIndex = jest.fn();
+const mockScrollToEnd = jest.fn();
+const mockScrollToOffset = jest.fn();
+const mockNewestActionUnmount = jest.fn();
+let mockIsNewestReportAction: boolean | undefined;
+let mockScrollToNewestAction: (() => void) | undefined;
+let mockOnCommitLayoutEffect: (() => void) | undefined;
+let mockShouldRenderNewestAction = true;
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useNavigationState: () => true,
+    usePreventRemove: jest.fn(),
+    useRoute: () => {
+        const SCREENS_MOCK = jest.requireActual<{default: typeof SCREENS}>('@src/SCREENS').default;
+        return {
+            key: 'test-key',
+            name: SCREENS_MOCK.REPORT,
+            params: {reportID: FAKE_REPORT_ID},
+        };
+    },
+}));
+
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
+}));
+
+jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
+jest.mock('@hooks/useInFlightRequests', () => ({
+    ...jest.requireActual<typeof InFlightRequests>('@hooks/useInFlightRequests'),
+    useIsReportLoadPending: jest.fn(),
+}));
+jest.mock('@hooks/useNetwork', () => jest.fn());
+
+jest.mock('@rnmapbox/maps', () => ({
+    default: jest.fn(),
+    MarkerView: jest.fn(),
+    setAccessToken: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+    navigationRef: {
+        getRootState: jest.fn(() => ({routes: [{name: 'Report'}]})),
+        getCurrentRoute: jest.fn(() => ({name: 'Report', params: {}})),
+        getState: jest.fn(() => ({})),
+    },
+    getActiveRoute: jest.fn(() => 'activeRoute'),
+    getActiveRouteWithoutParams: jest.fn(() => ''),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    getDeepestFocusedScreen: jest.fn(() => undefined),
+    isTopmostRouteModalScreen: jest.fn(() => false),
+    setParams: jest.fn(),
+}));
+
+jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    const ReactActual = jest.requireActual<typeof React>('react');
+    return ({
+        listFooterComponent,
+        isLoadingInitialActions,
+        listRef,
+        onLastItemIndexChange,
+        onCommitLayoutEffect,
+        visibleReportActions,
+        renderReportAction,
+    }: {
+        listFooterComponent?: React.ReactElement;
+        isLoadingInitialActions: boolean;
+        listRef: React.Ref<{
+            scrollToIndex: typeof mockScrollToIndex;
+            scrollToEnd: typeof mockScrollToEnd;
+            scrollToOffset: typeof mockScrollToOffset;
+        }>;
+        onLastItemIndexChange?: (index: number) => void;
+        onCommitLayoutEffect?: () => void;
+        visibleReportActions: ReportAction[];
+        renderReportAction: (reportAction: ReportAction, index: number) => React.ReactElement;
+    }) => {
+        ReactActual.useImperativeHandle(listRef, () => ({scrollToIndex: mockScrollToIndex, scrollToEnd: mockScrollToEnd, scrollToOffset: mockScrollToOffset}));
+        ReactActual.useLayoutEffect(() => onLastItemIndexChange?.(MOCK_UNIFIED_LAST_ITEM_INDEX), [onLastItemIndexChange]);
+        mockOnCommitLayoutEffect = onCommitLayoutEffect;
+        const newestAction = visibleReportActions.at(-1);
+
+        return (
+            <View testID="MockMoneyRequestReportTransactionList">
+                {isLoadingInitialActions ? <View testID="MockInitialReportActionsSkeleton" /> : null}
+                {newestAction && mockShouldRenderNewestAction ? renderReportAction(newestAction, visibleReportActions.length - 1) : null}
+                {listFooterComponent}
+            </View>
+        );
+    };
+});
+
+jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    return () => <View testID="MockSearchMoneyRequestReportEmptyState" />;
+});
+
+// The content mock skips the illustrations but keeps the real confirm button, so the flow test still renders the real
+// FeatureTrainingModal tree on the global modal stack
+jest.mock('@components/HoldOrRejectEducationalModalContent', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View} = require('react-native');
+    const {default: FeatureTraining} = jest.requireActual<{default: typeof FeatureTrainingComponent}>('@components/FeatureTraining');
+    const {translateLocal: translate} = jest.requireActual<typeof TestHelper>('../utils/TestHelper');
+    return () => (
+        <View testID="HoldOrRejectEducationalModal">
+            <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+        </View>
+    );
+});
+
+jest.mock('@components/ButtonWithDropdownMenu', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {View, Pressable, Text} = require('react-native');
+    return ({options}: {options: Array<{text: string; value: string; onSelected?: () => void}>}) => (
+        <View testID="ButtonWithDropdownMenu">
+            {options.map((option: {text: string; value: string; onSelected?: () => void}) => (
+                <Pressable
+                    key={option.value}
+                    testID={`dropdown-option-${option.value}`}
+                    onPress={() => option.onSelected?.()}
+                    accessibilityRole="button"
+                >
+                    <Text>{option.text}</Text>
+                </Pressable>
+            ))}
+        </View>
+    );
+});
+
+const mockOriginalRejectOnSelected = jest.fn();
+const mockUseIsReportLoadPending = jest.mocked(useIsReportLoadPending);
+const mockUseNetwork = jest.mocked(useNetwork);
+jest.mock('@hooks/useSelectedTransactionsActions', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const {default: C} = require('@src/CONST');
+    return jest.fn(() => ({
+        options: [
+            {
+                text: 'Delete',
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                value: C.REPORT.SECONDARY_ACTIONS.DELETE,
+                onSelected: jest.fn(),
+            },
+            {
+                text: 'Reject',
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                value: C.REPORT.SECONDARY_ACTIONS.REJECT,
+                onSelected: mockOriginalRejectOnSelected,
+            },
+        ],
+        handleDeleteTransactions: jest.fn(),
+        handleDeleteTransactionsWithNavigation: jest.fn(),
+        isDeleteModalVisible: false,
+        showDeleteModal: jest.fn(),
+        hideDeleteModal: jest.fn(),
+    }));
+});
+
+jest.mock('@hooks/useMobileSelectionMode', () => jest.fn(() => true));
+jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => jest.fn(() => ({shouldUseNarrowLayout: true})));
+jest.mock('@hooks/useFilterSelectedTransactions', () => jest.fn());
+jest.mock('@hooks/useLoadReportActions', () => jest.fn(() => ({loadOlderChats: jest.fn(), loadNewerChats: jest.fn()})));
+jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => {
+    const ReactActual = jest.requireActual<typeof React>('react');
+    const {default: ReportActionIndexContextActual, ReportActionScrollToNewestContext: ReportActionScrollToNewestContextActual} =
+        jest.requireActual<typeof ReportActionIndexContexts>('@pages/inbox/report/ReportActionIndexContext');
+
+    return jest.fn(() => {
+        ReactActual.useEffect(
+            () => () => {
+                mockNewestActionUnmount();
+            },
+            [],
+        );
+        mockIsNewestReportAction = ReactActual.useContext(ReportActionIndexContextActual).isNewest;
+        mockScrollToNewestAction = ReactActual.useContext(ReportActionScrollToNewestContextActual);
+        return null;
+    });
+});
+jest.mock('@hooks/useParentReportAction', () => jest.fn(() => undefined));
+jest.mock('@navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
+
+const mockReport: Report = {
+    reportID: FAKE_REPORT_ID,
+    reportName: 'Test Expense Report',
+    chatReportID: '200001',
+    ownerAccountID: FAKE_ACCOUNT_ID,
+    managerID: FAKE_ACCOUNT_ID,
+    policyID: FAKE_POLICY_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+    currency: CONST.CURRENCY.USD,
+    total: 10000,
+    unheldTotal: 10000,
+    lastVisibleActionCreated: '2025-01-01 00:00:00',
+    permissions: [CONST.REPORT.PERMISSIONS.READ, CONST.REPORT.PERMISSIONS.WRITE],
+};
+
+const mockPolicy: Policy = {
+    id: FAKE_POLICY_ID,
+    name: 'Test Workspace',
+    role: CONST.POLICY.ROLE.ADMIN,
+    type: CONST.POLICY.TYPE.CORPORATE,
+    owner: FAKE_EMAIL,
+    ownerAccountID: FAKE_ACCOUNT_ID,
+    outputCurrency: CONST.CURRENCY.USD,
+    avatarURL: '',
+    employeeList: {
+        [FAKE_EMAIL]: {
+            email: FAKE_EMAIL,
+            role: CONST.POLICY.ROLE.ADMIN,
+        },
+    },
+} as Policy;
+
+const mockTransaction: Transaction = {
+    transactionID: FAKE_TRANSACTION_ID,
+    reportID: FAKE_REPORT_ID,
+    amount: 10000,
+    currency: CONST.CURRENCY.USD,
+    merchant: 'Test Merchant',
+    created: '2025-01-01',
+    status: CONST.TRANSACTION.STATUS.POSTED,
+} as Transaction;
+
+const mockReportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+    reportActionID: 'ACTION_001',
+    reportID: FAKE_REPORT_ID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+    created: '2025-01-01 00:00:00',
+    actorAccountID: FAKE_ACCOUNT_ID,
+    message: [{type: 'COMMENT', html: 'expense', text: 'expense'}],
+    originalMessage: {
+        IOUTransactionID: FAKE_TRANSACTION_ID,
+        type: CONST.IOU.TYPE.CREATE,
+        amount: 10000,
+        currency: CONST.CURRENCY.USD,
+    },
+    childReportID: 'CHILD_001',
+});
+
+const mockCommentReportAction: ReportAction = {
+    reportActionID: 'ACTION_002',
+    reportID: FAKE_REPORT_ID,
+    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+    created: '2025-01-02 00:00:00',
+    actorAccountID: FAKE_ACCOUNT_ID,
+    message: [{type: 'COMMENT', html: 'comment', text: 'comment'}],
+    originalMessage: {},
+    shouldShow: true,
+    person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+    pendingAction: null,
+    errors: {},
+};
+
+const renderComponent = () => {
+    return render(
+        <ComposeProviders components={[ActionListContextProvider, OnyxListItemProvider, LocaleContextProvider, ModalProvider]}>
+            <SearchContextProvider>
+                <ScreenWrapper testID="test">
+                    <MoneyRequestReportActionsList />
+                </ScreenWrapper>
+            </SearchContextProvider>
+        </ComposeProviders>,
+    );
+};
+
+TestHelper.setupApp();
+TestHelper.setupGlobalFetchMock();
+
+describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
+    beforeAll(async () => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
+        jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
+        await TestHelper.signInWithTestUser(FAKE_ACCOUNT_ID, FAKE_EMAIL);
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsNewestReportAction = undefined;
+        mockScrollToNewestAction = undefined;
+        mockOnCommitLayoutEffect = undefined;
+        mockShouldRenderNewestAction = true;
+        jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
+        mockUseIsReportLoadPending.mockReturnValue(false);
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        await act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
+    it('keeps newest-action scroll requests until FlashList commits after the editor unmounts', async () => {
+        // Given a loaded money report with an editable newest action and an unchanged row height.
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {
+                    [mockReportAction.reportActionID]: mockReportAction,
+                    [mockCommentReportAction.reportActionID]: mockCommentReportAction,
+                },
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockIsNewestReportAction).toBe(true);
+        mockScrollToIndex.mockClear();
+        act(() => mockOnCommitLayoutEffect?.());
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        // When closing the editor queues a request and unmounts its consumer, without a size-change event.
+        const requestScroll = mockScrollToNewestAction;
+        mockShouldRenderNewestAction = false;
+        act(() => requestScroll?.());
+        expect(mockNewestActionUnmount).toHaveBeenCalledTimes(1);
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        // Then the list's layout commit consumes the request once and preserves its indexed landing.
+        const firstCommit = mockOnCommitLayoutEffect;
+        act(() => {
+            firstCommit?.();
+            firstCommit?.();
+        });
+        expect(mockScrollToIndex).toHaveBeenCalledWith({index: MOCK_UNIFIED_LAST_ITEM_INDEX, animated: false, viewPosition: 1});
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(1);
+        expect(mockScrollToEnd).not.toHaveBeenCalled();
+
+        // A later edit needs its own layout commit; a repeated older callback cannot consume it.
+        mockShouldRenderNewestAction = true;
+        act(() => requestScroll?.());
+        act(() => firstCommit?.());
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(1);
+        act(() => mockOnCommitLayoutEffect?.());
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(2);
+    });
+
+    it('should show reject educational modal when reject option is selected and explanation has NOT been dismissed', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: false,
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // Modal should not be visible before pressing reject
+        expect(screen.queryByTestId('HoldOrRejectEducationalModal')).toBeNull();
+
+        // Press the reject option
+        fireEvent.press(screen.getByTestId(`dropdown-option-${CONST.REPORT.SECONDARY_ACTIONS.REJECT}`));
+        await waitForBatchedUpdatesWithAct();
+
+        // Modal should now be visible
+        expect(screen.getByTestId('HoldOrRejectEducationalModal')).toBeTruthy();
+        expect(mockOriginalRejectOnSelected).not.toHaveBeenCalled();
+    });
+
+    it('should open bulk reject once the reject educational modal is confirmed', async () => {
+        // Given a user who has not dismissed the reject explanation yet
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: false,
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they pick reject, which opens the educational modal on the global modal stack, and then confirm it
+        fireEvent.press(screen.getByTestId(`dropdown-option-${CONST.REPORT.SECONDARY_ACTIONS.REJECT}`));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.buttonConfirm')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the modal leaves the stack and the bulk reject flow opens
+        expect(screen.queryByTestId('HoldOrRejectEducationalModal')).toBeNull();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: FAKE_REPORT_ID}));
+    });
+
+    it('should NOT show reject educational modal when explanation HAS been dismissed', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: true,
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // Press the reject option
+        fireEvent.press(screen.getByTestId(`dropdown-option-${CONST.REPORT.SECONDARY_ACTIONS.REJECT}`));
+        await waitForBatchedUpdatesWithAct();
+
+        // Modal should NOT be shown; original handler should be called directly
+        expect(screen.queryByTestId('HoldOrRejectEducationalModal')).toBeNull();
+        expect(mockOriginalRejectOnSelected).toHaveBeenCalled();
+    });
+
+    it('shows the empty state when only the stored loading flag is true', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
+        expect(screen.queryByTestId('MockMoneyRequestReportTransactionList')).toBeNull();
+    });
+
+    it('keeps the loading list mounted when only the report pending state is true', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: false},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockMoneyRequestReportTransactionList')).toBeTruthy();
+        expect(screen.getByTestId('MockInitialReportActionsSkeleton')).toBeTruthy();
+        expect(screen.queryByTestId('MockSearchMoneyRequestReportEmptyState')).toBeNull();
+        expect(mockUseIsReportLoadPending).toHaveBeenCalledWith(FAKE_REPORT_ID);
+    });
+
+    it('shows a warm empty report without a skeleton or loading list while a report request is pending', async () => {
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
+        expect(screen.queryByTestId('MockMoneyRequestReportTransactionList')).toBeNull();
+        expect(screen.queryByTestId('MockInitialReportActionsSkeleton')).toBeNull();
+    });
+
+    describe('feedback prompt under custom agent replies', () => {
+        const AGENT_ACCOUNT_ID = 99001;
+        const mockReportActionsListItemRenderer = jest.requireMock<jest.Mock<null, [React.ComponentProps<typeof ReportActionsListItemRenderer>]>>(
+            '@pages/inbox/report/ReportActionsListItemRenderer',
+        );
+        const agentReply: ReportAction = {
+            ...mockCommentReportAction,
+            reportActionID: 'AGENT_REPLY_001',
+            created: '2025-01-03 00:00:00',
+            actorAccountID: AGENT_ACCOUNT_ID,
+            message: [{type: 'COMMENT', html: 'Everything looks in order.', text: 'Everything looks in order.'}],
+            person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
+        };
+
+        const renderWithAgentReply = async (currentUserAccountID: number) => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {
+                        [mockReportAction.reportActionID]: mockReportAction,
+                        [agentReply.reportActionID]: agentReply,
+                    },
+                    [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[AGENT_ACCOUNT_ID]: {accountID: AGENT_ACCOUNT_ID, isCustomAgent: true}},
+                    [ONYXKEYS.SESSION]: {accountID: currentUserAccountID, email: FAKE_EMAIL} as Session,
+                });
+            });
+
+            renderComponent();
+            await waitForBatchedUpdatesWithAct();
+
+            return mockReportActionsListItemRenderer.mock.calls.findLast(([props]) => props.reportAction.reportActionID === agentReply.reportActionID)?.at(0);
+        };
+
+        it('marks the newest reply of a custom agent as the feedback target', async () => {
+            // Given an expense report where a custom agent replied last
+            // When the report opens for the expense owner
+            const agentReplyProps = await renderWithAgentReply(FAKE_ACCOUNT_ID);
+
+            // Then the agent's reply shows the feedback prompt, the same as a Concierge reply would
+            expect(agentReplyProps?.isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('does not ask the agent to rate its own reply when the agent account is open through Copilot', async () => {
+            // Given the same report, opened while signed in as the agent
+            // When the list renders
+            const agentReplyProps = await renderWithAgentReply(AGENT_ACCOUNT_ID);
+
+            // Then the agent's own reply shows no prompt, because an author cannot give feedback to itself
+            expect(agentReplyProps?.isLatestConciergeFeedbackAction).toBe(false);
+        });
+    });
+
+    it('shows cached empty behavior for an offline queued report load', async () => {
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        mockUseIsReportLoadPending.mockReturnValue(true);
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: true, hasOnceLoadedReportActions: false},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('MockSearchMoneyRequestReportEmptyState')).toBeTruthy();
+        expect(screen.queryByTestId('MockMoneyRequestReportTransactionList')).toBeNull();
+        expect(screen.queryByTestId('MockInitialReportActionsSkeleton')).toBeNull();
+    });
+});

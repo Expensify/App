@@ -1,41 +1,59 @@
 ---
-title: Require tags and categories for expenses
-description: Make tags and/or categories required for all expenses
+title: Require Tags and Categories for Expenses
+description: Learn how to make tags and categories mandatory for all expenses in a workspace using the Require fields for all expenses rule.
+keywords: [New Expensify, require tags, require categories, require fields for all expenses, expense compliance, workspace rules, general tab, default category, merchant type, smartscan]
+internalScope: Audience is Workspace Admins. Covers requiring a category or tag on every expense with the Require fields for all expenses rule, and setting default categories by merchant type. Does not cover per-category field requirements, tag approvers, or creating tags and categories.
 ---
-<div id="new-expensify" markdown="1">
 
-To require workspace members to add tags and/or categories to their expenses, 
+# Require Tags and Categories for Expenses
 
-{% include selector.html values="desktop, mobile" %}
+To improve expense accuracy and compliance, Workspace Admins can require every expense to be tagged and categorized. This is set with the **Require fields for all expenses** rule on the **General** tab of the **Rules** page.
 
-{% include option.html value="desktop" %}
-1. Click your profile image or icon in the bottom left menu.
-2. Scroll down and click **Workspaces** in the left menu. 
-3. Select a workspace. 
-4. Click **Tags** or **Categories** in the left menu.
-5. Click **Settings** at the top right of the page. 
-6. Enable the “Members must tag/categorize all expenses" toggle. 
-7. If desired, repeat steps 4-6 for tags or categories (whichever you haven’t done yet).
-{% include end-option.html %}
+When the rule is on, the relevant field displays as required during entry.
 
-{% include option.html value="mobile" %}
-1. Tap your profile image or icon in the bottom menu.
-2. Tap **Workspaces**. 
-3. Select a workspace. 
-4. Tap **Tags** or **Categories**.
-5. Tap **Settings** at the top right of the page. 
-6. Enable the “Members must tag/categorize all expenses" toggle. 
-7. If desired, repeat steps 4-6 for tags or categories (whichever you haven’t done yet).
-{% include end-option.html %}
+**Note:** If tags or categories are required but not applied, the expense can still be submitted. However, the submitter and approver will see an orange dot indicating the field needs attention.
 
-{% include end-selector.html %}
+---
 
-![In the Workspace, Categories setting, the right-hand panel is open and the toggle to require categories on expenses is highlighted.]({{site.url}}/assets/images/Workspace_category_toggle.png){:width="100%"}
-   
-This will highlight the tag and/or category field as required on all expenses. 
+## Who can require tags and categories for expenses
 
-{% include info.html %}
-Expenses will still be able to be submitted without a tag and/or category even if they are set as required. The submitter and approver will see an orange dot on the expense details alerting them that the tag/category is missing.
-{% include end-info.html %}
+- Only **Workspace Admins** can change this rule.
+- The rule is available on the **Collect** and **Control** plans.
+- **Rules** must be enabled for the workspace. [Learn how to enable Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules#how-to-enable-workspace-rules).
+- Categories or tags must be enabled and have at least one enabled option before they can be required.
 
-</div>
+---
+
+## How to require tags and categories for expenses
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Rules**.
+4. On the **General** tab, click **Require fields for all expenses**.
+5. Toggle on **Category**, **Tag**, or both.
+6. Click **Save rule**.
+
+If your workspace uses multi-level tags, this page lists one row per tag level so you can require some levels and leave others optional.
+
+<!-- SCREENSHOT:
+Suggestion: The Require fields for all expenses page with the Category and Tag toggles visible.
+Location: After the steps for requiring tags and categories.
+Purpose: Confirms admins are on the right page, since this rule moved out of Categories > Settings and Tags > Settings.
+-->
+
+---
+
+## How to set default categories by merchant type
+
+Expensify can automatically assign a category based on the merchant's MCC (Merchant Category Code). For example, airline expenses can default to a **Travel** category. These defaults are rules on the **Expense defaults** tab.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Rules**.
+4. Open the **Expense defaults** tab.
+5. Click the rule whose condition is **Merchant type is** for the merchant type you want to change, then update the category it applies.
+6. Click **Save rule**.
+
+Expensify also learns how you categorize expenses by merchant and applies those preferences going forward. You can always update or override a category, and Expensify learns your changes over time.
+
+[Learn how to configure Workspace Rules](/articles/new-expensify/workspaces/Workspace-Rules).

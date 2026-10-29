@@ -1,10 +1,16 @@
-import type FocusTrap from 'focus-trap-react';
-import type {ViewStyle} from 'react-native';
-import type {ModalProps} from 'react-native-modal';
-import type {ValueOf} from 'type-fest';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type CONST from '@src/CONST';
 
-type FocusTrapOptions = Exclude<FocusTrap.Props['focusTrapOptions'], undefined>;
+import type {FocusTrapProps} from 'focus-trap-react';
+import type {ComponentRef, ForwardedRef} from 'react';
+import type {View, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import type ReanimatedModalProps from './ReanimatedModal/types';
+import type {SwipeDirection} from './ReanimatedModal/types';
+
+type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 
 type PopoverAnchorPosition = {
     top?: number;
@@ -13,90 +19,135 @@ type PopoverAnchorPosition = {
     left?: number;
 };
 
-type WindowState = {
-    shouldGoBack: boolean;
-};
+type BaseModalProps = Partial<ReanimatedModalProps> &
+    ForwardedFSClassProps & {
+        /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
+        fullscreen?: boolean;
 
-type BaseModalProps = Partial<ModalProps> & {
-    /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
-    fullscreen?: boolean;
+        /** Should we announce the Modal visibility changes? */
+        shouldSetModalVisibility?: boolean;
 
-    /** Should we close modal on outside click */
-    shouldCloseOnOutsideClick?: boolean;
+        /**
+         * Whether this modal should suppress persistent surfaces that must not overlap covering modals.
+         * POPOVER and BOTTOM_DOCKED modals default to false; other modal types default to true.
+         */
+        shouldTreatModalAsCovering?: boolean;
 
-    /** Should we announce the Modal visibility changes? */
-    shouldSetModalVisibility?: boolean;
+        /** Callback method fired when the user requests to close the modal */
+        onClose?: () => void;
 
-    /** Callback method fired when the user requests to close the modal */
-    onClose: () => void;
+        /** Function to call when the user presses on the modal backdrop */
+        onBackdropPress?: () => void;
 
-    /** Function to call when the user presses on the modal backdrop */
-    onBackdropPress?: () => void;
+        /** State that determines whether to display the modal or not */
+        isVisible: boolean;
 
-    /** State that determines whether to display the modal or not */
-    isVisible: boolean;
+        /** Callback method fired when the modal is hidden */
+        onModalHide?: () => void;
 
-    /** Callback method fired when the user requests to submit the modal content. */
-    onSubmit?: () => void;
+        /** Callback method fired when the modal is shown */
+        onModalShow?: () => void;
 
-    /** Callback method fired when the modal is hidden */
-    onModalHide?: () => void;
+        type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
 
-    /** Callback method fired when the modal is shown */
-    onModalShow?: () => void;
+        /** The anchor position of a popover modal. Has no effect on other modal types. */
+        popoverAnchorPosition?: PopoverAnchorPosition;
 
-    /** Style of modal to display */
-    type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
+        /** Styles for the outer most view wrapper */
+        outerStyle?: ViewStyle;
 
-    /** The anchor position of a popover modal. Has no effect on other modal types. */
-    popoverAnchorPosition?: PopoverAnchorPosition;
+        /** Whether the modal should go under the system statusbar */
+        statusBarTranslucent?: boolean;
 
-    outerStyle?: ViewStyle;
+        /** Whether the modal should go under the system navigation bar */
+        navigationBarTranslucent?: boolean;
 
-    /** Whether the modal should go under the system statusbar */
-    statusBarTranslucent?: boolean;
+        avoidKeyboard?: boolean;
 
-    /** Whether the modal should go under the system navigation bar */
-    navigationBarTranslucent?: boolean;
+        /** Modal container styles  */
+        innerContainerStyle?: ViewStyle;
 
-    /** Whether the modal should avoid the keyboard */
-    avoidKeyboard?: boolean;
+        /** Whether handle navigation back when modal show. */
+        shouldHandleNavigationBack?: boolean;
 
-    /** Modal container styles  */
-    innerContainerStyle?: ViewStyle;
+        /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
+        shouldUseCustomBackdrop?: boolean;
 
-    /**
-     * Whether the modal should hide its content while animating. On iOS, set to true
-     * if `useNativeDriver` is also true, to avoid flashes in the UI.
-     *
-     * See: https://github.com/react-native-modal/react-native-modal/pull/116
-     * */
-    hideModalContentWhileAnimating?: boolean;
+        modalId?: number;
 
-    /** Whether handle navigation back when modal show. */
-    shouldHandleNavigationBack?: boolean;
+        /**
+         * Whether the modal should enable the new focus manager.
+         * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
+         * */
+        shouldEnableNewFocusManagement?: boolean;
 
-    /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
-    shouldUseCustomBackdrop?: boolean;
+        /** How to re-focus after the modal is dismissed */
+        restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
 
-    /** unique id for the modal */
-    modalId?: number;
+        /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
+        shouldUseModalPaddingStyle?: boolean;
 
-    /**
-     * Whether the modal should enable the new focus manager.
-     * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
-     * */
-    shouldEnableNewFocusManagement?: boolean;
+        /** After swipe more than threshold modal will close */
+        swipeThreshold?: number;
 
-    /** How to re-focus after the modal is dismissed */
-    restoreFocusType?: ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE>;
+        swipeDirection?: SwipeDirection;
+        initialFocus?: FocusTrapOptions['initialFocus'];
 
-    /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
-    shouldUseModalPaddingStyle?: boolean;
+        /** Whether to prevent the focus trap from scrolling the element into view. */
+        shouldPreventScrollOnFocus?: boolean;
 
-    /** Used to set the element that should receive the initial focus */
-    initialFocus?: FocusTrapOptions['initialFocus'];
-};
+        /**
+         * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
+         * Modals should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+         * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+         */
+        enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
+        /**
+         * Whether the modal should apply the Side Panel offset.
+         * This is used to adjust the modal position when the Side Panel is open.
+         */
+        shouldApplySidePanelOffset?: boolean;
+
+        /**
+         * Disables the bottom safe area padding in the modal. Used in for scrollable FeatureTrainingModal.
+         */
+        shouldDisableBottomSafeAreaPadding?: boolean;
+
+        ref?: ForwardedRef<ComponentRef<typeof View>>;
+
+        /**
+         * Whether the modal should display under the side panel.
+         */
+        shouldDisplayBelowModals?: boolean;
+
+        /**
+         * Whether a RIGHT_DOCKED modal should keep its backdrop when it opens inside a narrow-pane RIGHT_DOCKED flow on larger screens.
+         * Set this to true for nested flows, such as inline date editing launching the Month/Year picker RHP, where the underlying pane should stay dimmed.
+         * Leave it false for the default same-width RHP case, where keeping the backdrop would create a double backdrop.
+         * See https://github.com/Expensify/App/issues/88645 for more details.
+         */
+        shouldKeepRightDockedBackdropInNarrowPane?: boolean;
+
+        /**
+         * Whether a modal type that hides its backdrop by default should show one anyway.
+         * POPOVER modals hide the backdrop so menus and tooltips do not dim the screen.
+         * Set this to true for a popover that reads as a dialog and should dim what sits behind it.
+         */
+        shouldShowBackdrop?: boolean;
+
+        /**
+         * Whether the modal should wrap the children in a scroll view if it is a bottom docked modal in landscape mode.
+         * Defaults to true.
+         */
+        shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
+
+        /**
+         * Whether a bottom docked modal in landscape mode is capped at part of the window height.
+         * Turn off for content that sizes itself to the window, so the cap doesn't clip it. Defaults to true.
+         */
+        shouldLimitHeightIfBottomDockedInLandscapeMode?: boolean;
+    };
 
 export default BaseModalProps;
-export type {PopoverAnchorPosition, WindowState};
+export type {PopoverAnchorPosition, FocusTrapOptions};

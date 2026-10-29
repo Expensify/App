@@ -1,10 +1,12 @@
-import Onyx from 'react-native-onyx';
-import * as TooltipManager from '@components/Tooltip/EducationalTooltip/TooltipManager';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type ModalType from '@src/types/utils/ModalType';
+
+import Onyx from 'react-native-onyx';
 
 const closeModals: Array<(isNavigating?: boolean) => void> = [];
+const coveringModalIDs = new Set<number>();
 
-let onModalClose: null | (() => void);
+let onModalClose: null | (() => void | Promise<void>);
 let isNavigate: undefined | boolean;
 let shouldCloseAll: boolean | undefined;
 
@@ -25,33 +27,39 @@ function setCloseModal(onClose: () => void) {
 }
 
 /**
- * Close topmost modal
+ * Close the topmost or a specific modal based on an offset from the top
  */
-function closeTop() {
+function closeTop(topModalOffset?: number) {
     if (closeModals.length === 0) {
         return;
     }
+
+    // Add bounds to the offset to ensure it's not out of bounds and use topmost modal by default.
+    const startFromTopMostModal = topModalOffset === undefined ? -1 : Math.max(Math.min(-topModalOffset - 1, -1), -closeModals.length);
+
+    const modalCloseCallback = closeModals.splice(startFromTopMostModal, 1).at(0);
+
     if (onModalClose) {
-        closeModals[closeModals.length - 1](isNavigate);
-        closeModals.pop();
+        modalCloseCallback?.(isNavigate);
         return;
     }
-    closeModals[closeModals.length - 1]();
-    closeModals.pop();
+    modalCloseCallback?.();
 }
 
 /**
  * Close modal in other parts of the app
  */
-function close(onModalCloseCallback: () => void, isNavigating = true, shouldCloseAllModals = false) {
+function close(onModalCloseCallback?: () => void | Promise<void>, isNavigating = true, shouldCloseAllModals = false, topModalOffset = 0) {
     if (closeModals.length === 0) {
-        onModalCloseCallback();
+        onModalCloseCallback?.();
         return;
     }
-    onModalClose = onModalCloseCallback;
+    if (onModalCloseCallback) {
+        onModalClose = onModalCloseCallback;
+    }
     shouldCloseAll = shouldCloseAllModals;
     isNavigate = isNavigating;
-    closeTop();
+    closeTop(topModalOffset);
 }
 
 function onModalDidClose() {
@@ -70,12 +78,27 @@ function onModalDidClose() {
 /**
  * Allows other parts of the app to know when a modal has been opened or closed
  */
-function setModalVisibility(isVisible: boolean) {
-    Onyx.merge(ONYXKEYS.MODAL, {isVisible});
+function setModalVisibility(isVisible: boolean, type: ModalType | null = null) {
+    Onyx.merge(ONYXKEYS.MODAL, {isVisible, type});
 }
 
 /**
- * Allows other parts of the app to set whether modals should be dismissable using the Escape key
+ * Tracks covering modals by instance so one modal cannot clear the covering state while another is still open.
+ * The entry is kept until the modal's hide animation has completed.
+ * The published value is RAM-only so independently running browser tabs cannot overwrite each other's registry.
+ */
+function setModalCovering(modalID: number, isCovering: boolean) {
+    if (isCovering) {
+        coveringModalIDs.add(modalID);
+    } else {
+        coveringModalIDs.delete(modalID);
+    }
+
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED, coveringModalIDs.size > 0);
+}
+
+/**
+ * Allows other parts of the app to set whether modals should be dismissible using the Escape key
  */
 function setDisableDismissOnEscape(disableDismissOnEscape: boolean) {
     Onyx.merge(ONYXKEYS.MODAL, {disableDismissOnEscape});
@@ -90,9 +113,6 @@ function willAlertModalBecomeVisible(isVisible: boolean, isPopover = false) {
     // We cancel the pending and active tooltips here instead of in setModalVisibility because
     // we want to do it when a modal is going to show. If we do it when the modal is fully shown,
     // the tooltip in that modal won't show.
-    if (isVisible) {
-        TooltipManager.cancelPendingAndActiveTooltips();
-    }
     Onyx.merge(ONYXKEYS.MODAL, {willAlertModalBecomeVisible: isVisible, isPopover});
 }
 
@@ -100,4 +120,4 @@ function areAllModalsHidden() {
     return closeModals.length === 0;
 }
 
-export {setCloseModal, close, onModalDidClose, setModalVisibility, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};
+export {setCloseModal, close, onModalDidClose, setModalVisibility, setModalCovering, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};

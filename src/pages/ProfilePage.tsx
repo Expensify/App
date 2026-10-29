@@ -1,17 +1,12 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AutoUpdateTime from '@components/AutoUpdateTime';
-import Avatar from '@components/Avatar';
+import UserAvatar from '@components/Avatar/UserAvatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import CommunicationsLink from '@components/CommunicationsLink';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -20,46 +15,62 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import Permissions from '@libs/Permissions';
+import {getPhoneNumber, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {
+    findSelfDMReportID,
+    getChatByParticipants,
+    getReportNotificationPreference,
+    hasAutomatedExpensifyAccountIDs,
+    isConciergeChatReport,
+    isHiddenForCurrentUser as isReportHiddenForCurrentUser,
+    navigateToPrivateNotes,
+} from '@libs/ReportUtils';
+import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import {isAgentEmail} from '@libs/SessionUtils';
+import {generateAccountID} from '@libs/UserUtils';
+import {isValidAccountRoute} from '@libs/ValidationUtils';
+
 import type {ProfileNavigatorParamList} from '@navigation/types';
-import * as LinkActions from '@userActions/Link';
-import * as PersonalDetailsActions from '@userActions/PersonalDetails';
-import * as ReportActions from '@userActions/Report';
-import * as SessionActions from '@userActions/Session';
+
+import {openAgentsPage} from '@userActions/Agent';
+import {openExternalLink} from '@userActions/Link';
+import {openPublicProfilePage} from '@userActions/PersonalDetails';
+import {hasErrorInPrivateNotes} from '@userActions/Report';
+import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
-type ProfilePageProps = StackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-/**
- * Gets the phone number to display for SMS logins
- */
-const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined => {
-    const {login = '', displayName = ''} = details ?? {};
-    // If the user hasn't set a displayName, it is set to their phone number
-    const parsedPhoneNumber = parsePhoneNumber(displayName);
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {StyleSheet, View} from 'react-native';
 
-    if (parsedPhoneNumber.possible) {
-        return parsedPhoneNumber?.number?.e164;
-    }
-
-    // If the user has set a displayName, get the phone number from the SMS login
-    return login ? Str.removeSMSDomain(login) : '';
-};
+type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.DYNAMIC_PROFILE>;
 
 /**
  * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
@@ -75,57 +86,68 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
         chatType: report.chatType,
     };
 
+const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
+
 function ProfilePage({route}: ProfilePageProps) {
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, chatReportSelector)});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
+    const [personalDetails] = useAllPersonalDetails();
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
-    const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => account?.guideCalendarLink,
-    });
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const switchToDelegator = useSwitchToDelegator();
+    const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'History', 'Pencil', 'Phone', 'UserPlus']);
+    const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
+    const isCurrentUser = currentUserAccountID === accountID;
+    const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
+    const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
-    const accountID = Number(route.params?.accountID ?? -1);
-    const isCurrentUser = session?.accountID === accountID;
-    const reportKey = useMemo(() => {
-        const reportID = isCurrentUser
-            ? ReportUtils.findSelfDMReportID()
-            : ReportUtils.getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID ?? '-1';
-
-        if (SessionActions.isAnonymousUser() || !reportID) {
-            return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
-        }
-        return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, session]);
     const [report] = useOnyx(reportKey);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const isSupportalSession = useIsSupportalSession();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
+    const policyID = route.params?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 
-    const isValidAccountID = ValidationUtils.isValidAccountRoute(accountID);
+    const isValidAccountID = isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
 
-    const details = useMemo((): OnyxEntry<PersonalDetails> => {
-        // Check if we have the personal details already in Onyx
-        if (personalDetails?.[accountID]) {
-            return personalDetails?.[accountID] ?? undefined;
-        }
+    let details: OnyxEntry<PersonalDetails>;
+    // Check if we have the personal details already in Onyx
+    if (personalDetails?.[accountID]) {
+        details = personalDetails?.[accountID] ?? undefined;
+    } else if (!loginParams) {
         // Check if we have the login param
-        if (!loginParams) {
-            return isValidAccountID ? undefined : {accountID: 0};
-        }
+        details = isValidAccountID ? undefined : {accountID: 0};
+    } else {
         // Look up the personal details by login
         const foundDetails = Object.values(personalDetails ?? {}).find((personalDetail) => personalDetail?.login === loginParams?.toLowerCase());
         if (foundDetails) {
-            return foundDetails;
+            details = foundDetails;
+        } else {
+            // If we don't have the personal details in Onyx, we can create an optimistic account
+            const optimisticAccountID = generateAccountID(loginParams);
+            details = {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
         }
-        // If we don't have the personal details in Onyx, we can create an optimistic account
-        const optimisticAccountID = UserUtils.generateAccountID(loginParams);
-        return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
-    }, [personalDetails, accountID, loginParams, isValidAccountID]);
+    }
 
-    const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const displayName = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: details,
+        shouldAddCurrentUserPostfix: isCurrentUser,
+        youAfterTranslation: translate('common.you').toLowerCase(),
+        translate,
+        formatPhoneNumber,
+    });
+
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
     const timezone = details?.timezone;
@@ -134,7 +156,8 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowLocalTime = !ReportUtils.hasAutomatedExpensifyAccountIDs([accountID]) && !isEmptyObject(timezone) && isParticipantValidated;
+    const isCustomAgent = !!details?.isCustomAgent;
+    const shouldShowLocalTime = !hasAutomatedExpensifyAccountIDs([accountID]) && !isCustomAgent && !isEmptyObject(timezone) && isParticipantValidated;
     let pronouns = details?.pronouns ?? '';
     if (pronouns?.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
@@ -143,7 +166,10 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
-    const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
+
+    // An admin opens this page from their workspace Members list, which is the only place the member's display name can be set.
+    const canManageMemberDisplayName = !!policyID && !!login && isPolicyAdmin(policy, currentUserLogin) && !!policy?.employeeList?.[login];
+    const hasDisplayNameSet = !!details?.firstName || !!details?.lastName;
 
     const hasAvatar = !!details?.avatar;
     const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
@@ -154,62 +180,78 @@ function ProfilePage({route}: ProfilePageProps) {
     const hasStatus = !!statusEmojiCode;
     const statusContent = `${statusEmojiCode}  ${statusText}`;
 
-    const navigateBackTo = route?.params?.backTo;
+    const isOwnedAgent = !isCurrentUser && isCustomAgent && !!agentPrompt;
 
-    const notificationPreferenceValue = ReportUtils.getReportNotificationPreference(report);
+    const notificationPreferenceValue = getReportNotificationPreference(report);
 
-    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && notificationPreferenceValue !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+    const shouldShowNotificationPreference = !isEmptyObject(report) && !isCurrentUser && !isReportHiddenForCurrentUser(notificationPreferenceValue);
     const notificationPreference = shouldShowNotificationPreference
         ? translate(`notificationPreferencesPage.notificationPreferences.${notificationPreferenceValue}` as TranslationPaths)
         : '';
+    const isConcierge = isConciergeChatReport(report, conciergeReportID);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (ValidationUtils.isValidAccountRoute(accountID) && !loginParams) {
-            PersonalDetailsActions.openPublicProfilePage(accountID);
+        // Concierge's profile page information is already available in CONST.ts
+        if (isValidAccountRoute(accountID) && !loginParams && !isConcierge) {
+            openPublicProfilePage(accountID);
         }
-    }, [accountID, loginParams]);
+    }, [accountID, loginParams, isConcierge]);
 
-    const promotedActions = useMemo(() => {
-        const result: PromotedAction[] = [];
-        if (report) {
-            result.push(PromotedActions.pin(report));
+    useEffect(() => {
+        if (isCurrentUser || !isCustomAgent) {
+            return;
         }
+        openAgentsPage();
+    }, [isCurrentUser, isCustomAgent]);
 
-        // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
-        if ((!isCurrentUser || report) && !SessionActions.isAnonymousUser()) {
-            result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams}));
-        }
-        return result;
-    }, [accountID, isCurrentUser, loginParams, report]);
+    const promotedActions: PromotedAction[] = [];
+    if (report) {
+        promotedActions.push(PromotedActions.pin(report));
+    }
 
-    const isConcierge = ReportUtils.isConciergeChatReport(report);
+    // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
+    if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
+        promotedActions.push(
+            PromotedActions.message({
+                reportID: report?.reportID,
+                personalDetails,
+                accountID,
+                login: loginParams,
+                currentUserAccountID,
+                introSelected,
+                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                hasReportActions,
+                conciergeChat,
+                isSupportalSession,
+            }),
+        );
+    }
 
     return (
-        <ScreenWrapper testID={ProfilePage.displayName}>
+        <ScreenWrapper testID="ProfilePage">
             <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
-                    onBackButtonPress={() => Navigation.goBack(navigateBackTo)}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <ScrollView>
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <PressableWithoutFocus
                                 style={[styles.noOutline, styles.mb4]}
-                                onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(accountID)))}
                                 accessibilityLabel={translate('common.profile')}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}
+                                sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.AVATAR}
                             >
                                 <OfflineWithFeedback pendingAction={details?.pendingFields?.avatar}>
-                                    <Avatar
-                                        containerStyles={[styles.avatarXLarge]}
-                                        imageStyles={[styles.avatarXLarge]}
+                                    <UserAvatar
                                         source={details?.avatar}
-                                        avatarID={accountID}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.XLARGE}
+                                        accountID={accountID}
+                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                         fallbackIcon={fallbackIcon}
                                     />
                                 </OfflineWithFeedback>
@@ -227,96 +269,150 @@ function ProfilePage({route}: ProfilePageProps) {
                                 containerStyle={[styles.ph0, styles.mb8]}
                             />
                             {hasStatus && (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate('statusPage.status')}
-                                    </Text>
-                                    <Text>{statusContent}</Text>
+                                <View style={[styles.detailsPageSectionContainer, styles.w100]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={statusContent}
+                                        description={translate('statusPage.status')}
+                                        interactive={false}
+                                    />
                                 </View>
                             )}
 
                             {/* Don't display email if current user is anonymous */}
-                            {!(isCurrentUser && SessionActions.isAnonymousUser()) && login ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                    </Text>
-                                    <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                        <UserDetailsTooltip accountID={details?.accountID ?? -1}>
-                                            <Text
-                                                numberOfLines={1}
-                                                style={styles.w100}
-                                            >
-                                                {isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
-                                            </Text>
-                                        </UserDetailsTooltip>
-                                    </CommunicationsLink>
+                            {!(isCurrentUser && isAnonymousUserSession()) && login ? (
+                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                        copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                        interactive={false}
+                                        copyable
+                                    />
+                                </View>
+                            ) : null}
+                            {canManageMemberDisplayName ? (
+                                <View style={[styles.alignSelfStretch, styles.mhn5]}>
+                                    <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
+                                        <MenuItemWithTopDescription
+                                            title={displayName}
+                                            description={translate('displayNamePage.headerTitle')}
+                                            interactive={!hasDisplayNameSet}
+                                            shouldShowRightIcon={!hasDisplayNameSet}
+                                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID)))}
+                                        />
+                                    </OfflineWithFeedback>
                                 </View>
                             ) : null}
                             {pronouns ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate('profilePage.preferredPronouns')}
-                                    </Text>
-                                    <Text numberOfLines={1}>{pronouns}</Text>
+                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={pronouns}
+                                        description={translate('profilePage.preferredPronouns')}
+                                        interactive={false}
+                                    />
                                 </View>
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
-                        {shouldShowNotificationPreference && (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={notificationPreference}
-                                description={translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID, navigateBackTo))}
+                        {isCurrentUser && (
+                            <MenuItemNavigation
+                                title={translate('common.editYourProfile')}
+                                icon={expensifyIcons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
                             />
                         )}
-                        {!isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
-                            <MenuItem
-                                title={`${translate('privateNotes.title')}`}
-                                titleStyle={styles.flex1}
-                                icon={Expensicons.Pencil}
-                                onPress={() => ReportUtils.navigateToPrivateNotes(report, session, navigateBackTo)}
-                                wrapperStyle={styles.breakAll}
-                                shouldShowRightIcon
-                                brickRoadIndicator={ReportActions.hasErrorInPrivateNotes(report) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        {isOwnedAgent && (
+                            <OfflineWithFeedback
+                                errors={agentPrompt?.promptErrors}
+                                errorRowStyles={[styles.mh5, styles.mb2]}
+                            >
+                                <MenuItemWithTopDescription
+                                    description={translate('profilePage.customInstructions')}
+                                    title={Str.htmlDecode(agentPrompt?.prompt?.trim() ?? '')}
+                                    shouldParseTitle
+                                    excludedMarkdownRules={['reportMentions']}
+                                    shouldTruncateTitle
+                                    characterLimit={CONST.AGENT_PROMPT_LIMIT}
+                                    shouldShowRightIcon
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute()))}
+                                />
+                            </OfflineWithFeedback>
+                        )}
+                        {isOwnedAgent && (
+                            <MenuItemAction
+                                title={translate('profilePage.copilotIntoAccount')}
+                                icon={expensifyIcons.UserPlus}
+                                onPress={() => switchToDelegator(login)}
                             />
+                        )}
+                        {!!accountID && !isAnonymousUserSession() && (
+                            <MenuItem
+                                shouldShowRightIcon
+                                title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.seeChatHistory')}
+                                icon={expensifyIcons.History}
+                                onPress={() => {
+                                    const query = buildQueryStringFromFilterFormValues({
+                                        type: CONST.SEARCH.DATA_TYPES.CHAT,
+                                        from: [String(accountID)],
+                                    });
+                                    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+                                }}
+                            />
+                        )}
+                        {shouldShowNotificationPreference && (
+                            <MenuItemField
+                                name={translate('notificationPreferencesPage.label')}
+                                onPress={() => {
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(report.reportID)));
+                                }}
+                                value={notificationPreference}
+                            />
+                        )}
+                        {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
+                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true))}>
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={expensifyIcons.Pencil} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('privateNotes.title')}</MenuItem.Title>
+                                    </MenuItem.Content>
+                                    <MenuItem.Trailing>
+                                        {hasErrorInPrivateNotes(report) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         )}
                         {isConcierge && !!guideCalendarLink && (
-                            <MenuItem
+                            <MenuItemAction
                                 title={translate('videoChatButtonAndMenu.tooltip')}
-                                icon={Expensicons.Phone}
-                                isAnonymousAction={false}
-                                onPress={SessionActions.checkIfActionIsAllowed(() => {
-                                    LinkActions.openExternalLink(guideCalendarLink);
-                                })}
+                                icon={expensifyIcons.Phone}
+                                onPress={() => {
+                                    openExternalLink(guideCalendarLink);
+                                }}
                             />
                         )}
                         {!!report?.reportID && !!isDebugModeEnabled && (
-                            <MenuItem
+                            <MenuItemNavigation
                                 title={translate('debug.debug')}
-                                icon={Expensicons.Bug}
-                                shouldShowRightIcon
+                                icon={expensifyIcons.Bug}
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />
                         )}
                     </ScrollView>
-                    {!hasAvatar && isLoading && <FullScreenLoadingIndicator style={styles.flex1} />}
+                    {!hasAvatar && isLoading && (
+                        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                        </View>
+                    )}
                 </View>
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;

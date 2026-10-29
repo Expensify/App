@@ -1,22 +1,34 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+
+import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {updateSageIntacctExportDate} from '@userActions/connections/SageIntacct';
-import * as Policy from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
@@ -24,7 +36,7 @@ type MenuListItem = ListItem & {
 
 function SageIntacctDatePage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig, pendingFields} = policy?.connections?.intacct?.config ?? {};
@@ -35,48 +47,45 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
         keyForList: dateType,
         isSelected: exportConfig?.exportDate === dateType,
     }));
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE>>();
+    const backTo = route.params?.backTo;
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.sageIntacct.exportDate.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const goBack = () => {
+        Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))));
+    };
+
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.sageIntacct.exportDate.description')}</Text>
+        </View>
     );
 
-    const selectExportDate = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== exportConfig?.exportDate) {
-                updateSageIntacctExportDate(policyID, row.value, exportConfig?.exportDate);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID));
-        },
-        [exportConfig?.exportDate, policyID],
-    );
+    const selectExportDate = (row: MenuListItem) => {
+        if (row.value !== exportConfig?.exportDate && policyID) {
+            updateSageIntacctExportDate(policyID, row.value, exportConfig?.exportDate);
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen
-            displayName={SageIntacctDatePage.displayName}
+            displayName="SageIntacctDatePage"
             title="workspace.sageIntacct.exportDate.label"
             headerContent={headerContent}
-            sections={[{data}]}
-            listItem={RadioListItem}
+            data={data}
             onSelectRow={(selection: SelectorType) => selectExportDate(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.getRoute(policyID))}
+            onBackButtonPress={goBack}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE], pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
+            errors={getLatestErrorField(config ?? {}, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
+            onClose={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.EXPORT_DATE)}
         />
     );
 }
-
-SageIntacctDatePage.displayName = 'SageIntacctDatePage';
 
 export default withPolicyConnections(SageIntacctDatePage);

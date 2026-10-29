@@ -9,19 +9,20 @@ type AccountData = {
     /** The name of the institution (bank of america, etc */
     addressName?: string;
 
+    /** Date when the bank account was created */
+    created?: string;
+
     /** Can we use this account to pay other people? */
     allowDebit?: boolean;
 
     /** Can we use this account to receive money from other people? */
     defaultCredit?: boolean;
 
-    /** Is a saving account */
     isSavings?: boolean;
 
     /** Return whether or not this bank account has been risk checked */
     riskChecked?: boolean;
 
-    /** Account routing number */
     routingNumber?: string;
 
     /** The status of the bank account */
@@ -36,10 +37,7 @@ type AccountData = {
     /** The bankAccountID in the bankAccounts db */
     bankAccountID?: number;
 
-    /** Unique identifier for this account in Plaid */
     plaidAccountID?: string;
-
-    /** All data related to the bank account */
     additionalData?: BankAccountAdditionalData;
 
     /** The bank account type */
@@ -50,6 +48,12 @@ type AccountData = {
 
     /** The debit card ID */
     fundID?: number;
+
+    /** List of policies this account is linked to */
+    policyIDs?: string[];
+
+    /** Determines if the bank account is an Expensify Card settlement account */
+    isExpensifyCardSettlementAccount?: boolean;
 };
 
 export default AccountData;

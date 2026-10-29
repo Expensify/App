@@ -1,72 +1,78 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as WorkspaceSettingsUtils from '@libs/WorkspacesSettingsUtils';
+
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {getOwnershipChecksDisplayText} from '@libs/WorkspacesSettingsUtils';
+
 import Navigation from '@navigation/Navigation';
-import * as MemberActions from '@userActions/Policy/Member';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
-type WorkspaceOwnerChangeCheckOnyxProps = {
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-};
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
-type WorkspaceOwnerChangeCheckProps = WorkspaceOwnerChangeCheckOnyxProps & {
-    /** The policy */
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
+type WorkspaceOwnerChangeCheckProps = {
     policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** The accountID */
     accountID: number;
 
     /** The error code */
     error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>;
 };
 
-function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
+function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerChangeCheckProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [displayTexts, setDisplayTexts] = useState({
         title: '',
         text: '',
         buttonText: '',
     });
+    const personalDetails = usePersonalDetails();
+    const userPersonalDetails = personalDetails?.[accountID];
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
-    const updateDisplayTexts = useCallback(() => {
+    const updateDisplayTexts = () => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
         if (error !== changeOwnerErrors.at(0)) {
             return;
         }
 
-        const texts = WorkspaceSettingsUtils.getOwnershipChecksDisplayText(error, translate, policy, personalDetails?.[accountID]?.login);
+        const texts = getOwnershipChecksDisplayText(error, translate, convertToDisplayString, policy, userPersonalDetails?.login);
         setDisplayTexts(texts);
-    }, [accountID, error, personalDetails, policy, translate]);
+    };
 
     useEffect(() => {
         updateDisplayTexts();
     }, [updateDisplayTexts]);
 
-    const confirm = useCallback(() => {
+    const confirm = () => {
+        if (!policyID) {
+            return;
+        }
         if (error === CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS || error === CONST.POLICY.OWNERSHIP_ERRORS.FAILED_TO_CLEAR_BALANCE) {
             // cannot transfer ownership if there are failed settlements, or we cannot clear the balance
-            MemberActions.clearWorkspaceOwnerChangeFlow(policyID);
+            clearWorkspaceOwnerChangeFlow(policyID);
             Navigation.goBack();
             Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
             return;
         }
 
-        MemberActions.requestWorkspaceOwnerChange(policyID);
-    }, [accountID, error, policyID]);
+        requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
+    };
 
     return (
         <>
@@ -74,20 +80,15 @@ function WorkspaceOwnerChangeCheck({personalDetails, policy, accountID, error}: 
             <Text style={styles.flex1}>{displayTexts.text}</Text>
             <View style={styles.pb5}>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={confirm}
-                    text={displayTexts.buttonText}
-                />
+                >
+                    <Button.Text>{displayTexts.buttonText}</Button.Text>
+                </Button>
             </View>
         </>
     );
 }
 
-WorkspaceOwnerChangeCheck.displayName = 'WorkspaceOwnerChangeCheckPage';
-
-export default withOnyx<WorkspaceOwnerChangeCheckProps, WorkspaceOwnerChangeCheckOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(WorkspaceOwnerChangeCheck);
+export default WorkspaceOwnerChangeCheck;

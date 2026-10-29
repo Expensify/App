@@ -1,5 +1,7 @@
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type {StyleProp, TextStyle} from 'react-native';
-import type {AvatarSource} from '@libs/UserUtils';
 
 type DisplayNameWithTooltip = {
     /** The name to display in bold */
@@ -15,14 +17,19 @@ type DisplayNameWithTooltip = {
     avatar?: AvatarSource;
 };
 
-type DisplayNamesProps = {
+type DisplayNamesProps = ForwardedFSClassProps & {
     /** The full title of the DisplayNames component (not split up) */
     fullTitle: string;
 
-    /** Array of objects that map display names to their corresponding tooltip */
-    displayNamesWithTooltips?: DisplayNameWithTooltip[];
+    /**
+     * Whether `fullTitle` should be processed through Parser.htmlToText().
+     * Set to true when `fullTitle` contains HTML that needs to be converted to plain text
+     * Set to false when `fullTitle` is already plain text or when you want to preserve
+     * any HTML formatting in the display.
+     */
+    shouldParseFullTitle?: boolean;
 
-    /** Number of lines before wrapping */
+    displayNamesWithTooltips?: DisplayNameWithTooltip[];
     numberOfLines: number;
 
     /** Is tooltip needed? When true, triggers complex title rendering */
@@ -37,11 +44,21 @@ type DisplayNamesProps = {
      */
     accessibilityLabel?: string;
 
-    /** If the full title needs to be displayed */
     shouldUseFullTitle?: boolean;
+
+    /** If we should add an ellipsis after the participants list */
+    shouldAddEllipsis?: boolean;
+
+    /** Whether this display name should be directly selectable inside pressable rows */
+    isSelectable?: boolean;
+
+    /** Whether to parse HTML in the title */
+    shouldParseHtml?: boolean;
 
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
+
+    testID?: number;
 };
 
 export default DisplayNamesProps;

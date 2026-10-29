@@ -1,71 +1,110 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {getWorkflowMemberEmails, includesEveryWorkspaceMember, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import * as Workflow from '@userActions/Workflow';
+
+import {createApprovalWorkflow as createApprovalWorkflowAction, createApprovalWorkflowRules, validateApprovalWorkflow} from '@userActions/Workflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ComponentRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
 
-type WorkspaceWorkflowsApprovalsCreatePageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW>;
+type WorkspaceWorkflowsApprovalsCreatePageProps = WithPolicyAndFullscreenLoadingProps &
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW>;
 
 function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsCreatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const formRef = useRef<ScrollView>(null);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
+    const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const formRef = useRef<ComponentRef<typeof ScrollView>>(null);
+    const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
+    const {isLoading, startWithLoading} = usePressLoading();
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !canWriteApprovals ||
+        isPendingDeletePolicy(policy) ||
+        isApprovalWorkflowLockedByIntegration(policy) ||
+        shouldHideDynamicExternalWorkflowPeople(policy);
 
-    const createApprovalWorkflow = useCallback(() => {
+    const createApprovalWorkflow = () => {
         if (!approvalWorkflow) {
             return;
         }
 
-        if (!Workflow.validateApprovalWorkflow(approvalWorkflow)) {
+        if (!validateApprovalWorkflow(approvalWorkflow)) {
             return;
         }
 
-        Workflow.createApprovalWorkflow(route.params.policyID, approvalWorkflow);
-        Navigation.dismissModal();
-    }, [approvalWorkflow, route.params.policyID]);
+        // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
+        const workflowToCreate = {...approvalWorkflow, isDefault: includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList)};
+
+        startWithLoading(() => {
+            if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
+                createApprovalWorkflowRules({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport, rules: rulesCollection});
+            } else {
+                createApprovalWorkflowAction({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport});
+            }
+            Navigation.dismissModal();
+        });
+    };
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceWorkflowsApprovalsCreatePage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID="WorkspaceWorkflowsApprovalsCreatePage"
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+                    onBackButtonPress={goBackFromInvalidPolicy}
+                    onLinkPress={goBackFromInvalidPolicy}
+                    addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsCreateApprovalsPage.title')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0))}
+                        onBackButtonPress={() => Navigation.dismissModal()}
                     />
                     {!!approvalWorkflow && (
                         <>
@@ -75,25 +114,30 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                                 policyID={route.params.policyID}
                                 ref={formRef}
                             />
-                            <FormAlertWithSubmitButton
-                                isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
-                                onSubmit={createApprovalWorkflow}
-                                onFixTheErrorsLinkPressed={() => {
-                                    formRef.current?.scrollTo({y: 0, animated: true});
-                                }}
-                                buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
-                                containerStyles={[styles.mb5, styles.mh5]}
-                                enabledWhenOffline
-                            />
+                            <FixedFooter addBottomSafeAreaPadding>
+                                <FormAlertWithSubmitButton
+                                    isAlertVisible={!isEmptyObject(approvalWorkflow?.errors)}
+                                    onSubmit={createApprovalWorkflow}
+                                    onFixTheErrorsLinkPressed={() => {
+                                        formRef.current?.scrollTo({y: 0, animated: true});
+                                    }}
+                                    buttonText={translate('workflowsCreateApprovalsPage.submitButton')}
+                                    enabledWhenOffline
+                                    shouldShowLoadingImmediatelyOnPress={false}
+                                    isLoading={isLoading}
+                                />
+                            </FixedFooter>
                         </>
                     )}
-                    {!approvalWorkflow && <FullScreenLoadingIndicator />}
+                    {!approvalWorkflow && (
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                        </View>
+                    )}
                 </FullPageNotFoundView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsApprovalsCreatePage.displayName = 'WorkspaceWorkflowsApprovalsCreatePage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsCreatePage);

@@ -1,0 +1,442 @@
+import {act, render} from '@testing-library/react-native';
+
+import SubmitActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/SubmitActionButton';
+
+import useOnyx from '@hooks/useOnyx';
+
+import {isSubmitPolicy} from '@libs/PolicyUtils';
+import {hasOnlyHeldExpenses, hasViolations, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
+import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+
+import {submitReport} from '@userActions/IOU/ReportWorkflow';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import type {OnyxCollection, UseOnyxResult} from 'react-native-onyx';
+
+import React from 'react';
+
+import createMock from '../../utils/createMock';
+
+const TEST_IOU_REPORT_ID = '1001';
+const TEST_TRANSACTION_ID = '3003';
+const TEST_ACCOUNT_ID = 1;
+const TEST_EMAIL = 'submitter@test.com';
+
+const iouReport = {
+    reportID: TEST_IOU_REPORT_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    policyID: 'policy1',
+    ownerAccountID: 2,
+} as Report;
+
+const reportViolations: OnyxCollection<TransactionViolations> = {
+    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+};
+
+const reportTransactions = [createMock<Transaction>({transactionID: TEST_TRANSACTION_ID})];
+
+// Mutable so each test can back the mocked useReportPreviewTransactionViolations slice with a specific value.
+let mockTransactionViolations: OnyxCollection<TransactionViolations> = {};
+
+// Mutable so each test can back the mocked useReportPreviewData slice with a specific transaction list.
+let mockTransactions: Transaction[] = [];
+
+// Mutable so a test can turn on the domain's "strictly enforce workspace rules" setting without standing up security groups.
+let mockAreStrictPolicyRulesEnabled = false;
+
+function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
+    return [value, {status: 'loaded'}];
+}
+
+// Capture the props the button passes to AnimatedSubmitButton so submission can be triggered (onPress) and the disabled
+// state asserted (isDisabled).
+const mockSubmitButtonPropsHolder: {current?: {onPress?: () => void; isDisabled?: boolean}} = {current: undefined};
+jest.mock('@components/AnimatedSubmitButton', () => ({
+    __esModule: true,
+    default: (props: {onPress?: () => void; isDisabled?: boolean}) => {
+        mockSubmitButtonPropsHolder.current = props;
+        return null;
+    },
+}));
+
+const mockOpenReportSubmitToPopover = jest.fn();
+jest.mock('@components/ReportSubmitToPopoverAnchor', () => ({
+    __esModule: true,
+    ReportSubmitToPopoverAnchor: ({children}: {children: React.ReactNode}) => children,
+    useOpenReportSubmitToPopover: () => mockOpenReportSubmitToPopover,
+}));
+
+jest.mock('@userActions/IOU/ReportWorkflow', () => ({
+    __esModule: true,
+    submitReport: jest.fn(),
+}));
+
+jest.mock('@libs/PolicyUtils', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
+    const actual = jest.requireActual('@libs/PolicyUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- spread the real module and override selected exports
+    return {
+        ...actual,
+        __esModule: true,
+        hasDynamicExternalWorkflow: jest.fn(() => false),
+        isSubmitPolicy: jest.fn(() => false),
+    };
+});
+
+// Fully mocked (no requireActual): loading the real TransactionUtils barrel pulls in platform-specific modules that
+// are unavailable in the jest environment, and the component only uses the functions listed here.
+jest.mock('@libs/TransactionUtils', () => ({
+    __esModule: true,
+    getTransactionViolations: jest.fn(),
+    hasOnlyPendingCardTransactions: jest.fn(() => false),
+    showPendingCardTransactionsBlockModal: jest.fn(),
+    showHeldExpensesBlockModal: jest.fn(),
+}));
+
+jest.mock('@libs/ReportUtils', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
+    const actual = jest.requireActual('@libs/ReportUtils');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- spread the real module and override selected exports
+    return {
+        ...actual,
+        __esModule: true,
+        hasViolations: jest.fn(() => false),
+        shouldShowMarkAsDone: jest.fn(() => false),
+        hasOnlyHeldExpenses: jest.fn(() => false),
+        // These two reach into TransactionUtils (hasViolation / hasNoticeTypeViolation / hasWarningTypeViolation), which
+        // is fully mocked below with only the exports this component needs, so the real implementations would blow
+        // up as soon as a test supplies transactions. The violation math itself is covered by ReportUtilsTest; what
+        // matters here is that the button wires the predicates up to its disabled state and its press handler.
+        shouldBlockSubmitDueToStrictPolicyRules: jest.fn(() => false),
+        shouldBlockSubmitDueToPreventSelfApproval: jest.fn(() => false),
+    };
+});
+
+// The violations confirmation gate itself is exercised by its own tests; by default it proceeds straight to the
+// submission (matching the "no violations" case), so most tests here don't need to think about it. The mock is
+// still spied on so a test can assert which violations collection reached it, since it must agree with the
+// strict-policy-rules gate below on which violations are dismissed. A test exercising the iOS-freeze fix (the
+// popover must only open after this gate resolves, never before or instead) sets mockShouldAutoProceedConfirmSubmit
+// to false and drives mockCapturedConfirmSubmitOnProceed itself to simulate Cancel (never call it) or Confirm
+// (call it with the resolved flag).
+let mockShouldAutoProceedConfirmSubmit = true;
+let mockCapturedConfirmSubmitOnProceed: ((shouldResolveAcknowledgedViolations?: boolean) => void) | undefined;
+const mockedUseConfirmSubmitReportViolations = jest.fn<(proceed: (shouldResolveAcknowledgedViolations?: boolean) => void) => void, [unknown]>(() => (proceed) => {
+    mockCapturedConfirmSubmitOnProceed = proceed;
+    if (mockShouldAutoProceedConfirmSubmit) {
+        proceed();
+    }
+});
+jest.mock('@hooks/useConfirmSubmitReportViolations', () => ({
+    __esModule: true,
+    default: (params: unknown) => mockedUseConfirmSubmitReportViolations(params),
+}));
+
+// SubmitActionButton reads from context instead of props; these mock-prefixed objects back the mocked slice hooks.
+const mockStartSubmittingAnimation = jest.fn();
+jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
+    __esModule: true,
+    useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID, transactions: mockTransactions}),
+    useReportPreviewTransactionViolations: () => ({transactionViolations: mockTransactionViolations}),
+    useReportPreviewAnimationState: () => ({isSubmittingAnimationRunning: false}),
+    useReportPreviewActions: () => ({stopAnimation: jest.fn(), startSubmittingAnimation: mockStartSubmittingAnimation}),
+}));
+
+jest.mock('@hooks/useConfirmModal', () => ({__esModule: true, default: jest.fn(() => ({showConfirmModal: jest.fn()}))}));
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: jest.fn(() => ({accountID: TEST_ACCOUNT_ID, email: TEST_EMAIL}))}));
+jest.mock('@hooks/useStrictPolicyRules', () => ({__esModule: true, default: jest.fn(() => ({areStrictPolicyRulesEnabled: mockAreStrictPolicyRulesEnabled}))}));
+jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: jest.fn(() => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}))}));
+jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: jest.fn(() => ({translate: (key: string) => key}))}));
+jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: jest.fn(() => ({isOffline: false}))}));
+jest.mock('@hooks/useReportTransactionsCollection', () => ({__esModule: true, default: jest.fn(() => ({}))}));
+jest.mock('@hooks/useOnyx', () => jest.fn());
+
+const mockedUseOnyx = jest.mocked(useOnyx);
+const mockedSubmitReport = jest.mocked(submitReport);
+const mockedIsSubmitPolicy = jest.mocked(isSubmitPolicy);
+const mockedHasOnlyPendingCardTransactions = jest.mocked(hasOnlyPendingCardTransactions);
+const mockedShowPendingCardTransactionsBlockModal = jest.mocked(showPendingCardTransactionsBlockModal);
+const mockedHasOnlyHeldExpenses = jest.mocked(hasOnlyHeldExpenses);
+const mockedShowHeldExpensesBlockModal = jest.mocked(showHeldExpensesBlockModal);
+const mockedHasViolations = jest.mocked(hasViolations);
+const mockedGetTransactionViolations = jest.mocked(getTransactionViolations);
+const mockedShouldBlockSubmitDueToStrictPolicyRules = jest.mocked(shouldBlockSubmitDueToStrictPolicyRules);
+const mockedShouldBlockSubmitDueToPreventSelfApproval = jest.mocked(shouldBlockSubmitDueToPreventSelfApproval);
+
+describe('SubmitActionButton', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockSubmitButtonPropsHolder.current = undefined;
+        mockTransactionViolations = {};
+        mockTransactions = [];
+        mockAreStrictPolicyRulesEnabled = false;
+        mockShouldAutoProceedConfirmSubmit = true;
+        mockCapturedConfirmSubmitOnProceed = undefined;
+        mockedIsSubmitPolicy.mockReturnValue(false);
+        mockedHasOnlyPendingCardTransactions.mockReturnValue(false);
+        mockedHasOnlyHeldExpenses.mockReturnValue(false);
+        mockedHasViolations.mockReturnValue(false);
+        // jest.clearAllMocks() only clears recorded calls, so a mockReturnValue set by one test would otherwise leak
+        // into every test that runs after it.
+        mockedShouldBlockSubmitDueToStrictPolicyRules.mockReturnValue(false);
+        mockedShouldBlockSubmitDueToPreventSelfApproval.mockReturnValue(false);
+        // Default to nothing-dismissed passthrough so the filtered collection mirrors the raw slice; individual tests
+        // override the implementation to simulate dismissals.
+        mockedGetTransactionViolations.mockImplementation((transaction, violations) => violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`]);
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult<Report>(iouReport);
+            }
+            return createOnyxResult(undefined);
+        });
+    });
+
+    it('submits the report with the full expense report and starts the submitting animation', () => {
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        expect(mockedSubmitReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                expenseReport: iouReport,
+                onSubmitted: mockStartSubmittingAnimation,
+            }),
+        );
+    });
+
+    it('opens the submit-to popover instead of submitting directly on a submit policy', () => {
+        mockedIsSubmitPolicy.mockReturnValue(true);
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        expect(mockOpenReportSubmitToPopover).toHaveBeenCalled();
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('never opens the submit-to popover when the user cancels the violations confirmation', () => {
+        // Given a submit policy whose violations confirmation modal is still awaiting the user's answer (iOS can't
+        // present that modal while the submit-to popover is already open, so the popover must not open first)
+        mockedIsSubmitPolicy.mockReturnValue(true);
+        mockShouldAutoProceedConfirmSubmit = false;
+        render(<SubmitActionButton />);
+
+        // When the user presses Submit, then cancels the violations confirmation modal (the gate's onProceed is
+        // simply never called, since Cancel means "make no changes")
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then the popover must never open, and the report must stay a draft
+        expect(mockOpenReportSubmitToPopover).not.toHaveBeenCalled();
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('opens the submit-to popover with the resolved violations flag once the user confirms', () => {
+        // Given a submit policy whose violations confirmation modal is still awaiting the user's answer
+        mockedIsSubmitPolicy.mockReturnValue(true);
+        mockShouldAutoProceedConfirmSubmit = false;
+        render(<SubmitActionButton />);
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+        expect(mockOpenReportSubmitToPopover).not.toHaveBeenCalled();
+
+        // When the user confirms "Submit anyway", resolving shouldResolveAcknowledgedViolations to true
+        act(() => {
+            mockCapturedConfirmSubmitOnProceed?.(true);
+        });
+
+        // Then the popover must open only now, carrying the resolved flag, so ReportSubmitToContent doesn't have to
+        // run its own violations check while the popover is already on screen
+        expect(mockOpenReportSubmitToPopover).toHaveBeenCalledWith(expect.objectContaining({shouldResolveAcknowledgedViolations: true}));
+    });
+
+    it('shows the pending card transactions block modal instead of submitting', () => {
+        mockedHasOnlyPendingCardTransactions.mockReturnValue(true);
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        expect(mockedShowPendingCardTransactionsBlockModal).toHaveBeenCalled();
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('shows the held expenses block modal instead of submitting', () => {
+        mockedHasOnlyHeldExpenses.mockReturnValue(true);
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        expect(mockedShowHeldExpensesBlockModal).toHaveBeenCalled();
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('computes hasViolations from the context violations and forwards the result to submitReport', () => {
+        mockTransactionViolations = reportViolations;
+        mockedHasViolations.mockReturnValue(true);
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        expect(mockedHasViolations.mock.calls.at(-1)?.[1]).toBe(reportViolations);
+        expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
+    });
+
+    it('disables the button and blocks submission when strict policy rules are enforced on a violating report', () => {
+        // Given a domain that strictly enforces workspace rules and a report whose transactions have violations
+        mockAreStrictPolicyRulesEnabled = true;
+        mockTransactions = reportTransactions;
+        mockTransactionViolations = reportViolations;
+        mockedShouldBlockSubmitDueToStrictPolicyRules.mockReturnValue(true);
+
+        // When the button renders and onPress is called directly, to confirm the handler no-ops on its own — the
+        // disabled prop is the first layer of defense, the early return in the handler is the second
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then nothing reaches the backend, because the backend would reject the submission and the user would be left
+        // with the generic "Unexpected error. Please try again later." instead of the violations they need to fix
+        expect(mockSubmitButtonPropsHolder.current?.isDisabled).toBe(true);
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+
+        // Then the decision is made from the report preview's own violations and transactions rather than a separate
+        // Onyx read, which is what let this button drift out of sync with the report header's submit button
+        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(TEST_IOU_REPORT_ID, reportViolations, true, TEST_ACCOUNT_ID, TEST_EMAIL, reportTransactions);
+    });
+
+    it('passes dismissal-filtered violations to the strict policy rules gate', () => {
+        // Given a strict-rules domain and a report whose only violation has been dismissed — a dismissal that is only
+        // detectable with the report/owner/policy context that getTransactionViolations applies
+        mockAreStrictPolicyRulesEnabled = true;
+        mockTransactions = reportTransactions;
+        mockTransactionViolations = reportViolations;
+        mockedGetTransactionViolations.mockReturnValue([]);
+
+        // When the button renders
+        render(<SubmitActionButton />);
+
+        // Then the filter ran with the full context the report header's filter uses, and the gate received the filtered
+        // collection instead of the raw context slice, so the two Submit buttons cannot disagree on dismissed violations
+        expect(mockedGetTransactionViolations).toHaveBeenCalledWith(reportTransactions.at(0), reportViolations, TEST_EMAIL, TEST_ACCOUNT_ID, iouReport, undefined, undefined);
+        const filteredViolationsCollection = {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: []};
+        expect(mockedShouldBlockSubmitDueToStrictPolicyRules).toHaveBeenCalledWith(TEST_IOU_REPORT_ID, filteredViolationsCollection, true, TEST_ACCOUNT_ID, TEST_EMAIL, reportTransactions);
+
+        // Then the violations-confirmation gate received the exact same filtered collection, so the two gates cannot
+        // disagree on which violations the submitter has already dismissed
+        expect(mockedUseConfirmSubmitReportViolations).toHaveBeenCalledWith(expect.objectContaining({violationsCollection: filteredViolationsCollection}));
+    });
+
+    it('does not open the submit-to popover on a submit policy when strict policy rules block the report', () => {
+        // Given a blocked report on a submit workspace, where pressing submit normally opens the submit-to popover
+        mockAreStrictPolicyRulesEnabled = true;
+        mockTransactions = reportTransactions;
+        mockTransactionViolations = reportViolations;
+        mockedShouldBlockSubmitDueToStrictPolicyRules.mockReturnValue(true);
+        mockedIsSubmitPolicy.mockReturnValue(true);
+
+        // When the press handler runs
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then the popover never opens, because it runs the submission itself and would route around the block, landing
+        // the user on the same backend rejection one step later
+        expect(mockOpenReportSubmitToPopover).not.toHaveBeenCalled();
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('keeps the button enabled and submits when strict policy rules are enforced but nothing blocks the report', () => {
+        // Given a domain that strictly enforces workspace rules and a report with no blocking violations
+        mockAreStrictPolicyRulesEnabled = true;
+        mockTransactions = reportTransactions;
+
+        // When the button is pressed
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then the report still submits, so the new block never stands in the way of a report the backend would accept
+        expect(mockSubmitButtonPropsHolder.current?.isDisabled).toBe(false);
+        expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({expenseReport: iouReport}));
+    });
+
+    it('disables the button and blocks submission when the workspace prevents self-approval', () => {
+        // Given a workspace that prevents self-approval on a report whose next approver is the submitter
+        mockedShouldBlockSubmitDueToPreventSelfApproval.mockReturnValue(true);
+
+        // When the press handler runs
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then the button behaves exactly like the report header's submit button, so the two cannot disagree about
+        // whether the same report is submittable
+        expect(mockSubmitButtonPropsHolder.current?.isDisabled).toBe(true);
+        expect(mockedSubmitReport).not.toHaveBeenCalled();
+
+        // Then the predicate received the same report and policy the header's gate reads (the policy is not hydrated
+        // in this environment, so it is undefined)
+        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined, undefined);
+    });
+
+    it.each([
+        {archiveReason: CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED, isBlocked: true},
+        {archiveReason: CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY, isBlocked: false},
+    ])('blocks submission only when the workspace chat was archived because its workspace was deleted ($archiveReason)', ({archiveReason, isBlocked}) => {
+        // Given an expense report whose workspace chat is archived with the given close reason. useOnyx is mocked, so
+        // the selectors don't run and each key returns the already-selected value.
+        const chatReportID = '2002';
+        const reportInArchivedChat = {...iouReport, chatReportID};
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult<Report>(reportInArchivedChat);
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReportID}`) {
+                return createOnyxResult(true);
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`) {
+                return createOnyxResult(archiveReason);
+            }
+            return createOnyxResult(undefined);
+        });
+
+        // When the press handler runs
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockSubmitButtonPropsHolder.current?.onPress?.();
+        });
+
+        // Then a deleted workspace disables the button before the backend can reject the submission, while a removed
+        // member can still submit because their workspace still exists
+        expect(mockSubmitButtonPropsHolder.current?.isDisabled).toBe(isBlocked);
+        if (isBlocked) {
+            expect(mockedSubmitReport).not.toHaveBeenCalled();
+        } else {
+            expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({expenseReport: reportInArchivedChat}));
+        }
+    });
+});

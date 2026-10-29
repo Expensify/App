@@ -2,21 +2,21 @@
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
     const lhnContent = document.getElementById('lhn-content');
-    const anguleUpIcon = document.getElementById('angle-up-icon');
+    const angleUpIcon = document.getElementById('angle-up-icon');
     const barsIcon = document.getElementById('bars-icon');
     if (lhnContent.className === 'expanded') {
         // Collapse the LHN in mobile
         lhn.className = '';
         lhnContent.className = '';
         barsIcon.classList.remove('hide');
-        anguleUpIcon.classList.add('hide');
+        angleUpIcon.classList.add('hide');
         document.body.classList.remove('disable-scrollbar');
     } else {
         // Expand the LHN in mobile
         lhn.className = 'expanded';
         lhnContent.className = 'expanded';
         barsIcon.classList.add('hide');
-        anguleUpIcon.classList.remove('hide');
+        angleUpIcon.classList.remove('hide');
         document.body.classList.add('disable-scrollbar');
     }
 }
@@ -70,106 +70,301 @@ function navigateBack() {
     setTimeout(toggleHeaderMenu, 250);
 }
 
-function injectFooterCopywrite() {
-    const footer = document.getElementById('footer-copywrite-date');
+function injectFooterCopyright() {
+    const footer = document.getElementById('footer-copyright-date');
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
-function closeSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'none';
+const SEARCH_API_URL = 'https://www.expensify.com/api/SearchHelpsite';
+const ASK_AI_API_URL = 'https://www.expensify.com/api/AskHelpsiteAI';
 
-    // Make the body scrollable again
-    const body = document.body;
-    const scrollY = body.style.top;
+let allowedDomains = [];
 
-    // Reset the position and top styles of the body element
-    body.style.position = '';
-    body.style.top = '';
+if (window.location.pathname.includes('/search')) {
+    fetch('/assets/js/allowedExternalUrls.json')
+        .then((response) => response.json())
+        .then((urls) => {
+            allowedDomains = urls
+                .map((url) => {
+                    try {
+                        return new URL(url).hostname;
+                    } catch {
+                        return null;
+                    }
+                })
+                .filter(Boolean);
+        })
+        .catch(() => {});
 
-    // Scroll to the original scroll position
-    window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
-}
-
-function closeSidebarOnClickOutside(event) {
-    const sidebarLayer = document.getElementById('sidebar-layer');
-
-    if (event.target !== sidebarLayer) {
-        return;
-    }
-    closeSidebar();
-}
-
-function openSidebar() {
-    document.getElementById('sidebar-layer').style.display = 'block';
-    document.getElementById('gsc-i-id1').focus();
-
-    // Make body unscrollable
-    const yAxis = document.documentElement.style.getPropertyValue('y-axis');
-    const body = document.body;
-    body.style.position = 'fixed';
-    body.style.top = `-${yAxis}`;
-
-    document.getElementById('gsc-i-id1').focus();
-
-    // Close the sidebar when clicking sidebar layer (outside the sidebar search)
-    const sidebarLayer = document.getElementById('sidebar-layer');
-    if (sidebarLayer) {
-        sidebarLayer.addEventListener('click', closeSidebarOnClickOutside);
-    }
-}
-
-// Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
-function changeSVGViewBoxGoogle() {
-    // Get all inline Google SVG elements on the page
-    const svgsGoogle = document.querySelectorAll('svg');
-
-    Array.from(svgsGoogle).forEach((svg) => {
-        // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
-        svg.setAttribute('viewBox', '0 0 20 20');
-        svg.setAttribute('height', '16');
-        svg.setAttribute('width', '16');
+    DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+        if (node.tagName === 'A' && node.hasAttribute('href')) {
+            const href = node.getAttribute('href');
+            try {
+                const hostname = new URL(href).hostname;
+                const isExpensifyLink = hostname === 'expensify.com' || hostname.endsWith('.expensify.com');
+                if (!isExpensifyLink && allowedDomains.length > 0 && !allowedDomains.includes(hostname)) {
+                    node.remove();
+                }
+            } catch {
+                node.remove();
+            }
+        }
     });
 }
 
-// Function to insert element after another
-// In this case, we insert the label element after the Google Search Input so we can have the same label animation effect
-function insertElementAfter(referenceNode, newNode) {
-    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+function getTitleFromURL(url) {
+    return url.split('/').pop().replace(/-/g, ' ');
 }
 
-// Update the ICON for search input.
-/* Change the path of the Google Search Button icon into Expensify icon */
-function updateGoogleSearchIcon() {
-    const node = document.querySelector('.gsc-search-button.gsc-search-button-v2 svg path');
-    node.setAttribute(
-        'd',
-        'M8 1c3.9 0 7 3.1 7 7 0 1.4-.4 2.7-1.1 3.8l5.2 5.2c.6.6.6 1.5 0 2.1-.6.6-1.5.6-2.1 0l-5.2-5.2C10.7 14.6 9.4 15 8 15c-3.9 0-7-3.1-7-7s3.1-7 7-7zm0 3c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4 1.8-4 4-4z',
-    );
+/**
+ * Clone a template element by its ID.
+ *
+ * @param {string} templateId
+ * @returns {DocumentFragment}
+ */
+function cloneTemplate(templateId) {
+    return document.getElementById(templateId).content.cloneNode(true);
 }
 
-// Need to wait up until page is load, so the svg viewBox can be changed
-// And the search label can be inserted
-window.addEventListener('load', () => {
-    changeSVGViewBoxGoogle();
+function searchPageQuery(query) {
+    const resultsContainer = document.getElementById('search-page-results');
+    if (!query.trim()) {
+        resultsContainer.innerHTML = '';
+        return;
+    }
 
-    updateGoogleSearchIcon();
+    resultsContainer.innerHTML = '';
+    resultsContainer.appendChild(cloneTemplate('search-loading-template'));
 
-    // Add required into the search input
-    const searchInput = document.getElementById('gsc-i-id1');
-    searchInput.setAttribute('required', '');
+    askHelpsiteAI(query);
 
-    // Insert search label after the search input
-    const searchLabel = document.createElement('label');
-    searchLabel.classList.add('search-label');
-    searchLabel.innerHTML = 'Search for something...';
-    insertElementAfter(searchInput, searchLabel);
-});
+    const formData = new FormData();
+    formData.append('command', 'SearchHelpsite');
+    formData.append('query', query.trim());
 
-const FIXED_HEADER_HEIGHT = 80;
+    const platform = new URLSearchParams(window.location.search).get('platform');
+    if (platform) {
+        formData.append('platform', platform);
+    }
+
+    fetch(SEARCH_API_URL, {method: 'POST', body: formData})
+        .then((response) => response.json())
+        .then((data) => {
+            const results = (data.searchResults || []).filter((result) => !result.url.includes('/Unlisted/'));
+            resultsContainer.innerHTML = '';
+            if (results.length === 0) {
+                resultsContainer.appendChild(cloneTemplate('search-no-results-template'));
+                return;
+            }
+            results.forEach((result) => {
+                const item = cloneTemplate('search-result-item-template');
+                const link = item.querySelector('.search-result-item');
+                link.href = result.url;
+                link.querySelector('.search-result-title').textContent = getTitleFromURL(result.url);
+                const description = link.querySelector('.search-result-description');
+                if (result.description) {
+                    description.textContent = result.description;
+                } else {
+                    description.remove();
+                }
+                resultsContainer.appendChild(item);
+            });
+        })
+        .catch(() => {
+            resultsContainer.innerHTML = '';
+            resultsContainer.appendChild(cloneTemplate('search-error-template'));
+        });
+}
+
+function clearSearchInput() {
+    const input = document.getElementById('search-page-input');
+    input.value = '';
+    input.focus();
+}
+
+let aiAbortController = null;
+
+let turndownService = null;
+if (typeof TurndownService !== 'undefined') {
+    turndownService = new TurndownService({headingStyle: 'atx', bulletListMarker: '-'});
+    turndownService.escape = (text) => text;
+    turndownService.addRule('bold', {
+        filter: ['strong', 'b'],
+        replacement: (content) => '*' + content + '*',
+    });
+}
+
+function copyAIResponseToClipboard(button, content) {
+    const text = turndownService ? turndownService.turndown(content.innerHTML) : content.innerText;
+    navigator.clipboard
+        .writeText(text)
+        .then(() => {
+            button.classList.add('copied');
+            setTimeout(() => {
+                button.classList.remove('copied');
+            }, 1500);
+        })
+        .catch(() => {});
+}
+
+function askHelpsiteAI(query) {
+    const aiContainer = document.getElementById('ai-answer-container');
+    if (!aiContainer) {
+        return;
+    }
+
+    if (aiAbortController) {
+        aiAbortController.abort();
+    }
+    aiAbortController = new AbortController();
+
+    aiContainer.innerHTML = '';
+    aiContainer.appendChild(cloneTemplate('ai-thinking-template'));
+
+    const formData = new FormData();
+    formData.append('command', 'AskHelpsiteAI');
+    formData.append('query', query.trim());
+
+    const platform = new URLSearchParams(window.location.search).get('platform');
+    if (platform) {
+        formData.append('platform', platform);
+    }
+
+    fetch(ASK_AI_API_URL, {
+        method: 'POST',
+        body: formData,
+        signal: aiAbortController.signal,
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            const answer = data.answer || '';
+            if (!answer) {
+                aiContainer.innerHTML = '';
+                return;
+            }
+
+            const template = cloneTemplate('ai-response-template');
+            const content = template.querySelector('.ai-content');
+            content.innerHTML = DOMPurify.sanitize(answer, {
+                ALLOWED_TAGS: ['p', 'br', 'strong', 'b', 'em', 'i', 'ul', 'ol', 'li', 'a', 'code', 'pre'],
+                ALLOWED_ATTR: ['href', 'target', 'rel'],
+            });
+
+            const showMoreButton = template.querySelector('.ai-show-more');
+            aiContainer.innerHTML = '';
+            aiContainer.appendChild(template);
+
+            const renderedCopyButton = aiContainer.querySelector('.ai-copy-button');
+            const renderedContentForCopy = aiContainer.querySelector('.ai-content');
+            renderedCopyButton.addEventListener('click', () => {
+                copyAIResponseToClipboard(renderedCopyButton, renderedContentForCopy);
+            });
+
+            // Show "Show more" button if content overflows
+            const renderedContent = aiContainer.querySelector('.ai-content');
+            if (renderedContent.scrollHeight > renderedContent.clientHeight) {
+                renderedContent.classList.add('has-overflow');
+                showMoreButton.classList.remove('hidden');
+                showMoreButton.addEventListener('click', () => {
+                    renderedContent.classList.toggle('expanded');
+                    showMoreButton.firstChild.textContent = renderedContent.classList.contains('expanded') ? 'Show less ' : 'Show more ';
+                });
+            }
+        })
+        .catch((error) => {
+            if (error.name === 'AbortError') {
+                return;
+            }
+            aiContainer.innerHTML = '';
+            aiContainer.appendChild(cloneTemplate('ai-error-template'));
+        });
+}
+
+function initSearchPage() {
+    const searchForm = document.getElementById('search-page-form');
+    if (!searchForm) {
+        return;
+    }
+
+    const input = document.getElementById('search-page-input');
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q') || '';
+    const platform = params.get('platform') || '';
+
+    const title = document.getElementById('search-page-title');
+    if (query) {
+        input.value = query;
+        title.textContent = 'Search results';
+        searchPageQuery(query);
+    }
+
+    input.focus();
+
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const query = input.value.trim();
+        if (query) {
+            const url = '/search?q=' + encodeURIComponent(query) + (platform ? '&platform=' + encodeURIComponent(platform) : '');
+            history.replaceState(null, '', url);
+            title.textContent = 'Search results';
+            searchPageQuery(query);
+        }
+    });
+
+    document.getElementById('search-page-clear').addEventListener('click', clearSearchInput);
+}
+
+const ARTICLE_TOC_SELECTOR = '.article-toc';
+const TOC_LINK_CLASS = 'link';
+const ACTIVE_TOC_LINK_CLASS = 'selected-article';
+
+function getArticleTocLinks() {
+    return document.querySelectorAll(`${ARTICLE_TOC_SELECTOR} .${TOC_LINK_CLASS}`);
+}
+
+/**
+ * decodeURIComponent throws on a stray %, which would skip search and header-menu setup.
+ * Keep the raw fragment so a bad hash only fails to highlight.
+ *
+ * @param {String} value
+ * @returns {String}
+ */
+function decodeHashFragment(value) {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+}
+
+function getHeadingForTocLink(link) {
+    const headingID = decodeHashFragment(link.href.split('#').pop());
+    return headingID ? document.getElementById(headingID) : null;
+}
+
+function setActiveTocLink(activeLink) {
+    getArticleTocLinks().forEach((link) => {
+        link.classList.toggle(ACTIVE_TOC_LINK_CLASS, link === activeLink);
+    });
+}
+
+// Highlights the entry matching the URL hash, so that landing on a deep link, or coming back to one
+// through the browser's history, bolds the same section a click on that entry would have.
+function highlightTocLinkForHash() {
+    if (!window.location.hash) {
+        return;
+    }
+    const headingID = decodeHashFragment(window.location.hash.slice(1)).toLowerCase();
+    const link = Array.from(getArticleTocLinks()).find((tocLink) => getHeadingForTocLink(tocLink)?.id.toLowerCase() === headingID);
+    if (!link) {
+        return;
+    }
+    setActiveTocLink(link);
+}
 
 const tocbotOptions = {
     // Where to render the table of contents.
-    tocSelector: '.article-toc',
+    tocSelector: ARTICLE_TOC_SELECTOR,
 
     // Where to grab the headings to build the table of contents.
     contentSelector: '',
@@ -183,132 +378,51 @@ const tocbotOptions = {
     listClass: 'lhn-items',
 
     // Main class to add to links.
-    linkClass: 'link',
+    linkClass: TOC_LINK_CLASS,
 
-    // Class to add to active links,
-    // the link corresponding to the top most heading on the page.
-    activeLinkClass: 'selected-article',
+    // The highlight follows what the reader asked for, so it is applied in `onClick` and by
+    // `highlightTocLinkForHash`. tocbot's own scrollspy would fight that by reassigning the class
+    // from the scroll position, so its active class is pointed at an unstyled name to disable it.
+    activeLinkClass: 'tocbot-active-link',
 
-    // Headings offset between the headings and the top of the document (requires scrollSmooth enabled)
-    headingsOffset: FIXED_HEADER_HEIGHT,
-    scrollSmoothOffset: -FIXED_HEADER_HEIGHT,
-    scrollSmooth: true,
-
-    // If there is a fixed article scroll container, set to calculate titles' offset
-    scrollContainer: 'content-area',
+    // `overflow-x: hidden` on `html, body` in _main.scss makes `overflow-y` compute to `auto`, so
+    // `body` is the element that scrolls the page. tocbot scrolls with `window.scrollTo`, which does
+    // nothing when the documentElement is not the scrolling element, so `onClick` uses
+    // `scrollIntoView`: it scrolls whichever ancestor scrolls and honours its `scroll-padding-top`.
+    scrollSmooth: false,
 
     onClick: (e) => {
         e.preventDefault();
+
+        setActiveTocLink(e.target);
+
+        const heading = getHeadingForTocLink(e.target);
+        if (!heading) {
+            return;
+        }
+
         const hashText = e.target.href.split('#').pop();
         // Append hashText to the current URL without saving to history
         const newUrl = `${window.location.pathname}#${hashText}`;
         history.replaceState(null, '', newUrl);
+
+        heading.scrollIntoView({behavior: 'smooth', block: 'start'});
     },
 };
 
-// Define the media query string for the mobile breakpoint
-const mobileBreakpoint = window.matchMedia('(max-width: 799px)');
-
-// Function to update tocbot options and refresh
-function updateTocbotOptions(headingsOffset, scrollSmoothOffset) {
-    tocbotOptions.headingsOffset = headingsOffset;
-    tocbotOptions.scrollSmoothOffset = scrollSmoothOffset;
-    window.tocbot.refresh({
-        ...tocbotOptions,
-    });
-}
-
-function handleBreakpointChange() {
-    const isMobile = mobileBreakpoint.matches;
-    const headingsOffset = isMobile ? FIXED_HEADER_HEIGHT : 0;
-    const scrollSmoothOffset = isMobile ? -FIXED_HEADER_HEIGHT : 0;
-
-    // Update tocbot options only if there is a change in offsets
-    if (tocbotOptions.headingsOffset !== headingsOffset || tocbotOptions.scrollSmoothOffset !== scrollSmoothOffset) {
-        updateTocbotOptions(headingsOffset, scrollSmoothOffset);
-    }
-}
-
-// Add listener for changes to the media query status using addEventListener
-mobileBreakpoint.addEventListener('change', handleBreakpointChange);
-
-// Initial check
-handleBreakpointChange();
-
-function selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    newExpensifyTab.classList.add('active');
-    newExpensifyContent.classList.remove('hidden');
-
-    if (expensifyClassicTab && expensifyClassicContent) {
-        expensifyClassicTab.classList.remove('active');
-        expensifyClassicContent.classList.add('hidden');
-    }
-    window.tocbot.refresh({
-        ...tocbotOptions,
-        contentSelector: '#new-expensify',
-    });
-}
-
-function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent) {
-    expensifyClassicTab.classList.add('active');
-    expensifyClassicContent.classList.remove('hidden');
-
-    if (newExpensifyTab && newExpensifyContent) {
-        newExpensifyTab.classList.remove('active');
-        newExpensifyContent.classList.add('hidden');
-    }
-
-    window.tocbot.refresh({
-        ...tocbotOptions,
-        contentSelector: '#expensify-classic',
-    });
-}
-
 window.addEventListener('DOMContentLoaded', () => {
-    injectFooterCopywrite();
-
-    // Handle open & close the sidebar
-    const buttonOpenSidebar = document.getElementById('toggle-search-open');
-    if (buttonOpenSidebar) {
-        buttonOpenSidebar.addEventListener('click', openSidebar);
-    }
-
-    const buttonCloseSidebar = document.getElementById('toggle-search-close');
-    if (buttonCloseSidebar) {
-        buttonCloseSidebar.addEventListener('click', closeSidebar);
-    }
-
-    const expensifyClassicTab = document.getElementById('platform-tab-expensify-classic');
-    const newExpensifyTab = document.getElementById('platform-tab-new-expensify');
-
-    const expensifyClassicContent = document.getElementById('expensify-classic');
-    const newExpensifyContent = document.getElementById('new-expensify');
-
-    let contentSelector = '.article-toc-content';
-    if (expensifyClassicContent) {
-        contentSelector = '#expensify-classic';
-        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    } else if (newExpensifyContent) {
-        contentSelector = '#new-expensify';
-        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    }
+    injectFooterCopyright();
 
     if (window.tocbot) {
         window.tocbot.init({
             ...tocbotOptions,
-            contentSelector,
+            contentSelector: '.article-toc-content',
         });
     }
 
-    // eslint-disable-next-line es/no-optional-chaining
-    expensifyClassicTab?.addEventListener('click', () => {
-        selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    });
+    highlightTocLinkForHash();
 
-    // eslint-disable-next-line es/no-optional-chaining
-    newExpensifyTab?.addEventListener('click', () => {
-        selectNewExpensify(newExpensifyTab, newExpensifyContent, expensifyClassicTab, expensifyClassicContent);
-    });
+    initSearchPage();
 
     document.getElementById('header-button').addEventListener('click', toggleHeaderMenu);
 
@@ -344,8 +458,28 @@ window.addEventListener('DOMContentLoaded', () => {
         const scrollingElement = e.target.scrollingElement;
         const scrollPercentageInArticleContent = clamp(scrollingElement.scrollTop - articleContent.offsetTop, 0, articleContent.scrollHeight) / articleContent.scrollHeight;
         lhnContent.scrollTop = scrollPercentageInArticleContent * lhnContent.scrollHeight;
-
-        // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
-        document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
+});
+
+if (window.location.hash) {
+    const lowerCaseHash = window.location.hash.toLowerCase();
+    const element = document.getElementById(lowerCaseHash.slice(1));
+
+    if (element) {
+        element.scrollIntoView({
+            behavior: 'smooth',
+        });
+    }
+}
+
+// Handle hash changes (like back/forward navigation)
+window.addEventListener('hashchange', () => {
+    if (!window.location.hash) {
+        return;
+    }
+    const lowerCaseHash = window.location.hash.toLowerCase();
+    document.getElementById(lowerCaseHash.slice(1))?.scrollIntoView({
+        behavior: 'smooth',
+    });
+    highlightTocLinkForHash();
 });

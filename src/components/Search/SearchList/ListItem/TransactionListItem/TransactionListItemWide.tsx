@@ -1,0 +1,260 @@
+import {useEditingCellState} from '@components/EditableCell';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+import type {ListItem} from '@components/SelectionList/types';
+import TransactionItemRow from '@components/TransactionItemRow';
+
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useSyncFocus from '@hooks/useSyncFocus';
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
+
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
+
+import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+
+import type {TransactionListItemWideProps} from './types';
+
+function TransactionListItemWide<TItem extends ListItem>({
+    item,
+    isDeletedTransaction,
+    isFocused,
+    showTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onSelectRow,
+    onCheckboxPress,
+    onFocus,
+    onLongPressRow,
+    shouldSyncFocus,
+    columns,
+    isLoading,
+    isActionLoading,
+    isLastItem,
+    transactionViolations,
+    handleActionButtonPress,
+    shouldDisableActionPointerEvents,
+    transactionPreviewData,
+    reportActions,
+    policyCategories,
+    policyTagLists,
+    rowPolicy,
+    nonPersonalAndWorkspaceCards,
+    isAttendeesEnabledForMovingPolicy,
+    currentSearchHash,
+    chatReport,
+}: TransactionListItemWideProps<TItem>) {
+    const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
+    useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+
+    const transactionItem = item as unknown as TransactionListItemType;
+    const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
+
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
+
+    // When a popover is opened during inline editing, onHoverOut never fires after editing ends, leaving the hover style stuck.
+    // Disable it until the next intentional hover (onHoverIn).
+    // See: https://github.com/Expensify/App/pull/83127#issuecomment-4114490080
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
+
+    const {
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        wasEditingOnMouseDownRef,
+    } = useTransactionInlineEdit({
+        transactionID: transactionItem.transactionID,
+        hash: currentSearchHash,
+        linkedReportAction: transactionItem.reportAction,
+    });
+
+    const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
+        // Consume the tap that dismissed an editing cell — a second tap will open the row.
+        // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
+        if (wasEditingOnMouseDownRef.current) {
+            wasEditingOnMouseDownRef.current = false;
+            return;
+        }
+        // react-native-web fires onPress on Space for role="button" elements; suppress it while a cell is being edited.
+        if (isEditingCell) {
+            return;
+        }
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isDeletedTransaction) {
+            if (canSelectMultiple) {
+                onCheckboxPress?.(item);
+            }
+            return;
+        }
+        onSelectRow(item, transactionPreviewData, event);
+    };
+
+    const handleOnMouseDown = (e?: React.MouseEvent) => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+        const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+
+        // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
+        if (!isEditingCell && !isCopyableTarget) {
+            e?.preventDefault();
+        }
+    };
+
+    const handleOnHoverIn = () => setShouldDisableHoverStyle(false);
+
+    const amountColumnSize = transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const taxAmountColumnSize = transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const dateColumnSize = transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const submittedColumnSize = transactionItem.shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const approvedColumnSize = transactionItem.shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const paidColumnSize = transactionItem.shouldShowYearPaid ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const postedColumnSize = transactionItem.shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const exportedColumnSize = transactionItem.shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+
+    const pressableStyle = [
+        styles.transactionListItemStyle,
+        isSelected && styles.activeComponentBG,
+        {
+            ...styles.flexRow,
+            ...styles.justifyContentBetween,
+            ...styles.alignItemsCenter,
+            ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected),
+        },
+    ];
+
+    return (
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
+            <PressableWithFeedback
+                ref={pressableRef}
+                onLongPress={() => {
+                    if (shouldSuppressCopyableTextRowLongPress()) {
+                        return;
+                    }
+                    onLongPressRow?.(item);
+                }}
+                onPress={handleOnPress}
+                disabled={isDisabled && !isSelected}
+                accessibilityLabel={item.text ?? ''}
+                role={!isDeletedTransaction ? CONST.ROLE.BUTTON : 'none'}
+                isNested
+                shouldAllowTextSelection
+                onMouseDown={handleOnMouseDown}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
+                onHoverIn={handleOnHoverIn}
+                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
+                id={item.keyForList ?? ''}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
+                style={[
+                    pressableStyle,
+                    isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
+                    isDeletedTransaction && styles.cursorDefault,
+                ]}
+                onFocus={(event) => {
+                    if (shouldSuppressCopyableTextRowFocus()) {
+                        return;
+                    }
+                    onFocus?.(event);
+                }}
+                wrapperStyle={[
+                    pageGutterMargin,
+                    styles.flex1,
+                    StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                    styles.userSelectNone,
+                    isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+                ]}
+            >
+                {({hovered}) => (
+                    <TransactionItemRow
+                        transactionItem={transactionItem}
+                        report={transactionItem.report}
+                        chatReport={chatReport}
+                        policy={rowPolicy ?? transactionItem.policy}
+                        policyCategories={policyCategories}
+                        policyTagLists={policyTagLists}
+                        shouldShowTooltip={showTooltip}
+                        onButtonPress={handleActionButtonPress}
+                        onCheckboxPress={(_transactionID, shiftKey) => onCheckboxPress?.(item, undefined, shiftKey)}
+                        shouldUseNarrowLayout={false}
+                        shouldUseFullHeightEditableCellHoverTarget
+                        shouldSkipDeferRBR
+                        isLargeScreenWidth
+                        columns={columns}
+                        isActionLoading={isLoading ?? isActionLoading}
+                        isSelected={isSelected}
+                        isDisabled={!!isDisabled}
+                        shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
+                        dateColumnSize={dateColumnSize}
+                        submittedColumnSize={submittedColumnSize}
+                        approvedColumnSize={approvedColumnSize}
+                        paidColumnSize={paidColumnSize}
+                        postedColumnSize={postedColumnSize}
+                        exportedColumnSize={exportedColumnSize}
+                        amountColumnSize={amountColumnSize}
+                        taxAmountColumnSize={taxAmountColumnSize}
+                        isActionColumnWide={transactionItem.isActionColumnWide}
+                        shouldShowCheckbox={!!canSelectMultiple}
+                        checkboxSentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM_CHECKBOX}
+                        style={[styles.ph3, isLastItem ? styles.tableBottomRadius : styles.noBorderRadius]}
+                        violations={transactionViolations}
+                        onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
+                        isHover={hovered}
+                        nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+                        reportActions={reportActions}
+                        isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
+                        onEditDate={onEditDate}
+                        onEditMerchant={onEditMerchant}
+                        onEditDescription={onEditDescription}
+                        onEditCategory={onEditCategory}
+                        onEditAmount={onEditAmount}
+                        onEditTag={onEditTag}
+                        canEditDate={canEditDate}
+                        canEditMerchant={canEditMerchant}
+                        canEditDescription={canEditDescription}
+                        canEditCategory={canEditCategory}
+                        canEditAmount={canEditAmount}
+                        canEditTag={canEditTag}
+                    />
+                )}
+            </PressableWithFeedback>
+        </OfflineWithFeedback>
+    );
+}
+
+export default TransactionListItemWide;

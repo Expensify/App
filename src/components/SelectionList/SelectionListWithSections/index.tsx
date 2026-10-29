@@ -1,0 +1,32 @@
+import useWebSelectionListBehavior from '@components/SelectionList/hooks/useWebSelectionListBehavior';
+
+import React from 'react';
+
+import type {ListItem, SelectionListWithSectionsProps} from './types';
+
+import BaseSelectionList from './BaseSelectionListWithSections';
+
+function SelectionList<TItem extends ListItem>({shouldHideKeyboardOnScroll = true, ref, ...props}: SelectionListWithSectionsProps<TItem>) {
+    const {shouldIgnoreFocus, shouldDebounceScrolling, shouldDisableHoverStyle, setShouldDisableHoverStyle, onScroll} = useWebSelectionListBehavior({
+        shouldTrackHoverStyle: true,
+        shouldHideKeyboardOnScroll,
+    });
+
+    return (
+        <BaseSelectionList
+            // Props spreading is necessary here to pass through all SelectionList props while adding web-specific behavior
+
+            {...props}
+            ref={ref}
+            onScroll={onScroll}
+            // Ignore the focus if it's caused by a touch event on mobile chrome.
+            // For example, a long press will trigger a focus event on mobile chrome.
+            shouldIgnoreFocus={shouldIgnoreFocus}
+            shouldDebounceScrolling={shouldDebounceScrolling}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
+            setShouldDisableHoverStyle={setShouldDisableHoverStyle}
+        />
+    );
+}
+
+export default SelectionList;

@@ -1,104 +1,87 @@
-import type {ImageContentFit} from 'expo-image';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import ImageSVG from '@components/ImageSVG';
+
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import type IconAsset from '@src/types/utils/IconAsset';
-import IconWrapperStyles from './IconWrapperStyles';
+
+import type {ImageContentFit} from 'expo-image';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type IconSize from './types';
 
 type IconProps = {
-    /** The asset to render. */
-    src: IconAsset;
+    src: IconAsset | undefined;
 
-    /** The width of the icon. */
+    /** Custom width when no preset size is selected. */
     width?: number;
 
-    /** The height of the icon. */
+    /** Custom height when no preset size is selected. */
     height?: number;
 
-    /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
+    /** Fill color for the SVG. */
     fill?: string;
 
-    /** Is small icon */
-    small?: boolean;
+    /** Preset icon size. */
+    size?: IconSize;
 
-    /** Is large icon */
-    large?: boolean;
-
-    /** Is medium icon */
-    medium?: boolean;
-
-    /** Is inline icon */
-    inline?: boolean;
-
-    /** Is icon hovered */
     hovered?: boolean;
-
-    /** Is icon pressed */
     pressed?: boolean;
 
-    /** Additional styles to add to the Icon */
+    /** Additional styles for the icon wrapper. */
     additionalStyles?: StyleProp<ViewStyle>;
 
-    /** Used to locate this icon in end-to-end tests. */
+    /** Test identifier for end-to-end tests. */
     testID?: string;
 
-    /** Determines how the image should be resized to fit its container */
+    /** How the SVG content should fit its container. */
     contentFit?: ImageContentFit;
 
-    /** Determines whether the icon is being used within a button. The icon size will remain the same for both icon-only buttons and buttons with text. */
+    /** Keeps icon sizing consistent when used inside buttons. */
     isButtonIcon?: boolean;
+
+    /** When set, exposes the icon to assistive tech. Leave unset for decorative icons. */
+    accessibilityLabel?: string;
 };
 
+/** Renders an SVG icon with preset sizes. */
 function Icon({
     src,
     width = variables.iconSizeNormal,
     height = variables.iconSizeNormal,
     fill = undefined,
-    small = false,
-    large = false,
-    medium = false,
-    inline = false,
+    size,
     additionalStyles = [],
     hovered = false,
     pressed = false,
     testID = '',
     contentFit = 'cover',
     isButtonIcon = false,
+    accessibilityLabel,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
-    const styles = useThemeStyles();
-    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, isButtonIcon);
-    const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
 
-    if (inline) {
-        return (
-            <View
-                testID={testID}
-                style={[StyleUtils.getWidthAndHeightStyle(width ?? 0, height), styles.bgTransparent, styles.overflowVisible]}
-            >
-                <View style={iconStyles}>
-                    <ImageSVG
-                        src={src}
-                        width={iconWidth}
-                        height={iconHeight}
-                        fill={fill}
-                        hovered={hovered}
-                        pressed={pressed}
-                        contentFit={contentFit}
-                    />
-                </View>
-            </View>
-        );
+    if (!src) {
+        return null;
     }
+
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(size, width, height, isButtonIcon);
+    const hasLabel = !!accessibilityLabel;
 
     return (
         <View
             testID={testID}
             style={additionalStyles}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityRole={hasLabel ? 'image' : undefined}
+            accessibilityElementsHidden={!hasLabel}
+            importantForAccessibility={hasLabel ? 'yes' : 'no-hide-descendants'}
+            accessible={hasLabel}
+            pointerEvents="none"
         >
             <ImageSVG
                 src={src}
@@ -108,12 +91,11 @@ function Icon({
                 hovered={hovered}
                 pressed={pressed}
                 contentFit={contentFit}
+                pointerEvents="none"
             />
         </View>
     );
 }
 
-Icon.displayName = 'Icon';
-
-export type {IconProps};
 export default Icon;
+export type {IconProps};

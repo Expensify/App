@@ -1,29 +1,50 @@
-import {Str} from 'expensify-common';
-import React, {memo, useContext, useEffect, useState} from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import MultiGestureIcon from '@components/Attachments/MultiGestureIcon';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
-import DistanceEReceipt from '@components/DistanceEReceipt';
+import Button from '@components/Button';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useSession} from '@components/OnyxListItemProvider';
+import PerDiemEReceipt from '@components/PerDiemEReceipt';
+import ScaledDistanceEReceipt from '@components/ScaledDistanceEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
+
+import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
+import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CachedPDFPaths from '@libs/actions/CachedPDFPaths';
+
+import {add as addCachedPDFPaths} from '@libs/actions/CachedPDFPaths';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {hasEReceipt, hasReceiptSource, isMapBasedDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
+
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+
+import type {RotationDegrees} from 'react-fast-pdf';
+import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {SafeString, Str} from 'expensify-common';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
@@ -34,13 +55,8 @@ type AttachmentViewProps = Attachment & {
     /** Whether this view is the active screen  */
     isFocused?: boolean;
 
-    /** Function for handle on press */
     onPress?: (e?: GestureResponderEvent | KeyboardEvent) => void;
-
-    /** Whether the attachment is used in attachment modal */
     isUsedInAttachmentModal?: boolean;
-
-    /** Flag to show/hide download icon */
     shouldShowDownloadIcon?: boolean;
 
     /** Flag to show the loading indicator */
@@ -64,23 +80,35 @@ type AttachmentViewProps = Attachment & {
     /** Fallback source to use in case of error */
     fallbackSource?: AttachmentSource;
 
-    /* Whether it is hovered or not */
     isHovered?: boolean;
-
-    /** Whether the attachment is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
-
-    /* Flag indicating whether the attachment has been uploaded. */
     isUploaded?: boolean;
-
-    /** Whether the attachment is deleted */
     isDeleted?: boolean;
 
     /** Flag indicating if the attachment is being uploaded. */
     isUploading?: boolean;
+
+    /** The reportID related to the attachment */
+    reportID?: string;
+
+    /** Transaction object. When provided, will be used instead of fetching from Onyx. */
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
+
+    /** Controlled rotation angle for the PDF */
+    rotation?: RotationDegrees;
 };
 
+function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined, fileType?: string) {
+    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
+
+    const isFileNameImage = !!fileName && Str.isImage(fileName);
+    const isFileTypeImage = !!fileType?.startsWith('image/') && Str.isImage(`image.${fileType.slice('image/'.length)}`);
+
+    return isSourceImage || isFileNameImage || isFileTypeImage;
+}
+
 function AttachmentView({
+    attachmentID,
     source,
     previewSource,
     file,
@@ -104,37 +132,67 @@ function AttachmentView({
     isUploaded = true,
     isDeleted,
     isUploading = false,
+    reportID,
+    transaction: transactionProp,
+    rotation,
 }: AttachmentViewProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Gallery']);
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const transaction = transactionProp ?? transactionFromOnyx;
+    const session = useSession();
+    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const {translate} = useLocalize();
-    const {updateCurrentlyPlayingURL} = usePlaybackContext();
-    const attachmentCarouselPagerContext = useContext(AttachmentCarouselPagerContext);
+    const {updateCurrentURLAndReportID} = usePlaybackActionsContext();
+    const report = useReportOrReportDraft(reportID);
 
+    const actions = useAttachmentCarouselPagerActions();
+    const {onAttachmentError, onTap} = actions ?? {};
     const theme = useTheme();
+    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [loadComplete, setLoadComplete] = useState(false);
     const [isHighResolution, setIsHighResolution] = useState<boolean>(false);
     const [hasPDFFailedToLoad, setHasPDFFailedToLoad] = useState(false);
     const isVideo = (typeof source === 'string' && Str.isVideo(source)) || (file?.name && Str.isVideo(file.name));
-    const isUsedInCarousel = !!attachmentCarouselPagerContext?.pagerRef;
+    const firstRenderRoute = useFirstRenderRoute();
+    const isInFocusedModal = firstRenderRoute.isFocused && isFocused === undefined;
 
     useEffect(() => {
-        if (!isFocused && !(file && isUsedInAttachmentModal)) {
+        // When isFocused is provided (carousel items), it alone decides whether this attachment owns
+        // the current URL, so unfocused pages never clobber it. The modal escape hatch only applies
+        // to usages that don't track focus (e.g. the single-attachment modal).
+        const shouldUpdateCurrentURL = isFocused ?? (isInFocusedModal || !!(file && isUsedInAttachmentModal));
+        if (!shouldUpdateCurrentURL) {
             return;
         }
-        updateCurrentlyPlayingURL(isVideo && typeof source === 'string' ? source : null);
-    }, [file, isFocused, isUsedInAttachmentModal, isVideo, source, updateCurrentlyPlayingURL]);
+        const videoSource = isVideo && typeof source === 'string' ? source : undefined;
+        updateCurrentURLAndReportID(videoSource, report, reportID);
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID, report]);
 
     const [imageError, setImageError] = useState(false);
+
+    const cachedSource = useCachedAttachmentSource(attachmentID, typeof source === 'string' ? source : undefined);
+
+    const [prevCachedSource, setPrevCachedSource] = useState(cachedSource);
+    if (cachedSource !== prevCachedSource) {
+        setPrevCachedSource(cachedSource);
+        setImageError(false);
+    }
 
     const {isOffline} = useNetwork({onReconnect: () => setImageError(false)});
 
     useEffect(() => {
-        FileUtils.getFileResolution(file).then((resolution) => {
-            setIsHighResolution(FileUtils.isHighResolutionImage(resolution));
+        getFileResolution(file).then((resolution) => {
+            setIsHighResolution(isHighResolutionImage(resolution));
         });
     }, [file]);
+
+    useEffect(() => {
+        const isImageSource = typeof source !== 'function' && checkIsFileImage(source, file?.name, file?.type);
+        const isErrorInImage = imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function');
+        onAttachmentError?.(source, isErrorInImage && isImageSource);
+    }, [fallbackSource, file?.name, file?.type, imageError, onAttachmentError, source]);
 
     // Handles case where source is a component (ex: SVG) or a number
     // Number may represent a SVG or an image
@@ -147,18 +205,33 @@ function AttachmentView({
             additionalStyles = [defaultWorkspaceAvatarColor];
         }
 
+        if (canUseTouchScreen()) {
+            return (
+                <MultiGestureIcon
+                    src={source}
+                    contentSize={{width: variables.avatarPreview, height: variables.avatarPreview}}
+                    fill={iconFillColor}
+                    additionalStyles={additionalStyles}
+                />
+            );
+        }
+
         return (
             <Icon
                 src={source}
-                height={variables.defaultAvatarPreviewSize}
-                width={variables.defaultAvatarPreviewSize}
+                height={variables.avatarPreview}
+                width={variables.avatarPreview}
                 fill={iconFillColor}
                 additionalStyles={additionalStyles}
             />
         );
     }
 
-    if (transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction)) {
+    if (isPerDiemRequest(transaction) && transaction && !hasReceiptSource(transaction)) {
+        return <PerDiemEReceipt transactionID={transaction.transactionID} />;
+    }
+
+    if (transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction)) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter]}>
                 <ScrollView
@@ -171,17 +244,42 @@ function AttachmentView({
         );
     }
 
+    // New Expensify builds the distance e-receipt from the expense, which is why the server stores only the route
+    // map as the thumbnail for it to draw around. The generated PDF beside it is for Expensify Classic, which
+    // cannot build one in the frontend, and it prints the routed trip rather than what the expense bills. Showing
+    // that PDF here made the enlarged receipt contradict every other surface, so draw the card instead. This runs
+    // before the PDF branch below, which would otherwise return first.
+    // See https://github.com/Expensify/Expensify/issues/545298 and https://github.com/Expensify/App/issues/97013.
+    if (transaction && isMapBasedDistanceRequest(transaction)) {
+        return <ScaledDistanceEReceipt transaction={transaction} />;
+    }
+
     // Check both source and file.name since PDFs dragged into the text field
     // will appear with a source that is a blob
     const isSourcePDF = typeof source === 'string' && Str.isPDF(source);
     const isFilePDF = file && Str.isPDF(file.name ?? translate('attachmentView.unknownFilename'));
-    if (!hasPDFFailedToLoad && (isSourcePDF || isFilePDF)) {
-        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string) : (source as string);
+    if (!hasPDFFailedToLoad && !isUploading && (isSourcePDF || isFilePDF)) {
+        // Every mounted PDF viewer is a full PDF.js document parse (its own worker + parsed document), so in a
+        // carousel the memory cost scales with the number of PDF attachments — enough to OOM the WebContent
+        // process on iOS Safari and reload the tab when several PDFs are added at once. Only mount the viewer
+        // for the item the carousel currently focuses; off-screen items render a lightweight placeholder until
+        // they're swiped to. isFocused is undefined outside the carousel (single-attachment hosts), which must
+        // keep mounting immediately.
+        if (isFocused === false) {
+            return (
+                <DefaultAttachmentView
+                    fileName={file?.name}
+                    shouldShowLoadingSpinnerIcon
+                    containerStyles={containerStyles}
+                />
+            );
+        }
+        const encryptedSourceUrl = isAuthTokenRequired ? addEncryptedAuthTokenToURL(source as string, encryptedAuthToken) : (source as string);
 
         const onPDFLoadComplete = (path: string) => {
-            const id = (transaction && transaction.transactionID) ?? reportActionID;
+            const id = transaction?.transactionID ?? reportActionID;
             if (path && id) {
-                CachedPDFPaths.add(id, path);
+                addCachedPDFPaths(id, path);
             }
             if (!loadComplete) {
                 setLoadComplete(true);
@@ -195,7 +293,7 @@ function AttachmentView({
 
         // We need the following View component on android native
         // So that the event will propagate properly and
-        // the Password protected preview will be shown for pdf attachement we are about to send.
+        // the Password protected preview will be shown for pdf attachment we are about to send.
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
                 <AttachmentViewPdf
@@ -206,25 +304,26 @@ function AttachmentView({
                     onToggleKeyboard={onToggleKeyboard}
                     onLoadComplete={onPDFLoadComplete}
                     style={isUsedInAttachmentModal ? styles.imageModalPDF : styles.flex1}
+                    isUsedInAttachmentModal={isUsedInAttachmentModal}
                     isUsedAsChatAttachment={isUsedAsChatAttachment}
                     onLoadError={onPDFLoadError}
+                    rotation={rotation}
                 />
             </View>
         );
     }
 
-    if (TransactionUtils.isDistanceRequest(transaction) && transaction) {
-        return <DistanceEReceipt transaction={transaction} />;
-    }
-
     // For this check we use both source and file.name since temporary file source is a blob
     // both PDFs and images will appear as images when pasted into the text field.
     // We also check for numeric source since this is how static images (used for preview) are represented in RN.
-    const isSourceImage = typeof source === 'number' || (typeof source === 'string' && Str.isImage(source));
-    const isFileNameImage = file?.name && Str.isImage(file.name);
-    const isFileImage = isSourceImage || isFileNameImage;
 
-    if (isFileImage) {
+    // isLocalSource checks if the source is blob as that's the type of the temp image coming from mobile web
+    const isFileImage = checkIsFileImage(source, file?.name, file?.type);
+    const isLocalSourceImage = typeof source === 'string' && source.startsWith('blob:');
+
+    const isImage = isFileImage || (!file?.name && isLocalSourceImage);
+
+    if (isImage) {
         if (imageError && (typeof fallbackSource === 'number' || typeof fallbackSource === 'function')) {
             return (
                 <View style={[styles.flexColumn, styles.alignItemsCenter, styles.justifyContentCenter]}>
@@ -237,19 +336,31 @@ function AttachmentView({
                     <View>
                         <Text style={[styles.notFoundTextHeader]}>{translate('attachmentView.attachmentNotFound')}</Text>
                     </View>
+                    <Button
+                        onPress={() => {
+                            if (isOffline) {
+                                return;
+                            }
+                            setImageError(false);
+                        }}
+                        sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.RETRY_BUTTON}
+                    >
+                        <Button.Icon src={icons.ArrowCircleClockwise} />
+                        <Button.Text>{translate('attachmentView.retry')}</Button.Text>
+                    </Button>
                 </View>
             );
         }
 
-        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (source as string);
+        let imageSource = imageError && fallbackSource ? (fallbackSource as string) : (cachedSource ?? (source as string));
 
         if (isHighResolution) {
             if (!isUploaded) {
                 return (
                     <>
-                        <View style={styles.imageModalImageCenterContainer}>
+                        <View style={[styles.imageModalImageCenterContainer, styles.ph10]}>
                             <DefaultAttachmentView
-                                icon={Expensicons.Gallery}
+                                icon={icons.Gallery}
                                 fileName={file?.name}
                                 shouldShowDownloadIcon={shouldShowDownloadIcon}
                                 shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
@@ -260,28 +371,38 @@ function AttachmentView({
                     </>
                 );
             }
-            imageSource = previewSource?.toString() ?? imageSource;
+            imageSource = SafeString(previewSource) || imageSource;
         }
 
         return (
             <>
                 <View style={styles.imageModalImageCenterContainer}>
                     <AttachmentViewImage
+                        // Forces remount of high resolution images when transitioning from blob URL (uploading) to server URL (uploaded).
+                        // Prevents stale Image cache that causes "Attachment not found" errors.
+                        // See: https://github.com/Expensify/App/issues/76193
+                        key={attachmentID ? `${attachmentID}-${isHighResolution && isUploaded ? 'preview' : 'full'}` : undefined}
+                        attachmentID={attachmentID}
                         url={imageSource}
                         file={file}
                         isAuthTokenRequired={isAuthTokenRequired}
                         loadComplete={loadComplete}
-                        isImage={isFileImage}
+                        isImage={isImage}
                         onPress={onPress}
                         onError={() => {
                             if (isOffline) {
                                 return;
                             }
+
                             setImageError(true);
                         }}
                     />
                 </View>
-                {isHighResolution && <HighResolutionInfo isUploaded={isUploaded} />}
+                {isHighResolution && (
+                    <View style={safeAreaPaddingBottomStyle}>
+                        <HighResolutionInfo isUploaded={isUploaded} />
+                    </View>
+                )}
             </>
         );
     }
@@ -290,9 +411,12 @@ function AttachmentView({
         return (
             <AttachmentViewVideo
                 source={source}
-                shouldUseSharedVideoElement={isUsedInCarousel}
+                fileName={file?.name}
+                shouldUseSharedVideoElement={!CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix))}
                 isHovered={isHovered}
                 duration={duration}
+                reportID={reportID}
+                onTap={onTap}
             />
         );
     }
@@ -301,7 +425,6 @@ function AttachmentView({
         <DefaultAttachmentView
             fileName={file?.name}
             shouldShowDownloadIcon={shouldShowDownloadIcon}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon || isUploading}
             containerStyles={containerStyles}
             isDeleted={isDeleted}
@@ -310,8 +433,7 @@ function AttachmentView({
     );
 }
 
-AttachmentView.displayName = 'AttachmentView';
+export default AttachmentView;
 
-export default memo(AttachmentView);
-
+export {checkIsFileImage};
 export type {AttachmentViewProps};

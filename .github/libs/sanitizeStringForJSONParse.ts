@@ -8,7 +8,7 @@ const replacer = (str: string): string =>
         '\r': '\\r',
         '\f': '\\f',
         '"': '\\"',
-    }[str] ?? '');
+    })[str] ?? '';
 
 /**
  * Replace any characters in the string that will break JSON.parse for our Git Log output
@@ -22,7 +22,7 @@ const sanitizeStringForJSONParse = (inputString: string | number | boolean | nul
     }
 
     // Replace any newlines and escape backslashes
-    return inputString.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+    return inputString.replaceAll(/\\|\t|\n|\r|\f|"/g, replacer);
 };
 
 export default sanitizeStringForJSONParse;

@@ -1,31 +1,86 @@
-import {addDays, format, startOfDay, subYears} from 'date-fns';
-import * as Localize from '@libs/Localize';
+import type {FormOnyxValues} from '@components/Form/types';
+
 import CONST from '@src/CONST';
-import * as ValidationUtils from '@src/libs/ValidationUtils';
+import type {Country} from '@src/CONST';
+import {
+    containsHtmlTag,
+    getCountryZipRegexDetails,
+    getFieldRequiredErrors,
+    isValidZipCodeForCountry,
+    isValidNameOnCard,
+    getAgeRequirementError,
+    getInvalidAddressErrorTranslationPath,
+    isInvalidMerchantValue,
+    isPOBoxOrMailDrop,
+    isRequiredFulfilled,
+    isValidAccountRoute,
+    isValidAddress,
+    isValidDate,
+    isValidEmailWithTLD,
+    isValidExpirationDate,
+    isValidInputLength,
+    isValidLegalName,
+    isValidPastDate,
+    isValidPaymentZipCode,
+    isValidPersonName,
+    isValidPhoneNumber,
+    isValidPIN,
+    isValidRegistrationNumber,
+    isValidRoomName,
+    isValidTwoFactorCode,
+    isValidUSPhone,
+    isValidWebsite,
+    meetsMaximumAgeRequirement,
+    meetsMinimumAgeRequirement,
+} from '@src/libs/ValidationUtils';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import SIGNER_INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
+import type {FileObject} from '@src/types/utils/Attachment';
+
+import {addDays, format, startOfDay, subYears} from 'date-fns';
+import {CONST as COMMON_CONST} from 'expensify-common';
+
+import createMock from '../utils/createMock';
+import {translateLocal} from '../utils/TestHelper';
 
 describe('ValidationUtils', () => {
+    beforeAll(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2024-01-15'));
+    });
+
+    afterAll(() => {
+        jest.useRealTimers();
+    });
+
     describe('isValidDate', () => {
         test('Should return true for a valid date within the range', () => {
             const validDate = '2023-07-18';
-            const isValid = ValidationUtils.isValidDate(validDate);
+            const isValid = isValidDate(validDate);
             expect(isValid).toBe(true);
         });
 
         test('Should return false for an invalid date', () => {
             const invalidDate = '2023-07-32';
-            const isValid = ValidationUtils.isValidDate(invalidDate);
+            const isValid = isValidDate(invalidDate);
             expect(isValid).toBe(false);
         });
 
         test('Should return false for an empty date', () => {
             const invalidDate = '';
-            const isValid = ValidationUtils.isValidDate(invalidDate);
+            const isValid = isValidDate(invalidDate);
             expect(isValid).toBe(false);
         });
 
         test('Should return false for a date after the range', () => {
             const futureDate = '3042-07-18';
-            const isValid = ValidationUtils.isValidDate(futureDate);
+            const isValid = isValidDate(futureDate);
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return false for a invalid date format', () => {
+            const validDate = '2025-07';
+            const isValid = isValidDate(validDate);
             expect(isValid).toBe(false);
         });
     });
@@ -33,82 +88,178 @@ describe('ValidationUtils', () => {
     describe('isValidPastDate', () => {
         test('Should return true for a valid past date within the range', () => {
             const validPastDate = '1990-01-01';
-            const isValid = ValidationUtils.isValidPastDate(validPastDate);
+            const isValid = isValidPastDate(validPastDate);
             expect(isValid).toBe(true);
         });
 
         test('Should return false for an invalid date', () => {
             const invalidDate = '2023-07-32';
-            const isValid = ValidationUtils.isValidPastDate(invalidDate);
+            const isValid = isValidPastDate(invalidDate);
             expect(isValid).toBe(false);
         });
 
         test('Should return false for an empty date', () => {
             const emptyDate = '';
-            const isValid = ValidationUtils.isValidPastDate(emptyDate);
+            const isValid = isValidPastDate(emptyDate);
             expect(isValid).toBe(false);
         });
 
         test('Should return false for a future date', () => {
             const futureDate = format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING);
-            const isValid = ValidationUtils.isValidPastDate(futureDate);
+            const isValid = isValidPastDate(futureDate);
             expect(isValid).toBe(false);
         });
     });
 
     describe('isRequiredFulfilled', () => {
+        it.each([false, true])('preserves boolean requiredness for %s', (value) => {
+            // Given a checkbox value rather than text.
+            // When requiredness is evaluated directly.
+            const result = isRequiredFulfilled(value);
+
+            // Then a checked value alone fulfills the requirement.
+            expect(result).toBe(value);
+        });
+
+        it('accepts a nonempty collection even when its element is false', () => {
+            // Given a populated collection with a falsy element.
+            // When requiredness checks collection emptiness.
+            const result = isRequiredFulfilled([false]);
+
+            // Then the element truthiness cannot make a populated collection empty.
+            expect(result).toBe(true);
+        });
+
         test('Should return true for a non-empty string value', () => {
             const stringValue = 'Test';
-            const isFulfilled = ValidationUtils.isRequiredFulfilled(stringValue);
+            const isFulfilled = isRequiredFulfilled(stringValue);
             expect(isFulfilled).toBe(true);
         });
 
         test('Should return false for an empty string value', () => {
             const emptyStringValue = '';
-            const isFulfilled = ValidationUtils.isRequiredFulfilled(emptyStringValue);
+            const isFulfilled = isRequiredFulfilled(emptyStringValue);
             expect(isFulfilled).toBe(false);
         });
 
         test('Should return false for a whitespace string value', () => {
             const whitespaceStringValue = '   ';
-            const isFulfilled = ValidationUtils.isRequiredFulfilled(whitespaceStringValue);
+            const isFulfilled = isRequiredFulfilled(whitespaceStringValue);
             expect(isFulfilled).toBe(false);
         });
 
         test('Should return true for a valid date value', () => {
             const dateValue = new Date();
-            const isFulfilled = ValidationUtils.isRequiredFulfilled(dateValue);
+            const isFulfilled = isRequiredFulfilled(dateValue);
             expect(isFulfilled).toBe(true);
         });
 
         test('Should return false for an invalid date value', () => {
             const invalidDateValue = new Date('2023-07-33');
-            const isFulfilled = ValidationUtils.isRequiredFulfilled(invalidDateValue);
+            const isFulfilled = isRequiredFulfilled(invalidDateValue);
             expect(isFulfilled).toBe(false);
         });
 
         test('Should return true for a non-empty array value', () => {
             const arrayValue = [1, 2, 3];
-            const isFulfilled = ValidationUtils.isRequiredFulfilled(arrayValue);
+            const isFulfilled = isRequiredFulfilled(arrayValue);
             expect(isFulfilled).toBe(true);
         });
 
         test('Should return false for an empty array value', () => {
             const emptyArrayValue: string[] = [];
-            const isFulfilled = ValidationUtils.isRequiredFulfilled(emptyArrayValue);
+            const isFulfilled = isRequiredFulfilled(emptyArrayValue);
             expect(isFulfilled).toBe(false);
         });
 
         test('Should return true for a non-empty object value', () => {
             const objectValue = {key: 'value'};
-            const isFulfilled = ValidationUtils.isRequiredFulfilled(objectValue);
+            const isFulfilled = isRequiredFulfilled(objectValue);
             expect(isFulfilled).toBe(true);
         });
 
         test('Should return false for an empty object value', () => {
             const emptyObjectValue = {};
-            const isFulfilled = ValidationUtils.isRequiredFulfilled(emptyObjectValue);
+            const isFulfilled = isRequiredFulfilled(emptyObjectValue);
             expect(isFulfilled).toBe(false);
+        });
+    });
+
+    describe('getFieldRequiredErrors', () => {
+        it.each(['', '   ', '\u200B', 'Ada Lovelace'])('validates only requested signer text for %j', (signerFullName) => {
+            // Given signer text and a separate empty field that was not requested.
+            const values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({
+                [SIGNER_INPUT_IDS.SIGNER_FULL_NAME]: signerFullName,
+                [SIGNER_INPUT_IDS.SIGNER_EMAIL]: '',
+            });
+
+            // When only the signer name is required.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [SIGNER_INPUT_IDS.SIGNER_FULL_NAME], translateLocal);
+
+            // Then empty and invisible text receives the exact field error and no unrelated field appears.
+            expect(errors).toStrictEqual(signerFullName === 'Ada Lovelace' ? {} : {[SIGNER_INPUT_IDS.SIGNER_FULL_NAME]: translateLocal('common.error.fieldRequired')});
+        });
+
+        it('returns no errors for an empty required-fields list', () => {
+            // Given an incomplete signer form whose fields were not requested.
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({});
+
+            // When the caller requires no fields.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [], translateLocal);
+
+            // Then missing unrequested fields do not receive errors.
+            expect(errors).toStrictEqual({});
+        });
+
+        it('reports a missing requested field on an incomplete signer form', () => {
+            // Given a signer form that does not yet contain its requested document field.
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({});
+
+            // When the document is required.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID], translateLocal);
+
+            // Then the missing value receives only its own translated error.
+            expect(errors).toStrictEqual({[SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID]: translateLocal('common.error.fieldRequired')});
+        });
+
+        it.each([false, true])('validates the signer confirmation boolean %s', (downloadedPDSandFSG) => {
+            // Given the actual signer confirmation field and an unrequested empty document array.
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({
+                [SIGNER_INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: downloadedPDSandFSG,
+                [SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID]: [],
+            });
+
+            // When the checkbox alone is required.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [SIGNER_INPUT_IDS.DOWNLOADED_PDS_AND_FSG], translateLocal);
+
+            // Then false remains unfulfilled and true clears the exact checkbox error.
+            expect(errors).toStrictEqual(downloadedPDSandFSG ? {} : {[SIGNER_INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: translateLocal('common.error.fieldRequired')});
+        });
+
+        it.each([false, true])('validates the signer document collection when populated is %s', (hasDocument) => {
+            // Given an ordinary uploaded file or the same document field after its last file is removed.
+            const document: FileObject = {name: 'identity.pdf', type: 'application/pdf', uri: 'file:///identity.pdf'};
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({
+                [SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID]: hasDocument ? [document] : [],
+                [SIGNER_INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: false,
+            });
+
+            // When only the uploaded document field is requested.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID], translateLocal);
+
+            // Then emptiness alone controls the exact document error without validating unrelated fields.
+            expect(errors).toStrictEqual(hasDocument ? {} : {[SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID]: translateLocal('common.error.fieldRequired')});
+        });
+
+        it.each([undefined, 0, 123, Number.NaN])('preserves numeric requiredness for the declared bankAccountID field %s', (bankAccountID) => {
+            // Given the optional numeric property declared by the actual reimbursement form.
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>({bankAccountID});
+
+            // When that property is explicitly requested by this caller.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>(values, ['bankAccountID'], translateLocal);
+
+            // Then only the nonzero ID fulfills requiredness, without adding a UI requirement for this property.
+            expect(errors).toStrictEqual(bankAccountID === 123 ? {} : {bankAccountID: translateLocal('common.error.fieldRequired')});
         });
     });
 
@@ -118,21 +269,21 @@ describe('ValidationUtils', () => {
             const secondFutureExpirationDate = '12/2025'; // MM/YYYY format, in the future
             const thirdFutureExpirationDate = '1225'; // MMYY format, in the future
             const fourthFutureExpirationDate = '122025'; // MMYYYY format, in the future
-            expect(ValidationUtils.isValidExpirationDate(firstFutureExpirationDate)).toBe(true);
-            expect(ValidationUtils.isValidExpirationDate(secondFutureExpirationDate)).toBe(true);
-            expect(ValidationUtils.isValidExpirationDate(thirdFutureExpirationDate)).toBe(true);
-            expect(ValidationUtils.isValidExpirationDate(fourthFutureExpirationDate)).toBe(true);
+            expect(isValidExpirationDate(firstFutureExpirationDate)).toBe(true);
+            expect(isValidExpirationDate(secondFutureExpirationDate)).toBe(true);
+            expect(isValidExpirationDate(thirdFutureExpirationDate)).toBe(true);
+            expect(isValidExpirationDate(fourthFutureExpirationDate)).toBe(true);
         });
 
         test('Should return false for a valid expiration date, but in the past', () => {
             const pastExpirationDate = '06/20'; // MM/YY format, in the past
-            const isValid = ValidationUtils.isValidExpirationDate(pastExpirationDate);
+            const isValid = isValidExpirationDate(pastExpirationDate);
             expect(isValid).toBe(false);
         });
 
         test('Should return false for an invalid expiration date format', () => {
             const invalidExpirationDate = '2006'; // Invalid format, missing YYMM
-            const isValid = ValidationUtils.isValidExpirationDate(invalidExpirationDate);
+            const isValid = isValidExpirationDate(invalidExpirationDate);
             expect(isValid).toBe(false);
         });
     });
@@ -140,19 +291,19 @@ describe('ValidationUtils', () => {
     describe('meetsMinimumAgeRequirement', () => {
         test('Should return true for a date that meets the minimum age requirement', () => {
             const validDate = format(subYears(new Date(), 18), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 18 years ago
-            const meetsRequirement = ValidationUtils.meetsMinimumAgeRequirement(validDate);
+            const meetsRequirement = meetsMinimumAgeRequirement(validDate);
             expect(meetsRequirement).toBe(true);
         });
 
         test('Should return false for a date that does not meet the minimum age requirement', () => {
             const invalidDate = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
-            const meetsRequirement = ValidationUtils.meetsMinimumAgeRequirement(invalidDate);
+            const meetsRequirement = meetsMinimumAgeRequirement(invalidDate);
             expect(meetsRequirement).toBe(false);
         });
 
         test('Should return false for an invalid date', () => {
             const invalidDate = '2023-07-32'; // Invalid date
-            const meetsRequirement = ValidationUtils.meetsMinimumAgeRequirement(invalidDate);
+            const meetsRequirement = meetsMinimumAgeRequirement(invalidDate);
             expect(meetsRequirement).toBe(false);
         });
     });
@@ -160,19 +311,19 @@ describe('ValidationUtils', () => {
     describe('meetsMaximumAgeRequirement', () => {
         test('Should return true for a date that meets the maximum age requirement', () => {
             const validDate = format(subYears(new Date(), 65), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 65 years ago
-            const meetsRequirement = ValidationUtils.meetsMaximumAgeRequirement(validDate);
+            const meetsRequirement = meetsMaximumAgeRequirement(validDate);
             expect(meetsRequirement).toBe(true);
         });
 
         test('Should return false for a date that does not meet the maximum age requirement', () => {
             const invalidDate = format(subYears(new Date(), 151), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 151 years ago
-            const meetsRequirement = ValidationUtils.meetsMaximumAgeRequirement(invalidDate);
+            const meetsRequirement = meetsMaximumAgeRequirement(invalidDate);
             expect(meetsRequirement).toBe(false);
         });
 
         test('Should return false for an invalid date', () => {
             const invalidDate = '2023-07-32'; // Invalid date
-            const meetsRequirement = ValidationUtils.meetsMaximumAgeRequirement(invalidDate);
+            const meetsRequirement = meetsMaximumAgeRequirement(invalidDate);
             expect(meetsRequirement).toBe(false);
         });
     });
@@ -180,161 +331,769 @@ describe('ValidationUtils', () => {
     describe('getAgeRequirementError', () => {
         test('Should return an empty string for a date within the specified range', () => {
             const validDate: string = format(subYears(new Date(), 30), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 30 years ago
-            const error = ValidationUtils.getAgeRequirementError(validDate, 18, 150);
+            const error = getAgeRequirementError(translateLocal, validDate, 18, 150);
             expect(error).toBe('');
         });
 
         test('Should return an error message for a date before the minimum age requirement', () => {
             const invalidDate: string = format(subYears(new Date(), 17), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 17 years ago
-            const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(
-                Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)}),
-            );
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
+            expect(error).toEqual(translateLocal('privatePersonalDetails.error.dateShouldBeBefore', format(startOfDay(subYears(new Date(), 18)), CONST.DATE.FNS_FORMAT_STRING)));
         });
 
         test('Should return an error message for a date after the maximum age requirement', () => {
             const invalidDate: string = format(subYears(new Date(), 160), CONST.DATE.FNS_FORMAT_STRING); // Date of birth 160 years ago
-            const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toEqual(
-                Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)}),
-            );
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
+            expect(error).toEqual(translateLocal('privatePersonalDetails.error.dateShouldBeAfter', format(startOfDay(subYears(new Date(), 150)), CONST.DATE.FNS_FORMAT_STRING)));
         });
 
         test('Should return an error message for an invalid date', () => {
             const invalidDate = '2023-07-32'; // Invalid date
-            const error = ValidationUtils.getAgeRequirementError(invalidDate, 18, 150);
-            expect(error).toBe(Localize.translateLocal('common.error.dateInvalid'));
+            const error = getAgeRequirementError(translateLocal, invalidDate, 18, 150);
+            expect(error).toBe(translateLocal('common.error.dateInvalid'));
         });
     });
 
     describe('isValidTwoFactorCode', () => {
         test('numeric two-factor code', () => {
-            expect(ValidationUtils.isValidTwoFactorCode('123456')).toBe(true);
+            expect(isValidTwoFactorCode('123456')).toBe(true);
         });
 
         test('numeric two-factor code with leading zeroes', () => {
-            expect(ValidationUtils.isValidTwoFactorCode('000001')).toBe(true);
+            expect(isValidTwoFactorCode('000001')).toBe(true);
         });
 
         test('alphanumeric two-factor code', () => {
-            expect(ValidationUtils.isValidTwoFactorCode('abc123')).toBe(false);
+            expect(isValidTwoFactorCode('abc123')).toBe(false);
         });
 
         test('special characters two-factor code', () => {
-            expect(ValidationUtils.isValidTwoFactorCode('!@#$%^')).toBe(false);
+            expect(isValidTwoFactorCode('!@#$%^')).toBe(false);
         });
 
         test('partial special characters two-factor code', () => {
-            expect(ValidationUtils.isValidTwoFactorCode('123$%^')).toBe(false);
+            expect(isValidTwoFactorCode('123$%^')).toBe(false);
         });
     });
 
     describe('isValidRoomName', () => {
         test('room name without #', () => {
-            expect(ValidationUtils.isValidRoomName('test')).toBe(false);
+            expect(isValidRoomName('test')).toBe(false);
         });
 
         test('room name with upper case letters', () => {
-            expect(ValidationUtils.isValidRoomName('#Test')).toBe(false);
+            expect(isValidRoomName('#Test')).toBe(false);
         });
 
         test('room name with special character other than dash', () => {
-            expect(ValidationUtils.isValidRoomName('#test_room')).toBe(false);
+            expect(isValidRoomName('#test_room')).toBe(false);
         });
 
         test('room name with less than one character', () => {
-            expect(ValidationUtils.isValidRoomName('#')).toBe(false);
+            expect(isValidRoomName('#')).toBe(false);
         });
 
         test('room name with 101 characters', () => {
-            expect(ValidationUtils.isValidRoomName('#12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901')).toBe(false);
+            expect(isValidRoomName('#12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901')).toBe(false);
         });
 
         test('room name with lowercase letters, numbers, and dashes', () => {
-            expect(ValidationUtils.isValidRoomName('#this-is-a-room1')).toBe(true);
+            expect(isValidRoomName('#this-is-a-room1')).toBe(true);
         });
 
         test('room name with spanish Accented letters and dashes', () => {
-            expect(ValidationUtils.isValidRoomName('#sala-de-opinión')).toBe(true);
+            expect(isValidRoomName('#sala-de-opinión')).toBe(true);
         });
 
         test('room name with division sign (÷)', () => {
-            expect(ValidationUtils.isValidRoomName('#room-name-with-÷-sign')).toBe(false);
+            expect(isValidRoomName('#room-name-with-÷-sign')).toBe(false);
         });
 
         test('room name with Greek alphabets and Cyrillic alphabets', () => {
-            expect(ValidationUtils.isValidRoomName('#σοβαρός-серьезный')).toBe(true);
+            expect(isValidRoomName('#σοβαρός-серьезный')).toBe(true);
         });
     });
 
     describe('isValidWebsite', () => {
         test('Valid URLs with https protocol', () => {
-            expect(ValidationUtils.isValidWebsite('https://www.expensify.com')).toBe(true);
-            expect(ValidationUtils.isValidWebsite('https://expensify.com/inbox/')).toBe(true);
-            expect(ValidationUtils.isValidWebsite('https://we.are.expensify.com/how-we-got-here')).toBe(true);
-            expect(ValidationUtils.isValidWebsite('https://blog.google')).toBe(true);
-            expect(ValidationUtils.isValidWebsite('https://blog.google:65535')).toBe(true);
+            expect(isValidWebsite('https://www.expensify.com')).toBe(true);
+            expect(isValidWebsite('https://expensify.com/inbox/')).toBe(true);
+            expect(isValidWebsite('https://we.are.expensify.com/how-we-got-here')).toBe(true);
+            expect(isValidWebsite('https://blog.google')).toBe(true);
+            expect(isValidWebsite('https://blog.google:65535')).toBe(true);
         });
 
         test('Valid URLs with http protocol', () => {
-            expect(ValidationUtils.isValidWebsite('http://www.expensify.com')).toBe(true);
-            expect(ValidationUtils.isValidWebsite('http://use.expensify.com')).toBe(true);
+            expect(isValidWebsite('http://www.expensify.com')).toBe(true);
+            expect(isValidWebsite('http://use.expensify.com')).toBe(true);
         });
 
         test('Valid URL with ftp protocol', () => {
-            expect(ValidationUtils.isValidWebsite('ftp://expensify.com/files')).toBe(true);
+            expect(isValidWebsite('ftp://expensify.com/files')).toBe(true);
         });
 
         test('Invalid URLs', () => {
-            expect(ValidationUtils.isValidWebsite('expensify')).toBe(false);
-            expect(ValidationUtils.isValidWebsite('expensify.')).toBe(false);
-            expect(ValidationUtils.isValidWebsite('192.168.0.1')).toBe(false);
-            expect(ValidationUtils.isValidWebsite('www.googlecom')).toBe(false);
-            expect(ValidationUtils.isValidWebsite('www.google.com:65536')).toBe(false);
+            expect(isValidWebsite('expensify')).toBe(false);
+            expect(isValidWebsite('expensify.')).toBe(false);
+            expect(isValidWebsite('192.168.0.1')).toBe(false);
+            expect(isValidWebsite('www.googlecom')).toBe(false);
+            expect(isValidWebsite('www.google.com:65536')).toBe(false);
         });
 
         test('Invalid URLs without protocols', () => {
-            expect(ValidationUtils.isValidWebsite('www.expensify.com')).toBe(false);
-            expect(ValidationUtils.isValidWebsite('expensify.com')).toBe(false);
+            expect(isValidWebsite('www.expensify.com')).toBe(false);
+            expect(isValidWebsite('expensify.com')).toBe(false);
         });
 
         test('Invalid URLs with special characters and emojis', () => {
-            expect(ValidationUtils.isValidWebsite('www.~expensify.com')).toBe(false);
-            expect(ValidationUtils.isValidWebsite('https://www.expen$ify.com')).toBe(false);
-            expect(ValidationUtils.isValidWebsite('www.expensify😄.com')).toBe(false);
+            expect(isValidWebsite('www.~expensify.com')).toBe(false);
+            expect(isValidWebsite('https://www.expen$ify.com')).toBe(false);
+            expect(isValidWebsite('www.expensify😄.com')).toBe(false);
         });
     });
 
     describe('ValidateAccountRoute', () => {
         test('Valid account route', () => {
-            expect(ValidationUtils.isValidAccountRoute(123123)).toBe(true);
-            expect(ValidationUtils.isValidAccountRoute(5612)).toBe(true);
+            expect(isValidAccountRoute(123123)).toBe(true);
+            expect(isValidAccountRoute(5612)).toBe(true);
         });
     });
 
     describe('ValidatePersonName', () => {
         test('Valid person name', () => {
-            expect(ValidationUtils.isValidPersonName('test name')).toBe(true);
-            expect(ValidationUtils.isValidPersonName(`X Æ A test`)).toBe(true);
-            expect(ValidationUtils.isValidPersonName(`a hyphenated-name`)).toBe(true);
+            expect(isValidPersonName('test name')).toBe(true);
+            expect(isValidPersonName(`X Æ A test`)).toBe(true);
+            expect(isValidPersonName(`a hyphenated-name`)).toBe(true);
         });
 
         test('Invalid person name', () => {
-            expect(ValidationUtils.isValidPersonName('123 test')).toBe(false);
-            expect(ValidationUtils.isValidPersonName('test #$')).toBe(false);
-            expect(ValidationUtils.isValidPersonName('test123$')).toBe(false);
+            expect(isValidPersonName('123 test')).toBe(false);
+            expect(isValidPersonName('test #$')).toBe(false);
+            expect(isValidPersonName('test123$')).toBe(false);
         });
     });
 
     describe('ValidateLegalName', () => {
         test('Valid legal name', () => {
-            expect(ValidationUtils.isValidLegalName('test name')).toBe(true);
-            expect(ValidationUtils.isValidLegalName(`X Æ A test`)).toBe(true);
+            expect(isValidLegalName('test name')).toBe(true);
+            expect(isValidLegalName(`X Æ A test`)).toBe(true);
         });
 
         test('Invalid legal name', () => {
-            expect(ValidationUtils.isValidLegalName(`a hyphenated-name`)).toBe(false);
-            expect(ValidationUtils.isValidLegalName('άλφα')).toBe(false);
+            expect(isValidLegalName(`a hyphenated-name`)).toBe(false);
+            expect(isValidLegalName('άλφα')).toBe(false);
         });
+    });
+
+    describe('isValidNameOnCard', () => {
+        test('Valid card embossing name', () => {
+            expect(isValidNameOnCard('John1')).toBe(true);
+            expect(isValidNameOnCard('John Smith')).toBe(true);
+            expect(isValidNameOnCard('12345')).toBe(true);
+            expect(isValidNameOnCard('άλφα')).toBe(true);
+            expect(isValidNameOnCard(`X Æ A-12`)).toBe(true);
+            // Lone angle brackets are allowed; only complete tags are blocked.
+            expect(isValidNameOnCard('<123a')).toBe(true);
+            expect(isValidNameOnCard('123a>')).toBe(true);
+            expect(isValidNameOnCard('<John')).toBe(true);
+            expect(isValidNameOnCard('John>')).toBe(true);
+        });
+
+        test('Invalid card embossing name', () => {
+            expect(isValidNameOnCard('<script>')).toBe(false);
+            expect(isValidNameOnCard('<123a>')).toBe(false);
+            expect(isValidNameOnCard('John <Doe>')).toBe(false);
+        });
+    });
+
+    describe('isValidPaymentZipCode', () => {
+        test('Is valid US zip code format (v1)', () => {
+            const validZip = '12345';
+            const isValid = isValidPaymentZipCode(validZip);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid US zip code format with hyphen (v2)', () => {
+            const validZip = '12345-6789';
+            const isValid = isValidPaymentZipCode(validZip);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid UK zip code format with space (v1)', () => {
+            const invalidDate = 'AB1 2CD';
+            const isValid = isValidPaymentZipCode(invalidDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid UK zip code format with space (v2)', () => {
+            const invalidDate = 'AB12 3CD';
+            const isValid = isValidPaymentZipCode(invalidDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid UK zip code format (v3)', () => {
+            const invalidDate = 'AB12CD';
+            const isValid = isValidPaymentZipCode(invalidDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is valid AU / NZ zip code format', () => {
+            const invalidDate = '1234';
+            const isValid = isValidPaymentZipCode(invalidDate);
+            expect(isValid).toBe(true);
+        });
+
+        test('Is invalid zip code (other special characters)', () => {
+            const futureDate = "@ , : ; ' &";
+            const isValid = isValidPaymentZipCode(futureDate);
+            expect(isValid).toBe(false);
+        });
+    });
+
+    describe('isValidInputLength', () => {
+        // Test Latin alphabet characters (1 byte each in UTF-8)
+        describe('Latin alphabet characters', () => {
+            test('returns true and correct byte length when Latin string byte length exceeds limit', () => {
+                expect(isValidInputLength('abc', 2)).toEqual({
+                    isValid: false,
+                    byteLength: 3,
+                }); // 3 bytes > 2
+            });
+
+            test('returns false and correct byte length when Latin string byte length equals limit', () => {
+                expect(isValidInputLength('abc', 3)).toEqual({
+                    isValid: true,
+                    byteLength: 3,
+                }); // 3 bytes ≤ 3
+            });
+
+            test('returns false and correct byte length when Latin string byte length is less than limit', () => {
+                expect(isValidInputLength('ab', 3)).toEqual({
+                    isValid: true,
+                    byteLength: 2,
+                }); // 2 bytes ≤ 3
+            });
+        });
+
+        // Test Sanskrit characters (typically 3 bytes each in UTF-8)
+        describe('Sanskrit characters', () => {
+            test('returns true and correct byte length when Sanskrit string byte length exceeds limit', () => {
+                expect(isValidInputLength('कष', 5)).toEqual({
+                    isValid: false,
+                    byteLength: 6,
+                }); // 6 bytes > 5
+            });
+
+            test('returns false and correct byte length when Sanskrit string byte length equals limit', () => {
+                expect(isValidInputLength('कष', 6)).toEqual({
+                    isValid: true,
+                    byteLength: 6,
+                }); // 6 bytes ≤ 6
+            });
+
+            test('returns false and correct byte length when Sanskrit string byte length is less than limit', () => {
+                expect(isValidInputLength('क', 4)).toEqual({
+                    isValid: true,
+                    byteLength: 3,
+                }); // 3 bytes ≤ 4
+            });
+        });
+
+        // Test emojis (typically 4 bytes each in UTF-8)
+        describe('Emojis', () => {
+            test('returns true and correct byte length when emoji byte length exceeds limit', () => {
+                expect(isValidInputLength('😊', 3)).toEqual({
+                    isValid: false,
+                    byteLength: 4,
+                }); // 4 bytes > 3
+            });
+
+            test('returns false and correct byte length when emoji byte length equals limit', () => {
+                expect(isValidInputLength('😊', 4)).toEqual({
+                    isValid: true,
+                    byteLength: 4,
+                }); // 4 bytes ≤ 4
+            });
+
+            test('returns false and correct byte length when emoji byte length is less than limit', () => {
+                expect(isValidInputLength('😊', 5)).toEqual({
+                    isValid: true,
+                    byteLength: 4,
+                }); // 4 bytes ≤ 5
+            });
+        });
+
+        // Test empty strings and spaces
+        describe('Empty strings and spaces', () => {
+            test('returns false and correct byte length for empty string regardless of limit', () => {
+                expect(isValidInputLength('', 0)).toEqual({
+                    isValid: true,
+                    byteLength: 0,
+                }); // 0 bytes ≤ 0
+                expect(isValidInputLength('', 1)).toEqual({
+                    isValid: true,
+                    byteLength: 0,
+                }); // 0 bytes ≤ 1
+            });
+
+            test('returns true and correct byte length when space string byte length exceeds limit', () => {
+                expect(isValidInputLength('   ', 2)).toEqual({
+                    isValid: false,
+                    byteLength: 3,
+                }); // 3 bytes > 2
+            });
+
+            test('returns false and correct byte length when space string byte length equals limit', () => {
+                expect(isValidInputLength('  ', 2)).toEqual({
+                    isValid: true,
+                    byteLength: 2,
+                }); // 2 bytes ≤ 2
+            });
+        });
+
+        // Test mixed characters
+        describe('Mixed characters', () => {
+            test('returns true and correct byte length when mixed string byte length exceeds limit', () => {
+                expect(isValidInputLength('aक😊', 6)).toEqual({
+                    isValid: false,
+                    byteLength: 8,
+                }); // 1 + 3 + 4 = 8 bytes > 6
+            });
+
+            test('returns false and correct byte length when mixed string byte length equals limit', () => {
+                expect(isValidInputLength('aक😊', 8)).toEqual({
+                    isValid: true,
+                    byteLength: 8,
+                }); // 1 + 3 + 4 = 8 bytes ≤ 8
+            });
+
+            test('returns false and correct byte length when mixed string byte length is less than limit', () => {
+                expect(isValidInputLength('aक', 5)).toEqual({
+                    isValid: true,
+                    byteLength: 4,
+                }); // 1 + 3 = 4 bytes ≤ 5
+            });
+        });
+
+        // Test edge cases
+        describe('Edge cases', () => {
+            test('handles negative length parameter', () => {
+                expect(isValidInputLength('abc', -1)).toEqual({
+                    isValid: false,
+                    byteLength: 3,
+                }); // 3 bytes > -1
+            });
+
+            test('handles zero length parameter', () => {
+                expect(isValidInputLength('a', 0)).toEqual({
+                    isValid: false,
+                    byteLength: 1,
+                }); // 1 byte > 0
+                expect(isValidInputLength('', 0)).toEqual({
+                    isValid: true,
+                    byteLength: 0,
+                }); // 0 bytes ≤ 0
+            });
+
+            test('handles special characters (e.g., newlines, tabs)', () => {
+                expect(isValidInputLength('\n\t', 1)).toEqual({
+                    isValid: false,
+                    byteLength: 2,
+                }); // 2 bytes > 1
+                expect(isValidInputLength('\n\t', 2)).toEqual({
+                    isValid: true,
+                    byteLength: 2,
+                }); // 2 bytes ≤ 2
+            });
+        });
+    });
+
+    describe('isValidRegistrationNumber', () => {
+        describe('EU countries', () => {
+            test.each<[Country, string, boolean]>([
+                ['AT', 'FN123456', true],
+                ['AT', 'FN654321a', true],
+                ['AT', '123456', false],
+                ['BE', '0123.456.789', true],
+                ['BE', '1234.567.890', false],
+                ['BG', '123456789', true],
+                ['BG', '1234567890123', true],
+                ['BG', '12345678', false],
+                ['DE', 'HRB12345', true],
+                ['DE', 'HRA 6789', true],
+                ['DE', 'XYZ123', false],
+                ['ES', 'A12345678', true],
+                ['ES', 'B87654321', true],
+                ['ES', '12345678A', false],
+            ])('validates EU country registration number', (country, value, expected) => {
+                expect(isValidRegistrationNumber(value, country)).toBe(expected);
+            });
+        });
+
+        describe('Non-EU countries', () => {
+            test.each<[Country, string, boolean]>([
+                ['AU', '51824753556', true],
+                ['AU', '004085616', true],
+                ['AU', '123456789', false],
+                ['AU', '51824753557', false],
+                ['GB', '12345678', true],
+                ['GB', 'SC123456', true],
+                ['GB', 'S1234567', false],
+                ['GB', '1234567A', false],
+                ['CA', '123456789', true],
+                ['CA', '123456789RC0001', true],
+                ['CA', '12345678', false],
+                ['CA', '123456789XX123', false],
+            ])('validates Non-EU country registration number', (country, value, expected) => {
+                expect(isValidRegistrationNumber(value, country)).toBe(expected);
+            });
+        });
+    });
+
+    describe('isValidUSPhone', () => {
+        test('Should return true for a standard US phone number', () => {
+            expect(isValidUSPhone('+12018675309')).toBe(true);
+        });
+
+        test('Should return true for a Puerto Rico phone number', () => {
+            expect(isValidUSPhone('+17873464732')).toBe(true);
+        });
+
+        test('Should return true for a US Virgin Islands phone number', () => {
+            expect(isValidUSPhone('+13405551234')).toBe(true);
+        });
+
+        test('Should return true for a Guam phone number', () => {
+            expect(isValidUSPhone('+16715551234')).toBe(true);
+        });
+
+        test('Should return true for a Northern Mariana Islands phone number', () => {
+            expect(isValidUSPhone('+16705551234')).toBe(true);
+        });
+
+        test('Should return false for a Canadian phone number', () => {
+            expect(isValidUSPhone('+14165551234')).toBe(false);
+        });
+
+        test('Should return false for a UK phone number', () => {
+            expect(isValidUSPhone('+442071234567')).toBe(false);
+        });
+
+        test('Should return false for an empty string', () => {
+            expect(isValidUSPhone('')).toBe(false);
+        });
+    });
+
+    describe('isValidPhoneNumber', () => {
+        test('Should return true for a US phone number', () => {
+            expect(isValidPhoneNumber('+12018675309')).toBe(true);
+        });
+
+        test('Should return true for a US phone number in a recently added area code', () => {
+            // Given a phone number in the 983 area code, which libphonenumber only recognizes since v8.13.30
+            const phoneNumber = '+19833330123';
+
+            // When we validate it
+            const isValid = isValidPhoneNumber(phoneNumber);
+
+            // Then it is accepted, so users with newer area codes can save it in their personal details
+            expect(isValid).toBe(true);
+        });
+
+        test('Should return false for a US phone number with an area code that is not in use', () => {
+            // Given a 10-digit US phone number whose area code starts with 1, which no US area code does
+            const phoneNumber = '+11234567890';
+
+            // When we validate it
+            const isValid = isValidPhoneNumber(phoneNumber);
+
+            // Then it is still rejected, because the library keeps treating invalid numbers as not possible
+            expect(isValid).toBe(false);
+        });
+
+        test('Should return true for a Canadian phone number', () => {
+            expect(isValidPhoneNumber('+14165551234')).toBe(true);
+        });
+
+        test('Should return true for a UK phone number', () => {
+            expect(isValidPhoneNumber('+442071234567')).toBe(true);
+        });
+
+        test('Should return true for an Australian phone number', () => {
+            expect(isValidPhoneNumber('+61255501234')).toBe(true);
+        });
+
+        test('Should return false for a number that is too short to be possible', () => {
+            expect(isValidPhoneNumber('123')).toBe(false);
+        });
+
+        test('Should return false for letters', () => {
+            expect(isValidPhoneNumber('abcdefg')).toBe(false);
+        });
+
+        test('Should return false for an empty string', () => {
+            expect(isValidPhoneNumber('')).toBe(false);
+        });
+    });
+
+    describe('isInvalidMerchantValue', () => {
+        test('Valid merchnt name', () => {
+            expect(isInvalidMerchantValue('test name')).toBe(false);
+            expect(isInvalidMerchantValue('none')).toBe(false);
+            expect(isInvalidMerchantValue('Unknown Merchant')).toBe(false);
+            expect(isInvalidMerchantValue('X Æ A test')).toBe(false);
+            expect(isInvalidMerchantValue(undefined)).toBe(false);
+        });
+
+        test('Invalid merchant name', () => {
+            expect(isInvalidMerchantValue('')).toBe(true);
+            expect(isInvalidMerchantValue('Expense')).toBe(true);
+            expect(isInvalidMerchantValue('(none)')).toBe(true);
+        });
+    });
+
+    describe('isValidAddress', () => {
+        describe('invalid PO box formats', () => {
+            test.each([['PO Box 123'], ['P.O. Box 456'], ['Post Office Box 789'], ['po box 100'], ['PO Box #123']])('Should return false for PO box format: %s', (address) => {
+                expect(isValidAddress(address)).toBe(false);
+            });
+        });
+
+        describe('invalid PMB formats', () => {
+            test.each([
+                ['PMB 123'],
+                ['PMB#456'],
+                ['PMB# 456'],
+                ['PMB #456'],
+                ['PMB # 456'],
+                ['Private Mail Box 789'],
+                ['Private Mail Box #789'],
+                ['Private Mail Box # 789'],
+                ['private mailbox 100'],
+            ])('Should return false for PMB format: %s', (address) => {
+                expect(isValidAddress(address)).toBe(false);
+            });
+        });
+
+        describe('valid physical addresses', () => {
+            test.each([['742 Evergreen Terrace'], ['1600 Pennsylvania Ave NW'], ['100 Market Street, Apt 5'], ['123 Blackbox Hill Road'], ['123 Boxwood Lane'], ['456 Mailbox Drive']])(
+                'Should return true for valid physical address: %s',
+                (address) => {
+                    expect(isValidAddress(address)).toBe(true);
+                },
+            );
+        });
+
+        describe('invalid non-address values', () => {
+            test('Should return false for empty string', () => {
+                expect(isValidAddress('')).toBe(false);
+            });
+
+            test('Should return false for addresses containing only emojis', () => {
+                expect(isValidAddress('😊')).toBe(false);
+            });
+        });
+    });
+
+    describe('isPOBoxOrMailDrop', () => {
+        test.each([['PO Box 123'], ['P.O. Box 456'], ['po box 100'], ['PMB 123'], ['PMB # 456'], ['Private Mail Box #789']])('Should return true for PO box/PMB value: %s', (address) => {
+            expect(isPOBoxOrMailDrop(address)).toBe(true);
+        });
+
+        test.each([['742 Evergreen Terrace'], ['456 Mailbox Drive'], [''], ['😊']])('Should return false for non PO box/PMB value: %s', (address) => {
+            expect(isPOBoxOrMailDrop(address)).toBe(false);
+        });
+    });
+
+    describe('getInvalidAddressErrorTranslationPath', () => {
+        test.each([['PO Box 123'], ['P.O. Box 456'], ['PMB 123'], ['PMB # 456'], ['Private Mail Box #789']])(
+            'Should return the physical address required copy for PO box/PMB value: %s',
+            (address) => {
+                expect(getInvalidAddressErrorTranslationPath(address)).toBe('bankAccount.error.physicalAddressRequired');
+            },
+        );
+
+        test.each([['😊'], ['742 Evergreen Terrace 🏠'], ['']])('Should return the generic street address copy for other invalid value not related to PO box/PMB: %s', (address) => {
+            expect(getInvalidAddressErrorTranslationPath(address)).toBe('bankAccount.error.addressStreet');
+        });
+
+        test.each([['742 Evergreen Terrace'], ['1600 Pennsylvania Ave NW'], ['123 Boxwood Lane']])('Should return undefined for valid physical address: %s', (address) => {
+            expect(getInvalidAddressErrorTranslationPath(address)).toBeUndefined();
+        });
+    });
+
+    describe('isValidPIN', () => {
+        test('Should return true for valid 4-digit PINs', () => {
+            expect(isValidPIN('5739')).toBe(true);
+            expect(isValidPIN('9021')).toBe(true);
+            expect(isValidPIN('8642')).toBe(true);
+            expect(isValidPIN('1357')).toBe(true);
+        });
+
+        test('Should return false for PINs that are not 4 digits', () => {
+            expect(isValidPIN('')).toBe(false);
+            expect(isValidPIN('1')).toBe(false);
+            expect(isValidPIN('12')).toBe(false);
+            expect(isValidPIN('123')).toBe(false);
+            expect(isValidPIN('12345')).toBe(false);
+        });
+
+        test('Should return false for PINs with non-numeric characters', () => {
+            expect(isValidPIN('abcd')).toBe(false);
+            expect(isValidPIN('12ab')).toBe(false);
+            expect(isValidPIN('!@#$')).toBe(false);
+            expect(isValidPIN('12 4')).toBe(false);
+        });
+
+        test('Should return false for invalid/weak PINs (all same digits)', () => {
+            expect(isValidPIN('0000')).toBe(false);
+            expect(isValidPIN('1111')).toBe(false);
+            expect(isValidPIN('2222')).toBe(false);
+            expect(isValidPIN('3333')).toBe(false);
+            expect(isValidPIN('4444')).toBe(false);
+            expect(isValidPIN('5555')).toBe(false);
+            expect(isValidPIN('6666')).toBe(false);
+            expect(isValidPIN('7777')).toBe(false);
+            expect(isValidPIN('8888')).toBe(false);
+            expect(isValidPIN('9999')).toBe(false);
+        });
+
+        test('Should return false for invalid/weak PINs (sequential patterns)', () => {
+            expect(isValidPIN('1234')).toBe(false);
+            expect(isValidPIN('2345')).toBe(false);
+            expect(isValidPIN('3456')).toBe(false);
+            expect(isValidPIN('4567')).toBe(false);
+            expect(isValidPIN('5678')).toBe(false);
+            expect(isValidPIN('6789')).toBe(false);
+            expect(isValidPIN('7890')).toBe(false);
+            expect(isValidPIN('0123')).toBe(false);
+            expect(isValidPIN('4321')).toBe(false);
+            expect(isValidPIN('9876')).toBe(false);
+            expect(isValidPIN('3210')).toBe(false);
+        });
+
+        test('Should return false for other commonly used weak PINs', () => {
+            expect(isValidPIN('1212')).toBe(false);
+            expect(isValidPIN('1004')).toBe(false);
+            expect(isValidPIN('6969')).toBe(false);
+            expect(isValidPIN('2000')).toBe(false);
+            expect(isValidPIN('2015')).toBe(false);
+        });
+    });
+
+    describe('isValidEmailWithTLD', () => {
+        test('Valid email with valid TLD', () => {
+            expect(isValidEmailWithTLD('user@example.com')).toBe(true);
+            expect(isValidEmailWithTLD('user@example.co.uk')).toBe(true);
+        });
+
+        test('Valid email format but invalid TLD', () => {
+            expect(isValidEmailWithTLD('user@example.con')).toBe(false);
+            expect(isValidEmailWithTLD('user@example.xyzinvalid')).toBe(false);
+        });
+
+        test('Invalid email format', () => {
+            expect(isValidEmailWithTLD('notanemail')).toBe(false);
+            expect(isValidEmailWithTLD('user@')).toBe(false);
+            expect(isValidEmailWithTLD('@domain.com')).toBe(false);
+        });
+    });
+
+    describe('containsHtmlTag', () => {
+        test('flags <script> tags (the case from the agent prompt regression)', () => {
+            expect(containsHtmlTag("<script>alert('true');</script>")).toBe(true);
+            expect(containsHtmlTag("<script>alert('test');</script>")).toBe(true);
+            expect(containsHtmlTag('hello <script>alert(1)</script> world')).toBe(true);
+            expect(containsHtmlTag('<img src=x onerror=alert(1)>')).toBe(true);
+        });
+
+        test('returns false for empty / non-string-like inputs', () => {
+            expect(containsHtmlTag('')).toBe(false);
+        });
+
+        test('returns false for plain text and markdown without HTML-shaped tokens', () => {
+            expect(containsHtmlTag('Hello world')).toBe(false);
+            expect(containsHtmlTag('# Heading\n\n> blockquote\n\n- bullet')).toBe(false);
+            expect(containsHtmlTag('Use **bold** and _italic_ and `code`.')).toBe(false);
+        });
+
+        test('honours the WHITELISTED_TAGS list', () => {
+            expect(containsHtmlTag('<>')).toBe(false);
+            expect(containsHtmlTag('<->')).toBe(false);
+            expect(containsHtmlTag('<br>')).toBe(false);
+            expect(containsHtmlTag('<br/>')).toBe(false);
+        });
+
+        test('strict mode flags non-standard angle-bracket content', () => {
+            expect(containsHtmlTag('<\u2713>')).toBe(false);
+            expect(containsHtmlTag('<\u2713>', true)).toBe(true);
+        });
+    });
+});
+
+describe('country ZIP details', () => {
+    it('returns the original US regex and samples', () => {
+        // Given the shared country table consumed by address forms.
+        const entry = COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US;
+
+        // When the US details are requested.
+        const details = getCountryZipRegexDetails('US');
+
+        // Then callers retain the same entry and its validation hints.
+        expect(details).toBe(entry);
+        expect(details?.regex).toBe(entry.regex);
+        expect(details?.samples).toBe(entry.samples);
+        expect(details?.regex?.test('12345')).toBe(true);
+    });
+
+    it('preserves the deliberately empty AE entry', () => {
+        // Given AE has no country-specific ZIP requirements.
+        const entry = COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.AE;
+
+        // When its details are requested.
+        const details = getCountryZipRegexDetails('AE');
+
+        // Then the empty object retains its identity rather than becoming absence.
+        expect(details).toBe(entry);
+        expect(details).toEqual({});
+    });
+
+    it.each([undefined, ''] as const)('returns absence for country %s', (country) => {
+        // Given no selected country.
+        // When its ZIP details are requested.
+        const details = getCountryZipRegexDetails(country);
+
+        // Then the existing early return remains available to callers.
+        expect(details).toBeUndefined();
+    });
+
+    it.each([undefined, '', 'AE'] as const)('uses generic ZIP validation for country %s', (country) => {
+        // Given a country with no specific regex and generic valid/invalid ZIP values.
+        // When validation uses the public address seam.
+        const valid = isValidZipCodeForCountry('  ab12  ', country);
+        const invalid = isValidZipCodeForCountry('!@#', country);
+
+        // Then the generic fallback still trims and validates the supplied value.
+        expect(valid).toBe(true);
+        expect(invalid).toBe(false);
+    });
+
+    it('normalizes country-specific ZIP input before validation', () => {
+        // Given a lowercase Canadian ZIP surrounded by spaces.
+        // When the country-specific regex is used.
+        const valid = isValidZipCodeForCountry('  k1a 0b1  ', 'CA');
+
+        // Then trimming and uppercase normalization preserve valid input.
+        expect(valid).toBe(true);
+        expect(isValidZipCodeForCountry('abc', 'US')).toBe(false);
+    });
+
+    it('keeps the permissive registration fallback for an empty country', () => {
+        // Given registration input before a country is selected.
+        // When registration validation cannot select a country rule.
+        const valid = isValidRegistrationNumber('', '');
+
+        // Then the existing default remains permissive.
+        expect(valid).toBe(true);
     });
 });

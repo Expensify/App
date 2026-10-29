@@ -1,40 +1,86 @@
-import {Str} from 'expensify-common';
-import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Alert, View} from 'react-native';
-import RNFetchBlob from 'react-native-blob-util';
-import RNDocumentPicker from 'react-native-document-picker';
-import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
-import {launchImageLibrary} from 'react-native-image-picker';
-import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
-import ImageSize from 'react-native-image-size';
-import type {FileObject, ImagePickerResponse as FileResponse} from '@components/AttachmentModal';
-import * as Expensicons from '@components/Icon/Expensicons';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+
+import {cleanFileName, isLabelledDng, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
+import fileURIToPath from '@libs/fileURIToPath';
+import ReceiptStorage from '@libs/ReceiptStorage';
+import {getPickerCaptureSource, logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import launchCamera from './launchCamera/launchCamera';
+
+import type {FileToCopy} from '@react-native-documents/picker';
+import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
+
+import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
+import {Str} from 'expensify-common';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Alert, View} from 'react-native';
+import RNFetchBlob from 'react-native-blob-util';
+import {launchImageLibrary} from 'react-native-image-picker';
+import ImageSize from 'react-native-image-size';
+
+import type {CapturedPhoto} from './AttachmentCamera';
 import type AttachmentPickerProps from './types';
 
+import AttachmentCamera from './AttachmentCamera';
+
+/** Gives the popover a frame to finish dismissing on iOS. Launching immediately would close the gallery/camera along with it. */
+const MODAL_DISMISS_DELAY_MS = 200;
+
+const EXTENSION_TO_NATIVE_TYPE: Record<string, string> = {
+    pdf: String(types.pdf),
+    doc: String(types.doc),
+    docx: String(types.docx),
+    zip: String(types.zip),
+    txt: String(types.plainText),
+    json: String(types.json),
+    xls: String(types.xls),
+    xlsx: String(types.xlsx),
+    jpg: String(types.images),
+    jpeg: String(types.images),
+    png: String(types.images),
+    gif: String(types.images),
+    heif: String(types.images),
+    heic: String(types.images),
+    tif: String(types.images),
+    tiff: String(types.images),
+};
+
+type LocalCopy = {
+    name: string | null;
+    uri: string;
+    size: number | null;
+    type: string | null;
+};
+
 type Item = {
-    /** The icon associated with the item. */
     icon: IconAsset;
     /** The key in the translations file to use for the title */
     textTranslationKey: TranslationPaths;
-    /** Function to call when the user clicks the item */
-    pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
-};
-
+} & (
+    | {
+          pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
+      }
+    | {
+          /** Direct action that doesn't go through the promise-based selectItem flow */
+          onPress: () => void;
+      }
+);
 /**
  * Return imagePickerOptions based on the type
  */
@@ -57,35 +103,13 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
 };
 
 /**
- * Return documentPickerOptions based on the type
- * @param {String} type
- * @param {Number} fileLimit
- * @returns {Object}
- */
-
-const getDocumentPickerOptions = (type: string, fileLimit: number): DocumentPickerOptions => {
-    if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
-        return {
-            type: [RNDocumentPicker.types.images],
-            copyTo: 'cachesDirectory',
-            allowMultiSelection: fileLimit !== 1,
-        };
-    }
-    return {
-        type: [RNDocumentPicker.types.allFiles],
-        copyTo: 'cachesDirectory',
-        allowMultiSelection: fileLimit !== 1,
-    };
-};
-
-/**
  * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
  * send to the xhr will be handled properly.
  */
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
-    const fileName = fileData.name || 'chat_attachment';
+    const fileName = fileData.name || CONST.DEFAULT_ATTACHMENT_FILENAME;
     const fileResult: FileObject = {
-        name: FileUtils.cleanFileName(fileName),
+        name: cleanFileName(fileName),
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,
@@ -93,15 +117,76 @@ const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
         size: fileData.size,
     };
 
-    if (fileResult.size) {
-        return Promise.resolve(fileResult);
+    const fileWithSize = fileResult.size
+        ? Promise.resolve(fileResult)
+        : RNFetchBlob.fs.stat(fileURIToPath(fileData.uri)).then((stats) => {
+              fileResult.size = stats.size;
+              return fileResult;
+          });
+
+    // `source` is what prepareRequestPayload re-resolves on offline replay, so it must point into the
+    // receipts folder too, not just `uri`.
+    return fileWithSize.then((file) =>
+        ReceiptStorage.adopt(file.uri ?? '', file.name ?? CONST.DEFAULT_ATTACHMENT_FILENAME)
+            .then((durableName) => {
+                const durableUri = ReceiptStorage.toLocalUri(durableName);
+                return {...file, uri: durableUri, source: durableUri} as FileObject;
+            })
+            .catch((error: unknown) => {
+                logReceiptAdoptFailed({error, captureSource: getPickerCaptureSource()});
+                return file;
+            }),
+    );
+};
+
+/**
+ * Transcodes document-picked DNG files (e.g. an iPhone ProRAW browsed to via "Choose file") to JPEG, the same
+ * way gallery picks are, so both entry points accept the same photos. Anything else is returned untouched: plain
+ * TIFFs are an accepted receipt format, and `.heic` documents keep the existing HEIC-through-validation flow.
+ *
+ * Files are converted one at a time (see `processPickedAssetsSequentially`) and failures are collected so a
+ * multi-selection produces at most one alert. A file that can't be decoded is dropped from the result, since the
+ * backend rejects DNG and it must never be uploaded unconverted.
+ */
+async function transcodeDngFiles(files: LocalCopy[], showGeneralAlert: (message?: string) => void, translate: LocaleContextProps['translate']): Promise<LocalCopy[]> {
+    const failureMessages = new Set<string>();
+    const collectFailure = (message = translate('attachmentPicker.errorWhileSelectingAttachment')) => {
+        failureMessages.add(message);
+    };
+
+    const results: LocalCopy[] = [];
+    for (const file of files) {
+        if (!isLabelledDng(file)) {
+            results.push(file);
+            continue;
+        }
+
+        // eslint-disable-next-line no-await-in-loop -- converting one image at a time keeps a single decoded bitmap in memory, see processPickedAssetsSequentially
+        const convertedAssets = await processPickedAssetsSequentially(
+            [{uri: file.uri, fileName: file.name ?? undefined, type: file.type ?? undefined, fileSize: file.size ?? undefined}],
+            collectFailure,
+            translate,
+        );
+        const convertedAsset = convertedAssets?.at(0);
+        if (!convertedAsset?.uri) {
+            continue;
+        }
+
+        results.push({
+            name: convertedAsset.fileName ?? file.name,
+            uri: convertedAsset.uri,
+            // The JPEG's size differs from the DNG's and isn't reported by the transcode. `getDataForUpload` reads it from disk.
+            size: null,
+            type: convertedAsset.type ?? file.type,
+        });
     }
 
-    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
-        fileResult.size = stats.size;
-        return fileResult;
-    });
-};
+    if (failureMessages.size > 0) {
+        showGeneralAlert([...failureMessages].join('\n'));
+    }
+
+    return results;
+}
 
 /**
  * This component renders a function as a child and
@@ -115,20 +200,40 @@ function AttachmentPicker({
     shouldHideCameraOption = false,
     shouldValidateImage = true,
     shouldHideGalleryOption = false,
+    acceptedFileTypes,
     fileLimit = 1,
+    onOpenPicker,
+    shouldSkipAttachmentTypeModal = false,
 }: AttachmentPickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
+    // Mount and visibility are tracked separately so the camera stays mounted through its hide
+    // animation. Unmounting on close cuts the animation off midway and the modal vanishes abruptly.
+    const [isAttachmentCameraMounted, setIsAttachmentCameraMounted] = useState(false);
+    const [isAttachmentCameraVisible, setIsAttachmentCameraVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
-    const onModalHide = useRef<() => void>();
+    const onModalHide = useRef<(() => void) | undefined>(undefined);
     const onCanceled = useRef<() => void>(() => {});
+    const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
+    const modalDismissTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (!modalDismissTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(modalDismissTimeoutRef.current);
+        };
+    }, []);
 
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, addOfflineIndicatorBottomSafeAreaPadding: false});
 
     /**
      * A generic handling when we don't know the exact reason for an error
@@ -140,10 +245,15 @@ function AttachmentPicker({
         [translate],
     );
 
+    const launchInAppCamera = useCallback(() => {
+        setIsAttachmentCameraMounted(true);
+        setIsAttachmentCameraVisible(true);
+    }, []);
+
     /**
      * Common image picker handling
      *
-     * @param {function} imagePickerFunc - RNImagePicker.launchCamera or RNImagePicker.launchImageLibrary
+     * @param {function} imagePickerFunc - RNImagePicker.launchImageLibrary
      */
     const showImagePicker = useCallback(
         (imagePickerFunc: (options: CameraOptions, callback: Callback) => Promise<ImagePickerResponse>): Promise<Asset[] | void> =>
@@ -156,7 +266,7 @@ function AttachmentPicker({
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                FileUtils.showCameraPermissionsAlert();
+                                showCameraPermissionsAlert(translate);
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -166,90 +276,95 @@ function AttachmentPicker({
                         return reject(new Error(`Error during attachment selection: ${response.errorMessage}`));
                     }
 
-                    const targetAsset = response.assets?.[0];
-                    const targetAssetUri = targetAsset?.uri;
-
-                    if (!targetAssetUri) {
+                    const assets = response.assets;
+                    if (!assets || assets.length === 0) {
                         return resolve();
                     }
 
-                    if (targetAsset?.type?.startsWith('image')) {
-                        FileUtils.verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
-                            .then((isHEIC) => {
-                                // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
-                                if (isHEIC && targetAssetUri) {
-                                    manipulateAsync(targetAssetUri, [], {format: SaveFormat.JPEG})
-                                        .then((manipResult) => {
-                                            const uri = manipResult.uri;
-                                            const convertedAsset = {
-                                                uri,
-                                                name: uri
-                                                    .substring(uri.lastIndexOf('/') + 1)
-                                                    .split('?')
-                                                    .at(0),
-                                                type: 'image/jpeg',
-                                                width: manipResult.width,
-                                                height: manipResult.height,
-                                            };
-
-                                            return resolve([convertedAsset]);
-                                        })
-                                        .catch((err) => reject(err));
-                                } else {
-                                    return resolve(response.assets);
-                                }
-                            })
-                            .catch((err) => reject(err));
-                    } else {
-                        return resolve(response.assets);
-                    }
+                    processPickedAssetsSequentially(assets, showGeneralAlert, translate).then(resolve).catch(reject);
                 });
             }),
-        [fileLimit, showGeneralAlert, type],
+        [fileLimit, showGeneralAlert, translate, type],
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
-     *
-     * @returns {Promise<DocumentPickerResponse[] | void>}
      */
-    const showDocumentPicker = useCallback(
-        (): Promise<DocumentPickerResponse[] | void> =>
-            RNDocumentPicker.pick(getDocumentPickerOptions(type, fileLimit)).catch((error: Error) => {
-                if (RNDocumentPicker.isCancel(error)) {
-                    return;
+    const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
+        let pickerTypes: string[];
+        if (acceptedFileTypes && acceptedFileTypes.length > 0) {
+            const mappedTypes = acceptedFileTypes.reduce<string[]>((result, extension) => {
+                const nativeType = EXTENSION_TO_NATIVE_TYPE[String(extension)];
+                if (nativeType !== undefined && !result.includes(nativeType)) {
+                    result.push(nativeType);
                 }
+                return result;
+            }, []);
+            // If any extension has no native type mapping, fall back to allFiles so those
+            // file types remain selectable. Downstream validation handles the type check.
+            const hasUnmappedExtensions = acceptedFileTypes.some((ext) => EXTENSION_TO_NATIVE_TYPE[String(ext)] === undefined);
+            pickerTypes = mappedTypes.length > 0 && !hasUnmappedExtensions ? mappedTypes : [types.allFiles];
+        } else {
+            pickerTypes = [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles];
+        }
 
-                showGeneralAlert(error.message);
-                throw error;
-            }),
-        [fileLimit, showGeneralAlert, type],
-    );
+        const pickedFiles = await pick({
+            type: pickerTypes,
+            allowMultiSelection: fileLimit !== 1,
+        });
+
+        const localCopies = await keepLocalCopy({
+            files: pickedFiles.map((file) => {
+                return {
+                    uri: file.uri,
+                    fileName: file.name ?? '',
+                };
+            }) as [FileToCopy, ...FileToCopy[]],
+            destination: 'cachesDirectory',
+        });
+
+        const localFiles: LocalCopy[] = pickedFiles.map((file) => {
+            const localCopy = localCopies.find((copy) => copy.sourceUri === file.uri);
+
+            if (localCopy?.status !== 'success') {
+                throw new Error("Couldn't create local file copy");
+            }
+
+            return {
+                name: file.name,
+                uri: localCopy.localUri,
+                size: file.size,
+                type: file.type,
+            };
+        });
+
+        return transcodeDngFiles(localFiles, showGeneralAlert, translate);
+    }, [acceptedFileTypes, fileLimit, showGeneralAlert, translate, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
             {
-                icon: Expensicons.Paperclip,
+                icon: icons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },
         ];
         if (!shouldHideGalleryOption) {
             data.unshift({
-                icon: Expensicons.Gallery,
+                icon: icons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             });
         }
         if (!shouldHideCameraOption) {
             data.unshift({
-                icon: Expensicons.Camera,
+                icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                pickAttachment: () => showImagePicker(launchCamera),
+                onPress: launchInAppCamera,
             });
         }
 
         return data;
-    }, [showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, launchInAppCamera, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -261,17 +376,23 @@ function AttachmentPicker({
     }, [translate]);
 
     /**
-     * Opens the attachment modal
-     *
-     * @param onPickedHandler A callback that will be called with the selected attachment
-     * @param onCanceledHandler A callback that will be called without a selected attachment
+     * Handles errors during image processing (resize, dimension check, etc.)
      */
-    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}) => {
-        // eslint-disable-next-line react-compiler/react-compiler
-        completeAttachmentSelection.current = onPickedHandler;
-        onCanceled.current = onCanceledHandler;
-        setIsVisible(true);
-    };
+    const handleImageProcessingError = useCallback(
+        (error: unknown) => {
+            const errorMessage = error instanceof Error ? error.message : undefined;
+
+            if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                showGeneralAlert(translate('attachmentPicker.imageDimensionsTooLarge'));
+            } else if (errorMessage) {
+                showGeneralAlert(errorMessage);
+            } else {
+                showImageCorruptionAlert();
+            }
+            return null;
+        },
+        [showGeneralAlert, showImageCorruptionAlert, translate],
+    );
 
     /**
      * Closes the attachment modal
@@ -280,47 +401,24 @@ function AttachmentPicker({
         setIsVisible(false);
     };
 
-    const validateAndCompleteAttachmentSelection = useCallback(
-        (fileData: FileResponse) => {
-            // Check if the file dimensions indicate corruption
-            // The width/height for a corrupted file is -1 on android native and 0 on ios native
-            // We must check only numeric values because the width/height can be undefined for non-image files
-            if ((typeof fileData.width === 'number' && fileData.width <= 0) || (typeof fileData.height === 'number' && fileData.height <= 0)) {
-                showImageCorruptionAlert();
-                return Promise.resolve();
-            }
-            return getDataForUpload(fileData)
-                .then((result) => {
-                    completeAttachmentSelection.current([result]);
-                })
-                .catch((error: Error) => {
-                    showGeneralAlert(error.message);
-                    throw error;
-                });
-        },
-        [showGeneralAlert, showImageCorruptionAlert],
-    );
-
     /**
      * Handles the image/document picker result and
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Asset[] | DocumentPickerResponse[] | void = []): Promise<void[]> | undefined => {
+        (attachments: Asset[] | LocalCopy[] | void = []): Promise<void> | undefined => {
             if (!attachments || attachments.length === 0) {
                 onCanceled.current();
-                return Promise.resolve([]);
+                return Promise.resolve();
             }
 
             const filesToProcess = attachments.map((fileData) => {
                 if (!fileData) {
-                    onCanceled.current();
-                    return Promise.resolve();
+                    return Promise.resolve(null);
                 }
 
-                /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
                 const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
-                const fileDataUri = ('fileCopyUri' in fileData && fileData.fileCopyUri) || ('uri' in fileData && fileData.uri) || '';
+                const fileDataUri = ('uri' in fileData && fileData.uri) || '';
 
                 const fileDataObject: FileResponse = {
                     name: fileDataName ?? '',
@@ -332,53 +430,121 @@ function AttachmentPicker({
                 };
 
                 if (!shouldValidateImage && fileDataName && Str.isImage(fileDataName)) {
-                    return ImageSize.getSize(fileDataUri)
-                        .then(({width, height}) => {
-                            fileDataObject.width = width;
-                            fileDataObject.height = height;
-                            return fileDataObject;
-                        })
-                        .then((file) => {
-                            return getDataForUpload(file)
-                                .then((result) => completeAttachmentSelection.current([result]))
-                                .catch((error) => {
-                                    if (error instanceof Error) {
-                                        showGeneralAlert(error.message);
-                                    } else {
-                                        showGeneralAlert('An unknown error occurred');
-                                    }
-                                    throw error;
-                                });
-                        })
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                        });
+                    return getDataForUpload(fileDataObject)
+                        .then((file) =>
+                            ImageSize.getSize(file.uri ?? '').then(({width, height}) => ({
+                                ...file,
+                                width,
+                                height,
+                            })),
+                        )
+                        .catch(handleImageProcessingError);
                 }
 
                 if (fileDataName && Str.isImage(fileDataName)) {
-                    return ImageSize.getSize(fileDataUri)
-                        .then(({width, height}) => {
-                            fileDataObject.width = width;
-                            fileDataObject.height = height;
+                    return getDataForUpload(fileDataObject)
+                        .then((file) =>
+                            ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
+                                if (width <= 0 || height <= 0) {
+                                    showImageCorruptionAlert();
+                                    return null;
+                                }
 
-                            if (fileDataObject.width <= 0 || fileDataObject.height <= 0) {
-                                showImageCorruptionAlert();
-                                return Promise.resolve(); // Skip processing this corrupted file
-                            }
-
-                            return validateAndCompleteAttachmentSelection(fileDataObject);
-                        })
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                        });
+                                return {
+                                    ...file,
+                                    width,
+                                    height,
+                                };
+                            }),
+                        )
+                        .catch(handleImageProcessingError);
                 }
-                return validateAndCompleteAttachmentSelection(fileDataObject);
+
+                return getDataForUpload(fileDataObject).catch((error: Error) => {
+                    showGeneralAlert(error.message);
+                    return null;
+                });
             });
 
-            return Promise.all(filesToProcess);
+            return Promise.all(filesToProcess)
+                .then((results) => {
+                    const validResults = results.filter((result): result is FileObject => result !== null);
+                    if (validResults.length > 0) {
+                        completeAttachmentSelection.current(validResults);
+                    } else {
+                        onCanceled.current();
+                    }
+                })
+                .catch((error) => {
+                    if (error instanceof Error) {
+                        showGeneralAlert(error.message);
+                    } else {
+                        showGeneralAlert('An unknown error occurred');
+                    }
+                });
         },
-        [shouldValidateImage, validateAndCompleteAttachmentSelection, showGeneralAlert, showImageCorruptionAlert],
+        [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
+
+    const handleCameraCapture = useCallback(
+        (photos: CapturedPhoto[]) => {
+            setIsAttachmentCameraVisible(false);
+            if (modalDismissTimeoutRef.current) {
+                clearTimeout(modalDismissTimeoutRef.current);
+                modalDismissTimeoutRef.current = null;
+            }
+            const assets: Asset[] = photos.map((photo) => ({
+                uri: photo.uri,
+                fileName: photo.fileName,
+                type: photo.type,
+                width: photo.width,
+                height: photo.height,
+            }));
+            Promise.resolve(pickAttachment(assets)).finally(() => {
+                onClosed.current();
+                delete onModalHide.current;
+            });
+        },
+        [pickAttachment],
+    );
+
+    const handleCameraClose = useCallback(() => {
+        setIsAttachmentCameraVisible(false);
+        if (modalDismissTimeoutRef.current) {
+            clearTimeout(modalDismissTimeoutRef.current);
+            modalDismissTimeoutRef.current = null;
+        }
+        onCanceled.current();
+        onClosed.current();
+        delete onModalHide.current;
+    }, []);
+
+    /**
+     * Opens the attachment modal, or directly launches the document picker when shouldSkipAttachmentTypeModal is true.
+     */
+    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
+        completeAttachmentSelection.current = onPickedHandler;
+        onCanceled.current = onCanceledHandler;
+        onClosed.current = onClosedHandler;
+
+        if (shouldSkipAttachmentTypeModal) {
+            onOpenPicker?.();
+            showDocumentPicker()
+                .catch((error: Error) => {
+                    if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                        return;
+                    }
+                    showGeneralAlert(error.message);
+                    throw error;
+                })
+                .then((result) => pickAttachment(result))
+                .catch(console.error)
+                .finally(() => onClosedHandler());
+            return;
+        }
+
+        setIsVisible(true);
+    };
 
     /**
      * Setup native attachment selection to start after this popover closes
@@ -388,19 +554,52 @@ function AttachmentPicker({
      */
     const selectItem = useCallback(
         (item: Item) => {
+            if (modalDismissTimeoutRef.current) {
+                clearTimeout(modalDismissTimeoutRef.current);
+                modalDismissTimeoutRef.current = null;
+            }
+
+            /* Presenting a second modal while the first is still dismissing fails silently on iOS, so
+             * defer the camera launch to onModalHide. onPress items report completion themselves and
+             * skip the promise-based pickAttachment chain below. */
+            if ('onPress' in item) {
+                onModalHide.current = () => {
+                    modalDismissTimeoutRef.current = setTimeout(() => {
+                        modalDismissTimeoutRef.current = null;
+                        item.onPress();
+                        delete onModalHide.current;
+                    }, MODAL_DISMISS_DELAY_MS);
+                };
+                close();
+                return;
+            }
+
+            onOpenPicker?.();
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
             onModalHide.current = () => {
-                setTimeout(() => {
+                modalDismissTimeoutRef.current = setTimeout(() => {
+                    modalDismissTimeoutRef.current = null;
                     item.pickAttachment()
+                        .catch((error: Error) => {
+                            if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                                return;
+                            }
+
+                            showGeneralAlert(error.message);
+                            throw error;
+                        })
                         .then((result) => pickAttachment(result))
                         .catch(console.error)
-                        .finally(() => delete onModalHide.current);
-                }, 200);
+                        .finally(() => {
+                            onClosed.current();
+                            delete onModalHide.current;
+                        });
+                }, MODAL_DISMISS_DELAY_MS);
             };
             close();
         },
-        [pickAttachment],
+        [onOpenPicker, pickAttachment, showGeneralAlert],
     );
 
     useKeyboardShortcut(
@@ -425,22 +624,26 @@ function AttachmentPicker({
      */
     const renderChildren = (): React.ReactNode =>
         children({
-            openPicker: ({onPicked, onCanceled: newOnCanceled}) => open(onPicked, newOnCanceled),
+            openPicker: ({onPicked, onCanceled: newOnCanceled, onClosed: newOnClosed}) => open(onPicked, newOnCanceled, newOnClosed),
         });
 
     return (
         <>
             <Popover
                 onClose={() => {
+                    if (modalDismissTimeoutRef.current) {
+                        clearTimeout(modalDismissTimeoutRef.current);
+                        modalDismissTimeoutRef.current = null;
+                    }
                     close();
                     onCanceled.current();
                 }}
                 isVisible={isVisible}
                 anchorRef={popoverRef}
-                // eslint-disable-next-line react-compiler/react-compiler
-                onModalHide={onModalHide.current}
+                onModalHide={() => onModalHide.current?.()}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <View style={!shouldUseNarrowLayout && styles.createMenuContainer}>
+                <View style={[!shouldUseNarrowLayout && styles.createMenuContainer, bottomSafeAreaPaddingStyle]}>
                     {menuItemData.map((item, menuIndex) => (
                         <MenuItem
                             key={item.textTranslationKey}
@@ -453,12 +656,17 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
+            {isAttachmentCameraMounted && (
+                <AttachmentCamera
+                    isVisible={isAttachmentCameraVisible}
+                    onCapture={handleCameraCapture}
+                    onClose={handleCameraClose}
+                    onModalHide={() => setIsAttachmentCameraMounted(false)}
+                />
+            )}
             {renderChildren()}
         </>
     );
 }
-
-AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;

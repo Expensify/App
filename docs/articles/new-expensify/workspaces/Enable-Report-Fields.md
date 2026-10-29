@@ -1,51 +1,95 @@
 ---
-title: Enable-Report-Fields.md
-description: Enable and create Report Fields for your Workspaces
+title: Enable Report Fields
+description: Turn on report fields for a workspace, create text, date, list, and formula fields, and understand which fields an accounting connection locks while it's connected.
+keywords: [New Expensify, report fields, enable report fields, add field, list values, imported report fields, accounting connection, disconnect accounting, Control plan]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling Report fields, creating fields, deleting fields, how fields imported from an accounting connection behave while that connection is active, and how those leftover fields behave after the connection is disconnected or replaced. Does not cover choosing which accounting dimensions import as report fields, which is covered in each connection's configuration article.
 ---
 
-{% include info.html %}
-Report fields are only available on the Control plan. You cannot create these report fields directly in Expensify if you are connected to an accounting integration (QuickBooks Online, QuickBooks Desktop, Intacct, Xero, or NetSuite). Please refer to the relevant article for instructions on creating fields within that system.
-{% include end-info.html %}
+# Enable Report Fields
 
-If you are not connected to an accounting integration, workspace Admins can add additional required report fields that allow you to specify header-level details like specific project names, business trip information, locations, and more.
+Report fields let workspace admins collect additional header-level information on reports, such as project names, client codes, or trip types. Report fields are only available on the Control plan.
 
-## Enable Report Fields 
-To enable report fields on a Workspace:
+Report fields apply to expense reports. They don't appear on invoices. To collect extra details on invoices, [learn how to enable Invoice fields](/articles/new-expensify/workspaces/Enable-Invoice-Fields).
 
-1. Click Settings in the bottom left menu
-2. Click Workspaces from the left-hand menu
-3. Select the Workspace you want to enable Report Fields for 
-4. Go to More Features and toggle on Report Fields
+---
 
-{% include info.html %}
-If you are not already on a Control plan, you will be prompted to upgrade
-{% include end-info.html %}
+## How to enable Report fields
 
-## Create New Report Fields
-To create new Report Fields:
+1. In the navigation tabs (on the left on web, at the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Reports**.
+3. Toggle on **Report fields**.
 
-1. Click Settings in the bottom left menu
-2. Click Workspaces from the left-hand menu
-3. Select the Workspace you want to create Report Fields on
-4. Click Report Fields on the lefthand menu (if you do not see this option, enable Report Fields by following the Enable Report Fields process above this)
-5. Click “Add Field” in the top right corner
-6. Click “Name” and add a name your your Report Field
-7. Click “Type” to select the Report Field type; you will have the following options:
-   - Text - Add a field for free-text input
-   - Date - Add a calendar for date selection
-   - List - Add a list of options to choose from
-       - To create values for your list, click List Vales > Add Values
-8. Once you have added a Name and the Type, click Save at the bottom of the page
+---
 
-## Edit or Delete Existing Report Fields
-To edit or delete existing report fields  Report Fields:
+## How to create a Report field
 
-1. Click Settings in the bottom left menu
-2. Click Workspaces from the left-hand menu
-3. Select the Workspace you want to edit Report Fields on
-4. Click Report Fields on the lefthand menu 
-5. Click the Report Field you wish to edit or delete
-6. Make the required edits in the right-hand panel, or select “Delete”
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Reports**.
+3. Select **Add field**.
+4. Select **Name** and enter a name for the report field.
+5. Select **Type** and choose one:
+   - **Text** – Add a field for free text input.
+   - **Date** – Add a calendar for date selection.
+   - **List** – Add a list of options to choose from.
+     - To create list options, click **List values**, then click **Add value** for each option.
+   - **Formula** – Add a formula field.
+6. After naming and choosing the field type, select **Save**.
 
+---
 
+## How to update or delete a Report field
 
+A field's **Name** and **Type** are set when you create the report field and can't be changed afterward. To use a different name or type, delete the field and create a new one.
+
+To delete a report field:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Reports**.
+3. Under **Report fields**, choose the field you want to delete.
+4. Select **Delete**.
+
+Fields imported from an active accounting connection have no **Delete** option. See how imported fields behave below.
+
+---
+
+## How report fields work with an accounting connection
+
+When a workspace is connected to an accounting integration, imported report fields appear on the **Reports** page under a note that reads "The report fields below are imported from your" and your integration name.
+
+While that connection is active, imported fields and the fields you create behave differently:
+
+- **Imported fields** can't be deleted, and you can't add or delete their **List values** in Expensify. Add or remove values in your accounting system, then sync the connection.
+- You can still turn an imported field's individual **List values** on or off in Expensify to control which ones members can pick.
+- **Fields you create in Expensify** stay under your control. You can change their **Initial value** and **List values** and delete them, even while the connection is active.
+- You can enable **Report fields** and click **Add field** while a connection is active.
+- Once at least one imported field exists, the **Report fields** toggle can't be turned off. Clicking it shows a message that report fields imported from your accounting connection can't be disabled.
+
+---
+
+## What happens to imported report fields after you disconnect an accounting connection
+
+The fields an integration imported stay on the workspace after you disconnect it, but they behave like fields you created manually. This also applies if you replace the integration with a different one.
+
+- You can turn off **Report fields**.
+- Each leftover field shows a **Delete** action.
+- You can add, delete, enable, and disable **List values** on those fields.
+
+---
+
+# FAQ
+
+## Why can't I turn off report fields?
+
+At least one report field on the workspace was imported from the accounting connection you're currently connected to. Imported fields can't be disabled from Expensify while that connection is active. Change what the connection imports as report fields, or disconnect the integration, and then the toggle becomes available again.
+
+## Why can't I delete a report field?
+
+The field was imported from your active accounting connection, so it's managed in that system. Delete it there and sync the connection, delete the dimension from your connection's import settings, or disconnect the integration — after you disconnect, the leftover field can be deleted in Expensify.
+
+## Why can't I change a report field's name or type?
+
+The **Name** and **Type** are set when the field is created and are read-only afterward, for imported fields and for fields you create. To use a different name or type, delete the field and create a new one.
+
+## What happens when I turn off report fields?
+
+Text and date fields are deleted, and lists are disabled. Expensify shows this warning before you confirm with **Disable**.

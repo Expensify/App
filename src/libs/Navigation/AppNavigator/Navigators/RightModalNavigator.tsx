@@ -1,218 +1,617 @@
-import type {StackCardInterpolationProps, StackScreenProps} from '@react-navigation/stack';
-import {createStackNavigator} from '@react-navigation/stack';
-import React, {useMemo, useRef} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
+
+import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
-import {isSafari} from '@libs/Browser';
-import ModalNavigatorScreenOptions from '@libs/Navigation/AppNavigator/ModalNavigatorScreenOptions';
+import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
+import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
-import createModalCardStyleInterpolator from '@navigation/AppNavigator/createModalCardStyleInterpolator';
+import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
+import useRHPScreenOptions from '@libs/Navigation/AppNavigator/useRHPScreenOptions';
+import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
+import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import createRightModalNavigator from '@navigation/AppNavigator/createRightModalNavigator';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
+
+import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
+import SearchAdvancedFiltersProvider from '@pages/Search/SearchAdvancedFiltersProvider';
+import {MergeATSApprovalDraftProvider} from '@pages/workspace/recruiting/approver/MergeATSApprovalDraftContext';
+import {MergeATSFiltersDraftProvider} from '@pages/workspace/recruiting/merge/filters/MergeATSFiltersDraftContext';
+
+import type {OverlayPositionValue} from '@styles/index';
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import Overlay from './Overlay';
+import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
-type RightModalNavigatorProps = StackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
+import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {ComponentRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 
-const Stack = createStackNavigator<RightModalNavigatorParamList>();
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated, DeviceEventEmitter, View} from 'react-native';
 
-function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
-    const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isExecutingRef = useRef<boolean>(false);
-    const screenOptions = useMemo(() => {
-        const options = ModalNavigatorScreenOptions(styles);
-        // The .forHorizontalIOS interpolator from `@react-navigation` is misbehaving on Safari, so we override it with Expensify custom interpolator
-        if (isSafari()) {
-            const customInterpolator = createModalCardStyleInterpolator(styleUtils);
-            options.cardStyleInterpolator = (props: StackCardInterpolationProps) => customInterpolator(shouldUseNarrowLayout, false, false, props);
-        }
+import getRHPFrameStyle from './getRHPFrameStyle';
+import {NarrowPaneContextProvider} from './NarrowPaneContext';
+import RHPOverlay from './Overlay/RHPOverlay';
+import RHPResizeHandle from './RHPResizeHandle';
 
-        return options;
-    }, [shouldUseNarrowLayout, styleUtils, styles]);
+type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
+const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
+
+const singleRHPWidth = variables.rhpWidth;
+
+function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
-        <NoDropZone>
-            {!shouldUseNarrowLayout && (
-                <Overlay
-                    onPress={() => {
-                        if (isExecutingRef.current) {
-                            return;
-                        }
-                        isExecutingRef.current = true;
-                        navigation.goBack();
-                    }}
-                />
-            )}
-            <View style={styles.RHPNavigatorContainer(shouldUseNarrowLayout)}>
-                <Stack.Navigator
-                    screenOptions={screenOptions}
-                    screenListeners={{
-                        blur: () => {
-                            if (
-                                // @ts-expect-error There is something wrong with a types here and it's don't see the params list
-                                navigation.getState().routes.find((routes) => routes.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params?.screen ===
-                                    SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE ||
-                                route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE
-                            ) {
-                                return;
-                            }
-                            // Delay clearing review duplicate data till the RHP is completely closed
-                            // to avoid not found showing briefly in confirmation page when RHP is closing
-                            InteractionManager.runAfterInteractions(() => {
-                                abandonReviewDuplicateTransactions();
-                            });
-                        },
-                    }}
-                    id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
-                >
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SETTINGS}
-                        component={ModalStackNavigators.SettingsModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.NEW_CHAT}
-                        component={ModalStackNavigators.NewChatModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.PROFILE}
-                        component={ModalStackNavigators.ProfileModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.DEBUG}
-                        component={ModalStackNavigators.DebugModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.REPORT_DETAILS}
-                        component={ModalStackNavigators.ReportDetailsModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.REPORT_SETTINGS}
-                        component={ModalStackNavigators.ReportSettingsModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
-                        component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}
-                        component={ModalStackNavigators.CategoriesModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SETTINGS_TAGS}
-                        component={ModalStackNavigators.TagsModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.EXPENSIFY_CARD}
-                        component={ModalStackNavigators.ExpensifyCardModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.DOMAIN_CARD}
-                        component={ModalStackNavigators.DomainCardModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
-                        component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ROOM_MEMBERS}
-                        component={ModalStackNavigators.RoomMembersModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.MONEY_REQUEST}
-                        component={ModalStackNavigators.MoneyRequestModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.NEW_TASK}
-                        component={ModalStackNavigators.NewTaskModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.TEACHERS_UNITE}
-                        component={ModalStackNavigators.NewTeachersUniteNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.TASK_DETAILS}
-                        component={ModalStackNavigators.TaskModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS}
-                        component={ModalStackNavigators.EnablePaymentsStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SPLIT_DETAILS}
-                        component={ModalStackNavigators.SplitDetailsModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.ADD_PERSONAL_BANK_ACCOUNT}
-                        component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.WALLET_STATEMENT}
-                        component={ModalStackNavigators.WalletStatementStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.FLAG_COMMENT}
-                        component={ModalStackNavigators.FlagCommentStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.EDIT_REQUEST}
-                        component={ModalStackNavigators.EditRequestStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SIGN_IN}
-                        component={ModalStackNavigators.SignInModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.REFERRAL}
-                        component={ModalStackNavigators.ReferralModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
-                        component={ModalStackNavigators.PrivateNotesModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name="ProcessMoneyRequestHold"
-                        component={ModalStackNavigators.ProcessMoneyRequestHoldStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
-                        component={ModalStackNavigators.TransactionDuplicateStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.TRAVEL}
-                        component={ModalStackNavigators.TravelModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
-                        component={ModalStackNavigators.SearchReportModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
-                        component={ModalStackNavigators.RestrictedActionModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
-                        component={ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH}
-                        component={ModalStackNavigators.SearchSavedSearchModalStackNavigator}
-                    />
-                    <Stack.Screen
-                        name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
-                        component={ModalStackNavigators.MissingPersonalDetailsModalStackNavigator}
-                    />
-                </Stack.Navigator>
-            </View>
-        </NoDropZone>
+        <PINContextProvider>
+            <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator {...props} />
+        </PINContextProvider>
     );
 }
 
-RightModalNavigator.displayName = 'RightModalNavigator';
+function SearchAdvancedFiltersWithContext(props: Record<string, unknown>) {
+    return (
+        <SearchAdvancedFiltersProvider>
+            <ModalStackNavigators.SearchAdvancedFiltersModalStackNavigator {...props} />
+        </SearchAdvancedFiltersProvider>
+    );
+}
+
+function MergeATSFiltersWithDraftContext(props: Record<string, unknown>) {
+    return (
+        <MergeATSFiltersDraftProvider>
+            <ModalStackNavigators.MergeATSFiltersModalStackNavigator {...props} />
+        </MergeATSFiltersDraftProvider>
+    );
+}
+
+function MergeATSApprovalWithDraftContext(props: Record<string, unknown>) {
+    return (
+        <MergeATSApprovalDraftProvider>
+            <ModalStackNavigators.MergeATSApprovalModalStackNavigator {...props} />
+        </MergeATSApprovalDraftProvider>
+    );
+}
+
+const loadRHPReportScreen = () => require<ReactComponentModule>('../../../../pages/inbox/RHPReportScreen').default;
+const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('../../../../pages/Search/SearchMoneyRequestReportPage').default;
+const loadSearchSavePage = () => require<ReactComponentModule>('../../../../pages/Search/SearchSavePage').default;
+
+type RightModalDialogFrameProps = {
+    /** Whether the RHP container should carry dialog semantics (role=dialog + aria-modal) — true on wide layout. */
+    hasDialogSemantics: boolean;
+
+    /** Animated style applied to the RHP container. */
+    style: React.ComponentProps<typeof Animated.View>['style'];
+
+    /** Style of the box around the stack navigator. */
+    contentStyle: StyleProp<ViewStyle>;
+
+    /** Callback ref for the container node so the provider can observe node identity changes. */
+    onContainerRef: (node: ComponentRef<typeof View> | null) => void;
+
+    /** RHP stack navigator rendered inside the dialog frame. */
+    children: React.ReactNode;
+};
+
+/**
+ * Applies dialog naming as React props on the RHP container.
+ * Imperative setAttribute('aria-label') is invisible to JAWS's virtual buffer; declarative props are not.
+ *
+ * Wide RHPs always keep role=dialog + aria-modal (including untitled routes like SEARCH_REPORT).
+ * aria-label is applied only once the visible title is registered so JAWS can announce a named dialog;
+ * Header also announces "{title}, dialog" via a polite live region when the title is ready.
+ */
+function RightModalDialogFrame({hasDialogSemantics, style, contentStyle, onContainerRef, children}: RightModalDialogFrameProps) {
+    const {dialogAriaLabel} = useDialogLabelData();
+    const hasName = !!dialogAriaLabel;
+
+    return (
+        <Animated.View
+            ref={onContainerRef}
+            role={hasDialogSemantics ? CONST.ROLE.DIALOG : undefined}
+            aria-modal={hasDialogSemantics || undefined}
+            aria-label={hasDialogSemantics && hasName ? dialogAriaLabel : undefined}
+            // Focusable so SRs / claimDialogFocus can land on the dialog when it has no nested controls.
+            tabIndex={hasDialogSemantics ? -1 : undefined}
+            style={style}
+        >
+            <View style={contentStyle}>{children}</View>
+        </Animated.View>
+    );
+}
+
+function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const [is2FAEnabled = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.requiresTwoFactorAuth});
+    const [containerNode, setContainerNode] = useState<ComponentRef<typeof View> | null>(null);
+    const [setContainerNodeFromRef] = useState(() => (node: ComponentRef<typeof View> | null) => {
+        setContainerNode(node);
+    });
+    const isExecutingRef = useRef<boolean>(false);
+    const screenOptions = useRHPScreenOptions();
+    const {
+        superWideRHPRouteKeys,
+        wideRHPRouteKeys,
+        shouldRenderTertiaryOverlay,
+        shouldRenderSecondaryOverlayForRHPOnWideRHP,
+        shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
+        isWideRHPFocused,
+        isSuperWideRHPFocused,
+    } = useWideRHPState();
+    const {clearWideRHPKeys, syncRHPKeys} = useWideRHPActions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const modalStackScreenOptions = useModalStackScreenOptions();
+    const styles = useThemeStyles();
+    const {sidePanelOffset} = useSidePanelState();
+
+    // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
+    // so the dismiss reveals the destination instantly. If the pre-insert is later cleaned up
+    // (user backs out without submitting), restore the default animation for that session.
+    useEffect(() => {
+        const disableSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION, () => {
+            navigation.setOptions({animation: Animations.NONE});
+        });
+        const restoreSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION, () => {
+            navigation.setOptions({animation: Animations.SLIDE_FROM_RIGHT});
+        });
+        return () => {
+            disableSub.remove();
+            restoreSub.remove();
+        };
+    }, [navigation]);
+
+    // Animation should be disabled when we open the wide rhp from the narrow one.
+    // When the wide rhp page is opened as first one, it will be animated with the entire RightModalNavigator.
+    const animationEnabledOnSearchReport = superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || isSmallScreenWidth;
+
+    // When the Concierge/Help Side Panel is open on a wide (extra large) layout, it shifts the whole RHP
+    // left by its width via paddingRight (see useModalCardStyleInterpolator + SidePanelContextProvider).
+    // The super wide RHP already spans almost the full window, so without shrinking it by the same amount
+    // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
+    // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
+    // Panel animates open/closed, and never below what its panes need. See https://github.com/Expensify/App/issues/99035
+    const superWideRHPSidePanelOffset = Animated.multiply(
+        expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}),
+        getSidePanelRHPShrink(sidePanelOffset.current, windowWidth),
+    );
+
+    const animatedWidth = Animated.subtract(
+        expandedRHPProgress.interpolate({
+            inputRange: [0, 1, 2],
+            outputRange: [singleRHPWidth, calculateWideRHPWidth(windowWidth), calculateSuperWideRHPWidth(windowWidth)],
+        }),
+        superWideRHPSidePanelOffset,
+    );
+
+    const overlayPositionLeft = -1 * calculateSuperWideRHPWidth(windowWidth);
+
+    // Width of the focused card. The super wide animated width already gives up the Side Panel offset.
+    let focusedRHPWidth: OverlayPositionValue = singleRHPWidth;
+    if (isSuperWideRHPFocused) {
+        focusedRHPWidth = animatedWidth;
+    } else if (isWideRHPFocused) {
+        focusedRHPWidth = calculateWideRHPWidth(windowWidth);
+    }
+
+    // Where the focused card starts, measured from the right window edge and from the left.
+    const tertiaryOverlayColumn = Animated.add(sidePanelOffset.current, Animated.add(focusedRHPWidth, 2 * variables.rhpFloatingCardBorderWidth + variables.rhpFloatingCardMargin));
+    const tertiaryOverlayCardBandLeft = Animated.subtract(windowWidth, tertiaryOverlayColumn);
+    const tertiaryOverlayVerticalGapInset = windowHeight - variables.rhpFloatingCardMargin;
+
+    // With a report or expense stacked in the RHP every card draws its own modal, so the frame is invisible.
+    const shouldUseCenteredFrame =
+        !shouldUseNarrowLayout &&
+        (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
+
+    const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
+    const singleRHPWidthScopeRef = useRef<HTMLElement | null>(null);
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth, singleRHPWidth: resizableSingleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
+    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const stackContentStyle = styles.singleRHPStackBox(isResizableSingleRHP);
+
+    const screenListeners = {
+        blur: () => {
+            const rhpParams = navigation.getState().routes.find((innerRoute) => innerRoute.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR)?.params as
+                | NavigatorScreenParams<RightModalNavigatorParamList>
+                | undefined;
+
+            if (rhpParams?.screen === SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE || route.params?.screen !== SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE) {
+                return;
+            }
+            // Delay clearing review duplicate data till the RHP is completely closed
+            // to avoid not found showing briefly in confirmation page when RHP is closing
+            TransitionTracker.runAfterTransitions({callback: () => abandonReviewDuplicateTransactions()});
+        },
+    };
+
+    const handleOverlayPress = () => {
+        if (isExecutingRef.current) {
+            return;
+        }
+        isExecutingRef.current = true;
+        const currentState = navigationRef.getRootState();
+
+        // There is a brief moment when the RHP is not in the state anymore but the overlay is still visible (closing RHP animation)
+        // We need to block overlay press function in such case because it would go back from the currently active full screen.
+        // Without this, the bug described in https://github.com/Expensify/App/issues/78440 would occur.
+        if (currentState.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            navigation.goBack();
+            setTimeout(() => {
+                isExecutingRef.current = false;
+            }, CONST.ANIMATED_TRANSITION);
+        } else {
+            isExecutingRef.current = false;
+        }
+    };
+
+    // Pressing the dimmed gap around the focused card goes back one level when a card is stacked below, and closes the RHP when it is not.
+    const floatingCardGapProgress = shouldRenderTertiaryOverlay ? thirdOverlayProgress : undefined;
+    const handleFloatingCardGapPress = shouldRenderTertiaryOverlay ? Navigation.dismissToPreviousRHP : handleOverlayPress;
+    // The gap on the right stops before the Side Panel, which shares that edge.
+    const floatingCardGapRightBandLeft = Animated.subtract(Animated.subtract(windowWidth, sidePanelOffset.current), variables.rhpFloatingCardMargin);
+
+    const clearWideRHPKeysAfterTabChanged = () => {
+        const isRhpOpened = navigationRef?.getRootState()?.routes?.some((rootStateRoute) => rootStateRoute.key === route.key);
+        const isFullScreenTopmostRoute = isFullScreenName(navigationRef.getRootState()?.routes?.at(-1)?.name);
+        const hasTabChanged = isRhpOpened && isFullScreenTopmostRoute;
+        if (!hasTabChanged) {
+            return;
+        }
+        clearWideRHPKeys();
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            // When we open a second RightModalNavigator while the previous one is covered by a fullscreen navigator, we need to synchronize the keys.
+            syncRHPKeys();
+
+            // Super wide and wide route keys have to be cleared when the RightModalNavigator is not closed and a new navigator is opened above it.
+            return () => clearWideRHPKeysAfterTabChanged();
+        }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
+    );
+
+    return (
+        <NarrowPaneContextProvider>
+            <NoDropZone ref={singleRHPWidthScopeRef}>
+                {!shouldUseNarrowLayout && (
+                    <RHPOverlay
+                        positionLeftValue={overlayPositionLeft}
+                        onPress={handleOverlayPress}
+                    />
+                )}
+                {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
+                {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
+                <DialogLabelProvider
+                    containerNode={containerNode}
+                    hasDialogSemantics={!isSmallScreenWidth}
+                >
+                    <RightModalDialogFrame
+                        hasDialogSemantics={!isSmallScreenWidth}
+                        onContainerRef={setContainerNodeFromRef}
+                        style={frameStyle}
+                        contentStyle={stackContentStyle}
+                    >
+                        <Stack.Navigator
+                            parentRoute={route}
+                            screenOptions={screenOptions}
+                            screenListeners={screenListeners}
+                            id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
+                        >
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SETTINGS}
+                                component={ModalStackNavigators.SettingsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH}
+                                component={ModalStackNavigators.TwoFactorAuthenticatorStackNavigator}
+                                listeners={{
+                                    beforeRemove: () => {
+                                        TransitionTracker.runAfterTransitions({callback: () => clearTwoFactorAuthData(is2FAEnabled, true), waitForUpcomingTransition: true});
+                                    },
+                                }}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.NEW_CHAT}
+                                component={ModalStackNavigators.NewChatModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.PROFILE}
+                                component={ModalStackNavigators.ProfileModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.DEBUG}
+                                component={ModalStackNavigators.DebugModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.AVATAR_CROP}
+                                component={ModalStackNavigators.AvatarCropModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.NEW_REPORT_WORKSPACE_SELECTION}
+                                component={ModalStackNavigators.NewReportWorkspaceSelectionModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.REPORT_DETAILS}
+                                component={ModalStackNavigators.ReportDetailsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.REPORT_CARD_ACTIVATE}
+                                component={ModalStackNavigators.ReportCardActivateStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_WORKSPACE}
+                                component={ModalStackNavigators.ReportChangeWorkspaceModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER}
+                                component={ModalStackNavigators.ReportChangeApproverModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.REPORT_SETTINGS}
+                                component={ModalStackNavigators.ReportSettingsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION}
+                                component={ModalStackNavigators.ReportDescriptionModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO}
+                                component={ModalStackNavigators.ChronosScheduleOOOModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES}
+                                component={ModalStackNavigators.CategoriesModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SETTINGS_TAGS}
+                                component={ModalStackNavigators.TagsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.EXPENSIFY_CARD}
+                                component={ModalStackNavigators.ExpensifyCardModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.DOMAIN_CARD}
+                                component={ModalStackNavigators.DomainCardModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.PARTICIPANTS}
+                                component={ModalStackNavigators.ReportParticipantsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.ROOM_MEMBERS}
+                                component={ModalStackNavigators.RoomMembersModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.MONEY_REQUEST}
+                                component={ModalStackNavigators.MoneyRequestModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.WORKSPACE_CONFIRMATION}
+                                component={ModalStackNavigators.WorkspaceConfirmationModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.WORKSPACE_DUPLICATE}
+                                component={ModalStackNavigators.WorkspaceDuplicateModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.POLICY_COPY_SETTINGS}
+                                component={ModalStackNavigators.PolicyCopySettingsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.NEW_TASK}
+                                component={ModalStackNavigators.NewTaskModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.TEACHERS_UNITE}
+                                component={ModalStackNavigators.NewTeachersUniteNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.TASK_DETAILS}
+                                component={ModalStackNavigators.TaskModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.ENABLE_PAYMENTS}
+                                component={ModalStackNavigators.EnablePaymentsStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SPLIT_DETAILS}
+                                component={ModalStackNavigators.SplitDetailsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.ADD_PERSONAL_BANK_ACCOUNT}
+                                component={ModalStackNavigators.AddPersonalBankAccountModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.WALLET_STATEMENT}
+                                component={ModalStackNavigators.WalletStatementStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.FLAG_COMMENT}
+                                component={ModalStackNavigators.FlagCommentStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.EDIT_REQUEST}
+                                component={ModalStackNavigators.EditRequestStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SIGN_IN}
+                                component={ModalStackNavigators.SignInModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.REFERRAL}
+                                component={ModalStackNavigators.ReferralModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.PRIVATE_NOTES}
+                                component={ModalStackNavigators.PrivateNotesModalStackNavigator}
+                                options={hideKeyboardOnSwipe}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE}
+                                component={ModalStackNavigators.TransactionDuplicateStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.MERGE_TRANSACTION}
+                                component={ModalStackNavigators.MergeTransactionStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.TRAVEL}
+                                component={ModalStackNavigators.TravelModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS}
+                                component={ModalStackNavigators.SearchReportActionsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}
+                                component={ModalStackNavigators.RestrictedActionModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_SAVE}
+                                getComponent={loadSearchSavePage}
+                                options={modalStackScreenOptions}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_IMPORT_SETTINGS}
+                                component={MergeATSFiltersWithDraftContext}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.RECRUITING_MERGE_APPROVAL}
+                                component={MergeATSApprovalWithDraftContext}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS}
+                                component={SearchAdvancedFiltersWithContext}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH}
+                                component={ModalStackNavigators.SearchSavedSearchModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
+                                component={MissingPersonalDetailsWithPINContext}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.ADD_EXISTING_EXPENSE}
+                                component={ModalStackNavigators.AddExistingExpenseModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SCHEDULE_CALL}
+                                component={ModalStackNavigators.ScheduleCallModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
+                                getComponent={loadRHPReportScreen}
+                                options={(props) => {
+                                    const options = modalStackScreenOptions(props);
+                                    return {...options, animation: animationEnabledOnSearchReport ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                                }}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.EXPENSE_REPORT}
+                                getComponent={loadSearchMoneyRequestReportPage}
+                                options={(props) => {
+                                    const options = modalStackScreenOptions(props);
+                                    return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                                }}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.AGENT_REPORT}
+                                getComponent={loadRHPReportScreen}
+                                options={(props) => {
+                                    const options = modalStackScreenOptions(props);
+                                    return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                                }}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT}
+                                getComponent={loadSearchMoneyRequestReportPage}
+                                options={(props) => {
+                                    const options = modalStackScreenOptions(props);
+                                    return {...options, animation: isSmallScreenWidth ? Animations.SLIDE_FROM_RIGHT : Animations.NONE};
+                                }}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.DOMAIN}
+                                component={ModalStackNavigators.WorkspacesDomainModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.SEARCH_COLUMNS}
+                                component={ModalStackNavigators.SearchColumnsModalStackNavigator}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION}
+                                component={ModalStackNavigators.MultifactorAuthenticationStackNavigator}
+                            />
+                        </Stack.Navigator>
+                    </RightModalDialogFrame>
+                </DialogLabelProvider>
+                {/* The tertiary overlay covers RHP screens wider than the focused one and dismisses to the screen below. */}
+                {/* It paints nothing: the dim behind a stacked card is drawn by WideRHPOverlayWrapper from inside the */}
+                {/* screen below, so it follows that card's rounded corners instead of being a rectangle over the top. */}
+                {/* This one only exists because react-navigation's card wrapper swallows clicks on the dimmed area. */}
+                {!shouldUseNarrowLayout && shouldRenderTertiaryOverlay && (
+                    <RHPOverlay
+                        progress={thirdOverlayProgress}
+                        positionRightValue={tertiaryOverlayColumn}
+                        onPress={Navigation.dismissToPreviousRHP}
+                        transparent
+                    />
+                )}
+                {/* Keeps the dimmed margin above, below and to the right of the focused card pressable. */}
+                {!shouldUseNarrowLayout && shouldUseCenteredFrame && (
+                    <>
+                        <RHPOverlay
+                            progress={floatingCardGapProgress}
+                            positionLeftValue={tertiaryOverlayCardBandLeft}
+                            positionBottomValue={tertiaryOverlayVerticalGapInset}
+                            onPress={handleFloatingCardGapPress}
+                            transparent
+                        />
+                        <RHPOverlay
+                            progress={floatingCardGapProgress}
+                            positionLeftValue={tertiaryOverlayCardBandLeft}
+                            positionTopValue={tertiaryOverlayVerticalGapInset}
+                            onPress={handleFloatingCardGapPress}
+                            transparent
+                        />
+                        <RHPOverlay
+                            progress={floatingCardGapProgress}
+                            positionLeftValue={floatingCardGapRightBandLeft}
+                            positionRightValue={sidePanelOffset.current}
+                            onPress={handleFloatingCardGapPress}
+                            transparent
+                        />
+                    </>
+                )}
+                {isResizableSingleRHP && <RHPResizeHandle scopeRef={singleRHPWidthScopeRef} />}
+            </NoDropZone>
+        </NarrowPaneContextProvider>
+    );
+}
 
 export default RightModalNavigator;

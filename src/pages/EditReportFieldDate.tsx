@@ -1,14 +1,16 @@
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type EditReportFieldDatePageProps = {
     /** Value of the policy report field */
@@ -30,18 +32,14 @@ type EditReportFieldDatePageProps = {
 function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, fieldKey}: EditReportFieldDatePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const inputRef = useRef<AnimatedTextInputRef>(null);
 
-    const validate = useCallback(
-        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
-            if (isRequired && value[fieldKey].trim() === '') {
-                errors[fieldKey] = translate('common.error.fieldRequired');
-            }
-            return errors;
-        },
-        [fieldKey, isRequired, translate],
-    );
+    const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
+        if (isRequired && value[fieldKey].trim() === '') {
+            errors[fieldKey] = translate('common.error.fieldRequired');
+        }
+        return errors;
+    };
 
     return (
         <FormProvider
@@ -51,6 +49,7 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
             validate={validate}
             submitButtonText={translate('common.save')}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
         >
             <View style={styles.mb4}>
                 <InputWrapper
@@ -63,13 +62,11 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
                     role={CONST.ROLE.PRESENTATION}
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                    ref={inputRef}
+                    autoFocus
                 />
             </View>
         </FormProvider>
     );
 }
-
-EditReportFieldDatePage.displayName = 'EditReportFieldDatePage';
 
 export default EditReportFieldDatePage;

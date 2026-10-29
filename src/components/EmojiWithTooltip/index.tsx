@@ -1,42 +1,43 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as EmojiUtils from '@libs/EmojiUtils';
+
+import {findEmojiByCode, getLocalizedEmojiName} from '@libs/EmojiUtils';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type EmojiWithTooltipProps from './types';
 
 function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
     const {preferredLocale} = useLocalize();
     const styles = useThemeStyles();
-    const emoji = EmojiUtils.findEmojiByCode(emojiCode);
-    const emojiName = EmojiUtils.getEmojiName(emoji, preferredLocale);
+    const emoji = findEmojiByCode(emojiCode);
+    const emojiName = getLocalizedEmojiName(emoji?.name, preferredLocale);
 
-    const emojiTooltipContent = useCallback(
-        () => (
-            <View style={[styles.alignItemsCenter, styles.ph2]}>
-                <View style={[styles.flexRow, styles.emojiTooltipWrapper]}>
-                    <Text
-                        key={emojiCode}
-                        style={styles.onlyEmojisText}
-                    >
-                        {emojiCode}
-                    </Text>
-                </View>
-                <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{`:${emojiName}:`}</Text>
+    const emojiTooltipContent = () => (
+        <View style={[styles.alignItemsCenter, styles.ph2]}>
+            <View style={[styles.flexRow, styles.emojiTooltipWrapper]}>
+                <Text
+                    key={emojiCode}
+                    style={styles.onlyEmojisText}
+                >
+                    {emojiCode}
+                </Text>
             </View>
-        ),
-        [emojiCode, emojiName, styles.alignItemsCenter, styles.ph2, styles.flexRow, styles.emojiTooltipWrapper, styles.fontColorReactionLabel, styles.onlyEmojisText, styles.textMicro],
+            <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{`:${emojiName}:`}</Text>
+        </View>
     );
 
     return (
         <Tooltip renderTooltipContent={emojiTooltipContent}>
-            <Text style={[style, styles.cursorDefault]}>{emojiCode}</Text>
+            <View style={styles.dInlineBlock}>
+                <Text style={[style, styles.cursorDefault]}>{emojiCode}</Text>
+            </View>
         </Tooltip>
     );
 }
-
-EmojiWithTooltip.displayName = 'EmojiWithTooltip';
 
 export default EmojiWithTooltip;

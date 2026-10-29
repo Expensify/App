@@ -1,22 +1,114 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
+import type {
+    CancelBillingSubscriptionParams,
+    UpdatePersonalKarmaParams,
+    UpdateSubscriptionAddNewUsersAutomaticallyParams,
+    UpdateSubscriptionAutoRenewParams,
+    UpdateSubscriptionTypeParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BillingGraceEndPeriod} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import {getVerify3dsSubscriptionSourceData, prepareCardAuthentication} from './PaymentMethods';
 
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
+ * @param currentGracePeriods - The current billing grace period collection. If provided and non-empty,
+ *                              all entries will be optimistically cleared to handle stale cache when
+ *                              billing was resolved (e.g. owner changed). On failure, previous values are restored.
  */
-function openSubscriptionPage() {
-    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null);
+function openSubscriptionPage(currentGracePeriods?: OnyxCollection<BillingGraceEndPeriod>) {
+    type SubscriptionOnyxKeys = typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END;
+
+    const optimisticData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: false,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
+            value: false,
+        },
+    ];
+
+    // Clear ALL billing grace period keys optimistically. If the server still has active
+    // grace periods, they will be restored from the response. This clears the entire
+    // collection rather than a single owner's key, so stale entries from previous owners
+    // are also evicted. On failure, previous values are restored.
+    if (currentGracePeriods) {
+        const keys = Object.keys(currentGracePeriods) as Array<`${typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${string}`>;
+        for (const key of keys) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key,
+                value: null,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key,
+                value: currentGracePeriods[key] ?? null,
+            });
+        }
+    }
+
+    API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, {optimisticData, successData, failureData});
+}
+
+/**
+ * Fetches the full purchase history when the user opens the payment history page.
+ */
+function openPaymentHistoryPage() {
+    API.read(READ_COMMANDS.OPEN_PAYMENT_HISTORY_PAGE, null);
+}
+
+function openPaymentDetailsPage(purchaseID: number) {
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PURCHASES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PURCHASES,
+            value: {
+                [purchaseID]: {
+                    isLoaded: true,
+                },
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PAYMENT_DETAILS_PAGE, {purchaseID}, {finallyData});
+}
+
+/**
+ * Fetches data when the user opens the Save The World page
+ */
+function openSaveTheWorldPage() {
+    API.read(READ_COMMANDS.OPEN_SAVE_THE_WORLD_PAGE, null);
 }
 
 function updateSubscriptionType(type: SubscriptionType) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -30,7 +122,7 @@ function updateSubscriptionType(type: SubscriptionType) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -44,12 +136,12 @@ function updateSubscriptionType(type: SubscriptionType) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
             value: {
-                type: type === CONST.SUBSCRIPTION.TYPE.ANNUAL ? CONST.SUBSCRIPTION.TYPE.PAYPERUSE : CONST.SUBSCRIPTION.TYPE.ANNUAL,
+                type: type === CONST.SUBSCRIPTION.TYPE.ANNUAL ? CONST.SUBSCRIPTION.TYPE.PAY_PER_USE : CONST.SUBSCRIPTION.TYPE.ANNUAL,
                 pendingFields: {
                     type: null,
                 },
@@ -69,7 +161,7 @@ function updateSubscriptionType(type: SubscriptionType) {
 }
 
 function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?: FeedbackSurveyOptionID, disableAutoRenewAdditionalNote?: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -83,7 +175,7 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -96,7 +188,7 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -123,7 +215,7 @@ function updateSubscriptionAutoRenew(autoRenew: boolean, disableAutoRenewReason?
 }
 
 function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: boolean) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -137,7 +229,7 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -150,7 +242,7 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
@@ -174,8 +266,54 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
     });
 }
 
+function updatePersonalKarma(enabled: boolean) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS> | OnyxUpdate<typeof ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA,
+            value: true,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_PERSONAL_OFFSETS,
+            value: enabled,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA,
+            value: false,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS> | OnyxUpdate<typeof ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA,
+            value: false,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_PERSONAL_OFFSETS,
+            value: !enabled,
+        },
+    ];
+
+    const parameters: UpdatePersonalKarmaParams = {
+        enabled,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_PERSONAL_KARMA, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 function updateSubscriptionSize(newSubscriptionSize: number, currentSubscriptionSize: number) {
-    const onyxData: OnyxData = {
+    const onyxData: OnyxData<typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -231,8 +369,17 @@ function clearUpdateSubscriptionSizeError() {
     });
 }
 
-function clearOutstandingBalance() {
-    const onyxData: OnyxData = {
+/**
+ * An SCA card that needs 3DS fails this charge with a 409 whose onyxData sets verify3dsSubscription to a new 3DS link.
+ */
+function clearOutstandingBalance(source: string) {
+    prepareCardAuthentication(source);
+    const onyxData: OnyxData<
+        | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING
+        | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL
+        | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED
+        | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -273,6 +420,7 @@ function clearOutstandingBalance() {
                 key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
                 value: true,
             },
+            ...getVerify3dsSubscriptionSourceData(source),
         ],
     };
 
@@ -285,21 +433,100 @@ function cancelBillingSubscription(cancellationReason: FeedbackSurveyOptionID, c
         cancellationNote,
     };
 
-    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters);
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
+                value: {isLoading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
+                value: {isLoading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM,
+                value: {isLoading: false},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.CANCEL_BILLING_SUBSCRIPTION, parameters, onyxData);
 }
 
 function requestTaxExempt() {
     API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
 }
 
+function applyExpensifyCode(promoCode: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM,
+            value: {
+                isLoading: true,
+                errors: null,
+                errorFields: {
+                    expensifyCode: null,
+                },
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM,
+            value: {
+                isLoading: false,
+                expensifyCode: '',
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM,
+            value: {
+                isLoading: false,
+                errorFields: {
+                    expensifyCode: getMicroSecondOnyxErrorWithTranslationKey('subscription.expensifyCode.error.invalid'),
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        promoCode,
+    };
+
+    API.write(WRITE_COMMANDS.SET_PROMO_CODE, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 export {
     openSubscriptionPage,
+    openPaymentDetailsPage,
+    openPaymentHistoryPage,
+    openSaveTheWorldPage,
     updateSubscriptionAutoRenew,
     updateSubscriptionAddNewUsersAutomatically,
+    updatePersonalKarma,
     updateSubscriptionSize,
     clearUpdateSubscriptionSizeError,
     updateSubscriptionType,
     clearOutstandingBalance,
     cancelBillingSubscription,
     requestTaxExempt,
+    applyExpensifyCode,
 };

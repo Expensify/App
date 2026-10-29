@@ -1,223 +1,273 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {Animated, View} from 'react-native';
-import type {TextStyle, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
-import Icon from '@components/Icon';
-import type {MenuItemWithLink} from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import type BaseModalProps from '@components/Modal/types';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PopoverMenu from '@components/PopoverMenu';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
-import Text from '@components/Text';
-import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
+import TabSelectorContextProvider from '@components/TabSelector/TabSelectorContext';
+import type {TabSelectorBaseItem} from '@components/TabSelector/types';
+
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
+import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useSingleExecution from '@hooks/useSingleExecution';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
+import {useSearchTypeMenuSectionsForNavigation} from '@hooks/useSearchTypeMenuSections';
+import useShareSavedSearch, {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as SearchActions from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
+import useTodoCounts from '@hooks/useTodoCounts';
+
+import {setSearchContext} from '@libs/actions/Search';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import * as SearchQueryUtils from '@libs/SearchQueryUtils';
-import * as SearchUIUtils from '@libs/SearchUIUtils';
-import variables from '@styles/variables';
-import * as Expensicons from '@src/components/Icon/Expensicons';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import type {SearchKey} from '@libs/SearchKeyUtils';
+import {getValidLastQuery} from '@libs/SearchQueryUtils';
+import {getItemBadgeText, getLastSearchQuery, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {SearchTypeMenuItem} from './SearchTypeMenu';
+import {accountIDSelector} from '@src/selectors/Session';
 
-type SavedSearchMenuItem = MenuItemWithLink & {
-    key: string;
-    hash: string;
-    query: string;
-    styles: Array<ViewStyle | TextStyle>;
-};
+import type {ComponentRef} from 'react';
+
+// NOTE: This component has a static twin in SearchPageNarrow/StaticSearchTypeMenu.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
+import {useIsFocused, useNavigation} from '@react-navigation/native';
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import useSavedSearchIcons from './hooks/useSavedSearchIcons';
+import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 
 type SearchTypeMenuNarrowProps = {
-    typeMenuItems: SearchTypeMenuItem[];
-    activeItemIndex: number;
-    queryJSON: SearchQueryJSON;
-    title?: string;
-    savedSearchesMenuItems: SavedSearchMenuItem[];
+    queryJSON?: SearchQueryJSON;
+    onTabPress?: () => void;
 };
 
-function SearchTypeMenuNarrow({typeMenuItems, activeItemIndex, queryJSON, title, savedSearchesMenuItems}: SearchTypeMenuNarrowProps) {
-    const theme = useTheme();
+type SearchTypeMenuNarrowContentProps = {
+    tabs: Array<TabSelectorBaseItem<SearchKey>>;
+    activeTabKey: SearchKey | undefined;
+    onActiveTabPress?: (key: SearchKey) => void;
+    onTabPress?: (key: SearchKey) => void;
+    onLongTabPress?: (key: SearchKey) => void;
+    containerRef?: React.RefObject<ComponentRef<typeof View> | null>;
+    children?: React.ReactNode;
+};
+
+function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchTypeMenuNarrowContentProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {singleExecution} = useSingleExecution();
-    const {windowHeight} = useWindowDimensions();
-    const {translate} = useLocalize();
-    const {hash, policyID} = queryJSON;
-    const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const personalDetails = usePersonalDetails();
-    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const taxRates = getAllTaxRates();
-    const [cardList = {}] = useOnyx(ONYXKEYS.CARD_LIST);
+    const {pageGutter} = useLayoutSpacing();
 
-    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
-    const buttonRef = useRef<HTMLDivElement>(null);
-
-    const openMenu = useCallback(() => setIsPopoverVisible(true), []);
-    const closeMenu = useCallback(() => setIsPopoverVisible(false), []);
-    const onPress = () => {
-        const values = SearchQueryUtils.buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, cardList, reports, taxRates);
-        SearchActions.updateAdvancedFilters(values);
-        Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS);
-    };
-
-    const currentSavedSearch = savedSearchesMenuItems.find((item) => Number(item.hash) === hash);
-
-    const popoverMenuItems = useMemo(() => {
-        const items = typeMenuItems.map((item, index) => {
-            const isSelected = title ? false : index === activeItemIndex;
-
-            return {
-                text: item.title,
-                onSelected: singleExecution(() => {
-                    SearchActions.clearAllFilters();
-                    Navigation.navigate(item.getRoute(policyID));
-                }),
-                isSelected,
-                icon: item.icon,
-                iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
-                iconRight: Expensicons.Checkmark,
-                shouldShowRightIcon: isSelected,
-                success: isSelected,
-                containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
-                shouldCallAfterModalHide: true,
-            };
-        });
-
-        if (title && !currentSavedSearch) {
-            items.push({
-                text: title,
-                onSelected: closeMenu,
-                isSelected: !currentSavedSearch,
-                icon: Expensicons.Filters,
-                iconFill: theme.iconSuccessFill,
-                success: true,
-                containerStyle: undefined,
-                iconRight: Expensicons.Checkmark,
-                shouldShowRightIcon: false,
-                shouldCallAfterModalHide: true,
-            });
-        }
-
-        return items;
-    }, [typeMenuItems, title, activeItemIndex, singleExecution, theme, policyID, closeMenu, currentSavedSearch]);
-
-    const {menuIcon, menuTitle} = useMemo(() => {
-        if (title) {
-            return {
-                menuIcon: Expensicons.Filters,
-                menuTitle: title,
-            };
-        }
-
-        const item = activeItemIndex !== -1 ? popoverMenuItems.at(activeItemIndex) : undefined;
-        return {
-            menuIcon: item?.icon ?? Expensicons.Receipt,
-            menuTitle: item?.text,
-        };
-    }, [activeItemIndex, popoverMenuItems, title]);
-
-    const titleViewStyles = useMemo(() => (title ? {...styles.flex1, ...styles.justifyContentCenter} : {}), [title, styles]);
-
-    const savedSearchItems = savedSearchesMenuItems.map((item) => ({
-        text: item.title ?? '',
-        styles: [styles.textSupporting],
-        onSelected: item.onPress,
-        icon: Expensicons.Bookmark,
-        iconFill: currentSavedSearch?.hash === item.hash ? theme.iconSuccessFill : theme.icon,
-        shouldShowRightComponent: true,
-        rightComponent: (
-            <ThreeDotsMenu
-                menuItems={SearchUIUtils.getOverflowMenu(item.title ?? '', Number(item.hash ?? ''), item.query ?? '', showDeleteModal, true, closeMenu)}
-                anchorPosition={{horizontal: 0, vertical: 380}}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                }}
-                disabled={item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
-            />
-        ),
-        isSelected: currentSavedSearch?.hash === item.hash,
-        shouldCallAfterModalHide: true,
-        pendingAction: item.pendingAction,
-        disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-    }));
-    const allMenuItems = [];
-    allMenuItems.push(...popoverMenuItems);
-
-    if (savedSearchesMenuItems.length > 0) {
-        allMenuItems.push({
-            text: translate('search.savedSearchesMenuItemTitle'),
-            styles: [styles.textSupporting],
-            disabled: true,
-        });
-        allMenuItems.push(...savedSearchItems);
-    }
     return (
-        <View style={[styles.pb3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.gap2]}>
-            <PressableWithFeedback
-                accessible
-                accessibilityLabel={activeItemIndex !== -1 ? popoverMenuItems.at(activeItemIndex)?.text ?? '' : ''}
-                ref={buttonRef}
-                wrapperStyle={styles.flex1}
-                onPress={openMenu}
-            >
-                {({hovered}) => (
-                    <Animated.View style={[styles.tabSelectorButton, styles.tabBackground(hovered, true, theme.border), styles.w100, StyleUtils.getHeight(variables.componentSizeNormal)]}>
-                        <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, titleViewStyles]}>
-                            <Icon
-                                src={menuIcon}
-                                fill={theme.icon}
-                                small
-                            />
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textStrong, styles.flexShrink1, styles.label]}
-                            >
-                                {menuTitle}
-                            </Text>
-                            <Icon
-                                src={Expensicons.DownArrow}
-                                fill={theme.icon}
-                                small
-                            />
-                        </View>
-                    </Animated.View>
-                )}
-            </PressableWithFeedback>
-            <Button
-                icon={Expensicons.Filters}
-                onPress={onPress}
-            />
-            <PopoverMenu
-                menuItems={allMenuItems as PopoverMenuItem[]}
-                isVisible={isPopoverVisible}
-                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
-                onClose={closeMenu}
-                onItemSelected={closeMenu}
-                anchorRef={buttonRef}
-                innerContainerStyle={styles.pv0}
-                scrollContainerStyle={styles.pv4}
-                shouldUseScrollView
-            />
-            <DeleteConfirmModal />
+        <View
+            ref={containerRef}
+            style={[styles.appBG, styles.pt1]}
+        >
+            <TabSelectorContextProvider activeTabKey={activeTabKey}>
+                <TabSelectorBase
+                    contentContainerStyles={pageGutter}
+                    tabs={tabs}
+                    activeTabKey={activeTabKey}
+                    onActiveTabPress={onActiveTabPress}
+                    onTabPress={onTabPressContent}
+                    onLongTabPress={onLongTabPress}
+                />
+            </TabSelectorContextProvider>
+            {children}
         </View>
     );
 }
 
-SearchTypeMenuNarrow.displayName = 'SearchTypeMenuNarrow';
+function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
+    const {isOffline} = useNetwork();
+    const navigation = useNavigation();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const styles = useThemeStyles();
+    const isFocused = useIsFocused();
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(isFocused);
+    const personalDetails = usePersonalDetails();
+    const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
 
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
+    const {counts: reportCounts} = useTodoCounts(isFocused);
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const reportAttributes = useReportAttributes();
+    const {currentSearchKey} = useSearchQueryContext();
+
+    const taxRates = getAllTaxRates(allPolicies);
+    const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
+    const savedSearchTitles = useSavedSearchTitles({
+        savedSearches,
+        PersonalDetails: personalDetails,
+        reports,
+        taxRates,
+        cardList: cardsForSavedSearchDisplay,
+        cardFeeds: allFeeds,
+        policies: allPolicies,
+        currentUserAccountID,
+        translate,
+        formatPhoneNumber,
+        feedKeysWithCards,
+        reportAttributes,
+        bankAccountList,
+        enabled: !!queryJSON,
+    });
+
+    const [savedSearchToModifyKey, setSavedSearchToModifyKey] = useState<SearchKey | null>(null);
+    const menuAnchorRef = useRef<ComponentRef<typeof View>>(null);
+    const {showDeleteModal} = useDeleteSavedSearch();
+
+    const {copiedID, handleShare} = useShareSavedSearch();
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SEARCH_TYPE_MENU_ICON_NAMES, ...SAVED_SEARCH_ICON_NAMES, 'Trashcan', 'LinkCopy', 'Checkmark']);
+
+    // Resolve each saved search's icon once per collection change (see useSavedSearchIcons for why).
+    const savedSearchIconNames = useSavedSearchIcons(savedSearches);
+
+    const queryMap = new Map<SearchKey, {query: string; name?: string}>();
+    const tabItems: Array<TabSelectorBaseItem<SearchKey>> = [];
+    const savedSearchesPopoverMenuItems: Partial<Record<SearchKey, PopoverMenuItem[]>> = {};
+
+    const savedSearchesTabItems: Array<TabSelectorBaseItem<SearchKey>> = savedSearches
+        ? Object.entries(savedSearches)
+              .map(([key, item]): TabSelectorBaseItem<SearchKey> | null => {
+                  if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isOffline) {
+                      return null;
+                  }
+
+                  const title = item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name;
+
+                  const savedSearchKey = savedSearchIDToSearchKey(key);
+                  queryMap.set(savedSearchKey, {query: item.query ?? '', name: item.name});
+                  savedSearchesPopoverMenuItems[savedSearchKey] = getOverflowMenu(expensifyIcons, key, translate, showDeleteModal, true, () => setSavedSearchToModifyKey(null), {
+                      onShare: () => {
+                          handleShare(key, item.query);
+                          setTimeout(() => setSavedSearchToModifyKey(null), MENU_CLOSE_DELAY_MS);
+                      },
+                      isCopied: copiedID === key,
+                  });
+
+                  return {
+                      key: savedSearchKey,
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME],
+                      title,
+                      isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      pendingAction: item.pendingAction,
+                      // Saved-search tabs opt into the long-press / right-click menu (share / delete) via onLongTabPress.
+                      shouldEnableLongPress: true,
+                  };
+              })
+              .filter((item) => item !== null)
+              .sort((a, b) => localeCompare(a?.title ?? '', b?.title ?? ''))
+        : [];
+
+    for (const section of typeMenuSections) {
+        if (section.translationPath === 'search.savedSearchesMenuItemTitle') {
+            tabItems.push(...savedSearchesTabItems);
+        } else {
+            for (const item of section.menuItems) {
+                const badgeText = getItemBadgeText(item.key, reportCounts);
+                const title = translate(item.translationPath);
+
+                tabItems.push({
+                    key: item.key,
+                    icon: expensifyIcons[item.icon],
+                    title,
+                    badgeText,
+                    isBadgeCondensed: true,
+                    badgeStyles: styles.tabSelectorBadge,
+                });
+                queryMap.set(item.key, {query: item.searchQuery});
+            }
+        }
+    }
+
+    const popoverMenuItems = savedSearchToModifyKey ? (savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] ?? []) : [];
+    const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
+
+    const handleActiveTabPress = (tabKey: SearchKey) => {
+        const searchData = queryMap.get(tabKey);
+        if (!searchData) {
+            return;
+        }
+        onTabPress?.();
+        setSearchContext(false);
+    };
+
+    const handleTabPress = (tabKey: SearchKey) => {
+        const searchData = queryMap.get(tabKey);
+        if (!searchData) {
+            return;
+        }
+        onTabPress?.();
+        const query = getValidLastQuery(getLastSearchQuery(searchFilters, tabKey), searchData.query);
+        setSearchContext(false);
+        navigation.dispatch({
+            type: CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS,
+            payload: {
+                params: {q: query, name: searchData.name, rawQuery: undefined, searchKey: tabKey},
+            },
+        });
+    };
+
+    const handleLongTabPress = (tabKey: SearchKey) => {
+        if (!savedSearchesPopoverMenuItems?.[tabKey]) {
+            return;
+        }
+
+        setSavedSearchToModifyKey(tabKey);
+    };
+
+    return (
+        <SearchTypeMenuNarrowContent
+            tabs={tabItems}
+            activeTabKey={currentSearchKey}
+            onActiveTabPress={handleActiveTabPress}
+            onTabPress={handleTabPress}
+            onLongTabPress={handleLongTabPress}
+            containerRef={menuAnchorRef}
+        >
+            <PopoverMenu
+                onClose={() => setSavedSearchToModifyKey(null)}
+                onModalHide={() => setRestoreFocusType(undefined)}
+                isVisible={!!shouldShowSavedSearchPopover}
+                // This component is only displayed when isSmallScreenWidth is true, so
+                // anchorPosition is ignored anyway
+                anchorPosition={{horizontal: 0, vertical: 0}}
+                anchorAlignment={{
+                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                }}
+                onItemSelected={(item) => {
+                    setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
+                    if (item?.shouldCloseModalOnSelect !== false) {
+                        setSavedSearchToModifyKey(null);
+                    }
+                }}
+                menuItems={popoverMenuItems}
+                anchorRef={menuAnchorRef}
+                shouldEnableNewFocusManagement
+                restoreFocusType={restoreFocusType}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            />
+        </SearchTypeMenuNarrowContent>
+    );
+}
+
+export {SearchTypeMenuNarrowContent};
 export default SearchTypeMenuNarrow;
+export type {SearchTypeMenuNarrowProps};

@@ -1,53 +1,114 @@
-import type {AirshipContact, AirshipPush, AirshipPushAndroid, AirshipPushIOS, AirshipRoot} from '@ua/react-native-airship';
-import {EventType as AirshipEventType, iOS as AirshipIOS} from '@ua/react-native-airship';
+import type {
+    AirshipContact,
+    AirshipLiveActivityManager,
+    AirshipPush,
+    AirshipPushAndroid,
+    AirshipPushIOS,
+    AirshipRoot,
+    AirshipRootIOS,
+    LiveActivity,
+    PushNotificationStatus,
+} from '@ua/react-native-airship';
 
-const EventType: Partial<typeof AirshipEventType> = {
-    NotificationResponse: AirshipEventType.NotificationResponse,
-    PushReceived: AirshipEventType.PushReceived,
-};
+import createMock from 'tests/utils/createMock';
 
-const iOS: Partial<typeof AirshipIOS> = {
-    ForegroundPresentationOption: {
-        Sound: AirshipIOS.ForegroundPresentationOption.Sound,
-        Badge: AirshipIOS.ForegroundPresentationOption.Badge,
-        Banner: AirshipIOS.ForegroundPresentationOption.Banner,
-        List: AirshipIOS.ForegroundPresentationOption.List,
-    },
-};
+// eslint-disable-next-line no-restricted-syntax
+enum EventType {
+    NotificationResponse = 'com.airship.notification_response',
+    PushReceived = 'com.airship.push_received',
+}
 
-const pushIOS = jest.fn().mockImplementation(() => ({
+// eslint-disable-next-line no-restricted-syntax
+enum PermissionStatus {
+    Granted = 'granted',
+    Denied = 'denied',
+    NotDetermined = 'not_determined',
+}
+
+// eslint-disable-next-line @typescript-eslint/no-namespace
+namespace iOS {
+    /**
+     * Enum of foreground notification options.
+     */
+    // eslint-disable-next-line no-restricted-syntax, rulesdir/no-inline-named-export
+    export enum ForegroundPresentationOption {
+        /**
+         * Play the sound associated with the notification.
+         */
+        Sound = 'sound',
+        /**
+         * Apply the notification's badge value to the app’s icon.
+         */
+        Badge = 'badge',
+
+        /**
+         * Show the notification in Notification Center. On iOS 13 an older,
+         * this will also show the notification as a banner.
+         */
+        List = 'list',
+
+        /**
+         * Present the notification as a banner. On iOS 13 an older,
+         * this will also show the notification in the Notification Center.
+         */
+        Banner = 'banner',
+    }
+}
+
+const pushIOS = createMock<AirshipPushIOS>({
     setBadgeNumber: jest.fn(),
     setForegroundPresentationOptions: jest.fn(),
     setForegroundPresentationOptionsCallback: jest.fn(),
-}))() as AirshipPushIOS;
+});
 
-const pushAndroid = jest.fn().mockImplementation(() => ({
+const pushAndroid = createMock<AirshipPushAndroid>({
     setForegroundDisplayPredicate: jest.fn(),
-}))() as AirshipPushAndroid;
+});
 
-const push = jest.fn().mockImplementation(() => ({
+const notificationStatus: PushNotificationStatus = {
+    isUserNotificationsEnabled: false,
+    areNotificationsAllowed: false,
+    isPushPrivacyFeatureEnabled: false,
+    isPushTokenRegistered: false,
+    isOptedIn: false,
+    isUserOptedIn: false,
+    notificationPermissionStatus: PermissionStatus.Denied,
+};
+const push = createMock<AirshipPush>({
     iOS: pushIOS,
     android: pushAndroid,
     enableUserNotifications: () => Promise.resolve(false),
     clearNotifications: jest.fn(),
-    getNotificationStatus: () => Promise.resolve({airshipOptIn: false, systemEnabled: false, airshipEnabled: false}),
+    getNotificationStatus: () => Promise.resolve(notificationStatus),
     getActiveNotifications: () => Promise.resolve([]),
-}))() as AirshipPush;
+});
 
-const contact = jest.fn().mockImplementation(() => ({
+const contact = createMock<AirshipContact>({
     identify: jest.fn(),
     getNamedUserId: () => Promise.resolve(undefined),
     reset: jest.fn(),
-    module: jest.fn(),
-}))() as AirshipContact;
+});
+
+const liveActivityManager = createMock<AirshipLiveActivityManager>({
+    list: jest.fn(() => Promise.resolve([])),
+    listAll: jest.fn(() => Promise.resolve([])),
+    start: jest.fn(() => Promise.resolve(createMock<LiveActivity>({id: 'mock-activity-id'}))),
+    update: jest.fn(() => Promise.resolve()),
+    end: jest.fn(() => Promise.resolve()),
+});
+
+const airshipIOS = createMock<AirshipRootIOS>({
+    liveActivityManager,
+});
 
 const Airship: Partial<AirshipRoot> = {
     addListener: jest.fn(),
     removeAllListeners: jest.fn(),
     push,
     contact,
+    iOS: airshipIOS,
 };
 
 export default Airship;
 
-export {EventType, iOS};
+export {EventType, iOS, PermissionStatus};

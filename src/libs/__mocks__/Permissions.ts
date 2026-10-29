@@ -1,5 +1,6 @@
 import type Permissions from '@libs/Permissions';
-import CONST from '@src/CONST';
+import type {canApplyBetaOverrides as canApplyBetaOverridesActual} from '@libs/Permissions';
+
 import type Beta from '@src/types/onyx/Beta';
 
 /**
@@ -10,6 +11,10 @@ import type Beta from '@src/types/onyx/Beta';
  */
 
 export default {
-    ...jest.requireActual<typeof Permissions>('../Permissions'),
-    canUseDefaultRooms: (betas: Beta[]) => betas.includes(CONST.BETAS.DEFAULT_ROOMS),
+    ...jest.requireActual<{default: typeof Permissions}>('../Permissions').default,
+    isBetaEnabled: (beta: Beta, betas: Beta[]) => !!betas?.includes(beta),
 };
+
+const {canApplyBetaOverrides} = jest.requireActual<{canApplyBetaOverrides: typeof canApplyBetaOverridesActual}>('../Permissions');
+
+export {canApplyBetaOverrides};

@@ -1,12 +1,19 @@
-import * as Browser from '@libs/Browser';
+import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
+import {isMobileWebKit} from '@libs/Browser';
 
 /**
- * Converts milliseconds to '[hours:]minutes:seconds' format
+ * Skip the first millisecond so a paused video can still show a proper preview frame.
+ * Applied via a `#t=` URL fragment.
  */
-function convertMillisecondsToTime(milliseconds: number) {
-    const hours = Math.floor(milliseconds / 3600000);
-    const minutes = Math.floor((milliseconds / 60000) % 60);
-    const seconds = Math.floor((milliseconds / 1000) % 60)
+const VIDEO_SKIP_TIME_SECONDS = 0.001;
+
+/**
+ * Converts seconds to '[hours:]minutes:seconds' format
+ */
+function convertSecondsToTime(secondsTotal: number) {
+    const hours = Math.floor(secondsTotal / 3600);
+    const minutes = Math.floor((secondsTotal / 60) % 60);
+    const seconds = Math.floor(secondsTotal % 60)
         .toFixed(0)
         .padStart(2, '0');
     return hours > 0 ? `${hours}:${String(minutes).padStart(2, '0')}:${seconds}` : `${minutes}:${seconds}`;
@@ -18,10 +25,23 @@ function convertMillisecondsToTime(milliseconds: number) {
 function addSkipTimeTagToURL(url: string, seconds: number) {
     // On iOS: mWeb (WebKit-based browser engines), we don't add the time fragment
     // because it's not supported and will throw (WebKitBlobResource error 1).
-    if (Browser.isMobileWebKit() || url.includes('#t=')) {
+    if (isMobileWebKit() || url.includes('#t=')) {
         return url;
     }
     return `${url}#t=${seconds}`;
 }
 
-export {convertMillisecondsToTime, addSkipTimeTagToURL};
+/**
+ * Builds the playable video source URL. Attachments on Expensify servers get an auth token.
+ * All URLs get the skip-time tag when supported.
+ */
+function buildVideoSourceURL(url: string, encryptedAuthToken: string) {
+    if (!url) {
+        return url;
+    }
+
+    const sourceWithAuth = addEncryptedAuthTokenToURL(url, encryptedAuthToken);
+    return addSkipTimeTagToURL(sourceWithAuth, VIDEO_SKIP_TIME_SECONDS);
+}
+
+export {convertSecondsToTime, buildVideoSourceURL};

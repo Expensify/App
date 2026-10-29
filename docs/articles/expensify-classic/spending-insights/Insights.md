@@ -1,101 +1,91 @@
 ---
 title: Custom Reporting and Insights
-description: How to get the most out of the Custom Reporting and Insights
+description: Learn how to use Custom Reporting and Insights in Expensify to analyze spending, export data, and create custom reports.
+keywords: [Expensify Classic, Insights, spending analysis]
 redirect_from: articles/other/Insights/
 ---
-<!-- The lines above are required by Jekyll to process the .md file -->
 
-The Insights dashboard allows you to monitor all aspects of company spending across categories, employees, projects, departments, and more. You can see trends in real time, forecast company budgets, and build unlimited custom reports with help from our trained specialist team. 
+
+The Insights dashboard in Expensify provides a real-time overview of company spending across categories, employees, projects, and departments. It allows you to identify trends, forecast budgets, and create unlimited custom reports with the help of our support team.
 
 ![Insights Pie Chart](https://help.expensify.com/assets/images/insights-chart.png){:width="100%"}
-## Review your Insights data
 
-1. Navigate to your [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}), located in the left-hand menu
-2. Select a specific date range (the default view has the current month pre-selected) 
-3. Use the filter options to select the categories, tags, employees, or any other parameter
-4. Make sure that View in the top right corner is set to the pie chart icon
-5. You can view any dataset in more detail by clicking in the **View Raw Data** column 
+---
 
-## Export your Insights data  
+## Review Your Insights Data
 
-1. Switch the View in the top right corner of the [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}) to the lists icon
-2. Select the expenses you want to export, either by selecting individual expenses, or checking the select all box (next to Date at the top)
-3. Select **Export To** in the top right-hand corner to download the report as a .csv file 
+1. Open your [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}) from the left-hand menu.
+2. Choose a date range (default is the current month).
+3. Apply filters to narrow down data by categories, tags, employees, or other criteria.
+4. Click **View Raw Data** to see a detailed dataset.
 
-## Create a Custom Export Report for your Expenses
+---
 
-1. Navigate to **Settings > Account > Preferences > scroll down to CSV Export Formats** 
-2. Build up a report using these [expense-level formulas](https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates#expense-level)
-3. Click the **Custom Export** button on the Insights page and your Account Manager will help get you started on building up your report  
+## Export Your Insights Data  
 
-## Create a Custom Export Report for your Workspace
+1. Click **View Raw Data** next to the dataset you want to export.
+2. Select individual expenses or use the **Select All** checkbox.
+3. Click **Export To** in the top-right corner, then choose CSV to download the file.
 
-1. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Export Formats** 
-2. Build up a report using these [report-level formulas](https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates#report-level)
-3. If you need any help, click the **Support** button on the top left to contact Concierge or your Account Manager
+---
 
-{% include faq-begin.md %}
+## Create a Custom Export Report for Expenses
 
-## Can I share my custom export report? 
+1. Go to **Settings > Account > Preferences > CSV Export Formats**.
+2. Build a report using these [expense-level formulas](https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates#expense-level).
 
-If you would like to create a custom export report that can be shared with other workspace admins, you can do so by navigating to the **[Settings > Workspaces > Group > [Workspace Name] > Export Formats** page. Custom export reports created under the **Settings > Account > Preferences** page are only available to the member who created them.
+---
 
-## Can I put expenses from different workspaces on the same report? 
+## Create a Custom Export Report for Your Workspace
 
-Custom export reports created under the **Settings > Account > Preferences** page can export expenses from multiple workspaces. 
+1. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Export Formats**.
+2. Build a report using these [report-level formulas](https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates#report-level).
 
-Custom export formats created under **Settings > Workspaces> Group > [Workspace Name] > Export Formats** are for expenses reported under that workspace only. 
+If you need help creating a custom export report, click **Support** to contact the Concierge or your Account Manager.
 
-## Are there any default export reports available?
+---
 
-Yes! We have [seven default reports](https://help.expensify.com/articles/expensify-classic/spending-insights/Default-Export-Templates) available to export directly from the Reports page: 
+# FAQ
 
-- **All Data — Expense Level Export**: Use this to view all of the details from their expense reports (tax, merchant category codes, approvals, etc.)
-- **All Data—Report Level Export**: This report is great if you don't need to see each individual expense but want to see a line-by-line breakdown at a report level (submitter, total amount, report ID, etc.)
-- **Basic Export**: The best way to get a simple breakdown of all your expenses
-- **Canadian Multiple Tax Export**: To gain a better understanding of the various Canadian taxes tied to expenses (GST, PST, etc.)
-- **Category Export**: Use this to see a breakdown of your expenses by Category
-- **Per Diem Export**: Use to export your Per Diem details
-- **Tag Export**: Similar to the Category Export, but for Tags
+## Can I share my custom export report?
 
-*These reports will be emailed directly to your email address rather than automatically downloaded.* 
+- Custom reports under **Settings > Workspaces > [Workspace Name] > Export Formats** can be shared with other workspace admins.
+- Reports created under **Settings > Account > Preferences** are only available to the member who created them.
 
-## How many expenses can I export in one report? 
-The custom export reports are best for small-to-medium chunks of data. If you want to export large amounts of data, we recommend you use a [default export report](https://help.expensify.com/articles/expensify-classic/spending-insights/Default-Export-Templates) that you can run from the Reports page.  
+## Can I include expenses from multiple workspaces in one report?
 
-## What other kinds of export reports can my Account Manager help me create? 
+- Yes, reports created under **Settings > Account > Preferences** can include expenses from multiple workspaces.
+- Reports created under **Settings > Workspaces > [Workspace Name] > Export Formats** are limited to that workspace.
 
-We’ve built a huge variety of custom reports for customers, so make sure to reach out to your Account Manager for more details. Some examples of custom reports we’ve built for customers before are: 
-- Accrual Report
+## Are there default export reports available?
+
+Yes! We offer [seven default reports](https://help.expensify.com/articles/expensify-classic/spending-insights/Default-Export-Templates):
+- **All Data — Expense Level Export**: Detailed view of expenses, including tax, approvals, and merchant category codes.
+- **All Data—Report Level Export**: Summary of reports by submitter, total amount, report ID, etc.
+- **Basic Export**: A simple expense breakdown.
+- **Canadian Multiple Tax Export**: Displays various Canadian taxes (GST, PST, etc.).
+- **Category Export**: Breakdown of expenses by category.
+- **Per Diem Export**: Exports Per Diem details.
+- **Tag Export**: Similar to Category Export, but for Tags.
+
+**Note:** These reports will be emailed to you rather than automatically downloaded.
+
+## How many expenses can I export in one report?
+
+- Custom reports are best for small-to-medium datasets.
+- For large exports, use a [default export report](https://help.expensify.com/articles/expensify-classic/spending-insights/Default-Export-Templates) from the Reports page.
+
+## What types of custom reports can my Account Manager help create?
+
+**We offer various custom reports, including:**
+- Accrual Reports
 - Aged Approval Reports
-- Attendee Reporting
-- Audit Report
-- Candidate Spend
-- Category Spend Report
-- Department/Project Spend Report
-- Duplication Report
-- Duty of Care
-- Efficiency 
-- Employee Bank Account Status
-- Employee Details
-- Employee Roles
-- Expense Authorizations by Country
+- Audit Reports
+- Candidate Spend Analysis
 - Expense Reports by Country
-- Expense Reports not posted to finance system
-- Foreign Currency Transaction
-- Fringe Benefit Tax Report
-- HR Report
-- Invoice Billed Transaction Reconciliation
-- Mileage Reports
-- Out of Pocket Expenses for Reimbursement
-- Per Diem Report
-- Reconciliation: Accounting, Bank Statement, Billed Transaction
-- Rejected Report
-- Travel Rule Class
-- Travel Spend
-- Unposted Cash Advance Report
-- Unposted Procurement Aging Report
-- Unposted Travel Aging Report
-- Vendor Spend
+- Employee Bank Account Status
+- Invoice Reconciliation Reports
+- Vendor Spend Analysis
 
-{% include faq-end.md %}
+Looking for a custom report? Reach out to your Account Manager for assistance! 
+

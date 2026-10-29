@@ -1,17 +1,30 @@
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {PaymentMethod} from '@components/KYCWall/types';
+
+import type CONST from '@src/CONST';
 import type ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type {ButtonSizeValue} from '@src/styles/utils/types';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
-type SettlementButtonProps = {
-    /** Callback to execute when this button is pressed. Receives a single payment type argument. */
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean) => void;
+type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | ReturnType<typeof ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute>;
+
+type PaymentActionParams = {
+    paymentType?: PaymentMethodType;
+    payAsBusiness?: boolean;
+    methodID?: number;
+    paymentMethod?: PaymentMethod;
+    policyID?: string;
+};
+
+type SettlementButtonProps = WithSentryLabel & {
+    /** Callback to execute when this button is pressed. Receives payment action params. */
+    onPress: (params: PaymentActionParams) => void;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
@@ -34,41 +47,27 @@ type SettlementButtonProps = {
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxEntry<Report>;
 
-    /** Should we show the payment options? */
     shouldHidePaymentOptions?: boolean;
 
-    /** Should we show the payment options? */
-    shouldShowApproveButton?: boolean;
-
-    /** Should approve button be disabled? */
-    shouldDisableApproveButton?: boolean;
-
     /** The policyID of the report we are paying */
-    policyID?: string;
+    policyID: string | undefined;
 
-    /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
-
-    /** Additional styles to add to the component wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;
 
     /** Total money amount in form <currency><amount> */
     formattedAmount?: string;
 
-    /** The size of button size */
-    buttonSize?: ButtonSizeValue;
-
-    /** Route for the Add Bank Account screen for a given navigation stack */
-    addBankAccountRoute?: Route;
+    size?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** Route for the Add Debit Card screen for a given navigation stack */
     addDebitCardRoute?: Route;
 
-    /** Whether the button should be disabled */
     isDisabled?: boolean;
+
+    /** Whether the button should stay visually normal even when disabled. */
+    stayNormalOnDisable?: boolean;
 
     /** Whether we should show a loading state for the main button */
     isLoading?: boolean;
@@ -79,20 +78,20 @@ type SettlementButtonProps = {
     /** The anchor alignment of the popover menu for KYC wall popover */
     kycWallAnchorAlignment?: AnchorAlignment;
 
-    /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 
-    /** Callback to open confirmation modal if any of the transactions is on HOLD */
-    confirmApproval?: () => void;
-
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
 
-    /** Whether we only show pay elsewhere button */
     onlyShowPayElsewhere?: boolean;
+    shouldUseShortForm?: boolean;
+
+    /** Whether we the report has only held expenses */
+    hasOnlyHeldExpenses?: boolean;
 };
 
 export default SettlementButtonProps;
+export type {PaymentActionParams};

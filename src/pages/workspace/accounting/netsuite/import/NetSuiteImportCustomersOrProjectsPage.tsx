@@ -1,23 +1,32 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+
+import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteCrossSubsidiaryCustomersConfiguration, updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import * as Policy from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ImportField = 'jobs' | 'customers';
 
@@ -31,33 +40,31 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
     const importCustomer = importMappings?.customers ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
     const importJobs = importMappings?.jobs ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
     const importedValue = importMappings?.customers !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? importCustomer : importJobs;
+    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT);
 
-    const updateMapping = useCallback(
-        (importField: ImportField, isEnabled: boolean) => {
-            let newValue;
-            if (!isEnabled) {
-                // if the import is off, then we send default as the value for mapping
-                newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+    const updateMapping = (importField: ImportField, isEnabled: boolean) => {
+        let newValue;
+        if (!isEnabled) {
+            // if the import is off, then we send default as the value for mapping
+            newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
+        } else {
+            // when we enable any field, and if the other one already has a value set, we should set that,
+            const otherFieldValue = importField === CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS ? importCustomer : importJobs;
+            if (otherFieldValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
+                // fallback to Tag
+                newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
             } else {
-                // when we enable any field, and if the other one already has a value set, we should set that,
-                const otherFieldValue = importField === CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS ? importCustomer : importJobs;
-                if (otherFieldValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
-                    // fallback to Tag
-                    newValue = CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG;
-                } else {
-                    newValue = otherFieldValue;
-                }
+                newValue = otherFieldValue;
             }
-            if (newValue) {
-                updateNetSuiteImportMapping(policyID, importField, newValue, config?.syncOptions?.mapping?.[importField] ?? null);
-            }
-        },
-        [config?.syncOptions?.mapping, policyID, importCustomer, importJobs],
-    );
+        }
+        if (newValue) {
+            updateNetSuiteImportMapping(policyID, importField, newValue, config?.syncOptions?.mapping?.[importField] ?? null);
+        }
+    };
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteImportCustomersOrProjectsPage.displayName}
+            displayName="NetSuiteImportCustomersOrProjectsPage"
             headerTitle="workspace.netsuite.import.customersOrJobs.title"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -95,7 +102,10 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                 errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)}
                 onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS)}
             />
-            {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
+            <Accordion
+                isExpanded={isAccordionExpanded}
+                isToggleTriggered={shouldAnimateAccordionSection}
+            >
                 <ToggleSettingOptionRow
                     wrapperStyle={[styles.mv3, styles.ph5]}
                     title={translate('workspace.netsuite.import.crossSubsidiaryCustomers')}
@@ -108,37 +118,29 @@ function NetSuiteImportCustomersOrProjectsPage({policy}: WithPolicyConnectionsPr
                     errors={ErrorUtils.getLatestErrorField(config ?? {}, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
                     onCloseError={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS)}
                 />
-            )}
 
-            {importedValue !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && (
                 <OfflineWithFeedback
                     pendingAction={settingsPendingAction(
                         [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
                         config?.pendingFields,
                     )}
                 >
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.common.displayedAs')}
-                        title={translate(`workspace.netsuite.import.importTypes.${importedValue}.label`)}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('workspace.common.displayedAs')}
                         onPress={() => {
                             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT.getRoute(policyID));
                         }}
-                        brickRoadIndicator={
-                            areSettingsInErrorFields(
-                                [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
-                                config?.errorFields,
-                            )
-                                ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                : undefined
-                        }
-                    />
+                        value={translate(`workspace.netsuite.import.importTypes.${importedValue}.label`)}
+                    >
+                        {areSettingsInErrorFields(
+                            [CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS, CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS],
+                            config?.errorFields,
+                        ) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
                 </OfflineWithFeedback>
-            )}
+            </Accordion>
         </ConnectionLayout>
     );
 }
-
-NetSuiteImportCustomersOrProjectsPage.displayName = 'NetSuiteImportCustomersOrProjectsPage';
 
 export default withPolicyConnections(NetSuiteImportCustomersOrProjectsPage);

@@ -1,22 +1,26 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
+
+import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod, updateNetSuiteSplitExportsByPostingPeriod} from '@libs/actions/connections/NetSuiteCommands';
+import {getCardSettings} from '@libs/CardUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    areSettingsInErrorFields,
-    findSelectedBankAccountWithDefaultSelect,
-    findSelectedInvoiceItemWithDefaultSelect,
-    findSelectedTaxAccountWithDefaultSelect,
-    settingsPendingAction,
-} from '@libs/PolicyUtils';
-import type {DividerLineItem, MenuItem, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
+
+import type {DividerLineItem, MenuItem as MenuItemProps, ToggleItem} from '@pages/workspace/accounting/netsuite/types';
 import {
     shouldHideExportForeignCurrencyAmount,
     shouldHideJournalPostingPreference,
@@ -30,56 +34,67 @@ import {
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
-type MenuItemWithSubscribedSettings = Pick<MenuItem, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
+import CONST from '@src/CONST';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type MenuItemWithSubscribedSettings = Pick<MenuItemProps, 'type' | 'description' | 'title' | 'onPress' | 'shouldHide'> & {subscribedSettings?: string[]};
 
 function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const policyOwner = policy?.owner ?? '';
-    const {canUseNetSuiteUSATax} = usePermissions();
+    const {isBetaEnabled} = usePermissions();
 
     const config = policy?.connections?.netsuite?.options.config;
+    const shouldGoBackToSpecificRoute =
+        config?.reimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT ||
+        config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.path);
+
+    const goBack = () => {
+        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backPath);
+    };
 
     const {subsidiaryList, receivableList, taxAccountsList, items} = policy?.connections?.netsuite?.options?.data ?? {};
-    const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
+    const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
+    const selectedReceivable = receivableList?.find((account) => account.id === config?.receivableAccount);
+    const selectedItem = items?.find((item) => item.id === config?.invoiceItem);
 
-    const selectedReceivable = useMemo(() => findSelectedBankAccountWithDefaultSelect(receivableList, config?.receivableAccount), [receivableList, config?.receivableAccount]);
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
+    const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
-    const selectedItem = useMemo(() => findSelectedInvoiceItemWithDefaultSelect(items, config?.invoiceItem), [items, config?.invoiceItem]);
+    let invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
+    if (config?.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
+        invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.create.label');
+    } else if (selectedItem) {
+        invoiceItemValue = selectedItem.name;
+    } else if (config?.invoiceItemPreference) {
+        invoiceItemValue = translate('workspace.netsuite.invoiceItem.values.select.label');
+    }
 
-    const invoiceItemValue = useMemo(() => {
-        if (!config?.invoiceItemPreference) {
-            return translate('workspace.netsuite.invoiceItem.values.create.label');
-        }
-        if (config.invoiceItemPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
-            return translate('workspace.netsuite.invoiceItem.values.create.label');
-        }
-        if (!selectedItem) {
-            return translate('workspace.netsuite.invoiceItem.values.select.label');
-        }
-        return selectedItem.name;
-    }, [config?.invoiceItemPreference, selectedItem, translate]);
-
-    const selectedTaxPostingAccount = useMemo(() => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.taxPostingAccount), [taxAccountsList, config?.taxPostingAccount]);
-
-    const selectedProvTaxPostingAccount = useMemo(
-        () => findSelectedTaxAccountWithDefaultSelect(taxAccountsList, config?.provincialTaxPostingAccount),
-        [taxAccountsList, config?.provincialTaxPostingAccount],
-    );
+    const filteredTaxAccountsList = (taxAccountsList ?? []).filter(({country}) => country === selectedSubsidiary?.country);
+    const selectedTaxPostingAccount = filteredTaxAccountsList.find(({externalID}) => externalID === config?.taxPostingAccount);
+    const selectedProvTaxPostingAccount = filteredTaxAccountsList.find(({externalID}) => externalID === config?.provincialTaxPostingAccount);
 
     const menuItems: Array<MenuItemWithSubscribedSettings | ToggleItem | DividerLineItem> = [
         {
             type: 'menuitem',
             title: config?.exporter ?? policyOwner,
             description: translate('workspace.accounting.preferredExporter'),
-            onPress: () => {
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT.getRoute(policyID));
-            },
+            onPress: !policyID
+                ? undefined
+                : () => {
+                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT.path));
+                  },
             subscribedSettings: [CONST.NETSUITE_CONFIG.EXPORTER],
         },
         {
@@ -92,14 +107,16 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                 ? translate(`workspace.netsuite.exportDate.values.${config.exportDate}.label`)
                 : translate(`workspace.netsuite.exportDate.values.${CONST.NETSUITE_EXPORT_DATE.LAST_EXPENSE}.label`),
             description: translate('workspace.accounting.exportDate'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_DATE_SELECT.getRoute(policyID)),
+            onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_DATE_SELECT.path))),
             subscribedSettings: [CONST.NETSUITE_CONFIG.EXPORT_DATE],
         },
         {
             type: 'menuitem',
             title: config?.reimbursableExpensesExportDestination ? translate(`workspace.netsuite.exportDestination.values.${config.reimbursableExpensesExportDestination}.label`) : undefined,
             description: translate('workspace.accounting.exportOutOfPocket'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE))),
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(true, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
@@ -114,7 +131,9 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                 ? translate(`workspace.netsuite.exportDestination.values.${config.nonreimbursableExpensesExportDestination}.label`)
                 : undefined,
             description: translate('workspace.accounting.exportCompanyCard'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
+            onPress: !policyID
+                ? undefined
+                : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE))),
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(false, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
@@ -124,6 +143,14 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             ],
         },
         {
+            type: 'menuitem',
+            title: translate(`workspace.netsuite.exportDestination.values.${CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY}.label`),
+            description: translate('workspace.common.travelBilling'),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TRAVEL_BILLING_CONFIGURATION.getRoute(policyID)),
+            subscribedSettings: [CONST.NETSUITE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, CONST.NETSUITE_CONFIG.TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE],
+            shouldHide: !isTravelBillingEnabled,
+        },
+        {
             type: 'divider',
             key: 'divider2',
         },
@@ -131,14 +158,14 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             type: 'menuitem',
             title: selectedReceivable ? selectedReceivable.name : undefined,
             description: translate('workspace.netsuite.exportInvoices'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.path)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.RECEIVABLE_ACCOUNT],
         },
         {
             type: 'menuitem',
             title: invoiceItemValue,
             description: translate('workspace.netsuite.invoiceItem.label'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.path)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE, ...(shouldShowInvoiceItemMenuItem(config) ? [CONST.NETSUITE_CONFIG.INVOICE_ITEM] : [])],
         },
         {
@@ -149,7 +176,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             type: 'menuitem',
             title: selectedProvTaxPostingAccount ? selectedProvTaxPostingAccount.name : undefined,
             description: translate('workspace.netsuite.journalEntriesProvTaxPostingAccount'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.PROVINCIAL_TAX_POSTING_ACCOUNT],
             shouldHide: shouldHideProvincialTaxPostingAccountSelect(selectedSubsidiary, config),
         },
@@ -157,19 +184,19 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             type: 'menuitem',
             title: selectedTaxPostingAccount ? selectedTaxPostingAccount.name : undefined,
             description: translate('workspace.netsuite.journalEntriesTaxPostingAccount'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.NETSUITE_CONFIG.TAX_POSTING_ACCOUNT],
-            shouldHide: shouldHideTaxPostingAccountSelect(canUseNetSuiteUSATax, selectedSubsidiary, config),
+            shouldHide: shouldHideTaxPostingAccountSelect(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary, config),
         },
         {
             type: 'toggle',
             title: translate('workspace.netsuite.foreignCurrencyAmount'),
             isActive: !!config?.allowForeignCurrency,
             switchAccessibilityLabel: translate('workspace.netsuite.foreignCurrencyAmount'),
-            onToggle: () => Connections.updateNetSuiteAllowForeignCurrency(policyID, !config?.allowForeignCurrency, config?.allowForeignCurrency),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
+            onToggle: () => (!policyID ? null : updateNetSuiteAllowForeignCurrency(policyID, !config?.allowForeignCurrency, config?.allowForeignCurrency)),
+            onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY], config?.pendingFields),
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.ALLOW_FOREIGN_CURRENCY),
             shouldHide: shouldHideExportForeignCurrencyAmount(config),
         },
         {
@@ -177,21 +204,40 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             title: translate('workspace.netsuite.exportToNextOpenPeriod'),
             isActive: !!config?.exportToNextOpenPeriod,
             switchAccessibilityLabel: translate('workspace.netsuite.exportToNextOpenPeriod'),
-            onCloseError: () => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
-            onToggle: () => Connections.updateNetSuiteExportToNextOpenPeriod(policyID, !config?.exportToNextOpenPeriod, config?.exportToNextOpenPeriod ?? false),
+            onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
+            onToggle: () => (!policyID ? null : updateNetSuiteExportToNextOpenPeriod(policyID, !config?.exportToNextOpenPeriod, config?.exportToNextOpenPeriod ?? false)),
             pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD], config?.pendingFields),
-            errors: ErrorUtils.getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.EXPORT_TO_NEXT_OPEN_PERIOD),
+            // Split exports need the next-open-period fallback for closed periods, so this stays locked while split is on
+            disabled: !!config?.splitExportsByPostingPeriod,
+            showLockIcon: !!config?.splitExportsByPostingPeriod,
+            subtitle: config?.splitExportsByPostingPeriod ? translate('workspace.netsuite.exportToNextOpenPeriodLockedSubtitle') : undefined,
+        },
+        {
+            type: 'toggle',
+            title: translate('workspace.netsuite.splitExportsByPostingPeriod'),
+            isActive: !!config?.splitExportsByPostingPeriod,
+            switchAccessibilityLabel: translate('workspace.netsuite.splitExportsByPostingPeriod'),
+            subtitle: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod ? translate('workspace.netsuite.splitExportsByPostingPeriodSubtitle') : undefined,
+            onCloseError: !policyID ? undefined : () => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD),
+            onToggle: () => (!policyID ? null : updateNetSuiteSplitExportsByPostingPeriod(policyID, !config?.splitExportsByPostingPeriod, config?.splitExportsByPostingPeriod ?? false)),
+            pendingAction: settingsPendingAction([CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD], config?.pendingFields),
+            errors: getLatestErrorField(config, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD),
+            // Splitting moves expenses to earlier dates which can land in closed periods, so it needs the next-open-period fallback. An active split stays editable so a bad config state can always be undone.
+            disabled: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod,
+            showLockIcon: !config?.exportToNextOpenPeriod && !config?.splitExportsByPostingPeriod,
         },
     ];
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteExportConfigurationPage.displayName}
+            displayName="NetSuiteExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             headerSubtitle={config?.subsidiary ?? ''}
             title="workspace.netsuite.exportDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
+            onBackButtonPress={goBack}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
@@ -214,7 +260,6 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                             return (
                                 <ToggleSettingOptionRow
                                     key={rest.title}
-                                    // eslint-disable-next-line react/jsx-props-no-spreading
                                     {...rest}
                                     wrapperStyle={[styles.mv3, styles.ph5]}
                                 />
@@ -225,13 +270,15 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                                     key={item.description}
                                     pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
                                 >
-                                    <MenuItemWithTopDescription
-                                        title={item.title}
-                                        description={item.description}
-                                        shouldShowRightIcon
+                                    <MenuItemField
+                                        name={item.description ?? ''}
                                         onPress={item?.onPress}
-                                        brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                    />
+                                        value={item.title}
+                                    >
+                                        {areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) && (
+                                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                        )}
+                                    </MenuItemField>
                                 </OfflineWithFeedback>
                             );
                     }
@@ -239,7 +286,5 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
         </ConnectionLayout>
     );
 }
-
-NetSuiteExportConfigurationPage.displayName = 'NetSuiteExportConfigurationPage';
 
 export default withPolicyConnections(NetSuiteExportConfigurationPage);

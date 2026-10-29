@@ -1,61 +1,96 @@
-import type {ComponentType} from 'react';
-import React from 'react';
-import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import useLocalize from '@hooks/useLocalize';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import AgreementsFullStep from '@components/SubStepForms/AgreementsFullStep';
+
+import useOnyx from '@hooks/useOnyx';
+
+import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
+import requiresDocusignStep from '@pages/ReimbursementAccount/NonUSD/utils/requiresDocusignStep';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
+import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
+import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
-import Confirmation from './substeps/Confirmation';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type AgreementsProps = {
-    /** Handles back button press */
-    onBackButtonPress: () => void;
+import React, {useEffect, useRef} from 'react';
 
-    /** Handles submit button press */
-    onSubmit: () => void;
+const INPUT_KEYS = {
+    provideTruthfulInformation: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
+    agreeToTermsAndConditions: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AGREE_TO_TERMS_AND_CONDITIONS,
+    consentToPrivacyNotice: INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE,
+    authorizedToBindClientToAgreement: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
 };
 
-const bodyContent: Array<ComponentType<SubStepProps>> = [Confirmation];
-
-function Agreements({onBackButtonPress, onSubmit}: AgreementsProps) {
-    const {translate} = useLocalize();
+function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPageProps) {
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const agreementsStepValues = getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount);
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isDocusignStepRequired = requiresDocusignStep(currency);
+    const isSubmittingRef = useRef(false);
+    const isBankStatementNeeded = currency === CONST.CURRENCY.AUD || currency === CONST.CURRENCY.CAD;
+    const bankStatementDefaultValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT] ?? [];
 
     const submit = () => {
-        onSubmit();
-    };
-
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
-
-    const handleBackButtonPress = () => {
-        if (isEditing) {
-            goToTheLastStep();
+        if (isDocusignStepRequired) {
+            onSubmit();
             return;
         }
 
-        if (screenIndex === 0) {
-            onBackButtonPress();
-        } else {
-            prevScreen();
+        isSubmittingRef.current = true;
+
+        finishCorpayBankAccountOnboarding({
+            inputs: JSON.stringify({
+                provideTruthfulInformation: agreementsStepValues.provideTruthfulInformation,
+                agreeToTermsAndConditions: agreementsStepValues.agreeToTermsAndConditions,
+                consentToPrivacyNotice: agreementsStepValues.consentToPrivacyNotice,
+                authorizedToBindClientToAgreement: agreementsStepValues.authorizedToBindClientToAgreement,
+            }),
+            bankAccountID,
+        });
+    };
+
+    useEffect(() => {
+        if (isDocusignStepRequired) {
+            return;
         }
+
+        if (reimbursementAccount?.errors || reimbursementAccount?.isFinishingCorpayBankAccountOnboarding || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess && isSubmittingRef.current) {
+            isSubmittingRef.current = false;
+            onSubmit();
+            clearReimbursementAccountFinishCorpayBankAccountOnboarding();
+        }
+
+        return () => {
+            clearReimbursementAccountFinishCorpayBankAccountOnboarding();
+        };
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isFinishingCorpayBankAccountOnboarding, reimbursementAccount?.isSuccess, onSubmit, currency, isDocusignStepRequired]);
+
+    const handleBackButtonPress = () => {
+        clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+        onBackButtonPress();
     };
 
     return (
-        <InteractiveStepWrapper
-            wrapperID={Agreements.displayName}
-            handleBackButtonPress={handleBackButtonPress}
-            headerTitle={translate('agreementsStep.agreements')}
-            stepNames={CONST.NON_USD_BANK_ACCOUNT.STEP_NAMES}
+        <AgreementsFullStep
+            defaultValues={agreementsStepValues}
+            formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
+            inputIDs={INPUT_KEYS}
+            isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding ?? false}
+            onBackButtonPress={handleBackButtonPress}
+            onSubmit={submit}
+            currency={currency ?? ''}
             startStepIndex={5}
-        >
-            <SubStep
-                isEditing={isEditing}
-                onNext={nextScreen}
-                onMove={moveTo}
-            />
-        </InteractiveStepWrapper>
+            stepNames={stepNames}
+            bankStatementInputID={isBankStatementNeeded ? INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT : undefined}
+            bankStatementDefaultValue={bankStatementDefaultValue}
+        />
     );
 }
-
-Agreements.displayName = 'Agreements';
 
 export default Agreements;

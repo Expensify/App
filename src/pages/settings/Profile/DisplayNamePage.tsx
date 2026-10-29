@@ -1,87 +1,74 @@
-import React from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {getDisplayNameErrors} from '@libs/ValidationUtils';
+
+import {updateDisplayName as updateDisplayNamePersonalDetails} from '@userActions/PersonalDetails';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DisplayNamePageProps = WithCurrentUserPersonalDetailsProps;
 
 /**
  * Submit form to update user's first and last name (and display name)
  */
-const updateDisplayName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-    PersonalDetails.updateDisplayName(values.firstName.trim(), values.lastName.trim());
+const updateDisplayName = (
+    values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserPersonalDetails: CurrentUserPersonalDetails,
+) => {
+    updateDisplayNamePersonalDetails(values.firstName.trim(), values.lastName.trim(), formatPhoneNumber, currentUserPersonalDetails);
     Navigation.goBack();
 };
 
 function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
+    const {translate, formatPhoneNumber} = useLocalize();
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const currentUserDetails = currentUserPersonalDetails ?? {};
 
-    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => {
-        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
-
-        // First we validate the first name field
-        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
-        } else if (values.firstName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
-        } else if (values.firstName.length === 0) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
-        }
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
-        }
-
-        // Then we validate the last name field
-        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
-        } else if (values.lastName.length > CONST.TITLE_CHARACTER_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
-        }
-        if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
-        }
-        return errors;
-    };
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM>) => getDisplayNameErrors(values.firstName, values.lastName, translate);
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={DisplayNamePage.displayName}
+            testID="DisplayNamePage"
         >
             <HeaderWithBackButton
                 title={translate('displayNamePage.headerTitle')}
                 onBackButtonPress={() => Navigation.goBack()}
             />
             {isLoadingApp ? (
-                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.DISPLAY_NAME_FORM}
                     validate={validate}
-                    onSubmit={updateDisplayName}
+                    onSubmit={(values) => updateDisplayName(values, formatPhoneNumber, currentUserPersonalDetails)}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldValidateOnBlur
@@ -98,7 +85,8 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.firstName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
+                            autoCapitalize="words"
+                            autoComplete="given-name"
                         />
                     </View>
                     <View>
@@ -111,7 +99,8 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={currentUserDetails.lastName ?? ''}
                             spellCheck={false}
-                            isMarkdownEnabled
+                            autoCapitalize="words"
+                            autoComplete="family-name"
                         />
                     </View>
                 </FormProvider>
@@ -119,7 +108,5 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
         </ScreenWrapper>
     );
 }
-
-DisplayNamePage.displayName = 'DisplayNamePage';
 
 export default withCurrentUserPersonalDetails(DisplayNamePage);

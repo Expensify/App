@@ -1,7 +1,9 @@
+import useStyleUtils from '@hooks/useStyleUtils';
+
 import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import useStyleUtils from '@hooks/useStyleUtils';
+
 import type SafeAreaConsumerProps from './types';
 
 /**
@@ -13,19 +15,19 @@ function SafeAreaConsumer({children}: SafeAreaConsumerProps) {
 
     return (
         <SafeAreaInsetsContext.Consumer>
-            {(insets) => {
-                const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets ?? undefined);
+            {(safeAreaInsets) => {
+                const insets = StyleUtils.getSafeAreaInsets(safeAreaInsets);
+                const {paddingTop, paddingBottom} = StyleUtils.getPlatformSafeAreaPadding(insets);
+
                 return children({
                     paddingTop,
                     paddingBottom,
-                    insets: insets ?? undefined,
+                    insets,
                     safeAreaPaddingBottomStyle: {paddingBottom},
                 });
             }}
         </SafeAreaInsetsContext.Consumer>
     );
 }
-
-SafeAreaConsumer.displayName = 'SafeAreaConsumer';
 
 export default SafeAreaConsumer;

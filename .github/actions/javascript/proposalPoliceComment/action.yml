@@ -7,9 +7,9 @@ inputs:
   PROPOSAL_POLICE_API_KEY:
     description: 'OpenAI API key for accessing AI services'
     required: true
-  PROPOSAL_POLICE_ASSISTANT_ID:
-    description: 'OpenAI Assistant ID for personalized AI assistant'
+  IS_TRUSTED_COMMENTER:
+    description: 'Whether the commenter is a verified approved contributor or partner'
     required: true
 runs:
-  using: 'node20'
+  using: 'node24'
   main: './index.js'

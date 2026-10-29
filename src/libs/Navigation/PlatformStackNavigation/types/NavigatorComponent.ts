@@ -1,4 +1,5 @@
-import type {EventMapBase, ParamListBase, StackActionHelpers} from '@react-navigation/native';
+import type {EventMapBase, ParamListBase, RouteProp, StackActionHelpers} from '@react-navigation/native';
+
 import type {
     PlatformSpecificEventMap,
     PlatformSpecificNavigationOptions,
@@ -8,9 +9,6 @@ import type {
     PlatformStackRouterOptions,
 } from '.';
 import type {PlatformNavigationBuilderDescriptors, PlatformNavigationBuilderNavigation} from './NavigationBuilder';
-
-// Represents a route in the search context within the navigation state.
-type SearchRoute = PlatformStackNavigationState<ParamListBase>['routes'][number];
 
 // Props that custom code receives when passed to the createPlatformStackNavigatorComponent generator function.
 // Custom logic like "transformState", "onWindowDimensionsChange" and custom components like "NavigationContentWrapper" and "ExtraContent" will receive these props
@@ -24,23 +22,22 @@ type CustomCodeProps<
     navigation: PlatformNavigationBuilderNavigation<EventMap, ParamList, ActionHelpers>;
     descriptors: PlatformNavigationBuilderDescriptors<NavigationOptions, EventMap, ParamList>;
     displayName: string;
-    searchRoute?: SearchRoute;
+    parentRoute?: RouteProp<ParamListBase>;
 };
 
-// Props for the custom state hook.
-type CustomStateHookProps<ParamList extends ParamListBase = ParamListBase> = CustomCodeProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamList>;
-
-// Defines a hook function type for transforming the navigation state based on props, and returning the transformed state and search route.
-type CustomStateHook<ParamList extends ParamListBase = ParamListBase> = (props: CustomStateHookProps<ParamList>) => {
-    stateToRender?: PlatformStackNavigationState<ParamList>;
-    searchRoute?: SearchRoute;
+// Props for getCustomState. shouldUseNarrowLayout is provided by PlatformNavigatorImpl so transforms stay pure (no hooks).
+type CustomStateHookProps<ParamList extends ParamListBase = ParamListBase> = CustomCodeProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamList> & {
+    shouldUseNarrowLayout: boolean;
 };
 
-// Props for the custom effects hook.
+// Plain function that transforms navigation state. Must not call React hooks.
+type GetCustomState<ParamList extends ParamListBase = ParamListBase> = (props: CustomStateHookProps<ParamList>) => PlatformStackNavigationState<ParamList> | undefined;
+
+// Props for the Effects component (same shape as ExtraContent custom code props).
 type CustomEffectsHookProps<ParamList extends ParamListBase = ParamListBase> = CustomCodeProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase, ParamList>;
 
-// Defines a hook function type for creating custom effects in the navigator.
-type CustomEffectsHook<ParamList extends ParamListBase = ParamListBase> = (props: CustomEffectsHookProps<ParamList>) => void;
+// A React component that runs navigator side effects (hooks) and renders nothing.
+type NavigatorEffects<ParamList extends ParamListBase = ParamListBase> = (props: CustomEffectsHookProps<ParamList>) => React.ReactElement | null;
 
 // Props for the ExtraContent component.
 type ExtraContentProps = CustomCodeProps<PlatformSpecificNavigationOptions, PlatformSpecificEventMap & EventMapBase>;
@@ -58,21 +55,10 @@ type NavigationContentWrapper = (props: NavigationContentWrapperProps) => React.
 type CreatePlatformStackNavigatorComponentOptions<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions, ParamList extends ParamListBase = ParamListBase> = {
     createRouter?: PlatformStackRouterFactory<ParamList, RouterOptions>;
     defaultScreenOptions?: PlatformStackNavigationOptions;
-    useCustomState?: CustomStateHook<ParamList>;
-    useCustomEffects?: CustomEffectsHook<ParamList>;
+    getCustomState?: GetCustomState<ParamList>;
+    Effects?: NavigatorEffects<ParamList>;
     ExtraContent?: ExtraContent;
     NavigationContentWrapper?: NavigationContentWrapper;
 };
 
-export type {
-    CustomCodeProps,
-    CustomStateHookProps,
-    CustomStateHook,
-    CustomEffectsHookProps,
-    CustomEffectsHook,
-    ExtraContentProps,
-    ExtraContent,
-    NavigationContentWrapperProps,
-    NavigationContentWrapper,
-    CreatePlatformStackNavigatorComponentOptions,
-};
+export type {CustomCodeProps, CustomStateHookProps, CustomEffectsHookProps, CreatePlatformStackNavigatorComponentOptions, ExtraContentProps};

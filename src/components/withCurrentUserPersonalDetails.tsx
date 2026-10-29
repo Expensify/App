@@ -1,33 +1,46 @@
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {PersonalDetails} from '@src/types/onyx';
+
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type {ComponentType} from 'react';
+
+import React from 'react';
 
 type HOCProps = {
-    currentUserPersonalDetails: PersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 type WithCurrentUserPersonalDetailsProps = HOCProps;
 
-export default function <TProps extends WithCurrentUserPersonalDetailsProps, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): ComponentType<Omit<TProps, keyof HOCProps> & RefAttributes<TRef>> {
-    function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>, ref: ForwardedRef<TRef>) {
-        const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+type WithCurrentUserPersonalDetailsImplProps<TProps extends WithCurrentUserPersonalDetailsProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & Omit<TProps, keyof HOCProps>;
+
+function WithCurrentUserPersonalDetailsImpl<TProps extends WithCurrentUserPersonalDetailsProps>({WrappedComponent, ...props}: WithCurrentUserPersonalDetailsImplProps<TProps>) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            currentUserPersonalDetails={currentUserPersonalDetails}
+        />
+    );
+}
+
+export default function <TProps extends WithCurrentUserPersonalDetailsProps>(WrappedComponent: ComponentType<TProps>): ComponentType<Omit<TProps, keyof HOCProps>> {
+    function WithCurrentUserPersonalDetails(props: Omit<TProps, keyof HOCProps>) {
         return (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
-                ref={ref}
-                currentUserPersonalDetails={currentUserPersonalDetails}
+            <WithCurrentUserPersonalDetailsImpl
+                WrappedComponent={WrappedComponent}
+                {...props}
             />
         );
     }
 
     WithCurrentUserPersonalDetails.displayName = `WithCurrentUserPersonalDetails(${getComponentDisplayName(WrappedComponent)})`;
 
-    return React.forwardRef(WithCurrentUserPersonalDetails);
+    return WithCurrentUserPersonalDetails;
 }
 
 export type {WithCurrentUserPersonalDetailsProps};

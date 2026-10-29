@@ -1,63 +1,72 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getWorkflowApprovalsUnavailable, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy/Policy';
+
+import {setPolicyAutomaticApprovalRate} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesRandomReportAuditModalForm';
 
-type RulesRandomReportAuditPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT>;
+import React from 'react';
+import {View} from 'react-native';
+
+type RulesRandomReportAuditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT>;
 
 function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
-    const policyID = route?.params?.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
 
-    const workflowApprovalsUnavailable = PolicyUtils.getWorkflowApprovalsUnavailable(policy);
+    const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
+    const isWorkflowsEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED);
     const defaultValue = Math.round((policy?.autoApproval?.auditRate ?? CONST.POLICY.RANDOM_AUDIT_DEFAULT_PERCENTAGE) * 100);
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            shouldBeBlocked={!policy?.shouldShowAutoApprovalOptions || workflowApprovalsUnavailable}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={isWorkflowsEnabled && (!(!!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit ?? 0) > 0) || workflowApprovalsUnavailable)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesRandomReportAuditPage.displayName}
+                testID="RulesRandomReportAuditPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.expenseReportRules.randomReportAuditTitle')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_RANDOM_REPORT_AUDIT_MODAL_FORM}
                     onSubmit={({auditRatePercentage}) => {
-                        PolicyActions.setPolicyAutomaticApprovalRate(policyID, auditRatePercentage);
+                        setPolicyAutomaticApprovalRate(policyID, auditRatePercentage, policy?.autoApproval?.auditRate, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -74,7 +83,5 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesRandomReportAuditPage.displayName = 'RulesRandomReportAuditPage';
 
 export default RulesRandomReportAuditPage;

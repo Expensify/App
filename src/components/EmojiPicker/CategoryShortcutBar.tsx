@@ -1,7 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {HeaderIndices} from '@libs/EmojiUtils';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {HeaderIndice} from '@libs/EmojiUtils';
+
 import CategoryShortcutButton from './CategoryShortcutButton';
 
 type CategoryShortcutBarProps = {
@@ -9,10 +12,13 @@ type CategoryShortcutBarProps = {
     onPress: (index: number) => void;
 
     /** The emojis consisting emoji code and indices that the icons should link to */
-    headerEmojis: HeaderIndice[];
+    headerEmojis: HeaderIndices[];
+
+    /** The index of the currently selected category header */
+    selectedIndex?: number | null;
 };
 
-function CategoryShortcutBar({onPress, headerEmojis}: CategoryShortcutBarProps) {
+function CategoryShortcutBar({onPress, headerEmojis, selectedIndex = null}: CategoryShortcutBarProps) {
     const styles = useThemeStyles();
     return (
         <View style={[styles.ph4, styles.flexRow]}>
@@ -22,12 +28,11 @@ function CategoryShortcutBar({onPress, headerEmojis}: CategoryShortcutBarProps) 
                     onPress={() => onPress(headerEmoji.index)}
                     key={`categoryShortcut${headerEmoji.index}`}
                     code={headerEmoji.code}
+                    isSelected={headerEmoji.index === selectedIndex}
                 />
             ))}
         </View>
     );
 }
-
-CategoryShortcutBar.displayName = 'CategoryShortcutBar';
 
 export default CategoryShortcutBar;

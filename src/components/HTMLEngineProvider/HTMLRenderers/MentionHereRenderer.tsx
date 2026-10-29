@@ -1,10 +1,13 @@
-import React from 'react';
-import type {TextStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
-import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
+
+import type {TextStyle} from 'react-native';
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import React from 'react';
+import {StyleSheet} from 'react-native';
+import {TNodeChildrenRenderer} from 'react-native-render-html';
 
 function MentionHereRenderer({style, tnode}: CustomRendererProps<TText | TPhrasing>) {
     const StyleUtils = useStyleUtils();
@@ -24,7 +27,5 @@ function MentionHereRenderer({style, tnode}: CustomRendererProps<TText | TPhrasi
         </Text>
     );
 }
-
-MentionHereRenderer.displayName = 'HereMentionRenderer';
 
 export default MentionHereRenderer;

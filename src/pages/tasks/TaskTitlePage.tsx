@@ -1,7 +1,3 @@
-import type {RouteProp} from '@react-navigation/native';
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,81 +8,97 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+
+import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {TaskDetailsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
-import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
-import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
-import * as Task from '@userActions/Task';
+import Parser from '@libs/Parser';
+import {getCommentLength, getParsedComment, isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
+import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+
+import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
+import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
+
+import variables from '@styles/variables';
+
+import {canModifyTask, editTask} from '@userActions/Task';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import React, {useRef} from 'react';
+import {View} from 'react-native';
 
 type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
 function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps) {
-    const route = useRoute<RouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.TITLE>>();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TASK_TITLE.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const accountIDToName = useMentionedAccountIDToNameMap(report?.reportName);
 
-    const validate = useCallback(
-        ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
+    const validate = ({title}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM> = {};
 
-            if (!title) {
-                ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
-            } else if (title.length > CONST.TITLE_CHARACTER_LIMIT) {
-                ErrorUtils.addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: title.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
-            }
+        const parsedTitle = getParsedComment(title, undefined, undefined, [...CONST.TASK_TITLE_DISABLED_RULES]);
+        const parsedTitleLength = getCommentLength(parsedTitle);
 
-            return errors;
-        },
-        [translate],
-    );
+        if (!parsedTitle) {
+            addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
+        } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
+            addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', parsedTitleLength, CONST.TASK_TITLE_CHARACTER_LIMIT));
+        }
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
-            if (values.title !== report?.reportName && !isEmptyObject(report)) {
-                // Set the title of the report in the store and then call EditTask API
-                // to update the title of the report on the server
-                Task.editTask(report, {title: values.title});
-            }
+        return errors;
+    };
 
-            Navigation.dismissModal(report?.reportID);
-        },
-        [report],
-    );
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TASK_FORM>) => {
+        if (values.title !== Parser.htmlToMarkdown(report?.reportName ?? '', {accountIDToName}) && !isEmptyObject(report)) {
+            // Set the title of the report in the store and then call EditTask API
+            // to update the title of the report on the server
+            editTask(report, {title: values.title}, delegateEmail);
+        }
 
-    if (!ReportUtils.isTaskReport(report)) {
+        Navigation.goBack(backPath);
+    };
+
+    if (!isTaskReport(report)) {
         Navigation.isNavigationReady().then(() => {
-            Navigation.dismissModal(report?.reportID);
+            Navigation.goBack(backPath);
         });
     }
 
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
-    const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = ReportUtils.isTaskReport(report) && (!canModifyTask || !isOpen);
+    const isOpen = isOpenTaskReport(report);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             onEntryTransitionEnd={() => {
                 inputRef?.current?.focus();
             }}
             shouldEnableMaxHeight
-            testID={TaskTitlePage.displayName}
+            testID="TaskTitlePage"
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                     <HeaderWithBackButton
                         title={translate('task.task')}
-                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                        onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
                     <FormProvider
                         style={[styles.flexGrow1, styles.ph5]}
@@ -95,6 +107,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         onSubmit={submit}
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
+                        shouldHideFixErrorsAlert
                     >
                         <View style={[styles.mb4]}>
                             <InputWrapper
@@ -104,16 +117,20 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                                 name={INPUT_IDS.TITLE}
                                 label={translate('task.title')}
                                 accessibilityLabel={translate('task.title')}
-                                defaultValue={report?.reportName ?? ''}
-                                ref={(element: AnimatedTextInputRef) => {
+                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {accountIDToName})}
+                                ref={(element: AnimatedTextInputRef | null) => {
                                     if (!element) {
                                         return;
                                     }
                                     if (!inputRef.current && didScreenTransitionEnd) {
-                                        element.focus();
+                                        updateMultilineInputRange(inputRef.current);
                                     }
                                     inputRef.current = element;
                                 }}
+                                autoGrowHeight
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                shouldSubmitForm={false}
+                                type="markdown"
                             />
                         </View>
                     </FormProvider>
@@ -122,8 +139,6 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
         </ScreenWrapper>
     );
 }
-
-TaskTitlePage.displayName = 'TaskTitlePage';
 
 const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(TaskTitlePage);
 

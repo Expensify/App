@@ -1,0 +1,110 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {WorkspaceListItemType as WorkspaceListItem} from '@components/SelectionList/ListItem/types';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
+import {isPolicyAdmin, isArchivedPolicy, shouldShowPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
+
+import CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
+
+type UseWorkspaceListParams = {
+    policies: OnyxCollection<Policy>;
+    currentUserLogin: string | undefined;
+    shouldShowPendingDeletePolicy: boolean;
+    selectedPolicyIDs: string[] | undefined;
+    searchTerm: string;
+    localeCompare: LocaleContextProps['localeCompare'];
+    additionalFilter?: (policy: OnyxEntry<Policy>) => boolean;
+    shouldSortSelectedToTop?: boolean;
+    policyIDsToSortToTop?: string[];
+    includeArchivedPolicy?: boolean;
+};
+
+function useWorkspaceList({
+    policies,
+    currentUserLogin,
+    selectedPolicyIDs,
+    searchTerm,
+    shouldShowPendingDeletePolicy,
+    localeCompare,
+    additionalFilter,
+    shouldSortSelectedToTop = true,
+    policyIDsToSortToTop,
+    includeArchivedPolicy = false,
+}: UseWorkspaceListParams) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
+    let usersWorkspaces: WorkspaceListItem[];
+    if (!policies || isEmptyObject(policies)) {
+        usersWorkspaces = [];
+    } else {
+        const result = [];
+        for (const policy of Object.values(policies)) {
+            if (
+                !policy ||
+                policy.isJoinRequestPending ||
+                !shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin, includeArchivedPolicy) ||
+                (additionalFilter && !additionalFilter(policy))
+            ) {
+                continue;
+            }
+            result.push({
+                text: policy.name ?? '',
+                policyID: policy.id,
+                icons: [
+                    {
+                        source: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                        fallbackIcon: icons.FallbackWorkspaceAvatar,
+                        name: policy.name,
+                        type: CONST.ICON_TYPE_WORKSPACE,
+                        id: policy.id,
+                    },
+                ],
+                keyForList: `${policy.id}`,
+                isPolicyAdmin: isPolicyAdmin(policy),
+                isArchived: isArchivedPolicy(policy),
+                isSelected: policy.id && selectedPolicyIDs ? selectedPolicyIDs.includes(policy.id) : false,
+            });
+        }
+        usersWorkspaces = result;
+    }
+
+    const filteredAndSortedUserWorkspaces: WorkspaceListItem[] = tokenizedSearch(usersWorkspaces, searchTerm, (policy) => [policy.text]).sort((policy1, policy2) => {
+        if (shouldSortSelectedToTop) {
+            return sortWorkspacesBySelected(
+                {policyID: policy1.policyID, name: policy1.text},
+                {policyID: policy2.policyID, name: policy2.text},
+                policyIDsToSortToTop ?? selectedPolicyIDs,
+                localeCompare,
+            );
+        }
+        return localeCompare(policy1.text, policy2.text);
+    });
+
+    const options: Array<Section<WorkspaceListItem>> = [
+        {
+            data: filteredAndSortedUserWorkspaces,
+            sectionIndex: 0,
+        },
+    ];
+    const sections = options;
+
+    const shouldShowNoResultsFoundMessage = filteredAndSortedUserWorkspaces.length === 0 && usersWorkspaces.length;
+    const shouldShowSearchInput = usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    return {
+        data: filteredAndSortedUserWorkspaces,
+        sections,
+        shouldShowNoResultsFoundMessage,
+        shouldShowSearchInput,
+    };
+}
+
+export default useWorkspaceList;
+export type {WorkspaceListItem};

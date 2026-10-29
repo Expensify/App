@@ -1,36 +1,47 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FixedFooter from '@components/FixedFooter';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
-import * as Link from '@userActions/Link';
+
+import {openExternalLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const policyID = policy?.id ?? '-1';
     const config = policy?.connections?.intacct?.config;
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions ?? [];
 
+    const addUserDefinedDimension = () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION.getRoute(policyID));
+
     return (
         <ConnectionLayout
-            displayName={SageIntacctUserDimensionsPage.displayName}
+            displayName="SageIntacctUserDimensionsPage"
             headerTitle="workspace.intacct.userDefinedDimension"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -38,14 +49,13 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
-            shouldIncludeSafeAreaPaddingBottom
             shouldUseScrollView={false}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
         >
             {userDimensions?.length === 0 ? (
                 <View style={[styles.alignItemsCenter, styles.flex1, styles.justifyContentCenter]}>
                     <Icon
-                        src={Illustrations.FolderWithPapers}
+                        src={illustrations.FolderWithPapers}
                         width={160}
                         height={100}
                     />
@@ -60,7 +70,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                                 <TextLink
                                     style={styles.link}
                                     onPress={() => {
-                                        Link.openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
+                                        openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
                                     }}
                                 >
                                     {translate('workspace.intacct.detailedInstructionsLink')}
@@ -77,7 +87,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             <TextLink
                                 style={styles.link}
                                 onPress={() => {
-                                    Link.openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
+                                    openExternalLink(CONST.SAGE_INTACCT_INSTRUCTIONS);
                                 }}
                             >
                                 {translate('workspace.intacct.detailedInstructionsLink')}
@@ -85,41 +95,41 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             <Text>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
                         </Text>
                     </View>
-                    <ScrollView>
+                    <ScrollView addBottomSafeAreaPadding>
                         {userDimensions.map((userDimension) => (
                             <OfflineWithFeedback
                                 key={userDimension.dimension}
                                 pendingAction={settingsPendingAction([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.pendingFields)}
                             >
-                                <MenuItemWithTopDescription
-                                    title={userDimension.dimension}
-                                    description={translate('workspace.intacct.userDefinedDimension')}
-                                    shouldShowRightIcon
+                                <MenuItemField
+                                    name={translate('workspace.intacct.userDefinedDimension')}
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension))}
-                                    brickRoadIndicator={
-                                        areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields)
-                                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                            : undefined
-                                    }
-                                />
+                                    value={userDimension.dimension}
+                                >
+                                    {areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields) && (
+                                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                                    )}
+                                </MenuItemField>
                             </OfflineWithFeedback>
                         ))}
                     </ScrollView>
                 </>
             )}
-            <FixedFooter style={[styles.mt5]}>
+            <FixedFooter
+                style={[styles.mt5]}
+                addBottomSafeAreaPadding
+            >
                 <Button
-                    success
-                    text={translate('workspace.intacct.addUserDefinedDimension')}
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION.getRoute(policyID))}
-                    pressOnEnter
-                    large
-                />
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={addUserDefinedDimension}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('workspace.intacct.addUserDefinedDimension')}</Button.Text>
+                </Button>
             </FixedFooter>
         </ConnectionLayout>
     );
 }
-
-SageIntacctUserDimensionsPage.displayName = 'SageIntacctUserDimensionsPage';
 
 export default withPolicy(SageIntacctUserDimensionsPage);

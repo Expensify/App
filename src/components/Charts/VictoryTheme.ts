@@ -1,0 +1,213 @@
+/**
+ * Centralized styles and layout constants for the chart components.
+ */
+import type {ColorScheme} from '@styles/index';
+import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import {CHART_FONT_FAMILY_NAMES} from './utils/chartFontConstants';
+
+/** Shade groups in the palette */
+const CHART_PALETTE_SHADES = [400, 600, 300, 500, 700] as const;
+
+/** Hues cycling within each shade group */
+const CHART_PALETTE_HUES = ['yellow', 'tangerine', 'pink', 'green', 'ice', 'blue'] as const;
+
+/**
+ * Expensify Chart Color Palette.
+ *
+ * Shades are ordered (400, 600, 300, 500, 700) so that sequential colors have
+ * maximum contrast, making adjacent chart segments easy to distinguish.
+ *
+ * Within each shade, hues cycle: Yellow, Tangerine, Pink, Green, Ice, Blue.
+ */
+const CHART_PALETTE: string[] = (() => {
+    const palette: string[] = [];
+
+    // Generate the 30 unique combinations (5 shades × 6 hues)
+    for (const shade of CHART_PALETTE_SHADES) {
+        for (const hue of CHART_PALETTE_HUES) {
+            const colorKey = `${hue}${shade}`;
+            if (colors[colorKey]) {
+                palette.push(colors[colorKey]);
+            }
+        }
+    }
+
+    return palette;
+})();
+
+/**
+ * Gets a color from the chart palette based on index.
+ * Automatically loops back to the start if the index exceeds 29.
+ */
+function getChartColor(index: number): string {
+    if (CHART_PALETTE.length === 0) {
+        return colors.black; // Fallback
+    }
+    return CHART_PALETTE.at(index % CHART_PALETTE.length) ?? colors.black;
+}
+
+const CHART_COMPARISON_SHADE = 200;
+const CHART_COMPARISON_SHADE_DARK = 700;
+
+/** Returns the color to draw a compared period in, for an item or series drawn in `color` */
+function getComparisonColor(color: string, colorScheme: ColorScheme): string {
+    const index = CHART_PALETTE.indexOf(color);
+    const hue = index < 0 ? undefined : CHART_PALETTE_HUES.at(index % CHART_PALETTE_HUES.length);
+    return (hue && colors[`${hue}${colorScheme === CONST.COLOR_SCHEME.DARK ? CHART_COMPARISON_SHADE_DARK : CHART_COMPARISON_SHADE}`]) ?? color;
+}
+
+/** Index of the default single-color chart color (green400). */
+const DEFAULT_CHART_COLOR_INDEX = 3;
+
+const VictoryTheme = {
+    colors: {
+        palette: CHART_PALETTE,
+        /** Default color used for single-color charts (e.g., line chart, single-color bar chart) */
+        default: getChartColor(DEFAULT_CHART_COLOR_INDEX),
+        getColor: getChartColor,
+        getComparisonColor,
+    },
+    fontFamilies: Array.from(CHART_FONT_FAMILY_NAMES),
+    axis: {
+        /** Number of Y-axis ticks (including zero) */
+        tickCount: 5,
+        /** Line width for X-axis (hidden) */
+        xLineWidth: 0,
+        /** Line width for Y-axis grid lines */
+        yLineWidth: 1,
+        /** Desired visual gap (px) between axis labels and the chart edge */
+        labelGap: 12,
+        /** Gap (px) between the plot and the X-axis labels */
+        xAxisLabelGap: 24,
+        /** Base chart padding applied to all sides */
+        padding: {top: 5, left: 5, right: 5, bottom: 5},
+    },
+    line: {
+        /** Stroke width of the line */
+        strokeWidth: 4,
+        /** Radius of the dot drawn on the line at the hovered data point */
+        activeDotRadius: 6,
+        /** Opacity of the vertical guideline drawn at the hovered data point */
+        guidelineOpacity: 0.2,
+        /** Base domain padding applied to all sides */
+        domainPadding: {top: 16, bottom: 0, left: 0, right: 0},
+    },
+    averageLine: {
+        /** Stroke width of the dashed average line */
+        strokeWidth: 1,
+        /** Opacity of the dashed average line */
+        opacity: 0.5,
+        /** Horizontal padding (px) between the average's value pill and its text, matching the app's tooltips */
+        pillPaddingHorizontal: 8,
+        /** Vertical padding (px) between the average's value pill and its text, matching the app's tooltips */
+        pillPaddingVertical: 4,
+        /** Gap (px) between the average's value pill and the widest y-axis label */
+        pillLabelGap: 5,
+    },
+    pie: {
+        /** Starting angle for pie chart (0 = 3 o'clock, -90 = 12 o'clock) */
+        startAngle: -90,
+        /** Ratio of the inner radius to the outer radius, creating the donut hole (0 = full pie, 1 = no fill) */
+        innerRadiusRatio: 0.8,
+        /** Gap between pie slices in degrees */
+        padAngle: 1,
+        /**
+         * Minimum width (px) the donut legend column keeps in the side-by-side layout, wide enough for a
+         * common category name on two lines. The card switches to the stacked layout below this.
+         */
+        legendMinWidth: 180,
+        /** Gap (px) between the donut and its legend in the side-by-side layout */
+        legendGap: 24,
+        /** Gap (px) between the donut and the legend below it in the stacked layout */
+        legendStackGap: 32,
+        /** Gap (px) between the rows of the side and stacked legends */
+        legendRowGap: 12,
+    },
+} as const;
+
+const CARTESIAN_Y_AXIS = {
+    tickCount: VictoryTheme.axis.tickCount,
+    axisSide: 'right',
+    lineWidth: 0,
+} as const;
+
+/** Minimum height for the chart content area (bars, Y-axis, grid lines) */
+const CHART_CONTENT_MIN_HEIGHT = 250;
+
+/** ExpensifyNeue's ascent plus descent over its em, 950 + 230 of 1000 units, which is the line height Skia reports for label text. */
+const LABEL_LINE_HEIGHT_RATIO = 1.18;
+
+const X_AXIS_LABEL_LINE_HEIGHT = variables.iconSizeExtraSmall * LABEL_LINE_HEIGHT_RATIO;
+
+const X_AXIS_LABEL_MIN_HEIGHT = Math.ceil(X_AXIS_LABEL_LINE_HEIGHT);
+
+/** Pixel height of the y-scale output range inside CartesianChart (content height minus base axis padding). */
+const CHART_Y_SCALE_HEIGHT = CHART_CONTENT_MIN_HEIGHT - VictoryTheme.axis.padding.top - VictoryTheme.axis.padding.bottom;
+
+/** Supported label rotation angles in degrees */
+const LABEL_ROTATIONS = {
+    HORIZONTAL: 0,
+    DIAGONAL: 45,
+    VERTICAL: 90,
+} as const;
+
+const SIN_45 = Math.sin(Math.PI / 4);
+
+/** Minimum gap between adjacent labels (px) */
+const LABEL_PADDING = 4;
+
+/** Minimum clear space between adjacent horizontal x-axis labels on stepped axes (px) */
+const X_AXIS_LABEL_MIN_GAP = 24;
+
+const ELLIPSIS = '...';
+
+/** Single-character ellipsis used when a wrapped label overflows its last allowed line. */
+const WRAPPED_LABEL_ELLIPSIS = '…';
+
+/** Maximum number of lines a wrapped bar label uses before it is truncated. */
+const MAX_BAR_LABEL_LINES = 2;
+
+/** Minimum visible characters (excluding ellipsis) for truncation to be worthwhile */
+const MIN_TRUNCATED_CHARS = 10;
+
+/** Radian threshold separating diagonal from vertical label hit-test */
+const DIAGONAL_ANGLE_RADIAN_THRESHOLD = 1;
+
+// Maximum width for Y-axis labels in pixels
+const MAX_Y_AXIS_LABEL_WIDTH = 200;
+
+// Maximum width for X-axis labels in pixels
+const MAX_X_AXIS_LABEL_WIDTH = 500;
+
+/** Dash and gap lengths (px) of dashed chart lines, measured like an SVG `stroke-dasharray`, before round caps lengthen each dash. */
+const DASH_INTERVALS = [4, 8];
+
+// Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
+// getLongestLine() can slightly under-report the visual extent of the last glyph.
+const GLYPH_PADDING = 4;
+
+export {
+    CARTESIAN_Y_AXIS,
+    CHART_CONTENT_MIN_HEIGHT,
+    X_AXIS_LABEL_MIN_GAP,
+    CHART_Y_SCALE_HEIGHT,
+    X_AXIS_LABEL_LINE_HEIGHT,
+    X_AXIS_LABEL_MIN_HEIGHT,
+    LABEL_ROTATIONS,
+    SIN_45,
+    LABEL_PADDING,
+    ELLIPSIS,
+    WRAPPED_LABEL_ELLIPSIS,
+    MAX_BAR_LABEL_LINES,
+    MIN_TRUNCATED_CHARS,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    MAX_X_AXIS_LABEL_WIDTH,
+    MAX_Y_AXIS_LABEL_WIDTH,
+    GLYPH_PADDING,
+    DASH_INTERVALS,
+};
+export default VictoryTheme;

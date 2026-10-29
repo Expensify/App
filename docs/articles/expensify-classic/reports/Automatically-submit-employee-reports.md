@@ -1,41 +1,99 @@
 ---
 title: Automatically submit employee reports
-description: Use Expensify's Scheduled Submit feature to have your employees' expenses submitted automatically for them
+description: Learn how to configure automatic employee report submissions in Expensify Classic using the Submissions setting in your Workspace workflows.
+internalScope: Audience is Workspace Admins. Covers how to enable and configure automatic employee report submissions in Expensify Classic. Does not cover manual report workflows or approval routing.
+keywords: [Expensify Classic, automatic report submission, submission frequency, delay submissions, expense report schedule, Workspace workflows, Scheduled Submit, auto submit, employee submission, submit expenses automatically]
 ---
-<div id="expensify-classic" markdown="1">
 
-Scheduled Submit automatically adds expenses to a report and sends them for approval so that your employees do not have to remember to manually submit their reports each week. This allows you to automatically collect employee expenses on a schedule of your choosing.
 
-With Scheduled Submit, an employee's expenses are automatically gathered onto a report as soon as they create them. If there is not an existing report, a new one is created. The report is then automatically submitted at the cadence you choose—daily, weekly, monthly, twice per month, or by trip. 
+By setting a submission schedule for your workspace, expenses are automatically added to a report and submitted for approval based on the schedule you choose. This ensures employee expenses are collected without requiring manual submission each time.
 
-{% include info.html %}
-If an expense has a violation, Scheduled Submit will not automatically submit it until the violations are corrected. In the meantime, the expense will be removed from the report and added to an open report. 
-{% include end-info.html %}
+---
 
-# Enable Scheduled Submit
+# Automatically submit employee reports
 
-1. Hover over Settings, then click **Workspaces**.
-2. Click the **Group** tab on the left (or click the Individual tab to enable Scheduled Submit for your individual workspace).  
-3. Click the desired workspace name. 
-4. Click the **Reports** tab on the left. 
-5. Click the Scheduled Submit toggle to enable it. 
-6. Click the “How often expenses submit” dropdown and select the submission schedule:
-   - **Daily**: Expenses are submitted every evening. Expenses with violations are submitted the day after the violations are corrected.
-   - **Weekly**: Expenses are submitted once a week. Expenses with violations are submitted the following Sunday after the violations are corrected. 
-   - **Twice a month**: Expenses are submitted on the 15th and the last day of each month. Expenses with violations are submitted at the next cycle (either on the 15th or the last day of the month, whichever is closest).
-   - **Monthly**: Expenses are submitted once per month. If you select Monthly, you will also select which day of the month the reports will be submitted. Expenses with violations are submitted on the next monthly submission date. 
-   - **By trip**: All expenses that occur in a similar time frame are grouped together. The trip report is created after no new expenses have been submitted for two calendar days. Then the report is submitted the second day, and any new expenses are added to a new trip report. 
-   - **Manually**: Expenses are automatically added to an open report, but the report will require manual submission—it will not be submitted automatically. This is a great option for automatically gathering an employee’s expenses on a report while still requiring the employee to review and submit their report.
+When Submissions is enabled, employee expenses are automatically added to a report and submitted for approval based on the schedule you choose. This saves your team from submitting reports manually.
 
-{% include info.html %}
-- All submission times are in the evening PDT. 
-- If you enable Scheduled Submit for your individual workspace and one of your group workspaces also has Scheduled Submit enabled, the group’s submission settings will override your individual workspace settings. 
-{% include end-info.html %}
+If there’s no open report, a new one is created automatically. Reports are submitted according to your selected frequency - daily, weekly, twice per month, by trip, instantly, or manually.
 
-# FAQs
+**Note:** Expenses with violations (like missing receipts or incorrect categories) won’t be submitted. They’re removed from the report and moved to a new open report. Once the violation is fixed, they'll be submitted on the next scheduled date.
 
-**I disabled Scheduled Submit. Why do I still get reports submitted by Concierge?**
+---
 
-Although an Admin can disable scheduled submit for a workspace, employees have the ability to activate schedule submit for their account. If you disable Scheduled Submit but still receive reports from Concierge, the employee has Schedule Submit activated for their individual workspace. 
+# Who can enable automatic report submissions
 
-</div>
+Only **Workspace Admins** can turn on Submissions and choose a submission frequency for their Workspace.
+
+---
+
+# Where to find the Submissions setting
+
+- **Web:** Go to the navigation tabs on the left and select **Workspaces > [Workspace Name] > Workflows**
+- **Mobile:** Tap the hamburger menu in the top-left corner, then select **Workspaces > [Workspace Name] > Workflows**
+
+---
+
+# Set an Expense Report Submission Schedule
+
+To enable and configure automatic submissions:
+
+1. Go to **Settings > Workspace > [Workspace Name] > Workflows**.
+2. Find the **Submissions** section
+3. Toggle it on (green)
+4. Choose **how often expenses submit**:
+   - **Instantly** — Expenses are submitted as soon as they’re created
+   - **Daily** — Reports are submitted each evening (Pacific Time)
+   - **Weekly** — Reports are submitted weekly on Sundays
+   - **Twice a month** — Reports are submitted on the 15th and last day of the month
+   - **By trip** — A report is submitted after two full days without new expenses
+   - **Manually** — Expenses are auto-added to reports, but members must submit manually
+  
+![Submissions section in Expensify Workflows settings, showing the toggle enabled and Frequency set to By trip]({{site.url}}/assets/images/ExpensifyHelp-WorkspaceSubmissions_Classic.png){:width="100%"}
+
+---
+
+## How to use the By trip submission frequency
+
+If your team travels often, choose **By trip** as your submission frequency. A report is submitted after two full days without any new expenses. A new trip report begins after that.
+
+That way, travel expenses are grouped together without needing to sort them manually.
+
+---
+
+# FAQ
+
+## What happens to expenses with violations?
+
+Expenses with violations—like missing receipts, incorrect categories, or amounts over Workspace limits—won’t be submitted. They’re removed from the current report and moved to a new open report. Once the violation is fixed, they’ll be submitted on the next scheduled date.
+
+## Why are reports still submitting automatically after disabling Submissions?
+
+If Submissions is disabled or set to **Manually** on the Workspace, check the member’s **Individual Workspace**. Their personal settings may still have Submissions enabled, which will apply by default.
+
+## What time of day does automatic submission happen?
+
+All scheduled report submissions occur in the **evening (Pacific Time)**, regardless of which frequency you choose.
+
+## Can I create separate automatic reports for each employee credit card?
+
+No. Expenses from multiple cards are combined into a single report, based on the selected frequency.
+
+To separate them:
+- Manually create reports for each card
+- Filter by card and assign expenses to the correct report
+
+## Can employees override the Workspace submission schedule?
+
+No. Once Submissions is enabled on the Workspace, it overrides any individual submission settings members may have in their own Workspaces.
+
+## Can automatic submissions be paused during month-end review?
+
+There’s no pause button, but you can temporarily change the Frequency setting to **Manually** to prevent automatic submissions. Just switch it back after your review period.
+
+## Can employees still submit manually if Submissions is turned on?
+
+Yes. Employees can submit reports manually at any time—even if a scheduled frequency (like Daily or By trip) is selected. The schedule just automates submission if they don’t act first.
+
+## Do scheduled submissions include all unsubmitted expenses?
+
+Only compliant expenses will be submitted. Expenses with violations, missing data, or issues will stay in an open report until fixed.

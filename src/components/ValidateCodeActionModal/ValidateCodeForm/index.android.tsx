@@ -1,15 +1,21 @@
-import React, {forwardRef} from 'react';
-import {gestureHandlerRootHOC} from 'react-native-gesture-handler';
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+
+import type {ValidateCodeFormProps} from './BaseValidateCodeForm';
+
 import BaseValidateCodeForm from './BaseValidateCodeForm';
-import type {ValidateCodeFormHandle, ValidateCodeFormProps} from './BaseValidateCodeForm';
 
-const ValidateCodeForm = forwardRef<ValidateCodeFormHandle, ValidateCodeFormProps>((props, ref) => (
-    <BaseValidateCodeForm
-        autoComplete="sms-otp"
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        {...props}
-        innerRef={ref}
-    />
-));
+function ValidateCodeForm(props: ValidateCodeFormProps) {
+    return (
+        <GestureHandlerRootView>
+            <BaseValidateCodeForm
+                autoComplete={CONST.AUTO_COMPLETE_VARIANTS.SMS_OTP}
+                {...props}
+            />
+        </GestureHandlerRootView>
+    );
+}
 
-export default gestureHandlerRootHOC(ValidateCodeForm);
+export default ValidateCodeForm;

@@ -33,10 +33,13 @@
                             <span>{{ hub.title }}</span>
                         </div>
                         <ul class="nested-treeview">
+                            {% assign emptyItems = "" | split: "," %}
+                            {% assign hubArticles = hub.articles | default: emptyItems %}
+                            {% assign hubSections = hub.sections | default: emptyItems %}
                             {% if hub.articles %} 
-                                {% assign sortedSectionsAndArticles = hub.sections | concat: hub.articles | sort: 'title' %} 
+                                {% assign sortedSectionsAndArticles = hubSections | concat: hubArticles | sort: 'order' %}
                             {% else %} 
-                                {% assign sortedSectionsAndArticles = hub.sections | sort: 'title' %} 
+                                {% assign sortedSectionsAndArticles = hubSections | sort: 'order' %} 
                             {% endif%}
                             {% for item in sortedSectionsAndArticles %}
                                 {% if item.articles %}
@@ -47,13 +50,165 @@
                                                 <span>{{ item.title }}</span>
                                             </div>
                                             <ul>
+                                                {% comment %} Direct articles (no nested path) {% endcomment %}
                                                 {% for article in item.articles %}
-                                                    {% assign article_href = item.href | append: '/' | append: article.href %}
-                                                    {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
+                                                    {% unless article.href contains '/' %}
+                                                        {% assign article_href = item.href | append: '/' | append: article.href %}
+                                                        {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
+                                                    {% endunless %}
+                                                {% endfor %}
+
+                                                {% comment %} Collect unique subfolder names {% endcomment %}
+                                                {% assign lhnSubfolders = "" %}
+                                                {% for article in item.articles %}
+                                                    {% if article.href contains '/' %}
+                                                        {% assign lhnParts = article.href | split: '/' %}
+                                                        {% assign lhnSubfolder = lhnParts[0] %}
+                                                        {% assign lhnAlreadyAdded = false %}
+                                                        {% if lhnSubfolders != "" %}
+                                                            {% assign lhnExisting = lhnSubfolders | split: '|' %}
+                                                            {% for existing in lhnExisting %}
+                                                                {% if existing == lhnSubfolder %}
+                                                                    {% assign lhnAlreadyAdded = true %}
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        {% endif %}
+                                                        {% unless lhnAlreadyAdded %}
+                                                            {% if lhnSubfolders == "" %}
+                                                                {% assign lhnSubfolders = lhnSubfolder %}
+                                                            {% else %}
+                                                                {% assign lhnSubfolders = lhnSubfolders | append: '|' | append: lhnSubfolder %}
+                                                            {% endif %}
+                                                        {% endunless %}
+                                                    {% endif %}
+                                                {% endfor %}
+
+                                                {% comment %} Render grouped nested articles under subfolder headings {% endcomment %}
+                                                {% if lhnSubfolders != "" %}
+                                                    {% assign lhnSubfolderArray = lhnSubfolders | split: '|' %}
+                                                    {% for subfolder in lhnSubfolderArray %}
+                                                        <li>
+                                                            <span class="icon-with-link">{{ subfolder | replace: '-', ' ' }}</span>
+                                                            <ul>
+                                                                {% comment %} Direct articles under this subfolder (2-segment paths) {% endcomment %}
+                                                                {% for article in item.articles %}
+                                                                    {% if article.href contains '/' %}
+                                                                        {% assign lhnParts = article.href | split: '/' %}
+                                                                        {% if lhnParts[0] == subfolder and lhnParts.size == 2 %}
+                                                                            {% assign article_href = item.href | append: '/' | append: article.href %}
+                                                                            {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
+                                                                        {% endif %}
+                                                                    {% endif %}
+                                                                {% endfor %}
+
+                                                                {% comment %} Collect unique sub-subfolders for 3-segment paths {% endcomment %}
+                                                                {% assign lhnSubSubs = "" %}
+                                                                {% for article in item.articles %}
+                                                                    {% if article.href contains '/' %}
+                                                                        {% assign lhnParts = article.href | split: '/' %}
+                                                                        {% if lhnParts[0] == subfolder and lhnParts.size >= 3 %}
+                                                                            {% assign lhnSubSub = lhnParts[1] %}
+                                                                            {% assign lhnSSAlready = false %}
+                                                                            {% if lhnSubSubs != "" %}
+                                                                                {% assign lhnSSExisting = lhnSubSubs | split: '|' %}
+                                                                                {% for existing in lhnSSExisting %}
+                                                                                    {% if existing == lhnSubSub %}
+                                                                                        {% assign lhnSSAlready = true %}
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            {% endif %}
+                                                                            {% unless lhnSSAlready %}
+                                                                                {% if lhnSubSubs == "" %}
+                                                                                    {% assign lhnSubSubs = lhnSubSub %}
+                                                                                {% else %}
+                                                                                    {% assign lhnSubSubs = lhnSubSubs | append: '|' | append: lhnSubSub %}
+                                                                                {% endif %}
+                                                                            {% endunless %}
+                                                                        {% endif %}
+                                                                    {% endif %}
+                                                                {% endfor %}
+
+                                                                {% comment %} Render sub-subfolder groups {% endcomment %}
+                                                                {% if lhnSubSubs != "" %}
+                                                                    {% assign lhnSubSubArray = lhnSubSubs | split: '|' %}
+                                                                    {% for subSub in lhnSubSubArray %}
+                                                                        <li>
+                                                                            <span class="icon-with-link">{{ subSub | replace: '-', ' ' }}</span>
+                                                                            <ul>
+                                                                                {% for article in item.articles %}
+                                                                                    {% if article.href contains '/' %}
+                                                                                        {% assign lhnParts = article.href | split: '/' %}
+                                                                                        {% if lhnParts[0] == subfolder and lhnParts[1] == subSub %}
+                                                                                            {% assign article_href = item.href | append: '/' | append: article.href %}
+                                                                                            {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
+                                                                                        {% endif %}
+                                                                                    {% endif %}
+                                                                                {% endfor %}
+                                                                            </ul>
+                                                                        </li>
+                                                                    {% endfor %}
+                                                                {% endif %}
+                                                            </ul>
+                                                        </li>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </ul>
+                                        {% else %}
+                                            <a href="/{{ activePlatform }}/hubs/{{ hub.href }}/{{ item.href }}" class="icon-with-link link">
+                                                <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
+                                                {{ item.title }}
+                                            </a>
+                                        {% endif %}
+                                    </li>
+                                {% elsif item.sections %}
+                                    <li>
+                                        {% assign lhnSectionActive = false %}
+                                        {% if page.url contains item.href %}
+                                            {% assign lhnSectionActive = true %}
+                                        {% endif %}
+                                        {% if lhnSectionActive %}
+                                            <div class="icon-with-link selected">
+                                                <a href="/{{ activePlatform }}/hubs/{{ hub.href }}"><img src="/assets/images/down.svg" class="base-icon"></img></a>
+                                                <span>{{ item.title }}</span>
+                                            </div>
+                                            <ul>
+                                                {% assign lhnSortedSubsections = item.sections | sort: 'order' %}
+                                                {% for subsection in lhnSortedSubsections %}
+                                                    <li>
+                                                        <a href="/{{ activePlatform }}/hubs/{{ hub.href }}/{{ subsection.href }}" class="icon-with-link link">
+                                                            <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
+                                                            {{ subsection.title }}
+                                                        </a>
+                                                        {% if subsection.articles %}
+                                                            <ul>
+                                                                {% for article in subsection.articles %}
+                                                                    {% assign article_href = subsection.href | append: '/' | append: article.href %}
+                                                                    {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
+                                                                {% endfor %}
+                                                            </ul>
+                                                        {% endif %}
+                                                        {% if subsection.sections %}
+                                                            <ul>
+                                                                {% for nestedSection in subsection.sections %}
+                                                                    <li>
+                                                                        <span class="icon-with-link">{{ nestedSection.title }}</span>
+                                                                        {% if nestedSection.articles %}
+                                                                            <ul>
+                                                                                {% for article in nestedSection.articles %}
+                                                                                    {% assign article_href = nestedSection.href | append: '/' | append: article.href %}
+                                                                                    {% include lhn-article-link.html platform=activePlatform hub=hub.href href=article_href title=article.title %}
+                                                                                {% endfor %}
+                                                                            </ul>
+                                                                        {% endif %}
+                                                                    </li>
+                                                                {% endfor %}
+                                                            </ul>
+                                                        {% endif %}
+                                                    </li>
                                                 {% endfor %}
                                             </ul>
                                         {% else %}
-                                            <a href="{{ item.href }}" class="icon-with-link link">
+                                            <a href="/{{ activePlatform }}/hubs/{{ hub.href }}/{{ item.href }}" class="icon-with-link link">
                                                 <img src="/assets/images/arrow-right.svg" class="base-icon"></img>
                                                 {{ item.title }}
                                             </a>

@@ -1,67 +1,103 @@
-import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
-import {ActivityIndicator} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
+import useDefaultFundID from '@hooks/useDefaultFundID';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
+import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {filterInactiveCardsForWorkspace, getCardSettings} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
+
+import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
+
 import WorkspaceExpensifyCardListPage from './WorkspaceExpensifyCardListPage';
 import WorkspaceExpensifyCardPageEmptyState from './WorkspaceExpensifyCardPageEmptyState';
 
-type WorkspaceExpensifyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
+type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
-    const policyID = route.params.policyID ?? '-1';
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.expensifyCard');
+    const defaultFundID = useDefaultFundID(policyID);
 
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const settings = getCardSettings(cardSettings);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+    const [cardsPageLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE}${policyID}`);
 
-    const fetchExpensifyCards = useCallback(() => {
-        Policy.openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
+    const fetchExpensifyCards = () => {
+        updateSelectedExpensifyCardFeed(defaultFundID, policyID);
+        openPolicyExpensifyCardsPage(policyID, defaultFundID);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
-    useFocusEffect(fetchExpensifyCards);
+    useEffect(() => {
+        fetchExpensifyCards();
+    }, [fetchExpensifyCards]);
 
-    const paymentBankAccountID = cardSettings?.paymentBankAccountID ?? 0;
-    const isLoading = !isOffline && (!cardSettings || (cardSettings.isLoading && !cardsList));
+    const paymentBankAccountID = settings?.paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+    // Persisted settings can render immediately while the RAM-only page state is rebuilt after a reload.
+    const hasOnceLoadedPage = cardsPageLoadingState?.hasOnceLoadedPage ?? cardSettings?.hasOnceLoaded;
+    const isLoading = !isOffline && !hasOnceLoadedPage;
+
+    const renderContent = () => {
+        if (!isOffline && cardsPageLoadingState?.hasLoadingError && !hasOnceLoadedPage) {
+            return (
+                <FullPageErrorView
+                    shouldShow
+                    title={translate('errorPage.title', {isBreakLine: false})}
+                    subtitle={translate('errorPage.subtitle')}
+                    buttonTranslationKey="common.tryAgain"
+                    onButtonPress={fetchExpensifyCards}
+                />
+            );
+        }
+        if (isLoading) {
+            return <FullScreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
+        }
+        if (paymentBankAccountID) {
+            return (
+                <WorkspaceExpensifyCardListPage
+                    cardsList={cardsList}
+                    fundID={defaultFundID}
+                    route={route}
+                />
+            );
+        }
+        if (!paymentBankAccountID) {
+            return <WorkspaceExpensifyCardPageEmptyState route={route} />;
+        }
+    };
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
         >
-            {!!isLoading && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={styles.flex1}
-                    color={theme.spinner}
-                />
-            )}
-            {!!paymentBankAccountID && !isLoading && (
-                <WorkspaceExpensifyCardListPage
-                    cardsList={cardsList}
-                    route={route}
-                />
-            )}
-            {!paymentBankAccountID && !isLoading && <WorkspaceExpensifyCardPageEmptyState route={route} />}
+            {renderContent()}
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceExpensifyCardPage.displayName = 'WorkspaceExpensifyCardPage';
 
 export default WorkspaceExpensifyCardPage;

@@ -1,273 +1,258 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {SectionListData} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Badge from '@components/Badge';
-import BlockingView from '@components/BlockingViews/BlockingView';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
-import type {Section} from '@components/SelectionList/types';
+import type {SelectionListApprover} from '@components/ApproverSelectionList';
+import ApproverSelectionList from '@components/ApproverSelectionList';
 import Text from '@components/Text';
-import useDebouncedState from '@hooks/useDebouncedState';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+
+import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprovalWorkflowApprover} from '@libs/actions/Workflow';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import variables from '@styles/variables';
-import * as Workflow from '@userActions/Workflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import type {Icon} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useNavigationState} from '@react-navigation/native';
+import React, {useState} from 'react';
 
 type WorkspaceWorkflowsApprovalsApproverPageProps = WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER>;
-
-type SelectionListApprover = {
-    text: string;
-    alternateText: string;
-    keyForList: string;
-    isSelected: boolean;
-    login: string;
-    rightElement?: React.ReactNode;
-    icons: Icon[];
-};
-type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE>;
 
 function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoadingReportData = true, route}: WorkspaceWorkflowsApprovalsApproverPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
-    const [selectedApproverEmail, setSelectedApproverEmail] = useState<string | undefined>(undefined);
-    const [allApprovers, setAllApprovers] = useState<SelectionListApprover[]>([]);
-    const shouldShowTextInput = allApprovers?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
+    const personalDetailsByEmail = usePersonalDetailsByEmail();
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const approverIndex = Number(route.params.approverIndex) ?? 0;
-    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
-    const defaultApprover = policy?.approver ?? policy?.owner;
-    const firstApprover = approvalWorkflow?.approvers?.[0]?.email ?? '';
+    const rhpRoutes = useNavigationState((state) => state.routes);
+    const defaultApprover = getDefaultApprover(policy);
+    const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
+    // Keep the removed approver visible until navigation finishes.
+    // Without this temporary state, clearing the approver immediately causes the empty state to flash
+    // while this screen is still mounted during the dismiss animation.
+    const [removingApprover, setRemovingApprover] = useState<Approver>();
 
-    useEffect(() => {
-        const currentApprover = approvalWorkflow?.approvers[approverIndex];
-        if (!currentApprover) {
-            return;
-        }
+    const isChangeApproverRoute = route.name === SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE;
+    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
+    const currentApprover = approvalWorkflow?.approvers[approverIndex];
+    const visibleSelectedApprover = removingApprover ?? currentApprover;
+    const visibleSelectedApproverEmail = visibleSelectedApprover?.email;
 
-        setSelectedApproverEmail(currentApprover.email);
-    }, [approvalWorkflow?.approvers, approverIndex]);
+    // An approver who left the workspace isn't on employeeList, so they get their own selected row the admin can tap
+    // to remove them. It only exists while they hold this slot, so once removed or replaced they can't be picked again.
+    const nonMemberApprover = visibleSelectedApprover?.isNotWorkspaceMember ? visibleSelectedApprover : undefined;
+    const nonMemberApproverAccountID = nonMemberApprover ? personalDetailsByEmail?.[nonMemberApprover.email]?.accountID : undefined;
 
     const employeeList = policy?.employeeList;
     const approversFromWorkflow = approvalWorkflow?.approvers;
     const isDefault = approvalWorkflow?.isDefault;
-    const sections: ApproverSection[] = useMemo(() => {
-        const approvers: SelectionListApprover[] = [];
 
-        if (employeeList) {
-            const availableApprovers = Object.values(employeeList)
-                .map((employee): SelectionListApprover | null => {
-                    const isAdmin = employee?.role === CONST.REPORT.ROLE.ADMIN;
-                    const email = employee.email;
+    const shouldShowNotFoundView = isApprovalWorkflowLockedByIntegration(policy) || shouldHideDynamicExternalWorkflowPeople(policy);
+    const shouldFilterOutExpensifyTeam = shouldFilterExpensifyTeam(policy?.owner, currentUserLogin);
 
-                    if (!email) {
-                        return null;
-                    }
+    let allApprovers: SelectionListApprover[];
+    if (isApprovalWorkflowLoading || !employeeList) {
+        allApprovers = [];
+    } else {
+        const membersEmail = approvalWorkflow?.members?.map((member) => member.email);
+        const approvers = Object.values(employeeList)
+            .map((employee): SelectionListApprover | null => {
+                const email = employee.email;
+                if (!email) {
+                    return null;
+                }
+                if (employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return null;
+                }
+                if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && visibleSelectedApproverEmail !== email) {
+                    return null;
+                }
+                if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email) && visibleSelectedApproverEmail !== email) {
+                    return null;
+                }
 
-                    // Do not allow the same email to be added twice
-                    const isEmailAlreadyInApprovers = approversFromWorkflow?.some((approver, index) => approver?.email === email && index !== approverIndex);
-                    if (isEmailAlreadyInApprovers && selectedApproverEmail !== email) {
-                        return null;
-                    }
-
-                    // Do not allow the default approver to be added as the first approver
-                    if (!isDefault && approverIndex === 0 && defaultApprover === email) {
-                        return null;
-                    }
-
-                    const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(employeeList);
-                    const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
-                    const {avatar, displayName = email} = personalDetails?.[accountID] ?? {};
-
-                    return {
-                        text: displayName,
-                        alternateText: email,
-                        keyForList: email,
-                        isSelected: selectedApproverEmail === email,
-                        login: email,
-                        icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
-                        rightElement: isAdmin ? <Badge text={translate('common.admin')} /> : undefined,
-                    };
-                })
-                .filter((approver): approver is SelectionListApprover => !!approver);
-
-            approvers.push(...availableApprovers);
-            // eslint-disable-next-line react-compiler/react-compiler
-            setAllApprovers(approvers);
+                // Do not allow the same email to be added twice
+                const isEmailAlreadyInApprovers = approversFromWorkflow?.some((approver, index) => approver?.email === email && index !== approverIndex);
+                if (isEmailAlreadyInApprovers && visibleSelectedApproverEmail !== email) {
+                    return null;
+                }
+                if (!isMultipleApproversBetaEnabled && !isDefault && approverIndex === 0 && defaultApprover === email) {
+                    return null;
+                }
+                const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
+                const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
+                if (!accountID) {
+                    return null;
+                }
+                const {avatar, displayName = email, login} = personalDetails?.[accountID] ?? {};
+                return {
+                    text: displayName,
+                    alternateText: email,
+                    keyForList: email,
+                    isSelected: visibleSelectedApproverEmail === email,
+                    login: email,
+                    value: email,
+                    icons: [
+                        {
+                            source: avatar ?? icons.FallbackAvatar,
+                            type: CONST.ICON_TYPE_AVATAR,
+                            name: displayName,
+                            id: accountID,
+                        },
+                    ],
+                    rightElement: (
+                        <MemberRightIcon
+                            role={employee.role}
+                            owner={policy?.owner}
+                            login={login}
+                        />
+                    ),
+                };
+            })
+            .filter((approver): approver is SelectionListApprover => !!approver);
+        if (nonMemberApprover && !approvers.some((approver) => approver.login === nonMemberApprover.email)) {
+            approvers.push({
+                text: nonMemberApprover.displayName,
+                alternateText: nonMemberApprover.email,
+                keyForList: nonMemberApprover.email,
+                isSelected: true,
+                login: nonMemberApprover.email,
+                value: nonMemberApprover.email,
+                icons: [
+                    {
+                        source: nonMemberApprover.avatar ?? icons.FallbackAvatar,
+                        type: CONST.ICON_TYPE_AVATAR,
+                        name: nonMemberApprover.displayName,
+                        id: nonMemberApproverAccountID,
+                    },
+                ],
+            });
         }
+        allApprovers = approvers;
+    }
 
-        const filteredApprovers =
-            debouncedSearchTerm !== ''
-                ? approvers.filter((option) => {
-                      const searchValue = OptionsListUtils.getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-                      const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
-                      return isPartOfSearchTerm;
-                  })
-                : approvers;
+    const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApprover;
 
-        const data = OptionsListUtils.sortAlphabetically(filteredApprovers, 'text');
-        return [
-            {
-                title: undefined,
-                data,
-                shouldShow: true,
-            },
-        ];
-    }, [approversFromWorkflow, isDefault, approverIndex, debouncedSearchTerm, defaultApprover, personalDetails, employeeList, selectedApproverEmail, translate]);
-
-    const shouldShowListEmptyContent = !debouncedSearchTerm && approvalWorkflow && !sections.at(0)?.data.length;
-
-    const nextStep = useCallback(() => {
-        if (selectedApproverEmail) {
-            const policyMemberEmailsToAccountIDs = PolicyUtils.getMemberAccountIDsForWorkspace(employeeList);
-            const accountID = Number(policyMemberEmailsToAccountIDs[selectedApproverEmail] ?? '');
-            const {avatar, displayName = selectedApproverEmail} = personalDetails?.[accountID] ?? {};
-            Workflow.setApprovalWorkflowApprover(
-                {
-                    email: selectedApproverEmail,
-                    avatar,
-                    displayName,
-                },
-                approverIndex,
-                route.params.policyID,
-            );
-        } else {
-            Workflow.clearApprovalWorkflowApprover(approverIndex);
-        }
-
-        if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
-            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID));
-        } else {
-            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover));
-        }
-    }, [approvalWorkflow?.action, firstApprover, approverIndex, personalDetails, employeeList, route.params.policyID, selectedApproverEmail]);
-
-    const button = useMemo(() => {
-        let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
-
-        if (shouldShowListEmptyContent) {
-            buttonText = translate('common.buttonConfirm');
-        }
-
-        return (
-            <FormAlertWithSubmitButton
-                isDisabled={!shouldShowListEmptyContent && !selectedApproverEmail && isInitialCreationFlow}
-                buttonText={buttonText}
-                onSubmit={nextStep}
-                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                enabledWhenOffline
-            />
-        );
-    }, [isInitialCreationFlow, nextStep, selectedApproverEmail, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
-
-    const goBack = useCallback(() => {
-        let backTo;
+    const goBack = () => {
+        let backToRoute;
         if (isInitialCreationFlow) {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID);
-            Workflow.clearApprovalWorkflowApprovers();
+            backToRoute = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+            clearApprovalWorkflowApprovers();
         } else if (approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover);
+            backToRoute = rhpRoutes.length > 1 ? undefined : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover, approvalWorkflow?.memberEmail);
         } else {
-            backTo = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
+            backToRoute = ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(route.params.policyID);
         }
-        Navigation.goBack(backTo);
-    }, [isInitialCreationFlow, route.params.policyID, approvalWorkflow?.action, firstApprover]);
-
-    const toggleApprover = (approver: SelectionListApprover) => {
-        if (selectedApproverEmail === approver.login) {
-            setSelectedApproverEmail(undefined);
-            return;
-        }
-        setSelectedApproverEmail(approver.login);
+        // Don't compare params: the edit screen may carry "Add agent" seed params, so a strict param
+        // match would miss it and REPLACE would mount a fresh edit screen that wipes the unsaved draft.
+        Navigation.goBack(backToRoute, {compareParams: false});
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data?.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    const toggleApprover = (approvers: SelectionListApprover[]) => {
+        const approver = approvers.at(0);
+        const isRemovingApprover = approvers.length === 0;
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TurtleInShell}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workflowsPage.emptyContent.title')}
-                subtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
-        ),
-        [translate, styles.textSupporting, styles.pb10],
+        if (isRemovingApprover) {
+            setRemovingApprover(visibleSelectedApprover);
+            clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow: approvalWorkflow});
+            if (isChangeApproverRoute && approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.EDIT) {
+                // Don't compare params — see goBack above.
+                Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(route.params.policyID, firstApprover, approvalWorkflow?.memberEmail), {compareParams: false});
+                return;
+            }
+            goBack();
+            return;
+        }
+
+        // Canonicalize phone logins (e164@expensify.sms) so the approver email stored as submitsTo
+        // matches the canonical key the invite writes into employeeList. Without this, a phone approver
+        // invited offline stops resolving once online and the workflow disappears. No-op for emails.
+        const newSelectedEmail = addSMSDomainIfPhoneNumber(approver?.login ?? '');
+        const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
+        const accountID = Number(newSelectedEmail ? policyMemberEmailsToAccountIDs[newSelectedEmail] : '');
+        const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};
+
+        setApprovalWorkflowApprover({
+            approver: {
+                email: newSelectedEmail,
+                avatar,
+                displayName,
+                approvalLimit: null,
+                overLimitForwardsTo: '',
+            },
+            approverIndex,
+            currentApprovalWorkflow: approvalWorkflow,
+            policy,
+            personalDetailsByEmail,
+        });
+
+        // If this is the change approver route, go back to the Approval Limit page
+        // Otherwise, navigate forward to set the approval limit
+        if (isChangeApproverRoute) {
+            Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, approverIndex));
+        }
+    };
+
+    const subtitle = (
+        <>
+            <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.title')}</Text>
+            <Text style={[styles.mh5, styles.mb3, styles.textSupporting]}>{translate('workflowsApproverPage.description')}</Text>
+        </>
     );
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
-                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
-            >
-                <FullPageNotFoundView
-                    shouldShow={shouldShowNotFoundView}
-                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                    onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                    onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-                >
-                    <HeaderWithBackButton
-                        title={translate('workflowsPage.approver')}
-                        onBackButtonPress={goBack}
-                    />
-                    {approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !shouldShowListEmptyContent && (
-                        <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsApproverPage.header')}</Text>
-                    )}
-                    <SelectionList
-                        sections={sections}
-                        ListItem={InviteMemberListItem}
-                        textInputLabel={shouldShowListEmptyContent ? undefined : translate('selectionList.findMember')}
-                        textInputValue={searchTerm}
-                        onChangeText={setSearchTerm}
-                        headerMessage={headerMessage}
-                        onSelectRow={toggleApprover}
-                        showScrollIndicator
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        footerContent={button}
-                        listEmptyContent={listEmptyContent}
-                        shouldShowListEmptyContent={shouldShowListEmptyContent}
-                        shouldHighlightSelectedItem
-                        shouldShowTextInput={shouldShowTextInput}
-                    />
-                </FullPageNotFoundView>
-            </ScreenWrapper>
+            <ApproverSelectionList
+                testID="WorkspaceWorkflowsApprovalsApproverPage"
+                headerTitle={translate('workflowsPage.approver')}
+                subtitle={subtitle}
+                isLoadingReportData={isLoadingReportData}
+                policy={policy}
+                shouldShowNotFoundView={shouldShowNotFoundView}
+                shouldShowNotFoundViewLink
+                allApprovers={allApprovers}
+                onBackButtonPress={goBack}
+                shouldShowListEmptyContent={shouldShowListEmptyContent}
+                listEmptyContentSubtitle={translate('workflowsPage.emptyContent.approverSubtitle')}
+                allowMultipleSelection={false}
+                onSelectApprover={toggleApprover}
+                shouldRequirePolicyAdmin={false}
+            />
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsApprovalsApproverPage.displayName = 'WorkspaceWorkflowsApprovalsApproverPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsApproverPage);

@@ -1,6 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -26,6 +28,7 @@ const INPUT_IDS = {
     NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',
     NOTIFICATION_PREFERENCE: 'notificationPreference',
     OLD_POLICY_NAME: 'oldPolicyName',
+    ORDER_DEAL_NUMBERS: 'orderDealNumbers',
     OWNER_ACCOUNT_ID: 'ownerAccountID',
     PARTICIPANTS: 'participants',
     PERMISSIONS: 'permissions',
@@ -33,12 +36,13 @@ const INPUT_IDS = {
     POLICY_ID: 'policyID',
     POLICY_NAME: 'policyName',
     PRIVATE_NOTES: 'privateNotes',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     PRIVATE_IS_ARCHIVED: 'private_isArchived',
     REPORT_ID: 'reportID',
     REPORT_NAME: 'reportName',
     STATE_NUM: 'stateNum',
     STATUS_NUM: 'statusNum',
+    SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
+    SUBMITTER_USER_ID: 'submitterUserID',
     TOTAL: 'total',
     TYPE: 'type',
     UNHELD_TOTAL: 'unheldTotal',
@@ -75,6 +79,7 @@ type DebugReportForm = Form<
         [INPUT_IDS.NON_REIMBURSABLE_TOTAL]: string;
         [INPUT_IDS.NOTIFICATION_PREFERENCE]: ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
         [INPUT_IDS.OLD_POLICY_NAME]: string;
+        [INPUT_IDS.ORDER_DEAL_NUMBERS]: string;
         [INPUT_IDS.OWNER_ACCOUNT_ID]: string;
         [INPUT_IDS.PARTICIPANTS]: string;
         [INPUT_IDS.PERMISSIONS]: string;
@@ -87,6 +92,8 @@ type DebugReportForm = Form<
         [INPUT_IDS.REPORT_NAME]: string;
         [INPUT_IDS.STATE_NUM]: string;
         [INPUT_IDS.STATUS_NUM]: string;
+        [INPUT_IDS.SUBMITTER_PAYROLL_ID]: string;
+        [INPUT_IDS.SUBMITTER_USER_ID]: string;
         [INPUT_IDS.TOTAL]: string;
         [INPUT_IDS.TYPE]: ValueOf<typeof CONST.REPORT.TYPE>;
         [INPUT_IDS.UNHELD_TOTAL]: string;

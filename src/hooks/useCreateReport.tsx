@@ -1,0 +1,153 @@
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import {canCreateReportOnPolicy, getDefaultChatEnabledPolicySelection, isGroupPolicy} from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+// eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+
+import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useOnyx from './useOnyx';
+import usePreferredPolicy from './usePreferredPolicy';
+import useShouldShowEmptyReportConfirmation from './useShouldShowEmptyReportConfirmation';
+
+type UseCreateReportParams = {
+    /** Callback that creates the report on the resolved workspace and navigates after creation */
+    onCreateReport: (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => void;
+    /** Optional custom navigation to the workspace selector */
+    onNavigateToWorkspaceSelection?: () => void;
+    /** Whether the empty-report confirmation modal should push a history entry so browser-back dismisses it (default: true) */
+    shouldHandleNavigationBack?: boolean;
+    /** Whether to skip the empty-report confirmation scan until the entry point is relevant */
+    shouldSkipEmptyReportConfirmation?: boolean;
+};
+
+type UseCreateReportResult = {
+    /** The callback to trigger when the user clicks "Create report" */
+    createReport: () => void;
+    /** Whether the menu item/button should be visible */
+    isVisible: boolean;
+};
+
+/**
+ * Hook that encapsulates the shared "create report" branching logic used across
+ * the FAB, the search Create dropdown, and the empty reports state.
+ *
+ * Decision flow:
+ * 1. Navigate to upgrade path if user has no valid group policies at all
+ * 2. Navigate to workspace selector if default is personal AND there are at least 2 non-personal workspaces, or if the chosen default is billing-restricted and alternatives exist.
+ *    When the domain security group locks the user to an eligible preferred workspace, that workspace is the default and the selector is never offered.
+ * 3. Show empty report confirmation or create directly if workspace is valid
+ * 4. Navigate to restricted action if billing restricts the workspace
+ */
+export default function useCreateReport({
+    onCreateReport,
+    onNavigateToWorkspaceSelection,
+    shouldHandleNavigationBack = true,
+    shouldSkipEmptyReportConfirmation = false,
+}: UseCreateReportParams): UseCreateReportResult {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    // Read live: under SearchScopeProvider (Reports empty view) useOnyx would serve stale snapshot policies.
+    const [activePolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const {accountID, login} = useCurrentUserPersonalDetails();
+    const defaultChatEnabledPolicySelector = (policies: OnyxCollection<OnyxTypes.Policy>) => getDefaultChatEnabledPolicySelection(policies, login, activePolicyID);
+    const [defaultChatEnabledPolicySelection, policiesLoadStatus] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.POLICY, {selector: defaultChatEnabledPolicySelector});
+    const [defaultChatEnabledPolicyByKey] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(defaultChatEnabledPolicySelection?.defaultChatEnabledPolicyID)}`);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const {isRestrictedToPreferredPolicy, preferredPolicyID, isLoadingPreferredPolicy} = usePreferredPolicy();
+    const [preferredPolicy, preferredPolicyLoadStatus] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`);
+
+    // Wait for policies and security group to load, or a cold start reads as "no workspaces" / "not restricted".
+    const arePoliciesLoaded = !isLoadingOnyxValue(policiesLoadStatus, preferredPolicyLoadStatus) && !isLoadingPreferredPolicy;
+    const isVisible = arePoliciesLoaded;
+    const shouldNavigateToUpgradePath = !defaultChatEnabledPolicySelection?.hasChatEnabledPolicies;
+
+    const isLockedToPreferredPolicy = isRestrictedToPreferredPolicy && canCreateReportOnPolicy(preferredPolicy, login);
+    const defaultChatEnabledPolicy = isLockedToPreferredPolicy ? preferredPolicy : defaultChatEnabledPolicyByKey;
+    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
+
+    const shouldShowEmptyReportConfirmation = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID, shouldSkipEmptyReportConfirmation);
+
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
+        policyID: defaultChatEnabledPolicyID,
+        policyName: defaultChatEnabledPolicy?.name ?? '',
+        onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => onCreateReport(defaultChatEnabledPolicy, shouldDismissEmptyReportsConfirmation),
+        shouldHandleNavigationBack,
+    });
+
+    const createReport = () => {
+        interceptAnonymousUser(() => {
+            if (!arePoliciesLoaded) {
+                return;
+            }
+
+            // No valid policy at all → upgrade + create workspace flow
+            if (shouldNavigateToUpgradePath) {
+                const freshReportID = generateReportID();
+                const freshTransactionID = generateReportID();
+                Navigation.navigate(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CREATE,
+                            iouType: CONST.IOU.TYPE.CREATE,
+                            transactionID: freshTransactionID,
+                            reportID: freshReportID,
+                            upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                        }),
+                    ),
+                );
+                return;
+            }
+
+            const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+
+            // Show the workspace selector only when the default workspace is personal and there are
+            // at least 2 non-personal workspaces to choose between. Also fall back to the selector if
+            // the default is billing-restricted and alternatives exist, so the user isn't dead-ended
+            // on the restricted-action page.
+            const isDefaultPersonal = !activePolicy || activePolicy.type === CONST.POLICY.TYPE.PERSONAL || !isGroupPolicy(activePolicy);
+            const hasMultipleNonPersonalWorkspaces = !!defaultChatEnabledPolicySelection?.hasMultipleChatEnabledPolicies;
+            const isDefaultBillingRestricted =
+                !!workspaceIDForReportCreation && shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
+            const shouldOfferAlternatives = !isLockedToPreferredPolicy && hasMultipleNonPersonalWorkspaces && (isDefaultPersonal || isDefaultBillingRestricted);
+
+            if (!workspaceIDForReportCreation || shouldOfferAlternatives) {
+                if (onNavigateToWorkspaceSelection) {
+                    onNavigateToWorkspaceSelection();
+                } else {
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_REPORT_WORKSPACE_SELECTION.path));
+                }
+                return;
+            }
+
+            // Default workspace is not restricted → create report directly (or show empty-report confirmation)
+            if (!shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                if (shouldShowEmptyReportConfirmation) {
+                    openCreateReportConfirmation();
+                } else {
+                    onCreateReport(defaultChatEnabledPolicy, false);
+                }
+                return;
+            }
+
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+        }, session);
+    };
+
+    return {createReport, isVisible};
+}

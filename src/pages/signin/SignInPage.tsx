@@ -1,70 +1,73 @@
-import {Str} from 'expensify-common';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef, RefAttributes} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
-import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
+
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ActiveClientManager from '@libs/ActiveClientManager';
-import * as Localize from '@libs/Localize';
+
+import {isClientTheLeader as isClientTheLeaderActiveClientManager} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Visibility from '@libs/Visibility';
-import * as App from '@userActions/App';
-import * as Session from '@userActions/Session';
+
+import {clearSignInData, isSupportalSession as isSupportalSessionUtils} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Account, Credentials, Locale} from '@src/types/onyx';
+import type {Account, Credentials} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
-import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
-import LoginForm from './LoginForm';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {Ref} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+
 import type {InputHandle} from './LoginForm/types';
-import SignInPageLayout from './SignInPageLayout';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
-import SignUpWelcomeForm from './SignUpWelcomeForm';
-import UnlinkLoginForm from './UnlinkLoginForm';
-import ValidateCodeForm from './ValidateCodeForm';
 import type {BaseValidateCodeFormRef} from './ValidateCodeForm/BaseValidateCodeForm';
 
-type SignInPageInnerOnyxProps = {
-    /** The details about the account that the user is signing in with */
-    account: OnyxEntry<Account>;
+import ChooseSSOOrValidateCode from './ChooseSSOOrValidateCode';
+import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
+import LoginForm from './LoginForm';
+import {LoginProvider} from './SignInLoginContext';
+import SignInPageLayout from './SignInPageLayout';
+import SignUpWelcomeForm from './SignUpWelcomeForm';
+import SMSDeliveryFailurePage from './SMSDeliveryFailurePage';
+import UnlinkLoginForm from './UnlinkLoginForm';
+import ValidateCodeForm from './ValidateCodeForm';
 
-    /** The credentials of the person signing in */
-    credentials: OnyxEntry<Credentials>;
+type SignInPageProps = {
+    ref?: Ref<SignInPageRef>;
 
-    /** Active Clients connected to ONYX Database */
-    activeClients: OnyxEntry<string[]>;
-
-    /** The user's preferred locale */
-    preferredLocale: OnyxEntry<Locale>;
-};
-
-type SignInPageInnerProps = SignInPageInnerOnyxProps & {
-    shouldEnableMaxHeight?: boolean;
+    /** Whether to reset the browser tab title to the site title ("New Expensify") on focus. Only the public root
+     *  sign-in screen should do this. The reusable SignInModal instance renders this same component over an
+     *  anonymous-accessible report, where resetting would wrongly clear that report's tab title. */
+    shouldResetTabTitle?: boolean;
 };
 
 type SignInPageRef = {
-    navigateBack: () => void;
+    navigateBack: () => boolean;
 };
 
 type RenderOption = {
     shouldShowLoginForm: boolean;
     shouldShowEmailDeliveryFailurePage: boolean;
+    shouldShowSMSDeliveryFailurePage: boolean;
     shouldShowUnlinkLoginForm: boolean;
     shouldShowValidateCodeForm: boolean;
-    shouldShowChooseSSOOrMagicCode: boolean;
+    shouldShowChooseSSOOrValidateCode: boolean;
     shouldInitiateSAMLLogin: boolean;
     shouldShowWelcomeHeader: boolean;
     shouldShowWelcomeText: boolean;
@@ -76,10 +79,13 @@ type GetRenderOptionsParams = {
     hasValidateCode: boolean;
     account: OnyxEntry<Account>;
     isPrimaryLogin: boolean;
-    isUsingMagicCode: boolean;
+    isUsingValidateCode: boolean;
     hasInitiatedSAMLLogin: boolean;
     shouldShowAnotherLoginPageOpenedMessage: boolean;
     credentials: OnyxEntry<Credentials>;
+    isAccountValidated?: boolean;
+    isSupportalSession: boolean;
+    isAuthenticatingWithShortLivedToken: boolean;
 };
 
 /**
@@ -87,59 +93,75 @@ type GetRenderOptionsParams = {
  * @param hasValidateCode
  * @param account
  * @param isPrimaryLogin
- * @param isUsingMagicCode
+ * @param isUsingValidateCode
  * @param hasInitiatedSAMLLogin
  * @param hasEmailDeliveryFailure
+ * @param hasSMSDeliveryFailure
  */
 function getRenderOptions({
     hasLogin,
     hasValidateCode,
     account,
     isPrimaryLogin,
-    isUsingMagicCode,
+    isUsingValidateCode,
     hasInitiatedSAMLLogin,
     shouldShowAnotherLoginPageOpenedMessage,
     credentials,
+    isAccountValidated,
+    isSupportalSession,
+    isAuthenticatingWithShortLivedToken,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
     const isSAMLEnabled = !!account?.isSAMLEnabled;
     const isSAMLRequired = !!account?.isSAMLRequired;
     const hasEmailDeliveryFailure = !!account?.hasEmailDeliveryFailure;
+    const hasSMSDeliveryFailure = !!account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
 
-    // True, if the user has SAML required, and we haven't yet initiated SAML for their account
-    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
-    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
+    // True, if the user has SAML required, and we haven't yet initiated SAML for their account.
+    // Supportal sessions authenticate with a support auth token and must bypass SAML entirely, so we never
+    // initiate SAML during a supportal session, even when the customer's account has SAML required.
+    // We must NOT (re-)initiate SAML while a short-lived-token redeem is in flight: after the SAML redirect returns to
+    // /transition, LogInWithShortLivedAuthTokenPage navigates HOME while still unauthenticated, remounting SignInPage
+    // with hasInitiatedSAMLLogin reset. If account.isLoading is still optimistically true (slow IdP/network) SAML would
+    // re-fire before the redeem lands -> infinite loop. isAuthenticatingWithShortLivedToken (RAM-only, set for the exact
+    // duration of the redeem) gates that off, independent of the isLoading timing race.
+    const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading && !isSupportalSession && !isAuthenticatingWithShortLivedToken;
+
+    const shouldShowChooseSSOOrValidateCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingValidateCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
     // SSO provider's login page
-    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading) {
-        Session.clearSignInData();
+    if (hasLogin && isSAMLRequired && !shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin && !account.isLoading && !isSupportalSession) {
+        clearSignInData();
     }
 
     // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
-    const shouldShouldSignUpWelcomeForm = !!credentials?.login && !account?.validated && !account?.accountExists && !account?.domainControlled;
+    const shouldShouldSignUpWelcomeForm = !!credentials?.login && !isAccountValidated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
-    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
-    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure;
+    const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrValidateCode && !shouldInitiateSAMLLogin;
+    const shouldShowSMSDeliveryFailurePage = !!(hasLogin && hasSMSDeliveryFailure && !shouldShowChooseSSOOrValidateCode && !shouldInitiateSAMLLogin && account?.accountExists);
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure && !hasSMSDeliveryFailure;
     const shouldShowValidateCodeForm =
         !shouldShouldSignUpWelcomeForm &&
         hasAccount &&
         (hasLogin || hasValidateCode) &&
         !isUnvalidatedSecondaryLogin &&
         !hasEmailDeliveryFailure &&
-        !shouldShowChooseSSOOrMagicCode &&
+        !hasSMSDeliveryFailure &&
+        !shouldShowChooseSSOOrValidateCode &&
         !isSAMLRequired;
-    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || isUnvalidatedSecondaryLogin || shouldShouldSignUpWelcomeForm;
+    const shouldShowWelcomeHeader = shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrValidateCode || isUnvalidatedSecondaryLogin || shouldShouldSignUpWelcomeForm;
     const shouldShowWelcomeText =
-        shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrMagicCode || shouldShowAnotherLoginPageOpenedMessage || shouldShouldSignUpWelcomeForm;
+        shouldShowLoginForm || shouldShowValidateCodeForm || shouldShowChooseSSOOrValidateCode || shouldShowAnotherLoginPageOpenedMessage || shouldShouldSignUpWelcomeForm;
 
     return {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
+        shouldShowSMSDeliveryFailurePage,
         shouldShowUnlinkLoginForm: !shouldShouldSignUpWelcomeForm && isUnvalidatedSecondaryLogin,
         shouldShowValidateCodeForm,
-        shouldShowChooseSSOOrMagicCode,
+        shouldShowChooseSSOOrValidateCode,
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
@@ -147,62 +169,73 @@ function getRenderOptions({
     };
 }
 
-function SignInPage({credentials, account, activeClients = [], preferredLocale, shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: ForwardedRef<SignInPageRef>) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+// Renders nothing; on focus it resets the browser tab title so it falls back to the site title ("New Expensify").
+// Authenticated pages set a page-specific title via useDocumentTitle, but nothing clears it on logout, so the tab
+// would otherwise stay stuck on the last visited page's title. Mounted only on the public root sign-in screen
+// (see SignInPage's shouldResetTabTitle), never in the reusable SignInModal instance. This is a no-op on native.
+function ResetTabTitleOnFocus() {
+    useDocumentTitle('');
+    return null;
+}
+
+function SignInPage({ref, shouldResetTabTitle = true}: SignInPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
-    const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
-    const safeAreaInsets = useSafeAreaInsets();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const signInPageLayoutRef = useRef<SignInPageLayoutRef>(null);
     const loginFormRef = useRef<InputHandle>(null);
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
+
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isAccountValidated = account?.validated;
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
+    const [isAuthenticatingWithShortLivedToken] = useOnyx(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN);
+    /**
+      This variable is only added to make sure the component is re-rendered
+      whenever the activeClients change, so that we call the
+      ActiveClientManager.isClientTheLeader function
+      every time the leader client changes.
+      We use that function to prevent repeating code that checks which client is the leader.
+    */
+    const [activeClients = getEmptyArray<string>()] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);
 
     /** This state is needed to keep track of if user is using recovery code instead of 2fa code,
      * and we need it here since welcome text(`welcomeText`) also depends on it */
     const [isUsingRecoveryCode, setIsUsingRecoveryCode] = useState(false);
 
-    /** This state is needed to keep track of whether the user has opted to use magic codes
+    /** This state is needed to keep track of whether the user has opted to use validateCodes
      * instead of signing in via SAML when SAML is enabled and not required */
-    const [isUsingMagicCode, setIsUsingMagicCode] = useState(false);
+    const [isUsingValidateCode, setIsUsingValidateCode] = useState(false);
 
     /** This state is needed to keep track of whether the user has been directed to their SSO provider's login page and
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
 
-    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
-
-    const isClientTheLeader = !!activeClients && ActiveClientManager.isClientTheLeader();
+    const isClientTheLeader = !!activeClients && isClientTheLeaderActiveClientManager();
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
-    useEffect(() => Performance.measureTTI(), []);
-    useEffect(() => {
-        if (preferredLocale) {
-            return;
-        }
-        App.setLocale(Localize.getDevicePreferredLocale());
-    }, [preferredLocale]);
     useEffect(() => {
         if (credentials?.login) {
             return;
         }
 
         // If we don't have a login set, reset the user's SAML login preferences
-        if (isUsingMagicCode) {
-            setIsUsingMagicCode(false);
+        if (isUsingValidateCode) {
+            setIsUsingValidateCode(false);
         }
         if (hasInitiatedSAMLLogin) {
             setHasInitiatedSAMLLogin(false);
         }
-    }, [credentials?.login, isUsingMagicCode, setIsUsingMagicCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
+    }, [credentials?.login, isUsingValidateCode, setIsUsingValidateCode, hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin]);
 
     const {
         shouldShowLoginForm,
         shouldShowEmailDeliveryFailurePage,
+        shouldShowSMSDeliveryFailurePage,
         shouldShowUnlinkLoginForm,
         shouldShowValidateCodeForm,
-        shouldShowChooseSSOOrMagicCode,
+        shouldShowChooseSSOOrValidateCode,
         shouldInitiateSAMLLogin,
         shouldShowWelcomeHeader,
         shouldShowWelcomeText,
@@ -212,10 +245,13 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         hasValidateCode: !!credentials?.validateCode,
         account,
         isPrimaryLogin: !account?.primaryLogin || account.primaryLogin === credentials?.login,
-        isUsingMagicCode,
+        isUsingValidateCode,
         hasInitiatedSAMLLogin,
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
+        isAccountValidated,
+        isSupportalSession: isSupportalSessionUtils(),
+        isAuthenticatingWithShortLivedToken: !!isAuthenticatingWithShortLivedToken,
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -239,28 +275,29 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.getStarted');
         welcomeText = shouldUseNarrowLayout ? translate('welcomeText.getStarted') : '';
     } else if (shouldShowValidateCodeForm) {
-        if (account?.requiresTwoFactorAuth) {
-            // We will only know this after a user signs in successfully, without their 2FA code
+        // Only show the authenticator prompt after the validateCode has been submitted
+        const isTwoFactorStage = account?.requiresTwoFactorAuth && !!credentials?.validateCode;
+        if (isTwoFactorStage) {
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = isUsingRecoveryCode ? translate('validateCodeForm.enterRecoveryCode') : translate('validateCodeForm.enterAuthenticatorCode');
         } else {
             welcomeHeader = shouldUseNarrowLayout ? '' : translate('welcomeText.welcome');
             welcomeText = shouldUseNarrowLayout
-                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay})}`
-                : translate('welcomeText.welcomeEnterMagicCode', {login: userLoginToDisplay});
+                ? `${translate('welcomeText.welcome')} ${translate('welcomeText.welcomeEnterSecurityCode', userLoginToDisplay)}`
+                : translate('welcomeText.welcomeEnterSecurityCode', userLoginToDisplay);
         }
-    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
+    } else if (shouldShowUnlinkLoginForm || shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrValidateCode || shouldShowSMSDeliveryFailurePage) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
 
         // Don't show any welcome text if we're showing the user the email delivery failed view
-        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrMagicCode) {
+        if (shouldShowEmailDeliveryFailurePage || shouldShowChooseSSOOrValidateCode || shouldShowSMSDeliveryFailurePage) {
             welcomeText = '';
         }
     } else if (shouldShouldSignUpWelcomeForm) {
         welcomeHeader = shouldUseNarrowLayout ? headerText : translate('welcomeText.welcome');
         welcomeText = shouldUseNarrowLayout
-            ? `${translate('welcomeText.welcomeWithoutExclamation')} ${translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay})}`
-            : translate('welcomeText.welcomeNewFace', {login: userLoginToDisplay});
+            ? `${translate('welcomeText.welcomeWithoutExclamation')} ${translate('welcomeText.welcomeNewFace', userLoginToDisplay)}`
+            : translate('welcomeText.welcomeNewFace', userLoginToDisplay);
     } else if (!shouldInitiateSAMLLogin && !hasInitiatedSAMLLogin) {
         Log.warn('SignInPage in unexpected state!');
     }
@@ -270,111 +307,136 @@ function SignInPage({credentials, account, activeClients = [], preferredLocale, 
         loginFormRef.current?.clearDataAndFocus();
     };
 
+    // Read the ref at call time (via a stable callback) instead of during render, so both React
+    // Compilers can memoize this component. LoginForm calls this optionally, so an always-defined
+    // callback that no-ops until the layout ref is attached is equivalent to passing the raw method.
+    const scrollPageToTop = () => signInPageLayoutRef.current?.scrollPageToTop();
+
     const navigateBack = () => {
         if (
             shouldShouldSignUpWelcomeForm ||
-            (!shouldShowAnotherLoginPageOpenedMessage && (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrMagicCode))
+            (!shouldShowAnotherLoginPageOpenedMessage &&
+                (shouldShowEmailDeliveryFailurePage || shouldShowUnlinkLoginForm || shouldShowChooseSSOOrValidateCode || shouldShowSMSDeliveryFailurePage))
         ) {
-            Session.clearSignInData();
-            return;
+            clearSignInData();
+            return true;
         }
 
         if (shouldShowValidateCodeForm) {
             validateCodeFormRef.current?.clearSignInData();
-            return;
+            return true;
         }
 
+        // Report the press as handled whenever we actually navigate, otherwise react-navigation's own
+        // BackHandler listener pops a second time (https://github.com/Expensify/App/issues/69391).
+        // At the public sign-in root there is nothing to pop, so return false and let Android background the app.
+        const didNavigate = !!navigationRef.current?.canGoBack();
         Navigation.goBack();
+        return didNavigate;
     };
     useImperativeHandle(ref, () => ({
         navigateBack,
     }));
+    useAndroidBackButtonHandler(navigateBack);
+
+    return (
+        <ColorSchemeWrapper>
+            {shouldResetTabTitle && <ResetTabTitleOnFocus />}
+            <CustomStatusBarAndBackground isNested />
+            <LoginProvider>
+                <SignInPageLayout
+                    welcomeHeader={welcomeHeader}
+                    welcomeText={welcomeText}
+                    shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
+                    shouldShowWelcomeText={shouldShowWelcomeText}
+                    ref={signInPageLayoutRef}
+                    navigateFocus={navigateFocus}
+                >
+                    {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
+                        so that password managers can access the values. Conditionally rendering this component will break this feature. */}
+                    <LoginForm
+                        ref={loginFormRef}
+                        isVisible={shouldShowLoginForm}
+                        submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
+                        scrollPageToTop={scrollPageToTop}
+                    />
+                    {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
+                    {shouldShowValidateCodeForm && (
+                        <ValidateCodeForm
+                            isVisible={!shouldShowAnotherLoginPageOpenedMessage}
+                            isUsingRecoveryCode={isUsingRecoveryCode}
+                            setIsUsingRecoveryCode={setIsUsingRecoveryCode}
+                            ref={validateCodeFormRef}
+                        />
+                    )}
+                    {!shouldShowAnotherLoginPageOpenedMessage && (
+                        <>
+                            {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
+                            {shouldShowChooseSSOOrValidateCode && <ChooseSSOOrValidateCode setIsUsingValidateCode={setIsUsingValidateCode} />}
+                            {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
+                            {shouldShowSMSDeliveryFailurePage && <SMSDeliveryFailurePage />}
+                        </>
+                    )}
+                </SignInPageLayout>
+            </LoginProvider>
+        </ColorSchemeWrapper>
+    );
+}
+
+function SignInPageWrapper({ref, shouldResetTabTitle}: SignInPageProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const safeAreaInsets = useSafeAreaInsets();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
+
     return (
         // Bottom SafeAreaView is removed so that login screen svg displays correctly on mobile.
         // The SVG should flow under the Home Indicator on iOS.
         <ScreenWrapper
             shouldShowOfflineIndicator={false}
-            shouldEnableMaxHeight={shouldEnableMaxHeight}
-            style={[styles.signInPage, StyleUtils.getSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageThemeWrapper.displayName}
+            shouldEnableMaxHeight
+            style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
+            testID="SignInPageWrapper"
         >
-            <SignInPageLayout
-                welcomeHeader={welcomeHeader}
-                welcomeText={welcomeText}
-                shouldShowWelcomeHeader={shouldShowWelcomeHeader || !shouldUseNarrowLayout}
-                shouldShowWelcomeText={shouldShowWelcomeText}
-                ref={signInPageLayoutRef}
-                navigateFocus={navigateFocus}
-            >
-                {/* LoginForm must use the isVisible prop. This keeps it mounted, but visually hidden
-             so that password managers can access the values. Conditionally rendering this component will break this feature. */}
-                <LoginForm
-                    ref={loginFormRef}
-                    isVisible={shouldShowLoginForm}
-                    login={login}
-                    onLoginChanged={setLogin}
-                    blurOnSubmit={account?.validated === false}
-                    // eslint-disable-next-line react-compiler/react-compiler
-                    scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
-                />
-                {shouldShouldSignUpWelcomeForm && <SignUpWelcomeForm />}
-                {shouldShowValidateCodeForm && (
-                    <ValidateCodeForm
-                        isVisible={!shouldShowAnotherLoginPageOpenedMessage}
-                        isUsingRecoveryCode={isUsingRecoveryCode}
-                        setIsUsingRecoveryCode={setIsUsingRecoveryCode}
-                        ref={validateCodeFormRef}
-                    />
-                )}
-                {!shouldShowAnotherLoginPageOpenedMessage && (
-                    <>
-                        {shouldShowUnlinkLoginForm && <UnlinkLoginForm />}
-                        {shouldShowChooseSSOOrMagicCode && <ChooseSSOOrMagicCode setIsUsingMagicCode={setIsUsingMagicCode} />}
-                        {shouldShowEmailDeliveryFailurePage && <EmailDeliveryFailurePage />}
-                    </>
-                )}
-            </SignInPageLayout>
+            <SignInPage
+                ref={ref}
+                shouldResetTabTitle={shouldResetTabTitle}
+            />
         </ScreenWrapper>
     );
 }
 
-type SignInPageProps = SignInPageInnerProps;
-type SignInPageOnyxProps = SignInPageInnerOnyxProps;
-const SignInPageWithRef = forwardRef(SignInPage);
+// WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
+// The sign-in page always uses the dark theme, but respects the user's contrast preference (nvp_preferredTheme) which is preserved on sign-out.
+function WithTheme(Component: React.ComponentType<SignInPageProps>) {
+    function ThemedComponent({ref, shouldResetTabTitle}: SignInPageProps) {
+        const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+        const [highContrastIntent] = useOnyx(ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT);
+        const contrastThemes: string[] = [CONST.THEME.DARK_CONTRAST, CONST.THEME.LIGHT_CONTRAST, CONST.THEME.SYSTEM_CONTRAST];
+        const isHighContrast = highContrastIntent ?? contrastThemes.includes(preferredTheme ?? '');
+        const signInTheme = isHighContrast ? CONST.THEME.DARK_CONTRAST : CONST.THEME.DARK;
 
-function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
-    return (
-        <ThemeProvider theme={CONST.THEME.DARK}>
-            <ThemeStylesProvider>
-                <ColorSchemeWrapper>
-                    <CustomStatusBarAndBackground isNested />
-                    <SignInPageWithRef
-                        ref={ref}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                    />
-                </ColorSchemeWrapper>
-            </ThemeStylesProvider>
-        </ThemeProvider>
-    );
+        return (
+            <ThemeProvider theme={signInTheme}>
+                <ThemeStylesProvider>
+                    <HTMLEngineProvider>
+                        <Component
+                            ref={ref}
+                            shouldResetTabTitle={shouldResetTabTitle}
+                        />
+                    </HTMLEngineProvider>
+                </ThemeStylesProvider>
+            </ThemeProvider>
+        );
+    }
+    ThemedComponent.displayName = `WithTheme(${Component.displayName ?? Component.name ?? 'Component'})`;
+    return ThemedComponent;
 }
 
-SignInPageThemeWrapper.displayName = 'SignInPage';
+const SignInPageThemed = WithTheme(SignInPage);
 
-export default withOnyx<SignInPageProps & RefAttributes<SignInPageRef>, SignInPageOnyxProps>({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    /**
-      This variable is only added to make sure the component is re-rendered
-      whenever the activeClients change, so that we call the
-      ActiveClientManager.isClientTheLeader function
-      everytime the leader client changes.
-      We use that function to prevent repeating code that checks which client is the leader.
-    */
-    activeClients: {key: ONYXKEYS.ACTIVE_CLIENTS},
-    preferredLocale: {
-        key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    },
-})(forwardRef(SignInPageThemeWrapper));
+export {SignInPageThemed as SignInPage};
+
+export default WithTheme(SignInPageWrapper);
 
 export type {SignInPageRef};

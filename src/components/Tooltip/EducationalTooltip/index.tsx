@@ -1,18 +1,17 @@
-import React from 'react';
 import type {TooltipExtendedProps} from '@components/Tooltip/types';
+
+import React from 'react';
+
 import BaseEducationalTooltip from './BaseEducationalTooltip';
 
 function EducationalTooltip({children, ...props}: TooltipExtendedProps) {
-    return (
-        <BaseEducationalTooltip
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-        >
-            {children}
-        </BaseEducationalTooltip>
-    );
-}
+    const {shouldRender} = props;
 
-EducationalTooltip.displayName = 'EducationalTooltip';
+    if (!shouldRender) {
+        return children;
+    }
+
+    return <BaseEducationalTooltip {...props}>{children}</BaseEducationalTooltip>;
+}
 
 export default EducationalTooltip;

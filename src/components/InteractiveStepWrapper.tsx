@@ -1,98 +1,125 @@
-import React, {forwardRef} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ComponentRef, ForwardedRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import CollapsibleHeaderOnKeyboard from './CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import InteractiveStepSubHeader from './InteractiveStepSubHeader';
 import ScreenWrapper from './ScreenWrapper';
 
 type InteractiveStepWrapperProps = {
-    // Step content
     children: React.ReactNode;
-
-    // ID of the wrapper
     wrapperID: string;
-
-    // Function to handle back button press
     handleBackButtonPress: () => void;
-
-    // Title of the back button header
     headerTitle: string;
-
-    // Subtitle of the back button header
     headerSubtitle?: string;
 
-    // Index of the highlighted step
+    /** Index of the highlighted step */
     startStepIndex?: number;
 
-    // Array of step names
     stepNames?: readonly string[];
 
-    // Should enable max height
+    /** What the current step asks, read by screen readers with its step number. Defaults to the header title. */
+    stepAccessibilityDescription?: string;
+
+    /** Whether screen readers hear that a step before the current one is completed */
+    shouldAnnounceCompletedSteps?: boolean;
+
+    /** Remounts the sub header when `startStepIndex` changes, for flows that move between steps on one screen. Other flows drive the sub header through its own state. */
+    shouldRemountSubHeaderOnStepChange?: boolean;
     shouldEnableMaxHeight?: boolean;
-
-    // Should show offline indicator
     shouldShowOfflineIndicator?: boolean;
-
-    // Should enable picker avoiding
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
     shouldEnablePickerAvoiding?: boolean;
-
-    // Call task ID for the guides
-    guidesCallTaskID?: string;
-
-    // Offline indicator style
     offlineIndicatorStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * Whether the KeyboardAvoidingView should compensate for the bottom safe area padding.
+     * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.
+     */
+    shouldKeyboardOffsetBottomSafeAreaPadding?: boolean;
+
+    /**
+     * Temporary flag to disable safe area bottom spacing in the ScreenWrapper and to allow edge-to-edge content
+     * The ScreenWrapper should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+     */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
+    onEntryTransitionEnd?: () => void;
+    ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function InteractiveStepWrapper(
-    {
-        children,
-        wrapperID,
-        handleBackButtonPress,
-        headerTitle,
-        headerSubtitle,
-        startStepIndex,
-        stepNames,
-        shouldEnableMaxHeight,
-        shouldShowOfflineIndicator,
-        shouldEnablePickerAvoiding = false,
-        guidesCallTaskID,
-        offlineIndicatorStyle,
-    }: InteractiveStepWrapperProps,
-    ref: React.ForwardedRef<View>,
-) {
+const INPUT_HEADER_HEIGHT = variables.lineHeightXXLarge;
+
+function InteractiveStepWrapper({
+    children,
+    wrapperID,
+    handleBackButtonPress,
+    headerTitle,
+    headerSubtitle,
+    startStepIndex,
+    stepNames,
+    stepAccessibilityDescription,
+    shouldAnnounceCompletedSteps,
+    shouldRemountSubHeaderOnStepChange = false,
+    shouldEnableMaxHeight,
+    shouldShowOfflineIndicator,
+    shouldShowOfflineIndicatorInWideScreen,
+    shouldEnablePickerAvoiding = false,
+    offlineIndicatorStyle,
+    shouldKeyboardOffsetBottomSafeAreaPadding,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    onEntryTransitionEnd,
+    ref,
+}: InteractiveStepWrapperProps) {
     const styles = useThemeStyles();
 
     return (
         <ScreenWrapper
             ref={ref}
             testID={wrapperID}
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
             shouldEnablePickerAvoiding={shouldEnablePickerAvoiding}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
             offlineIndicatorStyle={offlineIndicatorStyle}
+            shouldKeyboardOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding}
+            onEntryTransitionEnd={onEntryTransitionEnd}
         >
-            <HeaderWithBackButton
-                title={headerTitle}
-                subtitle={headerSubtitle}
-                onBackButtonPress={handleBackButtonPress}
-                guidesCallTaskID={guidesCallTaskID}
-            />
-            {!!stepNames && (
-                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                    <InteractiveStepSubHeader
-                        startStepIndex={startStepIndex}
-                        stepNames={stepNames}
-                    />
-                </View>
-            )}
+            <CollapsibleHeaderOnKeyboard collapsibleHeaderOffset={INPUT_HEADER_HEIGHT}>
+                <HeaderWithBackButton
+                    title={headerTitle}
+                    subtitle={headerSubtitle}
+                    onBackButtonPress={handleBackButtonPress}
+                />
+                {!!stepNames && (
+                    <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                        <InteractiveStepSubHeader
+                            // The sub header keeps its own step state, so a new start index has to remount it for flows that move between steps on one screen
+                            key={shouldRemountSubHeaderOnStepChange ? startStepIndex : undefined}
+                            startStepIndex={startStepIndex}
+                            stepNames={stepNames}
+                            currentStepAccessibilityDescription={stepAccessibilityDescription ?? headerTitle}
+                            shouldAnnounceCompletedSteps={shouldAnnounceCompletedSteps}
+                        />
+                    </View>
+                )}
+            </CollapsibleHeaderOnKeyboard>
+
             {children}
         </ScreenWrapper>
     );
 }
 
-InteractiveStepWrapper.displayName = 'InteractiveStepWrapper';
-
-export default forwardRef(InteractiveStepWrapper);
+export default InteractiveStepWrapper;

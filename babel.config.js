@@ -1,71 +1,43 @@
 require('dotenv').config();
+/**
+ * Expo SDK 56 replaces global fetch with expo/fetch unless this is set at transform time.
+ * dotenv loads `.env` above; babel needs this here so release bundles inline the value.
+ */
+process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
 
-const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
-
-const ReactCompilerConfig = {
-    target: '18',
-    environment: {
-        enableTreatRefLikeIdentifiersAsRefs: true,
-    },
-    // We exclude 'tests' directory from compilation, but still compile components imported in test files.
-    sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
-};
+const {expoInlineEnvVars} = require('babel-preset-expo/build/plugins/inline-env-vars');
 
 /**
- * Setting targets to node 20 to reduce JS bundle size
- * It is also recommended by babel:
- * https://babeljs.io/docs/options#no-targets
+ * Custom plugin that prints a file name when it's being processed by babel.
+ * Disabled by default. To enable, set DEBUG_BABEL_TRACE=true in the environment.
  */
-const defaultPresets = ['@babel/preset-react', ['@babel/preset-env', {targets: {node: 20}}], '@babel/preset-flow', '@babel/preset-typescript'];
-const defaultPlugins = [
-    ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
-    // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
-    ['react-native-web'],
-
-    '@babel/transform-runtime',
-    '@babel/plugin-proposal-class-properties',
-    ['@babel/plugin-transform-object-rest-spread', {useBuiltIns: true, loose: true}],
-
-    // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
-    // source code transformation as we do not use class property assignment.
-    '@babel/plugin-transform-class-properties',
-
-    // Keep it last
-    'react-native-reanimated/plugin',
-];
-
-// The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
-// ignore it for desktop builds.
-if (!process.env.ELECTRON_ENV && process.env.npm_lifecycle_event !== 'desktop') {
-    console.debug('This is not a desktop build, adding babel-plugin-annotate-react');
-    defaultPlugins.push([
-        '@fullstory/babel-plugin-annotate-react',
-        {
-            'react-native-web': true,
-            native: true,
+function traceTransformer() {
+    return {
+        visitor: {
+            Program(path, state) {
+                console.log('🔧 Transforming file:', state.filename);
+            },
         },
-    ]);
+    };
 }
 
-const webpack = {
-    presets: defaultPresets,
-    plugins: defaultPlugins,
-};
+const isTestEnv = process.env.BABEL_ENV === 'test' || process.env.NODE_ENV === 'test';
 
-const metro = {
+// One config for both remaining callers: `@callstack/repack` (native builds, app source via its
+// loaders, allowlisted node_modules via babel-swc-loader) and `babel-jest` (tests, coverage).
+const config = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
-        ['babel-plugin-react-compiler', ReactCompilerConfig], // must run first!
-
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
-        // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
+        // It is included in @react-native/babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
+
+        // Inline EXPO_PUBLIC_* env vars into release bundles (e.g. EXPO_PUBLIC_USE_RN_FETCH to keep RN fetch).
+        expoInlineEnvVars,
 
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
-        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
-        'react-native-reanimated/plugin',
 
         /* Fullstory */
         '@fullstory/react-native',
@@ -105,23 +77,60 @@ const metro = {
                     '@libs': './src/libs',
                     '@navigation': './src/libs/Navigation',
                     '@pages': './src/pages',
+                    '@prompts': './prompts',
                     '@styles': './src/styles',
                     // This path is provide alias for files like `ONYXKEYS` and `CONST`.
                     '@src': './src',
                     '@userActions': './src/libs/actions',
-                    '@desktop': './desktop',
                     '@github': './.github',
+                    '@selectors': './src/selectors',
                 },
             },
         ],
+        '@babel/plugin-transform-export-namespace-from',
+        // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
+        // Skipped under Jest (isTestEnv): reanimated and worklets are fully mocked in jest/setup.ts, so the
+        // plugin's worklet transform is wasted work - and its output is not cached, so a heavy nested
+        // Babel transform re-runs on every test run.
+        ...(isTestEnv
+            ? []
+            : [
+                  [
+                      'react-native-worklets/plugin',
+                      {
+                          bundleMode: true,
+                          // In Bundle Mode, an import that a worklet captures in its closure becomes a "remote function"
+                          // and throws when called synchronously on a Worklet Runtime. The `react-native-live-markdown`
+                          // ExpensiMark parser runs on the LiveMarkdownRuntime and directly imports `ExpensiMark`,
+                          // `unescapeText` (from `expensify-common/utils`) and `decode` (from `html-entities`) into its
+                          // worklets, so those imports must be forwarded to avoid the "Tried to synchronously call a
+                          // Remote Function" crash. Their transitive dependencies (expensify-common's `Str`, `punycode`,
+                          // `awesome-phonenumber`, html-entities' internals, ...) do NOT need forwarding: the bundler puts
+                          // the whole `require()` graph onto the Worklet Runtime, so they resolve locally there.
+                          // `relativePaths` only needs to cover live-markdown's own `./rangeUtils` (expensify-common and
+                          // html-entities resolve to CommonJS, where `relativePaths` forwarding never fires).
+                          // See https://docs.swmansion.com/react-native-worklets/docs/bundleMode/importForwarding
+                          importForwarding: {
+                              moduleNames: ['expensify-common', 'expensify-common/utils', 'html-entities'],
+                              relativePaths: ['@expensify/react-native-live-markdown'],
+                          },
+                      },
+                  ],
+              ]),
     ],
     env: {
         production: {
-            // Keep console logs for e2e tests
-            plugins: IS_E2E_TESTING ? [] : [['transform-remove-console', {exclude: ['error', 'warn']}]],
+            plugins: [['transform-remove-console', {exclude: ['error', 'warn']}]],
+        },
+        test: {
+            plugins: ['@babel/plugin-transform-dynamic-import'],
         },
     },
 };
+
+if (process.env.DEBUG_BABEL_TRACE) {
+    config.plugins.push(traceTransformer);
+}
 
 /*
  * We use <React.Profiler> and react-native-performance to capture/monitor stats
@@ -132,7 +141,7 @@ if (process.env.CAPTURE_METRICS === 'true') {
     const path = require('path');
     const profilingRenderer = path.resolve(__dirname, './node_modules/react-native/Libraries/Renderer/implementations/ReactNativeRenderer-profiling');
 
-    metro.plugins.push([
+    config.plugins.push([
         'module-resolver',
         {
             root: ['./'],
@@ -145,19 +154,36 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
+// Re.Pack runs babel only on allowlisted node_modules (babel-swc-loader): app-source aliases don't
+// apply there, and worklets are transformed by worklets-loader instead, so drop the alias plugin
+// and the worklet options.
+const repack = {
+    ...config,
+    plugins: config.plugins
+        .filter((plugin) => !(Array.isArray(plugin) && plugin[0] === 'module-resolver' && plugin[2] !== 'extra-alias'))
+        .map((plugin) => (Array.isArray(plugin) && plugin[0] === 'react-native-worklets/plugin' ? 'react-native-worklets/plugin' : plugin)),
+};
+
 module.exports = (api) => {
-    console.debug('babel.config.js');
-    console.debug('  - api.version:', api.version);
-    console.debug('  - api.env:', api.env());
-    console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
-    console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
+        console.debug('babel.config.js');
+        console.debug('  - api.version:', api.version);
+        console.debug('  - api.env:', api.env());
+        console.debug('  - process.env.NODE_ENV:', process.env.NODE_ENV);
+        console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
+    }
 
-    // For `react-native` (iOS/Android) caller will be "metro"
-    // For `webpack` (Web) caller will be "@babel-loader"
-    // For jest, it will be babel-jest
-    // For `storybook` there won't be any config at all so we must give default argument of an empty object
+    // For native builds the caller is "@callstack/repack", for tests "babel-jest".
+    // The web build and Storybook (Rsbuild) don't call into this file at all, and anything else
+    // (an editor plugin, a stray script) still gets no config rather than an unintended one.
     const runningIn = api.caller((args = {}) => args.name);
-    console.debug('  - running in: ', runningIn);
+    if (process.env.DEBUG_BABEL_CONFIG === 'true') {
+        console.debug('  - running in: ', runningIn);
+    }
 
-    return ['metro', 'babel-jest'].includes(runningIn) ? metro : webpack;
+    if (runningIn === '@callstack/repack') {
+        return repack;
+    }
+
+    return runningIn === 'babel-jest' ? config : {};
 };

@@ -1,40 +1,67 @@
-import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
-import * as Illustrations from '@components/Icon/Illustrations';
-import CardRowSkeleton from '@components/Skeletons/CardRowSkeleton';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
-import * as ReportInstance from '@userActions/Report';
+
+import {navigateToConciergeChat} from '@libs/actions/Report';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React from 'react';
 
 function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const subtitle = (
-        <Text>
-            {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-            <TextLink onPress={() => ReportInstance.navigateToConciergeChat()}> {CONST?.CONCIERGE_CHAT_NAME}</TextLink>.
-        </Text>
-    );
+    const {LaptopReviewCard} = useMemoizedLazyIllustrations(['LaptopReviewCard']);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     return (
-        <EmptyStateComponent
-            SkeletonComponent={CardRowSkeleton}
-            containerStyles={styles.mt5}
-            headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-            headerMedia={Illustrations.CompanyCardsPendingState}
-            headerStyles={[styles.emptyStateCardIllustrationContainer, {backgroundColor: colors.ice800}]}
-            headerContentStyles={styles.pendingStateCardIllustration}
-            title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
-            subtitle={subtitle}
-        />
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+            <EmptyStateComponent
+                containerStyles={styles.mt5}
+                headerMedia={LaptopReviewCard}
+                headerStyles={styles.emptyStateCardIllustrationContainer}
+                headerContentStyles={styles.pendingStateCardIllustration}
+                title={translate('workspace.moreFeatures.companyCards.pendingFeedTitle')}
+            >
+                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
+                    {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
+                    <TextLink
+                        onPress={() => {
+                            navigateToConciergeChat({
+                                conciergeReportID,
+                                introSelected,
+                                currentUserAccountID,
+                                isSelfTourViewed,
+                                hasCompletedGuidedSetupFlow,
+                                conciergePersonalDetails,
+                                shouldDismissModal: false,
+                            });
+                        }}
+                    >
+                        {' '}
+                        {CONST.CONCIERGE_CHAT_NAME}
+                    </TextLink>
+                    .
+                </Text>
+            </EmptyStateComponent>
+        </ScrollView>
     );
 }
-
-WorkspaceCompanyCardsFeedPendingPage.displayName = 'WorkspaceCompanyCardsFeedPendingPage';
 
 export default WorkspaceCompanyCardsFeedPendingPage;

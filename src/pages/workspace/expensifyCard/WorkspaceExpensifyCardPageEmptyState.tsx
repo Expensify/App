@@ -1,124 +1,200 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
+
+import useCanEnrollNewExpensifyCardProgram from '@hooks/useCanEnrollNewExpensifyCardProgram';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import {clearIssueNewCardFormData} from '@libs/actions/Card';
+import {getExpensifyCardEnrollmentRoute} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {canEditWorkspaceSettings} from '@libs/PolicyUtils';
+import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import * as Policy from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const expensifyCardFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.MoneyReceipts,
-        translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack',
-    },
-    {
-        icon: Illustrations.CreditCardsNew,
-        translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited',
-    },
-    {
-        icon: Illustrations.MoneyWings,
-        translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend',
-    },
-];
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceExpensifyCardPageEmptyStateProps = {
-    route: StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
+    route: PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'ExpensifyCardIllustration']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {contentHeaderHeight} = useContentHeaderHeight();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
+    const {showConfirmModal, closeModal} = useConfirmModal();
+    const {windowHeight} = useWindowDimensions();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
+    const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
-    const eligibleBankAccounts = CardUtils.getEligibleBankAccountsForCard(bankAccountList ?? {});
+    const isSetupUnfinished = !!policy?.id && hasInProgressVBBA(reimbursementAccount?.achData, policy.outputCurrency !== CONST.CURRENCY.USD, policy.id);
+    const {canEnrollNewCardProgram, isUkEuCurrencySupported} = useCanEnrollNewExpensifyCardProgram(policy?.id);
+    const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
 
-    const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
-    const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
-
-    const startFlow = useCallback(() => {
-        if (!eligibleBankAccounts.length || isSetupUnfinished) {
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('new', policy?.id, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id ?? '-1')));
-        } else {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id ?? '-1'));
-        }
-    }, [eligibleBankAccounts.length, isSetupUnfinished, policy?.id]);
-
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        if (!policy) {
+    // Dismiss the currency modal if the workspace currency becomes a supported one externally (e.g. from another device)
+    const isCurrencyModalOpen = useRef(false);
+    useEffect(() => {
+        if (!canEnrollNewCardProgram || !isCurrencyModalOpen.current) {
             return;
         }
-        Policy.updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-        setIsCurrencyModalOpen(false);
-        startFlow();
-    }, [policy, startFlow]);
+        closeModal();
+        isCurrencyModalOpen.current = false;
+    }, [canEnrollNewCardProgram, closeModal]);
+
+    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policy?.id);
+    const hasAccessibleFeeds = allFeeds.length > 0;
+    const setupCtaTranslationKey = isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard';
+    const ctaTextTranslationKey = hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.viewCards' : setupCtaTranslationKey;
+
+    const canEditSettings = canEditWorkspaceSettings(policy, currentUserLogin);
+    // Without an existing feed the only path forward is enrolling a new card program, and both the
+    // bank account setup page and the currency page are admin only
+    const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && !canEditSettings);
+
+    const startFlow = () => {
+        if (!policy?.id) {
+            return;
+        }
+        if (hasAccessibleFeeds) {
+            clearIssueNewCardFormData();
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy.id)));
+            return;
+        }
+        Navigation.navigate(
+            getExpensifyCardEnrollmentRoute({
+                policyID: policy.id,
+                currencyCode: policy.outputCurrency,
+                isUkEuCurrencySupported,
+                bankAccountsList: bankAccountList,
+                supportedCountriesByCurrency,
+                achData: reimbursementAccount?.achData,
+            }),
+        );
+    };
+
+    const expensifyCardFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.MoneyReceipts,
+            translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack' as const,
+        },
+        {
+            icon: illustrations.CreditCardsNew,
+            translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited' as const,
+        },
+        {
+            icon: illustrations.MoneyWings,
+            translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend' as const,
+        },
+    ];
+
+    const promptCurrencyChange = async () => {
+        isCurrencyModalOpen.current = true;
+        // An open or partially set up bank account blocks the currency page, so only offer the change when it can be completed
+        const result = await showConfirmModal({
+            title: translate('workspace.bankAccount.updateCurrencyForExpensifyCardTitle'),
+            prompt: translate('workspace.bankAccount.euUkUpdateCurrencyForExpensifyCard'),
+            confirmText: translate(shouldBlockCurrencyChange ? 'common.buttonConfirm' : 'workspace.bankAccount.updateWorkspaceCurrency'),
+            cancelText: shouldBlockCurrencyChange ? undefined : translate('common.cancel'),
+            shouldShowCancelButton: !shouldBlockCurrencyChange,
+        });
+        isCurrencyModalOpen.current = false;
+        if (shouldBlockCurrencyChange || result.action !== ModalActions.CONFIRM || !policy) {
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, {shouldStartExpensifyCardEnrollment: true}));
+    };
 
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
-            icon={Illustrations.HandCard}
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
             showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            addBottomSafeAreaPadding
         >
-            <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - contentHeaderHeight}]}>
                 <FeatureList
-                    menuItems={expensifyCardFeatures}
-                    title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
+                    menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
+                    title={translate(hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.existingFeedTitle' : 'workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
-                    ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
-                    ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
+                    ctaText={translate(ctaTextTranslationKey)}
+                    ctaAccessibilityLabel={translate(hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.viewCards' : 'workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
-                        if (!Policy.isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
-                            setIsCurrencyModalOpen(true);
+                        if (shouldDisableCTA) {
+                            showReadOnlyModal();
+                            return;
+                        }
+                        if (isDelegateAccessRestricted) {
+                            showDelegateNoAccessModal();
+                            return;
+                        }
+                        if (isAccountLocked) {
+                            showLockedAccountModal();
+                            return;
+                        }
+                        // The supported currency restriction only applies to enrolling a brand-new card program.
+                        // If hasAccessibleFeeds is true, allow the flow to start in order to link an existing feed
+                        if (!hasAccessibleFeeds && !canEnrollNewCardProgram) {
+                            promptCurrencyChange();
                             return;
                         }
                         startFlow();
                     }}
                     illustrationBackgroundColor={theme.fallbackIconColor}
-                    illustration={Illustrations.ExpensifyCardIllustration}
+                    illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
+                    buttonInnerStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
+                    buttonHoverStyles={shouldDisableCTA ? styles.buttonOpacityDisabled : undefined}
                 />
-                <ConfirmModal
-                    title={translate('workspace.common.expensifyCard')}
-                    isVisible={isCurrencyModalOpen}
-                    onConfirm={confirmCurrencyChangeAndHideModal}
-                    onCancel={() => setIsCurrencyModalOpen(false)}
-                    prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                    confirmText={translate('workspace.bankAccount.updateToUSD')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.expensifyCard.disclaimer')}</Text>
+            </View>
+            <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Text style={[styles.textMicroSupporting, styles.m5]}>
+                    {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+                </Text>
             </View>
         </WorkspacePageWithSections>
     );
 }
-
-WorkspaceExpensifyCardPageEmptyState.displayName = 'WorkspaceExpensifyCardPageEmptyState';
 
 export default withPolicyAndFullscreenLoading(WorkspaceExpensifyCardPageEmptyState);

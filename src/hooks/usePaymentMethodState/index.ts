@@ -1,4 +1,5 @@
-import {useCallback, useState} from 'react';
+import {useState} from 'react';
+
 import type {PaymentMethodState} from './types';
 
 const initialState: PaymentMethodState = {
@@ -14,9 +15,9 @@ const initialState: PaymentMethodState = {
 function usePaymentMethodState() {
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethodState>(initialState);
 
-    const resetSelectedPaymentMethodData = useCallback(() => {
+    const resetSelectedPaymentMethodData = () => {
         setPaymentMethod(initialState);
-    }, [setPaymentMethod]);
+    };
 
     return {
         paymentMethod,

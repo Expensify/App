@@ -1,155 +1,213 @@
-// Issue - https://github.com/Expensify/App/issues/26719
-import {Str} from 'expensify-common';
-import type {AppStateStatus} from 'react-native';
-import {AppState} from 'react-native';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import {importEmojiLocale} from '@assets/emojis';
 import * as API from '@libs/API';
-import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, OpenOldDotLinkParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import * as Browser from '@libs/Browser';
-import {buildEmojisTrie} from '@libs/EmojiTrie';
+import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
+import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
-import getCurrentUrl from '@libs/Navigation/currentUrl';
-import Navigation from '@libs/Navigation/Navigation';
-import Performance from '@libs/Performance';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as SessionUtils from '@libs/SessionUtils';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
+import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {clearSoundAssetsCache} from '@libs/Sound';
+import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import flushTelemetry from '@libs/telemetry/flushTelemetry';
+import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import getPathFromState from '@src/libs/Navigation/helpers/getPathFromState';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {AppStateStatus} from 'react-native';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+// Issue - https://github.com/Expensify/App/issues/26719
+import {findFocusedRoute} from '@react-navigation/native';
+import {AppState} from 'react-native';
+import Onyx from 'react-native-onyx';
+
+import clearOnyxAndSeedFullReconnect from './clearOnyxAndSeedFullReconnect';
 import {setShouldForceOffline} from './Network';
-import * as PersistedRequests from './PersistedRequests';
-import * as Policy from './Policy/Policy';
-import {resolveDuplicationConflictAction} from './RequestConflictUtils';
-import * as Session from './Session';
-import Timing from './Timing';
+import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
 };
 
-type Locale = ValueOf<typeof CONST.LOCALES>;
-
-let currentUserAccountID: number | undefined;
-let currentUserEmail: string;
-Onyx.connect({
+// `currentSessionData` is only used in actions, not during render. So `Onyx.connectWithoutView` is appropriate.
+// If React components need this value in the future, use `useOnyx` instead.
+let currentSessionData: {accountID?: number; email: string; authToken?: string} = {
+    accountID: undefined,
+    email: '',
+    authToken: undefined,
+};
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = val?.accountID;
-        currentUserEmail = val?.email ?? '';
+        currentSessionData = {
+            accountID: val?.accountID,
+            email: val?.email ?? '',
+            authToken: val?.authToken,
+        };
     },
 });
 
+// `isSidebarLoaded` is only used inside the event handler, not during render.
+// `useOnyx` would trigger extra rerenders without affecting the View, so `Onyx.connectWithoutView` is used instead
 let isSidebarLoaded: boolean | undefined;
-Onyx.connect({
-    key: ONYXKEYS.IS_SIDEBAR_LOADED,
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
-    initWithStoredValues: false,
 });
 
-let preferredLocale: string | undefined;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: (val) => {
-        preferredLocale = val;
-        if (preferredLocale) {
-            importEmojiLocale(preferredLocale as Locale).then(() => {
-                buildEmojisTrie(preferredLocale as Locale);
-            });
-        }
-    },
-});
-
-let priorityMode: ValueOf<typeof CONST.PRIORITY_MODE> | undefined;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIORITY_MODE,
-    callback: (nextPriorityMode) => {
-        // When someone switches their priority mode we need to fetch all their chats because only #focus mode works with a subset of a user's chats. This is only possible via the OpenApp command.
-        if (nextPriorityMode === CONST.PRIORITY_MODE.DEFAULT && priorityMode === CONST.PRIORITY_MODE.GSD) {
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            openApp();
-        }
-        priorityMode = nextPriorityMode;
-    },
-});
-
+// `isUsingImportedState` is used in `openApp`, `reconnectApp`, and `clearOnyxAndResetApp` to prevent API calls when using imported state.
+// It is not used during render, so `Onyx.connectWithoutView` is appropriate.
+// If React components need this value in the future, use `useOnyx` instead.
 let isUsingImportedState: boolean | undefined;
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.IS_USING_IMPORTED_STATE,
     callback: (value) => {
         isUsingImportedState = value ?? false;
     },
 });
 
+// hasLoadedAppPromise is used in the "reconnectApp" function and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+let resolveHasLoadedAppPromise: () => void;
+const hasLoadedAppPromise = new Promise<void>((resolve) => {
+    resolveHasLoadedAppPromise = resolve;
+});
+
+// hasLoadedApp is used in the "reconnectApp" function and is not directly associated with the View,
+// so retrieving it using Onyx.connectWithoutView is correct.
+// If this variable is ever needed for use in React components, it should be retrieved using useOnyx.
+let hasLoadedApp: boolean | undefined;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.HAS_LOADED_APP,
+    callback: (value) => {
+        hasLoadedApp = value;
+        resolveHasLoadedAppPromise?.();
+    },
+});
+
+// allReports and allPolicies are used in the "ForOpenOrReconnect" functions and are not directly associated with the View,
+// so retrieving them using Onyx.connectWithoutView is correct.
+let allReports: OnyxCollection<OnyxTypes.Report>;
+let allPolicies: OnyxCollection<OnyxTypes.Policy>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (value) => {
+        allPolicies = value;
+    },
+});
+
+let preservedUserSession: OnyxTypes.Session | undefined;
+
+// We called `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PRESERVED_USER_SESSION,
+    callback: (value) => {
+        preservedUserSession = value;
+    },
+});
+
+let preservedAccount: OnyxTypes.Account | undefined;
+
+// We called `connectWithoutView` here because it is not connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.PRESERVED_ACCOUNT,
+    callback: (value) => {
+        preservedAccount = value;
+    },
+});
+
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
-    ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+    ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.IS_LOADING_APP,
-    ONYXKEYS.IS_SIDEBAR_LOADED,
+    ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
-    ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT,
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
+    ONYXKEYS.SIGN_IN_HIGH_CONTRAST_INTENT,
     ONYXKEYS.NVP_PREFERRED_LOCALE,
     ONYXKEYS.CREDENTIALS,
+    ONYXKEYS.PRESERVED_USER_SESSION,
+    ONYXKEYS.PRESERVED_ACCOUNT,
+    ONYXKEYS.HYBRID_APP,
+    ONYXKEYS.ACTIVE_SERVER,
+    ONYXKEYS.IS_DEBUG_MODE_ENABLED,
+    ONYXKEYS.BETA_OVERRIDES,
+    ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
+    ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
+    ONYXKEYS.STASHED_SESSION,
+    ONYXKEYS.STASHED_CREDENTIALS,
+    ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
+    // Signing out must not erase the record of when we prompted for an app review. nvp_appReview is
+    // server-owned and its lastPrompt is not refreshed on every response, so if this record went away
+    // the next sign-in would re-show the prompt the user already answered - every time, forever.
+    // The record carries the accountID it belongs to, so a different user signing in here ignores it.
+    ONYXKEYS.APP_REVIEW_LAST_PROMPT,
+    // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
+    // we know if we're in imported state mode and should skip API calls that would cause infinite loading
+    ONYXKEYS.IS_USING_IMPORTED_STATE,
 ];
 
-Onyx.connect({
+/*
+ * This listener allows you to reset the state stored in Onyx by changing the value under the ONYXKEYS.RESET_REQUIRED key.
+ * It is only used in emergencies when the entire state requires clearing.
+ *
+ * It has no direct impact on the View, making the use of Onyx.connectWithoutView justified in this case.
+ */
+Onyx.connectWithoutView({
     key: ONYXKEYS.RESET_REQUIRED,
     callback: (isResetRequired) => {
         if (!isResetRequired) {
             return;
         }
 
-        Onyx.clear(KEYS_TO_PRESERVE).then(() => {
+        clearOnyxAndResetApp().finally(() => {
             // Set this to false to reset the flag for this client
             Onyx.set(ONYXKEYS.RESET_REQUIRED, false);
-
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            openApp();
         });
     },
 });
 
-let resolveIsReadyPromise: () => void;
-const isReadyToOpenApp = new Promise<void>((resolve) => {
-    resolveIsReadyPromise = resolve;
-});
-
-function confirmReadyToOpenApp() {
-    resolveIsReadyPromise();
-}
-
 function getNonOptimisticPolicyIDs(policies: OnyxCollection<OnyxTypes.Policy>): string[] {
-    return Object.values(policies ?? {})
-        .filter((policy) => policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD)
-        .map((policy) => policy?.id)
-        .filter((id): id is string => !!id);
+    const result: string[] = [];
+    for (const policy of Object.values(policies ?? {})) {
+        if (!policy || policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !policy.id) {
+            continue;
+        }
+        result.push(policy.id);
+    }
+    return result;
 }
 
-function setLocale(locale: Locale) {
-    if (locale === preferredLocale) {
+function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
+    if (locale === currentPreferredLocale) {
         return;
     }
 
     // If user is not signed in, change just locally.
-    if (!currentUserAccountID) {
+    if (!currentSessionData.accountID) {
         Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
         return;
     }
 
     // Optimistically change preferred locale
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PREFERRED_LOCALE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -161,16 +219,7 @@ function setLocale(locale: Locale) {
         value: locale,
     };
 
-    importEmojiLocale(locale).then(() => {
-        buildEmojisTrie(locale);
-    });
-
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, parameters, {optimisticData});
-}
-
-function setLocaleAndNavigate(locale: Locale) {
-    setLocale(locale);
-    Navigation.goBack();
 }
 
 function setSidebarLoaded() {
@@ -178,15 +227,68 @@ function setSidebarLoaded() {
         return;
     }
 
-    Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
-    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, true);
+}
+
+/**
+ * Saves the current navigation path to lastVisitedPath before app goes to background
+ */
+function saveCurrentPathBeforeBackground() {
+    try {
+        // Signed out there is only the sign-in page to save, and on Android the SAML browser backgrounds the app.
+        if (!navigationRef.isReady() || !currentSessionData.authToken) {
+            return;
+        }
+
+        const currentState = navigationRef.getRootState();
+        if (!currentState) {
+            return;
+        }
+
+        // Honor the same exclusion list as parseAndLogRoute in NavigationRoot, so screens that
+        // shouldn't be restored on relaunch (transient/RAM-dependent routes) aren't persisted here either.
+        const focusedRoute = findFocusedRoute(currentState);
+        if (focusedRoute && CONST.EXCLUDE_FROM_LAST_VISITED_PATH.includes(focusedRoute.name)) {
+            return;
+        }
+
+        const currentPath = getPathFromState(currentState);
+
+        if (currentPath) {
+            Log.info('Saving current path before background', false, {currentPath: sanitizeUrlForLogging(currentPath)});
+            updateLastVisitedPath(currentPath);
+        }
+    } catch (error) {
+        Log.warn('Failed to save current path before background', {error});
+    }
 }
 
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
+    // On app startup appState can be undefined
+    // or 'background' (app launched via push notification), causing the `appState === 'active'` check to fail
+    // and leaving spans running for a long time.
+    if (nextAppState.match(/inactive|background/)) {
+        Log.info('Cancelling telemetry spans as app is going inactive/background', false, {previousState: appState, nextState: nextAppState});
+        cancelAllSpans();
+    }
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
+        Log.info('App going to background', false, {previousState: appState, nextState: nextAppState});
         Log.info('Flushing logs as app is going inactive', true, {}, true);
+        logReceiptQueueSnapshot('background');
+        saveCurrentPathBeforeBackground();
+    }
+
+    if (nextAppState === 'active' && appState?.match(/inactive|background/)) {
+        Log.info('App coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
+        logReceiptQueueSnapshot('foreground');
+        cancelAllSpans();
+    }
+
+    // Runs last so the spans canceled and the logs written above are part of the flush.
+    if (nextAppState.match(/inactive|background/)) {
+        flushTelemetry();
     }
     appState = nextAppState;
 });
@@ -194,74 +296,167 @@ AppState.addEventListener('change', (nextAppState) => {
 /**
  * Gets the policy params that are passed to the server in the OpenApp and ReconnectApp API commands. This includes a full list of policy IDs the client knows about as well as when they were last modified.
  */
-function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrReconnect> {
-    return new Promise((resolve) => {
-        isReadyToOpenApp.then(() => {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.COLLECTION.POLICY,
-                waitForCollectionCallback: true,
-                callback: (policies) => {
-                    Onyx.disconnect(connection);
-                    resolve({policyIDList: getNonOptimisticPolicyIDs(policies)});
-                },
-            });
-        });
-    });
+function getPolicyParamsForOpenOrReconnect(): PolicyParamsForOpenOrReconnect {
+    return {policyIDList: getNonOptimisticPolicyIDs(allPolicies)};
 }
+
+type OnyxDataForOpenOrReconnectKeys = typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.IS_LOADING_REPORT_DATA | typeof ONYXKEYS.HAS_LOADED_APP | typeof ONYXKEYS.IS_LOADING_APP;
 
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
-function getOnyxDataForOpenOrReconnect(isOpenApp = false): OnyxData {
-    const defaultData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: true,
-            },
-        ],
-        finallyData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
-                value: false,
-            },
-        ],
-    };
-    if (!isOpenApp) {
-        return defaultData;
+function getOnyxDataForOpenOrReconnect(
+    isOpenApp = false,
+    isFullReconnect = false,
+    shouldKeepPublicRooms = false,
+    allReportsWithDraftComments?: Record<string, string | undefined>,
+    shouldClearAppLoading = false,
+): OnyxData<OnyxDataForOpenOrReconnectKeys> {
+    let commandName: string;
+    if (isOpenApp) {
+        commandName = 'OpenApp';
+    } else if (isFullReconnect) {
+        commandName = 'ReconnectApp (full)';
+    } else {
+        commandName = 'ReconnectApp (partial)';
     }
-    return {
+    Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
+
+    const result: OnyxData<OnyxDataForOpenOrReconnectKeys> = {
         optimisticData: [
-            ...defaultData.optimisticData,
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_APP,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: true,
             },
         ],
+        successData: [],
         finallyData: [
-            ...defaultData.finallyData,
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_APP,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
             },
         ],
+        queueFlushedData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.HAS_LOADED_APP,
+                value: true,
+            },
+        ],
     };
+
+    if (isOpenApp) {
+        result.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_APP,
+            value: true,
+        });
+    }
+
+    // Clear IS_LOADING_APP in finallyData for OpenApp and ReconnectApp, not just OpenApp. The optimistic `true`
+    // above persists immediately, while finallyData for write commands is held in memory until the sequential
+    // queue flushes (see QueuedOnyxUpdates), so an interrupted session can leave `true` persisted with no OpenApp
+    // left to clear it — once HAS_LOADED_APP is set, the app only ever runs ReconnectApp. Having ReconnectApp also
+    // clear the flag makes it self-healing. Callers outside that family (GetMissingOnyxMessages) must not clear
+    // it: they run as side-effect requests outside the sequential queue, so they could race a legitimate in-flight
+    // OpenApp and drop the loading gate before its data lands.
+    if (isOpenApp || shouldClearAppLoading) {
+        result.finallyData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_APP,
+            value: false,
+        });
+    }
+
+    if (shouldKeepPublicRooms) {
+        const publicReports = Object.values(allReports ?? {}).filter((report) => isPublicRoom(report) && isValidReport(report));
+        if (publicReports) {
+            for (const report of publicReports) {
+                result.successData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                    value: {
+                        ...report,
+                    },
+                });
+            }
+        }
+    }
+
+    // Find all reports that have a non-null draft comment and map them to their corresponding report objects from allReports
+    // This ensures that any report with a draft comment is preserved in Onyx even if it doesn’t contain chat history
+    const reportsWithDraftComments = Object.entries(allReportsWithDraftComments ?? {})
+        .filter(([, value]) => value !== null)
+        .map(([key]) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ''))
+        .map((reportID) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
+
+    if (reportsWithDraftComments) {
+        for (const report of reportsWithDraftComments) {
+            result.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: {
+                    ...report,
+                },
+            });
+        }
+    }
+
+    return result;
 }
 
 /**
  * Fetches data needed for app initialization
+ * @param shouldKeepPublicRooms - Whether to keep public rooms in Onyx
+ * @param allReportsWithDraftComments - All reports with draft comments
+ * @param forceRun - Force run even when using imported state (used when exiting imported state mode)
+ * @param shouldDedupeWithInFlight - Pass false when the response has to reflect state an in-flight OpenApp could not have seen.
  */
-function openApp() {
-    return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
-        const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-        return API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true), {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP),
+function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false, shouldDedupeWithInFlight = true) {
+    // Don't make API calls when using imported state to avoid infinite loading
+    // The imported state already contains all the data, so we just need to mark the app as loaded
+    // Exception: When forceRun is true (exiting imported state), always make the API call
+    if (isUsingImportedState && !forceRun) {
+        Onyx.multiSet({
+            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.HAS_LOADED_APP]: true,
         });
+        return Promise.resolve();
+    }
+
+    const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+    if (bootsplashSpan) {
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            parentSpan: bootsplashSpan,
+        });
+    }
+
+    const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
+
+    // Preservation adds successData an in-flight OpenApp knows nothing about, so this call cannot be dropped.
+    const hasPreservationData = shouldKeepPublicRooms || !!allReportsWithDraftComments;
+    const openAppPromise = API.writeWithNoDuplicatesOpenAppConflictAction(
+        params,
+        getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
+        shouldDedupeWithInFlight && !hasPreservationData,
+    ).finally(() => {
+        if (!bootsplashSpan) {
+            return;
+        }
+        endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
+    loadPersonalDetails();
+
+    return openAppPromise;
+}
+
+function loadPersonalDetails() {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- API.read would wait for OpenApp, so it cannot run in parallel
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOAD_PERSONAL_DETAILS, null);
 }
 
 /**
@@ -269,18 +464,33 @@ function openApp() {
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  */
 function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
-    console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
-    getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params: ReconnectAppParams = policyParams;
+    const bootsplashSpan = getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
 
-        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-        //
-        // - Look through the local report actions and reports to find the most recently modified report action or report.
-        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
-        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+    if (bootsplashSpan) {
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            op: CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN,
+            parentSpan: bootsplashSpan,
+        });
+    }
+
+    hasLoadedAppPromise.then(() => {
+        if (!hasLoadedApp) {
+            // If app hasn't loaded yet, call openApp instead (which has its own span)
+            if (bootsplashSpan) {
+                endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
+            }
+            openApp();
+            return;
+        }
+
+        // Don't make API calls when using imported state to avoid infinite loading
+        if (isUsingImportedState) {
+            return;
+        }
+
+        console.debug(`[OnyxUpdates] App reconnecting with updateIDFrom: ${updateIDFrom}`);
+        const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
 
         // Include the update IDs when reconnecting so that the server can send incremental updates if they are available.
         // Otherwise, a full set of app data will be returned.
@@ -288,10 +498,39 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             params.updateIDFrom = updateIDFrom;
         }
 
-        API.write(WRITE_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(), {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.RECONNECT_APP),
+        const isFullReconnect = !updateIDFrom;
+        const reconnectAppPromise = API.writeWithNoDuplicatesReconnectConflictAction(
+            WRITE_COMMANDS.RECONNECT_APP,
+            params,
+            getOnyxDataForOpenOrReconnect(false, isFullReconnect, isSidebarLoaded, undefined, true),
+        ).finally(() => {
+            if (!bootsplashSpan) {
+                return;
+            }
+            endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
+        if (isFullReconnect) {
+            loadPersonalDetails();
+        }
+
+        return reconnectAppPromise;
     });
+}
+
+/**
+ * Fires asynchronous requests to load more data that is required by the App but not returned in OpenApp/ReconnectApp
+ */
+function loadPostDataForOpenOrReconnect() {
+    API.read(READ_COMMANDS.SEARCH_FOR_TODOS, null);
+}
+
+/**
+ * Starts a full reconnect, recording the reconnect time before sending the request. The server
+ * response re-delivers the cutoff. Recording first means the stored time is already at or above the
+ * cutoff by the time the response lands, so subscribeToFullReconnect does not fire a second reconnect.
+ */
+function triggerFullReconnect(cutoff: string) {
+    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff)).then(() => reconnectApp());
 }
 
 /**
@@ -299,26 +538,44 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
  * because it will follow patterns that are not recommended so we can be sure we're not putting the app in a unusable
  * state because of race conditions between reconnectApp and other pusher updates being applied at the same time.
  */
-function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response> {
+function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     console.debug(`[OnyxUpdates] Executing last reconnect app with promise`);
-    return getPolicyParamsForOpenOrReconnect().then((policyParams) => {
-        const params: ReconnectAppParams = {...policyParams};
+    const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
 
-        // When the app reconnects we do a fast "sync" of the LHN and only return chats that have new messages. We achieve this by sending the most recent reportActionID.
-        // we have locally. And then only update the user about chats with messages that have occurred after that reportActionID.
-        //
-        // - Look through the local report actions and reports to find the most recently modified report action or report.
-        // - We send this to the server so that it can compute which new chats the user needs to see and return only those as an optimization.
-        Timing.start(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION);
-        params.mostRecentReportActionLastModified = ReportActionsUtils.getMostRecentReportActionLastModified();
-        Timing.end(CONST.TIMING.CALCULATE_MOST_RECENT_LAST_MODIFIED_ACTION, '', 500);
+    // It is SUPER BAD FORM to return promises from action methods.
+    // DO NOT FOLLOW THIS PATTERN!!!!!
+    // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
+    // as soon as we have everyone migrated to the reliableUpdate beta.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, true));
+}
 
-        // It is SUPER BAD FORM to return promises from action methods.
-        // DO NOT FOLLOW THIS PATTERN!!!!!
-        // It was absolutely necessary in order to not break the app while migrating to the new reliable updates pattern. This method will be removed
-        // as soon as we have everyone migrated to the reliableUpdate beta.
+/**
+ * Incremental ReconnectApp as a side-effect request (bypasses the paused queue) so the pause watchdog can
+ * close the update gap before unpausing. Must not clear IS_LOADING_APP — outside the queue it could race an
+ * in-flight OpenApp (see getOnyxDataForOpenOrReconnect).
+ */
+function reconnectAppWithSideEffects(updateIDFrom = 0): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
+    // Mirror reconnectApp's guards — an incremental reconnect assumes base app state that isn't there yet.
+    // hasLoadedApp is undefined until Onyx hydrates, so reading it before hasLoadedAppPromise settles would treat a
+    // loaded app as unloaded and fire a full openApp instead.
+    return hasLoadedAppPromise.then(() => {
+        if (!hasLoadedApp) {
+            openApp();
+            return Promise.resolve();
+        }
+        if (isUsingImportedState) {
+            return Promise.resolve();
+        }
+
+        const params: ReconnectAppParams = getPolicyParamsForOpenOrReconnect();
+        if (updateIDFrom) {
+            params.updateIDFrom = updateIDFrom;
+        }
+
+        // The watchdog must await the gap closing; same justified exception as the sibling functions above.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect());
+        return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, params, getOnyxDataForOpenOrReconnect(false, !updateIDFrom));
     });
 }
 
@@ -327,7 +584,7 @@ function finalReconnectAppAfterActivatingReliableUpdates(): Promise<void | OnyxT
  * @param [updateIDFrom] the ID of the Onyx update that we want to start fetching from
  * @param [updateIDTo] the ID of the Onyx update that we want to fetch up to
  */
-function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0): Promise<void | OnyxTypes.Response> {
+function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0): Promise<void | OnyxTypes.Response<OnyxDataForOpenOrReconnectKeys>> {
     console.debug(`[OnyxUpdates] Fetching missing updates updateIDFrom: ${updateIDFrom} and updateIDTo: ${updateIDTo}`);
 
     const parameters: GetMissingOnyxMessagesParams = {
@@ -337,170 +594,9 @@ function getMissingOnyxUpdates(updateIDFrom = 0, updateIDTo: number | string = 0
 
     // It is SUPER BAD FORM to return promises from action methods.
     // DO NOT FOLLOW THIS PATTERN!!!!!
-    // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the udpates aren't applied in the proper order.
+    // It was absolutely necessary in order to block OnyxUpdates while fetching the missing updates from the server or else the updates aren't applied in the proper order.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, parameters, getOnyxDataForOpenOrReconnect());
-}
-
-/**
- * This promise is used so that deeplink component know when a transition is end.
- * This is necessary because we want to begin deeplink redirection after the transition is end.
- */
-let resolveSignOnTransitionToFinishPromise: () => void;
-const signOnTransitionToFinishPromise = new Promise<void>((resolve) => {
-    resolveSignOnTransitionToFinishPromise = resolve;
-});
-
-function waitForSignOnTransitionToFinish(): Promise<void> {
-    return signOnTransitionToFinishPromise;
-}
-
-function endSignOnTransition() {
-    return resolveSignOnTransitionToFinishPromise();
-}
-
-/**
- * Create a new draft workspace and navigate to it
- *
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [policyName] Optional, custom policy name we will use for created workspace
- * @param [transitionFromOldDot] Optional, if the user is transitioning from old dot
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param [backTo] An optional return path. If provided, it will be URL-encoded and appended to the resulting URL.
- */
-function createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail = '', policyName = '', transitionFromOldDot = false, makeMeAdmin = false, backTo = '') {
-    const policyID = Policy.generatePolicyID();
-    Policy.createDraftInitialWorkspace(policyOwnerEmail, policyName, policyID, makeMeAdmin);
-
-    Navigation.isNavigationReady()
-        .then(() => {
-            if (transitionFromOldDot) {
-                // We must call goBack() to remove the /transition route from history
-                Navigation.goBack();
-            }
-            savePolicyDraftByNewWorkspace(policyID, policyName, policyOwnerEmail, makeMeAdmin);
-            Navigation.navigate(ROUTES.WORKSPACE_INITIAL.getRoute(policyID, backTo));
-        })
-        .then(endSignOnTransition);
-}
-
-/**
- * Create a new workspace and delete the draft
- *
- * @param [policyID] the ID of the policy to use
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- */
-function savePolicyDraftByNewWorkspace(policyID?: string, policyName?: string, policyOwnerEmail = '', makeMeAdmin = false) {
-    Policy.createWorkspace(policyOwnerEmail, makeMeAdmin, policyName, policyID);
-}
-
-/**
- * This action runs when the Navigator is ready and the current route changes
- *
- * currentPath should be the path as reported by the NavigationContainer
- *
- * The transition link contains an exitTo param that contains the route to
- * navigate to after the user is signed in. A user can transition from OldDot
- * with a different account than the one they are currently signed in with, so
- * we only navigate if they are not signing in as a new user. Once they are
- * signed in as that new user, this action will run again and the navigation
- * will occur.
-
- * When the exitTo route is 'workspace/new', we create a new
- * workspace and navigate to it
- *
- * We subscribe to the session using withOnyx in the AuthScreens and
- * pass it in as a parameter. withOnyx guarantees that the value has been read
- * from Onyx because it will not render the AuthScreens until that point.
- */
-function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>) {
-    const currentUrl = getCurrentUrl();
-    if (!session || !currentUrl?.includes('exitTo')) {
-        return;
-    }
-
-    const isLoggingInAsNewUser = !!session.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
-    const url = new URL(currentUrl);
-    const exitTo = url.searchParams.get('exitTo') as Route | null;
-
-    // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
-    // and those are passed as a search parameter when using transition links
-    const policyOwnerEmail = url.searchParams.get('ownerEmail') ?? '';
-    const makeMeAdmin = !!url.searchParams.get('makeMeAdmin');
-    const policyName = url.searchParams.get('policyName') ?? '';
-
-    // Sign out the current user if we're transitioning with a different user
-    const isTransitioning = Str.startsWith(url.pathname, Str.normalizeUrl(ROUTES.TRANSITION_BETWEEN_APPS));
-
-    const shouldCreateFreePolicy = !isLoggingInAsNewUser && isTransitioning && exitTo === ROUTES.WORKSPACE_NEW;
-    if (shouldCreateFreePolicy) {
-        createWorkspaceWithPolicyDraftAndNavigateToIt(policyOwnerEmail, policyName, true, makeMeAdmin);
-        return;
-    }
-    if (!isLoggingInAsNewUser && exitTo) {
-        Navigation.waitForProtectedRoutes()
-            .then(() => {
-                Navigation.navigate(exitTo);
-            })
-            .then(endSignOnTransition);
-    }
-}
-
-function redirectThirdPartyDesktopSignIn() {
-    const currentUrl = getCurrentUrl();
-    if (!currentUrl) {
-        return;
-    }
-    const url = new URL(currentUrl);
-
-    if (url.pathname === `/${ROUTES.GOOGLE_SIGN_IN}` || url.pathname === `/${ROUTES.APPLE_SIGN_IN}`) {
-        Navigation.isNavigationReady().then(() => {
-            Navigation.goBack();
-            Navigation.navigate(ROUTES.DESKTOP_SIGN_IN_REDIRECT);
-        });
-    }
-}
-
-/**
- * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
- */
-function beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount = true, initialRoute?: string) {
-    // There's no support for anonymous users on desktop
-    if (Session.isAnonymousUser()) {
-        return;
-    }
-
-    // If the route that is being handled is a magic link, email and shortLivedAuthToken should not be attached to the url
-    // to prevent signing into the wrong account
-    if (!currentUserAccountID || !shouldAuthenticateWithCurrentAccount) {
-        Browser.openRouteInDesktopApp();
-        return;
-    }
-
-    const parameters: OpenOldDotLinkParams = {shouldRetry: false};
-
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, parameters, {}).then((response) => {
-        if (!response) {
-            Log.alert(
-                'Trying to redirect via deep link, but the response is empty. User likely not authenticated.',
-                {response, shouldAuthenticateWithCurrentAccount, currentUserAccountID},
-                true,
-            );
-            return;
-        }
-
-        Browser.openRouteInDesktopApp(response.shortLivedAuthToken, currentUserEmail, initialRoute);
-    });
-}
-
-/**
- * @param shouldAuthenticateWithCurrentAccount Optional, indicates whether default authentication method (shortLivedAuthToken) should be used
- */
-function beginDeepLinkRedirectAfterTransition(shouldAuthenticateWithCurrentAccount = true) {
-    waitForSignOnTransitionToFinish().then(() => beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount));
 }
 
 function handleRestrictedEvent(eventName: string) {
@@ -521,55 +617,115 @@ function setIsUsingImportedState(usingImportedState: boolean) {
     Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, usingImportedState);
 }
 
+function setPreservedUserSession(session: OnyxTypes.Session) {
+    Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, session);
+}
+
+function setPreservedAccount(account: OnyxTypes.Account) {
+    Onyx.set(ONYXKEYS.PRESERVED_ACCOUNT, account);
+}
+
 function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     // The value of isUsingImportedState will be lost once Onyx is cleared, so we need to store it
     const isStateImported = isUsingImportedState;
-    const sequentialQueue = PersistedRequests.getAll();
-    Onyx.clear(KEYS_TO_PRESERVE).then(() => {
-        // Network key is preserved, so when using imported state, we should stop forcing offline mode so that the app can re-fetch the network
-        if (isStateImported) {
-            setShouldForceOffline(false);
-        }
+    rollbackOngoingRequest();
+    const sequentialQueue = getAll();
 
-        if (shouldNavigateToHomepage) {
-            Navigation.navigate(ROUTES.HOME);
-        }
+    Navigation.clearPreloadedRoutes();
+    // The helper seeds the loading state and LAST_FULL_RECONNECT_TIME so consumers cannot evaluate transient
+    // post-clear state and subscribeToFullReconnect doesn't fire a duplicate ReconnectApp once the
+    // openApp() below lands NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE.
+    const resetPromise = clearWorkboxRecoveryCaches().then(() =>
+        clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE)
+            .then(() => {
+                // Network key is preserved, so when exiting imported state, we should:
+                // 1. Stop forcing offline mode so the app can reconnect
+                // 2. Clear the IS_USING_IMPORTED_STATE flag
+                // 3. Restore the original user session
+                if (isStateImported) {
+                    setShouldForceOffline(false);
+                    Onyx.set(ONYXKEYS.IS_USING_IMPORTED_STATE, false);
+                    Log.info('[ImportedState] Exiting imported state mode, restoring original session');
+                }
 
-        // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
-        // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
-        // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
-        openApp().then(() => {
-            if (!sequentialQueue || isStateImported) {
-                return;
-            }
+                if (shouldNavigateToHomepage) {
+                    Navigation.navigate(ROUTES.HOME);
+                }
 
-            sequentialQueue.forEach((request) => {
-                PersistedRequests.save(request);
-            });
-        });
-    });
+                if (preservedUserSession) {
+                    Onyx.set(ONYXKEYS.SESSION, preservedUserSession);
+                    Onyx.set(ONYXKEYS.PRESERVED_USER_SESSION, null);
+                }
+
+                if (preservedAccount) {
+                    Onyx.set(ONYXKEYS.ACCOUNT, preservedAccount);
+                    Onyx.set(ONYXKEYS.PRESERVED_ACCOUNT, null);
+                }
+            })
+            .then(() => {
+                // Requests in a sequential queue should be called even if the Onyx state is reset, so we do not lose any pending data.
+                // However, the OpenApp request must be called before any other request in a queue to ensure data consistency.
+                // To do that, sequential queue is cleared together with other keys, and then it's restored once the OpenApp request is resolved.
+                // When exiting imported state, force openApp to run even though the variable might not be updated yet
+                openApp(false, undefined, isStateImported).then(() => {
+                    if (!sequentialQueue || isStateImported) {
+                        return;
+                    }
+
+                    for (const request of sequentialQueue) {
+                        save(request);
+                    }
+                });
+            }),
+    );
     clearSoundAssetsCache();
+    return resetPromise;
+}
+
+/**
+ * Clears a top-level Onyx value key by setting it to null.
+ * This is used for ephemeral flags so they do not persist across reloads.
+ */
+function clearSupportalPermissionDenied() {
+    // We intentionally set to null to keep key present but empty
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, null);
+}
+
+/**
+ * Shows a top-level modal informing that a supportal-auth user attempted an unauthorized command.
+ */
+function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDenied) {
+    Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, payload);
+}
+
+/**
+ * Clears the enable global reimbursements modal signal for the current session.
+ */
+function clearEnableGlobalReimbursementsModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, null);
 }
 
 export {
     setLocale,
-    setLocaleAndNavigate,
     setSidebarLoaded,
-    setUpPoliciesAndNavigate,
-    redirectThirdPartyDesktopSignIn,
+    saveCurrentPathBeforeBackground,
     openApp,
     reconnectApp,
-    confirmReadyToOpenApp,
+    loadPostDataForOpenOrReconnect,
+    triggerFullReconnect,
     handleRestrictedEvent,
-    beginDeepLinkRedirect,
-    beginDeepLinkRedirectAfterTransition,
     getMissingOnyxUpdates,
     finalReconnectAppAfterActivatingReliableUpdates,
-    savePolicyDraftByNewWorkspace,
-    createWorkspaceWithPolicyDraftAndNavigateToIt,
+    reconnectAppWithSideEffects,
     updateLastVisitedPath,
     updateLastRoute,
     setIsUsingImportedState,
     clearOnyxAndResetApp,
+    clearSupportalPermissionDenied,
+    showSupportalPermissionDenied,
+    clearEnableGlobalReimbursementsModal,
+    setPreservedUserSession,
+    getNonOptimisticPolicyIDs,
+    setPreservedAccount,
     KEYS_TO_PRESERVE,
 };

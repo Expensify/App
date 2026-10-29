@@ -1,31 +1,38 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearTaxRateFieldError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {canDisableOrDeleteTaxRate as canDisableOrDeleteTaxRateUtil, getCurrentTaxID, hasAccountingConnections, isControlPolicy, isTaxCodeCustomized} from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_EDIT>;
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
+type WorkspaceEditTaxPageBaseProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_EDIT>;
 
 function WorkspaceEditTaxPage({
     route: {
@@ -34,20 +41,22 @@ function WorkspaceEditTaxPage({
     policy,
 }: WorkspaceEditTaxPageBaseProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const currentTaxID = PolicyUtils.getCurrentTaxID(policy, taxID);
+    const {translate, localeCompare} = useLocalize();
+    const currentTaxID = getCurrentTaxID(policy, taxID);
     const currentTaxRate = currentTaxID && policy?.taxRates?.taxes?.[currentTaxID];
-    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const canEditTaxRate = policy && PolicyUtils.canEditTaxRate(policy, currentTaxID ?? taxID);
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
+    const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
+    const {canWrite: canWriteTaxes, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAXES);
+    const canEditTaxFields = canWriteTaxes;
+    const canDisableOrDeleteTaxRate = !!canWriteTaxes && !!policy && canDisableOrDeleteTaxRateUtil(policy, currentTaxID ?? taxID);
 
-    const shouldShowDeleteMenuItem = canEditTaxRate && !hasAccountingConnections;
+    const shouldShowDeleteMenuItem = canDisableOrDeleteTaxRate && !hasAccountingConnections(policy);
 
     const toggleTaxRate = () => {
         if (!currentTaxRate) {
             return;
         }
-        setPolicyTaxesEnabled(policyID, [taxID], !!currentTaxRate.isDisabled);
+        setPolicyTaxesEnabled(policy, [taxID], !!currentTaxRate.isDisabled);
     };
 
     useEffect(() => {
@@ -57,130 +66,141 @@ function WorkspaceEditTaxPage({
         Navigation.setParams({taxID: currentTaxID});
     }, [taxID, currentTaxID]);
 
+    useEffect(() => {
+        if (currentTaxRate || !policy?.taxRates?.taxes) {
+            return;
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+    }, [currentTaxRate, policy?.taxRates?.taxes, policyID]);
+
     const deleteTaxRate = () => {
         if (!policyID) {
             return;
         }
-        deletePolicyTaxes(policyID, [taxID]);
-        setIsDeleteModalVisible(false);
+        deletePolicyTaxes(policy, [taxID], localeCompare);
         Navigation.goBack();
     };
 
     if (!currentTaxRate) {
+        if (policy?.taxRates?.taxes) {
+            return null;
+        }
         return <NotFoundPage />;
     }
-    const taxCodeToShow = PolicyUtils.isControlPolicy(policy) ? taxID : '';
+    const taxCodeToShow = isControlPolicy(policy) && isTaxCodeCustomized(taxID, policy) ? taxID : '';
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TAXES}
         >
             <ScreenWrapper
-                testID={WorkspaceEditTaxPage.displayName}
+                testID="WorkspaceEditTaxPage"
                 style={styles.mb5}
             >
                 <View style={[styles.h100, styles.flex1]}>
                     <HeaderWithBackButton title={currentTaxRate?.name} />
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'isDisabled')}
+                        errors={getLatestErrorField(currentTaxRate, 'isDisabled')}
                         pendingAction={currentTaxRate?.pendingFields?.isDisabled}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'isDisabled')}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text>{translate('workspace.taxes.actions.enable')}</Text>
+                                <Text
+                                    accessible={false}
+                                    aria-hidden
+                                >
+                                    {translate('workspace.taxes.actions.enable')}
+                                </Text>
                                 <Switch
                                     isOn={!currentTaxRate?.isDisabled}
                                     accessibilityLabel={translate('workspace.taxes.actions.enable')}
                                     onToggle={toggleTaxRate}
-                                    disabled={!canEditTaxRate}
+                                    disabled={!canDisableOrDeleteTaxRate}
+                                    disabledAction={withReadOnlyFallback()}
+                                    showLockIcon={!canDisableOrDeleteTaxRate}
                                 />
                             </View>
                         </View>
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'name')}
+                        errors={getLatestErrorField(currentTaxRate, 'name')}
                         pendingAction={currentTaxRate?.pendingFields?.name}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'name')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={currentTaxRate?.name}
-                            description={translate('common.name')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID))}
+                        <MenuItemField
+                            value={currentTaxRate?.name}
+                            name={translate('common.name')}
+                            onPress={canEditTaxFields ? () => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID)) : undefined}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'value')}
+                        errors={getLatestErrorField(currentTaxRate, 'value')}
                         pendingAction={currentTaxRate?.pendingFields?.value}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'value')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={currentTaxRate?.value}
-                            description={translate('workspace.taxes.value')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID))}
+                        <MenuItemField
+                            value={currentTaxRate?.value}
+                            name={translate('workspace.taxes.value')}
+                            onPress={canEditTaxFields ? () => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID)) : undefined}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
-                        errors={ErrorUtils.getLatestErrorField(currentTaxRate, 'code')}
+                        errors={getLatestErrorField(currentTaxRate, 'code')}
                         pendingAction={currentTaxRate?.pendingFields?.code}
                         errorRowStyles={styles.mh5}
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'code')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={taxCodeToShow}
-                            description={translate('workspace.taxes.taxCode')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (!PolicyUtils.isControlPolicy(policy)) {
-                                    Navigation.navigate(
-                                        ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                            policyID,
-                                            CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias,
-                                            ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID),
-                                        ),
-                                    );
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
-                            }}
+                        <MenuItemField
+                            value={taxCodeToShow}
+                            name={translate('workspace.taxes.taxCode')}
+                            onPress={
+                                canEditTaxFields
+                                    ? () => {
+                                          if (!isControlPolicy(policy)) {
+                                              Navigation.navigate(
+                                                  ROUTES.WORKSPACE_UPGRADE.getRoute(
+                                                      policyID,
+                                                      CONST.UPGRADE_FEATURE_INTRO_MAPPING.taxCodes.alias,
+                                                      ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID),
+                                                  ),
+                                              );
+                                              return;
+                                          }
+                                          Navigation.navigate(ROUTES.WORKSPACE_TAX_CODE.getRoute(`${policyID}`, taxID));
+                                      }
+                                    : undefined
+                            }
                         />
                     </OfflineWithFeedback>
                     {!!shouldShowDeleteMenuItem && (
-                        <MenuItem
-                            icon={Expensicons.Trashcan}
+                        <MenuItemAction
+                            icon={icons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => setIsDeleteModalVisible(true)}
+                            onPress={async () => {
+                                const {action} = await showConfirmModal({
+                                    title: translate('workspace.taxes.actions.delete'),
+                                    prompt: translate('workspace.taxes.deleteTaxConfirmation'),
+                                    confirmText: translate('common.delete'),
+                                    cancelText: translate('common.cancel'),
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                                });
+                                if (action === ModalActions.CONFIRM) {
+                                    deleteTaxRate();
+                                }
+                            }}
                         />
                     )}
                 </View>
-                <ConfirmModal
-                    title={translate('workspace.taxes.actions.delete')}
-                    isVisible={isDeleteModalVisible}
-                    onConfirm={deleteTaxRate}
-                    onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={translate('workspace.taxes.deleteTaxConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceEditTaxPage.displayName = 'WorkspaceEditTaxPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceEditTaxPage);

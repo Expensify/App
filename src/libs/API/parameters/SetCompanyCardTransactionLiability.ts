@@ -1,6 +1,7 @@
 type SetCompanyCardTransactionLiability = {
-    authToken?: string | null;
+    policyID: string;
     bankName: string;
+    domainAccountID: number;
     liabilityType: string;
 };
 

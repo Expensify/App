@@ -1,9 +1,12 @@
-import React from 'react';
 import type {AppStateStatus} from 'react-native';
-import {AppState} from 'react-native';
-import type AppStateType from './types';
 
-function useAppState() {
+import React from 'react';
+import {AppState} from 'react-native';
+
+import type AppStateType from './types';
+import type {UseAppStateProps} from './types';
+
+function useAppState({onAppStateChange}: UseAppStateProps = {}) {
     const [appState, setAppState] = React.useState<AppStateType>({
         isForeground: AppState.currentState === 'active',
         isInactive: AppState.currentState === 'inactive',
@@ -17,10 +20,12 @@ function useAppState() {
                 isInactive: nextAppState === 'inactive',
                 isBackground: nextAppState === 'background',
             });
+
+            onAppStateChange?.(nextAppState);
         }
         const subscription = AppState.addEventListener('change', handleAppStateChange);
         return () => subscription.remove();
-    }, []);
+    }, [onAppStateChange]);
 
     return appState;
 }

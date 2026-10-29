@@ -1,10 +1,17 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ButtonVariant} from '@styles/utils/types';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+
 import Button from './Button';
-import Header from './Header';
+import HeaderTitle from './HeaderTitle';
 import Modal from './Modal';
+import RenderHTML from './RenderHTML';
+import ScrollView from './ScrollView';
 import Text from './Text';
 
 type DecisionModalProps = {
@@ -20,6 +27,18 @@ type DecisionModalProps = {
     /** Text content used in second button */
     secondOptionText: string;
 
+    /** Whether the first option uses a success-themed button */
+    isFirstOptionSuccess?: boolean;
+
+    /** Whether the second option uses a success-themed button */
+    isSecondOptionSuccess?: boolean;
+
+    /** Whether the first option uses a danger-themed button */
+    isFirstOptionDanger?: boolean;
+
+    /** Whether the second option uses a danger-themed button */
+    isSecondOptionDanger?: boolean;
+
     /** onSubmit callback fired after clicking on first button */
     onFirstOptionSubmit?: () => void;
 
@@ -32,48 +51,99 @@ type DecisionModalProps = {
     /** Callback for closing modal */
     onClose: () => void;
 
-    /** Whether modal is visible */
+    /** Callback when modal has fully disappeared */
+    onModalHide?: () => void;
+
     isVisible: boolean;
+
+    /** Whether to handle browser navigation back to close the modal */
+    shouldHandleNavigationBack?: boolean;
+
+    /** Whether to render the prompt as HTML or plain text */
+    shouldRenderPromptAsHTML?: boolean;
 };
 
-function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, onFirstOptionSubmit, onSecondOptionSubmit, isSmallScreenWidth, onClose, isVisible}: DecisionModalProps) {
+function DecisionModal({
+    title,
+    prompt = '',
+    firstOptionText,
+    secondOptionText,
+    onFirstOptionSubmit,
+    onSecondOptionSubmit,
+    isSmallScreenWidth,
+    onClose,
+    onModalHide,
+    isVisible,
+    isFirstOptionDanger = false,
+    isFirstOptionSuccess = true,
+    isSecondOptionSuccess = false,
+    isSecondOptionDanger = false,
+    shouldHandleNavigationBack,
+    shouldRenderPromptAsHTML = true,
+}: DecisionModalProps) {
     const styles = useThemeStyles();
+
+    let firstOptionVariant: ButtonVariant | undefined;
+    if (isFirstOptionDanger) {
+        firstOptionVariant = CONST.BUTTON_VARIANT.DANGER;
+    } else if (isFirstOptionSuccess) {
+        firstOptionVariant = CONST.BUTTON_VARIANT.SUCCESS;
+    }
+
+    let secondOptionVariant: ButtonVariant | undefined;
+    if (isSecondOptionDanger) {
+        secondOptionVariant = CONST.BUTTON_VARIANT.DANGER;
+    } else if (isSecondOptionSuccess) {
+        secondOptionVariant = CONST.BUTTON_VARIANT.SUCCESS;
+    }
 
     return (
         <Modal
             onClose={onClose}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            innerContainerStyle={styles.pv0}
+            onModalHide={onModalHide}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View style={[styles.m5]}>
+            <ScrollView
+                contentContainerStyle={[styles.p5, styles.pb5]}
+                addBottomSafeAreaPadding={isSmallScreenWidth}
+            >
                 <View>
-                    <View style={[styles.flexRow, styles.mb4]}>
-                        <Header
-                            title={title}
-                            containerStyles={[styles.alignItemsCenter]}
-                        />
+                    <View style={[styles.flexRow, styles.mb5]}>
+                        <HeaderTitle style={styles.alignItemsCenter}>
+                            <HeaderTitle.Text>{title}</HeaderTitle.Text>
+                        </HeaderTitle>
                     </View>
-                    <Text>{prompt}</Text>
+                    {shouldRenderPromptAsHTML ? <RenderHTML html={prompt} /> : <Text>{prompt}</Text>}
                 </View>
                 {!!firstOptionText && (
                     <Button
-                        success
-                        style={[styles.mt4]}
+                        variant={firstOptionVariant}
+                        style={styles.mt5}
                         onPress={onFirstOptionSubmit}
-                        pressOnEnter
-                        text={firstOptionText}
-                    />
+                        size={CONST.BUTTON_SIZE.LARGE}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{firstOptionText}</Button.Text>
+                    </Button>
                 )}
                 <Button
-                    style={[styles.mt3, styles.noSelect]}
+                    style={[firstOptionText ? styles.mt3 : styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
-                    text={secondOptionText}
-                />
-            </View>
+                    variant={secondOptionVariant}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{secondOptionText}</Button.Text>
+                </Button>
+            </ScrollView>
         </Modal>
     );
 }
 
-DecisionModal.displayName = 'DecisionModal';
-
+export type {DecisionModalProps};
 export default DecisionModal;

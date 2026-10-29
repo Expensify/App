@@ -4,14 +4,13 @@ type PDFThumbnailProps = {
     /** Source URL for the preview PDF */
     previewSourceURL: string;
 
-    /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
-
-    /** Whether the PDF thumbnail requires an authToken */
-    isAuthTokenRequired?: boolean;
 
     /** Whether the PDF thumbnail can be loaded */
     enabled?: boolean;
+
+    /** Fit policy for the PDF thumbnail */
+    fitPolicy?: 0 | 1 | 2;
 
     /** Callback to call if PDF is password protected */
     onPassword?: () => void;
@@ -19,8 +18,8 @@ type PDFThumbnailProps = {
     /** Callback to call if PDF can't be loaded(corrupted) */
     onLoadError?: () => void;
 
-    /** Callback to call if PDF is loaded */
-    onLoadSuccess?: () => void;
+    /** Callback to call if PDF is loaded, with the document's page count when the renderer provides it */
+    onLoadSuccess?: (pageCount?: number) => void;
 };
 
 export default PDFThumbnailProps;

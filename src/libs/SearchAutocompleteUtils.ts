@@ -1,9 +1,58 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {SearchAutocompleteResult} from '@components/Search/types';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+
+import CONST from '@src/CONST';
+import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
+import type {OnyxCollection} from 'react-native-onyx';
+import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
+
 import {getTagNamesFromTagsLists} from './PolicyUtils';
-import * as autocompleteParser from './SearchParser/autocompleteParser';
+import {parse} from './SearchParser/autocompleteParser';
+import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
+
+const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+];
+
+type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
+type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
+
+/** The generated parser also produces non-canonical keys. Only prove the fields used by ordinary query consumers. */
+function isAutocompleteParserResult(value: unknown): value is AutocompleteParserResult {
+    'worklet';
+
+    if (typeof value !== 'object' || value === null || !('autocomplete' in value) || !('ranges' in value) || !Array.isArray(value.ranges)) {
+        return false;
+    }
+
+    const parsedRanges: unknown[] = value.ranges;
+    const ranges = value.autocomplete === null ? parsedRanges : [...parsedRanges, value.autocomplete];
+    for (const range of ranges) {
+        if (
+            typeof range !== 'object' ||
+            range === null ||
+            !('key' in range) ||
+            typeof range.key !== 'string' ||
+            !('value' in range) ||
+            typeof range.value !== 'string' ||
+            !('start' in range) ||
+            typeof range.start !== 'number' ||
+            !('length' in range) ||
+            typeof range.length !== 'number'
+        ) {
+            return false;
+        }
+    }
+    return true;
+}
 
 /**
  * Parses given query using the autocomplete parser.
@@ -11,70 +60,72 @@ import * as autocompleteParser from './SearchParser/autocompleteParser';
  */
 function parseForAutocomplete(text: string) {
     try {
-        const parsedAutocomplete = autocompleteParser.parse(text) as SearchAutocompleteResult;
+        const parsedAutocomplete: unknown = parse(text);
+        if (!isAutocompleteParserResult(parsedAutocomplete)) {
+            throw new Error('Invalid autocomplete parser result');
+        }
         return parsedAutocomplete;
     } catch (e) {
-        console.error(`Error when parsing autocopmlete query"`, e);
+        console.error(`Error when parsing autocomplete query"`, e);
     }
 }
 
 /**
  * Returns data for computing the `Tag` filter autocomplete list.
  */
-function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>, policyID?: string) {
-    const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
-    if (!singlePolicyTagsList) {
-        const uniqueTagNames = new Set<string>();
-        const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
-        tagListsUnpacked
-            .map(getTagNamesFromTagsLists)
-            .flat()
-            .forEach((tag) => uniqueTagNames.add(tag));
-        return Array.from(uniqueTagNames);
+function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
+    const uniqueTagNames = new Set<string>();
+    for (const tagList of Object.values(allPoliciesTagsLists ?? {})) {
+        if (!tagList) {
+            continue;
+        }
+        const tagNamesFromTagsLists = getTagNamesFromTagsLists(tagList);
+        for (const tag of tagNamesFromTagsLists) {
+            uniqueTagNames.add(tag);
+        }
     }
-    return getTagNamesFromTagsLists(singlePolicyTagsList);
+    return Array.from(uniqueTagNames);
 }
 
 /**
  * Returns data for computing the recent tags autocomplete list.
  */
-function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTags>, policyID?: string) {
-    const singlePolicyRecentTags: RecentlyUsedTags | undefined = allRecentTags?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`];
-    if (!singlePolicyRecentTags) {
-        const uniqueTagNames = new Set<string>();
-        Object.values(allRecentTags ?? {})
-            .map((recentTag) => Object.values(recentTag ?? {}))
-            .flat(2)
-            .forEach((tag) => uniqueTagNames.add(tag));
-        return Array.from(uniqueTagNames);
+function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTags>) {
+    const uniqueTagNames = new Set<string>();
+    for (const recentTagsForPolicy of Object.values(allRecentTags ?? {})) {
+        for (const recentTags of Object.values(recentTagsForPolicy ?? {})) {
+            for (const tag of recentTags) {
+                uniqueTagNames.add(tag);
+            }
+        }
     }
-    return Object.values(singlePolicyRecentTags ?? {}).flat(2);
+    return Array.from(uniqueTagNames);
 }
 
 /**
  * Returns data for computing the `Category` filter autocomplete list.
  */
-function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>, policyID?: string) {
-    const singlePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
-    if (!singlePolicyCategories) {
-        const uniqueCategoryNames = new Set<string>();
-        Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
-        return Array.from(uniqueCategoryNames);
+function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>) {
+    const uniqueCategoryNames = new Set<string>();
+    for (const policyCategories of Object.values(allPolicyCategories ?? {})) {
+        for (const category of Object.values(policyCategories ?? {})) {
+            uniqueCategoryNames.add(category.name);
+        }
     }
-    return Object.values(singlePolicyCategories ?? {}).map((category) => category.name);
+    return Array.from(uniqueCategoryNames);
 }
 
 /**
  * Returns data for computing the recent categories autocomplete list.
  */
-function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>, policyID?: string) {
-    const singlePolicyRecentCategories = allRecentCategories?.[`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`];
-    if (!singlePolicyRecentCategories) {
-        const uniqueCategoryNames = new Set<string>();
-        Object.values(allRecentCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category)));
-        return Array.from(uniqueCategoryNames);
+function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>) {
+    const uniqueCategoryNames = new Set<string>();
+    for (const recentCategories of Object.values(allRecentCategories ?? {})) {
+        for (const category of Object.values(recentCategories ?? {})) {
+            uniqueCategoryNames.add(category);
+        }
     }
-    return Object.values(singlePolicyRecentCategories ?? {}).map((category) => category);
+    return Array.from(uniqueCategoryNames);
 }
 
 /**
@@ -84,16 +135,7 @@ function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<Rec
  * because tax ids are generated based on a tax name, so they look like this: `id_My_Tax` and are not numeric.
  * That is why this function may seem a bit complex.
  */
-function getAutocompleteTaxList(taxRates: Record<string, string[]>, policy?: OnyxEntry<Policy>) {
-    if (policy) {
-        const policyTaxes = policy?.taxRates?.taxes ?? {};
-
-        return Object.keys(policyTaxes).map((taxID) => ({
-            taxRateName: policyTaxes[taxID].name,
-            taxRateIds: [taxID],
-        }));
-    }
-
+function getAutocompleteTaxList(taxRates: Record<string, string[]>) {
     return Object.keys(taxRates).map((taxName) => ({
         taxRateName: taxName,
         taxRateIds: taxRates[taxName].map((id) => taxRates[id] ?? id).flat(),
@@ -116,12 +158,271 @@ function getQueryWithoutAutocompletedPart(searchQuery: string) {
     return searchQuery.slice(0, sliceEnd);
 }
 
+/**
+ * Returns updated search query string with special case of comma after autocomplete handled.
+ * If prev query value had autocomplete, and the last thing user typed is a comma
+ * then we allow to continue autocompleting the next value by omitting the whitespace
+ */
+function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
+    const prevParsedQuery = parseForAutocomplete(prevQuery);
+
+    if (prevParsedQuery?.autocomplete && newQuery.endsWith(',')) {
+        return `${newQuery.slice(0, newQuery.length - 1).trim()},`;
+    }
+
+    return newQuery;
+}
+
+const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
+const userFriendlyReceiptTypeList = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
+const userFriendlyTransactionStatusList = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
+const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
+const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
+const userFriendlyStatusList = Object.values({
+    ...CONST.SEARCH.STATUS.EXPENSE,
+    ...CONST.SEARCH.STATUS.INVOICE,
+    ...CONST.SEARCH.STATUS.TRIP,
+    ...CONST.SEARCH.STATUS.TASK,
+}).map((value) => getUserFriendlyValue(value));
+
+const userFriendlyColumnList = new Set(
+    Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP)
+        .filter(([key]) => Object.values(CONST.SEARCH.TABLE_COLUMNS).some((column) => column === key))
+        .map(([, value]) => value),
+);
+
+/**
+ * @private
+ * Determines if a specific value in the search syntax can/should be highlighted as valid or not
+ */
+function filterOutRangesWithCorrectValue(
+    range: AutocompleteParserRange,
+    substitutionMap: SubstitutionMap,
+    userLogins: SharedValue<string[]>,
+    currencyList: SharedValue<string[]>,
+    categoryList: SharedValue<string[]>,
+    tagList: SharedValue<string[]>,
+    exportedToList: SharedValue<string[]>,
+    currentType: string,
+    hasExplicitType: boolean,
+) {
+    'worklet';
+
+    const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
+    const expenseTypeList = userFriendlyExpenseTypeList;
+    const receiptTypeList = userFriendlyReceiptTypeList;
+    const transactionStatusList = userFriendlyTransactionStatusList;
+    const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
+    const withdrawalStatusList = Object.values(CONST.SEARCH.SETTLEMENT_STATUS) as string[];
+    const paidStatusList = Object.values(CONST.SEARCH.PAID_STATUS) as string[];
+    const statusList = userFriendlyStatusList;
+    const groupByList = userFriendlyGroupByList;
+    const viewList = userFriendlyViewList;
+    const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
+    const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
+    const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
+    const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
+    const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
+    const footerCountList = Object.values(CONST.SEARCH.FOOTER_COUNT) as string[];
+    const footerTotalList = Object.values(CONST.SEARCH.FOOTER_TOTAL) as string[];
+
+    if (range.key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        return range.value.length > 0;
+    }
+
+    switch (range.key) {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
+            // `in:` is only supported for chats and tasks. A bare `in:` with no explicit type resolves to `type:chat`.
+            if (hasExplicitType && currentType !== CONST.SEARCH.DATA_TYPES.CHAT && currentType !== CONST.SEARCH.DATA_TYPES.TASK) {
+                return false;
+            }
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined;
+
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value) || range.value === CONST.SEARCH.ME;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY:
+            return currencyList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT:
+            return footerCountList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL:
+            return footerTotalList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
+            return typeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
+            return expenseTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
+            return receiptTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
+            return transactionStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
+            return withdrawalTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
+            return withdrawalStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS:
+            return paidStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS:
+            return statusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
+            return actionList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
+            return categoryList.get().includes(range.value) || range.value === CONST.SEARCH.CATEGORY_EMPTY_VALUE;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
+            return tagList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+            if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE && currentType !== CONST.SEARCH.DATA_TYPES.TRIP) {
+                return false;
+            }
+            return groupByList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
+            return viewList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD:
+            return booleanList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
+            return datePresetList.includes(range.value) || /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
+            return hasList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
+            return range.value.length > 0;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
+            return exportedToList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
+            return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED:
+            // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
+            return new RegExp(`^-?(?!.*[.,].*[.,])\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}(?:[.,]\\d{0,2})?$`).test(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
+            return userFriendlyColumnList.has(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
+            return isList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT: {
+            const num = Number(range.value);
+            return Number.isInteger(num) && num > 0;
+        }
+        default:
+            return false;
+    }
+}
+
+/**
+ * Parses input string using the autocomplete parser and returns array of markdown ranges that can be used by RNMarkdownTextInput.
+ * It is a simpler version of search parser that can be run on UI thread.
+ */
+function parseForLiveMarkdown(
+    input: string,
+    currentUserName: string,
+    map: SubstitutionMap,
+    userLogins: SharedValue<string[]>,
+    currencyList: SharedValue<string[]>,
+    categoryList: SharedValue<string[]>,
+    tagList: SharedValue<string[]>,
+    exportedToList: SharedValue<string[]>,
+): MarkdownRange[] {
+    'worklet';
+
+    const parsedAutocomplete: unknown = parse(input);
+    if (!isAutocompleteParserResult(parsedAutocomplete)) {
+        return [];
+    }
+    const ranges = parsedAutocomplete.ranges;
+
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeRange = ranges.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+
+    return ranges
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, exportedToList, currentType, !!typeRange))
+        .map((range) => {
+            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
+            const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
+
+            return {start: range.start, type, length: range.length};
+        });
+}
+
+/**
+ * Returns the trimmed search query that preserves comma-separated values for "name fields" like to, from, assignee, etc.
+ * This allows users to select multiple users by typing commas between selections.
+ *
+ * Ex: "to:user1," when selecting user2 -> preserves "to:user1," so result becomes "to:user1,user2"
+ * Ex: "to:user1" when selecting user2 -> returns "to:" so result becomes "to:user2"
+ */
+function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldKey: string | undefined): string {
+    if (!fieldKey) {
+        return getQueryWithoutAutocompletedPart(textInputValue);
+    }
+
+    const nameFieldKey = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.find((key) => key === fieldKey);
+
+    if (nameFieldKey) {
+        // The typed key can be the syntax form or the user-friendly form (e.g. paidBy vs paid-by). Match whichever appears last.
+        let fieldPattern = `${fieldKey}:`;
+        let keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+        const userFriendlyPattern = `${getUserFriendlyKey(nameFieldKey)}:`;
+        const userFriendlyKeyIndex = textInputValue.toLowerCase().lastIndexOf(userFriendlyPattern.toLowerCase());
+        if (userFriendlyKeyIndex > keyIndex) {
+            keyIndex = userFriendlyKeyIndex;
+            fieldPattern = userFriendlyPattern;
+        }
+
+        if (keyIndex !== -1) {
+            const afterFieldKey = textInputValue.substring(keyIndex + fieldPattern.length);
+            const lastCommaIndex = afterFieldKey.lastIndexOf(',');
+
+            if (lastCommaIndex !== -1) {
+                // Preserves "to:user1," when selecting user2
+                return textInputValue.substring(0, keyIndex + fieldPattern.length + lastCommaIndex + 1);
+            }
+            return textInputValue.substring(0, keyIndex + fieldPattern.length);
+        }
+        return getQueryWithoutAutocompletedPart(textInputValue);
+    }
+
+    const keyIndex = textInputValue.toLowerCase().lastIndexOf(`${fieldKey}:`);
+    return keyIndex !== -1 ? textInputValue.substring(0, keyIndex + fieldKey.length + 1) : getQueryWithoutAutocompletedPart(textInputValue);
+}
+
 export {
-    parseForAutocomplete,
-    getAutocompleteTags,
-    getAutocompleteRecentTags,
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
+    getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
+    getAutocompleteRecentTags,
+    getAutocompleteTags,
     getAutocompleteTaxList,
-    getQueryWithoutAutocompletedPart,
+    getTrimmedUserSearchQueryPreservingComma,
+    parseForAutocomplete,
+    parseForLiveMarkdown,
 };

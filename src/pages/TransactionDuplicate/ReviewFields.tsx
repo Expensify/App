@@ -1,14 +1,18 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
+
+import {fontScale} from '@styles/typography';
+
 import CONST from '@src/CONST';
 import type {ReviewDuplicates} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type FieldItemType<T extends keyof ReviewDuplicates> = {
     text: string;
@@ -17,44 +21,40 @@ type FieldItemType<T extends keyof ReviewDuplicates> = {
 };
 
 type ReviewFieldsProps<K extends keyof ReviewDuplicates> = {
-    /* Step Names which are displayed in stepper */
     stepNames: string[];
 
-    /* Label which is displyed to describe current step  */
+    /** Label which is displayed to describe current step */
     label: string;
 
-    /* Values to choose from */
     options: Array<{text: string; value: ReviewDuplicates[K]}> | undefined;
-
-    /* Current index */
     index: number;
-
-    /* Callback to what should happen after selecting row */
     onSelectRow: (item: FieldItemType<K>) => void;
+    selectedValue?: ReviewDuplicates[K];
 };
 
-function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, options, index, onSelectRow}: ReviewFieldsProps<K>) {
+function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, options, index, onSelectRow, selectedValue}: ReviewFieldsProps<K>) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    let falsyCount = 0;
+    const noneText = translate('violations.none');
+    let seenNone = false;
     const filteredOptions = options?.filter((name) => {
-        if (name.text !== translate('violations.none')) {
+        if (name.text !== noneText) {
             return true;
         }
-        falsyCount++;
-        return falsyCount <= 1;
+        if (seenNone) {
+            return false;
+        }
+        seenNone = true;
+        return true;
     });
 
-    const sections = useMemo(
-        () =>
-            filteredOptions?.map((option) => ({
-                text: option.text,
-                keyForList: option.text,
-                value: option.value,
-            })),
-        [filteredOptions],
-    );
+    const optionRows = filteredOptions?.map((option, idx) => ({
+        text: option.text,
+        keyForList: `${option.text}-${idx}`,
+        value: option.value,
+        isSelected: option.value === selectedValue,
+    }));
 
     return (
         <View
@@ -66,27 +66,28 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
                     <InteractiveStepSubHeader
                         stepNames={stepNames}
                         startStepIndex={index}
+                        currentStepAccessibilityDescription={label}
                     />
                 </View>
             )}
 
             <Text
                 family="EXP_NEW_KANSAS_MEDIUM"
-                fontSize={variables.fontSizeLarge}
+                fontSize={fontScale.pageHeader}
                 style={[styles.pb5, styles.ph5, stepNames.length < 1 && styles.mt3]}
             >
                 {label}
             </Text>
             <SelectionList
-                sections={[{data: sections ?? []}]}
-                ListItem={RadioListItem}
+                data={optionRows ?? []}
+                ListItem={SingleSelectListItem}
                 onSelectRow={onSelectRow}
+                shouldSingleExecuteRowSelect
+                initiallyFocusedItemKey={optionRows?.find((option) => option.isSelected)?.keyForList}
             />
         </View>
     );
 }
-
-ReviewFields.displayName = 'ReviewFields';
 
 export default ReviewFields;
 export type {FieldItemType};

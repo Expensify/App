@@ -1,51 +1,80 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import useCloseImportPage from '@hooks/useCloseImportPage';
+import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
+
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
+import {buildCategoriesFromSpreadsheet} from '@libs/ImportCategoriesUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy} from '@libs/PolicyUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy} from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ImportedCategoriesPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORTED>;
+import type {RouteProp} from '@react-navigation/native';
+
+import React, {useState} from 'react';
+
+type ImportedCategoriesPageProps = {
+    route: RouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED>;
+};
 function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingCategories, setIsImportingCategories] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
-    const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+
+    const {setIsClosing} = useCloseImportPage();
+    const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
+
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
-    const isQuickSettingsFlow = !!backTo;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED;
+    const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
+    const workspaceImportPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path, ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
         roles.push(
             {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
             {text: translate('common.name'), value: CONST.CSV_IMPORT_COLUMNS.NAME, isRequired: true},
-            {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED, isRequired: true},
+            {text: translate('common.enabled'), value: CONST.CSV_IMPORT_COLUMNS.ENABLED},
         );
 
         if (isControlPolicy(policy)) {
-            roles.push({text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE});
+            roles.push(
+                {text: translate('workspace.categories.glCode'), value: CONST.CSV_IMPORT_COLUMNS.GL_CODE},
+                {text: translate('workspace.categories.payrollCode'), value: CONST.CSV_IMPORT_COLUMNS.PAYROLL_CODE},
+                {text: translate('workspace.rules.categoryRules.requireReceiptsOver'), value: CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_RECEIPT},
+                {text: translate('workspace.rules.categoryRules.requireItemizedReceiptsOver'), value: CONST.CSV_IMPORT_COLUMNS.MAX_AMOUNT_NO_ITEMIZED_RECEIPT},
+            );
+        }
+
+        if (arePolicyRulesEnabled(policy, policyCategories)) {
+            roles.push(
+                {text: translate('workspace.rules.categoryRules.requireDescription'), value: CONST.CSV_IMPORT_COLUMNS.ARE_COMMENTS_REQUIRED},
+                {text: translate('workspace.rules.categoryRules.descriptionHint'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT_HINT},
+                {text: translate('workspace.rules.categoryRules.flagAmountsOver'), value: CONST.CSV_IMPORT_COLUMNS.MAX_EXPENSE_AMOUNT},
+                {text: translate('workspace.rules.categoryRules.expenseLimitType'), value: CONST.CSV_IMPORT_COLUMNS.EXPENSE_LIMIT_TYPE},
+            );
         }
 
         return roles;
@@ -55,86 +84,79 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
-    const validate = useCallback(() => {
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Errors = {};
 
-        if (!requiredColumns.every((requiredColumn) => columns.includes(requiredColumn.value))) {
-            // eslint-disable-next-line rulesdir/prefer-early-return
-            requiredColumns.forEach((requiredColumn) => {
-                if (!columns.includes(requiredColumn.value)) {
-                    errors.required = translate('spreadsheet.fieldNotMapped', {fieldName: requiredColumn.text});
-                }
-            });
+        const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
+        if (missingRequiredColumns) {
+            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
         } else {
             const duplicate = findDuplicate(columns);
             const duplicateColumn = columnRoles.find((role) => role.value === duplicate);
+
+            const categoriesNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
+            const categoriesNames = categoriesNamesColumn !== -1 ? spreadsheet?.data[categoriesNamesColumn] : [];
+            const containsEmptyName = categoriesNames?.some((name, index) => (!containsHeader || index > 0) && !name?.toString().trim());
+
             if (duplicateColumn) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', {fieldName: duplicateColumn.text});
+                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicateColumn.text);
+            } else if (containsEmptyName) {
+                errors.emptyNames = translate('spreadsheet.emptyMappedField', translate('common.name'));
             } else {
                 errors = {};
             }
         }
         return errors;
-    }, [requiredColumns, spreadsheet?.columns, translate, columnRoles]);
+    };
 
-    const importCategories = useCallback(() => {
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingCategories(false);
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+    };
+
+    const importCategories = async () => {
         setIsValidationEnabled(true);
         const errors = validate();
         if (Object.keys(errors).length > 0) {
             return;
         }
 
-        const columns = Object.values(spreadsheet?.columns ?? {});
-        const categoriesNamesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.NAME);
-        const categoriesGLCodeColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.GL_CODE);
-        const categoriesEnabledColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ENABLED);
-        const categoriesNames = spreadsheet?.data[categoriesNamesColumn].map((name) => name);
-        const categoriesEnabled = categoriesEnabledColumn !== -1 ? spreadsheet?.data[categoriesEnabledColumn].map((enabled) => enabled) : [];
-        const categoriesGLCode = categoriesGLCodeColumn !== -1 ? spreadsheet?.data[categoriesGLCodeColumn].map((glCode) => glCode) : [];
-        const categories = categoriesNames?.slice(containsHeader ? 1 : 0).map((name, index) => {
-            const categoryAlreadyExists = policyCategories?.[name];
-            const existingGLCodeOrDefault = categoryAlreadyExists?.['GL Code'] ?? '';
-            return {
-                name,
-                enabled: categoriesEnabledColumn !== -1 ? categoriesEnabled?.[containsHeader ? index + 1 : index] === 'true' : true,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                'GL Code': categoriesGLCodeColumn !== -1 ? categoriesGLCode?.[containsHeader ? index + 1 : index] ?? '' : existingGLCodeOrDefault,
-            };
-        });
+        const categories = buildCategoriesFromSpreadsheet(spreadsheet, policyCategories);
 
         if (categories) {
             setIsImportingCategories(true);
-            importPolicyCategories(policyID, categories);
+            const importFinalModal = await importPolicyCategories(policyID, categories, policyCategories);
+            const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
+            if (!didShowImportFinalModal) {
+                setIsImportingCategories(false);
+                return;
+            }
+            closeImportPageAndModal();
         }
-    }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
+    };
 
-    const hasAccountingConnections = PolicyUtils.hasAccountingConnections(policy);
-    if (hasAccountingConnections) {
-        return <NotFoundPage />;
-    }
-
-    const spreadsheetColumns = spreadsheet?.data;
-    if (!spreadsheetColumns) {
+    const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
 
-    const closeImportPageAndModal = () => {
-        setIsImportingCategories(false);
-        closeImportPage();
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
-    };
+    const spreadsheetColumns = spreadsheet?.data;
+
+    if (hasAccountingConnections || !spreadsheetColumns) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
-            testID={ImportedCategoriesPage.displayName}
-            includeSafeAreaPaddingBottom
+            testID="ImportedCategoriesPage"
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
-                onBackButtonPress={() =>
-                    Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyID))
-                }
+                onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyID, backTo) : workspaceImportPath)}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}
@@ -145,20 +167,8 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 isButtonLoading={isImportingCategories}
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.CATEGORIES_ARTICLE_LINK}
             />
-
-            <ConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-            />
         </ScreenWrapper>
     );
 }
-
-ImportedCategoriesPage.displayName = 'ImportedCategoriesPage';
 
 export default ImportedCategoriesPage;

@@ -1,87 +1,73 @@
-import React, {useCallback} from 'react';
-import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+
+import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {addErrorMessage} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryForm';
 import type {PolicyCategories} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {Keyboard} from 'react-native';
+
 type CategoryFormProps = {
-    /** All policy categories */
     policyCategories: OnyxEntry<PolicyCategories>;
-
-    /** The name of the category */
     categoryName?: string;
-
-    /** Function to call when the form is submitted */
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => void;
-
-    /** Function to validate the edited values of the form */
     validateEdit?: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>;
+
+    /** Whether to add bottom safe area padding to the form. Should be false when the parent wrapper already handles it. */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: CategoryFormProps) {
+function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit, addBottomSafeAreaPadding = true}: CategoryFormProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
-            const newCategoryName = values.categoryName.trim();
+    const decodedCategoryName = getDecodedCategoryName(categoryName ?? '');
 
-            if (!ValidationUtils.isRequiredFulfilled(newCategoryName)) {
-                errors.categoryName = translate('workspace.categories.categoryRequiredError');
-            } else if (policyCategories?.[newCategoryName]) {
-                errors.categoryName = translate('workspace.categories.existingCategoryError');
-            } else if (newCategoryName === CONST.INVALID_CATEGORY_NAME) {
-                errors.categoryName = translate('workspace.categories.invalidCategoryName');
-            } else if ([...newCategoryName].length > CONST.CATEGORY_NAME_LIMIT) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(
-                    errors,
-                    'categoryName',
-                    translate('common.error.characterLimitExceedCounter', {length: [...newCategoryName].length, limit: CONST.CATEGORY_NAME_LIMIT}),
-                );
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM> = {};
+        const nameError = getCategoryNameError(policyCategories, values.categoryName);
 
-            return errors;
-        },
-        [policyCategories, translate],
-    );
+        if (nameError) {
+            addErrorMessage(errors, 'categoryName', getCategoryNameErrorMessage(translate, nameError, values.categoryName));
+        }
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-            Keyboard.dismiss();
-            onSubmit(values);
-        },
-        [onSubmit],
-    );
+        return errors;
+    };
+
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
+        Keyboard.dismiss();
+        onSubmit(values);
+    };
 
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM}
             onSubmit={submit}
             submitButtonText={translate('common.save')}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            validate={validateEdit || validate}
+            validate={validateEdit ?? validate}
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         >
             <InputWrapper
                 ref={inputCallbackRef}
                 InputComponent={TextInput}
-                maxLength={CONST.CATEGORY_NAME_LIMIT}
-                defaultValue={categoryName}
+                defaultValue={decodedCategoryName}
                 label={translate('common.name')}
                 accessibilityLabel={translate('common.name')}
                 inputID={INPUT_IDS.CATEGORY_NAME}
@@ -90,7 +76,5 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
         </FormProvider>
     );
 }
-
-CategoryForm.displayName = 'CategoryForm';
 
 export default CategoryForm;

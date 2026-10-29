@@ -1,0 +1,125 @@
+import {
+    SearchQueryActionsContext,
+    SearchQueryContext,
+    SearchResultsActionsContext,
+    SearchResultsContext,
+    SearchSelectionActionsContext,
+    SearchSelectionContext,
+} from '@components/Search/SearchContext';
+import {SearchSelectionClearGenerationContext} from '@components/Search/SearchContextDefinitions';
+import type {
+    SearchActionsContextValue,
+    SearchQueryActionsValue,
+    SearchQueryContextValue,
+    SearchResultsActionsValue,
+    SearchResultsContextValue,
+    SearchSelectionActionsValue,
+    SearchSelectionContextValue,
+    SearchStateContextValue,
+} from '@components/Search/types';
+
+import React from 'react';
+
+type MockSearchContextProviderProps = {
+    state: SearchStateContextValue;
+    actions: SearchActionsContextValue;
+
+    /** The counter a range session ends on, so a test can clear the selection the way the provider does */
+    selectionClearGeneration?: number;
+
+    children: React.ReactNode;
+};
+
+function splitState(value: SearchStateContextValue): {
+    query: SearchQueryContextValue;
+    results: SearchResultsContextValue;
+    selection: SearchSelectionContextValue;
+} {
+    return {
+        query: {
+            currentSearchHash: value.currentSearchHash,
+            currentSimilarSearchHash: value.currentSimilarSearchHash,
+            currentSearchKey: value.currentSearchKey,
+            currentSearchQueryJSON: value.currentSearchQueryJSON,
+            currentDefaultSearchQueryJSON: value.currentDefaultSearchQueryJSON,
+            currentDefaultSearchQueryFilterKeys: value.currentDefaultSearchQueryFilterKeys,
+            suggestedSearches: value.suggestedSearches,
+            shouldResetSearchQuery: value.shouldResetSearchQuery,
+        },
+        results: {
+            currentSearchResults: value.currentSearchResults,
+            currentSearchTransactionsByReportID: value.currentSearchTransactionsByReportID,
+            currentSearchViolations: value.currentSearchViolations,
+            shouldUseLiveData: value.shouldUseLiveData,
+            sortedReportIDs: value.sortedReportIDs,
+            shouldShowFiltersBarLoading: value.shouldShowFiltersBarLoading,
+            lastSearchType: value.lastSearchType,
+        },
+        selection: {
+            selectedTransactions: value.selectedTransactions,
+            excludedTransactions: value.excludedTransactions,
+            selectedTransactionIDs: value.selectedTransactionIDs,
+            selectedReports: value.selectedReports,
+            currentSelectedTransactionReportID: value.currentSelectedTransactionReportID,
+            shouldTurnOffSelectionMode: value.shouldTurnOffSelectionMode,
+            hasSelectedTransactions: value.hasSelectedTransactions,
+            areAllMatchingItemsSelected: value.areAllMatchingItemsSelected,
+        },
+    };
+}
+
+function splitActions(value: SearchActionsContextValue): {
+    query: SearchQueryActionsValue;
+    results: SearchResultsActionsValue;
+    selection: SearchSelectionActionsValue;
+} {
+    return {
+        query: {setShouldResetSearchQuery: value.setShouldResetSearchQuery, getSearchKeyForQuery: value.getSearchKeyForQuery},
+        results: {
+            setSortedReportIDs: value.setSortedReportIDs,
+            setShouldShowFiltersBarLoading: value.setShouldShowFiltersBarLoading,
+            setLastSearchType: value.setLastSearchType,
+        },
+        selection: {
+            setSelectedTransactions: value.setSelectedTransactions,
+            getSelectedTransactions: value.getSelectedTransactions,
+            getExcludedTransactions: value.getExcludedTransactions,
+            getAreAllMatchingItemsSelected: value.getAreAllMatchingItemsSelected,
+            applySelection: value.applySelection,
+            setSelectedReports: value.setSelectedReports,
+            setCurrentSelectedTransactionReportID: value.setCurrentSelectedTransactionReportID,
+            clearSelectedTransactions: value.clearSelectedTransactions,
+            removeTransaction: value.removeTransaction,
+            selectAllMatchingItems: value.selectAllMatchingItems,
+        },
+    };
+}
+
+function MockSearchContextProvider({state, actions, selectionClearGeneration = 0, children}: MockSearchContextProviderProps) {
+    const stateSlices = splitState(state);
+    const actionsSlices = splitActions(actions);
+    // Answered from the state the checkboxes render from, so the range and the rows cannot read different selections.
+    const selectionActions: SearchSelectionActionsValue = {
+        ...actionsSlices.selection,
+        getSelectedTransactions: actions.getSelectedTransactions ?? (() => stateSlices.selection.selectedTransactions),
+        getExcludedTransactions: actions.getExcludedTransactions ?? (() => stateSlices.selection.excludedTransactions),
+        getAreAllMatchingItemsSelected: actions.getAreAllMatchingItemsSelected ?? (() => stateSlices.selection.areAllMatchingItemsSelected),
+    };
+    return (
+        <SearchQueryContext value={stateSlices.query}>
+            <SearchQueryActionsContext value={actionsSlices.query}>
+                <SearchResultsContext value={stateSlices.results}>
+                    <SearchResultsActionsContext value={actionsSlices.results}>
+                        <SearchSelectionContext value={stateSlices.selection}>
+                            <SearchSelectionActionsContext value={selectionActions}>
+                                <SearchSelectionClearGenerationContext value={selectionClearGeneration}>{children}</SearchSelectionClearGenerationContext>
+                            </SearchSelectionActionsContext>
+                        </SearchSelectionContext>
+                    </SearchResultsActionsContext>
+                </SearchResultsContext>
+            </SearchQueryActionsContext>
+        </SearchQueryContext>
+    );
+}
+
+export default MockSearchContextProvider;

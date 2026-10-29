@@ -1,18 +1,31 @@
-import React from 'react';
-import type {MutableRefObject} from 'react';
-import type {TextInput} from 'react-native';
+import type {ComposerRef} from '@components/Composer/types';
+
 import SCREENS from '@src/SCREENS';
-import getTopmostRouteName from './Navigation/getTopmostRouteName';
-import isReportOpenInRHP from './Navigation/isReportOpenInRHP';
+
+import type {ComponentRef, RefObject} from 'react';
+import type {TextInput} from 'react-native';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import React from 'react';
+
+import isReportOpenInRHP from './Navigation/helpers/isReportOpenInRHP';
 import navigationRef from './Navigation/navigationRef';
+import preventTextInputFocusOnFirstResponderOnce from './preventTextInputFocusOnFirstResponderOnce';
+
+type ComposerType = 'main' | 'edit';
 
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
-const composerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
-
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
-const editComposerRef: MutableRefObject<TextInput | null> = React.createRef<TextInput>();
+const composerRef = React.createRef<ComposerRef>();
+const editComposerRef = React.createRef<ComposerRef>();
+
+/**
+ * There can be 2 composers present at the same time. This ref is for the side panel.
+ */
+const sidePanelComposerRef: RefObject<ComponentRef<typeof TextInput> | ComposerRef | null> = React.createRef<ComponentRef<typeof TextInput> | ComposerRef>();
+
 // There are two types of focus callbacks: priority and general
 // Priority callback would take priority if it existed
 let priorityFocusCallback: FocusCallback | null = null;
@@ -38,7 +51,8 @@ function onComposerFocus(callback: FocusCallback | null, isPriorityCallback = fa
 function focus(shouldFocusForNonBlurInputOnTapOutside?: boolean) {
     /** Do not trigger the refocusing when the active route is not the report screen */
     const navigationState = navigationRef.getState();
-    if (!navigationState || (!isReportOpenInRHP(navigationState) && getTopmostRouteName(navigationState) !== SCREENS.REPORT)) {
+    const focusedRoute = findFocusedRoute(navigationState);
+    if (!navigationState || (!isReportOpenInRHP(navigationState) && focusedRoute?.name !== SCREENS.REPORT)) {
         return;
     }
 
@@ -82,12 +96,33 @@ function isEditFocused(): boolean {
     return !!editComposerRef.current?.isFocused();
 }
 
+/**
+ * This will prevent the composer's text input from focusing the next time it becomes the
+ * first responder in the UIResponder chain. (iOS only, no-op on Android)
+ */
+function preventComposerFocusOnFirstResponderOnce() {
+    preventTextInputFocusOnFirstResponderOnce(composerRef);
+}
+
+/**
+ * This will prevent the edit composer's text input from focusing the next time it becomes the
+ * first responder in the UIResponder chain. (iOS only, no-op on Android)
+ */
+function preventEditComposerFocusOnFirstResponderOnce() {
+    preventTextInputFocusOnFirstResponderOnce(editComposerRef);
+}
+
 export default {
     composerRef,
+    sidePanelComposerRef,
     onComposerFocus,
     focus,
     clear,
     isFocused,
     editComposerRef,
     isEditFocused,
+    preventComposerFocusOnFirstResponderOnce,
+    preventEditComposerFocusOnFirstResponderOnce,
 };
+
+export type {ComposerType};

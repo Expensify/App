@@ -1,9 +1,10 @@
 ---
 name: Accessibility issue template
 about: A template to follow when creating a new issue for accessibility failures
+labels: ["Accessibility", "Weekly"]
 ---
 
-If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/contributingGuides/CONTRIBUTING.md) for onboarding and email contributors@expensify.com to request to join our Slack channel!
+If you haven’t already, check out our [contributing guidelines](https://github.com/Expensify/ReactNativeChat/blob/main/contributingGuides/CONTRIBUTING.md) for onboarding. To join our Slack channel, fill out [this form](https://forms.gle/Q7hnhUJPnQCK7Fe56). 
 ___
 
 ## Action Performed:
@@ -35,12 +36,15 @@ What can we do to fix the issue?
 Check off any platforms that are affected by this issue
 --->
 Which of our officially supported platforms is this issue occurring on? Please only tick the box if you have provided a screen-recording in the thread for each platform:
-- [ ] Android: Native
+- [ ] Android: App
 - [ ] Android: mWeb Chrome
-- [ ] iOS: Native
+- [ ] iOS: App
 - [ ] iOS: mWeb Safari
+- [ ] iOS: mWeb Chrome
+- [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
-- [ ] MacOS: Desktop
+
+## Screenshots/Videos
 
 **Version Number:**
 **Reproducible in staging?:**

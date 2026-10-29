@@ -1,360 +1,243 @@
-import {useFocusEffect, useNavigationState} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import * as Expensicons from '@components/Icon/Expensicons';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
+import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
+import useHasApprovalWorkflowWithNonMemberApprover from '@hooks/useHasApprovalWorkflowWithNonMemberApprover';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
+import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useWorkspaceAgents from '@hooks/useWorkspaceAgents';
+
 import {isConnectionInProgress} from '@libs/actions/connections';
-import * as CardUtils from '@libs/CardUtils';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import getTopmostRouteName from '@libs/Navigation/getTopmostRouteName';
+import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
+import {getRules} from '@libs/actions/Policy/Rules';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
+import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
+import WorkspaceCreationReveal from '@libs/Navigation/helpers/WorkspaceCreationReveal';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
-import * as App from '@userActions/App';
-import * as Policy from '@userActions/Policy/Policy';
-import * as ReimbursementAccount from '@userActions/ReimbursementAccount';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {canMemberRead, shouldShowPolicy as checkIfShouldShowPolicy, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
+
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {TupleToUnion} from 'type-fest';
+
+import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigationState} from '@react-navigation/native';
+import {createHasExpenseDefaultRuleErrorsSelector} from '@selectors/Rule';
+import {emailSelector} from '@selectors/Session';
+import React, {useCallback, useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+
+import useConnectionsMovedTooltip from './connections/useConnectionsMovedTooltip';
+import getWorkspaceMenuItems from './getWorkspaceMenuItems';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
-type WorkspaceMenuItem = {
-    translationKey: TranslationPaths;
-    icon: IconAsset;
-    action: () => void;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    routeName?:
-        | typeof SCREENS.WORKSPACE.ACCOUNTING.ROOT
-        | typeof SCREENS.WORKSPACE.INITIAL
-        | typeof SCREENS.WORKSPACE.INVOICES
-        | typeof SCREENS.WORKSPACE.DISTANCE_RATES
-        | typeof SCREENS.WORKSPACE.WORKFLOWS
-        | typeof SCREENS.WORKSPACE.CATEGORIES
-        | typeof SCREENS.WORKSPACE.TAGS
-        | typeof SCREENS.WORKSPACE.TAXES
-        | typeof SCREENS.WORKSPACE.MORE_FEATURES
-        | typeof SCREENS.WORKSPACE.PROFILE
-        | typeof SCREENS.WORKSPACE.MEMBERS
-        | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
-        | typeof SCREENS.WORKSPACE.COMPANY_CARDS
-        | typeof SCREENS.WORKSPACE.REPORT_FIELDS
-        | typeof SCREENS.WORKSPACE.RULES
-        | typeof SCREENS.WORKSPACE.PER_DIEM;
-    badgeText?: string;
-};
+type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
 
-type WorkspaceInitialPageProps = WithPolicyAndFullscreenLoadingProps & StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.INITIAL>;
-
-type PolicyFeatureStates = Record<PolicyFeatureName, boolean>;
-
-function dismissError(policyID: string, pendingAction: PendingAction | undefined) {
+function dismissError(policyID: string | undefined, pendingAction: PendingAction | undefined) {
     if (!policyID || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        PolicyUtils.goBackFromInvalidPolicy();
-        Policy.removeWorkspace(policyID);
+        goBackFromInvalidPolicy();
+        if (policyID) {
+            removeWorkspace(policyID);
+        }
     } else {
-        Policy.clearErrors(policyID);
+        clearErrors(policyID);
     }
 }
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
-    const policy = policyDraft?.id ? policyDraft : policyProp;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policy?.id ?? '-1');
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
-    const hasPolicyCreationError = !!(policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors));
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID ?? '-1'}`);
-    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
+    const tabRootScrollProps = useTabRootScrollProps(styles.flexColumn);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const {isBetaEnabled} = usePermissions();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const isFocused = useIsFocused();
+    const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
+    const activeRoute = useNavigationState((state) => findFocusedRoute(state)?.name);
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();
-    const activeRoute = useNavigationState(getTopmostRouteName);
-    const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
 
-    const prevPendingFields = usePrevious(policy?.pendingFields);
-    const policyFeatureStates = useMemo(
-        () => ({
-            [CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]: policy?.areDistanceRatesEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]: policy?.areWorkflowsEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]: policy?.areCategoriesEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections),
-            [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
-            [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
-        }),
-        [policy],
-    ) as PolicyFeatureStates;
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const policy = policyDraft?.id ? policyDraft : policyProp;
+    const policyID = policy?.id;
+    const routePolicyID = route.params?.policyID;
 
-    const fetchPolicyData = useCallback(() => {
-        if (policyDraft?.id) {
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${routePolicyID}`);
+    const [hasMerchantRuleErrors] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createHasExpenseDefaultRuleErrorsSelector(policyID)});
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policyID);
+    const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
+    const hasApprovalWorkflowWithNonMemberApprover = useHasApprovalWorkflowWithNonMemberApprover(policyID);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Building',
+        'CalendarSolid',
+        'Car',
+        'Coins',
+        'CreditCard',
+        'Document',
+        'ExpensifyAppIcon',
+        'ExpensifyCard',
+        'Folder',
+        'Gear',
+        'Hashtag',
+        'InvoiceGeneric',
+        'Receipt',
+        'Briefcase',
+        'Sync',
+        'Connect',
+        'Tag',
+        'Users',
+        'Workflows',
+        'LuggageWithLines',
+        'Clock',
+        'Bolt',
+        'Bot',
+        'UserPlus',
+    ]);
+
+    const policyName = policy?.name ?? '';
+    const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
+    const shouldShowRBR = shouldShowRbrForWorkspaceAccountID[workspaceAccountID];
+
+    const policyAvatar = !policy
+        ? {source: expensifyIcons.ExpensifyAppIcon, name: CONST.EXPENSIFY_ICON_NAME, type: CONST.ICON_TYPE_AVATAR}
+        : {
+              source: policy.avatarURL ?? '',
+              name: policy.name ?? '',
+              type: CONST.ICON_TYPE_WORKSPACE,
+              id: policy.id,
+          };
+
+    const prevPendingFields = usePrevious(policy?.pendingFields);
+
+    const prevPolicy = usePrevious(policy);
+    const shouldShowPolicy = checkIfShouldShowPolicy(policy, true, currentUserLogin, true);
+    const isPendingDelete = isPendingDeletePolicy(policy);
+    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
+    // While the policy is being fetched (e.g., right after joinAccessiblePolicy), the role is not yet populated,
+    // so checkIfShouldShowPolicy returns false. Suppress NotFound during this loading window.
+    const computedShouldShowNotFoundPage = isWorkspacesTabFocused && !shouldShowPolicy && !policy?.isLoading && (!isPendingDelete || prevIsPendingDelete);
+    // Latch to true: once the not-found state is detected, keep showing it so the normal
+    // workspace content doesn't flash during the exit animation when navigation state
+    // changes (e.g., isWorkspacesTabFocused becomes false after StackActions.pop()).
+    const prevShouldShowNotFoundPage = usePrevious(computedShouldShowNotFoundPage);
+    const shouldShowNotFoundPage = computedShouldShowNotFoundPage || !!prevShouldShowNotFoundPage;
+    const fetchPolicyData = () => {
+        if (policyDraft?.id || !isFocused || !routePolicyID) {
             return;
         }
-        Policy.openPolicyInitialPage(route.params.policyID);
-    }, [policyDraft?.id, route.params.policyID]);
-
+        openPolicyInitialPage(routePolicyID);
+        // Deliberately not `useRulesPrefetch`, which fetches once per session for screens that only need a count.
+        // Opening a workspace is the point at which its rules have to be current, including after a reconnect.
+        getRules();
+    };
     useNetwork({onReconnect: fetchPolicyData});
-
     useFocusEffect(
         useCallback(() => {
             fetchPolicyData();
         }, [fetchPolicyData]),
     );
 
-    const policyID = policy?.id ?? '-1';
-    const policyName = policy?.name ?? '';
-
+    // Navigate away when workspace is deleted
     useEffect(() => {
-        if (!isCurrencyModalOpen || policy?.outputCurrency !== CONST.CURRENCY.USD) {
+        if (!isFocused || isEmptyObject(prevPolicy) || prevIsPendingDelete || !isPendingDelete) {
             return;
         }
-        setIsCurrencyModalOpen(false);
-    }, [policy?.outputCurrency, isCurrencyModalOpen]);
+        goBackFromInvalidPolicy();
+    }, [isFocused, isPendingDelete, policy, prevIsPendingDelete, prevPolicy]);
 
-    /** Call update workspace currency and hide the modal */
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        Policy.updateGeneralSettings(policyID, policyName, CONST.CURRENCY.USD);
-        setIsCurrencyModalOpen(false);
-        ReimbursementAccount.navigateToBankAccountRoute(policyID);
-    }, [policyID, policyName]);
+    // The Vendors row gate below reads policy.connections (via hasVendorFeature and
+    // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page
+    // requiring connections is opened. Prefetch it here, gated on read-access. It can't be
+    // narrowed to vendor-capable workspaces because that answer lives in the very data being
+    // fetched. The hook already skips the fetch when the app is offline, when the workspace has
+    // no accounting connection, and when the data has already been fetched.
+    const canReadVendors = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.VENDORS);
+    usePolicyConnectionsPrefetch(policy, canReadVendors);
 
-    const hasMembersError = PolicyUtils.shouldShowEmployeeListError(policy);
-    const hasPolicyCategoryError = PolicyUtils.hasPolicyCategoriesError(policyCategories);
-    const hasGeneralSettingsError =
-        !isEmptyObject(policy?.errorFields?.name ?? {}) ||
-        !isEmptyObject(policy?.errorFields?.avatarURL ?? {}) ||
-        !isEmptyObject(policy?.errorFields?.ouputCurrency ?? {}) ||
-        !isEmptyObject(policy?.errorFields?.address ?? {});
-    const {login} = useCurrentUserPersonalDetails();
-    const shouldShowProtectedItems = PolicyUtils.isPolicyAdmin(policy, login);
-    const isPaidGroupPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-    const [featureStates, setFeatureStates] = useState(policyFeatureStates);
+    // Agents errors can only exist on manageable agents
+    const {manageableWorkspaceAgents} = useWorkspaceAgents(policy);
+    const hasAgentErrors = hasAgentErrorsSelector(manageableWorkspaceAgents);
 
-    const protectedCollectPolicyMenuItems: WorkspaceMenuItem[] = [];
-
-    // We only update feature states if they aren't pending.
-    // These changes are made to synchronously change feature states along with AccessOrNotFoundWrapperComponent.
-    useEffect(() => {
-        setFeatureStates((currentFeatureStates) => {
-            const newFeatureStates = {} as PolicyFeatureStates;
-            (Object.keys(policy?.pendingFields ?? {}) as PolicyFeatureName[]).forEach((key) => {
-                const isFeatureEnabled = PolicyUtils.isPolicyFeatureEnabled(policy, key);
-                newFeatureStates[key] =
-                    prevPendingFields?.[key] !== policy?.pendingFields?.[key] || isOffline || !policy?.pendingFields?.[key] ? isFeatureEnabled : currentFeatureStates[key];
-            });
-            return {
-                ...policyFeatureStates,
-                ...newFeatureStates,
-            };
-        });
-    }, [policy, isOffline, policyFeatureStates, prevPendingFields]);
-
-    useEffect(() => {
-        App.confirmReadyToOpenApp();
-    }, []);
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]) {
-        const currencyCode = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.invoices',
-            icon: Expensicons.InvoiceGeneric,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.INVOICES,
-            badgeText: `${CurrencyUtils.getCurrencySymbol(currencyCode)}${CurrencyUtils.convertToFrontendAmountAsString(
-                policy?.invoice?.bankAccount?.stripeConnectAccountBalance ?? 0,
-                currencyCode,
-            )}`,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.distanceRates',
-            icon: Expensicons.Car,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.DISTANCE_RATES,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.expensifyCard',
-            icon: Expensicons.ExpensifyCard,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.EXPENSIFY_CARD,
-            brickRoadIndicator: !isEmptyObject(cardsList?.cardList?.errorFields ?? {}) || !isEmptyObject(cardSettings?.errors ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
-        const hasPolicyFeedsError = PolicyUtils.hasPolicyFeedsError(CardUtils.getCompanyFeeds(cardFeeds));
-
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.companyCards',
-            icon: Expensicons.CreditCard,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.COMPANY_CARDS,
-            brickRoadIndicator: hasPolicyFeedsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.perDiem',
-            icon: Expensicons.CalendarSolid,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.PER_DIEM,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.workflows',
-            icon: Expensicons.Workflows,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.WORKFLOWS,
-            brickRoadIndicator: !isEmptyObject(policy?.errorFields?.reimburser ?? {}) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.rules',
-            icon: Expensicons.Feed,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_RULES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.RULES,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.categories',
-            icon: Expensicons.Folder,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)))),
-            brickRoadIndicator: hasPolicyCategoryError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.CATEGORIES,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.tags',
-            icon: Expensicons.Tag,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAGS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.TAGS,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.taxes',
-            icon: Expensicons.Coins,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TAXES.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.TAXES,
-            brickRoadIndicator: PolicyUtils.shouldShowTaxRateError(policy) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.reportFields',
-            icon: Expensicons.Pencil,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS.getRoute(policyID)))),
-            routeName: SCREENS.WORKSPACE.REPORT_FIELDS,
-        });
-    }
-
-    if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]) {
-        protectedCollectPolicyMenuItems.push({
-            translationKey: 'workspace.common.accounting',
-            icon: Expensicons.Sync,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)))),
-            brickRoadIndicator: hasSyncError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
-        });
-    }
-
-    protectedCollectPolicyMenuItems.push({
-        translationKey: 'workspace.common.moreFeatures',
-        icon: Expensicons.Gear,
-        action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)))),
-        routeName: SCREENS.WORKSPACE.MORE_FEATURES,
-    });
-
-    const menuItems: WorkspaceMenuItem[] = [
-        {
-            translationKey: 'workspace.common.profile',
-            icon: Expensicons.Home,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_PROFILE.getRoute(policyID)))),
-            brickRoadIndicator: hasGeneralSettingsError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.PROFILE,
-        },
-        {
-            translationKey: 'workspace.common.members',
-            icon: Expensicons.Users,
-            action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID)))),
-            brickRoadIndicator: hasMembersError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            routeName: SCREENS.WORKSPACE.MEMBERS,
-        },
-        ...(isPaidGroupPolicy && shouldShowProtectedItems ? protectedCollectPolicyMenuItems : []),
-    ];
-
-    const prevPolicy = usePrevious(policy);
-    const prevProtectedMenuItems = usePrevious(protectedCollectPolicyMenuItems);
-    const enabledItem = protectedCollectPolicyMenuItems.find((curItem) => !prevProtectedMenuItems.some((prevItem) => curItem.routeName === prevItem.routeName));
-
-    const shouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
-    const prevShouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
-    // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundPage = isEmptyObject(policy) || (!shouldShowPolicy && !prevShouldShowPolicy);
-
-    useEffect(() => {
-        if (isEmptyObject(prevPolicy) || PolicyUtils.isPendingDeletePolicy(prevPolicy) || !PolicyUtils.isPendingDeletePolicy(policy)) {
-            return;
-        }
-        PolicyUtils.goBackFromInvalidPolicy();
-    }, [policy, prevPolicy]);
-
-    // We are checking if the user can access the route.
-    // If user can't access the route, we are dismissing any modals that are open when the NotFound view is shown
-    const canAccessRoute = activeRoute && menuItems.some((item) => item.routeName === activeRoute);
-
+    const workspaceMenuItems = getWorkspaceMenuItems({
+        policy,
+        policyID,
+        currentUserLogin: currentUserLogin ?? undefined,
+        currentUserPersonalDetails,
+        icons: expensifyIcons,
+        isConnectionInProgress: isConnectionInProgress(connectionSyncProgress, policy),
+        policyCategories,
+        hasAgentErrors,
+        hasMerchantRuleErrors,
+        previousPendingFields: prevPendingFields,
+        shouldShowEnterCredentialsError,
+        shouldShowRBR,
+        hasApprovalWorkflowWithNonMemberApprover,
+        isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
+        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
+        isUnifiedConnectionsBetaEnabled,
+        convertToDisplayString,
+    }).map((item) => ({
+        ...item,
+        action: singleExecution(waitForNavigate(() => Navigation.navigate(item.getRoute()))),
+    }));
+    const triggerScrollEvent = useScrollEventEmitter();
+    const {
+        shouldShowTooltip: shouldShowConnectionsTooltip,
+        hideTooltip: hideConnectionsTooltip,
+        renderTooltipContent: renderConnectionsTooltip,
+    } = useConnectionsMovedTooltip(
+        // New workspaces never used the old integration pages, so only point this out where something is already connected.
+        isWorkspacesTabFocused &&
+            !hasPolicyCreationError &&
+            (!isEmptyObject(policy?.connections) || !!policy?.receiptPartners?.uber?.enabled) &&
+            workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
+        activeRoute,
+        isWorkspacesTabFocused,
+    );
+    // Close RHP if we land on a route that no longer exists in the menu
+    const getItemScreenNames = (item: TupleToUnion<typeof workspaceMenuItems>) => [item.screenName, ...(item.aliasScreenNames ?? [])];
+    const canAccessRoute =
+        activeRoute && (workspaceMenuItems.some((item) => getItemScreenNames(item).some((screenName) => screenName === activeRoute)) || activeRoute === SCREENS.WORKSPACE.INITIAL);
     useEffect(() => {
         if (!shouldShowNotFoundPage && canAccessRoute) {
             return;
@@ -363,52 +246,57 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             return;
         }
         wasRendered.current = true;
-        // We are dismissing any modals that are open when the NotFound view is shown
         Navigation.isNavigationReady().then(() => {
             Navigation.closeRHPFlow();
         });
     }, [canAccessRoute, shouldShowNotFoundPage]);
 
-    const policyAvatar = useMemo(() => {
-        if (!policy) {
-            return {source: Expensicons.ExpensifyAppIcon, name: CONST.WORKSPACE_SWITCHER.NAME, type: CONST.ICON_TYPE_AVATAR};
+    // When this page is revealed from under the RHP during workspace creation (#90985), the RHP
+    // slide-out is held until the page has painted. Signal readiness from the first non-empty layout
+    // of the actual content (not the navigator container, which lays out at full height before this
+    // lazy page mounts) and defer one frame so paint completes before the RHP slides away.
+    // notifyRevealUnderRHPReady is a no-op unless a reveal is pending, so this costs nothing on
+    // normal navigation.
+    const hasReportedRevealReadinessRef = useRef(false);
+    const handleRevealContentLayout = (event: LayoutChangeEvent) => {
+        if (hasReportedRevealReadinessRef.current || event.nativeEvent.layout.height === 0) {
+            return;
         }
-
-        const avatar = policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name);
-        return {
-            source: avatar,
-            name: policy?.name ?? '',
-            type: CONST.ICON_TYPE_WORKSPACE,
-            id: policy.id ?? '-1',
-        };
-    }, [policy]);
+        hasReportedRevealReadinessRef.current = true;
+        requestAnimationFrame(() => WorkspaceCreationReveal.notifyRevealUnderRHPReady());
+    };
 
     return (
         <ScreenWrapper
-            testID={WorkspaceInitialPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            testID="WorkspaceInitialPage"
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
+            {...tabRootScreenWrapperProps}
         >
             <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.resetToHome}
+                onBackButtonPress={goBackFromWorkspaceSettingPages}
+                onLinkPress={Navigation.goBackToHome}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
+                addBottomSafeAreaPadding
+                shouldForceFullScreen
+                shouldDisplaySearchRouter
             >
                 <HeaderWithBackButton
                     title={policyName}
-                    onBackButtonPress={() => {
-                        if (route.params?.backTo) {
-                            Navigation.resetToHome();
-                            Navigation.isNavigationReady().then(() => Navigation.navigate(route.params?.backTo as Route));
-                        } else {
-                            Navigation.dismissModal();
-                        }
-                    }}
+                    shouldUseHeadlineHeader
+                    titleStyles={styles.noWrap}
+                    onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
-                    style={styles.headerBarDesktopHeight}
+                    policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
+                    shouldDisplayHelpButton={shouldUseNarrowLayout}
+                    shouldDisplayAccountButton
                 />
 
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexColumn, styles.justifyContentBetween]}>
+                <ScrollView
+                    {...tabRootScrollProps}
+                    onScroll={triggerScrollEvent}
+                    scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                >
                     <OfflineWithFeedback
                         pendingAction={policy?.pendingAction}
                         onClose={() => dismissError(policyID, policy?.pendingAction)}
@@ -416,46 +304,60 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                         errorRowStyles={[styles.ph5, styles.pv2]}
                         shouldDisableStrikeThrough={false}
                         shouldHideOnDelete={false}
+                        shouldShowErrorMessages={false}
                     >
-                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                        <View
+                            style={[styles.pb4, styles.mh3, styles.mt3]}
+                            onLayout={handleRevealContentLayout}
+                        >
                             {/*
                                 Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                                 In this case where user can click on workspace avatar or menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
                             */}
-                            {menuItems.map((item) => (
-                                <HighlightableMenuItem
-                                    key={item.translationKey}
-                                    disabled={hasPolicyCreationError || isExecuting}
-                                    interactive={!hasPolicyCreationError}
-                                    title={translate(item.translationKey)}
-                                    icon={item.icon}
-                                    onPress={item.action}
-                                    brickRoadIndicator={item.brickRoadIndicator}
-                                    wrapperStyle={styles.sectionMenuItem}
-                                    highlighted={enabledItem?.routeName === item.routeName}
-                                    focused={!!(item.routeName && activeRoute?.startsWith(item.routeName))}
-                                    badgeText={item.badgeText}
-                                    shouldIconUseAutoWidthStyle
-                                />
-                            ))}
+                            {workspaceMenuItems.map((item) => {
+                                const isConnectionsItem = item.screenName === SCREENS.WORKSPACE.CONNECTIONS;
+                                const onPress = () => {
+                                    if (isConnectionsItem) {
+                                        hideConnectionsTooltip();
+                                    }
+                                    item.action();
+                                };
+                                return (
+                                    <HighlightableMenuItem
+                                        key={item.translationKey}
+                                        disabled={hasPolicyCreationError || (isExecuting && !getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName)))}
+                                        interactive={!hasPolicyCreationError}
+                                        title={translate(item.translationKey)}
+                                        icon={item.icon}
+                                        onPress={onPress}
+                                        brickRoadIndicator={item.brickRoadIndicator}
+                                        wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+                                        highlighted={!!item?.highlighted}
+                                        focused={getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName))}
+                                        role={CONST.ROLE.TAB}
+                                        badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
+                                        shouldIconUseAutoWidthStyle
+                                        sentryLabel={item.sentryLabel}
+                                        shouldGreyOutWhenDisabled={hasPolicyCreationError}
+                                        shouldRenderTooltip={isConnectionsItem && shouldShowConnectionsTooltip}
+                                        renderTooltipContent={renderConnectionsTooltip}
+                                        tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
+                                        tooltipAnchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                                        onEducationTooltipPress={onPress}
+                                        // The workspace menu is the sidebar, which isn't the navigation-focused screen on wide layouts.
+                                        shouldHideTooltipOnNavigate={false}
+                                        shouldHideOnScroll
+                                        shouldCheckTooltipVisibilityOnFirstDisplay={shouldUseNarrowLayout}
+                                    />
+                                );
+                            })}
                         </View>
                     </OfflineWithFeedback>
                 </ScrollView>
-                <ConfirmModal
-                    title={translate('workspace.bankAccount.workspaceCurrency')}
-                    isVisible={isCurrencyModalOpen}
-                    onConfirm={confirmCurrencyChangeAndHideModal}
-                    onCancel={() => setIsCurrencyModalOpen(false)}
-                    prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                    confirmText={translate('workspace.bankAccount.updateToUSD')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }
 
-WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);
+export {WorkspaceInitialPage};

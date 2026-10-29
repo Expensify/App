@@ -1,13 +1,16 @@
-import React from 'react';
-import {splitBoxModelStyle} from 'react-native-render-html';
-import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import InlineCodeBlock from '@components/InlineCodeBlock';
+
 import useStyleUtils from '@hooks/useStyleUtils';
+
 import FontUtils from '@styles/utils/FontUtils';
 
+import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import React from 'react';
+import {splitBoxModelStyle} from 'react-native-render-html';
+
 type CodeRendererProps = CustomRendererProps<TText | TPhrasing> & {
-    /** Key of the element */
     key?: string;
 };
 
@@ -22,18 +25,13 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
 
     // Determine the font size for the code based on whether it's inside an H1 element.
     const isInsideH1 = HTMLEngineUtils.isChildOfH1(defaultRendererProps.tnode);
+    const isInsideTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
 
-    const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
+    const fontSize = StyleUtils.getCodeFontSize(isInsideH1, isInsideTaskTitle);
 
     const textStyleOverride = {
         fontSize,
         fontFamily: font,
-
-        // We need to override this properties bellow that was defined in `textStyle`
-        // Because by default the `react-native-render-html` add a style in the elements,
-        // for example the <strong> tag has a fontWeight: "bold" and in the android it break the font
-        fontWeight: undefined,
-        fontStyle: undefined,
     };
 
     return (
@@ -46,7 +44,5 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
         />
     );
 }
-
-CodeRenderer.displayName = 'CodeRenderer';
 
 export default CodeRenderer;

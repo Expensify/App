@@ -1,15 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import type {PanGesture} from 'react-native-gesture-handler';
-import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import ControlSelection from '@libs/ControlSelection';
+
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ComponentRef} from 'react';
+import type {PanGesture} from 'react-native-gesture-handler';
+import type {SharedValue} from 'react-native-reanimated';
+
+import React from 'react';
+import {View} from 'react-native';
+import {GestureDetector} from 'react-native-gesture-handler';
+import Animated, {interpolate, useAnimatedStyle} from 'react-native-reanimated';
 
 type ImageCropViewProps = {
     /** Link to image for cropping   */
@@ -18,10 +24,7 @@ type ImageCropViewProps = {
     /** Size of the image container that will be rendered */
     containerSize?: number;
 
-    /** The height of the selected image */
     originalImageHeight: SharedValue<number>;
-
-    /** The width of the selected image */
     originalImageWidth: SharedValue<number>;
 
     /** The rotation value of the selected image */
@@ -36,14 +39,15 @@ type ImageCropViewProps = {
     /** The scale factor of the image */
     scale: SharedValue<number>;
 
-    /** Configuration object for pan gesture for handling image panning */
-    panGesture?: PanGesture;
+    /** Pan gesture for handling image panning */
+    panGesture: PanGesture;
 
     /** Image crop vector mask */
     maskImage?: IconAsset;
 };
 
-function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.Pan(), maskImage = Expensicons.ImageCropCircleMask, ...props}: ImageCropViewProps) {
+function ImageCropView({imageUri = '', containerSize = 0, panGesture, maskImage, ...props}: ImageCropViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ImageCropCircleMask']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const containerStyle = StyleUtils.getWidthAndHeightStyle(containerSize, containerSize);
@@ -59,12 +63,12 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
     const imageStyle = useAnimatedStyle(() => {
         'worklet';
 
-        const height = originalImageHeight.value;
-        const width = originalImageWidth.value;
+        const height = originalImageHeight.get();
+        const width = originalImageWidth.get();
         const aspectRatio = height > width ? height / width : width / height;
-        const rotate = interpolate(rotation.value, [0, 360], [0, 360]);
+        const rotate = interpolate(rotation.get(), [0, 360], [0, 360]);
         return {
-            transform: [{translateX: translateX.value}, {translateY: translateY.value}, {scale: scale.value * aspectRatio}, {rotate: `${rotate}deg`}],
+            transform: [{translateX: translateX.get()}, {translateY: translateY.get()}, {scale: scale.get() * aspectRatio}, {rotate: `${rotate}deg`}],
         };
     }, [originalImageHeight, originalImageWidth, rotation, translateX, translateY, scale]);
 
@@ -73,7 +77,7 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
     return (
         <GestureDetector gesture={panGesture}>
             <Animated.View
-                ref={(el) => ControlSelection.blockElement(el as HTMLElement | null)}
+                ref={(el: ComponentRef<typeof View> | null) => ControlSelection.blockElement(el as HTMLElement | null)}
                 style={[containerStyle, styles.imageCropContainer]}
             >
                 <Animated.Image
@@ -83,7 +87,7 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
                 />
                 <View style={[containerStyle, styles.l0, styles.b0, styles.pAbsolute]}>
                     <Icon
-                        src={maskImage}
+                        src={maskImage ?? icons.ImageCropCircleMask}
                         // TODO uncomment the line once the tint color issue for android(https://github.com/expo/expo/issues/21530#issuecomment-1836283564) is fixed
                         // fill={theme.iconReversed}
                         width={containerSize}
@@ -98,6 +102,5 @@ function ImageCropView({imageUri = '', containerSize = 0, panGesture = Gesture.P
 
 ImageCropView.displayName = 'ImageCropView';
 
-// React.memo is needed here to prevent styles recompilation
 // which sometimes may cause glitches during rerender of the modal
-export default React.memo(ImageCropView);
+export default ImageCropView;

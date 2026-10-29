@@ -1,0 +1,152 @@
+---
+title: Use Suggested Agent Rules
+description: Learn what each suggested agent rule does and when to use it to automate common workspace workflows.
+keywords: [suggested agent rules, agent rules, RuleBot, AI rules, workspace automation, approval rules]
+internalScope: Audience is workspace admins. Covers the available suggested agent rules, what each one does, and when to use it. Does not cover creating custom agent rules, personal agents, or writing agent instructions.
+retrievalIntent: Which suggested agent rule should I use?
+contentType: topic
+order: 4
+---
+
+# Use Suggested Agent Rules
+
+Suggested agent rules are pre-written agent rules for common workspace workflows. Instead of writing a rule from scratch, you can start with a suggested rule, review its instructions, and edit them before saving.
+
+Suggested agent rules are enforced by RuleBot like any other agent rule.
+
+To learn how to create agent rules, see [Automate Workflows with Agent Rules](/articles/new-expensify/ai-agents/Automate-Workflows-with-Agent-Rules).
+
+---
+
+## How suggested agent rules work
+
+Each suggested agent rule includes a predefined set of natural-language instructions for a common expense review or approval workflow.
+
+When you create a rule from a suggestion, you can review and edit its instructions before saving. After it's created, you can continue editing it like any other agent rule.
+
+For guidance on writing clear, effective instructions, see [How to Write Agent Instructions](/articles/new-expensify/ai-agents/How-to-Write-Agent-Instructions).
+
+---
+
+## What amount and spending rules are available
+
+| Suggested agent rule | What it does | Default instruction |
+| --- | --- | --- |
+| **Amount in flagged range** | Rejects expenses whose amount falls within a specified range. | Reject expenses with an amount between $500 and $1000 inclusive. |
+| **Expense over limit** | Rejects expenses that meet or exceed a specified amount. | Reject any single expense of $75 or more. |
+| **Report over limit** | Rejects reports whose total exceeds a specified amount. | Reject reports whose total is over $2,500. |
+
+---
+
+## What category rules are available
+
+| Suggested agent rule | What it does | Default instruction |
+| --- | --- | --- |
+| **Category not allowed** | Only approves expenses assigned to approved categories. | Approve expenses categorized as "Travel" or "Meals & Entertainment". Reject expenses in any other category. |
+| **Missing category** | Rejects expenses that don't have a category assigned. | Reject any expense that has no category assigned. Approve expenses that have a category. |
+| **Wrong category** | Only approves expenses assigned to one category. | Only approve expenses categorized as "Travel". Reject expenses in any other category. |
+
+---
+
+## What merchant rules are available
+
+| Suggested agent rule | What it does | Default instruction |
+| --- | --- | --- |
+| **Banned word in merchant** | Rejects expenses whose merchant name contains a specified word. | Reject any expense whose merchant name contains the word "casino" (in any capitalization). Approve all other expenses. |
+| **Blocked merchant** | Rejects expenses from blocked vendors. | Reject expenses from these blocked vendors: SketchyVendor Inc, BadActor LLC. Approve expenses from every other merchant. |
+| **Merchant not approved** | Only approves expenses from approved vendors. | Approve expenses only from these approved vendors: Staples, Amazon, or Uber. Reject expenses from any merchant not on that list. |
+| **Wrong merchant** | Only approves expenses from a specific merchant. | Only approve expenses from the vendor "Acme Corp". If an expense is from any other merchant, reject it with a brief one-sentence reason. |
+
+---
+
+## What currency and tax rules are available
+
+| Suggested agent rule | What it does | Default instruction |
+| --- | --- | --- |
+| **Currency not allowed** | Only approves expenses submitted in approved currencies. | Approve expenses in USD or GBP only. Reject expenses in any other currency. |
+| **Missing tax rate** | Rejects expenses that don't have a tax rate applied. | Reject expenses that have no tax rate applied. Approve expenses with a tax rate. |
+| **Wrong currency** | Only approves expenses submitted in one currency. | Only approve expenses submitted in US Dollars (USD). Reject expenses in any other currency. |
+
+---
+
+## What tag and description rules are available
+
+| Suggested agent rule | What it does | Default instruction |
+| --- | --- | --- |
+| **Banned word in description** | Rejects expenses whose description contains a specified word. | Reject any expense whose description contains the word "personal". Approve all other expenses. |
+| **Billable expense** | Approves or rejects expenses based on whether they're billable. | Only approve non-billable expenses. Reject any expense marked as billable to a client. |
+| **Missing description** | Rejects expenses that don't include a description. | Reject expenses that have no description. Approve expenses that include a description. |
+| **Missing tag** | Rejects expenses missing a required tag. | Reject expenses that are missing a project tag. Approve expenses that have a tag. |
+| **Wrong tag** | Only approves expenses tagged to a specific project. | Only approve expenses tagged to the project "Apollo". Reject expenses tagged to any other project. |
+
+---
+
+## What date and time rules are available
+
+| Suggested agent rule | What it does | Default instruction |
+| --- | --- | --- |
+| **Expense too old** | Rejects expenses older than a specified number of days. | Reject expenses whose transaction date is more than 14 days ago. Approve recent expenses. |
+| **Outside event window** | Only approves expenses that occurred during a specified date range. | We are only reimbursing expenses dated during our company offsite, October 7 through October 11, 2025. Reject expenses dated outside that window. |
+| **Past submission deadline** | Rejects expenses submitted outside your organization's submission window. | Our policy requires expenses to be submitted within 30 days of the transaction date. Reject expenses dated more than 30 days ago; approve the rest. |
+| **Weekend spending** | Rejects expenses dated on Saturday or Sunday. | Reject expenses dated on a weekend (Saturday or Sunday). Approve weekday expenses. |
+
+---
+
+## What report-level rules are available
+
+| Suggested agent rule | What it does | Default instruction |
+| --- | --- | --- |
+| **Mixed billable status** | Rejects reports that contain both billable and non-billable expenses. | A report must be either all billable or all non-billable. Reject reports that mix billable and non-billable expenses. |
+| **Mixed categories** | Rejects reports containing expenses from multiple categories. | Every expense on a report must be in the same category. Reject reports whose expenses span different categories. |
+| **Mixed projects** | Rejects reports containing expenses assigned to multiple projects. | Every expense on a report must be tagged to the same project. Reject reports mixing projects. |
+| **Too many expenses** | Rejects reports containing more than a specified number of expenses. | Reject reports that contain more than 5 expenses; they must be split into smaller reports. Approve reports with 5 or fewer expenses. |
+
+---
+
+## What receipt intelligence rules are available
+
+| Suggested agent rule | What it does | Default instruction |
+| --- | --- | --- |
+| **Alcohol on receipt** | Rejects receipts containing alcohol purchases. | Reject any expense whose receipt shows alcohol (beer, wine, or liquor), with a one-sentence comment naming the alcohol. Approve receipts with no alcohol. |
+| **Excessive tip** | Rejects meal receipts whose tip exceeds a specified percentage. | Reject any meal expense whose receipt tip is more than 20% of the subtotal, noting the tip percentage. Approve tips of 20% or less. |
+| **Fake / AI-generated receipt** | Rejects receipts that appear fabricated or AI-generated. | Reject an expense whose receipt looks fake or AI-generated — garbled or nonsensical item names, a fabricated layout, or totals that do not add up — with a one-sentence comment saying why. Approve receipts that look like genuine printed receipts. |
+| **Gift card purchase** | Rejects gift card purchases. | Reject expenses where the receipt is for a gift card purchase, noting that it is a gift card. Approve normal purchases. |
+| **Handwritten receipt** | Rejects handwritten receipts. | Reject an expense whose receipt is handwritten rather than a printed/computer-generated receipt, and ask the submitter for a printed itemized receipt. Approve normal printed receipts. |
+| **Mixed business / personal items** | Rejects mixed business and personal receipts. | When a single receipt mixes clearly business items with clearly personal items, reject it and ask the submitter to split out the personal items. Approve all-business receipts. |
+| **Non-English receipt** | Rejects non-English receipts. | Reject an expense when its receipt is not written in English, asking for an English-language receipt. Approve English receipts. |
+| **Not an itemized receipt** | Rejects non-itemized receipts. | Only approve expenses backed by an itemized receipt. If the receipt is just a credit-card payment slip with no itemized purchases, reject it and ask for an itemized receipt. |
+| **Receipt currency mismatch** | Rejects receipts whose currency differs from the expense currency. | The expense amounts are in US dollars. Reject an expense when its receipt is denominated in a different currency, noting the currency mismatch. Approve when the receipt is in US dollars. |
+| **Receipt date mismatch** | Rejects expenses whose receipt date differs from the expense date. | Reject an expense when the date printed on its receipt differs from the expense date, noting both dates. Approve when they match. |
+| **Receipt purpose mismatch** | Rejects expenses whose receipt doesn't match the stated purpose. | Reject an expense when the receipt contents clearly do not match the expense's stated purpose in its description, noting the mismatch. Approve when they are consistent. |
+| **Receipt total mismatch** | Rejects expenses whose receipt total doesn't match the expense amount. | Reject an expense when the total shown on its receipt does not match the expense amount, noting the discrepancy. Approve when the receipt total matches the expense amount. |
+| **Suspected personal expense** | Rejects receipts that appear to contain personal purchases. | Reject an expense whose receipt is clearly a personal, non-business purchase, noting why it looks personal. Approve plausible business expenses. |
+
+---
+
+## What happens after you create a suggested agent rule
+
+After you save a suggested agent rule:
+
+- RuleBot begins enforcing it immediately.
+- You can edit the rule's instructions at any time.
+- The rule behaves like any other agent rule.
+
+---
+
+# FAQ
+
+## Can I edit a suggested agent rule?
+
+Yes. Suggested agent rules are starting points. You can review and edit the instructions before saving the rule, and you can update the instructions at any time after it's created.
+
+## Do suggested agent rules work differently from custom agent rules?
+
+No. After you save a suggested agent rule, it behaves like any other agent rule. RuleBot enforces it using the instructions you've configured.
+
+## Can I create multiple suggested agent rules?
+
+Yes. You can create as many agent rules as your workspace needs. Each rule evaluates the conditions described in its own instructions.
+
+## What if none of the suggested agent rules matches my workflow?
+
+Create a custom agent rule instead. You can write your own natural-language instructions to automate workflows that aren't covered by the suggested rules.

@@ -1,62 +1,132 @@
-import React from 'react';
-import type {ListRenderItemInfo} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import FlatList from '@components/FlatList';
-import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
+import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction, formatReportLastMessageText, getInvoiceReceiverPolicyID, getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type DebugReportActionsProps = {
     reportID: string;
 };
 
 function DebugReportActions({reportID}: DebugReportActionsProps) {
-    const {translate, datetimeToCalendarTime} = useLocalize();
+    const {translate, datetimeToCalendarTime, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
+    const isReportArchived = useReportIsArchived(reportID);
+    const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
+    const [personalDetails] = useAllPersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
+
     const [sortedAllReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: (allReportActions) => ReportActionsUtils.getSortedReportActionsForDisplay(allReportActions, canUserPerformWriteAction, true),
+        selector: (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => getSortedReportActionsForDisplay(allReportActions, ifUserCanPerformWriteAction, true, undefined, reportID),
     });
-    const renderItem = ({item}: ListRenderItemInfo<ReportAction>) => (
-        <PressableWithFeedback
-            accessibilityLabel={translate('common.details')}
-            onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
-            style={({pressed}) => [styles.flexRow, styles.justifyContentBetween, pressed && styles.hoveredComponentBG, styles.p4]}
-            hoverStyle={styles.hoveredComponentBG}
-        >
-            <Text>{item.reportActionID}</Text>
-            <Text style={styles.textLabelSupporting}>{datetimeToCalendarTime(item.created, false, false)}</Text>
-        </PressableWithFeedback>
-    );
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, undefined, undefined, true);
+    const participantPersonalDetailList = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails));
+
+    const getReportActionDebugText = (reportAction: ReportAction) => {
+        const reportActionMessage = getReportActionMessage(reportAction);
+        const originalMessage = getOriginalMessage(reportAction);
+
+        if (!reportActionMessage) {
+            return '';
+        }
+
+        if (!!reportActionMessage.deleted || (originalMessage && 'deleted' in originalMessage && originalMessage.deleted)) {
+            return `[${translate('parentReportAction.deletedMessage')}]`;
+        }
+
+        if (isCreatedAction(reportAction)) {
+            return formatReportLastMessageText(
+                SidebarUtils.getWelcomeMessage({
+                    report,
+                    policy,
+                    invoiceReceiverPolicy,
+                    participantPersonalDetailList,
+                    translate,
+                    localeCompare,
+                    conciergeReportID,
+                    derivedReportName,
+                    isReportArchived,
+                    formatPhoneNumber,
+                }).messageText ?? translate('report.noActivityYet'),
+            );
+        }
+
+        if (reportActionMessage.html) {
+            return Parser.htmlToText(reportActionMessage.html.replaceAll(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
+        }
+
+        return getReportActionMessageText(reportAction);
+    };
+
+    const searchedReportActions = (sortedAllReportActions ?? [])
+        .filter((reportAction) => reportAction?.reportActionID)
+        .filter(
+            (reportAction) =>
+                reportAction.reportActionID?.includes(debouncedSearchValue) || getReportActionDebugText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
+        )
+        .map((reportAction) => ({
+            reportActionID: reportAction.reportActionID,
+            text: getReportActionDebugText(reportAction),
+            alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false, false)}`,
+            keyForList: reportAction.reportActionID,
+            titleStyles: styles.fontWeightNormal,
+        }));
+
+    const textInputOptions = {
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+        headerMessage: getHeaderMessageForNonUserList(translate, searchedReportActions.length > 0, debouncedSearchValue),
+    };
+
     return (
-        <ScrollView style={styles.mv5}>
+        <ScrollView style={styles.mv3}>
             <Button
-                success
-                large
-                text={translate('common.create')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION_CREATE.getRoute(reportID))}
-                style={[styles.pb5, styles.ph3]}
-            />
-            <FlatList
-                data={sortedAllReportActions}
-                renderItem={renderItem}
-                scrollEnabled={false}
+                style={[styles.pb3, styles.ph3]}
+            >
+                <Button.Text>{translate('common.create')}</Button.Text>
+            </Button>
+            <SelectionList
+                data={searchedReportActions}
+                textInputOptions={textInputOptions}
+                onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
+                ListItem={SingleSelectListItem}
             />
         </ScrollView>
     );
 }
-
-DebugReportActions.displayName = 'DebugReportActions';
 
 export default DebugReportActions;

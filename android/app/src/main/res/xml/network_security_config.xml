@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Certificate pinning - MONITOR-ONLY mode (Iteration 1 - NewDot, release builds).
+
+    Pin validation runs in CertificatePinning.kt (OkHttp), WebViewCertificateMonitor.kt (WebView),
+    and ios/CertificatePinning.swift (TrustKit). Mismatches are reported to Sentry but connections
+    are NOT blocked.
+
+    Android <pin-set> always blocks on mismatch and cannot run in monitor-only mode, so this file
+    intentionally contains NO pin-sets during the monitor rollout. Monitor-mode coverage per channel:
+
+        Channel                Coverage during monitor mode
+        ──────────────────     ───────────────────────────────────────────────────────────
+        OkHttp (fetch, RN)     ✓  CertificatePinning.kt monitor interceptor
+        Fresco (RN Image)      ✓  Uses OkHttp via OkHttpClientProvider
+        WebView                ✓  WebViewCertificateMonitor.kt (SPKI check after page load)
+        HttpURLConnection      ✓  CertificatePinning.kt wrapping HostnameVerifier
+        Glide (OldDot only)    ✗  Not used in NewDot; covered by HybridApp iteration
+
+    When flipping to enforce mode:
+      1. Set enforcePinning=true in config/certificatePinning/pins.json, CertificatePinning.kt, and
+         CertificatePinning.swift.
+      2. Replace this file's contents with network_security_config_enforce.xml.
+
+    Debug builds use res/xml/network_security_config_debug.xml (no pinning) so local dev servers and
+    proxy tooling (Charles/Proxyman) keep working.
+-->
+<network-security-config />

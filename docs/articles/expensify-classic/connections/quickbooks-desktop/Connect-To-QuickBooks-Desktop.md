@@ -1,100 +1,94 @@
 ---
-title: QuickBooks Desktop
+title: Connect to QuickBooks Desktop
 description: Connect Expensify to QuickBooks Desktop
 order: 1
+keywords: [Expensify Classic, QuickBooks Desktop connection]
 ---
-# Overview
-QuickBooks Desktop is an accounting package developed by Intuit. It is designed for small and medium-sized businesses to help them manage their financial and accounting tasks. You can connect Expensify to QuickBooks Desktop to make expense management seamless.
 
-# Connect to QuickBooks Desktop
 
-{% include info.html %}
-To connect QuickBooks Desktop to Expensify, you must log into QuickBooks Desktop as an Admin, and the company file that you want to connect to Expensify must be the only one that is open. 
-{% include end-info.html %}
+QuickBooks Desktop is an accounting software developed by Intuit, designed to support small and medium-sized businesses in managing financial and accounting tasks. Integrating Expensify with QuickBooks Desktop streamlines expense management for your organization.
 
-1. In Expensify, hover over **Settings** and click on **Workspaces**.
-2. Select the workspace you want to connect to QuickBooks Desktop.
-3. Click the **Connections** tab. 
-4. Click **Connect to QuickBooks Desktop**. 
-5. Click Copy to copy the link, then paste the link into the computer where QuickBooks Desktop is running.
+---
 
-     ![QuickBooks Desktop Setup pop-up link, containing the URL to paste](https://help.expensify.com/assets/images/QBO_desktop_01.png){:width="100%"}
+# Connect QuickBooks Desktop to Expensify
 
-6. Select the version of QuickBooks Desktop that you currently have.
+**Important:** To successfully connect, you must be logged into QuickBooks Desktop as an **Admin**, and the desired company file must be the **only open file**.
 
-    ![The Web Connnector Pop-up to allow you to select the type of QuickBooks Desktop you have](https://help.expensify.com/assets/images/QBO_desktop_02.png){:width="100%"}
+## Step 1: Set Up the Connection in Expensify
+1. Log into Expensify and go to **Settings > Workspaces**.
+2. Select the **workspace** you want to integrate with QuickBooks Desktop.
+3. Navigate to the **Accounting** tab and click **Connect to QuickBooks Desktop**.
+4. Copy the provided link and paste it into the computer where QuickBooks Desktop is installed.  
+   ![QuickBooks Desktop Setup Pop-Up Link](https://help.expensify.com/assets/images/QBO_desktop_01.png)
 
-7. Download the Web Connector and go through the guided installation process.
-8. Open the Web Connector. 
-9. Download the config file when prompted during the setup process, then open it using your File Explorer. This will automatically load the application into the QuickBooks Web Connector. 
+5. Choose your version of QuickBooks Desktop when prompted.  
+   ![Version Selection Pop-Up](https://help.expensify.com/assets/images/QBO_desktop_02.png)
 
-{% include info.html %}
-For this step, it is key to ensure that the correct company file is open in QuickBooks Desktop and that it is the only one open.
-{% include end-info.html %}
+---
 
-10. In QuickBooks Desktop, select **"Yes, always allow access, even when QuickBooks is not running"** and click **Continue**. 
+## Step 2: Install and Configure the Web Connector
+1. Download and install the **QuickBooks Web Connector** following the on-screen instructions.
+2. Open the Web Connector after installation.
+3. Download the **configuration file** when prompted and open it in File Explorer. This will load the integration into the Web Connector automatically.
 
-    ![The QuickBooks Desktop pop-up, where you will need to select "Yes, always allow access, even when QuickBooks is not running"](https://help.expensify.com/assets/images/QBO_desktop_04.png){:width="100%"}
+**Tip:** Ensure the correct company file is open in QuickBooks Desktop and the only open file during setup.
 
-11. Click **OK**, then click **Yes**.
+---
 
-    ![The QuickBooks Desktop pop-up, where you will need to click "Ok" then select "Yes"](https://help.expensify.com/assets/images/QBO_desktop_05.png){:width="100%"}
+## Step 3: Authorize Access and Finalize Setup
+1. In QuickBooks Desktop, select **Yes, always allow access, even when QuickBooks is not running**, and click **Continue**.  
+   ![Authorize Access in QuickBooks](https://help.expensify.com/assets/images/QBO_desktop_04.png)
 
-12. Click **Copy** to copy the password.
+2. Click **OK**, then select **Yes** to confirm.  
+    ![Confirmation Pop-Up](https://help.expensify.com/assets/images/QBO_desktop_05.png)
 
-    ![The Web Connector pop-up, where you will need to click "Copy"](https://help.expensify.com/assets/images/QBO_desktop_06.png){:width="100%"}
+3. In the Web Connector, click **Copy** to copy the password.  
+    ![Password Copy in Web Connector](https://help.expensify.com/assets/images/QBO_desktop_06.png)
 
-13. Paste the password into the Password field of the Web Connector and press **Enter**.
+4. Paste the password into the Web Connector’s **Password** field and press **Enter**.  
+    ![Enter Password in Web Connector](https://help.expensify.com/assets/images/QBO_desktop_08.png)
 
-    ![The Web Connector pop-up, where you will need to paste the password into the password field](https://help.expensify.com/assets/images/QBO_desktop_08.png){:width="100%"}
+5. Click **Yes** to save the password. Your new connection will appear in the Web Connector.  
+    ![Save Password in Web Connector](https://help.expensify.com/assets/images/QBO_desktop_07.png)
 
-14. Click **Yes** to save the password. The new connection now appears in the Web Connector.
+**Pro Tip:** Store the password securely in a trusted password manager for easy access during troubleshooting or updates.
 
-    ![The Web Connector pop-up, where you will need to click "Yes"](https://help.expensify.com/assets/images/QBO_desktop_07.png){:width="100%"}
-
-{% include info.html %}
-Be sure to securely save this password in a trusted password manager. You'll need it for future configuration updates or troubleshooting. Having it easily accessible will help avoid delays and ensure a smoother workflow. 
-{% include end-info.html %}
+---
 
 # FAQ
 
-## What are the hardware and software requirements for the QuickBooks Desktop connector?
+## What are the requirements for using QuickBooks Desktop with Expensify?
+- **Hardware**: Refer to [Intuit’s recommended specifications](https://quickbooks.intuit.com/learn-support/en-us/help-article/install-products/system-requirements-quickbooks-desktop-2022/L9664spDA_US_en_US).
+- **Software**: Windows 10 or 11 (latest service pack). Older versions of Windows may work, but are unsupported. **Mac OS is not supported.**
 
-- Hardware requirements: You will need to ensure that the host machine meets [Intuit's recommended specifications](https://quickbooks.intuit.com/learn-support/en-us/help-article/install-products/system-requirements-quickbooks-desktop-2022/L9664spDA_US_en_US) for running QuickBooks Desktop.
-- Software requirements: Windows 10 or Windows 11 with the latest service pack(s) installed. Users have successfully run the connector on older versions of Windows; however, we do not officially support this due to Microsoft's withdrawal of support for these operating systems. The web connector will not run on Mac OS.
+## Which versions of QuickBooks Desktop are supported?
+Expensify supports the latest three versions of QuickBooks Desktop (US and Canada), adhering to [Intuit’s discontinuation policy](https://quickbooks.intuit.com/learn-support/en-us/help-article/feature-preferences/quickbooks-desktop-service-discontinuation-policy/L17cXxlie_US_en_US). Supported versions include:
+- **Accountant**, **Pro**, **Pro Plus**, **Premier**, **Premier Plus**, and **Enterprise**.
+- **Special editions**, such as:
+  - Contractor
+  - Manufacturing & Wholesale
+  - Accountant
+  - Professional Services
+  - Nonprofit
 
-## What versions of QuickBooks Desktop are supported?
+## Where should QuickBooks Desktop and the Web Connector be installed with a Terminal Server?
 
-Expensify’s QuickBooks Desktop integration follows [Intuit’s service discontinuation policy](https://quickbooks.intuit.com/learn-support/en-us/help-article/feature-preferences/quickbooks-desktop-service-discontinuation-policy/L17cXxlie_US_en_US) for QuickBooks Desktop and fully supports the following versions, version tiers, and special editions:
+If you're using QuickBooks Desktop in a file server and client setup, it's important to install both QuickBooks Desktop and the **QuickBooks Web Connector** on the same computer where QuickBooks Desktop is actively being used.
 
-- The latest three versions of:
+The Web Connector only works when it's running **alongside QuickBooks Desktop**, and the company file is **open**. The company files can be stored in a different location, but note that network speed may affect performance. 
 
-    - QuickBooks Desktop (US)
-    - QuickBooks Desktop (Canada)
+**Typical Setup**
 
-- Version tiers:
+- **Server**: Stores the QuickBooks company file
+- **Client (or Remote Desktop)**: Runs QuickBooks Desktop - This is also where you need to install and run the Web Connector
 
-    - Accountant
-    - Pro
-    - Pro Plus
-    - Premier
-    - Premier Plus
-    - Enterprise
+Note: You will need to run the install files as an admin for the initial install and setup.
 
-- Special editions:
+## Can I install multiple QuickBooks Desktop connectors on one machine?
+Yes. Each connector corresponds to one company file, but multiple connectors can sync multiple company files from the same computer. Ensure you are logged into the correct company file during syncing.
 
-    - Contractor edition
-    - Manufacturing and Wholesale edition
-    - Accountant edition
-    - Professional Services edition
-    - Nonprofit edition
+## Can negative expenses be exported?
+- **Yes**, unless:
+  - The export type is **Check**, as the report’s total must be positive.
+  - Non-reimbursable expenses are exported as debit card transactions (QuickBooks exports them as non-reimbursable checks, which cannot have negative amounts).
 
-## Can multiple QuickBooks Desktop Connectors be installed on the same machine?
-
-Yes. You must have one connector per company file, but you can install multiple QuickBooks Desktop Connectors to sync multiple company files to Expensify from the same computer. 
-
-If syncing multiple companies, make sure you’re logged in to the correct QuickBooks company file when syncing between QuickBooks and Expensify.
-
-## Can I export negative expenses?
-
-Generally, yes. However, if you have Check selected as your export option, the report’s total cannot be negative. This also applies to non-reimbursable expenses exported as debit card transactions. Because QuickBooks Desktop does not have debit card functionality, the transactions export as a non-reimbursable check, which must have a positive total amount. 

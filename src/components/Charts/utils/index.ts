@@ -1,0 +1,604 @@
+import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
+import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
+import VictoryTheme, {
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    SIN_45,
+    WRAPPED_LABEL_ELLIPSIS,
+} from '@components/Charts/VictoryTheme';
+
+import {isShareWorthDrawing} from '@libs/PercentageUtils';
+
+import variables from '@styles/variables';
+
+import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
+
+import {FontStyle, FontWeight, Skia, TextAlign} from '@shopify/react-native-skia';
+import {scaleLinear} from 'd3-scale';
+
+import getLineRuns from './getLineRuns';
+import getPrimaryValue from './getPrimaryValue';
+
+/** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
+const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
+
+/**
+ * Builds a Skia paragraph for chart labels.
+ * Encapsulates the shared font configuration (families, weight, size, optional color).
+ * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ *
+ * Reuses a cached ParagraphBuilder per fontManager (via reset()) to avoid allocating a new
+ * builder on every call.
+ */
+function buildChartParagraph(text: string, fontManager: SkTypefaceFontProvider, fontSize: number, color?: string): SkParagraph {
+    let builder = builderCache.get(fontManager);
+    if (!builder) {
+        builder = Skia.ParagraphBuilder.Make({}, fontManager);
+        builderCache.set(fontManager, builder);
+    } else {
+        builder.reset();
+    }
+    return builder
+        .pushStyle({
+            fontFamilies: VictoryTheme.fontFamilies,
+            fontStyle: {weight: FontWeight.Normal},
+            fontSize,
+            ...(color !== undefined ? {color: Skia.Color(color)} : {}),
+        })
+        .addText(text)
+        .pop()
+        .build();
+}
+
+/**
+ * Builds a Skia paragraph that wraps at word breaks, centers each line, and truncates anything
+ * past `maxLines` with an ellipsis. Used for bar-name labels drawn under the Home chart bars.
+ *
+ * Unlike buildChartParagraph this does not reuse the shared builder cache: the wrap/ellipsis/align
+ * paragraph style is fixed when the builder is created, so it cannot share the single-line builder.
+ * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ */
+function buildWrappedChartParagraph(text: string, fontManager: SkTypefaceFontProvider, fontSize: number, color: string, maxLines: number): SkParagraph {
+    return Skia.ParagraphBuilder.Make({maxLines, ellipsis: WRAPPED_LABEL_ELLIPSIS, textAlign: TextAlign.Center}, fontManager)
+        .pushStyle({
+            fontFamilies: VictoryTheme.fontFamilies,
+            fontStyle: {weight: FontWeight.Normal},
+            fontSize,
+            color: Skia.Color(color),
+        })
+        .addText(text)
+        .pop()
+        .build();
+}
+
+/**
+ * Calculates the additional offset to apply to the label to center it on the tick mark.
+ * @param angleRad - The angle of the label in radians.
+ * @returns The additional offset in pixels.
+ *
+ * @description
+ * Skia's paragraph.paint(canvas, x, y) treats `y` as the top of the paragraph bounding box,
+ * not the text baseline. The baseline sits at `LineMetrics.baseline` pixels below `y`, and
+ * the visual top of the glyphs is at `y + baseline - ascent`. When `baseline > ascent` there
+ * is a small gap (leading) between `y` and where the text actually appears.
+ * This offset empirically corrects the hit-area center to match the visual center of the
+ * rendered label. The sign and magnitude differ per rotation because the gap projects
+ * geometrically differently after the transform:
+ * 0°  - small downward shift (top of bounding box is above visual center)
+ * 45° - shift hit area DOWN (rotation flips the projection)
+ * 90° - small downward shift
+ */
+function getAdditionalOffset(angleRad: number): number {
+    if (angleRad === 0) {
+        return variables.iconSizeExtraSmall / 3;
+    }
+    if (angleRad > 0 && angleRad < DIAGONAL_ANGLE_RADIAN_THRESHOLD) {
+        return variables.iconSizeExtraSmall / 1.5;
+    }
+    return variables.iconSizeExtraSmall / 3;
+}
+/**
+ * Checks whether every character in `text` can be rendered by at least one font
+ * in the chart font chain (VictoryTheme.fontFamilies).
+ *
+ * For each character, iterates through each registered font family and calls
+ * `Typeface.getGlyphIDs()`. A glyph ID of 0 means the font has no glyph for
+ * that code point. If at least one font in the chain returns a non-zero
+ * ID for every character, the text is considered fully renderable.
+ *
+ * Returns `true` when `text` is empty/nullish (nothing to render).
+ */
+function canFontRenderText(text: string | undefined, fontManager: SkTypefaceFontProvider): boolean {
+    if (!text) {
+        return true;
+    }
+
+    const typefaces = VictoryTheme.fontFamilies.map((family) => fontManager.matchFamilyStyle(family, FontStyle.Normal));
+
+    for (const char of text) {
+        const isRenderable = typefaces.some((typeface) => typeface?.getGlyphIDs(char).some((id) => id !== 0));
+        if (!isRenderable) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Measures the rendered pixel width of a string using the Paragraph API.
+ * Supports multi-font fallback via fontManager (e.g. NotoSansSymbols for currency glyphs).
+ */
+function measureTextWidth(text: string, fontManager: SkTypefaceFontProvider, fontSize: number): number {
+    const para = buildChartParagraph(text, fontManager, fontSize);
+    // Unbounded width so text never wraps; a wrapped getLongestLine would underestimate long labels.
+    para.layout(Number.MAX_SAFE_INTEGER);
+    return para.getLongestLine();
+}
+
+/**
+ * Returns ascent and descent for the chart font at the given size.
+ * Uses a representative string so Skia resolves the actual glyph metrics.
+ */
+function getFontLineMetrics(fontManager: SkTypefaceFontProvider, fontSize: number): {ascent: number; descent: number} {
+    const para = buildChartParagraph('Ag', fontManager, fontSize);
+    para.layout(MAX_X_AXIS_LABEL_WIDTH);
+    const metrics = para.getLineMetrics().at(0);
+    return {
+        ascent: metrics ? Math.abs(metrics.ascent) : fontSize,
+        descent: metrics ? Math.abs(metrics.descent) : 0,
+    };
+}
+
+/**
+ * Post-rotation horizontal translation to center a rotated label on its tick mark.
+ *
+ * Text baselines sit closer to glyph tops (ascent > descent), so rotating around
+ * the baseline end creates asymmetric horizontal extent. This returns the correction
+ * to apply as a translateX AFTER rotation.
+ */
+function rotatedLabelCenterCorrection(ascent: number, descent: number, angleRad: number): number {
+    return ((ascent - descent) * Math.sin(angleRad)) / 2;
+}
+
+/**
+ * Calculate the vertical offset from axis to text baseline that maintains
+ * a consistent visual gap regardless of label rotation.
+ *
+ * At 0°: gap to top of text (ascent above baseline)
+ * At 45°: gap to top-right corner after rotation (ascent projects as ascent * cos(45°))
+ * At 90°: gap to closest point of vertical text (descent from baseline)
+ */
+function rotatedLabelYOffset(ascent: number, descent: number, angleRad: number): number {
+    if (angleRad === 0) {
+        return ascent;
+    }
+    if (angleRad >= Math.PI / 2) {
+        return descent;
+    }
+    return ascent * Math.cos(angleRad);
+}
+
+/**
+ * Normalize angle to 0-360 range
+ */
+function normalizeAngle(angle: number): number {
+    'worklet';
+
+    let normalized = angle % 360;
+    if (normalized < 0) {
+        normalized += 360;
+    }
+    return normalized;
+}
+
+/**
+ * Check if an angle is within a slice's range (handles wrap-around)
+ */
+function isAngleInSlice(angle: number, startAngle: number, endAngle: number): boolean {
+    'worklet';
+
+    const normalizedAngle = normalizeAngle(angle);
+    const normalizedStart = normalizeAngle(startAngle);
+    const normalizedEnd = normalizeAngle(endAngle);
+
+    if (normalizedStart === normalizedEnd) {
+        return endAngle - startAngle >= 360;
+    }
+    if (normalizedStart > normalizedEnd) {
+        return normalizedAngle >= normalizedStart || normalizedAngle < normalizedEnd;
+    }
+    return normalizedAngle >= normalizedStart && normalizedAngle < normalizedEnd;
+}
+
+/**
+ * Find which slice index contains the given cursor position
+ */
+function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, centerY: number, radius: number, innerRadius: number, slices: PieSlice[]): number {
+    'worklet';
+
+    const dx = cursorX - centerX;
+    const dy = cursorY - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < innerRadius || distance > radius) {
+        return -1;
+    }
+
+    const cursorAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+    return slices.findIndex((slice) => isAngleInSlice(cursorAngle, slice.startAngle, slice.endAngle));
+}
+
+/**
+ * Process raw data into pie chart slices sorted by absolute value descending.
+ * Slices are sized by the primary series only.
+ *
+ * Points whose share of total spend is too small to draw are left out: the inline table prints their share as
+ * `~0%`, and a slice that thin is a sliver nobody can hover or tap. The group is still listed in the table, so
+ * the visible slices cover only the significant share of the spend rather than all of it.
+ */
+function processDataIntoSlices(
+    data: ChartDataPoint[],
+    primarySeriesKey: string,
+    pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
+    startAngle: number = VictoryTheme.pie.startAngle,
+): PieSlice[] {
+    const visibleSlices = data
+        .map((point, index) => ({
+            label: point.label,
+            color: point.color,
+            absTotal: Math.abs(getPrimaryValue(point, primarySeriesKey)),
+            originalIndex: index,
+            percentOfTotal: point.percentOfTotal,
+        }))
+        .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
+        .sort((a, b) => b.absTotal - a.absTotal);
+
+    // Angles span only the surviving slices, matching how the canvas normalizes its values.
+    const total = visibleSlices.reduce((sum, slice) => sum + slice.absTotal, 0);
+    if (total === 0) {
+        return [];
+    }
+
+    // Anchor the tooltip at the midpoint of the donut ring (between inner and outer radius).
+    const tooltipRadius = (pieGeometry.innerRadius + pieGeometry.radius) / 2;
+
+    return visibleSlices.reduce<{slices: PieSlice[]; angle: number}>(
+        (acc, slice, index) => {
+            const fraction = slice.absTotal / total;
+            const sweepAngle = fraction * 360;
+            const angle = acc.angle + sweepAngle / 2;
+            const tooltipX = pieGeometry.centerX + tooltipRadius * Math.cos((angle * Math.PI) / 180);
+            const tooltipY = pieGeometry.centerY + tooltipRadius * Math.sin((angle * Math.PI) / 180);
+            acc.slices.push({
+                label: slice.label,
+                value: slice.absTotal,
+                color: slice.color ?? VictoryTheme.colors.default,
+                percentage: fraction * 100,
+                startAngle: acc.angle,
+                endAngle: acc.angle + sweepAngle,
+                originalIndex: slice.originalIndex,
+                ordinalIndex: index,
+                tooltipPosition: {x: tooltipX, y: tooltipY},
+            });
+            acc.angle += sweepAngle;
+            return acc;
+        },
+        {slices: [], angle: startAngle},
+    ).slices;
+}
+
+/** Label to render on the x-axis for a data point: the compact one when provided, otherwise the full label. */
+function getXAxisLabel(point: ChartDataPoint): string {
+    return point.shortLabel ?? point.label;
+}
+
+/** Truncate `label` so its pixel width fits within `maxWidth`, adding ellipsis. */
+function truncateLabel(label: string, labelWidth: number, maxWidth: number, ellipsisWidth: number): string {
+    if (labelWidth <= maxWidth) {
+        return label;
+    }
+    const available = maxWidth - ellipsisWidth;
+    if (available <= 0) {
+        return ELLIPSIS;
+    }
+    const maxChars = Math.max(1, Math.floor(label.length * (available / labelWidth)));
+    return label.slice(0, maxChars) + ELLIPSIS;
+}
+
+/** Horizontal footprint of a label at a given rotation angle (for inter-tick overlap checks). */
+function effectiveWidth(labelWidth: number, lineHeight: number, rotation: LabelRotation): number {
+    if (rotation === LABEL_ROTATIONS.VERTICAL) {
+        return lineHeight;
+    }
+    if (rotation === LABEL_ROTATIONS.DIAGONAL) {
+        return labelWidth * SIN_45;
+    }
+    return labelWidth;
+}
+
+/** Vertical footprint of a label at a given rotation angle. */
+function effectiveHeight(labelWidth: number, lineHeight: number, rotation: LabelRotation): number {
+    if (rotation === LABEL_ROTATIONS.VERTICAL) {
+        return labelWidth;
+    }
+    if (rotation === LABEL_ROTATIONS.DIAGONAL) {
+        return labelWidth * SIN_45 + lineHeight * SIN_45;
+    }
+    return lineHeight;
+}
+
+/** How many labels fit side-by-side in `areaWidth` given each takes `itemWidth`. */
+function maxVisibleCount(areaWidth: number, itemWidth: number): number {
+    return Math.floor(areaWidth / (itemWidth + LABEL_PADDING));
+}
+
+/**
+ * How far a label extends beyond its tick position after rotation.
+ * Accounts for the rotatedLabelCenterCorrection translateX applied during rendering.
+ */
+function labelOverhang(labelWidth: number, lineHeight: number, rotation: LabelRotation): {left: number; right: number} {
+    if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
+        return {left: labelWidth / 2, right: labelWidth / 2};
+    }
+    if (rotation === LABEL_ROTATIONS.DIAGONAL) {
+        const halfLH = lineHeight / 2;
+        return {
+            left: (labelWidth + halfLH) * SIN_45,
+            right: halfLH * SIN_45,
+        };
+    }
+    return {left: lineHeight / 2, right: lineHeight / 2};
+}
+
+/** Check if first and last labels fit within the available canvas edge space. */
+function edgeLabelsFit({
+    firstLabelWidth,
+    lastLabelWidth,
+    lineHeight,
+    rotation,
+    firstTickLeftSpace,
+    lastTickRightSpace,
+}: {
+    firstLabelWidth: number;
+    lastLabelWidth: number;
+    lineHeight: number;
+    rotation: LabelRotation;
+    firstTickLeftSpace: number;
+    lastTickRightSpace: number;
+}): boolean {
+    const first = labelOverhang(firstLabelWidth, lineHeight, rotation);
+    const last = labelOverhang(lastLabelWidth, lineHeight, rotation);
+    return first.left <= firstTickLeftSpace && last.right <= lastTickRightSpace;
+}
+
+/**
+ * Maximum label width that fits within the available edge space at a given rotation.
+ * Returns Infinity when the overhang at that edge doesn't depend on label width.
+ */
+function edgeMaxLabelWidth(edgeSpace: number, lineHeight: number, rotation: LabelRotation, edge: 'first' | 'last'): number {
+    if (rotation === LABEL_ROTATIONS.HORIZONTAL) {
+        return 2 * edgeSpace;
+    }
+    if (rotation === LABEL_ROTATIONS.DIAGONAL) {
+        return edge === 'first' ? Math.max(0, edgeSpace / SIN_45 - lineHeight / 2) : Infinity;
+    }
+    return Infinity;
+}
+// Point-in-convex-polygon test using cross products
+// Vertices in clockwise order: rightUpper -> rightLower -> leftLower -> leftUpper
+function isCursorInSkewedLabel(cursorX: number, cursorY: number, corners: Array<{x: number; y: number}>): boolean {
+    'worklet';
+
+    let sign = 0;
+    for (let i = 0; i < corners.length; i++) {
+        const a = corners.at(i);
+        const b = corners.at((i + 1) % corners.length);
+        if (a == null || b == null) {
+            continue;
+        }
+        const cross = (b.x - a.x) * (cursorY - a.y) - (b.y - a.y) * (cursorX - a.x);
+        if (cross !== 0) {
+            const crossSign = cross > 0 ? 1 : -1;
+            if (sign === 0) {
+                sign = crossSign;
+            } else if (crossSign !== sign) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/** Params for axis-aligned and 45° label hit-test; 90° uses yMin90/yMax90. */
+type ChartLabelHitTestParams = {
+    cursorX: number;
+    cursorY: number;
+    targetX: number;
+    labelY: number;
+    angleRad: number;
+    halfWidth: number;
+    padding: number;
+    /** For 45°: corners [rightUpper, rightLower, leftLower, leftUpper]. */
+    corners45?: Array<{x: number; y: number}>;
+    /** For 90° vertical label: vertical bounds. */
+    yMin90: number;
+    yMax90: number;
+};
+
+/**
+ * Shared hit-test for chart x-axis labels at 0°, 45°, or 90°.
+ * Used by BarChart and LineChart to detect cursor over rotated labels.
+ */
+function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, halfWidth, padding, corners45, yMin90, yMax90}: ChartLabelHitTestParams): boolean {
+    'worklet';
+
+    if (angleRad === 0) {
+        return cursorY >= labelY - padding && cursorY <= labelY + padding && cursorX >= targetX - halfWidth && cursorX <= targetX + halfWidth;
+    }
+    if (angleRad < 1 && corners45?.length === 4) {
+        return isCursorInSkewedLabel(cursorX, cursorY, corners45);
+    }
+    // 90°
+    return cursorX >= targetX - padding && cursorX <= targetX + padding && cursorY >= yMin90 && cursorY <= yMax90;
+}
+
+/** Predicts Y-axis tick values that victory-native will generate from the data extremes. */
+function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: number, padTop = 0, padBottom = 0, chartHeight = CHART_Y_SCALE_HEIGHT): number[] {
+    if (tickCount <= 0) {
+        return [];
+    }
+    if (tickCount === 1) {
+        return [rawDataMax];
+    }
+
+    const effectiveMin = rawDataMin > 0 ? 0 : rawDataMin;
+
+    const range = rawDataMax - effectiveMin;
+    const [paddedMin, paddedMax] =
+        effectiveMin === rawDataMax ? [effectiveMin - 1, rawDataMax + 1] : [effectiveMin - range * (padBottom / chartHeight), rawDataMax + range * (padTop / chartHeight)];
+
+    return scaleLinear().domain([paddedMin, paddedMax]).nice().ticks(tickCount);
+}
+
+/**
+ * Bars fill the plot with BAR_GAP between them, up to BAR_MAX_WIDTH, and the gap shrinks when there are too many bars for it.
+ * `edgeSpace` is the distance (px) from each plot edge to the nearest bar's center, and the x-domain lays the bars out with it.
+ */
+function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; gap: number; edgeSpace: number; xDomain: [number, number]} {
+    if (plotWidth <= 0 || barCount <= 0) {
+        return {barWidth: 0, gap: 0, edgeSpace: 0, xDomain: [-0.5, Math.max(0, barCount - 1) + 0.5]};
+    }
+    const gap = barCount > 1 ? Math.min(BAR_GAP, (plotWidth / barCount) * BAR_INNER_PADDING) : 0;
+    const barWidth = Math.min(BAR_MAX_WIDTH, (plotWidth - gap * (barCount - 1)) / barCount);
+
+    // Width the capped bars leave unused is split evenly between both sides, which centers them.
+    const sideSpace = (plotWidth - barWidth * barCount - gap * (barCount - 1)) / 2;
+    const edgeSpace = sideSpace + barWidth / 2;
+
+    // Bars sit at x = 0..barCount-1 and one x unit spans a bar and a gap, which converts edgeSpace from px into x units.
+    const edgeSpaceInXUnits = edgeSpace / (barWidth + gap);
+    return {barWidth, gap, edgeSpace, xDomain: [-edgeSpaceInXUnits, barCount - 1 + edgeSpaceInXUnits]};
+}
+
+/**
+ * Horizontal plot bounds of a cartesian chart whose y axis is `CARTESIAN_Y_AXIS`, mirroring victory-native's layout,
+ * so labels can be laid out from the width before the chart mounts.
+ */
+function getCartesianPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
+    const left = VictoryTheme.axis.padding.left;
+    const right = Math.max(left, chartWidth - paddingRight);
+    return {left, right, width: right - left};
+}
+
+/**
+ * Domain padding that leaves `edgeSpace` px between the plot edges and the first and last points.
+ * victory-native fits the padded domain back into the plot width, so the space on screen is smaller than the padding.
+ */
+function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, plotWidth: number): {left: number; right: number} {
+    const pointsSpan = plotWidth - edgeSpace.left - edgeSpace.right;
+    if (pointsSpan <= 0) {
+        return edgeSpace;
+    }
+    return {left: (edgeSpace.left * plotWidth) / pointsSpan, right: (edgeSpace.right * plotWidth) / pointsSpan};
+}
+
+type AxisLabelStepParams = {
+    /** Pixel width of each point's label */
+    labelWidths: number[];
+
+    /** Canvas x position of each point */
+    pointXs: number[];
+
+    /** Allowed steps between labeled points, ascending */
+    steps: readonly number[];
+
+    /** Minimum clear space between adjacent labels (px) */
+    minGap: number;
+};
+
+/**
+ * Picks the smallest step whose labels (points 0, step, 2 * step, ...), centered under their points, don't overlap.
+ * When no step fits, multiples of the last step are tried, down to labeling only the first point.
+ */
+function getAxisLabelStep({labelWidths, pointXs, steps, minGap}: AxisLabelStepParams): number {
+    const getLeft = (i: number) => (pointXs.at(i) ?? 0) - (labelWidths.at(i) ?? 0) / 2;
+    const fits = (step: number) => {
+        for (let i = step; i < pointXs.length; i += step) {
+            const previousRight = getLeft(i - step) + (labelWidths.at(i - step) ?? 0);
+            if (getLeft(i) - previousRight < minGap) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const candidates = [...steps];
+    const lastStep = steps.at(-1) ?? 1;
+    for (let step = lastStep * 2; step < pointXs.length; step += lastStep) {
+        candidates.push(step);
+    }
+    return candidates.find(fits) ?? Math.max(1, pointXs.length);
+}
+
+/** Returns the pixel width needed for Y-axis labels given the chart data. */
+function getYAxisLabelWidth(
+    data: ChartDataPoint[],
+    formatValue: (value: number) => string,
+    fontManager: SkTypefaceFontProvider | null,
+    fontSize: number,
+    domainPadding: {top: number; bottom: number},
+): number {
+    if (!fontManager) {
+        return 0;
+    }
+    const values = data.flatMap((point) => Object.values(point.values).filter((value) => value !== undefined));
+    const rawDataMax = values.length ? Math.max(...values) : 0;
+    const rawDataMin = values.length ? Math.min(...values) : 0;
+    return Math.max(
+        0,
+        ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
+            measureTextWidth(formatValue(tick), fontManager, fontSize),
+        ),
+    );
+}
+
+export {
+    buildChartParagraph,
+    buildWrappedChartParagraph,
+    canFontRenderText,
+    getAdditionalOffset,
+    measureTextWidth,
+    getFontLineMetrics,
+    rotatedLabelCenterCorrection,
+    rotatedLabelYOffset,
+    normalizeAngle,
+    isAngleInSlice,
+    findSliceAtPosition,
+    getLineRuns,
+    getPrimaryValue,
+    processDataIntoSlices,
+    getXAxisLabel,
+    truncateLabel,
+    effectiveWidth,
+    effectiveHeight,
+    maxVisibleCount,
+    labelOverhang,
+    edgeLabelsFit,
+    edgeMaxLabelWidth,
+    isCursorInSkewedLabel,
+    isCursorOverChartLabel,
+    getNiceYAxisTicks,
+    getYAxisLabelWidth,
+    getCartesianPlotBounds,
+    getBarLayout,
+    getDomainPaddingForEdgeSpace,
+    getAxisLabelStep,
+};
+
+export type {ChartLabelHitTestParams};

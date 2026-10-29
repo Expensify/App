@@ -1,12 +1,21 @@
-import React from 'react';
+import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
+
+import useStyleUtils from '@hooks/useStyleUtils';
+
+import variables from '@styles/variables';
+
 import type {ReactElement} from 'react';
+
+import React from 'react';
 import ReactDOM from 'react-dom';
 import {View} from 'react-native';
-import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
-import useStyleUtils from '@hooks/useStyleUtils';
+
+import type {AutoCompleteSuggestionsPortalProps} from './types';
+
 import getBottomSuggestionPadding from './getBottomSuggestionPadding';
 import TransparentOverlay from './TransparentOverlay/TransparentOverlay';
-import type {AutoCompleteSuggestionsPortalProps} from './types';
+
+const zIndexStyle = {zIndex: variables.autoCompleteSuggestionsZIndex};
 
 /**
  * On the mobile-web platform, when long-pressing on auto-complete suggestions,
@@ -20,6 +29,7 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     width = 0,
     bottom = 0,
     resetSuggestions = () => {},
+    isMenuAbove = false,
     ...props
 }: AutoCompleteSuggestionsPortalProps<TSuggestion>): ReactElement | null | false {
     const StyleUtils = useStyleUtils();
@@ -29,7 +39,6 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     const componentToRender = (
         <BaseAutoCompleteSuggestions<TSuggestion>
             width={width}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         />
     );
@@ -39,15 +48,18 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
         bodyElement &&
         ReactDOM.createPortal(
             <>
-                <TransparentOverlay onPress={resetSuggestions} />
-                <View style={StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding()})}>{componentToRender}</View>
+                <TransparentOverlay
+                    onPress={resetSuggestions}
+                    style={zIndexStyle}
+                />
+                <View style={[StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - getBottomSuggestionPadding(isMenuAbove)}), zIndexStyle]}>
+                    {componentToRender}
+                </View>
             </>,
             bodyElement,
         )
     );
 }
-
-AutoCompleteSuggestionsPortal.displayName = 'AutoCompleteSuggestionsPortal';
 
 export default AutoCompleteSuggestionsPortal;
 export type {AutoCompleteSuggestionsPortalProps};

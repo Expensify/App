@@ -1,0 +1,111 @@
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
+import shouldShowRBRIndicator from '@components/SelectionList/utils/shouldShowRBRIndicator';
+import TextWithTooltip from '@components/TextWithTooltip';
+
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ListItem, ListItemProps} from './types';
+
+/**
+ * A user row with avatar, name, and subtitle used for person selection and invitation. Adds
+ * secondary-login footers and product training tooltips on top of the standard user row layout.
+ * Composes ListItem directly because the selection button presence is state-dependent:
+ * disabled, unselected rows render without one.
+ */
+function InviteMemberListItem<TItem extends ListItem>({
+    item,
+    isFocused,
+    isFocusVisible,
+    showTooltip: shouldShowTooltip,
+    isDisabled,
+    canSelectMultiple,
+    onSelectRow,
+    onSelectionButtonPress,
+    onDismissError,
+    onFocus,
+    shouldSyncFocus,
+    titleNumberOfLines = 1,
+}: ListItemProps<TItem>) {
+    const styles = useThemeStyles();
+    const {formatPhoneNumber} = useLocalize();
+
+    const firstItemIconID = Number(item?.icons?.at(0)?.id);
+
+    const accountID = !item.reportID ? item.accountID || firstItemIconID : undefined;
+
+    const shouldShowSelectionButton = !item.shouldHideSelectionButton && !(item.isDisabled && !item.isSelected);
+    const shouldDisplayRBR = !(canSelectMultiple && !item.isDisabled) && shouldShowRBRIndicator(item);
+
+    return (
+        <ListItemComposed
+            item={item}
+            shouldShowTooltip={shouldShowTooltip}
+            isFocused={isFocused}
+            isFocusVisible={isFocusVisible}
+            isDisabled={isDisabled}
+            canSelectMultiple={canSelectMultiple}
+            onSelectRow={onSelectRow}
+            onDismissError={onDismissError}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
+        >
+            <ListItemComposed.Row
+                testID={item.text}
+                style={item.itemStyle}
+            >
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
+                    {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) &&
+                        (accountID ? (
+                            <ListItemComposed.UserAvatar
+                                accountID={accountID}
+                                fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                                accountEmail={item.login ?? undefined}
+                            />
+                        ) : (
+                            <ListItemComposed.ReportAvatar
+                                reportID={item.reportID}
+                                fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
+                            />
+                        ))}
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            <TextWithTooltip
+                                shouldShowTooltip={shouldShowTooltip}
+                                text={Str.isSMSLogin(item.text ?? '') ? formatPhoneNumber(item.text ?? '') : (item.text ?? '')}
+                                numberOfLines={titleNumberOfLines}
+                                style={[
+                                    styles.optionDisplayName,
+                                    styles.sidebarLinkText,
+                                    item.isBold !== false && styles.sidebarLinkTextBold,
+                                    titleNumberOfLines > 1 ? styles.preWrap : styles.pre,
+                                    item.alternateText ? styles.mb1 : null,
+                                ]}
+                            />
+                        </View>
+                        {!!item.alternateText && (
+                            <ListItemComposed.Subtitle text={Str.isSMSLogin(item.alternateText ?? '') ? formatPhoneNumber(item.alternateText ?? '') : (item.alternateText ?? '')} />
+                        )}
+                    </View>
+                    {item.rightElement}
+                </View>
+                {shouldDisplayRBR && <ListItemComposed.RBRIndicator item={item} />}
+                {shouldShowSelectionButton && (
+                    <ListItemComposed.SelectionButton
+                        item={item}
+                        onPress={onSelectionButtonPress ?? onSelectRow}
+                        canSelectMultiple={canSelectMultiple}
+                    />
+                )}
+                {item.actionElement}
+            </ListItemComposed.Row>
+            {!!item.invitedSecondaryLogin && <ListItemComposed.InvitedSecondaryLoginFooter invitedSecondaryLogin={item.invitedSecondaryLogin} />}
+        </ListItemComposed>
+    );
+}
+
+export default InviteMemberListItem;

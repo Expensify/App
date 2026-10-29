@@ -1,19 +1,57 @@
+/* eslint-disable max-lines */
+/**
+ * NOTE!!!!
+ *
+ * Refer to ./contributingGuides/philosophies/ROUTING.md for information on how to construct routes.
+ */
 import type {TupleToUnion, ValueOf} from 'type-fest';
-import type {SearchQueryString} from './components/Search/types';
+import type {UpperCaseCharacters} from 'type-fest/source/internal';
+
+import type {SearchFilterKey, SearchQueryString, UserFriendlyKey} from './components/Search/types';
 import type CONST from './CONST';
-import type {IOUAction, IOUType} from './CONST';
-import type {IOURequestType} from './libs/actions/IOU';
-import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
-import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
+import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURequestType, IOUType, OdometerImageType} from './CONST';
+import type {ReplacementReason} from './libs/actions/Card';
+import type {RootNavigatorParamList} from './libs/Navigation/types';
+import type {SearchKey} from './libs/SearchKeyUtils';
+import type {Screen} from './SCREENS';
+import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
+import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
+import type {BusinessCentralBankAccountSettingName, ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
+import type {CustomFieldType} from './types/onyx/PolicyEmployee';
+
+import Log from './libs/Log';
+import StringUtils from './libs/StringUtils';
+import {getUrlWithParams} from './libs/Url';
+import SCREENS from './SCREENS';
+
+type WorkspaceCompanyCardsAssignCardParams = {
+    policyID: string;
+    feed: CompanyCardFeedWithDomainID;
+    cardID: string;
+};
+
+function getRulesRevampRuleEditSegment(categoryName: string): string {
+    return `edit/${encodeURIComponent(categoryName)}`;
+}
+
+function getOptionalCategoryNameQuery(categoryName?: string): string {
+    return categoryName ? `?categoryName=${encodeURIComponent(categoryName)}` : '';
+}
+
+function getOptionalIsCategoryLockedQuery(isCategoryLocked?: boolean): string {
+    return isCategoryLocked ? '?isCategoryLocked=true' : '';
+}
 
 // This is a file containing constants for all the routes we want to be able to go to
 
 /**
  * Builds a URL with an encoded URI component for the `backTo` param which can be added to the end of URLs
+ * @deprecated Usage of getUrlWithBackToParam is prohibited. This is legacy code and no new occurrences should be added.
+ * Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md and use alternative routing methods instead.
  */
-function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string): `${TUrl}` | `${TUrl}?backTo=${string}` | `${TUrl}&backTo=${string}` {
-    const backToParam = backTo ? (`${url.includes('?') ? '&' : '?'}backTo=${encodeURIComponent(backTo)}` as const) : '';
-    return `${url}${backToParam}` as const;
+function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string, shouldEncodeURIComponent = true): `${TUrl}` {
+    const backToParam = backTo ? (`${url.includes('?') ? '&' : '?'}backTo=${shouldEncodeURIComponent ? encodeURIComponent(backTo) : backTo}` as const) : '';
+    return `${url}${backToParam}` as `${TUrl}`;
 }
 
 const PUBLIC_SCREENS_ROUTES = {
@@ -24,76 +62,2410 @@ const PUBLIC_SCREENS_ROUTES = {
     BANK_CONNECTION_COMPLETE: 'bank-connection-complete',
     VALIDATE_LOGIN: 'v/:accountID/:validateCode',
     UNLINK_LOGIN: 'u/:accountID/:validateCode',
-    APPLE_SIGN_IN: 'sign-in-with-apple',
-    GOOGLE_SIGN_IN: 'sign-in-with-google',
     SAML_SIGN_IN: 'sign-in-with-saml',
 } as const;
+
+// Exported for identifying a url as a verify-account route, associated with a page extending the VerifyAccountPageBase component
+const VERIFY_ACCOUNT = 'verify-account';
+
+type DynamicRouteConfig = {
+    path: string;
+    entryScreens: ReadonlyArray<Screen | '*'>;
+    getRoute?: (...args: never[]) => string;
+    queryParams?: readonly string[];
+};
+
+type DynamicRoutes = Record<string, DynamicRouteConfig>;
+
+/**
+ * Dynamic routes configuration for contextual navigation paths.
+ *
+ * These routes can be appended to base paths and accessed from multiple screens
+ * based on permission rules. They create reusable UI flows while preserving
+ * the underlying navigation state.
+ *
+ * Structure:
+ * - `path`: URL suffix appended to base routes
+ * - `entryScreens`: Screens allowed to access this dynamic route
+ *
+ * Example: '/workspace/123' + 'verify-account' = '/workspace/123/verify-account'
+ *
+ * Use for: verification flows, confirmations, multi-entry workflows
+ * Avoid for: regular navigation, single-entry workflows
+ *
+ */
+const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = [
+    SCREENS.REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+    SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+    SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+    SCREENS.HOME,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.SETTINGS.WALLET.ROOT,
+    SCREENS.WORKSPACE.WORKFLOWS,
+] as const;
+
+const DYNAMIC_ROUTES = {
+    VERIFY_ACCOUNT: {
+        path: 'verify-account',
+        entryScreens: [
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.ADD_BANK_ACCOUNT,
+            SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS,
+            SCREENS.WORKSPACE.COMPANY_CARDS,
+            SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED,
+            SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS,
+            SCREENS.WORKSPACE.INVOICES,
+            SCREENS.HOME,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.TRAVEL.MY_TRIPS,
+            SCREENS.WORKSPACE.TRAVEL,
+            SCREENS.WORKSPACES_ADD_DOMAIN,
+        ],
+        getRoute: (isJoinWorkspaceTask?: boolean) => getUrlWithParams('verify-account', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined}),
+        queryParams: ['isJoinWorkspaceTask'],
+    },
+    CONTACT_METHODS: {
+        path: 'contact-methods',
+        // Reachable from anywhere: e.g. DebugTabView renders a persistent debug entry point on every screen.
+        entryScreens: ['*'],
+    },
+    CONTACT_METHOD_DETAILS: {
+        path: ':contactMethod/details',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+        getRoute: (contactMethod: string, shouldSkipInitialValidation?: boolean) =>
+            getUrlWithParams(`${encodeURIComponent(contactMethod)}/details`, {shouldSkipInitialValidation: shouldSkipInitialValidation ? 'true' : undefined}),
+        queryParams: ['shouldSkipInitialValidation'],
+    },
+    NEW_CONTACT_METHOD: {
+        path: 'new-contact-method',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+    },
+    NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE: {
+        path: 'new/confirm-validate-code',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+    },
+    TWO_FACTOR_AUTH_VERIFY_ACCOUNT: {
+        path: 'two-factor-auth/verify-account',
+        entryScreens: ['*'],
+    },
+    TWO_FACTOR_AUTH_ROOT: {
+        path: 'two-factor-auth',
+        entryScreens: ['*'],
+    },
+    TWO_FACTOR_AUTH_VERIFY: {
+        path: 'two-factor-auth/verify',
+        entryScreens: ['*'],
+    },
+    TWO_FACTOR_AUTH_SUCCESS: {
+        path: 'two-factor-auth/success',
+        entryScreens: ['*'],
+    },
+    ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: {
+        path: 'add-bank-account/verify-account',
+        entryScreens: [
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.HOME,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+        ],
+        // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement).
+        getRoute: (shouldSkipPurposeSelection?: boolean, shouldSetUpUSBankAccount?: boolean) =>
+            getUrlWithParams('add-bank-account/verify-account', {
+                // If true the bank account purpose screen isn't shown after validation
+                shouldSkipPurposeSelection: shouldSkipPurposeSelection ? 'true' : undefined,
+                // If true US bank account setup flow must be started after validation
+                shouldSetUpUSBankAccount: shouldSetUpUSBankAccount ? 'true' : undefined,
+            }),
+        queryParams: ['shouldSkipPurposeSelection', 'shouldSetUpUSBankAccount'],
+    },
+    ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
+        path: 'enable-global-reimbursements/business/:bankAccountID/:subPage/:action?',
+        entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+        getRoute: (bankAccountID: string | number, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/business/${bankAccountID}/${subPage}${action ? `/${action}` : ''}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+        queryParams: ['bankCountry', 'bankCurrency'],
+    },
+    ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: {
+        path: 'enable-global-reimbursements/agreements/:bankAccountID',
+        entryScreens: [
+            ...ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+            SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+        ],
+        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/agreements/${bankAccountID}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+        queryParams: ['bankCountry', 'bankCurrency'],
+    },
+    ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: {
+        path: 'enable-global-reimbursements/sign/:bankAccountID',
+        entryScreens: [
+            ...ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+            SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS,
+            SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS,
+        ],
+        getRoute: (bankAccountID: string | number, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`enable-global-reimbursements/sign/${bankAccountID}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+        queryParams: ['bankCountry', 'bankCurrency'],
+    },
+    WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
+        path: 'global-reimbursements/:bankAccountID',
+        entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
+        getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
+    },
+    WISE_BUSINESS_ONBOARDING: {
+        path: 'business-onboarding/:subPage?/:action?',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
+        getRoute: (subPage?: string, action?: 'edit') => `business-onboarding${subPage ? `/${subPage}` : ''}${subPage && action ? `/${action}` : ''}` as const,
+    },
+    WISE_ACCEPT_TERMS: {
+        path: 'accept-terms',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING],
+    },
+    BANK_ACCOUNT_LINK_PLAID: {
+        path: ':bankAccountID/link-plaid',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
+        getRoute: (bankAccountID: string) => `${bankAccountID}/link-plaid` as const,
+    },
+    BANK_ACCOUNT_VERIFY_ACCOUNT: {
+        path: 'verify-bank-account',
+        entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
+        getRoute: (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>, isNonUSDSetup?: boolean) =>
+            getUrlWithParams('verify-bank-account', {
+                setupType,
+                isNonUSDSetup: isNonUSDSetup ? 'true' : undefined,
+            }),
+        queryParams: ['setupType', 'isNonUSDSetup'],
+    },
+    CARD_AUTHENTICATION: {
+        path: 'card-authentication',
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.ROOT, SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+    },
+    OWNER_SELECTOR: {
+        path: 'owner-selector',
+        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT],
+    },
+    WORKSPACE_CONFIRMATION: {
+        path: 'workspace/confirmation',
+        entryScreens: ['*'],
+    },
+    WORKSPACE_CONFIRMATION_CURRENCY: {
+        path: 'currency',
+        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT, SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE],
+    },
+    WORKSPACE_CONFIRMATION_PLAN_TYPE: {
+        path: 'plan-type',
+        entryScreens: [SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT, SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE],
+    },
+    TRAVEL_WORKSPACE_CONFIRMATION: {
+        path: 'workspace-confirmation',
+        entryScreens: [SCREENS.TRAVEL.DYNAMIC_UPGRADE],
+    },
+    MIGRATED_USER_WELCOME: {
+        path: 'migrated-user-welcome',
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
+    },
+    SUBMIT_PLAN_WELCOME: {
+        path: 'submit-plan-welcome',
+        entryScreens: [SCREENS.HOME, SCREENS.INBOX, SCREENS.REPORT, SCREENS.SEARCH.ROOT, SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE, SCREENS.SETTINGS.ROOT],
+    },
+    EXPENSE_LIMIT_TYPE_SELECTOR: {
+        path: 'expense-limit-type',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER],
+    },
+    IMPORTED_MEMBERS_ROLE: {
+        path: 'imported-members-role',
+        entryScreens: [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION, SCREENS.WORKSPACE.WORKFLOWS_IMPORTED_CONFIRMATION],
+    },
+    REPORT_SETTINGS: {
+        path: 'report-settings',
+        entryScreens: [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT],
+    },
+    PAYMENT_CARD_CURRENCY_SELECTOR: {
+        path: 'payment-card-currency',
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+    },
+    REPORT_SETTINGS_NAME: {
+        path: 'settings/name',
+        entryScreens: [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT],
+    },
+    REPORT_SETTINGS_WRITE_CAPABILITY: {
+        path: 'who-can-post',
+        entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT],
+    },
+    REPORT_SETTINGS_VISIBILITY: {
+        path: 'visibility',
+        entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT],
+    },
+    CHANGE_POLICY_EDUCATIONAL: {
+        path: 'change-workspace-educational',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.REPORT_CHANGE_WORKSPACE.DYNAMIC_ROOT,
+        ],
+    },
+    EDIT_REPORT_FIELD: {
+        path: 'edit/policyField/:policyID/:fieldID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (policyID: string, fieldID: string) => `edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const,
+    },
+    COLLECT_DEPOSIT_ACCOUNT: {
+        path: 'collect-deposit-account/:subPage?/:action?',
+        entryScreens: [SCREENS.HOME, SCREENS.SETTINGS.WALLET.ROOT, SCREENS.SETTINGS.BANK_ACCOUNT_PURPOSE],
+        getRoute: (subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return 'collect-deposit-account' as const;
+            }
+            return `collect-deposit-account/${subPage}${action ? `/${action}` : ''}` as const;
+        },
+    },
+    MISSING_PERSONAL_DETAILS: {
+        path: 'missing-personal-details/:cardID/:subPage?/:action?',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+        ],
+        getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return `missing-personal-details/${cardID}` as const;
+            }
+            return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
+        },
+    },
+    MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: {
+        path: 'missing-personal-details/:cardID/confirm-validate-code',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+            SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+        ],
+        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-validate-code` as const,
+    },
+    MONEY_REQUEST_STEP_DISTANCE: {
+        path: 'expense-distance',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE route');
+            }
+
+            return getUrlWithParams('expense-distance', {action, iouType, transactionID, reportID, reportActionID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_DISTANCE_MANUAL: {
+        path: 'expense-distance-manual',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_MANUAL route');
+            }
+
+            return getUrlWithParams('expense-distance-manual', {action, iouType, transactionID, reportID, reportActionID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_DISTANCE_RATE: {
+        path: 'expense-distance-rate',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.WORKSPACE.CREATE_DISTANCE_RATE,
+            SCREENS.WORKSPACE.CREATE_DISTANCE_RATE_UPGRADE,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_RATE route');
+            }
+
+            return getUrlWithParams('expense-distance-rate', {action, iouType, transactionID, reportID, reportActionID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_REPORT: {
+        path: 'expense-report',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, reportActionID?: string) =>
+            getUrlWithParams('expense-report', {action, iouType, transactionID, reportID, reportActionID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_EDIT_REPORT: {
+        path: 'expense-report-edit',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (action: IOUAction, iouType: IOUType, reportID: string | undefined, shouldTurnOffSelectionMode?: boolean, transactionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
+            }
+            return getUrlWithParams('expense-report-edit', {action, iouType, reportID, shouldTurnOffSelectionMode: shouldTurnOffSelectionMode ? 'true' : undefined, transactionID});
+        },
+        queryParams: ['action', 'iouType', 'reportID', 'shouldTurnOffSelectionMode', 'transactionID'],
+    },
+    MONEY_REQUEST_HOLD_REASON: {
+        path: 'hold-reason',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (transactionID: string, holdReportID: string | undefined) => getUrlWithParams('hold-reason', {transactionID, holdReportID}),
+        queryParams: ['transactionID', 'holdReportID'],
+    },
+    MONEY_REQUEST_RECEIPT_VIEW: {
+        path: 'receipt-view',
+        entryScreens: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN],
+        getRoute: (transactionID: string) => getUrlWithParams('receipt-view', {transactionID}),
+        queryParams: ['transactionID'],
+    },
+    MONEY_REQUEST_SPLIT_EXPENSE: {
+        path: 'split-expense-overview',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+        // `splitReportID` is deliberately not named `reportID` so it cannot inherit the base path's report.
+        // `originalTransactionID` is deliberately not named `transactionID` so it cannot collide with the
+        // `transactionID` query param used by the expense step screens nested under this dynamic route.
+        getRoute: (splitReportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string) => {
+            if (!splitReportID || !originalTransactionID) {
+                Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE route`);
+            }
+
+            return getUrlWithParams('split-expense-overview', {splitReportID, originalTransactionID, splitExpenseTransactionID});
+        },
+        queryParams: ['splitReportID', 'originalTransactionID', 'splitExpenseTransactionID'],
+    },
+    MONEY_REQUEST_SPLIT_EXPENSE_SEARCH: {
+        path: 'split-expense-overview-search',
+        entryScreens: [
+            SCREENS.SEARCH.ROOT,
+            SCREENS.SEARCH.MONEY_REQUEST_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (splitReportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string) => {
+            if (!splitReportID || !originalTransactionID) {
+                Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE_SEARCH route`);
+            }
+
+            return getUrlWithParams('split-expense-overview-search', {splitReportID, originalTransactionID, splitExpenseTransactionID});
+        },
+        queryParams: ['splitReportID', 'originalTransactionID', 'splitExpenseTransactionID'],
+    },
+    MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE: {
+        // No query params of its own: `splitReportID`/`originalTransactionID` are inherited from the overview screen underneath.
+        path: 'split-expense-create-date-range',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
+    },
+    MONEY_REQUEST_STEP_TAG: {
+        path: 'expense-tag',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
+        ],
+        // `orderWeight` is stringified explicitly because the first tag list has index 0, which `getUrlWithParams` would drop as falsy.
+        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, reportActionID?: string) =>
+            getUrlWithParams('expense-tag', {action, iouType, orderWeight: String(orderWeight), transactionID, reportID, reportActionID}),
+        queryParams: ['action', 'iouType', 'orderWeight', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    SPLIT_EXPENSE_EDIT: {
+        // `editSplitExpenseTransactionID` is deliberately not named `splitExpenseTransactionID` so this path param cannot be
+        // shadowed by the overview route's `splitExpenseTransactionID` query param when this route is nested under it.
+        path: 'split-expense/edit/:reportID/:editSplitExpenseTransactionID?',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
+        getRoute: (reportID: string, editSplitExpenseTransactionID?: string) => {
+            if (!editSplitExpenseTransactionID) {
+                return `split-expense/edit/${reportID}` as const;
+            }
+            return `split-expense/edit/${reportID}/${editSplitExpenseTransactionID}` as const;
+        },
+    },
+    MONEY_REQUEST_STEP_MERCHANT: {
+        path: 'expense-merchant',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            // An incomplete split bill still renders the editable confirmation fields for its original actor.
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            getUrlWithParams('expense-merchant', {action, iouType, transactionID, reportID, reportActionID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_DESCRIPTION: {
+        path: 'expense-description',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            getUrlWithParams('expense-description', {action, iouType, transactionID, reportID, reportActionID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_DATE: {
+        path: 'expense-date',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            getUrlWithParams('expense-date', {action, iouType, transactionID, reportID, reportActionID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_PARTICIPANTS: {
+        path: 'expense-participants',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string | undefined;
+            reportID: string | undefined;
+            isWorkspacesOnly?: boolean;
+            shouldExcludeWorkspaces?: boolean;
+        }) => {
+            const {action, iouType, transactionID, reportID, isWorkspacesOnly, shouldExcludeWorkspaces} = params;
+            // `getUrlWithParams` drops falsy values, so the flag is only sent when it is on.
+            return getUrlWithParams('expense-participants', {
+                action,
+                iouType,
+                transactionID,
+                reportID,
+                isWorkspacesOnly: isWorkspacesOnly ? 'true' : undefined,
+                shouldExcludeWorkspaces: shouldExcludeWorkspaces ? 'true' : undefined,
+            });
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'isWorkspacesOnly', 'shouldExcludeWorkspaces'],
+    },
+    MONEY_REQUEST_STEP_SCAN: {
+        path: 'expense-scan',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_SCAN route');
+            }
+
+            return getUrlWithParams('expense-scan', {action, iouType, transactionID, reportID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
+    },
+    MONEY_REQUEST_STEP_WAYPOINT: {
+        path: 'expense-waypoint',
+        entryScreens: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE],
+        getRoute: (pageIndex: number) => getUrlWithParams('expense-waypoint', {pageIndex: String(pageIndex)}),
+        queryParams: ['pageIndex'],
+    },
+    MONEY_REQUEST_STEP_DESTINATION: {
+        path: 'per-diem-destination',
+        entryScreens: [SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_DESTINATION_EDIT: {
+        path: 'per-diem-destination-edit',
+        // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_TIME: {
+        path: 'per-diem-time',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION, SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_TIME_EDIT: {
+        path: 'per-diem-time-edit',
+        // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_SUBRATE: {
+        path: 'per-diem-subrate/:pageIndex',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME],
+        getRoute: (pageIndex: string | number = 0) => `per-diem-subrate/${pageIndex}` as const,
+    },
+    MONEY_REQUEST_STEP_SUBRATE_EDIT: {
+        path: 'per-diem-subrate-edit/:pageIndex',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        getRoute: (pageIndex: string | number) => `per-diem-subrate-edit/${pageIndex}` as const,
+    },
+    PROFILE: {
+        path: 'a/:accountID',
+        entryScreens: ['*'],
+        getRoute: (accountID?: number, login?: string, policyID?: string) => getUrlWithParams(`a/${accountID}`, {login, policyID}),
+        queryParams: ['login', 'policyID'],
+    },
+    PROFILE_DISPLAY_NAME: {
+        // `accountID` is carried as `memberAccountID` so it never collides with the `accountID` of the
+        // profile this is opened from.
+        path: 'display-name/:memberAccountID/:policyID',
+        entryScreens: [SCREENS.DYNAMIC_PROFILE],
+        getRoute: (memberAccountID: number, policyID: string) => `display-name/${memberAccountID}/${policyID}` as const,
+    },
+    PROFILE_AVATAR: {
+        path: 'avatar/:accountID',
+        entryScreens: ['*'],
+        getRoute: (accountID: number) => `avatar/${accountID}` as const,
+    },
+    AVATAR_CROP: {
+        path: 'avatar-crop',
+        entryScreens: [
+            SCREENS.SETTINGS.PROFILE.AVATAR,
+            SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR,
+            SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR,
+            SCREENS.NEW_CHAT.NEW_CHAT_CONFIRM,
+            SCREENS.WORKSPACE.PROFILE,
+            SCREENS.WORKSPACE_CONFIRMATION.DYNAMIC_ROOT,
+            SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR,
+            SCREENS.WORKSPACE_DUPLICATE.ROOT,
+            SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.DYNAMIC_STEP_UPGRADE,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+    },
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        path: 'new-report-workspace-selection',
+        entryScreens: ['*'],
+        getRoute: (isMovingExpenses?: boolean) => `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const,
+        queryParams: ['isMovingExpenses'],
+    },
+    NETSUITE_AUTO_SYNC: {
+        path: 'netsuite-autosync',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
+    NETSUITE_ACCOUNTING_METHOD: {
+        path: 'netsuite-accounting-method',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_AUTO_SYNC],
+    },
+    SAGE_INTACCT_PREREQUISITES: {
+        path: 'sage-intacct/prerequisites',
+        entryScreens: [
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING,
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS,
+        ],
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT: {
+        path: 'certinia/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
+    },
+    POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER: {
+        path: 'certinia-preferred-exporter/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS: {
+        path: 'certinia-status/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE: {
+        path: 'certinia-date/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR: {
+        path: 'certinia-default-vendor/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_ADVANCED: {
+        path: 'certinia/advanced',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
+    },
+    POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT: {
+        path: 'certinia-fx-expense-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_ADVANCED],
+    },
+    POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS: {
+        path: 'certinia-report-status/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_EXPORT],
+    },
+    POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR: {
+        path: 'certinia/company',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
+        path: 'vendor/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: {
+        path: 'payable-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: {
+        path: 'journal-posting-preference/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT: {
+        path: 'connections/netsuite/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
+        path: 'receivable-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
+        path: 'invoice-item-preference/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT: {
+        path: 'invoice-item/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
+        path: 'preferred-exporter/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_DATE_SELECT: {
+        path: 'date/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES: {
+        path: 'expenses/:expenseType',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT],
+        getRoute: (expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) => `expenses/${expenseType as string}` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: {
+        path: 'destination/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
+        path: 'preferred-exporter',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
+        path: 'out-of-pocket-expense',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
+        path: 'account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
+        path: 'entity-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
+        path: 'date-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
+        path: 'quickbooks-online/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
+        path: 'company-card-expense-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
+        path: 'company-card-expense-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_CARD_SELECT: {
+        path: 'card-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
+        path: 'quickbooks-desktop/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: {
+        path: 'qbd-company-card-expense-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
+        path: 'qbd-company-card-expense-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_CONFIGURATION: {
+        path: 'qbd-travel-billing',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT: {
+        path: 'qbd-travel-billing-payable-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_CONFIGURATION],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_CARD_SELECT: {
+        path: 'qbd-card-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ACCOUNT_SELECT: {
+        path: 'qbd-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ENTITY_SELECT: {
+        path: 'qbd-entity-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: {
+        path: 'qbd-out-of-pocket-expense',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER: {
+        path: 'qbd-preferred-exporter',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
+        path: 'qbd-date-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
+        path: 'invoice-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
+        path: 'destination',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
+        path: 'default-vendor',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES, SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+        getRoute: (reimbursable: string) => getUrlWithParams('default-vendor', {reimbursable}),
+        queryParams: ['reimbursable'],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
+        path: 'credit-card-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION: {
+        path: 'travel-billing',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_EXPORT],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT: {
+        path: 'payable-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_AUTO_SYNC: {
+        path: 'sage-intacct-autosync',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_ACCOUNTING_METHOD: {
+        path: 'sage-intacct-accounting-method',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_AUTO_SYNC, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC],
+    },
+    POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT: {
+        path: 'bank-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT: {
+        path: 'default-supplier-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
+        path: 'purchase-bill-status-selector',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_EXPORT: {
+        path: 'xero/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
+        path: 'xero-preferred-exporter/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: {
+        path: 'purchase-bill-date-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION: {
+        path: 'xero-travel-billing',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT: {
+        path: 'xero-travel-billing-payable-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_BILLING_CONFIGURATION],
+    },
+    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
+        path: 'xero-autosync',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
+    POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
+        path: 'accounting-method',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_AUTO_SYNC],
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC: {
+        path: 'quickbooks-online-autosync',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: {
+        path: 'quickbooks-online-accounting-method',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_AUTO_SYNC, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
+        path: 'quickbooks-desktop/advanced',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_FX_EXPENSE_ACCOUNT_SELECT: {
+        path: 'qbd-fx-expense-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED],
+    },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
+        path: 'account-reconciliation-settings',
+        entryScreens: [
+            SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT,
+            SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ADVANCED,
+            SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_ADVANCED,
+            SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_ADVANCED,
+            SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED,
+            SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED,
+            SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION,
+            SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_CONFIGURATION,
+            SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_BILLING_CONFIGURATION,
+            SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION,
+        ],
+        queryParams: ['connection', 'reconciliationAccountSettingsType'],
+    },
+    ADDRESS_COUNTRY: {
+        path: 'country',
+        entryScreens: [
+            SCREENS.SETTINGS.PROFILE.ADDRESS,
+            SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
+            SCREENS.TRAVEL.ENABLE,
+            SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
+            SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
+            SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT,
+        ],
+        getRoute: (country = '') => `country?country=${country}`,
+        queryParams: ['country'],
+    },
+    ADDRESS_STATE: {
+        path: 'state',
+        entryScreens: [
+            SCREENS.SETTINGS.PROFILE.ADDRESS,
+            SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
+            SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
+            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
+            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
+            SCREENS.TRAVEL.ENABLE,
+            SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
+            SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
+            SCREENS.SETTINGS.UPDATE_PERSONAL_BANK_ACCOUNT,
+            SCREENS.IOU_SEND.ENABLE_PAYMENTS,
+            SCREENS.ENABLE_PAYMENTS_ROOT,
+            SCREENS.REIMBURSEMENT_ACCOUNT_USD,
+            SCREENS.REIMBURSEMENT_ACCOUNT_NON_USD,
+            SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO,
+            SCREENS.SETTINGS.ADD_DEBIT_CARD,
+            SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD,
+            SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
+            SCREENS.IOU_SEND.ADD_DEBIT_CARD,
+        ],
+        getRoute: (state = '', label = '') => `state${state ? `?state=${encodeURIComponent(state)}` : ''}${label ? `${state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''}`,
+        queryParams: ['state', 'label'],
+    },
+    ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: {
+        path: 'wallet-confirm-validate-code',
+        entryScreens: [SCREENS.IOU_SEND.ENABLE_PAYMENTS, SCREENS.ENABLE_PAYMENTS_ROOT],
+    },
+    SETTINGS_CATEGORY_SETTINGS: {
+        path: 'category-settings/:categoryName',
+        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
+        getRoute: (categoryName: string) => `category-settings/${encodeURIComponent(categoryName)}` as const,
+    },
+    SETTINGS_CATEGORY_EDIT: {
+        path: 'category-edit',
+        entryScreens: [SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    SETTINGS_CATEGORY_CREATE: {
+        path: 'category-create',
+        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT],
+    },
+    WORKSPACE_CATEGORY_SETTINGS: {
+        path: 'category/:categoryName',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+        getRoute: (categoryName: string) => `category/${encodeURIComponent(categoryName)}` as const,
+    },
+    WORKSPACE_CATEGORY_EDIT: {
+        path: 'edit',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_PAYROLL_CODE: {
+        path: 'payroll-code',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_GL_CODE: {
+        path: 'gl-code',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_DEFAULT_TAX_RATE: {
+        path: 'tax-rate',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
+        path: 'flag-amounts',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_DESCRIPTION_HINT: {
+        path: 'description-hint',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
+        path: 'required-fields',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_APPROVER: {
+        path: 'approver',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
+        path: 'require-receipts-over',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER: {
+        path: 'require-itemized-receipts-over',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_RULES_NEW: {
+        path: 'rules/new',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_NEW: {
+        path: 'flag-for-review',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW],
+    },
+    WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_EDIT: {
+        path: 'rules/flag-for-review',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT: {
+        path: 'amount',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_NEW, SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_EDIT],
+    },
+    WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW: {
+        path: 'require-fields',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW],
+    },
+    WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_EDIT: {
+        path: 'rules/require-fields',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_RULES_TAX_NEW: {
+        path: 'tax-default',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_RULES_NEW],
+    },
+    WORKSPACE_CATEGORY_RULES_TAX_EDIT: {
+        path: 'rules/tax',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
+    },
+    RULES_MERCHANT_NEW_FROM_EXPENSE: {
+        path: 'merchant-rule/new',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (policyID: string) => getUrlWithParams('merchant-rule/new', {policyID}),
+        queryParams: ['policyID'],
+    },
+    RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-merchant-to-match',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE: {
+        path: 'rule-match-type',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH],
+    },
+    RULES_MERCHANT_MERCHANT_FROM_EXPENSE: {
+        path: 'rule-merchant',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_CATEGORY_FROM_EXPENSE: {
+        path: 'rule-category',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_TAG_FROM_EXPENSE: {
+        path: 'rule-tag/:orderWeight',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+        getRoute: (orderWeight: number) => `rule-tag/${orderWeight}` as const,
+    },
+    RULES_MERCHANT_TAX_FROM_EXPENSE: {
+        path: 'rule-tax',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW, SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_NEW, SCREENS.WORKSPACE.DYNAMIC_CATEGORY_TAX_RULE_EDIT],
+    },
+    RULES_MERCHANT_VENDOR_FROM_EXPENSE: {
+        path: 'rule-vendor',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_DESCRIPTION_FROM_EXPENSE: {
+        path: 'rule-description',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE: {
+        path: 'rule-reimbursable',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_BILLABLE_FROM_EXPENSE: {
+        path: 'rule-billable',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
+        path: 'rule-matches',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_NEW],
+    },
+    NOTIFICATION_PREFERENCES: {
+        // `reportID` is intentionally carried as a distinct path param (`notificationReportID`) rather than
+        // `reportID`, so it never collides with a `reportID` inherited from the surrounding report chain's
+        // query string. This keeps the inherited `?reportID=` intact for back navigation.
+        path: 'notification-preferences/:notificationReportID',
+        entryScreens: [SCREENS.REPORT_SETTINGS.DYNAMIC_ROOT, SCREENS.DYNAMIC_PROFILE],
+        getRoute: (notificationReportID: string) => `notification-preferences/${notificationReportID}` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
+        path: 'sage-intacct/export',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING, SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_EXPORT],
+    },
+    WORKSPACE_OVERVIEW_PLAN: {
+        path: 'plan',
+        entryScreens: [SCREENS.WORKSPACE.PROFILE],
+    },
+    WORKSPACE_OVERVIEW_ADDRESS: {
+        path: 'workspace-address',
+        entryScreens: [SCREENS.WORKSPACE.PROFILE],
+    },
+    SUBSCRIPTION_DOWNGRADE_BLOCKED: {
+        path: 'subscription-downgrade-blocked',
+        entryScreens: [
+            SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+            SCREENS.WORKSPACES_LIST,
+            SCREENS.WORKSPACE.PROFILE,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN,
+            SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS,
+        ],
+    },
+    WORKSPACE_PAY_AND_DOWNGRADE: {
+        path: 'pay-and-downgrade',
+        entryScreens: [SCREENS.WORKSPACES_LIST, SCREENS.WORKSPACE.PROFILE],
+    },
+    WORKSPACE_DOWNGRADE: {
+        path: 'downgrade',
+        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.ROOT, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_PLAN],
+        getRoute: (policyID?: string) => getUrlWithParams('downgrade', {policyID}),
+        queryParams: ['policyID'],
+    },
+    WORKSPACE_CATEGORIES_IMPORT: {
+        path: 'import',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
+    WORKSPACE_CATEGORIES_IMPORTED: {
+        path: 'imported',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
+    WORKSPACE_TAGS_IMPORT: {
+        path: 'workspace-tags-import',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+    },
+    WORKSPACE_TAGS_IMPORTED: {
+        path: 'workspace-tags-imported',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+    },
+    WORKSPACE_EDIT_TAGS: {
+        path: 'workspace-edit-tags/:orderWeight',
+        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW],
+        getRoute: (orderWeight: number) => `workspace-edit-tags/${orderWeight}`,
+    },
+    WORKSPACE_CATEGORY_CREATE: {
+        path: 'category-new',
+        entryScreens: [SCREENS.WORKSPACE.CATEGORIES],
+    },
+    WORKSPACE_TAG_CREATE: {
+        path: 'tag-create',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+    },
+    WORKSPACE_TAG_LIST_VIEW: {
+        path: 'workspace-tag-list/:orderWeight',
+        entryScreens: [SCREENS.WORKSPACE.TAGS],
+        getRoute: (orderWeight: number) => `workspace-tag-list/${orderWeight}`,
+    },
+    WORKSPACE_TAG_SETTINGS: {
+        path: 'workspace-tag-settings/:orderWeight/:tagName',
+        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.DYNAMIC_TAG_LIST_VIEW],
+        getRoute: (orderWeight: number, tagName: string) => `workspace-tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
+        queryParams: ['parentTagsFilter'],
+    },
+    WORKSPACE_TAG_APPROVER: {
+        path: 'workspace-tag-approver',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS],
+    },
+    WORKSPACE_TAG_GL_CODE: {
+        path: 'workspace-tag-gl-code',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS],
+    },
+    WORKSPACE_TAG_EDIT: {
+        path: 'workspace-tag-edit',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_TAG_SETTINGS],
+    },
+    DEFAULT_CATEGORY_SELECTOR: {
+        path: 'default-category-selector/:customUnitID',
+        entryScreens: [SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS, SCREENS.WORKSPACE.PER_DIEM_SETTINGS],
+        getRoute: (customUnitID: string) => `default-category-selector/${customUnitID}` as const,
+    },
+    WORKSPACE_INVITE: {
+        path: 'invite',
+        entryScreens: [SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACE.MEMBERS],
+    },
+    WORKSPACE_INVITE_MESSAGE: {
+        path: 'invite-message',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE, SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM],
+    },
+    WORKSPACE_INVITE_WORK_ARRANGEMENT: {
+        path: 'work-arrangement',
+        entryScreens: [
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE,
+            SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
+        ],
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
+        path: 'expenses-from',
+        entryScreens: [SCREENS.WORKSPACE.WORKFLOWS, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EDIT],
+    },
+    WORKSPACE_OWNER_CHANGE_SUCCESS: {
+        path: 'owner-change-success',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK, SCREENS.WORKSPACE.MEMBER_DETAILS],
+    },
+    WORKSPACE_OWNER_CHANGE_ERROR: {
+        path: 'owner-change-failure',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK, SCREENS.WORKSPACE.MEMBER_DETAILS],
+    },
+    WORKSPACE_HR_SYNC_RESULTS: {
+        // `policyID` is not repeated here: both entry screens are already workspace-scoped, so the
+        // suffix inherits their `:policyID` (same as WORKSPACE_INVITE above).
+        path: 'hr-sync-results',
+        // The results screen opens automatically when an HR sync finishes, and a sync can complete
+        // while the user is on the HR page, the Connections page or its HR panel, or the members list.
+        // With the unified connections beta, the Connections page also renders on the old integration routes.
+        entryScreens: [
+            SCREENS.WORKSPACE.HR,
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.CONNECTIONS_HR,
+            SCREENS.WORKSPACE.MEMBERS,
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.RECRUITING,
+            SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
+        ],
+    },
+    WORKSPACE_RECRUITING_SYNC_RESULTS: {
+        // The results screen opens automatically when a recruiting sync finishes, and a sync can complete
+        // while the user is on the recruiting page, the Connections page or its recruiting panel, or the members list.
+        // With the unified connections beta, the Connections page also renders on the old integration routes.
+        path: 'recruiting-sync-results',
+        entryScreens: [
+            SCREENS.WORKSPACE.RECRUITING,
+            SCREENS.WORKSPACE.CONNECTIONS,
+            SCREENS.WORKSPACE.CONNECTIONS_RECRUITING,
+            SCREENS.WORKSPACE.MEMBERS,
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.HR,
+            SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
+        ],
+    },
+    WORKSPACE_OWNER_CHANGE_CHECK: {
+        path: 'change-owner/:policyID/:accountID/:error',
+        entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS, SCREENS.WORKSPACE.PROFILE, SCREENS.WORKSPACES_LIST],
+        getRoute: (policyID: string | undefined, accountID: number, error: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID while building route WORKSPACE_OWNER_CHANGE_CHECK');
+            }
+
+            return `change-owner/${policyID}/${accountID}/${error}` as const;
+        },
+    },
+    WORKSPACE_INVITE_MESSAGE_ROLE: {
+        path: 'role',
+        entryScreens: [
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE,
+            SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW,
+        ],
+    },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT: {
+        path: ':integration/invite/edit',
+        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS, SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS],
+        getRoute: (integration: string) => `${integration}/invite/edit` as const,
+    },
+    WORKSPACE_RECEIPT_PARTNERS_INVITE: {
+        path: ':integration/invite',
+        entryScreens: [SCREENS.WORKSPACE.RECEIPT_PARTNERS, SCREENS.WORKSPACE.CONNECTIONS_RECEIPT_PARTNERS],
+        getRoute: (integration: string) => `${integration}/invite` as const,
+    },
+    EXPENSIFY_CARD_DETAILS: {
+        path: 'expensify-card-details/:cardID/:policyID',
+        entryScreens: [
+            SCREENS.WORKSPACE.EXPENSIFY_CARD,
+            SCREENS.REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.DYNAMIC_PROFILE,
+        ],
+        getRoute: (cardID: string, policyID: string) => `expensify-card-details/${cardID}/${policyID}` as const,
+    },
+    EXPENSIFY_CARD_LIMIT_TYPE: {
+        path: 'edit/limit-type',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
+    },
+    EXPENSIFY_CARD_LIMIT: {
+        path: 'edit/limit',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
+    },
+    EXPENSIFY_CARD_NAME: {
+        path: 'edit/name',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS, SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS],
+    },
+    WORKSPACE_EXPENSIFY_CARD_DETAILS: {
+        path: 'card-details/:cardID',
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.WORKSPACE.MEMBER_DETAILS],
+        getRoute: (cardID: string) => `card-details/${cardID}` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
+        path: 'account',
+        entryScreens: [
+            SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT,
+            SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS,
+        ],
+    },
+    WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: {
+        path: 'select-feed',
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD],
+    },
+    WORKSPACE_TRAVEL_BILLING_SELECT_FEED: {
+        path: 'travel-select-feed',
+        entryScreens: [SCREENS.WORKSPACE.TRAVEL],
+    },
+    WORKSPACE_ACCOUNTING_RECONCILIATION_SELECT_FEED: {
+        path: 'reconciliation-select-feed',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
+    WORKSPACE_COMPANY_CARDS_ADD_NEW: {
+        path: 'add-card-feed',
+        entryScreens: [SCREENS.WORKSPACE.COMPANY_CARDS, SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED],
+    },
+    WORKSPACE_COMPANY_CARD_DETAILS: {
+        path: 'company-card-details/:feed/:cardID',
+        entryScreens: [SCREENS.WORKSPACE.COMPANY_CARDS, SCREENS.WORKSPACE.MEMBER_DETAILS],
+        getRoute: (feed: CompanyCardFeedWithDomainID, cardID: string) => `company-card-details/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
+    },
+    WORKSPACE_COMPANY_CARD_EXPORT: {
+        path: 'edit/export/:feed/:cardID',
+        entryScreens: [
+            SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARD_DETAILS,
+            SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS,
+            SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_DETAILS,
+            SCREENS.WORKSPACE.ACCOUNTING.RILLET_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_CARD_ACCOUNT_CARD_LIST,
+            SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST,
+        ],
+        getRoute: (feed: CardFeedWithDomainID, cardID: string) => `edit/export/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
+        path: 'assign-card/:feed/:cardID/assignee',
+        entryScreens: [SCREENS.WORKSPACE.COMPANY_CARDS],
+        getRoute: (feed: CompanyCardFeedWithDomainID, cardID: string) => `assign-card/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}/assignee` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION: {
+        path: 'confirmation',
+        entryScreens: [
+            SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE,
+            SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION,
+            SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER,
+        ],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_VALIDATE_CODE: {
+        path: 'confirm-validate-code',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION: {
+        path: 'rules/selection',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS: {
+        path: 'rules/merchants',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT: {
+        path: 'edit/:merchantIndex',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS],
+        getRoute: (merchantIndex: string) => `edit/${merchantIndex}` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY: {
+        path: 'rules/category',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY: {
+        path: 'rules/currency',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT: {
+        path: 'rules/max-amount',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW],
+    },
+    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
+        path: 'issue-new',
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT, SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED],
+    },
+    KEYBOARD_SHORTCUTS: {
+        path: 'keyboard-shortcuts',
+        entryScreens: ['*'],
+    },
+    APP_DOWNLOAD_LINKS: {
+        path: 'app-download-links',
+        entryScreens: ['*'],
+    },
+    ADD_PAYMENT_CARD: {
+        path: 'add-payment-card',
+        entryScreens: ['*'],
+    },
+    PERSONAL_CARD_DETAILS: {
+        path: 'personal-card/:cardID',
+        entryScreens: ['*'],
+        getRoute: (cardID: string | undefined) => {
+            if (!cardID) {
+                Log.warn('Invalid cardID is used to build the PERSONAL_CARD_DETAILS route');
+            }
+            return `personal-card/${cardID}` as const;
+        },
+    },
+    PERSONAL_CARD_EDIT_NAME: {
+        path: 'edit-card-name',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS],
+    },
+    PERSONAL_CARD_EDIT_TRANSACTION_START_DATE: {
+        path: 'edit-transaction-start-date',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS],
+    },
+    PERSONAL_CARD_FIX_CONNECTION: {
+        path: 'fix-connection',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_DETAILS],
+    },
+    WALLET_DOMAIN_CARD: {
+        path: 'card/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.HOME],
+        getRoute: (cardID: string) => `card/${cardID}` as const,
+    },
+    WALLET_CARD_ACTIVATE: {
+        path: 'activate/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `activate/${cardID}` as const,
+    },
+    WALLET_CARD_REVEAL_VALIDATE_CODE: {
+        path: 'reveal-validate-code/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
+        getRoute: (cardID: string) => `reveal-validate-code/${cardID}` as const,
+    },
+    WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
+        path: 'digital-details/update-address',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
+    },
+    WALLET_CARD_CHANGE_PIN: {
+        path: 'change-pin/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `change-pin/${cardID}` as const,
+    },
+    WALLET_CARD_CHANGE_PIN_ATM: {
+        path: 'change-pin-atm',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+    },
+    WALLET_CARD_REPORT_FRAUD: {
+        path: 'report-virtual-fraud/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `report-virtual-fraud/${cardID}` as const,
+    },
+    WALLET_CARD_REPORT_FRAUD_VERIFY_ACCOUNT: {
+        path: 'fraud-validate-code',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD],
+    },
+    WALLET_CARD_REPORT_FRAUD_CONFIRMATION: {
+        path: 'report-virtual-fraud-confirm/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `report-virtual-fraud-confirm/${cardID}` as const,
+    },
+    WALLET_CARD_REPORT_LOST_OR_DAMAGED: {
+        path: 'report-card-lost-or-damaged/:cardID',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
+        getRoute: (cardID: string) => `report-card-lost-or-damaged/${cardID}` as const,
+    },
+    WALLET_CARD_REPLACE_VALIDATE_CODE: {
+        path: 'replace-validate-code/:reason',
+        entryScreens: [SCREENS.SETTINGS.DYNAMIC_REPORT_CARD_LOST_OR_DAMAGED],
+        getRoute: (reason: ReplacementReason) => `replace-validate-code/${reason}` as const,
+    },
+    ADD_US_BANK_ACCOUNT: {
+        path: 'add-us-bank-account/:subPage?/:action?',
+        entryScreens: ['*'],
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `add-us-bank-account${subPagePart}${actionPart}` as const;
+        },
+    },
+    ADD_US_BANK_ACCOUNT_ENTRY_POINT: {
+        path: 'add-us-bank-account/entry-point',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],
+    },
+    BANK_ACCOUNT_ENTER_SIGNER_INFO: {
+        path: 'enter-signer-info/:subPage?/:action?',
+        entryScreens: ['*'],
+        getRoute: (policyID: string | undefined, bankAccountID: string | undefined, isCompleted: boolean, subPage?: string, action?: 'edit') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the BANK_ACCOUNT_ENTER_SIGNER_INFO route');
+            }
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return getUrlWithParams(`enter-signer-info${subPagePart}${actionPart}`, {policyID, bankAccountID, isCompleted: String(isCompleted)});
+        },
+        queryParams: ['policyID', 'bankAccountID', 'isCompleted'],
+    },
+    BETA_OVERRIDES: {
+        path: 'beta-overrides',
+        // Opened from the Test Tools modal, which can be summoned on any screen
+        entryScreens: ['*'],
+    },
+    SETTINGS_TAG_APPROVER: {
+        path: 'tag-approver',
+        entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS],
+    },
+    SETTINGS_TAG_LIST_VIEW: {
+        path: 'tag-list/:orderWeight',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
+        getRoute: (orderWeight: number) => `tag-list/${orderWeight}`,
+    },
+    SETTINGS_TAG_SETTINGS: {
+        path: 'tag-settings/:orderWeight/:tagName',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
+        getRoute: (orderWeight: number, tagName: string) => `tag-settings/${orderWeight}/${encodeURIComponent(tagName)}`,
+        queryParams: ['parentTagsFilter'],
+    },
+    SETTINGS_TAGS_EDIT: {
+        path: 'settings-tags-edit/:orderWeight',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_LIST_VIEW],
+        getRoute: (orderWeight: number) => `settings-tags-edit/${orderWeight}`,
+    },
+    SETTINGS_TAG_EDIT: {
+        path: 'tag-edit/:orderWeight/:tagName',
+        entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS],
+        getRoute: (orderWeight: number, tagName: string) => `tag-edit/${orderWeight}/${encodeURIComponent(tagName)}`,
+    },
+    SETTINGS_TAG_GL_CODE: {
+        path: 'gl-code/:orderWeight/:tagName',
+        entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_SETTINGS],
+        getRoute: (orderWeight: number, tagName: string) => `gl-code/${orderWeight}/${encodeURIComponent(tagName)}`,
+    },
+    SETTINGS_TAG_CREATE: {
+        path: 'tag-new',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
+    },
+    DETAILS_CONSTANT_PICKER: {
+        path: 'constant-picker',
+        entryScreens: [SCREENS.DEBUG.REPORT, SCREENS.DEBUG.REPORT_ACTION, SCREENS.DEBUG.TRANSACTION, SCREENS.DEBUG.TRANSACTION_VIOLATION],
+        getRoute: (formType: string, fieldName: string, fieldValue?: string, policyID?: string) =>
+            getUrlWithParams('constant-picker', {
+                formType,
+                fieldName,
+                fieldValue,
+                policyID,
+            }),
+        queryParams: ['formType', 'fieldName', 'fieldValue', 'policyID'],
+    },
+    DETAILS_DATE_TIME_PICKER: {
+        path: 'datetime-picker',
+        entryScreens: [SCREENS.DEBUG.REPORT, SCREENS.DEBUG.REPORT_ACTION, SCREENS.DEBUG.TRANSACTION, SCREENS.DEBUG.TRANSACTION_VIOLATION],
+        getRoute: (fieldName: string, fieldValue?: string, policyID?: string) =>
+            getUrlWithParams('datetime-picker', {
+                fieldName,
+                fieldValue,
+                policyID,
+            }),
+        queryParams: ['fieldName', 'fieldValue', 'policyID'],
+    },
+    EXIT_SURVEY_REASON: {
+        path: 'exit-survey/reason',
+        entryScreens: ['*'],
+    },
+    EXIT_SURVEY_CONFIRM: {
+        path: 'exit-survey/confirm',
+        entryScreens: ['*'],
+    },
+    REPORT_DETAILS: {
+        path: 'details',
+        entryScreens: [
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.WORKSPACE.ROOMS,
+        ],
+        getRoute: (reportID: string) => getUrlWithParams('details', {reportID}),
+        queryParams: ['reportID'],
+    },
+    REPORT_PARTICIPANTS: {
+        path: 'participants',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+    },
+    REPORT_PARTICIPANTS_INVITE: {
+        path: 'participants-invite',
+        entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT],
+    },
+    REPORT_PARTICIPANTS_DETAILS: {
+        path: 'participants-details/:accountID',
+        entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_ROOT],
+        getRoute: (accountID: number) => `participants-details/${accountID}` as const,
+    },
+    REPORT_PARTICIPANTS_ROLE: {
+        path: 'participants-role',
+        entryScreens: [SCREENS.REPORT_PARTICIPANTS.DYNAMIC_DETAILS],
+    },
+    REPORT_DETAILS_SHARE_CODE: {
+        path: 'share-code',
+        entryScreens: [
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (shouldShowQRCodeOnly?: boolean) => getUrlWithParams('share-code', {shouldShowQRCodeOnly: shouldShowQRCodeOnly ? 'true' : undefined}),
+        queryParams: ['shouldShowQRCodeOnly'],
+    },
+    REFERRAL_DETAILS: {
+        path: 'referral/:contentType',
+        entryScreens: ['*'],
+        getRoute: (contentType: string) => `referral/${contentType}` as const,
+    },
+    REPORT_DETAILS_EXPORT: {
+        path: 'details/export/:connectionName',
+        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+        getRoute: (connectionName: ConnectionName) => `details/export/${connectionName as string}` as const,
+    },
+    REPORT_DETAILS_SHARE_REPORT: {
+        path: 'share-report',
+        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+    },
+    REPORT_CHANGE_WORKSPACE: {
+        path: 'change-workspace',
+        entryScreens: [SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+    },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: {
+        path: 'public-domain-error',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+        getRoute: (policyID?: string) => getUrlWithParams('public-domain-error', {policyID}),
+    },
+    TRAVEL_DOMAIN_PERMISSION_INFO: {
+        path: 'domain-permission-info',
+        entryScreens: [SCREENS.TRAVEL.ENABLE],
+        getRoute: (domain: string) => getUrlWithParams('domain-permission-info', {domain}),
+        queryParams: ['domain'],
+    },
+    TRAVEL_UPGRADE: {
+        path: 'travel-upgrade',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+    },
+    TRAVEL_TRIP_DETAILS: {
+        path: 'trip-details/:reportID/:transactionID/:pnr/:sequenceIndex',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.HOME,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE,
+            SCREENS.TRAVEL.DYNAMIC_TRIP_SUMMARY,
+        ],
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number) => {
+            if (!reportID || !transactionID || !pnr) {
+                Log.warn('Invalid reportID, transactionID or pnr is used to build the TRAVEL_TRIP_DETAILS route');
+            }
+            return `trip-details/${reportID}/${transactionID}/${pnr}/${sequenceIndex}` as const;
+        },
+    },
+    TRAVEL_TRIP_SUMMARY: {
+        path: 'trip-summary/:reportID/:transactionID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE,
+        ],
+        getRoute: (reportID: string | undefined, transactionID: string | undefined) => {
+            if (!reportID || !transactionID) {
+                Log.warn('Invalid reportID or transactionID is used to build the TRAVEL_TRIP_SUMMARY route');
+            }
+            return `trip-summary/${reportID}/${transactionID}` as const;
+        },
+    },
+    TRAVEL_VERIFY_ACCOUNT: {
+        path: 'travel-verify-account',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT, SCREENS.TRAVEL.ENABLE],
+        getRoute: (policyID?: string) => getUrlWithParams('travel-verify-account', {policyID}),
+        queryParams: ['policyID'],
+    },
+    REPORT_CHANGE_APPROVER: {
+        path: 'change-approver',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
+    TASK_TITLE: {
+        path: 'title',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
+    REPORT_DESCRIPTION: {
+        path: 'description',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+    },
+    ROOM_MEMBERS: {
+        path: 'members',
+        entryScreens: [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT],
+    },
+    ROOM_INVITE: {
+        path: 'room-invite',
+        entryScreens: [SCREENS.REPORT_DETAILS.DYNAMIC_ROOT, SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT],
+    },
+    ROOM_MEMBER_DETAILS: {
+        path: 'room-member-details/:accountID',
+        entryScreens: [SCREENS.ROOM_MEMBERS.DYNAMIC_ROOT],
+        getRoute: (accountID: number) => `room-member-details/${accountID}` as const,
+    },
+    SPLIT_BILL_DETAILS: {
+        path: 'split/:reportActionID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (reportActionID: string) => `split/${reportActionID}` as const,
+    },
+    TASK_ASSIGNEE: {
+        path: 'assignee',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
+    NEW_TASK_ASSIGNEE: {
+        path: 'task-assignee',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_ROOT],
+    },
+    NEW_TASK_TITLE: {
+        path: 'task-title',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_ROOT],
+    },
+    NEW_TASK_DESCRIPTION: {
+        path: 'task-description',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_ROOT],
+    },
+    NEW_TASK_DETAILS: {
+        path: 'task-details',
+        entryScreens: ['*'],
+    },
+    NEW_TASK: {
+        path: 'task-confirm',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_TASK_DETAILS],
+    },
+    NEW_TASK_SHARE_DESTINATION: {
+        path: 'task-share-destination',
+        entryScreens: [SCREENS.NEW_TASK.DYNAMIC_ROOT],
+    },
+    MONEY_REQUEST_STEP_SEND_FROM: {
+        path: 'send-from',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_COMPANY_INFO: {
+        path: 'company-info',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
+    },
+    PRIVATE_NOTES_LIST: {
+        path: 'notes',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.DYNAMIC_PROFILE,
+        ],
+        getRoute: (reportID?: string) => getUrlWithParams('notes', reportID ? {reportID} : {}),
+        queryParams: ['reportID'],
+    },
+    PRIVATE_NOTES_EDIT: {
+        path: 'notes-edit/:accountID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.DYNAMIC_PROFILE,
+            SCREENS.DYNAMIC_PRIVATE_NOTES_LIST,
+        ],
+        getRoute: (accountID: number, reportID?: string) => {
+            const path = `notes-edit/${accountID}`;
+            return reportID ? getUrlWithParams(path, {reportID}) : path;
+        },
+        queryParams: ['reportID'],
+    },
+    FLAG_COMMENT: {
+        path: 'flag/:reportID/:reportActionID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
+    },
+    HOLD_TRANSACTIONS: {
+        path: 'hold',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+    },
+    WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
+        path: 'initial-list-value',
+        entryScreens: [SCREENS.WORKSPACE.REPORT_FIELDS_CREATE],
+    },
+    WORKSPACE_INVOICE_FIELDS_INITIAL_LIST_VALUE: {
+        path: 'invoice-initial-list-value',
+        entryScreens: [SCREENS.WORKSPACE.INVOICE_FIELDS_CREATE],
+    },
+    TRANSACTION_DUPLICATE_REVIEW: {
+        // `reportID` is carried as the dynamic route's own path param (not inherited from the entry
+        // screen) because this modal can be opened from within another already-open RHP (e.g. the
+        // Expense Report screen). In that case react-navigation pushes this route as a sibling inside
+        // the same shared RightModalNavigator stack instead of replacing the underlying full-screen
+        // route, so deriving reportID from "whatever screen is underneath" would pick up the wrong
+        // report (the Expense Report's reportID, not this transaction thread's).
+        path: 'duplicates/review/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `duplicates/review/${reportID}` as const,
+    },
+    // These 7 sibling routes (and TRANSACTION_DUPLICATE_CONFIRMATION below) each carry their own
+    // `:reportID` path param for the same reason as TRANSACTION_DUPLICATE_REVIEW above: this wizard
+    // can be entered directly (skipping the review list) from a "Keep this one" quick-action on a
+    // duplicate preview, which is itself an already-open RHP. Deriving reportID from "whatever's
+    // beneath" would pick up that preview screen's own reportID instead of this transaction's.
+    TRANSACTION_DUPLICATE_CONFIRMATION: {
+        path: 'confirm/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `confirm/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_BILLABLE: {
+        path: 'billable/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `billable/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE: {
+        path: 'reimbursable/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+        ],
+        getRoute: (reportID: string) => `reimbursable/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION: {
+        path: 'transaction-duplicate-description/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `transaction-duplicate-description/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAX_CODE: {
+        path: 'tax-code/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `tax-code/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_TAG: {
+        path: 'transaction-duplicate-tag/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `transaction-duplicate-tag/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_CATEGORY: {
+        // 'category/:reportID' would collide with WORKSPACE_CATEGORY_SETTINGS's 'category/:categoryName'
+        // (same segment shape) — the suffix matcher picks whichever is declared first, so this must use
+        // a disambiguated name, same as TAG/DESCRIPTION below.
+        path: 'transaction-duplicate-category/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_MERCHANT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `transaction-duplicate-category/${reportID}` as const,
+    },
+    TRANSACTION_DUPLICATE_REVIEW_MERCHANT: {
+        path: 'merchant/:reportID',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CATEGORY,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAG,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_DESCRIPTION,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_TAX_CODE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_BILLABLE,
+            SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REIMBURSABLE,
+        ],
+        getRoute: (reportID: string) => `merchant/${reportID}` as const,
+    },
+    MERGE_TRANSACTION_LIST: {
+        path: 'merge/:transactionID',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.SEARCH.ROOT],
+        getRoute: (transactionID: string, isOnSearch?: boolean) => `merge/${transactionID}${isOnSearch ? '?isOnSearch=true' : ''}` as const,
+        queryParams: ['isOnSearch'],
+    },
+    MERGE_TRANSACTION_RECEIPT: {
+        path: 'merge/:transactionID/receipt',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE,
+        ],
+        getRoute: (transactionID: string, isOnSearch?: boolean) => `merge/${transactionID}/receipt${isOnSearch ? '?isOnSearch=true' : ''}` as const,
+        queryParams: ['isOnSearch'],
+    },
+    MERGE_TRANSACTION_DETAILS: {
+        path: 'merge/:transactionID/details',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE,
+        ],
+        getRoute: (transactionID: string, isOnSearch?: boolean) => `merge/${transactionID}/details${isOnSearch ? '?isOnSearch=true' : ''}` as const,
+        queryParams: ['isOnSearch'],
+    },
+    MERGE_TRANSACTION_CONFIRMATION: {
+        path: 'merge/:transactionID/confirmation',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_LIST_PAGE,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_RECEIPT_PAGE,
+            SCREENS.MERGE_TRANSACTION.DYNAMIC_DETAILS_PAGE,
+        ],
+        getRoute: (transactionID: string, isOnSearch?: boolean) => `merge/${transactionID}/confirmation${isOnSearch ? '?isOnSearch=true' : ''}` as const,
+        queryParams: ['isOnSearch'],
+    },
+    MONEY_REQUEST_STEP_TAX_RATE: {
+        path: 'taxRate',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('taxRate', {action, iouType, transactionID, reportID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
+    },
+    MONEY_REQUEST_STEP_TAX_AMOUNT: {
+        path: 'taxAmount',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('taxAmount', {action, iouType, transactionID, reportID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
+    },
+    MONEY_REQUEST_ACCOUNTANT: {
+        path: 'accountant',
+        entryScreens: [
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('accountant', {action, iouType, transactionID, reportID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
+    },
+    MONEY_REQUEST_STEP_CATEGORY: {
+        path: 'category',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS,
+            SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_EDIT,
+            SCREENS.REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+        ],
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string | undefined; reportActionID?: string}) => {
+            const {action, iouType, transactionID, reportID, reportActionID} = params;
+            return getUrlWithParams('category', {action, iouType, transactionID, reportID, reportActionID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_CATEGORY_CREATE: {
+        path: 'add-category',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY, SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE, SCREENS.SHARE.SUBMIT_DETAILS],
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string | undefined}) => getUrlWithParams('add-category', params),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
+    },
+    MONEY_REQUEST_ATTENDEE: {
+        path: 'attendees',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('attendees', {action, iouType, transactionID, reportID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
+    },
+    MONEY_REQUEST_UPGRADE: {
+        path: 'money-request-upgrade',
+        entryScreens: ['*'],
+        getRoute: (params: {
+            action: IOUAction;
+            iouType: IOUType;
+            transactionID: string;
+            reportID: string;
+            upgradeBackTo?: string;
+            shouldSubmitExpense?: boolean;
+            upgradePath?: string;
+            shouldReturnToConfirmation?: boolean;
+        }) => {
+            const {action, iouType, transactionID, reportID, upgradeBackTo, shouldSubmitExpense, upgradePath, shouldReturnToConfirmation} = params;
+            return getUrlWithParams('money-request-upgrade', {
+                action,
+                iouType,
+                transactionID,
+                reportID,
+                upgradeBackTo,
+                shouldSubmitExpense: shouldSubmitExpense ? 'true' : undefined,
+                upgradePath,
+                shouldReturnToConfirmation: shouldReturnToConfirmation ? 'true' : undefined,
+            });
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'upgradeBackTo', 'shouldSubmitExpense', 'upgradePath', 'shouldReturnToConfirmation'],
+    },
+    AGENT_NEW: {
+        path: 'new-agent',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `new-agent${query ? `?${query}` : ''}` as const;
+        },
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_ADD: {
+        path: 'custom',
+        getRoute: ({policyID}: {policyID?: string} = {}) => {
+            const params = new URLSearchParams();
+            if (policyID) {
+                params.set('policyID', policyID);
+            }
+            const query = params.toString();
+            return `custom${query ? `?${query}` : ''}` as const;
+        },
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_NEW],
+    },
+    AGENT_ADD_AVATAR: {
+        path: 'custom-avatar',
+        getRoute: () => `custom-avatar` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD],
+    },
+    AGENT_EDIT: {
+        path: ':accountID/edit',
+        getRoute: (accountID: number) => `${accountID}/edit` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.ROOT, SCREENS.WORKSPACE.AGENTS],
+    },
+    AGENT_EDIT_NAME: {
+        path: 'name',
+        getRoute: () => `name` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
+    },
+    AGENT_EDIT_PROMPT: {
+        path: 'prompt',
+        getRoute: () => `prompt` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT, SCREENS.DYNAMIC_PROFILE],
+    },
+    AGENT_EDIT_AVATAR: {
+        path: 'avatar',
+        getRoute: () => `avatar` as const,
+        entryScreens: [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT],
+    },
+} as const satisfies DynamicRoutes;
 
 const ROUTES = {
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
+    INBOX: 'inbox',
     HOME: 'home',
 
-    SEARCH_CENTRAL_PANE: {
+    WORKSPACES_LIST: {
+        route: 'workspaces',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('workspaces', backTo),
+    },
+    DOMAINS_LIST: {
+        route: 'domains',
+        getRoute: () => 'domains' as const,
+    },
+    SEARCH_ROUTER: 'search-router',
+    SEARCH_ROOT: {
         route: 'search',
-        getRoute: ({query, name}: {query: SearchQueryString; name?: string}) => `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}` as const,
+        getRoute: ({query, rawQuery, name, searchKey}: {query: SearchQueryString; rawQuery?: SearchQueryString; name?: string; searchKey?: SearchKey}) => {
+            const rawQuerySegment = rawQuery ? `&rawQuery=${encodeURIComponent(rawQuery)}` : '';
+            const searchKeySegment = searchKey ? `&searchKey=${encodeURIComponent(searchKey)}` : '';
+            return `search?q=${encodeURIComponent(query)}${name ? `&name=${name}` : ''}${rawQuerySegment}${searchKeySegment}` as const;
+        },
     },
+    SEARCH_SAVE: 'search/save',
     SEARCH_SAVED_SEARCH_RENAME: {
-        route: 'search/saved-search/rename',
-        getRoute: ({name, jsonQuery}: {name: string; jsonQuery: SearchQueryString}) => `search/saved-search/rename?name=${name}&q=${jsonQuery}` as const,
+        route: 'search/saved-search/rename/:id',
+        getRoute: (id: string) => `search/saved-search/rename/${id}` as const,
     },
+    SEARCH_COLUMNS: 'search/columns',
     SEARCH_ADVANCED_FILTERS: 'search/filters',
-    SEARCH_ADVANCED_FILTERS_DATE: 'search/filters/date',
-    SEARCH_ADVANCED_FILTERS_CURRENCY: 'search/filters/currency',
-    SEARCH_ADVANCED_FILTERS_MERCHANT: 'search/filters/merchant',
-    SEARCH_ADVANCED_FILTERS_DESCRIPTION: 'search/filters/description',
-    SEARCH_ADVANCED_FILTERS_REPORT_ID: 'search/filters/reportID',
-    SEARCH_ADVANCED_FILTERS_AMOUNT: 'search/filters/amount',
-    SEARCH_ADVANCED_FILTERS_CATEGORY: 'search/filters/category',
-    SEARCH_ADVANCED_FILTERS_KEYWORD: 'search/filters/keyword',
-    SEARCH_ADVANCED_FILTERS_CARD: 'search/filters/card',
-    SEARCH_ADVANCED_FILTERS_TAX_RATE: 'search/filters/taxRate',
-    SEARCH_ADVANCED_FILTERS_EXPENSE_TYPE: 'search/filters/expenseType',
-    SEARCH_ADVANCED_FILTERS_TAG: 'search/filters/tag',
-    SEARCH_ADVANCED_FILTERS_FROM: 'search/filters/from',
-    SEARCH_ADVANCED_FILTERS_TO: 'search/filters/to',
-    SEARCH_ADVANCED_FILTERS_IN: 'search/filters/in',
+    SEARCH_NL_FILTER: 'search/describe',
+    SEARCH_ADVANCED_FILTERS_CONTENT: {
+        route: 'search/filters/:filterKey',
+        getRoute: (filterKey: SearchFilterKey | UserFriendlyKey, applyDirectly?: boolean) => {
+            const baseRoute = `search/filters/${filterKey}` as const;
+            return applyDirectly ? (`${baseRoute}?applyDirectly=true` as const) : baseRoute;
+        },
+    },
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
-        getRoute: ({reportID, reportActionID, backTo}: {reportID: string; reportActionID?: string; backTo?: string}) => {
+        getRoute: ({reportID, reportActionID, backTo, anchorTransactionID}: {reportID: string | undefined; reportActionID?: string; backTo?: string; anchorTransactionID?: string}) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
+            }
+
             const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            // Which expense in the prev/next carousel this screen is anchored to. The header falls back to it while
+            // the thread's own parent report action is still loading, so the carousel doesn't wink out of existence
+            // on a cold open (e.g. straight after clearing the cache).
+            const routeWithAnchor = anchorTransactionID ? (`${baseRoute}?anchorTransactionID=${anchorTransactionID}` as const) : baseRoute;
+
+            return getUrlWithBackToParam(routeWithAnchor, backTo);
+        },
+    },
+
+    INSIGHTS: {
+        route: 'insights/:dashboardID',
+        getRoute: (dashboardID: ValueOf<typeof CONST.INSIGHTS.DASHBOARD>) => `insights/${dashboardID}` as const,
+    },
+
+    EXPENSE_REPORT_RHP: {
+        route: 'e/:reportID',
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `e/${reportID}` as const;
+
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+
+    SEARCH_MONEY_REQUEST_REPORT: {
+        route: 'search/r/:reportID',
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}` as const;
+
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
+    SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: {
+        route: 'search/r/:reportID/reject',
+        getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}/reject` as const,
+    },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
+    TRANSACTION_HOLD_REASON_SEARCH: {
+        route: 'search/hold/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/hold/search' as const;
+            }
+            return `search/hold/search/${encodeURIComponent(backTo)}` as const;
+        },
+    },
+    SEARCH_REJECT_REASON_RHP: 'search/reject',
+    SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
+    SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
+    SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
+    SEARCH_EDIT_MULTIPLE_MERCHANT_RHP: 'search/edit-multiple/merchant',
+    SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
+    SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
+    SEARCH_EDIT_MULTIPLE_TAG_RHP: {
+        route: 'search/edit-multiple/tag/:tagListIndex',
+        getRoute: (tagListIndex = 0) => `search/edit-multiple/tag/${tagListIndex}` as const,
+    },
+    SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
+    SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
+    SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
+    SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
+    MOVE_TRANSACTIONS_SEARCH_RHP: {
+        route: 'search/move-transactions/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/move-transactions/search' as const;
+            }
+            return `search/move-transactions/search/${encodeURIComponent(backTo)}` as const;
+        },
+    },
+    MERGE_REPORTS_SEARCH_RHP: {
+        route: 'search/merge-reports/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/merge-reports/search' as const;
+            }
+            return `search/merge-reports/search/${encodeURIComponent(backTo)}` as const;
+        },
+    },
+    CHANGE_APPROVER_SEARCH_RHP: {
+        route: 'search/change-approver/search/:backTo?',
+        getRoute: (backTo?: string) => {
+            if (!backTo) {
+                return 'search/change-approver/search' as const;
+            }
+            return `search/change-approver/search/${encodeURIComponent(backTo)}` as const;
+        },
+    },
+    CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP: 'search/change-approver/add',
+    CHANGE_APPROVER_REASSIGN_APPROVER_SEARCH_RHP: 'search/change-approver/reassign',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
+    TALK_TO_HUMAN: 'settings/help/talk-to-human',
     TRACK_EXPENSE: 'track-expense',
     SUBMIT_EXPENSE: 'submit-expense',
-    FLAG_COMMENT: {
-        route: 'flag/:reportID/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`flag/${reportID}/${reportActionID}` as const, backTo),
-    },
-    PROFILE: {
-        route: 'a/:accountID',
-        getRoute: (accountID?: string | number, backTo?: string, login?: string) => {
-            const baseRoute = getUrlWithBackToParam(`a/${accountID}`, backTo);
-            const loginParam = login ? `?login=${encodeURIComponent(login)}` : '';
-            return `${baseRoute}${loginParam}` as const;
-        },
-    },
-    PROFILE_AVATAR: {
-        route: 'a/:accountID/avatar',
-        getRoute: (accountID: string | number) => `a/${accountID}/avatar` as const,
-    },
-
-    GET_ASSISTANCE: {
-        route: 'get-assistance/:taskID',
-        getRoute: (taskID: string, backTo: string) => getUrlWithBackToParam(`get-assistance/${taskID}`, backTo),
-    },
-    DESKTOP_SIGN_IN_REDIRECT: 'desktop-signin-redirect',
-
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
     ENABLE_PAYMENTS: 'enable-payments',
@@ -101,182 +2473,347 @@ const ROUTES = {
     SIGN_IN_MODAL: 'sign-in-modal',
 
     BANK_ACCOUNT: 'bank-account',
-    BANK_ACCOUNT_NEW: 'bank-account/new',
-    BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
-    BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
-        route: 'bank-account/:stepToOpen?',
-        getRoute: (stepToOpen = '', policyID = '', backTo?: string) => getUrlWithBackToParam(`bank-account/${stepToOpen}?policyID=${policyID}`, backTo),
+    BANK_ACCOUNT_PERSONAL: {
+        route: 'bank-account/personal-info/:subPage?/:action?',
+        getRoute: (subPage?: string, action?: 'edit') => {
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            return `bank-account/personal-info${subPagePart}${actionPart}` as const;
+        },
     },
-    WORKSPACE_SWITCHER: 'workspace-switcher',
+    // TODO: rename the route as no longer accepts step
+    BANK_ACCOUNT_WITH_STEP_TO_OPEN: {
+        route: 'bank-account/new',
+        getRoute: ({policyID, bankAccountID, backTo, isChangingBankAccount}: {policyID: string | undefined; bankAccountID?: number; backTo?: string; isChangingBankAccount?: boolean}) => {
+            let queryString = '';
+            if (bankAccountID) {
+                queryString = `?bankAccountID=${bankAccountID}`;
+            } else if (policyID) {
+                queryString = `?policyID=${policyID}`;
+            }
+            if (isChangingBankAccount) {
+                queryString += queryString ? '&isChangingBankAccount=true' : '?isChangingBankAccount=true';
+            }
+            // TODO this backTo comes from drilling it through bank account form screens
+            // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
+            return getUrlWithBackToParam(`bank-account/new${queryString}`, backTo);
+        },
+    },
+    BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
+        route: 'bank-account/connect-existing-business-bank-account',
+
+        getRoute: (policyID: string, backTo?: string, source?: ValueOf<typeof CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE>) => {
+            const baseRoute = `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const;
+            const routeWithSource = source ? (`${baseRoute}&source=${source}` as const) : baseRoute;
+            return getUrlWithBackToParam(routeWithSource, backTo);
+        },
+    },
+    BANK_ACCOUNT_NON_USD_SETUP: {
+        route: 'bank-account/new/global/:page?/:subPage?/:action?',
+
+        getRoute: ({policyID, page, subPage, action, backTo}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
+            const base = 'bank-account/new/global';
+            const pagePart = page ? `/${page}` : '';
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            const queryString = policyID ? `?policyID=${policyID}` : '';
+
+            return getUrlWithBackToParam(`${base}${pagePart}${subPagePart}${actionPart}${queryString}`, backTo);
+        },
+    },
+    BANK_ACCOUNT_USD_SETUP: {
+        route: 'bank-account/new/us/:page?/:subPage?/:action?',
+        getRoute: ({policyID, page, subPage, action, backTo}: {policyID?: string; page?: string; subPage?: string; action?: 'edit'; backTo?: string}) => {
+            const base = 'bank-account/new/us';
+            const pagePart = page ? `/${page}` : '';
+            const subPagePart = subPage ? `/${subPage}` : '';
+            const actionPart = action ? `/${action}` : '';
+            const queryString = policyID ? `?policyID=${policyID}` : '';
+
+            return getUrlWithBackToParam(`${base}${pagePart}${subPagePart}${actionPart}${queryString}`, backTo);
+        },
+    },
     SETTINGS: 'settings',
-    SETTINGS_PROFILE: 'settings/profile',
-    SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
+    SETTINGS_PROFILE: {
+        route: 'settings/profile',
+
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile', backTo),
+    },
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
+    SETTINGS_AVATAR: 'settings/profile/avatar',
     SETTINGS_TIMEZONE: 'settings/profile/timezone',
     SETTINGS_TIMEZONE_SELECT: 'settings/profile/timezone/select',
     SETTINGS_PRONOUNS: 'settings/profile/pronouns',
     SETTINGS_PREFERENCES: 'settings/preferences',
-    SETTINGS_SUBSCRIPTION: 'settings/subscription',
-    SETTINGS_SUBSCRIPTION_SIZE: {
-        route: 'settings/subscription/subscription-size',
-        getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize}` as const,
+    SETTINGS_SUBSCRIPTION: {
+        route: 'settings/subscription',
+
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/subscription', backTo),
     },
-    SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
+    SETTINGS_SUBSCRIPTION_SIZE: {
+        route: 'settings/subscription/subscription-size/:subPage',
+        getRoute: (subPage: string) => `settings/subscription/subscription-size/${subPage}` as const,
+    },
+    SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS: 'settings/subscription/details',
+    SETTINGS_SUBSCRIPTION_EXPENSIFY_CODE: 'settings/subscription/details/expensify-code',
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
-    SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
     SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY: 'settings/subscription/disable-auto-renew-survey',
-    SETTINGS_SUBSCRIPTION_REQUEST_EARLY_CANCELLATION: 'settings/subscription/request-early-cancellation-survey',
+    SETTINGS_SUBSCRIPTION_CANCEL_SUBSCRIPTION: 'settings/subscription/cancel-subscription-survey',
+    SETTINGS_SUBSCRIPTION_EARLY_RENEWAL: 'settings/subscription/early-renewal',
+    SETTINGS_EMAIL_ISSUE: 'settings/email-issue',
+    SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY: 'settings/subscription/payment-history',
+    SETTINGS_SUBSCRIPTION_PAYMENT_DETAILS: {
+        route: 'settings/subscription/payment-history/:purchaseID',
+        getRoute: (purchaseID: number | string) => `settings/subscription/payment-history/${purchaseID}` as const,
+    },
     SETTINGS_PRIORITY_MODE: 'settings/preferences/priority-mode',
     SETTINGS_LANGUAGE: 'settings/preferences/language',
+    SETTINGS_PAYMENT_CURRENCY: 'setting/preferences/payment-currency',
     SETTINGS_THEME: 'settings/preferences/theme',
-    SETTINGS_WORKSPACES: 'settings/workspaces',
+    SETTINGS_COPILOT: 'settings/copilot',
     SETTINGS_SECURITY: 'settings/security',
+    SETTINGS_DEVICE_MANAGEMENT: 'settings/security/device-management',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_CLOSE_ACCOUNT_CONFIRM_VALIDATE_CODE: 'settings/security/closeAccount/confirm',
+    SETTINGS_MERGE_ACCOUNTS: {
+        route: 'settings/security/merge-accounts',
+        getRoute: (email?: string) => `settings/security/merge-accounts${email ? `?email=${encodeURIComponent(email)}` : ''}` as const,
+    },
+    SETTINGS_MERGE_ACCOUNTS_VALIDATE_CODE: {
+        route: 'settings/security/merge-accounts/:login/validate-code',
+        getRoute: (login: string) => `settings/security/merge-accounts/${encodeURIComponent(login)}/validate-code` as const,
+    },
+    SETTINGS_MERGE_ACCOUNTS_RESULT: {
+        route: 'settings/security/merge-accounts/:login/result/:result',
+
+        getRoute: (login: string, result: string, backTo?: string) => getUrlWithBackToParam(`settings/security/merge-accounts/${encodeURIComponent(login)}/result/${result}`, backTo),
+    },
+    SETTINGS_LOCK_ACCOUNT: 'settings/security/lock-account',
+    SETTINGS_UNLOCK_ACCOUNT: 'settings/security/unlock-account',
+    SETTINGS_FAILED_TO_LOCK_ACCOUNT: 'settings/security/failed-to-lock-account',
+    SETTINGS_DELEGATE_VERIFY_ACCOUNT: `settings/security/delegate/${VERIFY_ACCOUNT}`,
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
-        getRoute: (login: string, role?: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}` as const,
+
+        getRoute: (login: string, role?: string, backTo?: string) => getUrlWithBackToParam(`settings/security/delegate/${encodeURIComponent(login)}/role/${role}`, backTo),
     },
     SETTINGS_UPDATE_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/update-role/:currentRole',
         getRoute: (login: string, currentRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${currentRole}` as const,
     },
-    SETTINGS_UPDATE_DELEGATE_ROLE_MAGIC_CODE: {
-        route: 'settings/security/delegate/:login/update-role/:role/magic-code',
-        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/update-role/${role}/magic-code` as const,
+    SETTINGS_UPDATE_DELEGATE_ROLE_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/security/delegate/:login/confirm-role/:newRole',
+        getRoute: (login: string, newRole: string) => `settings/security/delegate/${encodeURIComponent(login)}/confirm-role/${newRole}` as const,
     },
     SETTINGS_DELEGATE_CONFIRM: {
         route: 'settings/security/delegate/:login/role/:role/confirm',
-        getRoute: (login: string, role: string, showValidateActionModal?: boolean) => {
-            const validateActionModalParam = showValidateActionModal ? `?showValidateActionModal=true` : '';
-            return `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm${validateActionModalParam}` as const;
-        },
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm` as const,
+    },
+    SETTINGS_DELEGATE_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/security/delegate/:login/role/:role/confirm/validate-code',
+        getRoute: (login: string, role: string) => `settings/security/delegate/${encodeURIComponent(login)}/role/${role}/confirm/validate-code` as const,
     },
     SETTINGS_ABOUT: 'settings/about',
-    SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_WALLET: 'settings/wallet',
-    SETTINGS_WALLET_VERIFY_ACCOUNT: {route: 'settings/wallet/verify', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/wallet/verify', backTo)},
-    SETTINGS_WALLET_DOMAINCARD: {
-        route: 'settings/wallet/card/:cardID?',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
+    SETTINGS_WALLET_EXPENSIFY_CARD_SPEND_RULES: {
+        route: 'settings/wallet/expensify-card/spend-rules/:policyID/:ruleID',
+        getRoute: (policyID: string, ruleID?: string) => `settings/wallet/expensify-card/spend-rules/${policyID}/${ruleID ?? 'new'}` as const,
     },
-    SETTINGS_DOMAINCARD_DETAIL: {
+    SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
     },
-    SETTINGS_REPORT_FRAUD: {
-        route: 'settings/wallet/card/:cardID/report-virtual-fraud',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
+    SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS: {
+        route: 'settings/card/:cardID/update-address',
+        getRoute: (cardID: string) => `settings/card/${cardID}/update-address` as const,
     },
-    SETTINGS_DOMAINCARD_REPORT_FRAUD: {
+    SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/card/:cardID/confirm-validate-code',
+        getRoute: (cardID: string) => `settings/card/${cardID}/confirm-validate-code` as const,
+    },
+    SETTINGS_DOMAIN_CARD_REPORT_FRAUD: {
         route: 'settings/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/card/${cardID}/report-virtual-fraud` as const,
     },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_NAME: {
-        route: 'settings/wallet/card/:domain/get-physical/name',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/name` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_PHONE: {
-        route: 'settings/wallet/card/:domain/get-physical/phone',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/phone` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_ADDRESS: {
-        route: 'settings/wallet/card/:domain/get-physical/address',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/address` as const,
-    },
-    SETTINGS_WALLET_CARD_GET_PHYSICAL_CONFIRM: {
-        route: 'settings/wallet/card/:domain/get-physical/confirm',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/get-physical/confirm` as const,
-    },
     SETTINGS_ADD_DEBIT_CARD: 'settings/wallet/add-debit-card',
-    SETTINGS_ADD_BANK_ACCOUNT: 'settings/wallet/add-bank-account',
-    SETTINGS_ENABLE_PAYMENTS: 'settings/wallet/enable-payments',
-    SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
-        route: 'settings/wallet/card/:domain/digital-details/update-address',
-        getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
+    SETTINGS_ADD_BANK_ACCOUNT: {
+        route: 'settings/wallet/add-bank-account/:subPage?/:action?',
+        getRoute: (backTo?: string, subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return getUrlWithBackToParam('settings/wallet/add-bank-account', backTo);
+            }
+
+            return getUrlWithBackToParam(`settings/wallet/add-bank-account/${subPage}${action ? `/${action}` : ''}`, backTo);
+        },
     },
+    SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT: {
+        route: 'settings/wallet/update-personal-bank-account/:subPage?',
+        getRoute: (subPage?: string) => {
+            if (!subPage) {
+                return 'settings/wallet/update-personal-bank-account' as const;
+            }
+            return `settings/wallet/update-personal-bank-account/${subPage}` as const;
+        },
+    },
+    SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
+    SETTINGS_ENABLE_PAYMENTS: {
+        route: 'settings/wallet/enable-payments/:page?/:subPage?/:action?',
+        getRoute: ({page, subPage, action}: {page?: EnablePaymentsPageType; subPage?: EnablePaymentsSubPageType; action?: 'edit'} = {}) => {
+            const base = 'settings/wallet/enable-payments';
+            // The interpolated values are cast to `string` to keep the resulting template literal type simple and avoid TS2590 union complexity errors.
+            const pagePart = page ? `/${page as string}` : '';
+            const subPagePart = subPage ? `/${subPage as string}` : '';
+            const actionPart = action ? `/${action as string}` : '';
+            return `${base}${pagePart}${subPagePart}${actionPart}` as const;
+        },
+    },
+    SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE: {
+        route: 'settings/wallet/enable-payments/confirm-validate-code',
+        getRoute: () => 'settings/wallet/enable-payments/confirm-validate-code' as const,
+    },
+    SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT: {
+        route: 'settings/wallet/:bankAccountID/unshare-bank-account',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/unshare-bank-account` as const,
+    },
+    SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS: {
+        route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/business/:subPage/:action?',
+        getRoute: (bankAccountID: number | undefined, subPage: string, action?: 'edit', params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/business/${subPage}${action ? `/${action}` : ''}`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+    },
+    SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS: {
+        route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/agreements',
+        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/agreements`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+    },
+    SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN: {
+        route: 'settings/wallet/:bankAccountID/enable-global-reimbursements/sign',
+        getRoute: (bankAccountID: number | undefined, params?: {bankCountry?: string; bankCurrency?: string}) =>
+            getUrlWithParams(`settings/wallet/${bankAccountID}/enable-global-reimbursements/sign`, {
+                bankCountry: params?.bankCountry,
+                bankCurrency: params?.bankCurrency,
+            }),
+    },
+    SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
+        route: 'settings/wallet/:bankAccountID/share-bank-account',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
+    },
+    SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME: {
+        route: 'settings/wallet/:bankAccountID/edit-nickname',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/edit-nickname` as const,
+    },
+    SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW: 'settings/wallet/add-personal-card',
+    SETTINGS_WALLET_PERSONAL_CARD_UPGRADE: 'settings/wallet/add-personal-card/upgrade',
+    SETTINGS_WALLET_PERSONAL_CARD_WARNING: 'settings/wallet/add-personal-card/warning',
     SETTINGS_WALLET_TRANSFER_BALANCE: 'settings/wallet/transfer-balance',
     SETTINGS_WALLET_CHOOSE_TRANSFER_ACCOUNT: 'settings/wallet/choose-transfer-account',
-    SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED: {
-        route: 'settings/wallet/card/:cardID/report-card-lost-or-damaged',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-card-lost-or-damaged` as const,
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS: 'settings/wallet/import-transactions',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_CARD_NAME: 'settings/wallet/import-transactions/card-name',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_CURRENCY: 'settings/wallet/import-transactions/currency',
+    SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET: {
+        route: 'settings/wallet/import-transactions-spreadsheet/:cardID?',
+        getRoute: (cardID?: number) => {
+            if (cardID) {
+                return `settings/wallet/import-transactions-spreadsheet/${cardID}` as const;
+            }
+            return 'settings/wallet/import-transactions-spreadsheet' as const;
+        },
     },
-    SETTINGS_WALLET_CARD_ACTIVATE: {
-        route: 'settings/wallet/card/:cardID/activate',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/activate` as const,
+    SETTINGS_WALLET_TRANSACTIONS_IMPORTED: {
+        route: 'settings/wallet/transactions-imported/:cardID?',
+        getRoute: (cardID?: number) => {
+            if (cardID) {
+                return `settings/wallet/transactions-imported/${cardID}` as const;
+            }
+            return 'settings/wallet/transactions-imported' as const;
+        },
     },
-    SETTINGS_LEGAL_NAME: 'settings/profile/legal-name',
-    SETTINGS_DATE_OF_BIRTH: 'settings/profile/date-of-birth',
-    SETTINGS_PHONE_NUMBER: 'settings/profile/phone',
+    SETTINGS_WALLET_CARD_ADD_TO_DIGITAL_WALLET: {
+        route: 'settings/wallet/card/:cardID/add-to-digital-wallet',
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other wallet routes
+        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/add-to-digital-wallet`, backTo),
+    },
+    SETTINGS_WALLET_CARD_ADDED_TO_WALLET: {
+        route: 'settings/wallet/card/:cardID/added-to-wallet',
+        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/added-to-wallet` as const,
+    },
+    SETTINGS_WALLET_TRAVEL_CVV: 'settings/wallet/travel-cvv',
+    SETTINGS_WALLET_TRAVEL_CVV_VERIFY_ACCOUNT: `settings/wallet/travel-cvv/${VERIFY_ACCOUNT}`,
+    SETTINGS_AGENTS: 'settings/agents',
+    AGENT_REPORT: {
+        route: 'settings/agents/r/:reportID',
+        getRoute: (reportID: string) => `settings/agents/r/${reportID}` as const,
+    },
+    SETTINGS_RULES: 'settings/rules',
+    SETTINGS_RULES_ADD: {
+        route: 'settings/rules/new/:field?/:index?',
+        getRoute: (field?: ExpenseRuleFormFieldID, index?: number) => {
+            return `settings/rules/new/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
+        },
+    },
+    SETTINGS_RULES_EDIT: {
+        route: 'settings/rules/edit/:hash/:field?/:index?',
+        getRoute: (hash?: string, field?: ExpenseRuleFormFieldID, index?: number) => {
+            return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
+        },
+    },
     SETTINGS_ADDRESS: 'settings/profile/address',
-    SETTINGS_ADDRESS_COUNTRY: {
-        route: 'settings/profile/address/country',
-        getRoute: (country: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/address/country?country=${country}`, backTo),
+    SETTINGS_PRIVATE_PERSONAL_DETAILS: {
+        route: 'settings/profile/private-personal-details',
+        getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,
     },
+    SETTINGS_PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: 'settings/profile/private-personal-details/confirm',
     SETTINGS_ADDRESS_STATE: {
         route: 'settings/profile/address/state',
 
         getRoute: (state?: string, backTo?: string, label?: string) =>
             `${getUrlWithBackToParam(`settings/profile/address/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
                 // the label param can be an empty string so we cannot use a nullish ?? operator
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
                 label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
             }` as const,
     },
     SETTINGS_CONTACT_METHODS: {
         route: 'settings/profile/contact-methods',
+
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
     },
-    SETTINGS_CONTACT_METHOD_DETAILS: {
-        route: 'settings/profile/contact-methods/:contactMethod/details',
-        getRoute: (contactMethod: string, backTo?: string) => getUrlWithBackToParam(`settings/profile/contact-methods/${encodeURIComponent(contactMethod)}/details`, backTo),
+    SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM: {
+        route: 'settings/profile/contact-methods/:contactMethod/set-default/confirm',
+        getRoute: (contactMethod: string, backTo?: string) => {
+            const encodedMethod = encodeURIComponent(contactMethod);
+
+            return getUrlWithBackToParam(`settings/profile/contact-methods/${encodedMethod}/set-default/confirm`, backTo);
+        },
     },
-    SETTINGS_NEW_CONTACT_METHOD: {
-        route: 'settings/profile/contact-methods/new',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
-    },
-    SETTINGS_2FA: {
-        route: 'settings/security/two-factor-auth',
-        getRoute: (backTo?: string, forwardTo?: string) =>
-            getUrlWithBackToParam(forwardTo ? `settings/security/two-factor-auth?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/security/two-factor-auth', backTo),
-    },
+    SETTINGS_2FA_ENABLED: 'settings/security/two-factor-auth/enabled',
+    SETTINGS_2FA_SUCCESS: 'settings/security/two-factor-auth/replace/success',
+    SETTINGS_2FA_DISABLED: 'settings/security/two-factor-auth/disabled',
+    SETTINGS_2FA_DISABLE: 'settings/security/two-factor-auth/disable',
+    SETTINGS_2FA_REPLACE_VERIFY_OLD: 'settings/security/two-factor-auth/replace/verify-old',
+    SETTINGS_2FA_REPLACE_VERIFY_NEW: 'settings/security/two-factor-auth/replace/verify-new',
+
     SETTINGS_STATUS: 'settings/profile/status',
 
     SETTINGS_STATUS_CLEAR_AFTER: 'settings/profile/status/clear-after',
     SETTINGS_STATUS_CLEAR_AFTER_DATE: 'settings/profile/status/clear-after/date',
     SETTINGS_STATUS_CLEAR_AFTER_TIME: 'settings/profile/status/clear-after/time',
+    SETTINGS_VACATION_DELEGATE: 'settings/profile/vacation-delegate',
+    SETTINGS_VACATION_DELEGATE_SELECT: 'settings/profile/vacation-delegate/select',
+    SETTINGS_VACATION_DELEGATE_MISSING_WORKSPACES: 'settings/profile/vacation-delegate/missing-workspaces',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
-    SETTINGS_CONSOLE: {
-        route: 'settings/troubleshoot/console',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/troubleshoot/console`, backTo),
-    },
-    SETTINGS_SHARE_LOG: {
-        route: 'settings/troubleshoot/console/share-log',
-        getRoute: (source: string) => `settings/troubleshoot/console/share-log?source=${encodeURI(source)}` as const,
-    },
-
-    SETTINGS_EXIT_SURVEY_REASON: {
-        route: 'settings/exit-survey/reason',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/reason', backTo),
-    },
-    SETTINGS_EXIT_SURVERY_BOOK_CALL: {
-        route: 'settings/exit-survey/book-call',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/book-call', backTo),
-    },
-    SETTINGS_EXIT_SURVEY_RESPONSE: {
-        route: 'settings/exit-survey/response',
-        getRoute: (reason?: ValueOf<typeof CONST.EXIT_SURVEY.REASONS>, backTo?: string) =>
-            getUrlWithBackToParam(`settings/exit-survey/response${reason ? `?reason=${encodeURIComponent(reason)}` : ''}`, backTo),
-    },
-    SETTINGS_EXIT_SURVEY_CONFIRM: {
-        route: 'settings/exit-survey/confirm',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/confirm', backTo),
-    },
+    SETTINGS_TROUBLESHOOT_SERVER: 'settings/troubleshoot/server',
+    SETTINGS_HELP: 'settings/help',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
-
-    KEYBOARD_SHORTCUTS: 'keyboard-shortcuts',
 
     NEW: 'new',
     NEW_CHAT: 'new/chat',
@@ -287,10 +2824,55 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string, reportActionID?: string, referrer?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, backTo?: string, secureKey?: string, isPendingCreation?: boolean, sourceReportID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
+                return getUrlWithBackToParam(ROUTES.HOME, backTo);
+            }
             const baseRoute = reportActionID ? (`r/${reportID}/${reportActionID}` as const) : (`r/${reportID}` as const);
-            const referrerParam = referrer ? `?referrer=${encodeURIComponent(referrer)}` : '';
-            return `${baseRoute}${referrerParam}` as const;
+
+            const queryParams: string[] = [];
+            if (referrer) {
+                queryParams.push(`referrer=${encodeURIComponent(referrer)}`);
+            }
+            // Submit-via-PDF secure access link: lets an approver who opens the PDF link join and claim the report.
+            if (secureKey) {
+                queryParams.push(`secureKey=${encodeURIComponent(secureKey)}`);
+            }
+            if (isPendingCreation) {
+                queryParams.push('isPendingCreation=true');
+            }
+            // The report the user was viewing when they opened Concierge from the side-pane button (native).
+            // Threaded on the route so it stays scoped to this Concierge navigation entry instead of a global key.
+            if (sourceReportID) {
+                queryParams.push(`sourceReportID=${encodeURIComponent(sourceReportID)}`);
+            }
+
+            const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+
+            return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
+        },
+    },
+    REPORT_CARD_ACTIVATE: {
+        route: 'r/:reportID/:reportActionID?/card/:cardID/activate',
+        getRoute: (cardID: number, reportID?: string, reportActionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_CARD_ACTIVATE route');
+            }
+            if (!reportActionID) {
+                return `r/${reportID}/card/${cardID}/activate` as const;
+            }
+            return `r/${reportID}/${reportActionID}/card/${cardID}/activate` as const;
+        },
+    },
+    REPORT_ATTACHMENTS: {
+        route: 'attachment',
+        getRoute: (params?: ReportAttachmentsRouteParams) => getAttachmentModalScreenRoute('attachment', params),
+    },
+    REPORT_ADD_ATTACHMENT: {
+        route: 'r/:reportID/attachment/add',
+        getRoute: (reportID: string, params?: ReportAddAttachmentRouteParams) => {
+            return getAttachmentModalScreenRoute(`r/${reportID}/attachment/add`, params);
         },
     },
     REPORT_AVATAR: {
@@ -302,249 +2884,136 @@ const ROUTES = {
             return `r/${reportID}/avatar` as const;
         },
     },
-    EDIT_CURRENCY_REQUEST: {
-        route: 'r/:threadReportID/edit/currency',
-        getRoute: (threadReportID: string, currency: string, backTo: string) => `r/${threadReportID}/edit/currency?currency=${currency}&backTo=${backTo}` as const,
+    REPORT_CHANGE_APPROVER_ADD_APPROVER: {
+        route: 'r/:reportID/change-approver/add',
+        getRoute: (reportID: string) => `r/${reportID}/change-approver/add` as const,
     },
-    EDIT_REPORT_FIELD_REQUEST: {
-        route: 'r/:reportID/edit/policyField/:policyID/:fieldID',
-        getRoute: (reportID: string, policyID: string, fieldID: string, backTo?: string) =>
-            getUrlWithBackToParam(`r/${reportID}/edit/policyField/${policyID}/${encodeURIComponent(fieldID)}` as const, backTo),
+    REPORT_CHANGE_APPROVER_REASSIGN_APPROVER: {
+        route: 'r/:reportID/change-approver/reassign',
+        getRoute: (reportID: string) => `r/${reportID}/change-approver/reassign` as const,
     },
-    REPORT_WITH_ID_DETAILS_SHARE_CODE: {
-        route: 'r/:reportID/details/shareCode',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/shareCode` as const, backTo),
+    REPORT_SETTINGS_COLUMNS: {
+        route: 'r/:reportID/settings/columns',
+        getRoute: (reportID: string) => `r/${reportID}/settings/columns` as const,
     },
-    ATTACHMENTS: {
-        route: 'attachment',
-        getRoute: (
-            reportID: string,
-            type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
-            url: string,
-            accountID?: number,
-            isAuthTokenRequired?: boolean,
-            fileName?: string,
-            attachmentLink?: string,
-        ) => {
-            const reportParam = reportID ? `&reportID=${reportID}` : '';
-            const accountParam = accountID ? `&accountID=${accountID}` : '';
-            const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
-            const fileNameParam = fileName ? `&fileName=${fileName}` : '';
-            const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
-
-            return `attachment?source=${encodeURIComponent(url)}&type=${type}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
-        },
-    },
-    REPORT_PARTICIPANTS: {
-        route: 'r/:reportID/participants',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants` as const, backTo),
-    },
-    REPORT_PARTICIPANTS_INVITE: {
-        route: 'r/:reportID/participants/invite',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/invite` as const, backTo),
-    },
-    REPORT_PARTICIPANTS_DETAILS: {
-        route: 'r/:reportID/participants/:accountID',
-        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}` as const, backTo),
-    },
-    REPORT_PARTICIPANTS_ROLE_SELECTION: {
-        route: 'r/:reportID/participants/:accountID/role',
-        getRoute: (reportID: string, accountID: number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants/${accountID}/role` as const, backTo),
-    },
-    REPORT_WITH_ID_DETAILS: {
-        route: 'r/:reportID/details',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details`, backTo),
-    },
-    REPORT_WITH_ID_DETAILS_EXPORT: {
-        route: 'r/:reportID/details/export/:connectionName',
-        getRoute: (reportID: string, connectionName: ConnectionName, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/details/export/${connectionName}` as const, backTo),
-    },
-    REPORT_SETTINGS: {
-        route: 'r/:reportID/settings',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings` as const, backTo),
-    },
-    REPORT_SETTINGS_NAME: {
-        route: 'r/:reportID/settings/name',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/name` as const, backTo),
-    },
-    REPORT_SETTINGS_NOTIFICATION_PREFERENCES: {
-        route: 'r/:reportID/settings/notification-preferences',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/notification-preferences` as const, backTo),
-    },
-    REPORT_SETTINGS_WRITE_CAPABILITY: {
-        route: 'r/:reportID/settings/who-can-post',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/who-can-post` as const, backTo),
-    },
-    REPORT_SETTINGS_VISIBILITY: {
-        route: 'r/:reportID/settings/visibility',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/settings/visibility` as const, backTo),
-    },
-    SPLIT_BILL_DETAILS: {
-        route: 'r/:reportID/split/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo),
-    },
-    TASK_TITLE: {
-        route: 'r/:reportID/title',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/title` as const, backTo),
-    },
-    REPORT_DESCRIPTION: {
-        route: 'r/:reportID/description',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/description` as const, backTo),
-    },
-    TASK_ASSIGNEE: {
-        route: 'r/:reportID/assignee',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/assignee` as const, backTo),
-    },
-    PRIVATE_NOTES_LIST: {
-        route: 'r/:reportID/notes',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes` as const, backTo),
-    },
-    PRIVATE_NOTES_EDIT: {
-        route: 'r/:reportID/notes/:accountID/edit',
-        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/notes/${accountID}/edit` as const, backTo),
-    },
-    ROOM_MEMBERS: {
-        route: 'r/:reportID/members',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members` as const, backTo),
-    },
-    ROOM_MEMBER_DETAILS: {
-        route: 'r/:reportID/members/:accountID',
-        getRoute: (reportID: string, accountID: string | number, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members/${accountID}` as const, backTo),
-    },
-    ROOM_INVITE: {
-        route: 'r/:reportID/invite/:role?',
-        getRoute: (reportID: string, role?: string, backTo?: string) => {
-            const route = role ? (`r/${reportID}/invite/${role}` as const) : (`r/${reportID}/invite` as const);
-            return getUrlWithBackToParam(route, backTo);
-        },
-    },
-    MONEY_REQUEST_HOLD_REASON: {
-        route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string, backTo: string, searchHash?: number) => {
-            const route = searchHash
-                ? (`${type}/edit/reason/${transactionID}/${searchHash}/?backTo=${backTo}&reportID=${reportID}` as const)
-                : (`${type}/edit/reason/${transactionID}/?backTo=${backTo}&reportID=${reportID}` as const);
-            return route;
-        },
+    CHRONOS_SCHEDULE_OOO: {
+        route: 'r/:reportID/chronos/schedule-ooo',
+        getRoute: (reportID: string) => `r/${reportID}/chronos/schedule-ooo` as const,
     },
     MONEY_REQUEST_CREATE: {
-        route: ':action/:iouType/start/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const,
-    },
-    MONEY_REQUEST_STEP_SEND_FROM: {
-        route: 'create/:iouType/from/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType as string}/from/${transactionID}/${reportID}`, backTo),
-    },
-    MONEY_REQUEST_STEP_COMPANY_INFO: {
-        route: 'create/:iouType/company-info/:transactionID/:reportID',
-        getRoute: (iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`create/${iouType as string}/company-info/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/start/:transactionID/:reportID/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) => {
+            if (backToReport) {
+                return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/${backToReport}` as const;
+            }
+            return `${action as string}/${iouType as string}/start/${transactionID}/${reportID}` as const;
+        },
     },
     MONEY_REQUEST_STEP_CONFIRMATION: {
-        route: ':action/:iouType/confirmation/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, participantsAutoAssigned?: boolean) =>
-            `${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${participantsAutoAssigned ? '?participantsAutoAssigned=true' : ''}` as const,
+        route: ':action/:iouType/confirmation/:transactionID/:reportID/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined, backToReport?: string, participantsAutoAssigned?: boolean, backTo?: string) => {
+            let optionalRoutePart = '';
+            if (backToReport !== undefined) {
+                optionalRoutePart += `/${backToReport}`;
+            }
+            if (participantsAutoAssigned !== undefined) {
+                optionalRoutePart += '?participantsAutoAssigned=true';
+            }
+
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/confirmation/${transactionID}/${reportID}${optionalRoutePart}` as const, backTo);
+        },
     },
     MONEY_REQUEST_STEP_AMOUNT: {
-        route: ':action/:iouType/amount/:transactionID/:reportID/:pageIndex?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        route: ':action/:iouType/amount/:transactionID/:reportID/:reportActionID?/:pageIndex?/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string, pageIndex?: string, backTo = '') => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_AMOUNT route');
+            }
+
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${reportActionID ? `${reportActionID}/` : ''}${pageIndex}`, backTo);
+        },
     },
-    MONEY_REQUEST_STEP_TAX_RATE: {
-        route: ':action/:iouType/taxRate/:transactionID/:reportID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/taxRate/${transactionID}/${reportID}`, backTo),
+    MONEY_REQUEST_STEP_VENDOR: {
+        route: ':action/:iouType/vendor/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_VENDOR route');
+            }
+
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
+        },
     },
-    MONEY_REQUEST_STEP_TAX_AMOUNT: {
-        route: ':action/:iouType/taxAmount/:transactionID/:reportID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/taxAmount/${transactionID}/${reportID}`, backTo),
+    MONEY_REQUEST_STEP_REUSE_ROUTE: {
+        route: ':action/:iouType/reuse-route/:transactionID/:reportID/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backToReport?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_REUSE_ROUTE route');
+            }
+
+            return `${action as string}/${iouType as string}/reuse-route/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}` as const;
+        },
     },
-    MONEY_REQUEST_STEP_CATEGORY: {
-        route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
+    MONEY_REQUEST_RECEIPT_PREVIEW: {
+        route: ':action/:iouType/receipt/:transactionID/:reportID',
+        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+            }
+            if (!transactionID) {
+                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_RECEIPT_PREVIEW route');
+            }
+            return `${action as string}/${iouType as string}/receipt/${transactionID}/${reportID}?readonly=false` as const;
+        },
     },
-    MONEY_REQUEST_ATTENDEE: {
-        route: ':action/:iouType/attendees/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/attendees/${transactionID}/${reportID}`, backTo),
+    MONEY_REQUEST_ODOMETER_PREVIEW: {
+        route: ':action/:iouType/odometer-image-preview/:transactionID/:reportID/:backToReport?',
+        getRoute: (reportID: string, transactionID: string, action: IOUAction, iouType: IOUType, imageType: OdometerImageType, isEditingConfirmation: boolean, backToReport?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the MONEY_REQUEST_ODOMETER_PREVIEW route');
+            }
+            if (!transactionID) {
+                Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_ODOMETER_PREVIEW route');
+            }
+            return `${action as string}/${iouType as string}/odometer-image-preview/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}?readonly=false&imageType=${imageType}${isEditingConfirmation ? '&isEditingConfirmation=true' : ''}` as const;
+        },
+    },
+    SET_DEFAULT_WORKSPACE: {
+        route: 'set-default-workspace',
+        getRoute: (navigateTo?: string) => (navigateTo ? (`set-default-workspace?navigateTo=${encodeURIComponent(navigateTo)}` as const) : ('set-default-workspace' as const)),
     },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags`, backTo),
-    },
-    SETTINGS_TAGS_SETTINGS: {
-        route: 'settings/:policyID/tags/settings',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/settings` as const, backTo),
-    },
-    SETTINGS_TAGS_EDIT: {
-        route: 'settings/:policyID/tags/:orderWeight/edit',
-        getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/${orderWeight}/edit` as const, backTo),
-    },
-    SETTINGS_TAG_CREATE: {
-        route: 'settings/:policyID/tags/new',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/new` as const, backTo),
-    },
-    SETTINGS_TAG_EDIT: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName/edit',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const, backTo),
-    },
-    SETTINGS_TAG_SETTINGS: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const, backTo),
-    },
-    SETTINGS_TAG_APPROVER: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName/approver',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/approver` as const, backTo),
-    },
-    SETTINGS_TAG_LIST_VIEW: {
-        route: 'settings/:policyID/tag-list/:orderWeight',
-        getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tag-list/${orderWeight}` as const, backTo),
-    },
-    SETTINGS_TAG_GL_CODE: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName/gl-code',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const, backTo),
+        getRoute: (policyID: string | undefined, backTo = '') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID while building route SETTINGS_TAGS_ROOT');
+            }
+
+            return getUrlWithBackToParam(`settings/${policyID}/tags`, backTo);
+        },
     },
     SETTINGS_TAGS_IMPORT: {
         route: 'settings/:policyID/tags/import',
+
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/import` as const, backTo),
     },
     SETTINGS_TAGS_IMPORTED: {
         route: 'settings/:policyID/tags/imported',
+
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/imported` as const, backTo),
     },
     SETTINGS_CATEGORIES_ROOT: {
         route: 'settings/:policyID/categories',
+
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories`, backTo),
-    },
-    SETTINGS_CATEGORY_SETTINGS: {
-        route: 'settings/:policyID/category/:categoryName',
-        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}`, backTo),
-    },
-    SETTINGS_CATEGORIES_SETTINGS: {
-        route: 'settings/:policyID/categories/settings',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/settings`, backTo),
-    },
-    SETTINGS_CATEGORY_CREATE: {
-        route: 'settings/:policyID/categories/new',
-        getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/new`, backTo),
-    },
-    SETTINGS_CATEGORY_EDIT: {
-        route: 'settings/:policyID/category/:categoryName/edit',
-        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/edit`, backTo),
     },
     SETTINGS_CATEGORIES_IMPORT: {
         route: 'settings/:policyID/categories/import',
+
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/import` as const, backTo),
     },
     SETTINGS_CATEGORIES_IMPORTED: {
         route: 'settings/:policyID/categories/imported',
+
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/imported` as const, backTo),
     },
     SETTINGS_CATEGORY_PAYROLL_CODE: {
@@ -557,123 +3026,139 @@ const ROUTES = {
         getRoute: (policyID: string, categoryName: string, backTo = '') =>
             getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const, backTo),
     },
-    MONEY_REQUEST_STEP_CURRENCY: {
-        route: ':action/:iouType/currency/:transactionID/:reportID/:pageIndex?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = '', currency = '', backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/currency/${transactionID}/${reportID}/${pageIndex}?currency=${currency}`, backTo),
-    },
-    MONEY_REQUEST_STEP_DATE: {
-        route: ':action/:iouType/date/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/date/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
-    },
-    MONEY_REQUEST_STEP_DESCRIPTION: {
-        route: ':action/:iouType/description/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/description/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
-    },
     MONEY_REQUEST_STEP_DISTANCE: {
-        route: ':action/:iouType/distance/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}`, backTo),
+        route: ':action/:iouType/distance/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE route');
+            }
+
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
+        },
+    },
+    MONEY_REQUEST_STEP_DISTANCE_MANUAL: {
+        route: ':action/:iouType/distance-manual/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_MANUAL route');
+            }
+
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-manual/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
+        },
+    },
+    MONEY_REQUEST_STEP_DISTANCE_ODOMETER: {
+        route: ':action/:iouType/distance-odometer/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_ODOMETER route');
+            }
+
+            return `${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}` as const;
+        },
     },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
-        route: ':action/:iouType/distanceRate/:transactionID/:reportID',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/distanceRate/${transactionID}/${reportID}`, backTo),
-    },
-    MONEY_REQUEST_STEP_MERCHANT: {
-        route: ':action/:iouType/merchant/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/merchant/${transactionID}/${reportID}`, backTo),
-    },
-    MONEY_REQUEST_STEP_PARTICIPANTS: {
-        route: ':action/:iouType/participants/:transactionID/:reportID',
-        getRoute: (iouType: IOUType, transactionID: string, reportID: string, backTo = '', action: IOUAction = 'create') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/participants/${transactionID}/${reportID}`, backTo),
-    },
-    MONEY_REQUEST_STEP_SPLIT_PAYER: {
-        route: ':action/:iouType/confirmation/:transactionID/:reportID/payer',
-        getRoute: (action: ValueOf<typeof CONST.IOU.ACTION>, iouType: ValueOf<typeof CONST.IOU.TYPE>, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action}/${iouType}/confirmation/${transactionID}/${reportID}/payer`, backTo),
-    },
-    MONEY_REQUEST_STEP_SCAN: {
-        route: ':action/:iouType/scan/:transactionID/:reportID',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/scan/${transactionID}/${reportID}`, backTo),
-    },
-    MONEY_REQUEST_STEP_TAG: {
-        route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/tag/${orderWeight}/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
-    },
-    MONEY_REQUEST_STEP_WAYPOINT: {
-        route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID?: string, pageIndex = '', backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/waypoint/${transactionID}/${reportID}/${pageIndex}`, backTo),
+        route: ':action/:iouType/distanceRate/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_RATE route');
+            }
+
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distanceRate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
+        },
     },
     // This URL is used as a redirect to one of the create tabs below. This is so that we can message users with a link
     // straight to those flows without needing to have optimistic transaction and report IDs.
     MONEY_REQUEST_START: {
         route: 'start/:iouType/:iouRequestType',
-        getRoute: (iouType: IOUType, iouRequestType: IOURequestType) => `start/${iouType as string}/${iouRequestType}` as const,
+        getRoute: (iouType: IOUType, iouRequestType: IOURequestType) => `start/${iouType as string}/${iouRequestType as string}` as const,
     },
     MONEY_REQUEST_CREATE_TAB_DISTANCE: {
-        route: ':action/:iouType/start/:transactionID/:reportID/distance',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `create/${iouType as string}/start/${transactionID}/${reportID}/distance` as const,
+        route: 'distance',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/distance` as const,
     },
     MONEY_REQUEST_CREATE_TAB_MANUAL: {
-        route: ':action/:iouType/start/:transactionID/:reportID/manual',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) =>
-            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/manual` as const,
+        route: 'manual',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/manual` as const,
     },
     MONEY_REQUEST_CREATE_TAB_SCAN: {
-        route: ':action/:iouType/start/:transactionID/:reportID/scan',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string) => `create/${iouType as string}/start/${transactionID}/${reportID}/scan` as const,
+        route: 'scan',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/scan` as const,
+    },
+    MONEY_REQUEST_CREATE_TAB_PER_DIEM: {
+        route: 'per-diem',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/per-diem` as const,
+    },
+    MONEY_REQUEST_CREATE_TAB_TIME: {
+        route: 'time',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/time` as const,
     },
 
-    MONEY_REQUEST_STATE_SELECTOR: {
-        route: 'submit/state',
-
-        getRoute: (state?: string, backTo?: string, label?: string) =>
-            `${getUrlWithBackToParam(`submit/state${state ? `?state=${encodeURIComponent(state)}` : ''}`, backTo)}${
-                // the label param can be an empty string so we cannot use a nullish ?? operator
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                label ? `${backTo || state ? '&' : '?'}label=${encodeURIComponent(label)}` : ''
-            }` as const,
+    MONEY_REQUEST_STEP_TIME_RATE: {
+        route: ':action/:iouType/rate/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/rate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
     },
-    IOU_REQUEST: 'submit/new',
-    IOU_SEND: 'pay/new',
-    IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
+    MONEY_REQUEST_STEP_HOURS: {
+        route: ':action/:iouType/hours/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/hours/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+    },
+    MONEY_REQUEST_STEP_HOURS_EDIT: {
+        route: ':action/:iouType/hours-edit/:transactionID/:reportID/:reportActionID?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) =>
+            `${action as string}/${iouType as string}/hours-edit/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}` as const,
+    },
+    DISTANCE_REQUEST_CREATE: {
+        route: ':action/:iouType/start/:transactionID/:reportID/distance-new/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new/${backToReport ?? ''}` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_MAP: {
+        route: 'distance-map',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-map` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_MANUAL: {
+        route: 'distance-manual',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-manual` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_GPS: {
+        route: 'distance-gps',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-gps` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_ODOMETER: {
+        route: 'distance-odometer',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-odometer` as const,
+    },
+    ODOMETER_IMAGE: {
+        route: ':action/:iouType/odometer-image/:transactionID/:reportID/:imageType/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, imageType: OdometerImageType, isEditingConfirmation?: boolean, backToReport?: string) =>
+            `${action as string}/${iouType as string}/odometer-image/${transactionID}/${reportID}/${imageType}${backToReport ? `/${backToReport}` : ''}${isEditingConfirmation ? '?isEditingConfirmation=true' : ''}` as const,
+    },
+    GPS_TRIP_EDIT: {
+        route: ':action/:iouType/gps-trip-edit/:transactionID/:reportID/:backToReport?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/gps-trip-edit/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}` as const,
+    },
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
     IOU_SEND_ENABLE_PAYMENTS: 'pay/new/enable-payments',
 
     NEW_TASK: {
         route: 'new/task',
+
         getRoute: (backTo?: string) => getUrlWithBackToParam('new/task', backTo),
     },
-    NEW_TASK_ASSIGNEE: {
-        route: 'new/task/assignee',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/assignee', backTo),
-    },
-    NEW_TASK_SHARE_DESTINATION: 'new/task/share-destination',
-    NEW_TASK_DETAILS: {
-        route: 'new/task/details',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/details', backTo),
-    },
-    NEW_TASK_TITLE: {
-        route: 'new/task/title',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/title', backTo),
-    },
-    NEW_TASK_DESCRIPTION: {
-        route: 'new/task/description',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('new/task/description', backTo),
-    },
 
-    TEACHERS_UNITE: 'settings/teachersunite',
     I_KNOW_A_TEACHER: 'settings/teachersunite/i-know-a-teacher',
     I_AM_A_TEACHER: 'settings/teachersunite/i-am-a-teacher',
-    INTRO_SCHOOL_PRINCIPAL: 'settings/teachersunite/intro-school-principal',
 
     ERECEIPT: {
         route: 'eReceipt/:transactionID',
@@ -681,247 +3166,489 @@ const ROUTES = {
     },
 
     WORKSPACE_NEW: 'workspace/new',
-    WORKSPACE_NEW_ROOM: 'workspace/new-room',
     WORKSPACE_INITIAL: {
-        route: 'settings/workspaces/:policyID',
-        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`settings/workspaces/${policyID}`, backTo)}` as const,
+        route: 'workspaces/:policyID',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_INITIAL route');
+            }
+
+            return `${getUrlWithBackToParam(`workspaces/${policyID}`, backTo)}` as const;
+        },
     },
-    WORKSPACE_INVITE: {
-        route: 'settings/workspaces/:policyID/invite',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invite` as const,
+    WORKSPACE_INVITE_MESSAGE_APPROVER: {
+        route: 'workspaces/:policyID/invite-message/approver',
+
+        getRoute: (policyID: string, backTo?: string) => `${getUrlWithBackToParam(`workspaces/${policyID}/invite-message/approver`, backTo)}` as const,
     },
-    WORKSPACE_INVITE_MESSAGE: {
-        route: 'settings/workspaces/:policyID/invite-message',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invite-message` as const,
-    },
-    WORKSPACE_PROFILE: {
-        route: 'settings/workspaces/:policyID/profile',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile` as const,
-    },
-    WORKSPACE_PROFILE_ADDRESS: {
-        route: 'settings/workspaces/:policyID/profile/address',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/profile/address` as const, backTo),
+    WORKSPACE_OVERVIEW: {
+        route: 'workspaces/:policyID/overview',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_OVERVIEW route');
+            }
+
+            return getUrlWithBackToParam(`workspaces/${policyID}/overview` as const, backTo);
+        },
     },
     WORKSPACE_ACCOUNTING: {
-        route: 'settings/workspaces/:policyID/accounting',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting` as const,
+        route: 'workspaces/:policyID/accounting',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting` as const,
     },
-    WORKSPACE_PROFILE_CURRENCY: {
-        route: 'settings/workspaces/:policyID/profile/currency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/currency` as const,
+    WORKSPACE_OVERVIEW_TIMEZONE: {
+        route: 'workspaces/:policyID/overview/timezone',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/timezone` as const,
+    },
+    WORKSPACE_OVERVIEW_CURRENCY: {
+        route: 'workspaces/:policyID/overview/currency',
+        getRoute: (
+            policyID: string,
+            {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {},
+        ) => {
+            const params = new URLSearchParams();
+            if (isForcedToChangeCurrency) {
+                params.set('isForcedToChangeCurrency', 'true');
+            }
+            if (shouldStartExpensifyCardEnrollment) {
+                params.set('shouldStartExpensifyCardEnrollment', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/overview/currency${query ? `?${query}` : ''}` as const;
+        },
+    },
+    WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY: {
+        route: 'workspaces/:policyID/overview/currency/government-rate-country/:currencyCode',
+        getRoute: (
+            policyID: string,
+            currencyCode: string,
+            {isForcedToChangeCurrency, shouldStartExpensifyCardEnrollment}: {isForcedToChangeCurrency?: boolean; shouldStartExpensifyCardEnrollment?: boolean} = {},
+        ) => {
+            const params = new URLSearchParams();
+            if (isForcedToChangeCurrency) {
+                params.set('isForcedToChangeCurrency', 'true');
+            }
+            if (shouldStartExpensifyCardEnrollment) {
+                params.set('shouldStartExpensifyCardEnrollment', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/overview/currency/government-rate-country/${currencyCode}${query ? `?${query}` : ''}` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/account-select` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/export',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT route');
+            }
+
+            return `workspaces/${policyID}/accounting/quickbooks-online/export` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/default-vendor-select` as const;
+        },
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/card-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/card-select` as const,
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/export/company-card-expense-account/credit-card-default-vendor-select',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_CREDIT_CARD_DEFAULT_VENDOR_SELECT route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/export/company-card-expense-account/credit-card-default-vendor-select` as const;
+        },
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/invoice-account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/invoice-account-select` as const,
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-billing',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/export/travel-billing` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/preferred-exporter` as const,
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_VENDOR_SELECT: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-billing/vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/export/travel-billing/vendor` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense` as const,
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-billing/payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/export/travel-billing/payable-account` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense/account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense/account-select` as const,
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/setup',
+        getRoute: (policyID: string, isIntuitEnterpriseSuite = false, isSandbox = false) => {
+            const params = new URLSearchParams();
+            if (isIntuitEnterpriseSuite) {
+                params.set('isIntuitEnterpriseSuite', 'true');
+            }
+            if (isSandbox) {
+                params.set('isSandbox', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/accounting/quickbooks-online/setup${query ? `?${query}` : ''}` as const;
+        },
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense/entity-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense/entity-select` as const,
+    POLICY_ACCOUNTING_NETSUITE_TRAVEL_BILLING_CONFIGURATION: {
+        route: 'workspaces/:policyID/accounting/netsuite/export/travel-billing',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-billing` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/export/date-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const,
+    POLICY_ACCOUNTING_NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT: {
+        route: 'workspaces/:policyID/accounting/netsuite/export/travel-billing/payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-billing/payable-account` as const,
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/account-select` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/card-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/card-select` as const,
+    POLICY_ACCOUNTING_NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE_SELECT: {
+        route: 'workspaces/:policyID/accounting/netsuite/export/travel-billing/journal-posting-preference',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/export/travel-billing/journal-posting-preference` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select` as const;
+        },
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account` as const,
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced/autosync',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_AUTO_SYNC route');
+            }
+
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync` as const;
+        },
     },
-    WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/advanced` as const,
+    POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/card-reconciliation/autosync',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC route');
+            }
+
+            return `workspaces/${policyID}/accounting/sage-intacct/card-reconciliation/autosync` as const;
+        },
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/date-select` as const,
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/advanced/autosync/accounting-method',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD route');
+            }
+
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/advanced/autosync/accounting-method` as const;
+        },
     },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/preferred-exporter',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/preferred-exporter` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const,
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/existing-connections` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-modal` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/setup-modal` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-required-device',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/setup-required-device` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/setup-required-device',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/setup-required-device` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_TRIGGER_FIRST_SYNC: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/trigger-first-sync',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/trigger-first-sync` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/trigger-first-sync',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/trigger-first-sync` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_IMPORT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CHART_OF_ACCOUNTS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/accounts',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/accounts` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/accounts',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/accounts` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/classes',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/import/classes` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/classes/displayed_as',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/classes/displayed_as` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/classes/displayed_as',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/classes/displayed_as` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/customers',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/customers` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/customers',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-desktop/import/customers` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS_DISPLAYED_AS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/customers/displayed_as',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/customers/displayed_as` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/customers/displayed_as',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/customers/displayed_as` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ITEMS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/import/items',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/import/items` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/import/items',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/import/items` as const,
     },
-    WORKSPACE_PROFILE_NAME: {
-        route: 'settings/workspaces/:policyID/profile/name',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/name` as const,
+    WORKSPACE_OVERVIEW_NAME: {
+        route: 'workspaces/:policyID/overview/name',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/name` as const,
     },
-    WORKSPACE_PROFILE_DESCRIPTION: {
-        route: 'settings/workspaces/:policyID/profile/description',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/description` as const,
+    WORKSPACE_OVERVIEW_DESCRIPTION: {
+        route: 'workspaces/:policyID/overview/description',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_OVERVIEW_DESCRIPTION route');
+            }
+            return `workspaces/${policyID}/overview/description` as const;
+        },
     },
-    WORKSPACE_PROFILE_SHARE: {
-        route: 'settings/workspaces/:policyID/profile/share',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/profile/share` as const,
+    WORKSPACE_OVERVIEW_CLIENT_ID: {
+        route: 'workspaces/:policyID/overview/client-id',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/client-id` as const,
+    },
+    WORKSPACE_OVERVIEW_SHARE: {
+        route: 'workspaces/:policyID/overview/share',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/share` as const,
+    },
+    WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD: {
+        route: 'workspaces/:policyID/overview/office-locations/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/office-locations/new` as const,
+    },
+    WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT: {
+        route: 'workspaces/:policyID/overview/office-locations/:officeID',
+        getRoute: (policyID: string, officeID: string) => `workspaces/${policyID}/overview/office-locations/${officeID}` as const,
     },
     WORKSPACE_AVATAR: {
-        route: 'settings/workspaces/:policyID/avatar',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/avatar` as const,
+        route: 'workspaces/:policyID/avatar',
+        getRoute: (policyID: string, fallbackLetter?: UpperCaseCharacters) => `workspaces/${policyID}/avatar${fallbackLetter ? `?letter=${fallbackLetter}` : ''}` as const,
+    },
+    WORKSPACE_DOCUMENT: {
+        route: 'workspaces/:policyID/document',
+        getRoute: (policyID: string) => `workspaces/${policyID}/document` as const,
+    },
+    BILLING_RECEIPT: {
+        route: 'settings/subscription/payment-history/:purchaseID/receipt',
+        getRoute: (purchaseID: number) => `settings/subscription/payment-history/${purchaseID}/receipt` as const,
     },
     WORKSPACE_JOIN_USER: {
-        route: 'settings/workspaces/:policyID/join',
-        getRoute: (policyID: string, inviterEmail: string) => `settings/workspaces/${policyID}/join?email=${inviterEmail}` as const,
-    },
-    WORKSPACE_SETTINGS_CURRENCY: {
-        route: 'settings/workspaces/:policyID/settings/currency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/settings/currency` as const,
+        route: 'workspaces/:policyID/join',
+        getRoute: (policyID: string, inviterEmail: string) => `workspaces/${policyID}/join?email=${inviterEmail}` as const,
     },
     WORKSPACE_WORKFLOWS: {
-        route: 'settings/workspaces/:policyID/workflows',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows` as const,
+        route: 'workspaces/:policyID/workflows',
+        // The tab is passed as a query param rather than a path segment because `workflows/` already owns static
+        // sub-routes (import, payer, approvals, ...) that a `:tab?` segment would shadow.
+        getRoute: (policyID: string | undefined, tab?: ValueOf<typeof CONST.TAB.WORKFLOWS>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS route');
+            }
+            return `workspaces/${policyID}/workflows${tab ? `?tab=${tab}` : ''}` as const;
+        },
+    },
+    WORKSPACE_WORKFLOWS_IMPORT: {
+        route: 'workspaces/:policyID/workflows/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/import` as const,
+    },
+    WORKSPACE_WORKFLOWS_IMPORTED: {
+        route: 'workspaces/:policyID/workflows/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/imported` as const,
+    },
+    WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION: {
+        route: 'workspaces/:policyID/workflows/imported/confirmation',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/imported/confirmation` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
-        route: 'settings/workspaces/:policyID/workflows/approvals/new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/approvals/new` as const,
+        route: 'workspaces/:policyID/workflows/approvals/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/approvals/new` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EDIT: {
-        route: 'settings/workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
-        getRoute: (policyID: string, firstApproverEmail: string) => `settings/workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit` as const,
-    },
-    WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
-        route: 'settings/workspaces/:policyID/workflows/approvals/expenses-from',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/expenses-from` as const, backTo),
+        route: 'workspaces/:policyID/workflows/approvals/:firstApproverEmail/edit',
+        getRoute: (policyID: string, firstApproverEmail: string, memberEmail?: string) =>
+            `workspaces/${policyID}/workflows/approvals/${encodeURIComponent(firstApproverEmail)}/edit${memberEmail ? `?memberEmail=${encodeURIComponent(memberEmail)}` : ''}` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
-        route: 'settings/workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string, approverIndex: number, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const, backTo),
+        route: 'workspaces/:policyID/workflows/approvals/approver',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE: {
+        route: 'workspaces/:policyID/workflows/approvals/approver-change',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approver-change?approverIndex=${approverIndex}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT: {
+        route: 'workspaces/:policyID/workflows/approvals/approval-limit',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approval-limit?approverIndex=${approverIndex}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: {
+        route: 'workspaces/:policyID/workflows/approvals/over-limit-approver',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/over-limit-approver?approverIndex=${approverIndex}` as const,
     },
     WORKSPACE_WORKFLOWS_PAYER: {
-        route: 'settings/workspaces/:policyID/workflows/payer',
-        getRoute: (policyId: string) => `settings/workspaces/${policyId}/workflows/payer` as const,
+        route: 'workspaces/:policyID/workflows/payer',
+        getRoute: (policyId: string) => `workspaces/${policyId}/workflows/payer` as const,
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
-        route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency` as const,
+        route: 'workspaces/:policyID/workflows/auto-reporting-frequency',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY route');
+            }
+            return `workspaces/${policyID}/workflows/auto-reporting-frequency` as const;
+        },
+    },
+    WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES: {
+        route: 'workspaces/:policyID/workflows/currency-conversion-fees',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_CURRENCY_CONVERSION_FEES route');
+            }
+            return `workspaces/${policyID}/workflows/currency-conversion-fees` as const;
+        },
     },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
-        route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
+        route: 'workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET route');
+            }
+            return `workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const;
+        },
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_WEEKLY_OFFSET: {
+        route: 'workspaces/:policyID/workflows/auto-reporting-frequency/weekly-offset',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_WEEKLY_OFFSET route');
+            }
+            return `workspaces/${policyID}/workflows/auto-reporting-frequency/weekly-offset` as const;
+        },
+    },
+    WORKSPACE_WORKFLOWS_AUTOREPORTING_SEMI_MONTHLY_OFFSET: {
+        route: 'workspaces/:policyID/workflows/auto-reporting-frequency/semi-monthly-offset/:submission',
+        getRoute: (policyID: string | undefined, submission: ValueOf<typeof CONST.POLICY.SEMI_MONTHLY_SUBMISSIONS>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTOREPORTING_SEMI_MONTHLY_OFFSET route');
+            }
+            return `workspaces/${policyID}/workflows/auto-reporting-frequency/semi-monthly-offset/${submission}` as const;
+        },
     },
     WORKSPACE_INVOICES: {
-        route: 'settings/workspaces/:policyID/invoices',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices` as const,
+        route: 'workspaces/:policyID/invoices',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_INVOICES route');
+            }
+            return `workspaces/${policyID}/invoices` as const;
+        },
     },
     WORKSPACE_INVOICES_COMPANY_NAME: {
-        route: 'settings/workspaces/:policyID/invoices/company-name',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-name` as const,
+        route: 'workspaces/:policyID/invoices/company-name',
+        getRoute: (policyID: string) => `workspaces/${policyID}/invoices/company-name` as const,
     },
     WORKSPACE_INVOICES_COMPANY_WEBSITE: {
-        route: 'settings/workspaces/:policyID/invoices/company-website',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/invoices/company-website` as const,
+        route: 'workspaces/:policyID/invoices/company-website',
+        getRoute: (policyID: string) => `workspaces/${policyID}/invoices/company-website` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_CREATE: {
+        route: 'workspaces/:policyID/invoices/newInvoiceField',
+        getRoute: (policyID: string) => `workspaces/${policyID}/invoices/newInvoiceField` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_SETTINGS: {
+        route: 'workspaces/:policyID/invoices/:reportFieldID/edit',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/invoices/${encodeURIComponent(reportFieldID)}/edit` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_LIST_VALUES: {
+        route: 'workspaces/:policyID/invoices/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/invoices/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_TYPE_SELECTOR: {
+        route: 'workspaces/:policyID/invoices/typeSelector/:currentType?',
+        getRoute: (policyID: string, currentType?: PolicyReportFieldType) => `workspaces/${policyID}/invoices/typeSelector/${currentType ? encodeURIComponent(currentType) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_ADD_VALUE: {
+        route: 'workspaces/:policyID/invoices/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/invoices/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_VALUE_SETTINGS: {
+        route: 'workspaces/:policyID/invoices/:valueIndex/:reportFieldID?',
+        getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
+            `workspaces/${policyID}/invoices/${valueIndex}/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_EDIT_VALUE: {
+        route: 'workspaces/:policyID/invoices/newInvoiceField/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `workspaces/${policyID}/invoices/newInvoiceField/${valueIndex}/edit` as const,
+    },
+    WORKSPACE_INVOICE_FIELDS_EDIT_INITIAL_VALUE: {
+        route: 'workspaces/:policyID/invoices/:reportFieldID/edit/initialValue',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/invoices/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
     WORKSPACE_MEMBERS: {
-        route: 'settings/workspaces/:policyID/members',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/members` as const,
+        route: 'workspaces/:policyID/members',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MEMBERS route');
+            }
+            return `workspaces/${policyID}/members` as const;
+        },
+    },
+    WORKSPACE_AGENTS: {
+        route: 'workspaces/:policyID/agents',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_AGENTS route');
+            }
+            return `workspaces/${policyID}/agents` as const;
+        },
+    },
+    WORKSPACE_ROOMS: {
+        route: 'workspaces/:policyID/rooms',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ROOMS route');
+            }
+            return `workspaces/${policyID}/rooms` as const;
+        },
+    },
+    WORKSPACE_ROOM_CREATE: {
+        route: 'workspaces/:policyID/rooms/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rooms/new` as const,
     },
     WORKSPACE_MEMBERS_IMPORT: {
-        route: 'settings/workspaces/:policyID/members/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/members/import` as const,
+        route: 'workspaces/:policyID/members/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/import` as const,
+    },
+    WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION: {
+        route: 'workspaces/:policyID/members/change-office-location',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/change-office-location` as const,
+    },
+    WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/members/change-work-arrangement',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/change-work-arrangement` as const,
     },
     WORKSPACE_MEMBERS_IMPORTED: {
-        route: 'settings/workspaces/:policyID/members/imported',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/members/imported` as const,
+        route: 'workspaces/:policyID/members/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/imported` as const,
+    },
+    WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION: {
+        route: 'workspaces/:policyID/members/imported/confirmation',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/imported/confirmation` as const,
     },
     POLICY_ACCOUNTING: {
-        route: 'settings/workspaces/:policyID/accounting',
-        getRoute: (policyID: string, newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) => {
+        route: 'workspaces/:policyID/accounting',
+        getRoute: (
+            policyID: string | undefined,
+            newConnectionName?: ConnectionName,
+            integrationToDisconnect?: ConnectionName,
+            shouldDisconnectIntegrationBeforeConnecting?: boolean,
+            isIntuitEnterpriseSuite?: boolean,
+        ) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
+            }
+
             let queryParams = '';
             if (newConnectionName) {
                 queryParams += `?newConnectionName=${newConnectionName}`;
@@ -931,822 +3658,1953 @@ const ROUTES = {
                 if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
                     queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
                 }
+                if (isIntuitEnterpriseSuite !== undefined) {
+                    queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
+                }
             }
-            return `settings/workspaces/${policyID}/accounting${queryParams}` as const;
+            return `workspaces/${policyID}/accounting${queryParams}` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS: {
+        route: 'workspaces/:policyID/connections',
+        getRoute: (
+            policyID: string | undefined,
+            newConnectionName?: ConnectionName,
+            integrationToDisconnect?: ConnectionName,
+            shouldDisconnectIntegrationBeforeConnecting?: boolean,
+            isIntuitEnterpriseSuite?: boolean,
+        ) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS route');
+            }
+
+            let queryParams = '';
+            if (newConnectionName) {
+                queryParams += `?newConnectionName=${newConnectionName}`;
+                if (integrationToDisconnect) {
+                    queryParams += `&integrationToDisconnect=${integrationToDisconnect}`;
+                }
+                if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
+                    queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
+                }
+                if (isIntuitEnterpriseSuite !== undefined) {
+                    queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
+                }
+            }
+            return `workspaces/${policyID}/connections${queryParams}` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_ACCOUNTING: {
+        route: 'workspaces/:policyID/connections/accounting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_ACCOUNTING route');
+            }
+            return `workspaces/${policyID}/connections/accounting` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_HR: {
+        route: 'workspaces/:policyID/connections/hr',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_HR route');
+            }
+            return `workspaces/${policyID}/connections/hr` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_RECRUITING: {
+        route: 'workspaces/:policyID/connections/recruiting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_RECRUITING route');
+            }
+            return `workspaces/${policyID}/connections/recruiting` as const;
+        },
+    },
+    WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS: {
+        route: 'workspaces/:policyID/connections/receipt-partners',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS route');
+            }
+            return `workspaces/${policyID}/connections/receipt-partners` as const;
         },
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/advanced` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/advanced',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/advanced` as const;
+        },
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/account-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/account-selector` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/account-selector',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/account-selector` as const,
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/fx-expense-account-selector',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/fx-expense-account-selector` as const,
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
-        route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
-        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation` as const,
-    },
-    WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS: {
-        route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation/account',
-        getRoute: (policyID: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) =>
-            `settings/workspaces/${policyID}/accounting/${connection}/card-reconciliation/account` as const,
+        route: 'workspaces/:policyID/accounting/:connection/card-reconciliation',
+        getRoute: (policyID?: string, connection?: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_ACCOUNTING_CARD_RECONCILIATION route');
+            }
+
+            return `workspaces/${policyID}/accounting/${connection as string}/card-reconciliation` as const;
+        },
     },
     WORKSPACE_CATEGORIES: {
-        route: 'settings/workspaces/:policyID/categories',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories` as const,
+        route: 'workspaces/:policyID/categories',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_CATEGORIES route');
+            }
+            return `workspaces/${policyID}/categories` as const;
+        },
     },
-    WORKSPACE_CATEGORY_SETTINGS: {
-        route: 'settings/workspaces/:policyID/category/:categoryName',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}` as const,
+    WORKSPACE_VENDORS: {
+        route: 'workspaces/:policyID/vendors',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_VENDORS route');
+            }
+            return `workspaces/${policyID}/vendors` as const;
+        },
     },
     WORKSPACE_UPGRADE: {
-        route: 'settings/workspaces/:policyID/upgrade/:featureName',
-        getRoute: (policyID: string, featureName: string, backTo?: string) =>
-            getUrlWithBackToParam(`settings/workspaces/${policyID}/upgrade/${encodeURIComponent(featureName)}` as const, backTo),
-    },
-    WORKSPACE_DOWNGRADE: {
-        route: 'settings/workspaces/:policyID/downgrade/',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/downgrade/` as const,
-    },
-    WORKSPACE_CATEGORIES_SETTINGS: {
-        route: 'settings/workspaces/:policyID/categories/settings',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
-    },
-    WORKSPACE_CATEGORIES_IMPORT: {
-        route: 'settings/workspaces/:policyID/categories/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/import` as const,
-    },
-    WORKSPACE_CATEGORIES_IMPORTED: {
-        route: 'settings/workspaces/:policyID/categories/imported',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/imported` as const,
-    },
-    WORKSPACE_CATEGORY_CREATE: {
-        route: 'settings/workspaces/:policyID/categories/new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/new` as const,
-    },
-    WORKSPACE_CATEGORY_EDIT: {
-        route: 'settings/workspaces/:policyID/category/:categoryName/edit',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/edit` as const,
-    },
-    WORKSPACE_CATEGORY_PAYROLL_CODE: {
-        route: 'settings/workspaces/:policyID/category/:categoryName/payroll-code',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/payroll-code` as const,
-    },
-    WORKSPACE_CATEGORY_GL_CODE: {
-        route: 'settings/workspaces/:policyID/category/:categoryName/gl-code',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const,
-    },
-    WORSKPACE_CATEGORY_DEFAULT_TAX_RATE: {
-        route: 'settings/workspaces/:policyID/category/:categoryName/tax-rate',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/tax-rate` as const,
-    },
-    WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
-        route: 'settings/workspaces/:policyID/category/:categoryName/flag-amounts',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/flag-amounts` as const,
-    },
-    WORSKPACE_CATEGORY_DESCRIPTION_HINT: {
-        route: 'settings/workspaces/:policyID/category/:categoryName/description-hint',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/description-hint` as const,
-    },
-    WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
-        route: 'settings/workspaces/:policyID/category/:categoryName/require-receipts-over',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
-    },
-    WORSKPACE_CATEGORY_APPROVER: {
-        route: 'settings/workspaces/:policyID/category/:categoryName/approver',
-        getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/approver` as const,
+        route: 'workspaces/:policyID?/upgrade/:featureName?',
+        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string) => {
+            const base = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
+            const urlWithParams = reportID || upgradePlanType ? getUrlWithParams(base, {reportID, upgradePlanType}) : base;
+            return getUrlWithBackToParam(urlWithParams, backTo);
+        },
     },
     WORKSPACE_MORE_FEATURES: {
-        route: 'settings/workspaces/:policyID/more-features',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/more-features` as const,
+        route: 'workspaces/:policyID/more-features',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MORE_FEATURES route');
+            }
+            return `workspaces/${policyID}/more-features` as const;
+        },
+    },
+    WORKSPACE_HR: {
+        route: 'workspaces/:policyID/hr',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR route');
+            }
+            return `workspaces/${policyID}/hr` as const;
+        },
+    },
+    WORKSPACE_HR_GUSTO_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/hr/gusto/approval-mode',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_GUSTO_APPROVAL_MODE route');
+            }
+            return `workspaces/${policyID}/hr/gusto/approval-mode` as const;
+        },
+    },
+    WORKSPACE_HR_GUSTO_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/hr/gusto/final-approver',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_GUSTO_FINAL_APPROVER route');
+            }
+            return `workspaces/${policyID}/hr/gusto/final-approver` as const;
+        },
+    },
+    WORKSPACE_HR_ZENEFITS_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/hr/zenefits/approval-mode',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_ZENEFITS_APPROVAL_MODE route');
+            }
+            return `workspaces/${policyID}/hr/zenefits/approval-mode` as const;
+        },
+    },
+    WORKSPACE_HR_ZENEFITS_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/hr/zenefits/final-approver',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR_ZENEFITS_FINAL_APPROVER route');
+            }
+            return `workspaces/${policyID}/hr/zenefits/final-approver` as const;
+        },
+    },
+    WORKSPACE_HR_MERGE_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/hr/merge/approval-mode',
+        getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/approval-mode` as const,
+    },
+    WORKSPACE_HR_MERGE_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/hr/merge/final-approver',
+        getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/final-approver` as const,
+    },
+    WORKSPACE_HR_MERGE_GROUPS: {
+        route: 'workspaces/:policyID/hr/merge/groups',
+        getRoute: (policyID: string) => `workspaces/${policyID}/hr/merge/groups` as const,
+    },
+    WORKSPACE_RECRUITING: {
+        route: 'workspaces/:policyID/recruiting',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECRUITING route');
+            }
+            return `workspaces/${policyID}/recruiting` as const;
+        },
+    },
+    WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS: {
+        route: 'workspaces/:policyID/recruiting/merge/import-settings',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/import-settings` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER: {
+        route: 'workspaces/:policyID/recruiting/merge/import-settings/:filterType',
+        getRoute: (policyID: string, filterType: ValueOf<typeof CONST.MERGE.ATS_FILTER_TYPE>) => `workspaces/${policyID}/recruiting/merge/import-settings/${filterType}` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/recruiting/merge/approval-mode',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/approval-mode` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_APPROVER_FIELD: {
+        route: 'workspaces/:policyID/recruiting/merge/approver-field',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/approver-field` as const,
+    },
+    WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/recruiting/merge/final-approver',
+        getRoute: (policyID: string) => `workspaces/${policyID}/recruiting/merge/final-approver` as const,
     },
     WORKSPACE_TAGS: {
-        route: 'settings/workspaces/:policyID/tags',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags` as const,
+        route: 'workspaces/:policyID/tags',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TAGS route');
+            }
+            return `workspaces/${policyID}/tags` as const;
+        },
     },
-    WORKSPACE_TAG_CREATE: {
-        route: 'settings/workspaces/:policyID/tags/new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/new` as const,
+    WORKSPACE_MULTI_LEVEL_TAGS_IMPORT_SETTINGS: {
+        route: 'workspaces/:policyID/tags/import/multi-level',
+        getRoute: (policyID: string) => `workspaces/${policyID}/tags/import/multi-level` as const,
     },
-    WORKSPACE_TAGS_SETTINGS: {
-        route: 'settings/workspaces/:policyID/tags/settings',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/settings` as const,
+    WORKSPACE_TAGS_IMPORT_OPTIONS: {
+        route: 'workspaces/:policyID/tags/import/import-options',
+        getRoute: (policyID: string) => `workspaces/${policyID}/tags/import/import-options` as const,
     },
-    WORKSPACE_EDIT_TAGS: {
-        route: 'settings/workspaces/:policyID/tags/:orderWeight/edit',
-        getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tags/${orderWeight}/edit` as const,
-    },
-    WORKSPACE_TAG_EDIT: {
-        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/edit',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const,
-    },
-    WORKSPACE_TAG_SETTINGS: {
-        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const,
-    },
-    WORKSPACE_TAG_APPROVER: {
-        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/approver',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/approver` as const,
-    },
-    WORKSPACE_TAG_LIST_VIEW: {
-        route: 'settings/workspaces/:policyID/tag-list/:orderWeight',
-        getRoute: (policyID: string, orderWeight: number) => `settings/workspaces/${policyID}/tag-list/${orderWeight}` as const,
-    },
-    WORKSPACE_TAG_GL_CODE: {
-        route: 'settings/workspaces/:policyID/tag/:orderWeight/:tagName/gl-code',
-        getRoute: (policyID: string, orderWeight: number, tagName: string) => `settings/workspaces/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const,
-    },
-    WORKSPACE_TAGS_IMPORT: {
-        route: 'settings/workspaces/:policyID/tags/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/import` as const,
-    },
-    WORKSPACE_TAGS_IMPORTED: {
-        route: 'settings/workspaces/:policyID/tags/imported',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/tags/imported` as const,
+    WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL: {
+        route: 'workspaces/:policyID/tags/imported/multi-level',
+        getRoute: (policyID: string) => `workspaces/${policyID}/tags/imported/multi-level` as const,
     },
     WORKSPACE_TAXES: {
-        route: 'settings/workspaces/:policyID/taxes',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes` as const,
+        route: 'workspaces/:policyID/taxes',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TAXES route');
+            }
+            return `workspaces/${policyID}/taxes` as const;
+        },
     },
     WORKSPACE_TAXES_SETTINGS: {
-        route: 'settings/workspaces/:policyID/taxes/settings',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings` as const,
+        route: 'workspaces/:policyID/taxes/settings',
+        getRoute: (policyID: string) => `workspaces/${policyID}/taxes/settings` as const,
     },
     WORKSPACE_TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: {
-        route: 'settings/workspaces/:policyID/taxes/settings/workspace-currency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings/workspace-currency` as const,
+        route: 'workspaces/:policyID/taxes/settings/workspace-currency',
+        getRoute: (policyID: string) => `workspaces/${policyID}/taxes/settings/workspace-currency` as const,
     },
     WORKSPACE_TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: {
-        route: 'settings/workspaces/:policyID/taxes/settings/foreign-currency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings/foreign-currency` as const,
+        route: 'workspaces/:policyID/taxes/settings/foreign-currency',
+        getRoute: (policyID: string) => `workspaces/${policyID}/taxes/settings/foreign-currency` as const,
     },
     WORKSPACE_TAXES_SETTINGS_CUSTOM_TAX_NAME: {
-        route: 'settings/workspaces/:policyID/taxes/settings/tax-name',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/settings/tax-name` as const,
+        route: 'workspaces/:policyID/taxes/settings/tax-name',
+        getRoute: (policyID: string) => `workspaces/${policyID}/taxes/settings/tax-name` as const,
+    },
+    WORKSPACE_MEMBERS_ROLE: {
+        route: 'workspaces/:policyID/change-member-roles',
+        getRoute: (policyID: string) => `workspaces/${policyID}/change-member-roles` as const,
     },
     WORKSPACE_MEMBER_DETAILS: {
-        route: 'settings/workspaces/:policyID/members/:accountID',
-        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}` as const,
+        route: 'workspaces/:policyID/members/:accountID',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}` as const,
     },
-    WORKSPACE_MEMBER_NEW_CARD: {
-        route: 'settings/workspaces/:policyID/members/:accountID/new-card',
-        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}/new-card` as const,
+    WORKSPACE_MEMBER_DETAILS_ROLE: {
+        route: 'workspaces/:policyID/members/:accountID/role',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/role` as const,
     },
-    WORKSPACE_MEMBER_ROLE_SELECTION: {
-        route: 'settings/workspaces/:policyID/members/:accountID/role-selection',
-        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}/role-selection` as const,
+    WORKSPACE_MEMBER_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/members/:accountID/work-arrangement',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/work-arrangement` as const,
     },
-    WORKSPACE_OWNER_CHANGE_SUCCESS: {
-        route: 'settings/workspaces/:policyID/change-owner/:accountID/success',
-        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/success` as const,
+    WORKSPACE_MEMBER_OFFICE_LOCATION: {
+        route: 'workspaces/:policyID/members/:accountID/office-location',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/office-location` as const,
     },
-    WORKSPACE_OWNER_CHANGE_ERROR: {
-        route: 'settings/workspaces/:policyID/change-owner/:accountID/failure',
-        getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/change-owner/${accountID}/failure` as const,
-    },
-    WORKSPACE_OWNER_CHANGE_CHECK: {
-        route: 'settings/workspaces/:policyID/change-owner/:accountID/:error',
-        getRoute: (policyID: string, accountID: number, error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS>) =>
-            `settings/workspaces/${policyID}/change-owner/${accountID}/${error as string}` as const,
+    WORKSPACE_CUSTOM_FIELDS: {
+        route: 'workspaces/:policyID/members/:accountID/:customFieldType',
+        getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/workspaces/${policyID}/members/${accountID}/${customFieldType}` as const,
     },
     WORKSPACE_TAX_CREATE: {
-        route: 'settings/workspaces/:policyID/taxes/new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/taxes/new` as const,
+        route: 'workspaces/:policyID/taxes/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/taxes/new` as const,
+    },
+    WORKSPACE_TAX_CREATE_VALUE: {
+        route: 'workspaces/:policyID/taxes/new/value',
+        getRoute: (policyID: string) => `workspaces/${policyID}/taxes/new/value` as const,
     },
     WORKSPACE_TAX_EDIT: {
-        route: 'settings/workspaces/:policyID/tax/:taxID',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}` as const,
+        route: 'workspaces/:policyID/tax/:taxID',
+        getRoute: (policyID: string, taxID: string) => `workspaces/${policyID}/tax/${encodeURIComponent(taxID)}` as const,
     },
     WORKSPACE_TAX_NAME: {
-        route: 'settings/workspaces/:policyID/tax/:taxID/name',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/name` as const,
+        route: 'workspaces/:policyID/tax/:taxID/name',
+        getRoute: (policyID: string, taxID: string) => `workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/name` as const,
     },
     WORKSPACE_TAX_VALUE: {
-        route: 'settings/workspaces/:policyID/tax/:taxID/value',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
+        route: 'workspaces/:policyID/tax/:taxID/value',
+        getRoute: (policyID: string, taxID: string) => `workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/value` as const,
     },
     WORKSPACE_TAX_CODE: {
-        route: 'settings/workspaces/:policyID/tax/:taxID/tax-code',
-        getRoute: (policyID: string, taxID: string) => `settings/workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/tax-code` as const,
+        route: 'workspaces/:policyID/tax/:taxID/tax-code',
+        getRoute: (policyID: string, taxID: string) => `workspaces/${policyID}/tax/${encodeURIComponent(taxID)}/tax-code` as const,
     },
-    WORKSPACE_REPORT_FIELDS: {
-        route: 'settings/workspaces/:policyID/reportFields',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields` as const,
+    WORKSPACE_REPORTS: {
+        route: 'workspaces/:policyID/reports',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_REPORTS route');
+            }
+            return `workspaces/${policyID}/reports` as const;
+        },
     },
     WORKSPACE_CREATE_REPORT_FIELD: {
-        route: 'settings/workspaces/:policyID/reportFields/new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/reportFields/new` as const,
+        route: 'workspaces/:policyID/reports/newReportField',
+        getRoute: (policyID: string) => `workspaces/${policyID}/reports/newReportField` as const,
     },
     WORKSPACE_REPORT_FIELDS_SETTINGS: {
-        route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit',
-        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit` as const,
+        route: 'workspaces/:policyID/reports/:reportFieldID/edit',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/reports/${encodeURIComponent(reportFieldID)}/edit` as const,
     },
     WORKSPACE_REPORT_FIELDS_LIST_VALUES: {
-        route: 'settings/workspaces/:policyID/reportFields/listValues/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/listValues/${encodeURIComponent(reportFieldID ?? '')}` as const,
+        route: 'workspaces/:policyID/reports/listValues/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/listValues/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
+    },
+    WORKSPACE_REPORT_FIELDS_TYPE_SELECTOR: {
+        route: 'workspaces/:policyID/reports/typeSelector/:currentType?',
+        getRoute: (policyID: string, currentType?: PolicyReportFieldType) => `workspaces/${policyID}/reports/typeSelector/${currentType ? encodeURIComponent(currentType) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_ADD_VALUE: {
-        route: 'settings/workspaces/:policyID/reportFields/addValue/:reportFieldID?',
-        getRoute: (policyID: string, reportFieldID?: string) => `settings/workspaces/${policyID}/reportFields/addValue/${encodeURIComponent(reportFieldID ?? '')}` as const,
+        route: 'workspaces/:policyID/reports/addValue/:reportFieldID?',
+        getRoute: (policyID: string, reportFieldID?: string) => `workspaces/${policyID}/reports/addValue/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS: {
-        route: 'settings/workspaces/:policyID/reportFields/:valueIndex/:reportFieldID?',
+        route: 'workspaces/:policyID/reports/:valueIndex/:reportFieldID?',
         getRoute: (policyID: string, valueIndex: number, reportFieldID?: string) =>
-            `settings/workspaces/${policyID}/reportFields/${valueIndex}/${encodeURIComponent(reportFieldID ?? '')}` as const,
+            `workspaces/${policyID}/reports/${valueIndex}/${reportFieldID ? encodeURIComponent(reportFieldID) : ''}` as const,
     },
     WORKSPACE_REPORT_FIELDS_EDIT_VALUE: {
-        route: 'settings/workspaces/:policyID/reportFields/new/:valueIndex/edit',
-        getRoute: (policyID: string, valueIndex: number) => `settings/workspaces/${policyID}/reportFields/new/${valueIndex}/edit` as const,
+        route: 'workspaces/:policyID/reports/newReportField/:valueIndex/edit',
+        getRoute: (policyID: string, valueIndex: number) => `workspaces/${policyID}/reports/newReportField/${valueIndex}/edit` as const,
     },
     WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE: {
-        route: 'settings/workspaces/:policyID/reportFields/:reportFieldID/edit/initialValue',
-        getRoute: (policyID: string, reportFieldID: string) => `settings/workspaces/${policyID}/reportFields/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
+        route: 'workspaces/:policyID/reports/:reportFieldID/edit/initialValue',
+        getRoute: (policyID: string, reportFieldID: string) => `workspaces/${policyID}/reports/${encodeURIComponent(reportFieldID)}/edit/initialValue` as const,
     },
     WORKSPACE_COMPANY_CARDS: {
-        route: 'settings/workspaces/:policyID/company-cards',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards` as const,
+        route: 'workspaces/:policyID/company-cards',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS route');
+            }
+            return `workspaces/${policyID}/company-cards` as const;
+        },
     },
-    WORKSPACE_COMPANY_CARDS_ADD_NEW: {
-        route: 'settings/workspaces/:policyID/company-cards/add-card-feed',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/add-card-feed` as const,
+    WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET: {
+        route: 'workspaces/:policyID/company-cards/add-card-feed/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/import` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_IMPORTED: {
+        route: 'workspaces/:policyID/company-cards/add-card-feed/import/mapping',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/import/mapping` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_LAYOUT_NAME: {
+        route: 'workspaces/:policyID/company-cards/add-card-feed/layout-name',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/add-card-feed/layout-name` as const,
     },
     WORKSPACE_COMPANY_CARDS_SELECT_FEED: {
-        route: 'settings/workspaces/:policyID/company-cards/select-feed',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/select-feed` as const,
+        route: 'workspaces/:policyID/company-cards/select-feed',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/select-feed` as const,
     },
-    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
-        route: 'settings/workspaces/:policyID/company-cards/:feed/assign-card',
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${feed}/assign-card`, backTo),
+    WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: {
+        route: 'workspaces/:policyID/company-cards/:feed/broken-card-feed-connection',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/broken-card-feed-connection` as const,
     },
-    WORKSPACE_COMPANY_CARD_DETAILS: {
-        route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID',
-        getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bank}/${cardID}`, backTo),
+    WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION: {
+        route: 'workspaces/:policyID/company-cards/:feed/refresh-card-feed-connection',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/refresh-card-feed-connection` as const,
     },
-    WORKSPACE_COMPANY_CARD_NAME: {
-        route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string, bank: string) => `settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/name` as const,
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-selection',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/card-selection` as const,
     },
-    WORKSPACE_COMPANY_CARD_EXPORT: {
-        route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
-        getRoute: (policyID: string, cardID: string, bank: string) => `settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export` as const,
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/transaction-start-date',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/transaction-start-date` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-name',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/card-name` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/invite-new-member',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/invite-new-member` as const,
+    },
+    WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME: {
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/name',
+        getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>
+            `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}/edit/name` as const,
+    },
+    WORKSPACE_COMPANY_CARD_ADD_WORK_EMAIL: {
+        route: 'workspaces/:policyID/company-cards/:feed/work-email',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/work-email` as const,
+    },
+    WORKSPACE_COMPANY_CARD_VERIFY_WORK_EMAIL: {
+        route: 'workspaces/:policyID/company-cards/:feed/verify-work-email',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/verify-work-email` as const,
+    },
+    WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE: {
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/transaction-start-date',
+        getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>
+            `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}/edit/transaction-start-date` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE: {
+        route: 'workspaces/:policyID/company-cards/:feed/bulk-edit/transaction-start-date',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID, cardIDs?: string[]) => {
+            const cardIDsQuery = cardIDs?.length ? `?cardIDs=${encodeURIComponent(cardIDs.join(','))}` : '';
+            return `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/bulk-edit/transaction-start-date${cardIDsQuery}` as const;
+        },
     },
     WORKSPACE_EXPENSIFY_CARD: {
-        route: 'settings/workspaces/:policyID/expensify-card',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_DETAILS: {
-        route: 'settings/workspaces/:policyID/expensify-card/:cardID',
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/${cardID}`, backTo),
-    },
-    EXPENSIFY_CARD_DETAILS: {
-        route: 'settings/:policyID/expensify-card/:cardID',
-        getRoute: (policyID: string, cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/${policyID}/expensify-card/${cardID}`, backTo),
-    },
-    WORKSPACE_EXPENSIFY_CARD_NAME: {
-        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/name` as const,
-    },
-    EXPENSIFY_CARD_NAME: {
-        route: 'settings/:policyID/expensify-card/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/name` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_LIMIT: {
-        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit` as const,
-    },
-    EXPENSIFY_CARD_LIMIT: {
-        route: 'settings/:policyID/expensify-card/:cardID/edit/limit',
-        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/limit` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_LIMIT_TYPE: {
-        route: 'settings/workspaces/:policyID/expensify-card/:cardID/edit/limit-type',
-        getRoute: (policyID: string, cardID: string) => `settings/workspaces/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
-    },
-    EXPENSIFY_CARD_LIMIT_TYPE: {
-        route: 'settings/:policyID/expensify-card/:cardID/edit/limit-type',
-        getRoute: (policyID: string, cardID: string) => `settings/${policyID}/expensify-card/${cardID}/edit/limit-type` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: {
-        route: 'settings/workspaces/:policyID/expensify-card/issue-new',
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/issue-new`, backTo),
+        route: 'workspaces/:policyID/expensify-card',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_EXPENSIFY_CARD route');
+            }
+            return `workspaces/${policyID}/expensify-card` as const;
+        },
     },
     WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/expensify-card/choose-bank-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/choose-bank-account` as const,
+        route: 'workspaces/:policyID/expensify-card/choose-bank-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/expensify-card/choose-bank-account` as const;
+        },
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS: {
-        route: 'settings/workspaces/:policyID/expensify-card/settings',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings` as const,
+        route: 'workspaces/:policyID/expensify-card/settings',
+        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/settings` as const,
     },
-    WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/expensify-card/settings/account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/account` as const,
+    WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL: {
+        route: 'workspaces/:policyID/expensify-card/:fundID/work-email',
+        getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL: {
+        route: 'workspaces/:policyID/expensify-card/:fundID/verify-work-email',
+        getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/verify-work-email` as const,
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
-        route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/expensify-card/settings/frequency` as const,
+        route: 'workspaces/:policyID/expensify-card/settings/frequency',
+        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/settings/frequency` as const,
     },
     WORKSPACE_COMPANY_CARDS_SETTINGS: {
-        route: 'settings/workspaces/:policyID/company-cards/settings',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings` as const,
+        route: 'workspaces/:policyID/company-cards/settings',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings` as const,
     },
     WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME: {
-        route: 'settings/workspaces/:policyID/company-cards/settings/feed-name',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/company-cards/settings/feed-name` as const,
+        route: 'workspaces/:policyID/company-cards/settings/feed-name',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/feed-name` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: {
+        route: 'workspaces/:policyID/company-cards/settings/statement-close-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/statement-close-date` as const,
     },
     WORKSPACE_RULES: {
-        route: 'settings/workspaces/:policyID/rules',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules` as const,
+        route: 'workspaces/:policyID/rules',
+        /** @param tab preselects a Rules tab. The page otherwise restores the last one used. */
+        getRoute: (policyID: string | undefined, tab?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RULES route');
+            }
+            return `workspaces/${policyID}/rules${tab ? `?tab=${tab}` : ''}` as const;
+        },
     },
     WORKSPACE_DISTANCE_RATES: {
-        route: 'settings/workspaces/:policyID/distance-rates',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates` as const,
+        route: 'workspaces/:policyID/distance-rates',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_DISTANCE_RATES route');
+            }
+            return `workspaces/${policyID}/distance-rates` as const;
+        },
+    },
+    WORKSPACE_TRAVEL: {
+        route: 'workspaces/:policyID/travel',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TRAVEL route');
+            }
+            return `workspaces/${policyID}/travel` as const;
+        },
+    },
+    WORKSPACE_TRAVEL_SETTINGS_ACCOUNT: {
+        route: 'workspaces/:policyID/travel/settings/account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/account` as const,
+    },
+    WORKSPACE_TRAVEL_EXPORT: {
+        route: 'workspaces/:policyID/travel/export',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TRAVEL_EXPORT route');
+            }
+            return `workspaces/${policyID}/travel/export` as const;
+        },
+    },
+    WORKSPACE_TRAVEL_SETTINGS_FREQUENCY: {
+        route: 'workspaces/:policyID/travel/settings/frequency',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/frequency` as const,
+    },
+    WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT: {
+        route: 'workspaces/:policyID/travel/settings/monthly-limit',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/settings/monthly-limit` as const,
+    },
+    WORKSPACE_TRAVEL_MISSING_PERSONAL_DETAILS: {
+        route: 'workspaces/:policyID/travel/missing-personal-details',
+        getRoute: (policyID: string) => `workspaces/${policyID}/travel/missing-personal-details` as const,
     },
     WORKSPACE_CREATE_DISTANCE_RATE: {
-        route: 'settings/workspaces/:policyID/distance-rates/new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/new` as const,
+        route: 'workspaces/:policyID/distance-rates/new',
+        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
+            `workspaces/${policyID}/distance-rates/new${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
+    },
+    WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE: {
+        route: 'workspaces/:policyID/distance-rates/new/upgrade',
+        getRoute: (policyID: string, transactionID?: string, reportID?: string, iouType?: string, action?: string) =>
+            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}${iouType ? `&iouType=${iouType}` : ''}${action ? `&action=${action}` : ''}` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
-        route: 'settings/workspaces/:policyID/distance-rates/settings',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/distance-rates/settings` as const,
+        route: 'workspaces/:policyID/distance-rates/settings',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_UNIT: {
+        route: 'workspaces/:policyID/distance-rates/settings/unit',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/unit` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY: {
+        route: 'workspaces/:policyID/distance-rates/settings/government-rate-country',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/government-rate-country` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS: {
+        route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions` as const,
+    },
+    WORKSPACE_DISTANCE_RATES_WORK_ARRANGEMENT: {
+        route: 'workspaces/:policyID/distance-rates/settings/commuter-exclusions/work-arrangement',
+        getRoute: (policyID: string) => `workspaces/${policyID}/distance-rates/settings/commuter-exclusions/work-arrangement` as const,
     },
     WORKSPACE_DISTANCE_RATE_DETAILS: {
-        route: 'settings/workspaces/:policyID/distance-rates/:rateID',
-        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}` as const,
+        route: 'workspaces/:policyID/distance-rates/:rateID',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}` as const,
     },
     WORKSPACE_DISTANCE_RATE_EDIT: {
-        route: 'settings/workspaces/:policyID/distance-rates/:rateID/edit',
-        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
+        route: 'workspaces/:policyID/distance-rates/:rateID/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/edit` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_NAME_EDIT: {
+        route: 'workspaces/:policyID/distance-rates/:rateID/name/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/name/edit` as const,
     },
     WORKSPACE_DISTANCE_RATE_TAX_RECLAIMABLE_ON_EDIT: {
-        route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-reclaimable/edit',
-        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-reclaimable/edit` as const,
+        route: 'workspaces/:policyID/distance-rates/:rateID/tax-reclaimable/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/tax-reclaimable/edit` as const,
     },
     WORKSPACE_DISTANCE_RATE_TAX_RATE_EDIT: {
-        route: 'settings/workspaces/:policyID/distance-rates/:rateID/tax-rate/edit',
-        getRoute: (policyID: string, rateID: string) => `settings/workspaces/${policyID}/distance-rates/${rateID}/tax-rate/edit` as const,
+        route: 'workspaces/:policyID/distance-rates/:rateID/tax-rate/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/tax-rate/edit` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_START_DATE_EDIT: {
+        route: 'workspaces/:policyID/distance-rates/:rateID/start-date/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/start-date/edit` as const,
+    },
+    WORKSPACE_DISTANCE_RATE_END_DATE_EDIT: {
+        route: 'workspaces/:policyID/distance-rates/:rateID/end-date/edit',
+        getRoute: (policyID: string, rateID: string) => `workspaces/${policyID}/distance-rates/${rateID}/end-date/edit` as const,
     },
     WORKSPACE_PER_DIEM: {
-        route: 'settings/workspaces/:policyID/per-diem',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem` as const,
+        route: 'workspaces/:policyID/per-diem',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_PER_DIEM route');
+            }
+
+            return getUrlWithBackToParam(`workspaces/${policyID}/per-diem`, backTo);
+        },
+    },
+    WORKSPACE_DUPLICATE: {
+        route: 'workspace/:policyID/duplicate',
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate` as const,
+    },
+    WORKSPACE_DUPLICATE_SELECT_FEATURES: {
+        route: 'workspace/:policyID/duplicate/select-features',
+        getRoute: (policyID: string) => `workspace/${policyID}/duplicate/select-features` as const,
+    },
+    POLICY_COPY_SETTINGS: {
+        route: 'policy/:policyID/copy-settings',
+        getRoute: (policyID: string) => `policy/${policyID}/copy-settings` as const,
+    },
+    POLICY_COPY_SETTINGS_SELECT_FEATURES: {
+        route: 'policy/:policyID/copy-settings/select-features',
+        getRoute: (policyID: string) => `policy/${policyID}/copy-settings/select-features` as const,
+    },
+    POLICY_COPY_SETTINGS_UPGRADE: {
+        route: 'policy/:policyID/copy-settings/upgrade',
+        getRoute: (policyID: string) => `policy/${policyID}/copy-settings/upgrade` as const,
+    },
+    POLICY_COPY_SETTINGS_CONFIRM: {
+        route: 'policy/:policyID/copy-settings/confirm',
+        getRoute: (policyID: string) => `policy/${policyID}/copy-settings/confirm` as const,
+    },
+    WORKSPACE_MCP: {
+        route: 'workspaces/:policyID/mcp',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_MCP route');
+            }
+            return `workspaces/${policyID}/mcp` as const;
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS: {
+        route: 'workspaces/:policyID/receipt-partners',
+        getRoute: (policyID: string | undefined, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_RECEIPT_PARTNERS route');
+            }
+
+            return getUrlWithBackToParam(`workspaces/${policyID}/receipt-partners`, backTo);
+        },
+    },
+    WORKSPACE_RECEIPT_PARTNERS_CHANGE_BILLING_ACCOUNT: {
+        route: 'workspaces/:policyID/receipt-partners/:integration/billing-account',
+        getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/receipt-partners/${integration}/billing-account` as const,
+    },
+    WORKSPACE_PER_DIEM_IMPORT: {
+        route: 'workspaces/:policyID/per-diem/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/per-diem/import` as const,
+    },
+    WORKSPACE_PER_DIEM_IMPORTED: {
+        route: 'workspaces/:policyID/per-diem/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/per-diem/imported` as const,
     },
     WORKSPACE_PER_DIEM_SETTINGS: {
-        route: 'settings/workspaces/:policyID/per-diem/settings',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/per-diem/settings` as const,
+        route: 'workspaces/:policyID/per-diem/settings',
+        getRoute: (policyID: string) => `workspaces/${policyID}/per-diem/settings` as const,
     },
-    RULES_CUSTOM_NAME: {
-        route: 'settings/workspaces/:policyID/rules/name',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/name` as const,
+    WORKSPACE_PER_DIEM_DETAILS: {
+        route: 'workspaces/:policyID/per-diem/details/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `workspaces/${policyID}/per-diem/details/${rateID}/${subRateID}` as const,
+    },
+    WORKSPACE_PER_DIEM_EDIT_DESTINATION: {
+        route: 'workspaces/:policyID/per-diem/edit/destination/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `workspaces/${policyID}/per-diem/edit/destination/${rateID}/${subRateID}` as const,
+    },
+    WORKSPACE_PER_DIEM_EDIT_SUBRATE: {
+        route: 'workspaces/:policyID/per-diem/edit/subrate/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `workspaces/${policyID}/per-diem/edit/subrate/${rateID}/${subRateID}` as const,
+    },
+    WORKSPACE_PER_DIEM_EDIT_AMOUNT: {
+        route: 'workspaces/:policyID/per-diem/edit/amount/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `workspaces/${policyID}/per-diem/edit/amount/${rateID}/${subRateID}` as const,
+    },
+    WORKSPACE_PER_DIEM_EDIT_CURRENCY: {
+        route: 'workspaces/:policyID/per-diem/edit/currency/:rateID/:subRateID',
+        getRoute: (policyID: string, rateID: string, subRateID: string) => `workspaces/${policyID}/per-diem/edit/currency/${rateID}/${subRateID}` as const,
+    },
+
+    WORKSPACE_TIME_TRACKING: {
+        route: 'workspaces/:policyID/time-tracking',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TIME_TRACKING route');
+            }
+            return `workspaces/${policyID}/time-tracking` as const;
+        },
+    },
+    WORKSPACE_TIME_TRACKING_DEFAULT_RATE: {
+        route: 'workspaces/:policyID/time-tracking/rate',
+        getRoute: (policyID: string) => `workspaces/${policyID}/time-tracking/rate` as const,
+    },
+
+    REPORTS_DEFAULT_TITLE: {
+        route: 'workspaces/:policyID/reports/name',
+        getRoute: (policyID: string) => `workspaces/${policyID}/reports/name` as const,
     },
     RULES_AUTO_APPROVE_REPORTS_UNDER: {
-        route: 'settings/workspaces/:policyID/rules/auto-approve',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/auto-approve` as const,
+        route: 'workspaces/:policyID/rules/auto-approve',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/auto-approve` as const,
     },
     RULES_RANDOM_REPORT_AUDIT: {
-        route: 'settings/workspaces/:policyID/rules/audit',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/audit` as const,
+        route: 'workspaces/:policyID/rules/audit',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/audit` as const,
     },
     RULES_AUTO_PAY_REPORTS_UNDER: {
-        route: 'settings/workspaces/:policyID/rules/auto-pay',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/auto-pay` as const,
+        route: 'workspaces/:policyID/rules/auto-pay',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/auto-pay` as const,
     },
     RULES_RECEIPT_REQUIRED_AMOUNT: {
-        route: 'settings/workspaces/:policyID/rules/receipt-required-amount',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/receipt-required-amount` as const,
+        route: 'workspaces/:policyID/rules/receipt-required-amount',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/receipt-required-amount` as const,
+    },
+    RULES_ITEMIZED_RECEIPT_REQUIRED_AMOUNT: {
+        route: 'workspaces/:policyID/rules/itemized-receipt-required-amount',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/itemized-receipt-required-amount` as const,
+    },
+    RULES_REQUIRE_RECEIPTS: {
+        route: 'workspaces/:policyID/rules/require-receipts',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-receipts` as const,
+    },
+    RULES_REQUIRE_FIELDS: {
+        route: 'workspaces/:policyID/rules/require-fields',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields` as const,
+    },
+    RULES_REQUIRE_FIELDS_RULE_NEW: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/new',
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/require-fields-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
+    },
+    RULES_REQUIRE_FIELDS_RULE_EDIT: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName',
+        getRoute: (policyID: string, categoryName: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
+    },
+    RULES_REQUIRE_FIELDS_RULE_CATEGORY: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/new/category',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/require-fields-rules/new/category` as const,
+    },
+    RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT: {
+        route: 'workspaces/:policyID/rules/require-fields-rules/edit/:categoryName/category',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/require-fields-rules/edit/${encodeURIComponent(categoryName)}/category` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_NEW: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/new',
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_EDIT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName',
+        getRoute: (policyID: string, categoryName: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_CATEGORY: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/new/category',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new/category` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/category',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/category` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_AMOUNT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/new/amount',
+        getRoute: (policyID: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/new/amount${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/amount',
+        getRoute: (policyID: string, categoryName: string, isCategoryLocked?: boolean) =>
+            `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/amount${getOptionalIsCategoryLockedQuery(isCategoryLocked)}` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/new/expense-limit-type',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/flag-for-review-rules/new/expense-limit-type` as const,
+    },
+    RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT: {
+        route: 'workspaces/:policyID/rules/flag-for-review-rules/edit/:categoryName/expense-limit-type',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/flag-for-review-rules/${getRulesRevampRuleEditSegment(categoryName)}/expense-limit-type` as const,
+    },
+    RULES_MERCHANT_TYPE_EDIT: {
+        route: 'workspaces/:policyID/rules/merchant-type-rules/:groupID',
+        getRoute: (policyID: string, groupID: string) => `workspaces/${policyID}/rules/merchant-type-rules/${encodeURIComponent(groupID)}` as const,
+    },
+    RULES_MERCHANT_TYPE_CATEGORY: {
+        route: 'workspaces/:policyID/rules/merchant-type-rules/:groupID/category',
+        getRoute: (policyID: string, groupID: string) => `workspaces/${policyID}/rules/merchant-type-rules/${encodeURIComponent(groupID)}/category` as const,
     },
     RULES_MAX_EXPENSE_AMOUNT: {
-        route: 'settings/workspaces/:policyID/rules/max-expense-amount',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/max-expense-amount` as const,
+        route: 'workspaces/:policyID/rules/max-expense-amount',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-amount` as const,
     },
     RULES_MAX_EXPENSE_AGE: {
-        route: 'settings/workspaces/:policyID/rules/max-expense-age',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/max-expense-age` as const,
+        route: 'workspaces/:policyID/rules/max-expense-age',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/max-expense-age` as const,
     },
     RULES_BILLABLE_DEFAULT: {
-        route: 'settings/workspaces/:policyID/rules/billable',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/rules/billable` as const,
+        route: 'workspaces/:policyID/rules/billable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/billable` as const,
     },
-    // Referral program promotion
-    REFERRAL_DETAILS_MODAL: {
-        route: 'referral/:contentType',
-        getRoute: (contentType: string, backTo?: string) => getUrlWithBackToParam(`referral/${contentType}`, backTo),
+    RULES_REIMBURSABLE_DEFAULT: {
+        route: 'workspaces/:policyID/rules/reimbursable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/reimbursable` as const,
     },
-    PROCESS_MONEY_REQUEST_HOLD: {
-        route: 'hold-expense-educational',
-        getRoute: (backTo?: string) => getUrlWithBackToParam('hold-expense-educational', backTo),
+    RULES_PROHIBITED_DEFAULT: {
+        route: 'workspaces/:policyID/rules/prohibited',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/prohibited` as const,
     },
-    TRAVEL_MY_TRIPS: 'travel',
-    TRAVEL_TCS: 'travel/terms',
+    RULES_CUSTOM: {
+        route: 'workspaces/:policyID/overview/policy',
+        getRoute: (policyID: string) => `workspaces/${policyID}/overview/policy` as const,
+    },
+    RULES_NEW: {
+        route: 'workspaces/:policyID/rules/new',
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
+    },
+    RULES_EXPENSE_DEFAULT_TYPE: {
+        route: 'workspaces/:policyID/rules/expense-defaults/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/expense-defaults/new` as const,
+    },
+    RULES_MERCHANT_NEW: {
+        route: 'workspaces/:policyID/rules/merchant-rules/new',
+        getRoute: (policyID: string, categoryName?: string) => `workspaces/${policyID}/rules/merchant-rules/new${getOptionalCategoryNameQuery(categoryName)}` as const,
+    },
+    RULES_MERCHANT_IMPORT: {
+        route: 'workspaces/:policyID/rules/merchant-rules/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/import` as const,
+    },
+    RULES_MERCHANT_IMPORTED: {
+        route: 'workspaces/:policyID/rules/merchant-rules/imported',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/merchant-rules/imported` as const,
+    },
+    RULES_SPEND_NEW: {
+        route: 'workspaces/:policyID/rules/spend-rules/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new` as const,
+    },
+    RULES_SPEND_EDIT: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID}` as const,
+    },
+    RULES_SPEND_CARD: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/card',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/card` as const,
+    },
+    RULES_SPEND_CATEGORY: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/category',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/category` as const,
+    },
+    RULES_SPEND_MAX_AMOUNT: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/max-amount',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/max-amount` as const,
+    },
+    RULES_SPEND_MERCHANTS: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/merchants` as const,
+    },
+    RULES_SPEND_CURRENCIES: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/currencies',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID ?? ROUTES.NEW}/currencies` as const,
+    },
+    RULES_SPEND_MERCHANT_EDIT: {
+        route: 'workspaces/:policyID/rules/spend-rules/:ruleID/merchants/:merchantIndex',
+        getRoute: (policyID: string, ruleID: string, merchantIndex: string) => `workspaces/${policyID}/rules/spend-rules/${ruleID}/merchants/${merchantIndex}` as const,
+    },
+    RULES_MERCHANT_MERCHANT_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-to-match` as const,
+    },
+    RULES_MERCHANT_MATCH_TYPE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-to-match/type',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-to-match/type` as const,
+    },
+    RULES_MERCHANT_MERCHANT: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant` as const,
+    },
+    RULES_MERCHANT_CATEGORY: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/category',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category` as const,
+    },
+    RULES_MERCHANT_TAG: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag/:orderWeight',
+        getRoute: (policyID: string, ruleID?: string, orderWeight?: number) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag/${orderWeight}` as const,
+    },
+    RULES_MERCHANT_TAX: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',
+        // `categoryName` is set when editing a category tax default, which is identified by its category rather than a
+        // ruleID. It tells the picker to return to that editor instead of the create page.
+        getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
+            `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax${getOptionalCategoryNameQuery(categoryName)}` as const,
+    },
+    RULES_MERCHANT_VENDOR: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/vendor',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/vendor` as const,
+    },
+    RULES_MERCHANT_DESCRIPTION: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/description',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/description` as const,
+    },
+    RULES_MERCHANT_REIMBURSABLE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/reimbursable',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/reimbursable` as const,
+    },
+    RULES_MERCHANT_BILLABLE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/billable',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/billable` as const,
+    },
+    RULES_MERCHANT_EDIT: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID}` as const,
+    },
+    RULES_MERCHANT_PREVIEW_MATCHES: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/preview-matches',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/preview-matches` as const,
+    },
+    RULES_CATEGORY_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/category-to-match',
+        // A category tax default has no ruleID, so editing one passes its category for the way back.
+        getRoute: (policyID: string, ruleID?: string, categoryName?: string) =>
+            `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/category-to-match${getOptionalCategoryNameQuery(categoryName)}` as const,
+    },
+    RULES_CATEGORY_TAX_EDIT: {
+        route: 'workspaces/:policyID/rules/category-tax-rules/edit/:categoryName',
+        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/rules/category-tax-rules/edit/${encodeURIComponent(categoryName)}` as const,
+    },
+    RULES_AGENT_NEW: {
+        route: 'workspaces/:policyID/rules/agent-rules/new',
+        getRoute: (policyID: string, generationID?: string) => getUrlWithParams(`workspaces/${policyID}/rules/agent-rules/new` as const, {generationID}),
+    },
+    RULES_AGENT_EDIT: {
+        route: 'workspaces/:policyID/rules/agent-rules/:ruleID',
+        getRoute: (policyID: string, ruleID: string) => `workspaces/${policyID}/rules/agent-rules/${ruleID}` as const,
+    },
+    SHARE_ROOT: 'share/root',
+    SHARE_ROOT_SHARE: 'share/root/share',
+    SHARE_ROOT_SUBMIT: 'share/root/submit',
+    SHARE_DETAILS: {
+        route: 'share/share-details/:reportOrAccountID',
+        getRoute: (reportOrAccountID: string) => `share/share-details/${reportOrAccountID}` as const,
+    },
+    SHARE_DETAILS_ATTACHMENT: 'share/details/:reportOrAccountID/attachment',
+    SHARE_SUBMIT_DETAILS: {
+        route: 'share/submit-details/:reportOrAccountID',
+        getRoute: (reportOrAccountID: string) => `share/submit-details/${reportOrAccountID}` as const,
+    },
+    TRAVEL_MY_TRIPS: {
+        route: 'travel',
+        getRoute: (policyID?: string) => `travel?${policyID ? `policyID=${policyID}` : ''}` as const,
+    },
+    TRAVEL_DOT_LINK_WEB_VIEW: {
+        route: 'travel-dot-link',
+        getRoute: (token: string, isTestAccount?: boolean, postLoginPath?: string) => {
+            const redirectURL = postLoginPath ? `&redirectUrl=${encodeURIComponent(postLoginPath)}` : '';
+            return `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}${redirectURL}` as const;
+        },
+    },
     TRACK_TRAINING_MODAL: 'track-training',
+    TRAVEL_WORKSPACE_CONFIRMATION: {
+        route: 'travel/upgrade/workspace/confirmation',
+
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
+    },
+    TRAVEL_ENABLE: {
+        route: 'travel/enable/:policyID/:subPage?/:action?',
+        getRoute: (policyID: string, subPage?: string, action?: 'edit') => {
+            if (!subPage) {
+                return `travel/enable/${policyID}` as const;
+            }
+            return `travel/enable/${policyID}/${subPage}${action ? `/${action}` : ''}` as const;
+        },
+    },
     ONBOARDING_ROOT: {
         route: 'onboarding',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding`, backTo),
+
+        getRoute: () => 'onboarding' as const,
     },
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',
+
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
+    },
+    ONBOARDING_PRIVATE_DOMAIN: {
+        route: 'onboarding/private-domain',
+
+        getRoute: (backTo?: string, isJoinWorkspaceTask = false, reportID?: string) =>
+            getUrlWithParams(getUrlWithBackToParam(`onboarding/private-domain`, backTo), {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined, reportID}),
     },
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
+
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
     },
     ONBOARDING_ACCOUNTING: {
         route: 'onboarding/accounting',
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/accounting`, backTo),
+
+        getRoute: () => 'onboarding/accounting' as const,
+    },
+    ONBOARDING_INTERESTED_FEATURES: {
+        route: 'onboarding/interested-features',
+
+        getRoute: () => 'onboarding/interested-features' as const,
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
+
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
     },
-    WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
-    EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
+    ONBOARDING_WORKSPACES: {
+        route: 'onboarding/join-workspaces',
+
+        getRoute: (backTo?: string, isJoinWorkspaceTask = false, shouldCreateJoinWorkspaceTaskOnExit = false) =>
+            getUrlWithParams(getUrlWithBackToParam(`onboarding/join-workspaces`, backTo), {
+                isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined,
+                shouldCreateJoinWorkspaceTaskOnExit: shouldCreateJoinWorkspaceTaskOnExit ? 'true' : undefined,
+            }),
+    },
+    ONBOARDING_WORK_EMAIL: {
+        route: 'onboarding/work-email',
+
+        getRoute: (isJoinWorkspaceTask = false, reportID?: string) => getUrlWithParams('onboarding/work-email', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined, reportID}),
+    },
+    ONBOARDING_WORK_EMAIL_VALIDATION: {
+        route: 'onboarding/work-email-validation',
+
+        getRoute: (isJoinWorkspaceTask = false, reportID?: string) =>
+            getUrlWithParams('onboarding/work-email-validation', {isJoinWorkspaceTask: isJoinWorkspaceTask ? 'true' : undefined, reportID}),
+    },
+    ONBOARDING_PERSONAL_TRACK_GOAL: {
+        route: 'onboarding/personaltrackcase',
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
+    },
+    TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
+    AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
+    WORKSPACE_CONFIRMATION_SUCCESS: 'workspace/confirmation/success',
 
     TRANSACTION_RECEIPT: {
-        route: 'r/:reportID/transaction/:transactionID/receipt',
-        getRoute: (reportID: string, transactionID: string, readonly = false, isFromReviewDuplicates = false) =>
-            `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''}` as const,
+        route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, mergeTransactionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
+            }
+            if (!transactionID) {
+                Log.warn('Invalid transactionID is used to build the TRANSACTION_RECEIPT route');
+            }
+            return `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${mergeTransactionID ? `&mergeTransactionID=${mergeTransactionID}` : ''}` as const;
+        },
     },
-
-    TRANSACTION_DUPLICATE_REVIEW_PAGE: {
-        route: 'r/:threadReportID/duplicates/review',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review` as const, backTo),
+    POLICY_ACCOUNTING_XERO_SETUP: {
+        route: 'workspaces/:policyID/accounting/xero/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/setup` as const,
     },
-    TRANSACTION_DUPLICATE_REVIEW_MERCHANT_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/merchant',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/merchant` as const, backTo),
+    POLICY_ACCOUNTING_ZOHO_BOOKS_OAUTH: {
+        route: 'workspaces/:policyID/accounting/zoho-books/oauth',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/oauth` as const,
     },
-    TRANSACTION_DUPLICATE_REVIEW_CATEGORY_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/category',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/category` as const, backTo),
+    POLICY_ACCOUNTING_ZOHO_BOOKS_IMPORT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/import` as const,
     },
-    TRANSACTION_DUPLICATE_REVIEW_TAG_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/tag',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tag` as const, backTo),
+    POLICY_ACCOUNTING_ZOHO_BOOKS_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/zoho-books/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/existing-connections` as const,
     },
-    TRANSACTION_DUPLICATE_REVIEW_TAX_CODE_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/tax-code',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/tax-code` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_DESCRIPTION_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/description',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/description` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_REIMBURSABLE_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/reimbursable',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/reimbursable` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_REVIEW_BILLABLE_PAGE: {
-        route: 'r/:threadReportID/duplicates/review/billable',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/review/billable` as const, backTo),
-    },
-    TRANSACTION_DUPLICATE_CONFIRMATION_PAGE: {
-        route: 'r/:threadReportID/duplicates/confirm',
-        getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
+    POLICY_ACCOUNTING_ZOHO_BOOKS_ORGANIZATION_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/zoho-books/organization-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/organization-selector` as const,
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
-        route: 'settings/workspaces/:policyID/accounting/xero/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import` as const,
+        route: 'workspaces/:policyID/accounting/xero/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/import` as const,
     },
     POLICY_ACCOUNTING_XERO_CHART_OF_ACCOUNTS: {
-        route: 'settings/workspaces/:policyID/accounting/xero/import/accounts',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/accounts` as const,
+        route: 'workspaces/:policyID/accounting/xero/import/accounts',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/import/accounts` as const,
     },
     POLICY_ACCOUNTING_XERO_ORGANIZATION: {
-        route: 'settings/workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
-        getRoute: (policyID: string, currentOrganizationID: string) => `settings/workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const,
+        route: 'workspaces/:policyID/accounting/xero/organization/:currentOrganizationID',
+        getRoute: (policyID: string | undefined, currentOrganizationID: string | undefined) => {
+            if (!policyID || !currentOrganizationID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ORGANIZATION route');
+            }
+            return `workspaces/${policyID}/accounting/xero/organization/${currentOrganizationID}` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES: {
-        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories` as const,
+        route: 'workspaces/:policyID/accounting/xero/import/tracking-categories',
+        getRoute: (policyID?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES route');
+            }
+            return `workspaces/${policyID}/accounting/xero/import/tracking-categories` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP: {
-        route: 'settings/workspaces/:policyID/accounting/xero/import/tracking-categories/mapping/:categoryId/:categoryName',
+        route: 'workspaces/:policyID/accounting/xero/import/tracking-categories/mapping/:categoryId/:categoryName',
         getRoute: (policyID: string, categoryId: string, categoryName: string) =>
-            `settings/workspaces/${policyID}/accounting/xero/import/tracking-categories/mapping/${categoryId}/${encodeURIComponent(categoryName)}` as const,
+            `workspaces/${policyID}/accounting/xero/import/tracking-categories/mapping/${categoryId}/${encodeURIComponent(categoryName)}` as const,
     },
     POLICY_ACCOUNTING_XERO_CUSTOMER: {
-        route: 'settings/workspaces/:policyID/accounting/xero/import/customers',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/customers` as const,
+        route: 'workspaces/:policyID/accounting/xero/import/customers',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/import/customers` as const,
     },
     POLICY_ACCOUNTING_XERO_TAXES: {
-        route: 'settings/workspaces/:policyID/accounting/xero/import/taxes',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/import/taxes` as const,
-    },
-    POLICY_ACCOUNTING_XERO_EXPORT: {
-        route: 'settings/workspaces/:policyID/accounting/xero/export',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export` as const,
-    },
-    POLICY_ACCOUNTING_XERO_PREFERRED_EXPORTER_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/xero/export/preferred-exporter/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/xero/export/preferred-exporter/select` as const,
-    },
-    POLICY_ACCOUNTING_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-date-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/purchase-bill-date-select` as const,
-    },
-    POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/xero/export/bank-account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/bank-account-select` as const,
+        route: 'workspaces/:policyID/accounting/xero/import/taxes',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/xero/import/taxes` as const,
     },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
-        route: 'settings/workspaces/:policyID/accounting/xero/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced` as const,
+        route: 'workspaces/:policyID/accounting/xero/advanced',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ADVANCED route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced` as const;
+        },
     },
-    POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/export/purchase-bill-status-selector` as const,
+    POLICY_ACCOUNTING_CLAIM_OFFER: {
+        route: 'workspaces/:policyID/accounting/claim-offer/:integration',
+        getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/accounting/claim-offer/${integration}` as const,
     },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const,
+        route: 'workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced/invoice-account-selector` as const;
+        },
+    },
+    POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/xero/advanced/fx-expense-account-selector',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_FX_EXPENSE_ACCOUNT_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced/fx-expense-account-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/xero/advanced/bill-payment-account-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/xero/advanced/bill-payment-account-selector` as const,
+        route: 'workspaces/:policyID/accounting/xero/advanced/bill-payment-account-selector',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_BILL_PAYMENT_ACCOUNT_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/xero/advanced/bill-payment-account-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/import` as const,
+    },
+    POLICY_ACCOUNTING_INTUIT_ENTERPRISE_SUITE_ENTITY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/intuit-enterprise-suite/entity-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/intuit-enterprise-suite/entity-selector` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CHART_OF_ACCOUNTS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/accounts',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/accounts` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/accounts',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/accounts` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/classes',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/classes` as const;
+        },
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOM_DIMENSION: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/custom-dimension/:dimensionID',
+        getRoute: (policyID: string, dimensionID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/custom-dimension/${dimensionID}` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/classes/displayed-as` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/classes/displayed-as',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/classes/displayed-as` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/customers',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/customers',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/customers` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/customers/displayed-as',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/customers/displayed-as` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/customers/displayed-as',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/customers/displayed-as` as const,
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_ITEMS: {
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/items',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_ITEMS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/items` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/locations',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/locations',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS route');
+            }
+            return `workspaces/${policyID}/accounting/quickbooks-online/import/locations` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/locations/displayed-as',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/locations/displayed-as` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/locations/displayed-as',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/quickbooks-online/import/locations/displayed-as` as const,
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TAXES: {
-        route: 'settings/workspaces/:policyID/accounting/quickbooks-online/import/taxes',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
+        route: 'workspaces/:policyID/accounting/quickbooks-online/import/taxes',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/import/taxes` as const,
     },
     RESTRICTED_ACTION: {
         route: 'restricted-action/workspace/:policyID',
         getRoute: (policyID: string) => `restricted-action/workspace/${policyID}` as const,
     },
-    MISSING_PERSONAL_DETAILS: 'missing-personal-details',
     POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/subsidiary-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/subsidiary-selector',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_SUBSIDIARY_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/subsidiary-selector` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/existing-connections',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/existing-connections` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/existing-connections` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/token-input',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/token-input` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/token-input/:subPage',
+        getRoute: (policyID: string | undefined, subPage: string, authType?: string, isMigration?: boolean) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT route');
+            }
+            const query = [authType ? `authType=${authType}` : '', isMigration ? `isMigration=true` : ''].filter(Boolean).join('&');
+            return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}${query ? `?${query}` : ''}` as const;
+        },
+    },
+    POLICY_ACCOUNTING_NETSUITE_SETUP: {
+        route: 'workspaces/:policyID/accounting/netsuite/setup/:accountID?',
+        getRoute: (policyID: string, accountID: string, isMigration?: boolean) =>
+            `workspaces/${policyID}/accounting/netsuite/setup/${accountID}${isMigration ? '?isMigration=true' : ''}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/import',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_MAPPING: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/mapping/:importField',
+        route: 'workspaces/:policyID/accounting/netsuite/import/mapping/:importField',
         getRoute: (policyID: string, importField: TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>) =>
-            `settings/workspaces/${policyID}/accounting/netsuite/import/mapping/${importField}` as const,
+            `workspaces/${policyID}/accounting/netsuite/import/mapping/${importField as string}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
-            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField',
+        getRoute: (policyID: string | undefined, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:valueIndex',
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:valueIndex',
         getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number) =>
-            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/view/${valueIndex}` as const,
+            `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}/view/${valueIndex}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/edit/:valueIndex/:fieldName',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) =>
-            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField}/edit/${valueIndex}/${fieldName}` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/edit/:valueIndex/:fieldName',
+        getRoute: (policyID: string | undefined, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>, valueIndex: number, fieldName: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_EDIT route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}/edit/${valueIndex}/${fieldName}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom-list/new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/custom-list/new` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/new/:subPage?/:action?',
+        getRoute: (policyID: string | undefined, subPage?: string, action?: 'edit') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_ADD route');
+            }
+            if (!subPage) {
+                return `workspaces/${policyID}/accounting/netsuite/import/custom-list/new` as const;
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom-list/new/${subPage}${action ? `/${action}` : ''}` as const;
+        },
+    },
+    POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom-list/list-selector/:action?',
+        getRoute: (policyID: string | undefined, action?: 'edit') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_LIST_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom-list/list-selector${action ? `/${action}` : ''}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom-segment/new',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/custom-segment/new` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/import/custom-segment/new/:subPage?/:action?',
+        getRoute: (policyID: string | undefined, subPage?: string, action?: 'edit') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_SEGMENT_ADD route');
+            }
+            if (!subPage) {
+                return `workspaces/${policyID}/accounting/netsuite/import/custom-segment/new` as const;
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/custom-segment/new/${subPage}${action ? `/${action}` : ''}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS route');
+            }
+            return `workspaces/${policyID}/accounting/netsuite/import/customer-projects` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS_SELECT: {
-        route: 'settings/workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_PREFERRED_EXPORTER_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/preferred-exporter/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/preferred-exporter/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_DATE_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/date/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/date/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
-            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/destination/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
-            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}/destination/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/vendor/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
-            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}/vendor/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/payable-account/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
-            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}/payable-account/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/journal-posting-preference/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
-            `settings/workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType}/journal-posting-preference/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/receivable-account/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/receivable-account/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/invoice-item-preference/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/select` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/invoice-item-preference/invoice-item/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/invoice-item-preference/invoice-item/select` as const,
+        route: 'workspaces/:policyID/accounting/netsuite/import/customer-projects/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/netsuite/import/customer-projects/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_TAX_POSTING_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/tax-posting-account/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/tax-posting-account/select` as const,
+        route: 'workspaces/:policyID/connections/netsuite/export/tax-posting-account/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/export/tax-posting-account/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_PROVINCIAL_TAX_POSTING_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/export/provincial-tax-posting-account/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/export/provincial-tax-posting-account/select` as const,
+        route: 'workspaces/:policyID/connections/netsuite/export/provincial-tax-posting-account/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/export/provincial-tax-posting-account/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_ADVANCED: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/` as const,
+        route: 'workspaces/:policyID/connections/netsuite/advanced/',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_ADVANCED route');
+            }
+            return `workspaces/${policyID}/connections/netsuite/advanced/` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_REIMBURSEMENT_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/reimbursement-account/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/reimbursement-account/select` as const,
+        route: 'workspaces/:policyID/connections/netsuite/advanced/reimbursement-account/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/reimbursement-account/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_COLLECTION_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/collection-account/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/collection-account/select` as const,
+        route: 'workspaces/:policyID/connections/netsuite/advanced/collection-account/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/collection-account/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_EXPENSE_REPORT_APPROVAL_LEVEL_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/expense-report-approval-level/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/expense-report-approval-level/select` as const,
+        route: 'workspaces/:policyID/connections/netsuite/advanced/expense-report-approval-level/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/expense-report-approval-level/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_VENDOR_BILL_APPROVAL_LEVEL_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/vendor-bill-approval-level/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/vendor-bill-approval-level/select` as const,
+        route: 'workspaces/:policyID/connections/netsuite/advanced/vendor-bill-approval-level/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/vendor-bill-approval-level/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_JOURNAL_ENTRY_APPROVAL_LEVEL_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/journal-entry-approval-level/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/journal-entry-approval-level/select` as const,
+        route: 'workspaces/:policyID/connections/netsuite/advanced/journal-entry-approval-level/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/journal-entry-approval-level/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_APPROVAL_ACCOUNT_SELECT: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/approval-account/select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/approval-account/select` as const,
+        route: 'workspaces/:policyID/connections/netsuite/advanced/approval-account/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/approval-account/select` as const,
+    },
+    POLICY_ACCOUNTING_NETSUITE_FX_EXPENSE_ACCOUNT_SELECT: {
+        route: 'workspaces/:policyID/connections/netsuite/advanced/fx-expense-account/select',
+        getRoute: (policyID: string) => `workspaces/${policyID}/connections/netsuite/advanced/fx-expense-account/select` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
+        route: 'workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
         getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
-            `settings/workspaces/${policyID}/connections/netsuite/advanced/custom-form-id/${expenseType}` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync` as const,
-    },
-    POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD: {
-        route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const,
+            `workspaces/${policyID}/connections/netsuite/advanced/custom-form-id/${expenseType as string}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/enter-credentials',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/enter-credentials` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/enter-credentials',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/sage-intacct/enter-credentials` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/existing-connections',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/sage-intacct/existing-connections` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/entity',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/entity` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/entity',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/entity` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/import',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/sage-intacct/import` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/toggle-mapping/:mapping',
-        getRoute: (policyID: string, mapping: SageIntacctMappingName) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/toggle-mapping/${mapping}` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/import/toggle-mapping/:mapping',
+        getRoute: (policyID: string | undefined, mapping: SageIntacctMappingName) => `workspaces/${policyID}/accounting/sage-intacct/import/toggle-mapping/${mapping as string}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/mapping-type/:mapping',
-        getRoute: (policyID: string, mapping: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/mapping-type/${mapping}` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/import/mapping-type/:mapping',
+        getRoute: (policyID: string | undefined, mapping: string) => `workspaces/${policyID}/accounting/sage-intacct/import/mapping-type/${mapping}` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/import/tax',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/sage-intacct/import/tax` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX_MAPPING: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/import/tax/mapping',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/sage-intacct/import/tax/mapping` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/user-dimensions',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/import/user-dimensions',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/add-user-dimension',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/add-user-dimension` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/import/add-user-dimension',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/sage-intacct/import/add-user-dimension` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/edit-user-dimension/:dimensionName',
-        getRoute: (policyID: string, dimensionName: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/edit-user-dimension/${dimensionName}` as const,
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/import/edit-user-dimension/:dimensionName',
+        getRoute: (policyID: string, dimensionName: string) => `workspaces/${policyID}/accounting/sage-intacct/import/edit-user-dimension/${dimensionName}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREFERRED_EXPORTER: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/preferred-exporter',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/preferred-exporter` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/preferred-exporter',
+
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/preferred-exporter` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT_DATE: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/date',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/date` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/date',
+
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/date` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/reimbursable',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/reimbursable` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/reimbursable',
+
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/reimbursable` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable',
+
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_DESTINATION: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/reimbursable/destination',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/reimbursable/destination` as const,
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/destination',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/destination` as const,
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/:reimbursable/default-vendor',
-        getRoute: (policyID: string, reimbursable: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/${reimbursable}/default-vendor` as const,
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/credit-card-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/credit-card-account` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/export/reimbursable/destination',
+
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/reimbursable/destination` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const,
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/payment-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/payment-account` as const;
+        },
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/sage-intacct/advanced/fx-expense-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/sage-intacct/advanced/fx-expense-account` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_PREREQUISITES: {
+        route: 'workspaces/:policyID/accounting/certinia/prerequisites/:subPage?/:isSandbox?',
+        getRoute: (policyID: string, subPage?: string, isSandbox?: boolean) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_PREREQUISITES route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/prerequisites${subPage ? `/${subPage}` : ''}${isSandbox !== undefined ? `/${isSandbox ? 'true' : 'false'}` : ''}` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/certinia/existing-connections',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/existing-connections` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_IMPORT: {
+        route: 'workspaces/:policyID/accounting/certinia/import',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_IMPORT route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/import` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_DIMENSION_MAPPING: {
+        route: 'workspaces/:policyID/accounting/certinia/import/dimension/:dimension',
+        getRoute: (policyID: string | undefined, dimension: 'dimension1' | 'dimension2' | 'dimension3' | 'dimension4') => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_DIMENSION_MAPPING route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/import/dimension/${dimension}` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT: {
+        route: 'workspaces/:policyID/accounting/certinia/export',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_EXPORT route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/certinia/export/preferred-exporter',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/preferred-exporter` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS: {
+        route: 'workspaces/:policyID/accounting/certinia/export/status',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/status` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE: {
+        route: 'workspaces/:policyID/accounting/certinia/export/date',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/date` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR: {
+        route: 'workspaces/:policyID/accounting/certinia/export/default-vendor',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/default-vendor` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/certinia/advanced',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_ADVANCED route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/advanced` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/certinia/advanced/fx-expense-account',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/advanced/fx-expense-account` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING: {
+        route: 'workspaces/:policyID/accounting/certinia/import/tags-mapping',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_TAGS_MAPPING route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/import/tags-mapping` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS: {
+        route: 'workspaces/:policyID/accounting/certinia/export/report-status',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/export/report-status` as const;
+        },
+    },
+    POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/certinia/company',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_CERTINIA_COMPANY_SELECTOR route');
+            }
+            return `workspaces/${policyID}/accounting/certinia/company` as const;
+        },
+    },
+    POLICY_ACCOUNTING_RILLET_SETUP: {
+        route: 'workspaces/:policyID/accounting/rillet/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/setup` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/rillet/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_SUBSIDIARY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/rillet/subsidiary-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/subsidiary-selector` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_IMPORT: {
+        route: 'workspaces/:policyID/accounting/rillet/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/import` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_EXPORT: {
+        route: 'workspaces/:policyID/accounting/rillet/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/rillet/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/rillet/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/rillet/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/rillet/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/rillet/export/card-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/fx-expense-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/fx-expense-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/rillet/advanced/travel-billing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/travel-billing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_SETUP: {
+        route: 'workspaces/:policyID/accounting/dualentry/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/setup` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/dualentry/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_SUBSIDIARY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/subsidiary-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/subsidiary-selector` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_IMPORT: {
+        route: 'workspaces/:policyID/accounting/dualentry/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/import` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPORT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/dualentry/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/dualentry/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/dualentry/export/card-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_FX_EXPENSE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/fx-expense-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/fx-expense-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-billing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-billing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-billing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/travel-billing-payable-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_SETUP: {
+        route: 'workspaces/:policyID/accounting/campfire/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/setup` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/campfire/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_SUBSIDIARY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/campfire/subsidiary-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/subsidiary-selector` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_IMPORT: {
+        route: 'workspaces/:policyID/accounting/campfire/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/import` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPORT: {
+        route: 'workspaces/:policyID/accounting/campfire/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/campfire/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/campfire/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/campfire/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/campfire/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/campfire/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/campfire/export/card-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/travel-billing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/travel-billing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/campfire/advanced/travel-billing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/campfire/advanced/travel-billing-payable-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_OAUTH: {
+        route: 'workspaces/:policyID/accounting/digits/oauth',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/oauth` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/digits/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_IMPORT: {
+        route: 'workspaces/:policyID/accounting/digits/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/import` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
+        route: 'workspaces/:policyID/accounting/business-central/prerequisites',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/prerequisites` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_SETUP: {
+        route: 'workspaces/:policyID/accounting/business-central/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/setup` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/business-central/company-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/company-selector` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_IMPORT: {
+        route: 'workspaces/:policyID/accounting/business-central/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/import` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT: {
+        route: 'workspaces/:policyID/accounting/business-central/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/business-central/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_DATE: {
+        route: 'workspaces/:policyID/accounting/business-central/export/date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/date` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: {
+        route: 'workspaces/:policyID/accounting/business-central/export/reimbursable-destination',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/reimbursable-destination` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_REIMBURSABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/reimbursable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/reimbursable-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_NONREIMBURSABLE_EXPENSES_EXPORT_DESTINATION: {
+        route: 'workspaces/:policyID/accounting/business-central/export/non-reimbursable-destination',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/non-reimbursable-destination` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_DEFAULT_VENDOR: {
+        route: 'workspaces/:policyID/accounting/business-central/export/default-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/default-vendor` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_EXPORT_PAYMENT_METHOD: {
+        route: 'workspaces/:policyID/accounting/business-central/export/payment-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/payment-method` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/card-program-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/card-program-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_PROGRAM_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/business-central/export/card-program-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/business-central/export/card-program-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/business-central/export/card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/export/card-account` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST: {
+        route: 'workspaces/:policyID/accounting/business-central/export/card-account/:feed',
+        getRoute: (policyID: string, feed: CardFeedWithDomainID) => `workspaces/${policyID}/accounting/business-central/export/card-account/${encodeURIComponent(feed)}` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/advanced` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_ACCOUNTING_METHOD: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced/accounting-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/advanced/accounting-method` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED_POSTING_MODE: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced/posting-mode',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/business-central/advanced/posting-mode` as const,
+    },
+    POLICY_ACCOUNTING_BUSINESS_CENTRAL_BANK_ACCOUNT_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/business-central/advanced/bank-account/:settingName',
+        getRoute: (policyID: string, settingName: BusinessCentralBankAccountSettingName) =>
+            `workspaces/${policyID}/accounting/business-central/advanced/bank-account/${settingName}` as const,
+    },
+    ADD_EXISTING_EXPENSE: {
+        route: 'search/r/:reportID/add-existing-expense/:backToReport?',
+        getRoute: (reportID: string | undefined, backToReport?: string) => `search/r/${reportID}/add-existing-expense/${backToReport ?? ''}` as const,
     },
     DEBUG_REPORT: {
         route: 'debug/report/:reportID',
-        getRoute: (reportID: string) => `debug/report/${reportID}` as const,
+        getRoute: (reportID: string | undefined) => `debug/report/${reportID}` as const,
     },
     DEBUG_REPORT_TAB_DETAILS: {
         route: 'debug/report/:reportID/details',
@@ -1762,7 +5620,12 @@ const ROUTES = {
     },
     DEBUG_REPORT_ACTION: {
         route: 'debug/report/:reportID/actions/:reportActionID',
-        getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}` as const,
+        getRoute: (reportID: string | undefined, reportActionID: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the DEBUG_REPORT_ACTION route');
+            }
+            return `debug/report/${reportID}/actions/${reportActionID}` as const;
+        },
     },
     DEBUG_REPORT_ACTION_CREATE: {
         route: 'debug/report/:reportID/actions/create',
@@ -1779,15 +5642,6 @@ const ROUTES = {
     DEBUG_REPORT_ACTION_TAB_PREVIEW: {
         route: 'debug/report/:reportID/actions/:reportActionID/preview',
         getRoute: (reportID: string, reportActionID: string) => `debug/report/${reportID}/actions/${reportActionID}/preview` as const,
-    },
-    DETAILS_CONSTANT_PICKER_PAGE: {
-        route: 'debug/:formType/details/constant/:fieldName',
-        getRoute: (formType: string, fieldName: string, fieldValue?: string, policyID?: string, backTo?: string) =>
-            getUrlWithBackToParam(`debug/${formType}/details/constant/${fieldName}?fieldValue=${fieldValue}&policyID=${policyID}`, backTo),
-    },
-    DETAILS_DATE_TIME_PICKER_PAGE: {
-        route: 'debug/details/datetime/:fieldName',
-        getRoute: (fieldName: string, fieldValue?: string, backTo?: string) => getUrlWithBackToParam(`debug/details/datetime/${fieldName}?fieldValue=${fieldValue}`, backTo),
     },
     DEBUG_TRANSACTION: {
         route: 'debug/transaction/:transactionID',
@@ -1821,22 +5675,269 @@ const ROUTES = {
         route: 'debug/transaction/:transactionID/violations/:index/json',
         getRoute: (transactionID: string, index: string) => `debug/transaction/${transactionID}/violations/${index}/json` as const,
     },
+    REJECT_MONEY_REQUEST_REASON: {
+        route: 'reject/reason/:transactionID',
+        getRoute: (transactionID: string, reportID: string, backTo?: string) => `reject/reason/${transactionID}?reportID=${reportID}&backTo=${backTo}` as const,
+    },
+    REJECT_EXPENSE_REPORT: {
+        route: 'reports/reject/:reportID',
+        getRoute: (reportID: string) => `reports/reject/${reportID}` as const,
+    },
+    SCHEDULE_CALL_BOOK: {
+        route: 'r/:reportID/schedule-call/book',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/book` as const,
+    },
+    SCHEDULE_CALL_CONFIRMATION: {
+        route: 'r/:reportID/schedule-call/confirmation',
+        getRoute: (reportID: string) => `r/${reportID}/schedule-call/confirmation` as const,
+    },
+
+    TEST_TOOLS_MODAL: {
+        route: 'test-tools',
+
+        getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools' as const, backTo),
+    },
+    TEST_TOOLS_SERVER: {
+        route: 'test-tools/server',
+
+        getRoute: (backTo?: string) => getUrlWithBackToParam('test-tools/server' as const, backTo),
+    },
+    WORKSPACES_VERIFY_DOMAIN: {
+        route: 'workspaces/verify-domain/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/verify-domain/${domainAccountID}` as const,
+    },
+    WORKSPACES_DOMAIN_VERIFIED: {
+        route: 'workspaces/domain-verified/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-verified/${domainAccountID}` as const,
+    },
+    WORKSPACES_ADD_DOMAIN: 'workspaces/add-domain',
+    WORKSPACES_DOMAIN_ADDED: {
+        route: 'workspaces/domain-added/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-added/${domainAccountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ACCESS_RESTRICTED: {
+        route: 'workspaces/domain-access-restricted/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-access-restricted/${domainAccountID}` as const,
+    },
+    WORKSPACES_DOMAIN_ALREADY_EXISTS: {
+        route: 'workspaces/domain-already-exists/:domainAccountID',
+        getRoute: (domainAccountID: number) => `workspaces/domain-already-exists/${domainAccountID}` as const,
+    },
+    DOMAIN_INITIAL: {
+        route: 'domain/:domainAccountID',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}` as const,
+    },
+    DOMAIN_SAML: {
+        route: 'domain/:domainAccountID/saml',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml` as const,
+    },
+    DOMAIN_SAML_VERIFY: {
+        route: 'domain/:domainAccountID/saml/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verify` as const,
+    },
+    DOMAIN_SAML_VERIFIED: {
+        route: 'domain/:domainAccountID/saml/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/saml/verified` as const,
+    },
+    DOMAIN_MEMBERS_VERIFY: {
+        route: 'domain/:domainAccountID/members/verify',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verify` as const,
+    },
+    DOMAIN_MEMBERS_VERIFIED: {
+        route: 'domain/:domainAccountID/members/verified',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verified` as const,
+    },
+    DOMAIN_ADMINS: {
+        route: 'domain/:domainAccountID/admins',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins` as const,
+    },
+    DOMAIN_ADMIN_DETAILS: {
+        route: 'domain/:domainAccountID/admins/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}` as const,
+    },
+    DOMAIN_ADMINS_SETTINGS: {
+        route: 'domain/:domainAccountID/admins/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings` as const,
+    },
+    DOMAIN_ADD_PRIMARY_CONTACT: {
+        route: 'domain/:domainAccountID/admins/settings/primary-contact',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings/primary-contact` as const,
+    },
+    DOMAIN_ADD_ADMIN: {
+        route: 'domain/:domainAccountID/admins/invite',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/invite` as const,
+    },
+    DOMAIN_MEMBERS: {
+        route: 'domain/:domainAccountID/members',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members` as const,
+    },
+    DOMAIN_MEMBER_DETAILS: {
+        route: 'domain/:domainAccountID/members/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}` as const,
+    },
+    DOMAIN_RESET_DOMAIN: {
+        route: 'domain/:domainAccountID/admins/:accountID/reset-domain',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/admins/${accountID}/reset-domain` as const,
+    },
+    DOMAIN_ADD_MEMBER: {
+        route: 'domain/:domainAccountID/members/invite',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/invite` as const,
+    },
+    DOMAIN_MEMBERS_SETTINGS: {
+        route: 'domain/:domainAccountID/members/settings',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings` as const,
+    },
+    DOMAIN_MEMBERS_SETTINGS_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/settings/require-two-factor-auth',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/settings/require-two-factor-auth` as const,
+    },
+    DOMAIN_MEMBER_FORCE_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/:accountID/force-two-factor-auth',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/force-two-factor-auth` as const,
+    },
+    DOMAIN_MEMBER_RESET_TWO_FACTOR_AUTH: {
+        route: 'domain/:domainAccountID/members/:accountID/reset-two-factor-auth',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/reset-two-factor-auth` as const,
+    },
+    DOMAIN_MEMBERS_MOVE_TO_GROUP: {
+        route: 'domain/:domainAccountID/members/move',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/move` as const,
+    },
+    DOMAIN_MEMBER_MOVE_TO_GROUP: {
+        route: 'domain/:domainAccountID/members/:accountID/move',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/move` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_REVOKE: 'multifactor-authentication/revoke',
+
+    DOMAIN_GROUPS: {
+        route: 'domain/:domainAccountID/groups',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups` as const,
+    },
+
+    DOMAIN_VACATION_DELEGATE: {
+        route: 'domain/:domainAccountID/members/:accountID/vacation-delegate',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/vacation-delegate` as const,
+    },
+
+    DOMAIN_VACATION_DELEGATE_SELECT: {
+        route: 'domain/:domainAccountID/members/:accountID/vacation-delegate/select',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/vacation-delegate/select` as const,
+    },
+
+    MULTIFACTOR_AUTHENTICATION_AUTHORIZE_TRANSACTION: {
+        route: 'multifactor-authentication/authorize-transaction/:transactionID',
+        getRoute: (transactionID: string) => `multifactor-authentication/authorize-transaction/${transactionID}` as const,
+    },
+    DOMAIN_LOCK_ACCOUNT: {
+        route: 'domain/:domainAccountID/members/:accountID/lock-account',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/lock-account` as const,
+    },
+
+    DOMAIN_GROUP_DETAILS: {
+        route: 'domain/:domainAccountID/groups/:groupID',
+        getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}` as const,
+    },
+
+    DOMAIN_GROUP_EDIT_NAME: {
+        route: 'domain/:domainAccountID/groups/:groupID/name',
+        getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/name` as const,
+    },
+
+    DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE: {
+        route: 'domain/:domainAccountID/groups/:groupID/preferred-workspace',
+        getRoute: (domainAccountID: number, groupID: string) => `domain/${domainAccountID}/groups/${groupID}/preferred-workspace` as const,
+    },
+
+    DOMAIN_GROUP_CREATE: {
+        route: 'domain/:domainAccountID/groups/new',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups/new` as const,
+    },
+    DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE: {
+        route: 'domain/:domainAccountID/groups/new/preferred-workspace',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/groups/new/preferred-workspace` as const,
+    },
 } as const;
 
 /**
- * Proxy routes can be used to generate a correct url with dynamic values
+ * Configuration for shared parameters that can be passed between routes.
+ * These parameters are commonly used across multiple screens and are preserved
+ * during navigation state transitions.
  *
- * It will be used by HybridApp, that has no access to methods generating dynamic routes in NewDot
+ * Currently includes:
+ * - `backTo`: Specifies the route to return to when navigating back, preserving
+ *   navigation context in split-screen and central screen
  */
-const HYBRID_APP_ROUTES = {
-    MONEY_REQUEST_CREATE: '/request/new/scan',
-    MONEY_REQUEST_CREATE_TAB_SCAN: '/submit/new/scan',
-    MONEY_REQUEST_CREATE_TAB_MANUAL: '/submit/new/manual',
-    MONEY_REQUEST_CREATE_TAB_DISTANCE: '/submit/new/distance',
+const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
+    [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
 } as const;
 
-export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
+export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, DYNAMIC_ROUTES};
+function getRequireFieldsRuleCategoryRoute(policyID: string, categoryName?: string) {
+    if (categoryName) {
+        return ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY_EDIT.getRoute(policyID, categoryName);
+    }
+
+    return ROUTES.RULES_REQUIRE_FIELDS_RULE_CATEGORY.getRoute(policyID);
+}
+
+function getFlagForReviewRuleCategoryRoute(policyID: string, categoryName?: string) {
+    if (categoryName) {
+        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT.getRoute(policyID, categoryName);
+    }
+
+    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY.getRoute(policyID);
+}
+
+function getFlagForReviewRuleAmountRoute(policyID: string, categoryName?: string, isCategoryLocked?: boolean) {
+    if (categoryName) {
+        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT.getRoute(policyID, categoryName, isCategoryLocked);
+    }
+
+    return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT.getRoute(policyID, isCategoryLocked);
+}
+
+/**
+ * Workspace Category Settings destination after creating a Rules Revamp rule from the category RHP.
+ * Built as a concrete path (not createDynamicRoute) so it can be used from ROUTES helpers
+ * without circular imports.
+ *
+ * Only a fallback for entry points outside the category dynamic route stack — prefer
+ * `useCategoryRuleCreateBackPath`, which keeps the Settings > Categories flow intact.
+ */
+function getWorkspaceCategorySettingsRoute(policyID: string, categoryName: string) {
+    return `workspaces/${policyID}/categories/category/${encodeURIComponent(categoryName)}` as const;
+}
+
 export default ROUTES;
+export {getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute};
+
+type ReportAttachmentsRoute = typeof ROUTES.REPORT_ATTACHMENTS.route;
+type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
+type AttachmentRoutes = ReportAttachmentsRoute | ReportAddAttachmentRoute;
+
+type ReportAttachmentsRouteParams = RootNavigatorParamList[typeof SCREENS.REPORT_ATTACHMENTS];
+type ReportAddAttachmentRouteParams = RootNavigatorParamList[typeof SCREENS.REPORT_ADD_ATTACHMENT];
+
+function getAttachmentModalScreenRoute(url: AttachmentRoutes, params?: ReportAttachmentsRouteParams | ReportAddAttachmentRouteParams) {
+    if (!params?.source) {
+        return url;
+    }
+
+    const {source, attachmentID, type, reportID, reportActionID, accountID, isAuthTokenRequired, originalFileName, attachmentLink} = params;
+
+    const sourceParam = `?source=${encodeURIComponent(source as string)}`;
+    const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
+    const typeParam = type ? `&type=${type as string}` : '';
+    const reportIDParam = reportID ? `&reportID=${reportID}` : '';
+    const reportActionIDParam = reportActionID ? `&reportActionID=${reportActionID}` : '';
+    const accountIDParam = accountID ? `&accountID=${accountID}` : '';
+    const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
+    const fileNameParam = originalFileName ? `&originalFileName=${originalFileName}` : '';
+    const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+
+    return `${url}${sourceParam}${typeParam}${reportIDParam}${reportActionIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
@@ -1848,17 +5949,6 @@ type Route = {
     [K in keyof typeof ROUTES]: ExtractRouteName<(typeof ROUTES)[K]>;
 }[keyof typeof ROUTES];
 
-type RoutesValidationError = 'Error: One or more routes defined within `ROUTES` have not correctly used `as const` in their `getRoute` function return value.';
+type DynamicRouteSuffix = (typeof DYNAMIC_ROUTES)[keyof typeof DYNAMIC_ROUTES]['path'];
 
-/**
- * Represents all routes in the app as a union of literal strings.
- *
- * If TS throws on this line, it implies that one or more routes defined within `ROUTES` have not correctly used
- * `as const` in their `getRoute` function return value.
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type RouteIsPlainString = AssertTypesNotEqual<string, Route, RoutesValidationError>;
-
-type HybridAppRoute = (typeof HYBRID_APP_ROUTES)[keyof typeof HYBRID_APP_ROUTES];
-
-export type {HybridAppRoute, Route};
+export type {Route, DynamicRouteSuffix};

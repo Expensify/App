@@ -1,19 +1,24 @@
-import type {RefObject} from 'react';
-import React, {useCallback} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserUtils';
 
-type DisplayNamesTooltipItemProps = {
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
+import type {ComponentRef, RefObject} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+
+type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     index?: number;
 
     /** The function to get a distance to shift the tooltip horizontally */
     getTooltipShiftX?: (index: number) => number;
 
-    /** The Account ID for the tooltip */
     accountID?: number;
 
     /** The name to display in bold */
@@ -29,7 +34,10 @@ type DisplayNamesTooltipItemProps = {
     textStyles?: StyleProp<TextStyle>;
 
     /** Refs to all the names which will be used to correct the horizontal position of the tooltip */
-    childRefs: RefObject<RNText[]>;
+    childRefs: RefObject<Array<ComponentRef<typeof RNText>>>;
+
+    /** Whether this display name should be directly selectable inside pressable rows */
+    isSelectable?: boolean;
 };
 
 function DisplayNamesTooltipItem({
@@ -41,9 +49,11 @@ function DisplayNamesTooltipItem({
     displayName = '',
     textStyles = [],
     childRefs = {current: []},
+    forwardedFSClass,
+    isSelectable = false,
 }: DisplayNamesTooltipItemProps) {
     const styles = useThemeStyles();
-    const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
+    const tooltipIndexBridge = () => getTooltipShiftX(index);
 
     return (
         <UserDetailsTooltip
@@ -58,23 +68,22 @@ function DisplayNamesTooltipItem({
         >
             {/* We need to get the refs to all the names which will be used to correct the horizontal position of the tooltip */}
             <Text
-                eslint-disable-next-line
-                no-param-reassign
                 ref={(el) => {
-                    if (!childRefs.current?.[index] || !el) {
+                    if (!childRefs.current?.at(index) || !el) {
                         return;
                     }
-                    // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+                    // eslint-disable-next-line no-param-reassign
                     childRefs.current[index] = el;
                 }}
                 style={[textStyles, styles.pre]}
+                fsClass={forwardedFSClass}
+                selectable={isSelectable}
+                dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
             >
                 {displayName}
             </Text>
         </UserDetailsTooltip>
     );
 }
-
-DisplayNamesTooltipItem.displayName = 'DisplayNamesTooltipItem';
 
 export default DisplayNamesTooltipItem;

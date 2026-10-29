@@ -1,36 +1,32 @@
 import * as ApiUtils from '@libs/ApiUtils';
+import openExternalLink from '@libs/openExternalLink';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import * as Link from '@userActions/Link';
+
 import CONST from '@src/CONST';
-import * as FileUtils from './FileUtils';
+
 import type {FileDownload} from './types';
 
-const createDownloadLink = (href: string, fileName: string) => {
-    // creating anchor tag to initiate download
-    const link = document.createElement('a');
-    // adding href to anchor
-    link.href = href;
-    link.style.display = 'none';
-
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
-    link.download = fileName;
-
-    // Append to html link element page
-    document.body.appendChild(link);
-
-    // Start download
-    link.click();
-
-    // Clean up and remove the link
-    URL.revokeObjectURL(link.href);
-    link.parentNode?.removeChild(link);
-};
+import createDownloadLink from './createDownloadLink';
+import {appendTimeToFileName, getFileName} from './FileUtils';
 
 /**
- * The function downloads an attachment on web/desktop platforms.
+ * The function downloads an attachment on web platforms.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', shouldOpenExternalLink = false, formData = undefined, requestType = 'get', onDownloadFailed?: () => void) => {
+const fetchFileDownload: FileDownload = (
+    translate,
+    url,
+    fileName,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    successMessage = '',
+    shouldOpenExternalLink = false,
+    formData = undefined,
+    requestType = 'get',
+    onDownloadFailed?: () => void,
+    // `shouldUnlink` is part of the cross-platform FileDownload signature but has no meaning on web, so it is intentionally unused here.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    shouldUnlink = false,
+    appendTimestamp = true,
+) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
 
     const isApiUrl = resolvedUrl.startsWith(ApiUtils.getApiRoot());
@@ -43,13 +39,14 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
     ) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
-        Link.openExternalLink(url);
+        openExternalLink(url);
         return Promise.resolve();
     }
 
     const fetchOptions: RequestInit = {
         method: requestType,
         body: formData,
+        credentials: 'same-origin',
     };
 
     return fetch(url, fetchOptions)
@@ -63,7 +60,8 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
         .then((blob) => {
             // Create blob link to download
             const href = URL.createObjectURL(new Blob([blob]));
-            const completeFileName = FileUtils.appendTimeToFileName(fileName ?? FileUtils.getFileName(url));
+            const resolvedFileName = fileName ?? getFileName(url);
+            const completeFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
             createDownloadLink(href, completeFileName);
         })
         .catch(() => {
@@ -71,7 +69,7 @@ const fetchFileDownload: FileDownload = (url, fileName, successMessage = '', sho
                 onDownloadFailed();
             } else {
                 // file could not be downloaded, open sourceURL in new tab
-                Link.openExternalLink(url);
+                openExternalLink(url);
             }
         });
 };

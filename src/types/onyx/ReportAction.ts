@@ -1,8 +1,11 @@
-import type {Spread, ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
 import type OldDotAction from './OldDotAction';
 import type * as OnyxCommon from './OnyxCommon';
 import type OriginalMessage from './OriginalMessage';
@@ -27,10 +30,7 @@ type Message = {
      */
     style?: string;
 
-    /** ID of a report */
     reportID?: string;
-
-    /** ID of a policy */
     policyID?: string;
 
     /** The target of a link fragment e.g. '_blank' */
@@ -60,13 +60,11 @@ type Message = {
     /** Key to translate the message */
     translationKey?: string;
 
-    /** ID of a task report */
     taskReportID?: string;
 
     /** Reason of payment cancellation */
     cancellationReason?: string;
 
-    /** ID of an expense report */
     expenseReportID?: string;
 
     /** Amount of an expense */
@@ -76,10 +74,20 @@ type Message = {
     currency?: string;
 
     /** resolution for actionable mention whisper */
-    resolution?: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION> | ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION> | null;
+    resolution?:
+        | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>
+        | ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER>
+        | ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>
+        | null;
 
     /** The time this report action was deleted */
     deleted?: string;
+
+    /** The bank account id that was used to pay the invoice */
+    bankAccountID?: number | undefined;
+
+    /** Whether the invoice was paid with business account or not */
+    payAsBusiness?: boolean;
 };
 
 /** Model of image */
@@ -138,7 +146,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** @deprecated Used in old report actions before migration. Replaced by reportActionID. */
     sequenceNumber?: number;
 
-    /** The name (or type) of the action */
     actionName: ReportActionName;
 
     /** Account ID of the actor that created the action */
@@ -165,16 +172,9 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** TODO: Not enough context */
     shouldShow?: boolean;
 
-    /** The ID of childReport */
     childReportID?: string;
-
-    /** Name of child report */
     childReportName?: string;
-
-    /** Type of child report  */
     childType?: string;
-
-    /** The user's ID */
     accountID?: number;
 
     /** Account IDs of the oldest four participants, useful to determine which avatars to display in threads */
@@ -195,10 +195,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** In task reports this is account ID of the user assigned to the task */
     childManagerAccountID?: number;
 
-    /** The owner account ID of the child report action */
     childOwnerAccountID?: number;
-
-    /** The status of the child report */
     childStatusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
     /** Report action child status name */
@@ -207,7 +204,6 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Content of the last money request comment, used in report preview */
     childLastMoneyRequestComment?: string;
 
-    /** Account ID of the last actor */
     childLastActorAccountID?: number;
 
     /** Amount of money requests */
@@ -216,10 +212,7 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the report action is the first one */
     isFirstItem?: boolean;
 
-    /** Whether the report action is only an attachment */
     isAttachmentOnly?: boolean;
-
-    /** Whether the report action is an attachment with text */
     isAttachmentWithText?: boolean;
 
     /** Receipt tied to report action */
@@ -240,22 +233,18 @@ type ReportActionBase = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Recent receipt transaction IDs keyed by reportID */
     childRecentReceiptTransactionIDs?: Record<string, string>;
 
-    /** ReportID of the report action */
     reportID?: string;
-
-    /** Metadata of the link */
     linkMetadata?: LinkMetadata[];
-
-    /** The current user's notification preference for this report's child */
     childReportNotificationPreference?: NotificationPreference;
 
     /** We manually add this field while sorting to detect the end of the list */
     isNewestReportAction?: boolean;
 
-    /** Flag for checking if data is from optimistic data */
     isOptimisticAction?: boolean;
 
-    /** The admins's ID */
+    /** Whether the original report related to this action was deleted */
+    isOriginalReportDeleted?: boolean;
+
     adminAccountID?: number;
 
     /** These are the account IDs to whom a message was whispered. It is used to check if a specific user should be displayed a whisper message or not. */
@@ -288,15 +277,9 @@ type ReportAction<T extends ReportActionName = ReportActionName> = ReportActionB
     /** @deprecated Used in old report actions before migration. Replaced by using getOriginalMessage function. */
     originalMessage?: OriginalMessage<T>;
 
-    /** report action message */
     message?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
-
-    /** report action message */
     previousMessage?: (OriginalMessage<T> & Message) | Array<Message | undefined>;
 };
-
-/** */
-type ReportActionChangeLog = ReportAction<ValueOf<Spread<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG, typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>>>;
 
 /** Record of report actions, indexed by report action ID */
 type ReportActions = Record<string, ReportAction>;
@@ -304,5 +287,26 @@ type ReportActions = Record<string, ReportAction>;
 /** Collection of mock report actions, indexed by reportActions_${reportID} */
 type ReportActionsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>;
 
+/** A union type of all report action names related to policy copy log */
+type PolicyChangeLogCopyReportActionNames =
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CURRENCY
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES
+    | typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL;
+
 export default ReportAction;
-export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, ReportActionChangeLog, OldDotReportAction, Person};
+export type {ReportActions, Message, LinkMetadata, OriginalMessage, ReportActionsCollectionDataSet, OldDotReportAction, PolicyChangeLogCopyReportActionNames};

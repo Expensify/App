@@ -1,30 +1,38 @@
-import {useCallback, useRef} from 'react';
-import type {ViewStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
-import Reanimated, {Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Logo from '@assets/images/new-expensify-dark.svg';
+
 import ImageSVG from '@components/ImageSVG';
+
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import BootSplash from '@libs/BootSplash';
+
+import type {ViewStyle} from 'react-native';
+
+import {useEffect, useRef} from 'react';
+import {StyleSheet} from 'react-native';
+import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 import type {SplashScreenHiderProps, SplashScreenHiderReturnType} from './types';
 
-function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashScreenHiderReturnType {
+function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): SplashScreenHiderReturnType {
     const styles = useThemeStyles();
+    const {left, right} = useSafeAreaInsets();
     const logoSizeRatio = BootSplash.logoSizeRatio || 1;
 
     const opacity = useSharedValue(1);
     const scale = useSharedValue(1);
 
     const opacityStyle = useAnimatedStyle<ViewStyle>(() => ({
-        opacity: opacity.value,
+        opacity: opacity.get(),
     }));
     const scaleStyle = useAnimatedStyle<ViewStyle>(() => ({
-        transform: [{scale: scale.value}],
+        transform: [{scale: scale.get()}],
     }));
 
     const hideHasBeenCalled = useRef(false);
-
-    const hide = useCallback(() => {
+    const hide = () => {
         // hide can only be called once
         if (hideHasBeenCalled.current) {
             return;
@@ -33,28 +41,35 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
         hideHasBeenCalled.current = true;
 
         BootSplash.hide().then(() => {
-            // eslint-disable-next-line react-compiler/react-compiler
-            scale.value = withTiming(0, {
-                duration: 200,
-                easing: Easing.back(2),
-            });
+            scale.set(
+                withTiming(0, {
+                    duration: 200,
+                    easing: Easing.back(2),
+                }),
+            );
 
-            opacity.value = withTiming(
-                0,
-                {
-                    duration: 250,
-                    easing: Easing.out(Easing.ease),
-                },
-                () => runOnJS(onHide)(),
+            opacity.set(
+                withTiming(
+                    0,
+                    {
+                        duration: 250,
+                        easing: Easing.out(Easing.ease),
+                    },
+                    () => scheduleOnRN(onHide),
+                ),
             );
         });
-    }, [opacity, scale, onHide]);
+    };
+
+    useEffect(() => {
+        if (!shouldHideSplash) {
+            return;
+        }
+        hide();
+    }, [shouldHideSplash, hide]);
 
     return (
-        <Reanimated.View
-            onLayout={hide}
-            style={[StyleSheet.absoluteFill, styles.splashScreenHider, opacityStyle]}
-        >
+        <Reanimated.View style={[StyleSheet.absoluteFill, styles.getSplashScreenHiderPosition(left, right), styles.splashScreenHider, opacityStyle]}>
             <Reanimated.View style={scaleStyle}>
                 <ImageSVG
                     contentFit="fill"
@@ -65,7 +80,5 @@ function SplashScreenHider({onHide = () => {}}: SplashScreenHiderProps): SplashS
         </Reanimated.View>
     );
 }
-
-SplashScreenHider.displayName = 'SplashScreenHider';
 
 export default SplashScreenHider;

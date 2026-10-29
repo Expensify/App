@@ -1,4 +1,5 @@
 import enEmojis from '@assets/emojis/en';
+
 import StringUtils from '@libs/StringUtils';
 
 describe('libs/StringUtils.isEmptyString', () => {
@@ -49,11 +50,11 @@ describe('libs/StringUtils.isEmptyString', () => {
         expect(StringUtils.isEmptyString('😀')).toBe(false);
     });
     it('all emojis not removed', () => {
-        Object.keys(enEmojis).forEach((key) => {
+        for (const key of Object.keys(enEmojis)) {
             expect(StringUtils.isEmptyString(key)).toBe(false);
-        });
+        }
     });
-    it('remove invisible characters (editpad)', () => {
+    it('remove invisible characters (edit pad)', () => {
         expect(StringUtils.isEmptyString('\u0020')).toBe(true);
         expect(StringUtils.isEmptyString('\u00A0')).toBe(true);
         expect(StringUtils.isEmptyString('\u2000')).toBe(true);
@@ -87,5 +88,15 @@ describe('libs/StringUtils.isEmptyString', () => {
 
         // A special test, an invisible character from other Unicode categories than format and control
         expect(StringUtils.isEmptyString('\u3164')).toBe(true);
+    });
+    it('remove other blank-rendering characters (not in the C/Z categories)', () => {
+        // Hangul fillers (Lo) render as blank but are not stripped by \p{C}/\p{Z}
+        expect(StringUtils.isEmptyString('\u115f')).toBe(true);
+        expect(StringUtils.isEmptyString('\u1160')).toBe(true);
+        expect(StringUtils.isEmptyString('\uffa0')).toBe(true);
+        // Braille pattern blank (So) renders as blank
+        expect(StringUtils.isEmptyString('\u2800')).toBe(true);
+        // Combinations of blank-rendering characters
+        expect(StringUtils.isEmptyString('\u3164\u2800 \u115f')).toBe(true);
     });
 });

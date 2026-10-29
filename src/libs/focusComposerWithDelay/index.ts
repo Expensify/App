@@ -1,41 +1,71 @@
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
+
 import * as EmojiPickerAction from '@userActions/EmojiPickerAction';
-import setTextInputSelection from './setTextInputSelection';
+
+import CONST from '@src/CONST';
+
 import type {FocusComposerWithDelay, InputType} from './types';
+
+import requestKeyboardForFocusedComposer from './requestKeyboardForFocusedComposer';
+import setTextInputSelection from './setTextInputSelection';
 
 /**
  * Create a function that focuses the composer.
+ * A getter resolves the current input after the delay, since editing can replace it during layout.
+ * @param [canFocusAfterDelay] Re-checked when the delay is up, so a composer that lost its focus claim meanwhile does not take focus back
  */
-function focusComposerWithDelay(textInput: InputType | null): FocusComposerWithDelay {
+function focusComposerWithDelay(
+    textInput: InputType | null | (() => InputType | null),
+    delay: number = CONST.COMPOSER_FOCUS_DELAY,
+    canFocusAfterDelay?: () => boolean,
+): FocusComposerWithDelay {
     /**
      * Focus the text input
      * @param [shouldDelay] Impose delay before focusing the text input
      * @param [forcedSelectionRange] Force selection range of text input
+     * @param [forceKeyboardIfAlreadyFocused] Use KeyboardController so the soft keyboard can show without blur/refocus
      */
-    return (shouldDelay = false, forcedSelectionRange = undefined) => {
+    return async (shouldDelay = false, forcedSelectionRange = undefined, forceKeyboardIfAlreadyFocused = false) => {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         if (!textInput || EmojiPickerAction.isEmojiPickerVisible()) {
             return;
         }
 
-        if (!shouldDelay) {
-            textInput.focus();
-            if (forcedSelectionRange) {
-                setTextInputSelection(textInput, forcedSelectionRange);
-            }
-            return;
-        }
-        Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]).then(() => {
-            if (!textInput) {
+        function focusAndUpdateSelection() {
+            const input = typeof textInput === 'function' ? textInput() : textInput;
+            if (!input) {
                 return;
             }
-            textInput.focus();
-            if (forcedSelectionRange) {
-                setTextInputSelection(textInput, forcedSelectionRange);
+            if ('isFocused' in input && input.isFocused()) {
+                if (forceKeyboardIfAlreadyFocused) {
+                    requestKeyboardForFocusedComposer(input, forcedSelectionRange);
+                }
+                return;
             }
-        });
+
+            input.focus();
+            if (forcedSelectionRange) {
+                setTextInputSelection(input, forcedSelectionRange);
+            }
+        }
+
+        if (!shouldDelay) {
+            focusAndUpdateSelection();
+            return;
+        }
+
+        await Promise.all([ComposerFocusManager.isReadyToFocus(), isWindowReadyToFocus()]);
+
+        // When the closing modal has a focused text input focus() needs a delay to properly work.
+        // Setting 150ms here is a temporary workaround for the Android HybridApp. It should be reverted once we identify the real root cause of this issue: https://github.com/Expensify/App/issues/56311.
+        setTimeout(() => {
+            if (canFocusAfterDelay && !canFocusAfterDelay()) {
+                return;
+            }
+            focusAndUpdateSelection();
+        }, delay);
     };
 }
 

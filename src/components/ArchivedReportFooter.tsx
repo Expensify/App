@@ -1,51 +1,50 @@
-import lodashEscape from 'lodash/escape';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCurrentUserAccountID} from '@libs/actions/Report';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
+import {getPolicyName} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
+
+import {getLastClosedReportAction} from '@selectors/ReportAction';
+import lodashEscape from 'lodash/escape';
+import React from 'react';
+
 import Banner from './Banner';
 
-type ArchivedReportFooterOnyxProps = {
-    /** The reason this report was archived */
-    reportClosedAction: OnyxEntry<ReportAction>;
-
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+type ArchivedReportFooterProps = {
+    reportID: string;
 };
 
-type ArchivedReportFooterProps = ArchivedReportFooterOnyxProps & {
-    /** The archived report */
-    report: Report;
-};
-
-function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}: ArchivedReportFooterProps) {
+function ArchivedReportFooter({reportID}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
-    const originalMessage = ReportActionsUtils.isClosedAction(reportClosedAction) ? ReportActionsUtils.getOriginalMessage(reportClosedAction) : null;
+    const [reportClosedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getLastClosedReportAction});
+    const originalMessage = isClosedAction(reportClosedAction) ? getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
-    const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? -1];
-    let displayName = PersonalDetailsUtils.getDisplayNameOrDefault(actorPersonalDetails);
+    const [personalDetails] = usePersonalDetailsByIDs([reportClosedAction?.actorAccountID, originalMessage?.newAccountID, originalMessage?.oldAccountID]);
+    const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID];
+    let displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorPersonalDetails, translate, formatPhoneNumber});
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
         const oldAccountID = originalMessage?.oldAccountID;
-        displayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[newAccountID ?? -1]);
-        oldDisplayName = PersonalDetailsUtils.getDisplayNameOrDefault(personalDetails?.[oldAccountID ?? -1]);
+        displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[newAccountID ?? CONST.DEFAULT_NUMBER_ID], translate, formatPhoneNumber});
+        oldDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[oldAccountID ?? CONST.DEFAULT_NUMBER_ID], translate, formatPhoneNumber});
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT && archiveReason !== CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED;
 
-    let policyName = ReportUtils.getPolicyName(report);
+    let policyName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
 
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED) {
         policyName = originalMessage?.receiverPolicyName ?? '';
@@ -62,7 +61,7 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
               displayName: `<strong>${displayName}</strong>`,
               oldDisplayName: `<strong>${oldDisplayName}</strong>`,
               policyName: `<strong>${policyName}</strong>`,
-              shouldUseYou: actorPersonalDetails?.accountID === getCurrentUserAccountID(),
+              shouldUseYou: actorPersonalDetails?.accountID === currentUserAccountID,
           })
         : translate(`reportArchiveReasons.${archiveReason}`);
 
@@ -76,15 +75,4 @@ function ArchivedReportFooter({report, reportClosedAction, personalDetails = {}}
     );
 }
 
-ArchivedReportFooter.displayName = 'ArchivedReportFooter';
-
-export default withOnyx<ArchivedReportFooterProps, ArchivedReportFooterOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-    reportClosedAction: {
-        key: ({report}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
-        canEvict: false,
-        selector: ReportActionsUtils.getLastClosedReportAction,
-    },
-})(ArchivedReportFooter);
+export default ArchivedReportFooter;

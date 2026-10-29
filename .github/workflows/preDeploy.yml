@@ -12,71 +12,83 @@ jobs:
 
   lint:
     uses: ./.github/workflows/lint.yml
+    secrets: inherit
 
-  prettier:
-    uses: ./.github/workflows/prettier.yml
+  # Left out of confirmPassingBuild's `needs` on purpose: Oxlint is a shadow gate that runs here to auto-tighten its baseline.
+  oxlint:
+    uses: ./.github/workflows/oxlint.yml
+    secrets: inherit
+
+  oxfmt:
+    uses: ./.github/workflows/oxfmt.yml
 
   test:
     uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  bunTests:
+    uses: ./.github/workflows/bunTests.yml
 
   confirmPassingBuild:
-    runs-on: ubuntu-latest
-    needs: [typecheck, lint, test]
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    needs: [typecheck, lint, test, bunTests]
     if: ${{ always() }}
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Announce failed workflow in Slack
-        if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Exit failed workflow
-        if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' }}
+        if: ${{ needs.typecheck.result == 'failure' || needs.lint.result == 'failure' || needs.test.result == 'failure' || needs.bunTests.result == 'failure' }}
         run: |
-          echo "Checks failed, exiting ~ typecheck: ${{ needs.typecheck.result }}, lint: ${{ needs.lint.result }}, test: ${{ needs.test.result }}"
+          echo "Checks failed, exiting ~ typecheck: ${{ needs.typecheck.result }}, lint: ${{ needs.lint.result }}, test: ${{ needs.test.result }}, bunTests: ${{ needs.bunTests.result }}"
           exit 1
 
   chooseDeployActions:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: confirmPassingBuild
     outputs:
       MERGED_PR: ${{ steps.getMergedPullRequest.outputs.number }}
       SHOULD_DEPLOY: ${{ fromJSON(steps.shouldDeploy.outputs.SHOULD_DEPLOY) }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
       - name: Get merged pull request
         id: getMergedPullRequest
-        uses: actions-ecosystem/action-get-merged-pull-request@59afe90821bb0b555082ce8ff1e36b03f91553d9
+        uses: ./.github/actions/composite/getMergedPullRequest
         with:
           github_token: ${{ github.token }}
 
-      - name: Check if StagingDeployCash is locked
-        id: isStagingDeployLocked
-        uses: ./.github/actions/javascript/isStagingDeployLocked
+      - name: Check if deploy checklist is locked
+        id: isDeployChecklistLocked
+        uses: ./.github/actions/javascript/isDeployChecklistLocked
         with:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Check if merged pull request should trigger a deploy
         id: shouldDeploy
-        run: echo "SHOULD_DEPLOY=${{ (!fromJSON(steps.isStagingDeployLocked.outputs.IS_LOCKED) && github.actor != 'OSBotify') }}" >> "$GITHUB_OUTPUT"
+        run: |
+          if gh api /orgs/Expensify/teams/mobile-deployers/memberships/${{ github.actor }} --silent; then
+            echo "SHOULD_DEPLOY=${{ (!fromJSON(steps.isDeployChecklistLocked.outputs.IS_LOCKED) && github.actor != 'OSBotify') }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "SHOULD_DEPLOY=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
   skipDeploy:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: chooseDeployActions
     if: ${{ !fromJSON(needs.chooseDeployActions.outputs.SHOULD_DEPLOY) && github.actor != 'OSBotify' }}
     steps:
       - name: Comment on deferred PR
-        uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
-        with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          number: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}
-          body: |
-            :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
+        run: |
+          gh pr comment ${{ needs.chooseDeployActions.outputs.MERGED_PR }} --repo ${{ github.repository }} --body "$(cat <<'EOF'
+          :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
+          EOF
+          )"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
   createNewVersion:
     needs: chooseDeployActions
@@ -86,46 +98,7 @@ jobs:
 
   updateStaging:
     needs: [chooseDeployActions, createNewVersion]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run turnstyle
-        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Checkout main
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Setup Git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-
-      - name: Update staging branch from main
-        run: |
-          # Re-create the staging branch from main
-          git switch -c staging
-
-          # Force-update the remote staging branch
-          git push --force origin staging
-
-      - name: Announce failed workflow in Slack
-        if: ${{ failure() }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-
-  e2ePerformanceTests:
-    needs: [chooseDeployActions]
-    if: ${{ needs.chooseDeployActions.outputs.SHOULD_DEPLOY }}
-    uses: ./.github/workflows/e2ePerformanceTests.yml
+    uses: ./.github/workflows/updateProtectedBranch.yml
     secrets: inherit
     with:
-      PR_NUMBER: ${{ needs.chooseDeployActions.outputs.MERGED_PR }}
+      TARGET_BRANCH: staging

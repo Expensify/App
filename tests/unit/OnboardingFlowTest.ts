@@ -1,0 +1,424 @@
+import {getOnboardingInitialPath, getOnboardingMessages, getRequired2FAOnboardingResumePath, startOnboardingFlow} from '@libs/actions/Welcome/OnboardingFlow';
+import type {GetOnboardingInitialPathParamsType} from '@libs/actions/Welcome/OnboardingFlow';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import navigationRef from '@libs/Navigation/navigationRef';
+
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+jest.mock('@libs/Navigation/navigationRef', () => ({
+    getRootState: jest.fn(),
+    resetRoot: jest.fn(),
+}));
+
+jest.mock('@libs/Navigation/helpers/getAdaptedStateFromPath', () => jest.fn());
+
+describe('OnboardingFlow', () => {
+    beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
+    describe('getOnboardingInitialPath', () => {
+        const savedPrivateDomainPath = `/${ROUTES.ONBOARDING_PRIVATE_DOMAIN.getRoute(ROUTES.ONBOARDING_WORK_EMAIL.getRoute())}`;
+
+        it('should return the onboarding fallback path when the last visited path is null', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: null,
+                onboardingValues: undefined,
+            };
+
+            let path = '';
+            expect(() => {
+                path = getOnboardingInitialPath(params);
+            }).not.toThrow();
+            expect(path).toBe('/onboarding');
+        });
+
+        it('should return the correct path for personal spend', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '',
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/personal-details');
+        });
+
+        it('should return the correct path for SMB', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/',
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/work-email');
+        });
+
+        it('should return the correct path for VSB', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/',
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/employees');
+        });
+
+        it('should return the correct path for SMB and is not from public domain', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.SUBMIT,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/',
+                onboardingValues: undefined,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/employees');
+        });
+
+        it('should skip the work email step when the account is already validated', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/',
+                onboardingValues: undefined,
+                isAccountValidated: true,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).not.toBe('/onboarding/work-email');
+            expect(path).toBe('/onboarding/employees');
+        });
+
+        it('should still route to the work email step when the account is not validated', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/',
+                onboardingValues: undefined,
+                isAccountValidated: false,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/work-email');
+        });
+
+        it('should skip a private-domain URL for a public-domain validated user', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/private-domain',
+                onboardingValues: undefined,
+                isAccountValidated: true,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).toBe('/onboarding/purpose');
+        });
+
+        it('should not redirect away from a private-domain URL for a public-domain unvalidated user', () => {
+            // Given an unvalidated user submitted a work email while isFromPublicDomain is still stale
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: false,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/private-domain',
+                onboardingValues: undefined,
+                isAccountValidated: false,
+            };
+
+            // When onboarding resumes after a refresh
+            const path = getOnboardingInitialPath(params);
+
+            // Then it preserves the private-domain validation step
+            expect(path).toBe('/onboarding/private-domain');
+        });
+
+        it.each(
+            [savedPrivateDomainPath, `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()}`, `/${ROUTES.ONBOARDING_PURPOSE.getRoute()}`].flatMap((savedPath) => [
+                {savedPath, shouldValidate: false, isAccountValidated: false, expectedPath: savedPath},
+                {savedPath, shouldValidate: undefined, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
+                {savedPath, shouldValidate: true, isAccountValidated: false, expectedPath: '/onboarding/work-email'},
+                {savedPath, shouldValidate: false, isAccountValidated: true, expectedPath: savedPath === savedPrivateDomainPath ? '/onboarding/purpose' : savedPath},
+            ]),
+        )(
+            'resumes $savedPath at $expectedPath after resetting merge flags with shouldValidate=$shouldValidate and validated=$isAccountValidated',
+            ({savedPath, shouldValidate, isAccountValidated, expectedPath}) => {
+                // Given a previously skipped work email was resubmitted, clearing its merge flags, while the domain flag is stale
+                const onboardingValues = {
+                    hasCompletedGuidedSetupFlow: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                    isMergeAccountStepCompleted: undefined,
+                    isMergeAccountStepSkipped: undefined,
+                    shouldValidate,
+                };
+                const params: GetOnboardingInitialPathParamsType = {
+                    isUserFromPublicDomain: true,
+                    isAccountValidated,
+                    hasAccessiblePolicies: false,
+                    onboardingValuesParam: onboardingValues,
+                    onboardingValues,
+                    currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                    currentOnboardingCompanySize: undefined,
+                    onboardingInitialPath: savedPath,
+                };
+
+                // When refreshing restores the saved onboarding route
+                const path = getOnboardingInitialPath(params);
+
+                // Then a successful direct add preserves validation and downstream progress, while pending retries still require work email
+                expect(path).toBe(expectedPath);
+            },
+        );
+
+        it.each(['/', '/r/123'])('does not bypass work email for a non-onboarding saved path %s after a direct add', (savedPath) => {
+            // Given a direct-add result with a stale public-domain flag, but no saved onboarding progress
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                isAccountValidated: false,
+                hasAccessiblePolicies: false,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                    shouldValidate: false,
+                },
+                onboardingValues: undefined,
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: savedPath,
+            };
+
+            // When choosing the initial onboarding step
+            const path = getOnboardingInitialPath(params);
+
+            // Then unrelated routes do not count as saved onboarding progress
+            expect(path).toBe('/onboarding/work-email');
+        });
+
+        it('should not redirect away from a work-email-validation URL for a public-domain user', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: true,
+                onboardingValuesParam: {
+                    hasCompletedGuidedSetupFlow: false,
+                    shouldRedirectToClassicAfterMerge: false,
+                    shouldValidate: true,
+                    isMergingAccountBlocked: false,
+                    isMergeAccountStepCompleted: true,
+                    signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL,
+                },
+                currentOnboardingPurposeSelected: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
+                currentOnboardingCompanySize: CONST.ONBOARDING_COMPANY_SIZE.SMALL,
+                onboardingInitialPath: '/onboarding/work-email/validation',
+                onboardingValues: undefined,
+                isAccountValidated: true,
+            };
+            const path = getOnboardingInitialPath(params);
+            expect(path).not.toBe('/onboarding/purpose');
+        });
+    });
+
+    describe('getOnboardingMessages', () => {
+        it('should link the workspace list in the join-workspace message', () => {
+            const joinWorkspaceMessage = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.joinWorkspace.message;
+
+            expect(typeof joinWorkspaceMessage === 'function' && joinWorkspaceMessage({companyDomain: 'example.com', joinWorkspaceLink: 'onboarding/join-workspaces'})).toContain(
+                '[Take a look at the workspaces you can join.](onboarding/join-workspaces)',
+            );
+        });
+
+        it('should not duplicate the join-workspace task marker', () => {
+            const joinWorkspaceTask = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.joinWorkspace.tasks.at(0);
+            const description =
+                typeof joinWorkspaceTask?.description === 'function' && joinWorkspaceTask.description({joinWorkspaceLink: 'onboarding/join-workspaces?isJoinWorkspaceTask=true'});
+
+            expect(description).toContain('[Join a workspace](onboarding/join-workspaces?isJoinWorkspaceTask=true)');
+            expect(description).not.toContain('isJoinWorkspaceTask=true?isJoinWorkspaceTask=true');
+        });
+
+        it('should use the no-workspaces message without a task', () => {
+            const emptyMessage = getOnboardingMessages(CONST.LOCALES.EN).joinWorkspaceMessages.empty;
+
+            expect(emptyMessage.message).toBe("It doesn't look like your company has any joinable workspaces. Please reach out to your admin and have them invite you to their workspace.");
+            expect(emptyMessage.tasks).toEqual([]);
+        });
+    });
+
+    describe('getRequired2FAOnboardingResumePath', () => {
+        it('returns personal-details for private domain users with accessible policies and no saved path', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                currentOnboardingPurposeSelected: undefined,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: null,
+                onboardingValues: undefined,
+            };
+
+            expect(getRequired2FAOnboardingResumePath(params)).toBe('/onboarding/personal-details');
+        });
+
+        it('returns work-email for public domain users with no saved path', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: true,
+                hasAccessiblePolicies: false,
+                currentOnboardingPurposeSelected: undefined,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: '',
+                onboardingValues: undefined,
+            };
+
+            expect(getRequired2FAOnboardingResumePath(params)).toBe('/onboarding/work-email');
+        });
+
+        it('preserves a saved work-email path', () => {
+            const params: GetOnboardingInitialPathParamsType = {
+                isUserFromPublicDomain: false,
+                hasAccessiblePolicies: true,
+                currentOnboardingPurposeSelected: undefined,
+                currentOnboardingCompanySize: undefined,
+                onboardingInitialPath: '/onboarding/work-email/validation',
+                onboardingValues: undefined,
+            };
+
+            expect(getRequired2FAOnboardingResumePath(params)).toBe('/onboarding/work-email/validation');
+        });
+    });
+
+    describe('startOnboardingFlow', () => {
+        /* eslint-disable @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding */
+        const mockedGetRootState = jest.mocked(navigationRef.getRootState);
+        const mockedResetRoot = jest.mocked(navigationRef.resetRoot);
+        /* eslint-enable @typescript-eslint/unbound-method */
+        const mockedGetAdaptedStateFromPath = jest.mocked(getAdaptedStateFromPath);
+
+        const params: GetOnboardingInitialPathParamsType = {
+            isUserFromPublicDomain: false,
+            hasAccessiblePolicies: true,
+            currentOnboardingPurposeSelected: undefined,
+            currentOnboardingCompanySize: undefined,
+            onboardingInitialPath: '/onboarding/private-domain',
+            onboardingValues: undefined,
+            // resumePath bypasses getOnboardingInitialPath so the test drives the resolved target directly.
+            resumePath: '/onboarding/personal-details',
+        };
+
+        // getRootState's return type requires a full NavigationState, so build a minimal-but-complete one.
+        const buildRootState = (routes: NativeNavigation.NavigationState['routes']): NativeNavigation.NavigationState => ({
+            key: 'root',
+            index: Math.max(routes.length - 1, 0),
+            routeNames: routes.map((route) => route.name),
+            routes,
+            type: 'stack',
+            stale: false,
+        });
+
+        beforeEach(() => {
+            jest.clearAllMocks();
+            mockedGetAdaptedStateFromPath.mockReturnValue({routes: [{name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]} as ReturnType<typeof getAdaptedStateFromPath>);
+        });
+
+        it('should not call resetRoot when the onboarding navigator is already mounted (no-op that would still fire replaceState)', () => {
+            // Onboarding navigator already in the root state, so there is nothing to mount and resetRoot must be skipped.
+            mockedGetRootState.mockReturnValue(buildRootState([{key: 'onboarding', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}]));
+
+            startOnboardingFlow(params);
+
+            expect(mockedResetRoot).not.toHaveBeenCalled();
+        });
+
+        it('should call resetRoot to mount the onboarding navigator when it is not yet in the root state', () => {
+            // Onboarding navigator not yet in root state, so resetRoot runs to mount it.
+            mockedGetRootState.mockReturnValue(buildRootState([{key: 'home', name: SCREENS.HOME}]));
+
+            startOnboardingFlow(params);
+
+            expect(mockedResetRoot).toHaveBeenCalledTimes(1);
+        });
+    });
+});

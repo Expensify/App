@@ -1,34 +1,49 @@
-import {CameraRoll} from '@react-native-camera-roll/camera-roll';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import CONST from '@src/CONST';
+
 import type {PhotoIdentifier} from '@react-native-camera-roll/camera-roll';
+
+import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import RNFetchBlob from 'react-native-blob-util';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
-import CONST from '@src/CONST';
-import * as FileUtils from './FileUtils';
+
 import type {FileDownload} from './types';
 
+import {appendTimeToFileName, getFileName, getFileType, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+import saveLocalFileToGallery from './saveLocalFileToGallery';
+
+const isUserCancelled = (err: unknown) => {
+    let msg = '';
+    if (typeof err === 'string') {
+        msg = err.toLowerCase();
+    } else if (err && typeof err === 'object') {
+        const errorMessage = (err as {message?: unknown}).message;
+        const errorError = (err as {error?: unknown}).error;
+        if (typeof errorMessage === 'string') {
+            msg = errorMessage.toLowerCase();
+        } else if (typeof errorError === 'string') {
+            msg = errorError.toLowerCase();
+        }
+    }
+    return /cancel|did not share/.test(msg);
+};
+
 /**
- * Downloads the file to Documents section in iOS
+ * Downloads the file to the given directory. Files the user asked to download go to Documents,
+ * which the iOS Files app shows to the user as the app's folder because file sharing is enabled.
+ * Files that only need a temporary local copy (e.g. for saving to Photos) go to the cache
+ * directory, which the Files app never exposes.
  */
-function downloadFile(fileUrl: string, fileName: string) {
-    const dirs = RNFetchBlob.fs.dirs;
-
-    // The iOS files will download to documents directory
-    const path = dirs.DocumentDir;
-
-    // Fetching the attachment
+function downloadFile(fileUrl: string, fileName: string, directory: string) {
     return RNFetchBlob.config({
         fileCache: true,
-        path: `${path}/${fileName}`,
-        addAndroidDownloads: {
-            useDownloadManager: true,
-            notification: true,
-            path: `${path}/Expensify/${fileName}`,
-        },
+        path: `${directory}/${fileName}`,
     }).fetch('GET', fileUrl);
 }
 
-const postDownloadFile = (url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void) => {
+const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void, appendTimestamp = true) => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -46,18 +61,28 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
             return response.text();
         })
         .then((fileData) => {
-            const finalFileName = FileUtils.appendTimeToFileName(fileName ?? 'Expensify');
-            const expensifyDir = `${RNFS.DocumentDirectoryPath}/Expensify`;
+            const resolvedFileName = fileName ?? 'Expensify';
+            const finalFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
+            // The file only exists to be handed to the share sheet, so it is written to the
+            // cache directory, which the iOS Files app never shows to the user
+            const expensifyDir = `${RNFS.CachesDirectoryPath}/Expensify`;
             const localPath = `${expensifyDir}/${finalFileName}`;
             return RNFS.mkdir(expensifyDir).then(() => {
-                return RNFS.writeFile(localPath, fileData, 'utf8')
-                    .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
-                    .then(() => RNFS.unlink(localPath));
+                return (
+                    RNFS.writeFile(localPath, fileData, 'utf8')
+                        // The share sheet lets the user save the file to the Files app. The staged copy is removed afterwards.
+                        .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
+                        .then(() => RNFS.unlink(localPath))
+                );
             });
         })
-        .catch(() => {
+        .catch((error) => {
+            // If the user cancels the iOS share/save dialog, we exit silently without showing an error
+            if (isUserCancelled(error)) {
+                return;
+            }
             if (!onDownloadFailed) {
-                FileUtils.showGeneralErrorAlert();
+                showGeneralErrorAlert(translate);
             }
             onDownloadFailed?.();
         });
@@ -67,7 +92,8 @@ const postDownloadFile = (url: string, fileName?: string, formData?: FormData, o
  * Download the image to photo lib in iOS
  */
 function downloadImage(fileUrl: string) {
-    return CameraRoll.saveAsset(fileUrl);
+    // Resolve to a truthy value so the shared success alert below still fires (the raw native result is unused).
+    return saveLocalFileToGallery(fileUrl).then(() => true);
 }
 
 /**
@@ -75,24 +101,24 @@ function downloadImage(fileUrl: string) {
  */
 function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifier> {
     return new Promise((resolve, reject) => {
-        let documentPathUri: string | null = null;
+        let tempPathUri: string | null = null;
         let cameraRollAsset: PhotoIdentifier;
 
-        // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download as documents, then copy to photo lib and unlink the original file.
-        downloadFile(fileUrl, fileName)
+        // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download to the cache, then copy to photo lib and unlink the temporary file.
+        downloadFile(fileUrl, fileName, RNFetchBlob.fs.dirs.CacheDir)
             .then((attachment) => {
-                documentPathUri = attachment.data as string | null;
-                if (!documentPathUri) {
+                tempPathUri = attachment.data as string | null;
+                if (!tempPathUri) {
                     throw new Error('Error downloading video');
                 }
-                return CameraRoll.saveAsset(documentPathUri);
+                return CameraRoll.saveAsset(tempPathUri);
             })
             .then((attachment) => {
                 cameraRollAsset = attachment;
-                if (!documentPathUri) {
+                if (!tempPathUri) {
                     throw new Error('Error downloading video');
                 }
-                return RNFetchBlob.fs.unlink(documentPathUri);
+                return RNFetchBlob.fs.unlink(tempPathUri);
             })
             .then(() => {
                 resolve(cameraRollAsset);
@@ -104,12 +130,13 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifi
 /**
  * Download the file based on type(image, video, other file types)for iOS
  */
-const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formData, requestType, onDownloadFailed) =>
+const fileDownload: FileDownload = (translate, fileUrl, fileName, successMessage, _, formData, requestType, onDownloadFailed, shouldUnlink, appendTimestamp = true) =>
     new Promise((resolve) => {
         let fileDownloadPromise;
-        const fileType = FileUtils.getFileType(fileUrl);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
-        const attachmentName = FileUtils.appendTimeToFileName(fileName || FileUtils.getFileName(fileUrl));
+        const fileType = getFileType(fileUrl);
+        // `fileName` can be an empty string, so fall back to `FileUtils.getFileName(url)`
+        const resolvedFileName = fileName || getFileName(fileUrl);
+        const attachmentName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
 
         switch (fileType) {
             case CONST.ATTACHMENT_FILE_TYPE.IMAGE:
@@ -120,11 +147,11 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formDa
                 break;
             default:
                 if (requestType === CONST.NETWORK.METHOD.POST) {
-                    fileDownloadPromise = postDownloadFile(fileUrl, fileName, formData, onDownloadFailed);
+                    fileDownloadPromise = postDownloadFile(translate, fileUrl, fileName, formData, onDownloadFailed, appendTimestamp);
                     break;
                 }
 
-                fileDownloadPromise = downloadFile(fileUrl, attachmentName);
+                fileDownloadPromise = downloadFile(fileUrl, attachmentName, RNFetchBlob.fs.dirs.DocumentDir);
                 break;
         }
 
@@ -134,15 +161,15 @@ const fileDownload: FileDownload = (fileUrl, fileName, successMessage, _, formDa
                     return;
                 }
 
-                FileUtils.showSuccessAlert(successMessage);
+                showSuccessAlert(translate, successMessage);
             })
             .catch((err: Error) => {
                 // iOS shows permission popup only once. Subsequent request will only throw an error.
                 // We catch the error and show a redirection link to the settings screen
-                if (err.message === CONST.IOS_CAMERAROLL_ACCESS_ERROR) {
-                    FileUtils.showPermissionErrorAlert();
+                if (err.message === CONST.IOS_CAMERA_ROLL_ACCESS_ERROR) {
+                    showPermissionErrorAlert(translate);
                 } else {
-                    FileUtils.showGeneralErrorAlert();
+                    showGeneralErrorAlert(translate);
                 }
             })
             .finally(() => resolve());

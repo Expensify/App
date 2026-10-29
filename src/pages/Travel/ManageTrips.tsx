@@ -1,77 +1,111 @@
-import React, {useState} from 'react';
-import {Linking, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import BookTravelButton from '@components/BookTravelButton';
+import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as TripsResevationUtils from '@libs/TripReservationUtils';
+
+import Accessibility from '@libs/Accessibility';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const tripsFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.PiggyBank,
-        translationKey: 'travel.features.saveMoney',
-    },
-    {
-        icon: Illustrations.Alert,
-        translationKey: 'travel.features.alerts',
-    },
-];
+import type {ComponentRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
 
-function ManageTrips() {
+import React, {useRef, useState} from 'react';
+import {Linking, View} from 'react-native';
+
+type ManageTripsProps = {
+    policyID: string;
+};
+
+function ManageTrips({policyID}: ManageTripsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const policy = usePolicy(activePolicyID);
+    const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
-    const [ctaErrorMessage, setCtaErrorMessage] = useState('');
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel']);
 
-    if (isEmptyObject(policy)) {
-        return <FullScreenLoadingIndicator />;
-    }
+    const tripsFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.PiggyBank,
+            translationKey: 'travel.features.saveMoney',
+        },
+        {
+            icon: illustrations.TravelAlerts,
+            translationKey: 'travel.features.alerts',
+        },
+    ];
 
     const navigateToBookTravelDemo = () => {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
     };
 
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+
+    const handleOnContentSizeChange = () => {
+        if (!shouldScrollToBottom) {
+            return;
+        }
+
+        scrollViewRef.current?.scrollToEnd({animated: true});
+        setShouldScrollToBottom(false);
+    };
+
     return (
-        <ScrollView contentContainerStyle={styles.pt3}>
-            <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                <FeatureList
-                    menuItems={tripsFeatures}
-                    title={translate('travel.title')}
-                    subtitle={translate('travel.subtitle')}
-                    ctaText={translate('travel.bookTravel')}
-                    ctaAccessibilityLabel={translate('travel.bookTravel')}
-                    onCtaPress={() => {
-                        TripsResevationUtils.bookATrip(translate, setCtaErrorMessage, ctaErrorMessage);
-                    }}
-                    ctaErrorMessage={ctaErrorMessage}
-                    illustration={LottieAnimations.TripsEmptyState}
-                    illustrationStyle={[styles.mv4]}
-                    secondaryButtonText={translate('travel.bookDemo')}
-                    secondaryButtonAccessibilityLabel={translate('travel.bookDemo')}
-                    onSecondaryButtonPress={navigateToBookTravelDemo}
-                    illustrationBackgroundColor={colors.blue600}
-                    titleStyles={styles.textHeadlineH1}
-                    contentPaddingOnLargeScreens={styles.p5}
-                />
-            </View>
-        </ScrollView>
+        <AccessOrNotFoundWrapper policyID={policyID}>
+            <ScrollView
+                contentContainerStyle={styles.pt3}
+                ref={scrollViewRef}
+                onContentSizeChange={handleOnContentSizeChange}
+            >
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <FeatureList
+                        menuItems={tripsFeatures}
+                        title={translate('travel.title')}
+                        subtitle={translate('travel.subtitle')}
+                        illustration={isReduceMotionEnabled ? illustrations.EmptyStateTravel : LottieAnimations.TripsEmptyState}
+                        illustrationStyle={isReduceMotionEnabled ? [styles.mv4, {width: variables.tripsIllustrationW, height: variables.tripsIllustrationH}] : [styles.mv4]}
+                        illustrationBackgroundColor={colors.blue600}
+                        titleStyles={styles.textHeadlineH1}
+                        contentPaddingOnLargeScreens={styles.p5}
+                        footer={
+                            <>
+                                <Button
+                                    onPress={navigateToBookTravelDemo}
+                                    accessibilityLabel={translate('travel.bookDemo')}
+                                    style={[styles.w100, styles.mb3]}
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                >
+                                    <Button.Text>{translate('travel.bookDemo')}</Button.Text>
+                                </Button>
+                                <BookTravelButton
+                                    text={translate('travel.bookTravel')}
+                                    shouldRenderErrorMessageBelowButton
+                                    setShouldScrollToBottom={setShouldScrollToBottom}
+                                    activePolicyID={policyID}
+                                    large
+                                />
+                            </>
+                        }
+                    />
+                </View>
+            </ScrollView>
+        </AccessOrNotFoundWrapper>
     );
 }
-
-ManageTrips.displayName = 'ManageTrips';
 
 export default ManageTrips;

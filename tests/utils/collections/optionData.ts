@@ -1,6 +1,8 @@
-import {rand, randBoolean, randEmail, randNumber, randPhoneNumber, randWord} from '@ngneat/falso';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import {rand, randBoolean, randEmail, randNumber, randPhoneNumber, randWord} from '@ngneat/falso';
 
 export default function createRandomOptionData(index: number): OptionData {
     return {
@@ -19,8 +21,7 @@ export default function createRandomOptionData(index: number): OptionData {
         policyName: randWord(),
         policyID: `policy_${index}`,
         accountID: randNumber(),
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        private_isArchived: new Date().toISOString(),
+        private_isArchived: true,
         isPolicyExpenseChat: randBoolean(),
         chatType: rand(Object.values(CONST.REPORT.CHAT_TYPE)),
         hasOutstandingChildRequest: randBoolean(),
@@ -36,7 +37,6 @@ export default function createRandomOptionData(index: number): OptionData {
         description: randWord(),
         isDeletedParentAction: randBoolean(),
         reportName: randWord(),
-        reportActionID: `reportAction_${index}`,
         chatReportID: `chatReport_${index}`,
         stateNum: rand(Object.values(CONST.REPORT.STATE_NUM)),
         statusNum: rand(Object.values(CONST.REPORT.STATUS_NUM)),

@@ -1,16 +1,21 @@
-import React, {memo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -29,7 +34,6 @@ type BannerProps = {
     /** Should this component render the left-aligned exclamation icon? */
     shouldShowIcon?: boolean;
 
-    /** Should this component render a close button? */
     shouldShowCloseButton?: boolean;
 
     /** Should this component render the text as HTML? */
@@ -46,16 +50,20 @@ type BannerProps = {
 
     /** Styles to be assigned to the Banner text */
     textStyles?: StyleProp<TextStyle>;
+
+    /** Custom action content rendered in the right side of the banner. */
+    children?: React.ReactNode;
 };
 
 function Banner({
     text,
     content,
-    icon = Expensicons.Exclamation,
+    icon,
     onClose,
     onPress,
     containerStyles,
     textStyles,
+    children,
     shouldRenderHTML = false,
     shouldShowIcon = false,
     shouldShowCloseButton = false,
@@ -64,11 +72,14 @@ function Banner({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Close']);
+
+    const displayIcon = icon ?? expensifyIcons.Exclamation;
 
     return (
         <Hoverable>
             {(isHovered) => {
-                const isClickable = onClose ?? onPress;
+                const isClickable = onClose && onPress;
                 const shouldHighlight = isClickable && isHovered;
                 return (
                     <View
@@ -83,11 +94,11 @@ function Banner({
                         ]}
                     >
                         <View style={[styles.flexRow, styles.flex1, styles.mw100, styles.alignItemsCenter]}>
-                            {shouldShowIcon && !!icon && (
+                            {shouldShowIcon && !!displayIcon && (
                                 <View style={[styles.mr3]}>
                                     <Icon
-                                        src={icon}
-                                        fill={StyleUtils.getIconFillColor(getButtonState(shouldHighlight))}
+                                        src={displayIcon}
+                                        fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: shouldHighlight})})}
                                     />
                                 </View>
                             )}
@@ -106,15 +117,17 @@ function Banner({
                                     </Text>
                                 ))}
                         </View>
+                        {children}
                         {shouldShowCloseButton && !!onClose && (
                             <Tooltip text={translate('common.close')}>
                                 <PressableWithFeedback
                                     onPress={onClose}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('common.close')}
+                                    accessibilityLabel={text ? `${translate('common.close')}, ${text}` : translate('common.close')}
+                                    sentryLabel="Banner-Close"
                                 >
                                     <Icon
-                                        src={Expensicons.Close}
+                                        src={expensifyIcons.Close}
                                         fill={theme.icon}
                                     />
                                 </PressableWithFeedback>
@@ -127,8 +140,6 @@ function Banner({
     );
 }
 
-Banner.displayName = 'Banner';
-
-export default memo(Banner);
+export default Banner;
 
 export type {BannerProps};

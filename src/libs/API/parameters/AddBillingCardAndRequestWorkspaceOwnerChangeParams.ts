@@ -1,3 +1,7 @@
+import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 type AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
     policyID: string;
     cardNumber: string;
@@ -6,7 +10,7 @@ type AddBillingCardAndRequestWorkspaceOwnerChangeParams = {
     cardCVV: string;
     addressName: string;
     addressZip: string;
-    currency: string;
+    currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
 };
 
 export default AddBillingCardAndRequestWorkspaceOwnerChangeParams;

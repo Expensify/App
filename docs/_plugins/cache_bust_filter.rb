@@ -10,7 +10,7 @@ module Jekyll
       puts "File extension: #{ext}"
 
       # Define a list of supported asset types
-      supported_assets = %w[.css .js .png .jpg .jpeg .gif .svg .woff .woff2 .ttf .eot]
+      supported_assets = %w[.css .js .png .jpg .jpeg .gif .svg .woff2 .ttf .eot]
 
       # Check if the asset type is supported
       if supported_assets.include?(ext)

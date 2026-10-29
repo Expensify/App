@@ -1,24 +1,42 @@
-import React from 'react';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
 
 type NotFoundPageProps = {
     onBackButtonPress?: () => void;
     isReportRelatedPage?: boolean;
+    shouldShowOfflineIndicator?: boolean;
 } & FullPageNotFoundViewProps;
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRelatedPage, ...fullPageNotFoundViewProps}: NotFoundPageProps) {
+function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRelatedPage, shouldShowOfflineIndicator, ...fullPageNotFoundViewProps}: NotFoundPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to go back to the not found page on large screens and to the home page on small screen
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const topmostReportId = Navigation.getTopmostReportId();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${topmostReportId}`);
+    const route = useRoute();
+    const isOnGenericErrorScreen = route.name === SCREENS.NOT_FOUND;
+
+    useAbsentPageSpan();
 
     return (
-        <ScreenWrapper testID={NotFoundPage.displayName}>
+        <ScreenWrapper
+            testID="NotFoundPage"
+            shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+        >
             <FullPageNotFoundView
                 shouldShow
                 onBackButtonPress={() => {
@@ -26,8 +44,7 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
                         onBackButtonPress();
                         return;
                     }
-                    const topmostReportId = Navigation.getTopmostReportId();
-                    const report = ReportUtils.getReport(topmostReportId ?? '');
+
                     // detect the report is invalid
                     if (topmostReportId && (!report || report.errorFields?.notFound)) {
                         Navigation.dismissModal();
@@ -35,13 +52,11 @@ function NotFoundPage({onBackButtonPress = () => Navigation.goBack(), isReportRe
                     }
                     onBackButtonPress();
                 }}
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...fullPageNotFoundViewProps}
+                onLinkPress={isOnGenericErrorScreen ? () => Navigation.goBack(ROUTES.HOME) : fullPageNotFoundViewProps.onLinkPress}
             />
         </ScreenWrapper>
     );
 }
-
-NotFoundPage.displayName = 'NotFoundPage';
 
 export default NotFoundPage;

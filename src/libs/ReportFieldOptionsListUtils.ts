@@ -1,19 +1,22 @@
-import * as Localize from './Localize';
-import type {Option} from './OptionsListUtils';
-import type * as ReportUtils from './ReportUtils';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import type {OptionData} from './ReportUtils';
+
+import tokenizedSearch from './tokenizedSearch';
 
 /**
  * Transforms the provided report field options into option objects.
  *
  * @param reportFieldOptions - an initial report field options array
  */
-function getReportFieldOptions(reportFieldOptions: string[]): Option[] {
+function getReportFieldOptions(reportFieldOptions: string[], selectedKeys?: Set<string>) {
     return reportFieldOptions.map((name) => ({
         text: name,
         keyForList: name,
         searchText: name,
         tooltipText: name,
         isDisabled: false,
+        isSelected: selectedKeys ? selectedKeys.has(name) : false,
     }));
 }
 
@@ -24,67 +27,83 @@ function getReportFieldOptionsSection({
     options,
     recentlyUsedOptions,
     selectedOptions,
+    initiallySelectedValue,
     searchValue,
+    translate,
+    shouldPinSelectedOption = true,
+    shouldShowSectionTitles = true,
 }: {
     options: string[];
     recentlyUsedOptions: string[];
-    selectedOptions: Array<Partial<ReportUtils.OptionData>>;
+    selectedOptions: Array<Partial<OptionData>>;
+    initiallySelectedValue: string;
     searchValue: string;
+    translate: LocalizedTranslate;
+
+    /** Whether the selected value is lifted into its own section at the top of the list */
+    shouldPinSelectedOption?: boolean;
+
+    /** Whether the "Recent" and "All" section titles are rendered */
+    shouldShowSectionTitles?: boolean;
 }) {
     const reportFieldOptionsSections = [];
-    const selectedOptionKeys = selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o);
-    let indexOffset = 0;
+    // The live selection drives the checkmark (isSelected)...
+    const selectedKeySet = new Set(selectedOptions.map(({text, keyForList, name}) => text ?? keyForList ?? name ?? '').filter((o) => !!o));
+    // ...while the frozen initial selection drives the pinned "Selected" section, so selecting a value marks it without reordering the list until reopen.
+    const pinnedOptionKeys = shouldPinSelectedOption && initiallySelectedValue ? [initiallySelectedValue] : [];
+    const pinnedKeySet = new Set(pinnedOptionKeys);
 
     if (searchValue) {
-        const searchOptions = options.filter((option) => option.toLowerCase().includes(searchValue.toLowerCase()));
+        const searchOptions = tokenizedSearch(options, searchValue, (option) => [option]);
+        // Keep the pinned option(s) at the top of the search results, matching the "Selected" section shown when not searching.
+        const pinnedSearchOptions: string[] = [];
+        const otherSearchOptions: string[] = [];
+        for (const option of searchOptions) {
+            (pinnedKeySet.has(option) ? pinnedSearchOptions : otherSearchOptions).push(option);
+        }
+        const orderedSearchOptions = [...pinnedSearchOptions, ...otherSearchOptions];
 
         reportFieldOptionsSections.push({
             // "Search" section
             title: '',
-            shouldShow: true,
-            indexOffset,
-            data: getReportFieldOptions(searchOptions),
+            sectionIndex: 0,
+            data: getReportFieldOptions(orderedSearchOptions, selectedKeySet),
         });
 
         return reportFieldOptionsSections;
     }
 
-    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((recentlyUsedOption) => !selectedOptionKeys.includes(recentlyUsedOption));
-    const filteredOptions = options.filter((option) => !selectedOptionKeys.includes(option));
+    const enabledOptionSet = new Set(options);
+    const filteredRecentlyUsedOptions = recentlyUsedOptions.filter((o) => !pinnedKeySet.has(o) && enabledOptionSet.has(o));
+    const filteredOptions = options.filter((o) => !pinnedKeySet.has(o));
 
-    if (selectedOptionKeys.length) {
+    if (pinnedOptionKeys.length) {
         reportFieldOptionsSections.push({
-            // "Selected" section
+            // "Selected" (pinned) section
             title: '',
-            shouldShow: true,
-            indexOffset,
-            data: getReportFieldOptions(selectedOptionKeys),
+            sectionIndex: 1,
+            data: getReportFieldOptions(pinnedOptionKeys, selectedKeySet),
         });
-
-        indexOffset += selectedOptionKeys.length;
     }
 
     if (filteredRecentlyUsedOptions.length > 0) {
         reportFieldOptionsSections.push({
             // "Recent" section
-            title: Localize.translateLocal('common.recent'),
-            shouldShow: true,
-            indexOffset,
-            data: getReportFieldOptions(filteredRecentlyUsedOptions),
+            title: shouldShowSectionTitles ? translate('common.recent') : '',
+            sectionIndex: 2,
+            data: getReportFieldOptions(filteredRecentlyUsedOptions, selectedKeySet),
         });
-
-        indexOffset += filteredRecentlyUsedOptions.length;
     }
 
     reportFieldOptionsSections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
-        shouldShow: true,
-        indexOffset,
-        data: getReportFieldOptions(filteredOptions),
+        title: shouldShowSectionTitles ? translate('common.all') : '',
+        sectionIndex: 3,
+        data: getReportFieldOptions(filteredOptions, selectedKeySet),
     });
 
     return reportFieldOptionsSections;
 }
 
-export {getReportFieldOptionsSection, getReportFieldOptions};
+// eslint-disable-next-line import/prefer-default-export
+export {getReportFieldOptionsSection};

@@ -1,293 +1,476 @@
-import {format, lastDayOfMonth, setDate} from 'date-fns';
-import {Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import CONST from '@src/CONST';
+import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {ReportNextStep} from '@src/types/onyx/Report';
+
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
-import type {Message} from '@src/types/onyx/ReportNextStep';
-import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {getNextApproverAccountID} from './actions/IOU';
-import DateUtils from './DateUtils';
-import EmailUtils from './EmailUtils';
-import * as PolicyUtils from './PolicyUtils';
-import * as ReportUtils from './ReportUtils';
 
-let currentUserAccountID = -1;
-let currentUserEmail = '';
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => {
-        if (!value) {
-            return;
+import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
+import {Str} from 'expensify-common';
+
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
+import {getOriginalMessage} from './ReportActionMessageUtils';
+import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
+import {
+    getDisplayNameForParticipant,
+    getMoneyRequestSpendBreakdown,
+    getNextApproverAccountID,
+    isExpenseReport,
+    isInvoiceReport,
+    isOpenExpenseReport,
+    isPayer,
+    shouldBlockSubmitDueToPreventSelfApproval,
+    shouldShowMarkAsDone,
+} from './ReportUtils';
+import {
+    getAutoReportingOffsetsForFrequency,
+    getPolicyAutoReportingOffsets,
+    getWeekdayKey,
+    getWorkspaceTimezone,
+    LAST_WEEKDAY_OFFSETS,
+    sortSemiMonthlyOffsets,
+} from './SubmissionScheduleUtils';
+import {hasSubmissionBlockingViolations} from './TransactionUtils';
+
+type BuildNextStepNewParams = {
+    report: OnyxEntry<Report>;
+    policy?: OnyxEntry<Policy>;
+    currentUserAccountIDParam?: number;
+    currentUserEmailParam?: string;
+    hasViolations?: boolean;
+    isASAPSubmitBetaEnabled?: boolean;
+    predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+    shouldFixViolations?: boolean;
+    isUnapprove?: boolean;
+    isReopen?: boolean;
+    isRejectedReport?: boolean;
+    /**
+     * Bypass Next Approver ID is used when an approver is bypassed so that we can show the next approver in the chain.
+     * This is necessary in the case where report actions are not yet updated to determine the bypass action.
+     */
+    bypassNextApproverID?: number;
+    isTrackIntentUser: boolean | undefined;
+    translate?: LocaleContextProps['translate'];
+    rules: OnyxCollection<Rule>;
+};
+
+type GetReportNextStepParams = {
+    moneyRequestReport: OnyxEntry<Report>;
+    moneyRequestReportOwnerLogin: string | undefined;
+    transactions: Array<OnyxEntry<Transaction>>;
+    policy: OnyxEntry<Policy>;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    rules: OnyxCollection<Rule>;
+};
+
+/** The backend still sends the legacy ETA key for older clients, so a custom schedule is read from the schedule fields sent with it. */
+function getScheduleETA(eta: ReportNextStep['eta'], translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string | undefined {
+    const frequency = eta?.autoReportingFrequency;
+    const {offset, secondOffset} = getAutoReportingOffsetsForFrequency(frequency, {offset: eta?.autoReportingOffset, secondOffset: eta?.autoReportingOffsetSecondSemiMonthly});
+    const formatDay = (day: number) => format(setDate(new Date(), day), CONST.DATE.ORDINAL_DAY_OF_MONTH, {locale: dateFnsLocale});
+
+    // Default schedules keep their legacy ETA text
+    switch (frequency) {
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
+            if (offset === CONST.POLICY.AUTO_REPORTING_WEEKDAYS.SUNDAY) {
+                return undefined;
+            }
+            return translate(`nextStep.scheduleEta.weekly.${getWeekdayKey(Number(offset))}`);
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
+            const sortedOffsets = sortSemiMonthlyOffsets({offset, secondOffset});
+            const isDefaultSchedule =
+                sortedOffsets.offset === CONST.POLICY.AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET && sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH;
+            if (typeof sortedOffsets.offset !== 'number' || isDefaultSchedule) {
+                return undefined;
+            }
+            const firstDay = formatDay(sortedOffsets.offset);
+            if (sortedOffsets.secondOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                return translate('nextStep.scheduleEta.twiceAMonthAndLastDay', {firstDay});
+            }
+            if (typeof sortedOffsets.secondOffset !== 'number') {
+                return undefined;
+            }
+            return translate('nextStep.scheduleEta.twiceAMonth', {firstDay, secondDay: formatDay(sortedOffsets.secondOffset)});
         }
-
-        currentUserAccountID = value?.accountID ?? -1;
-        currentUserEmail = value?.email ?? '';
-    },
-});
-
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
-});
-
-function parseMessage(messages: Message[] | undefined) {
-    let nextStepHTML = '';
-    messages?.forEach((part, index) => {
-        const isEmail = Str.isValidEmail(part.text);
-        let tagType = part.type ?? 'span';
-        let content = Str.safeEscape(part.text);
-
-        const previousPart = index !== 0 ? messages.at(index - 1) : undefined;
-        const nextPart = messages.at(index + 1);
-
-        if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-            tagType = 'strong';
-            content = nextPart?.text === `'s` ? 'Your' : 'You';
-        } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
-            content = '';
-        } else if (isEmail) {
-            tagType = 'next-step-email';
-            content = EmailUtils.prefixMailSeparatorsWithBreakOpportunities(content);
+        case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY: {
+            const lastWeekdayOffset = LAST_WEEKDAY_OFFSETS.find((lastWeekday) => lastWeekday === offset);
+            if (!lastWeekdayOffset) {
+                return undefined;
+            }
+            return translate(`nextStep.scheduleEta.monthlyLastWeekday.${lastWeekdayOffset}`);
         }
-
-        nextStepHTML += `<${tagType}>${content}</${tagType}>`;
-    });
-
-    const formattedHtml = nextStepHTML
-        .replace(/%expenses/g, 'expense(s)')
-        .replace(/%Expenses/g, 'Expense(s)')
-        .replace(/%tobe/g, 'are');
-
-    return `<next-step>${formattedHtml}</next-step>`;
+        default:
+            return undefined;
+    }
 }
 
-function getNextApproverDisplayName(report: OnyxEntry<Report>) {
-    const approverAccountID = getNextApproverAccountID(report);
-
-    return ReportUtils.getDisplayNameForParticipant(approverAccountID) ?? ReportUtils.getPersonalDetailsForAccountID(approverAccountID).login;
+/** Sent with the optimistic ETA so it reads the same as the one the backend sends. */
+function getScheduleETAFields(policy: OnyxEntry<Policy>): NonNullable<ReportNextStep['eta']> {
+    const {offset, secondOffset} = getPolicyAutoReportingOffsets(policy);
+    return {
+        autoReportingFrequency: getCorrectedAutoReportingFrequency(policy),
+        autoReportingOffset: offset,
+        autoReportingOffsetSecondSemiMonthly: secondOffset,
+        timeZone: getWorkspaceTimezone(policy),
+    };
 }
 
-/**
- * Generates an optimistic nextStep based on a current report status and other properties.
- *
- * @param report
- * @param predictedNextStatus - a next expected status of the report
- * @param parameters.isPaidWithExpensify - Whether a report has been paid with Expensify or outside
- * @returns nextStep
- */
-function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>): ReportNextStep | null {
-    if (!ReportUtils.isExpenseReport(report)) {
+function buildNextStepMessage(
+    nextStep: ReportNextStep,
+    translate: LocaleContextProps['translate'],
+    dateFnsLocale: DateFnsLocale | undefined,
+    currentUserAccountID: number,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
+    // Escape actor name to prevent HTML injection since this will be rendered as HTML
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
+    let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
+    if (nextStep.actorAccountID === currentUserAccountID) {
+        actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
+    } else if (nextStep.actorAccountID === -1) {
+        actorType = CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN;
+    } else {
+        actorType = CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER;
+    }
+
+    let eta: string | undefined;
+    let etaType: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE> | undefined;
+    const scheduleETA = getScheduleETA(nextStep.eta, translate, dateFnsLocale);
+    if (scheduleETA) {
+        eta = scheduleETA;
+        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
+    } else if (nextStep.eta?.etaKey) {
+        eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
+        etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
+    } else if (nextStep.eta?.dateTime) {
+        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
+        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight,
+        // which shifts the day back by one when formatted in a UTC-negative timezone. `parseISO` parses it as
+        // local midnight so the rendered day matches the day set in the workspace settings.
+        eta = format(parseISO(nextStep.eta.dateTime), formatString, {locale: dateFnsLocale});
+        etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
+    }
+
+    const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
+    const message =
+        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
+            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
+            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    return `<next-step>${message}</next-step>`;
+}
+
+function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
+    return (report?.transactionCount ?? 0) > 0;
+}
+
+function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
+    const {
+        report,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        hasViolations,
+        isASAPSubmitBetaEnabled,
+        predictedNextStatus,
+        shouldFixViolations,
+        isUnapprove,
+        isReopen,
+        isRejectedReport: isRejectedReportParam,
+        bypassNextApproverID,
+        isTrackIntentUser,
+        rules,
+    } = params;
+
+    if (!isExpenseReport(report)) {
         return null;
     }
 
-    const {policyID = '', ownerAccountID = -1} = report ?? {};
-    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] ?? ({} as Policy);
-    const {harvesting, autoReportingOffset} = policy;
-    const autoReportingFrequency = PolicyUtils.getCorrectedAutoReportingFrequency(policy);
-    const ownerDisplayName = ReportUtils.getDisplayNameForParticipant(ownerAccountID);
-    const nextApproverDisplayName = getNextApproverDisplayName(report);
+    const {ownerAccountID = -1} = report ?? {};
+    const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
+    const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
+    const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
+    const hasTransactions = doesReportContainTransactions(report);
+    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, isUnapprove);
+    const reimburserAccountID = getReimburserAccountID(policy);
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    const reimburserAccountID = PolicyUtils.getReimburserAccountID(policy);
-    const hasValidAccount = !!policy?.achAccount?.accountNumber;
-    const type: ReportNextStep['type'] = 'neutral';
-    let optimisticNextStep: ReportNextStep | null;
-
-    const noActionRequired = {
-        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-        type,
-        message: [
-            {
-                text: 'No further action required!',
-            },
-        ],
+    const nextStepFixOrPayExpense: ReportNextStep = {
+        messageKey: shouldShowFixMessage ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        // eslint-disable-next-line rulesdir/no-default-id-values
+        actorAccountID: shouldShowFixMessage ? ownerAccountID : (policy?.ownerAccountID ?? -1),
     };
+
+    const nextStepNoActionRequired: ReportNextStep = {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+    };
+
+    let nextStep: ReportNextStep | null;
 
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
+            if (isRejectedReportParam) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
+            if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
+            if (isReopen) {
+                nextStep = {
+                    messageKey: shouldShowMarkAsDone({isTrackIntentUser, report, policy, rules})
+                        ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
+                        : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
+
             // Self review
-            optimisticNextStep = {
-                type,
+            nextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'add',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
+                actorAccountID: ownerAccountID,
             };
 
             // Scheduled submit enabled
-            if (harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
-                optimisticNextStep.message = [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: `${ownerDisplayName}`,
-                        type: 'strong',
-                        clickToCopyText: ownerAccountID === currentUserAccountID ? currentUserEmail : '',
-                    },
-                    {
-                        text: `'s`,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' %expenses to automatically submit',
-                    },
-                ];
-                let harvestingSuffix = '';
+            if (policy?.harvesting?.enabled && hasTransactions) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
 
-                if (autoReportingFrequency) {
-                    const currentDate = new Date();
-                    let autoSubmissionDate: Date | null = null;
-                    let formattedDate = '';
+                switch (autoReportingFrequency) {
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SHORTLY};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.TODAY};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_WEEK, ...getScheduleETAFields(policy)};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.SEMI_MONTHLY, ...getScheduleETAFields(policy)};
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY:
+                        if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
+                            nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH};
+                        } else if (policy?.autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
+                            nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.LAST_BUSINESS_DAY_OF_MONTH};
+                        } else if (typeof policy?.autoReportingOffset === 'number') {
+                            let etaDateTime = setDate(new Date(), policy?.autoReportingOffset);
+                            if (isPast(etaDateTime)) {
+                                etaDateTime = addMonths(etaDateTime, 1);
+                            }
 
-                    if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                        autoSubmissionDate = lastDayOfMonth(currentDate);
-                    } else if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                        const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(currentDate);
-                        autoSubmissionDate = setDate(currentDate, lastBusinessDayOfMonth);
-                    } else if (autoReportingOffset !== undefined) {
-                        autoSubmissionDate = setDate(currentDate, autoReportingOffset);
-                    }
-
-                    if (autoSubmissionDate) {
-                        formattedDate = format(autoSubmissionDate, CONST.DATE.ORDINAL_DAY_OF_MONTH);
-                    }
-
-                    const harvestingSuffixes: Record<DeepValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, string> = {
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: formattedDate ? `on the ${formattedDate} of each month` : '',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
-                    };
-
-                    if (harvestingSuffixes[autoReportingFrequency]) {
-                        harvestingSuffix = `${harvestingSuffixes[autoReportingFrequency]}`;
-                    }
+                            nextStep.eta = {dateTime: format(etaDateTime, 'yyyy-MM-dd')};
+                        } else {
+                            nextStep.eta = getScheduleETAFields(policy);
+                        }
+                        break;
+                    case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP:
+                        nextStep.eta = {etaKey: CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP};
+                        break;
+                    default:
+                        break;
                 }
-
-                optimisticNextStep.message.push({
-                    text: ` ${harvestingSuffix}`,
-                });
+                break;
             }
 
+            // Manual submission
+            if (hasTransactions && !policy?.harvesting?.enabled) {
+                nextStep = {
+                    messageKey: shouldShowMarkAsDone({
+                        isTrackIntentUser,
+                        report,
+                        policy,
+                        rules,
+                    })
+                        ? CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_MARK_AS_DONE
+                        : CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
             break;
 
         // Generates an optimistic nextStep once a report has been submitted
         case CONST.REPORT.STATUS_NUM.SUBMITTED: {
-            // Another owner
-            optimisticNextStep = {
-                type,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    {
-                        text: nextApproverDisplayName,
-                        type: 'strong',
-                    },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: 'approve',
-                    },
-                    {
-                        text: ' %expenses.',
-                    },
-                ],
-            };
+            if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL) {
+                nextStep = reimbursableSpend === 0 ? nextStepNoActionRequired : nextStepFixOrPayExpense;
+                break;
+            }
 
+            // We want to show pending approval next step for cases where the policy has approvals enabled
+            const policyApprovalMode = getApprovalWorkflow(policy);
+            if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: approverAccountID,
+                };
+            } else {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) ? currentUserAccountIDParam : -1,
+                };
+            }
             break;
         }
 
         // Generates an optimistic nextStep once a report has been closed for example in the case of Submit and Close approval flow
         case CONST.REPORT.STATUS_NUM.CLOSED:
-            optimisticNextStep = noActionRequired;
-
+            nextStep = nextStepNoActionRequired;
             break;
 
         // Generates an optimistic nextStep once a report has been paid
         case CONST.REPORT.STATUS_NUM.REIMBURSED:
-            optimisticNextStep = noActionRequired;
-
+            nextStep = nextStepNoActionRequired;
             break;
 
         // Generates an optimistic nextStep once a report has been approved
-        case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (
-                ReportUtils.isInvoiceReport(report) ||
-                !ReportUtils.isPayer(
-                    {
-                        accountID: currentUserAccountID,
-                        email: currentUserEmail,
-                    },
-                    report,
-                )
-            ) {
-                optimisticNextStep = noActionRequired;
+        case CONST.REPORT.STATUS_NUM.APPROVED: {
+            const reimbursementChoice = getReimbursementChoice(policy);
+            const isReimbursementDisabled = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
+            // The server returns no further action for approved reports on workspaces that reimburse outside Expensify (Indirect)
+            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || isReimbursementManual) {
+                nextStep = nextStepNoActionRequired;
                 break;
             }
-            // Self review
-            optimisticNextStep = {
-                type,
+
+            // The report still needs to be paid whether or not the approver is the one who pays it.
+            nextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Waiting for ',
-                    },
-                    reimburserAccountID === -1
-                        ? {
-                              text: 'an admin',
-                          }
-                        : {
-                              text: ReportUtils.getDisplayNameForParticipant(reimburserAccountID),
-                              type: 'strong',
-                          },
-                    {
-                        text: ' to ',
-                    },
-                    {
-                        text: hasValidAccount ? 'pay' : 'finish setting up',
-                    },
-                    {
-                        text: hasValidAccount ? ' %expenses.' : ' a business bank account.',
-                    },
-                ],
+                actorAccountID: reimburserAccountID,
             };
             break;
+        }
 
-        // Resets a nextStep
+        // Clear nextStep
         default:
-            optimisticNextStep = null;
+            nextStep = null;
     }
 
-    return optimisticNextStep;
+    return nextStep;
 }
 
-export {parseMessage, buildNextStep};
+function buildOptimisticNextStepForPreventSelfApprovalsEnabled(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+    };
+}
+
+function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        actorAccountID: ownerAccountID,
+    };
+}
+
+function buildChangeWorkspaceNextStep(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.CHANGE_WORKSPACE,
+        icon: CONST.NEXT_STEP.ICONS.BOX,
+    };
+}
+
+function getReportNextStep({
+    moneyRequestReport,
+    moneyRequestReportOwnerLogin,
+    transactions,
+    policy,
+    transactionViolations,
+    currentUserEmail,
+    currentUserAccountID,
+    rules,
+}: GetReportNextStepParams) {
+    // Reports on an archived workspace can't be acted on until they're moved to another workspace
+    if (isArchivedPolicy(policy)) {
+        return buildChangeWorkspaceNextStep();
+    }
+
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
+    const shouldShowNoFurtherAction =
+        reimbursableSpend === 0 &&
+        (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED ||
+            (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
+
+    if (
+        isOpenExpenseReport(moneyRequestReport) &&
+        transactions.length > 0 &&
+        transactions.every(
+            (transaction) =>
+                !!transaction &&
+                hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, moneyRequestReportOwnerLogin, policy),
+        )
+    ) {
+        // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
+        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? -1);
+    }
+
+    // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
+    // We should always show this optimistic message for policies with preventSelfApproval
+    // to avoid any flicker during transitions between online/offline states
+    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules)) {
+        return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
+    }
+
+    if (shouldShowNoFurtherAction) {
+        return {
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+            icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+        };
+    }
+
+    return moneyRequestReport?.nextStep;
+}
+
+/**
+ * Whether to show the DEW approve-error next step.
+ * Only manual approve failures (`automaticAction` false/absent) should show it. Auto-approval blocks keep the normal
+ * workflow next step. The approver check is not repeated here: `hasDEWApproveFailed` comes from the
+ * `HAS_DEW_APPROVE_FAILED` reason, which is already gated on the current user being the report manager.
+ */
+function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: OnyxEntry<ReportAction>, hasDEWApproveFailed: boolean): boolean {
+    if (!hasDEWApproveFailed || !isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+        return false;
+    }
+
+    const {automaticAction} = getOriginalMessage(reportAction) ?? {};
+    return !automaticAction;
+}
+
+export {
+    getReportNextStep,
+    buildNextStepMessage,
+    buildOptimisticNextStep,
+    buildOptimisticFixIssueNextStep,
+    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
+    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
+};

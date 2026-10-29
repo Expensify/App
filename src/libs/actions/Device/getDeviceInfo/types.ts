@@ -9,4 +9,4 @@ type GetDeviceInfo = () => DeviceInfo;
 type DeviceInfo = BaseInfo & OSAndName & {os?: string; deviceName?: string; deviceVersion?: string};
 type GetBaseInfo = () => BaseInfo;
 
-export type {GetDeviceInfo, DeviceInfo, GetBaseInfo, BaseInfo};
+export type {GetDeviceInfo, GetBaseInfo};

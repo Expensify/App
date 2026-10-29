@@ -1,10 +1,16 @@
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
-import {READ_COMMANDS} from '@libs/API/types';
+import type {AddPersonalPlaidCardParams, ImportPlaidAccountsParams, OpenPlaidBankAccountSelectorParams, OpenPlaidBankLoginParams} from '@libs/API/parameters';
+import type OpenPlaidCompanyCardLoginParams from '@libs/API/parameters/OpenPlaidCompanyCardLoginParams';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCardFeedWithoutDomainID} from '@libs/CardUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CardFeedWithNumber, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+
+import Onyx from 'react-native-onyx';
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
@@ -28,8 +34,14 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: ONYXKEYS.PLAID_LINK_TOKEN,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             value: '',
+        },
+        {
+            // The response re-derives this flag from the server-side throttle state, so a value persisted by an earlier attempt must not be shown as current.
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PLAID_DISABLED,
+            value: false,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -40,7 +52,65 @@ function openPlaidBankLogin(allowDebit: boolean, bankAccountID: number) {
         },
     ];
 
-    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData});
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PLAID_BANK_LOGIN, params, {optimisticData, failureData});
+}
+
+/**
+ * Gets the Plaid Link token used to initialize the Plaid SDK for Company card
+ */
+function openPlaidCompanyCardLogin(country: string, domain?: string, feed?: CardFeedWithNumber | CompanyCardFeedWithDomainID, isPersonal?: boolean, cardID?: string) {
+    const {redirectURI, androidPackage} = getPlaidLinkTokenParameters();
+
+    const params: OpenPlaidCompanyCardLoginParams = {
+        redirectURI,
+        androidPackage,
+        country,
+        domain,
+        isPersonal,
+        feed: feed ? getCardFeedWithoutDomainID(feed) : undefined,
+        cardID,
+    };
+
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {...CONST.PLAID.DEFAULT_DATA, isLoading: true},
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
+            value: '',
+        },
+        {
+            // The response re-derives this flag from the server-side throttle state, so a value persisted by an earlier attempt must not be shown as current.
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PLAID_DISABLED,
+            value: false,
+        },
+    ];
+
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PLAID_DATA,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PLAID_CARDS_BANK_LOGIN, params, {optimisticData, failureData});
 }
 
 function openPlaidBankAccountSelector(publicToken: string, bankName: string, allowDebit: boolean, bankAccountID: number) {
@@ -85,4 +155,60 @@ function openPlaidBankAccountSelector(publicToken: string, bankName: string, all
     });
 }
 
-export {openPlaidBankAccountSelector, openPlaidBankLogin};
+function importPlaidAccounts(
+    publicToken: string,
+    feed: string,
+    feedName: string,
+    country: string,
+    domainName: string,
+    plaidAccounts: string,
+    plaidAccessToken: string | undefined,
+    domainAccountID?: number,
+    isRepairingFeed = false,
+) {
+    const parameters: ImportPlaidAccountsParams = {
+        publicToken,
+        feed: getCardFeedWithoutDomainID(feed),
+        feedName,
+        country,
+        domainName,
+        plaidAccounts,
+        plaidAccessToken,
+        // When repairing a feed that originated from a Classic domain-level connection surfaced into a workspace,
+        // forward the originating domain's account ID so the server refreshes credentials on the feed the broken
+        // cards actually belong to instead of the synthetic workspace-policy domain.
+        ...(domainAccountID ? {domainAccountID: String(domainAccountID)} : {}),
+    };
+
+    const onyxData = {
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isRefreshing: null},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isRefreshing: null, ...(isRepairingFeed ? {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')} : {})},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.IMPORT_PLAID_ACCOUNTS, parameters, onyxData);
+}
+
+function addPersonalPlaidCard(publicToken: string, feed: string, country: string, plaidAccounts: string) {
+    const parameters: AddPersonalPlaidCardParams = {
+        publicToken,
+        feed,
+        country,
+        plaidAccounts,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_PERSONAL_PLAID_CARD, parameters);
+}
+
+export {openPlaidBankAccountSelector, openPlaidBankLogin, openPlaidCompanyCardLogin, importPlaidAccounts, addPersonalPlaidCard};

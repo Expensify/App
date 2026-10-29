@@ -1,10 +1,12 @@
-import {Linking, NativeModules} from 'react-native';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+
+import {Linking} from 'react-native';
 
 export default function updateApp(isProduction: boolean) {
     if (isProduction) {
         Linking.openURL(CONST.APP_DOWNLOAD_LINKS.OLD_DOT_ANDROID);
         return;
     }
-    Linking.openURL(NativeModules.HybridAppModule ? CONST.APP_DOWNLOAD_LINKS.OLD_DOT_ANDROID : CONST.APP_DOWNLOAD_LINKS.ANDROID);
+    Linking.openURL(CONFIG.IS_HYBRID_APP ? CONST.APP_DOWNLOAD_LINKS.OLD_DOT_ANDROID : CONST.APP_DOWNLOAD_LINKS.ANDROID);
 }

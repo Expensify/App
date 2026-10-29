@@ -1,3 +1,9 @@
+import {setModalVisibility} from '@libs/actions/Modal';
+
+import {setActiveClients} from '@userActions/ActiveClients';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 /**
  * When you have many tabs in one browser, the data of Onyx is shared between all of them. Since we persist write requests in Onyx, we need to ensure that
  * only one tab is processing those saved requests or we would be duplicating data (or creating errors).
@@ -5,8 +11,7 @@
  */
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import * as ActiveClients from '@userActions/ActiveClients';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {Init, IsClientTheLeader, IsReady} from './types';
 
 const clientID = Str.guid();
@@ -16,13 +21,15 @@ let resolveSavedSelfPromise: () => void;
 const savedSelfPromise = new Promise<void>((resolve) => {
     resolveSavedSelfPromise = resolve;
 });
+let beforeunloadListenerAdded = false;
 
 /**
  * Determines when the client is ready. We need to wait both till we saved our ID in onyx AND the init method was called
  */
 const isReady: IsReady = () => savedSelfPromise;
 
-Onyx.connect({
+// We have opted for `connectWithoutView` here as this code is not connected to UI at all.
+Onyx.connectWithoutView({
     key: ONYXKEYS.ACTIVE_CLIENTS,
     callback: (val) => {
         if (!val) {
@@ -40,7 +47,7 @@ Onyx.connect({
 
         // Save the clients back to onyx, if they changed
         if (removed) {
-            ActiveClients.setActiveClients(activeClients);
+            setActiveClients(activeClients);
         }
     },
 });
@@ -70,7 +77,15 @@ const isClientTheLeader: IsClientTheLeader = () => {
 const cleanUpClientId = () => {
     isPromotingNewLeader = isClientTheLeader();
     activeClients = activeClients.filter((id) => id !== clientID);
-    ActiveClients.setActiveClients(activeClients);
+    setActiveClients(activeClients);
+};
+
+const removeBeforeUnloadListener = () => {
+    if (!beforeunloadListenerAdded) {
+        return;
+    }
+    beforeunloadListenerAdded = false;
+    window.removeEventListener('beforeunload', cleanUpClientId);
 };
 
 /**
@@ -78,11 +93,16 @@ const cleanUpClientId = () => {
  * We want to ensure we have no duplicates and that the activeClient gets added at the end of the array (see isClientTheLeader)
  */
 const init: Init = () => {
+    removeBeforeUnloadListener();
     activeClients = activeClients.filter((id) => id !== clientID);
     activeClients.push(clientID);
-    ActiveClients.setActiveClients(activeClients).then(resolveSavedSelfPromise);
+    setActiveClients(activeClients).then(resolveSavedSelfPromise);
 
-    window.addEventListener('beforeunload', cleanUpClientId);
+    beforeunloadListenerAdded = true;
+    window.addEventListener('beforeunload', () => {
+        cleanUpClientId();
+        setModalVisibility(false);
+    });
 };
 
 export {init, isClientTheLeader, isReady};

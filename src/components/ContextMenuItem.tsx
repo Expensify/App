@@ -1,21 +1,25 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useImperativeHandle} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import getButtonState from '@libs/getButtonState';
+
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ComponentRef} from 'react';
+import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import FocusableMenuItem from './FocusableMenuItem';
 import Icon from './Icon';
 
-type ContextMenuItemProps = {
-    /** Icon Component */
+type ContextMenuItemProps = WithSentryLabel & {
     icon: IconAsset;
-
-    /** Text to display */
     text: string;
 
     /** Icon to show when interaction was successful */
@@ -27,7 +31,6 @@ type ContextMenuItemProps = {
     /** Whether to show the mini menu */
     isMini?: boolean;
 
-    /** Callback to fire when the item is pressed */
     onPress: (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => void;
 
     /** A description text to show under the title */
@@ -36,59 +39,46 @@ type ContextMenuItemProps = {
     /** The action accept for anonymous user or not */
     isAnonymousAction?: boolean;
 
-    /** Whether the menu item is focused or not */
     isFocused?: boolean;
-
-    /** Whether the width should be limited */
     shouldLimitWidth?: boolean;
 
-    /** Styles to apply to ManuItem wrapper */
+    /** Styles to apply to MenuItem wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 
     shouldPreventDefaultFocusOnPress?: boolean;
 
     /** The ref of mini context menu item */
-    buttonRef?: React.RefObject<View>;
+    buttonRef?: React.RefObject<ComponentRef<typeof View> | null>;
 
-    /** Handles what to do when the item is focused */
     onFocus?: () => void;
 
     /** Handles what to do when the item loose focus */
     onBlur?: () => void;
 
-    /** Whether the menu item is disabled or not */
     disabled?: boolean;
-
-    /** Whether the menu item should show loading icon */
     shouldShowLoadingSpinnerIcon?: boolean;
 };
 
-type ContextMenuItemHandle = {
-    triggerPressAndUpdateSuccess?: () => void;
-};
-
-function ContextMenuItem(
-    {
-        onPress,
-        successIcon,
-        successText = '',
-        icon,
-        text,
-        isMini = false,
-        description = '',
-        isAnonymousAction = false,
-        isFocused = false,
-        shouldLimitWidth = true,
-        wrapperStyle,
-        shouldPreventDefaultFocusOnPress = true,
-        buttonRef = {current: null},
-        onFocus = () => {},
-        onBlur = () => {},
-        disabled = false,
-        shouldShowLoadingSpinnerIcon = false,
-    }: ContextMenuItemProps,
-    ref: ForwardedRef<ContextMenuItemHandle>,
-) {
+function ContextMenuItem({
+    onPress,
+    successIcon,
+    successText = '',
+    icon,
+    text,
+    isMini = false,
+    description = '',
+    isAnonymousAction = false,
+    isFocused = false,
+    shouldLimitWidth = true,
+    wrapperStyle,
+    shouldPreventDefaultFocusOnPress = true,
+    buttonRef = {current: null},
+    onFocus = () => {},
+    onBlur = () => {},
+    disabled = false,
+    shouldShowLoadingSpinnerIcon = false,
+    sentryLabel,
+}: ContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
@@ -107,8 +97,6 @@ function ContextMenuItem(
         }
     };
 
-    useImperativeHandle(ref, () => ({triggerPressAndUpdateSuccess}));
-
     const itemIcon = !isThrottledButtonActive && successIcon ? successIcon : icon;
     const itemText = !isThrottledButtonActive && successText ? successText : text;
 
@@ -119,12 +107,13 @@ function ContextMenuItem(
             onPress={triggerPressAndUpdateSuccess}
             isDelayButtonStateComplete={!isThrottledButtonActive}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPress}
+            sentryLabel={sentryLabel}
         >
             {({hovered, pressed}) => (
                 <Icon
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                     src={itemIcon}
-                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isThrottledButtonActive))}
+                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: hovered, isPressed: pressed, isComplete: !isThrottledButtonActive})})}
                 />
             )}
         </BaseMiniContextMenuItem>
@@ -145,11 +134,9 @@ function ContextMenuItem(
             onBlur={onBlur}
             disabled={disabled}
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+            sentryLabel={sentryLabel}
         />
     );
 }
 
-ContextMenuItem.displayName = 'ContextMenuItem';
-
-export default forwardRef(ContextMenuItem);
-export type {ContextMenuItemHandle};
+export default ContextMenuItem;

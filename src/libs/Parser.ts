@@ -1,22 +1,29 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
 // eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import Onyx from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import Log from './Log';
-import * as ReportConnection from './ReportConnection';
+import {getAccountIDToNameMap} from './PersonalDetailsStore';
 
-const accountIDToNameMap: Record<string, string> = {};
-
+let reportIDToNameMap: Record<string, string> = {};
 Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (personalDetailsList) => {
-        Object.values(personalDetailsList ?? {}).forEach((personalDetails) => {
-            if (!personalDetails) {
-                return;
-            }
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (value) => {
+        // Clear the map so removed reports don’t linger
+        reportIDToNameMap = {};
 
-            accountIDToNameMap[personalDetails.accountID] = personalDetails.login ?? personalDetails.displayName ?? '';
-        });
+        if (!value) {
+            return;
+        }
+
+        for (const report of Object.values(value)) {
+            if (!report) {
+                continue;
+            }
+            reportIDToNameMap[report.reportID] = report.reportName ?? report.reportID;
+        }
     },
 });
 
@@ -30,22 +37,22 @@ type Extras = {
 class ExpensiMarkWithContext extends ExpensiMark {
     htmlToMarkdown(htmlString: string, extras?: Extras): string {
         return super.htmlToMarkdown(htmlString, {
-            reportIDToName: extras?.reportIDToName ?? ReportConnection.getAllReportsNameMap(),
-            accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
+            reportIDToName: extras?.reportIDToName,
+            accountIDToName: extras?.accountIDToName ?? getAccountIDToNameMap(),
             cacheVideoAttributes: extras?.cacheVideoAttributes,
         });
     }
 
     htmlToText(htmlString: string, extras?: Extras): string {
         return super.htmlToText(htmlString, {
-            reportIDToName: extras?.reportIDToName ?? ReportConnection.getAllReportsNameMap(),
-            accountIDToName: extras?.accountIDToName ?? accountIDToNameMap,
+            reportIDToName: extras?.reportIDToName ?? reportIDToNameMap,
+            accountIDToName: extras?.accountIDToName ?? getAccountIDToNameMap(),
             cacheVideoAttributes: extras?.cacheVideoAttributes,
         });
     }
 
-    truncateHTML(htmlString: string, limit: number, extras?: {ellipsis: string | undefined}): string {
-        return super.truncateHTML(htmlString, limit, extras);
+    isHTML(text: string): boolean {
+        return /<[^>]+>/.test(text) || /&[#\w]+;/.test(text);
     }
 }
 

@@ -1,7 +1,9 @@
-import type {Meta, StoryFn} from '@storybook/react';
-import React from 'react';
 import Tooltip from '@components/Tooltip';
 import type {TooltipExtendedProps} from '@components/Tooltip/types';
+
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
 
 type TooltipStory = StoryFn<typeof Tooltip>;
 
@@ -19,10 +21,8 @@ function Template(props: TooltipExtendedProps) {
     return (
         <div style={{width: 100}}>
             <Tooltip
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 // Disable nullish coalescing to handle cases when maxWidth is 0
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 maxWidth={props.maxWidth || undefined}
             >
                 <div

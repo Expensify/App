@@ -1,25 +1,30 @@
-import isEmpty from 'lodash/isEmpty';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
+
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+
+import type {ListItemComponent} from './SelectionList/ListItem/types';
+import type {ConfirmButtonOptions, ListItem} from './SelectionList/types';
+
 import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
-import type RadioListItem from './SelectionList/RadioListItem';
-import type TableListItem from './SelectionList/TableListItem';
-import type {ListItem, SectionListDataType} from './SelectionList/types';
-import type UserListItem from './SelectionList/UserListItem';
+import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
 type SelectorType<T = string> = ListItem & {
     value: T;
@@ -31,35 +36,26 @@ type SelectionScreenProps<T = string> = {
     /** Used to set the testID for tests */
     displayName: string;
 
-    /** Title of the selection component */
     title?: TranslationPaths;
-
-    /** Custom content to display in the header */
     headerContent?: React.ReactNode;
-
-    /** Content to display if the list is empty */
     listEmptyContent?: React.JSX.Element | null;
 
-    /** Custom content to display in the footer of list component. */
+    /** Skip listEmptyContent when the list is empty because of search, not a missing dataset. */
+    shouldShowListEmptyContent?: boolean;
     listFooterContent?: React.JSX.Element | null;
 
     /** Sections for the section list */
-    sections: Array<SectionListDataType<SelectorType<T>>>;
+    data: Array<SelectorType<T>>;
 
-    /** Default renderer for every item in the list */
-    listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
+    /** Renderer for every item in the list. Defaults to SingleSelectListItem. */
+    ListItem?: ListItemComponent<SelectorType<T>>;
 
     /** Item `keyForList` to focus initially */
-    initiallyFocusedOptionKey?: string | null | undefined;
+    initiallyFocusedOptionKey?: string | undefined;
 
-    /** Callback to fire when a row is pressed */
-    onSelectRow: (selection: SelectorType<T>) => void;
-
-    /** Callback to fire when back button is pressed */
-    onBackButtonPress: () => void;
-
-    /** The current policyID */
-    policyID: string;
+    onSelectRow: (item: SelectorType<T>) => void;
+    onBackButtonPress?: () => void;
+    policyID?: string;
 
     /** Defines which types of access should be verified */
     accessVariants?: AccessVariant[];
@@ -70,16 +66,12 @@ type SelectionScreenProps<T = string> = {
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
 
-    /** Name of the current connection */
     connectionName: ConnectionName;
 
     /** The type of action that's pending  */
     pendingAction?: OnyxCommon.PendingAction | null;
 
-    /** The errors to display  */
     errors?: OnyxCommon.Errors | ReceiptErrors | null;
-
-    /** Additional style object for the error row */
     errorRowStyles?: StyleProp<ViewStyle>;
 
     /** A function to run when the X button next to the error is clicked */
@@ -94,17 +86,27 @@ type SelectionScreenProps<T = string> = {
     /** Whether to update the focused index on a row select */
     shouldUpdateFocusedIndex?: boolean;
 
-    /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
-    /** Label for the text input */
-    textInputLabel?: string;
+    /** Maximum number of title lines per row. Values above 1 let the title wrap instead of truncating */
+    titleNumberOfLines?: number;
 
-    /** Value for the text input */
-    textInputValue?: string;
+    textInputOptions?: {
+        /** Label for the text input */
+        label?: string;
 
-    /** Callback to fire when the text input changes */
-    onChangeText?: (text: string) => void;
+        /** Value for the text input */
+        value?: string;
+
+        /** Callback to fire when the text input changes */
+        onChangeText?: (text: string) => void;
+
+        /** Message shown above the list, e.g. when a search matches nothing */
+        headerMessage?: string;
+    };
+
+    /** Footer save button. When omitted, tapping a row still commits immediately. */
+    confirmButtonOptions?: ConfirmButtonOptions<SelectorType<T>>;
 };
 
 function SelectionScreen<T = string>({
@@ -112,9 +114,10 @@ function SelectionScreen<T = string>({
     title,
     headerContent,
     listEmptyContent,
+    shouldShowListEmptyContent,
     listFooterContent,
-    sections,
-    listItem,
+    data,
+    ListItem = SingleSelectListItem,
     initiallyFocusedOptionKey,
     onSelectRow,
     onBackButtonPress,
@@ -129,17 +132,23 @@ function SelectionScreen<T = string>({
     onClose,
     shouldSingleExecuteRowSelect,
     headerTitleAlreadyTranslated,
-    textInputLabel,
-    textInputValue,
-    onChangeText,
     shouldShowTextInput,
+    textInputOptions,
     shouldUpdateFocusedIndex = false,
+    titleNumberOfLines,
+    confirmButtonOptions,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const policy = PolicyUtils.getPolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
+
+    // Searchable selectors pin the selected option to the top upstream (in useSelectionListSearch or the caller's own
+    // search logic). These anti-jump list props keep that pinned row visible: mount-scroll is off because the pinned
+    // row is already at the top, and maintaining scroll position is disabled so clearing the search returns to the top.
+    // This only applies to searchable selectors.
+    const isSearchableList = !!(shouldShowTextInput ?? textInputOptions?.label);
 
     return (
         <AccessOrNotFoundWrapper
@@ -149,7 +158,7 @@ function SelectionScreen<T = string>({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={!!errors && !isEmptyObject(errors)}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={displayName}
             >
                 <HeaderWithBackButton
@@ -161,30 +170,33 @@ function SelectionScreen<T = string>({
                     pendingAction={pendingAction}
                     style={[styles.flex1]}
                     contentContainerStyle={[styles.flex1]}
-                    shouldDisableOpacity={!sections.length}
+                    shouldDisableOpacity={!data.length}
                 >
                     <SelectionList
+                        data={data}
+                        ListItem={ListItem}
                         onSelectRow={onSelectRow}
-                        sections={sections}
-                        ListItem={listItem}
                         showScrollIndicator
-                        onChangeText={onChangeText}
                         shouldShowTooltips={false}
-                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
+                        textInputOptions={textInputOptions}
                         listEmptyContent={listEmptyContent}
-                        textInputLabel={textInputLabel}
-                        textInputValue={textInputValue}
+                        shouldShowListEmptyContent={shouldShowListEmptyContent}
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
-                        sectionListStyle={!!sections.length && [styles.flexGrow0]}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                        shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
-                        isAlternateTextMultilineSupported
+                        shouldUpdateFocusedIndex={isSearchableList || shouldUpdateFocusedIndex}
+                        shouldScrollToFocusedIndexOnMount={!isSearchableList}
+                        disableMaintainingScrollPosition={isSearchableList}
+                        alternateNumberOfSupportedLines={2}
+                        titleNumberOfLines={titleNumberOfLines}
+                        addBottomSafeAreaPadding
+                        confirmButtonOptions={confirmButtonOptions}
                     >
                         <ErrorMessageRow
                             errors={errors}
                             errorRowStyles={errorRowStyles}
-                            onClose={onClose}
+                            onDismiss={onClose}
                         />
                     </SelectionList>
                 </OfflineWithFeedback>
@@ -195,5 +207,4 @@ function SelectionScreen<T = string>({
 
 export type {SelectorType};
 
-SelectionScreen.displayName = 'SelectionScreen';
 export default SelectionScreen;

@@ -1,30 +1,52 @@
 ---
-title: Egencia Integration
-description: Expensify-Egencia integration automatically adds Egencia booking receipts to Expensify.
+title: Egencia
+description: Learn how to integrate Egencia with Expensify to automatically import travel booking receipts and expenses.
+keywords: [Egencia, travel booking, Expensify Classic]
+internalScope: Audience is Workspace Admins and travelers on a Control Workspace. Covers enabling the Egencia receipt feed and routing receipts to a central purchasing account, does not cover booking travel in Egencia or other travel partner integrations.
 ---
-# Overview
-[Egencia](https://www.egencia.com/en/) is a platform used to book and manage business travel. Integrating Expensify and Egencia ensures any bookings made using Egencia will automatically import as expenses to Expensify.
-## Requirements: 
-- You'll need to have a Control Workspace
-- A verified Domain
 
-# How to use Egencia with Expensify
-When an employee makes a booking in Egencia: 
-- The receipt itinerary will automatically be imported to the traveler's Expensify account along with the expense details without needing to submit the information manually.
-- When the traveler uses their company credit card to make a purchase via Egencia, the Egencia receipt will automatically merge with the credit card transaction. 
+# Connect Egencia to Expensify
 
-The travel information will also be available in the Trips section of the mobile app of the recipient's Expensify account.
-# How to Enable the Egencia Feed
-A file feed is an automated transfer of data files from Egencia to Expensify.
+[Egencia](https://www.egencia.com/en/) is a business travel booking platform. Integrating Egencia with Expensify allows travel bookings to be automatically imported as expenses, ensuring seamless expense tracking.
 
-Egencia controls the feed, so to connect Expensify you will need to:
+---
+
+## What you need to use the Egencia integration
+To use the Egencia integration, you must have:
+- A **Control Workspace**
+- A **verified Domain**
+
+---
+
+## How Egencia works with Expensify
+When an employee books travel through Egencia:
+- The receipt is automatically imported into the traveler’s Expensify account, eliminating the need for manual entry.
+- If the traveler uses a company credit card, the Egencia receipt automatically merges with the corresponding credit card transaction.
+
+---
+
+## How to enable the Egencia integration
+The integration allows Egencia to automatically send flight and fee data to Expensify.
+
+To enable the integration:
 1. Contact your Egencia account manager.
-2. Request that they enable your Expensify feed.
+2. Request to enable the Expensify feed for your organization.
 
-# How to Connect to a Central Purchasing Account
-Once your Egencia account manager has established the feed, you can automatically forward all Egencia booking receipts to a single Expensify account. To do this: 
-1. Open a chat with Concierge. 
-2. Tell Concierge the address of your central purchasing account, “Please enable Central Purchasing Account for our Egencia feed. The account email is: xxx@yourdomain.com”.
+**Note:** Egencia controls the feed setup process.
 
-A receipt will be sent to both the traveler and the central account. The receipt sent to the traveler is a "reservation expense." Reservation expenses are non-reimbursable and won’t be included in any integrated accounting system exports.
+---
 
+## How to connect a central purchasing account
+If your company uses a **central purchasing account**, you can forward all Egencia booking receipts to a single Expensify account.
+
+1. **Open a chat with Concierge** in Expensify.
+2. **Provide the central account email** and request activation. Example message:
+   > "Please enable Central Purchasing Account for our Egencia feed. The account email is: `youraccount@yourdomain.com`."
+
+---
+
+## What happens after you connect a central purchasing account
+- Booking receipts will be sent to **both** the traveler and the central account.
+- The receipt in the traveler’s account is marked as a **reservation expense**, which:
+  - Is **non-reimbursable**.
+  - **Will not be exported** to an integrated accounting system.

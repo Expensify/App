@@ -1,27 +1,35 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy/Policy';
+
+import {setPolicyMaxExpenseAmount} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesMaxExpenseAmountForm';
 
-type RulesMaxExpenseAmountPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT>;
+import React from 'react';
+import {View} from 'react-native';
+
+type RulesMaxExpenseAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MAX_EXPENSE_AMOUNT>;
 
 function RulesMaxExpenseAmountPage({
     route: {
@@ -33,43 +41,44 @@ function RulesMaxExpenseAmountPage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const defaultValue =
         policy?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAmount
             ? ''
-            : CurrencyUtils.convertToFrontendAmountAsString(policy?.maxExpenseAmount, policy?.outputCurrency);
+            : convertToFrontendAmountAsString(policy?.maxExpenseAmount, getCurrencyDecimals(policy?.outputCurrency));
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesMaxExpenseAmountPage.displayName}
+                testID="RulesMaxExpenseAmountPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.individualExpenseRules.maxExpenseAmount')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.expensesAboveAmount')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmount}) => {
-                        PolicyActions.setPolicyMaxExpenseAmount(policyID, maxExpenseAmount);
+                        setPolicyMaxExpenseAmount(policyID, maxExpenseAmount, policy?.maxExpenseAmount, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
-                            currency={CurrencyUtils.getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                            currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
                             defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}
@@ -82,7 +91,5 @@ function RulesMaxExpenseAmountPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesMaxExpenseAmountPage.displayName = 'RulesMaxExpenseAmountPage';
 
 export default RulesMaxExpenseAmountPage;

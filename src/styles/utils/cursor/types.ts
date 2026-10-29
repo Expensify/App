@@ -8,10 +8,16 @@ type CursorStylesKeys =
     | 'cursorUnset'
     | 'cursorAuto'
     | 'cursorZoomIn'
+    | 'cursorGrab'
     | 'cursorGrabbing'
     | 'cursorZoomOut'
     | 'cursorInitial'
-    | 'cursorText';
+    | 'cursorText'
+    | 'cursorEwResize'
+    | 'cursorColResize'
+    | 'cursorNsResize'
+    | 'cursorNeswResize'
+    | 'cursorNwseResize';
 
 type CursorStyles = Record<CursorStylesKeys, Pick<ViewStyle, 'cursor'>>;
 

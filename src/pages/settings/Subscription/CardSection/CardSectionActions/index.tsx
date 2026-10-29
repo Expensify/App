@@ -1,14 +1,17 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import Navigation from '@navigation/Navigation';
-import type {AnchorPosition} from '@styles/index';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
 
 const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -16,52 +19,30 @@ const anchorAlignment = {
 };
 
 function CardSectionActions() {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
-    const threeDotsMenuContainerRef = useRef<View>(null);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'MoneyCircle']);
 
-    const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
-        () => [
-            {
-                icon: Expensicons.CreditCard,
-                text: translate('subscription.cardSection.changeCard'),
-                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
-            },
-            {
-                icon: Expensicons.MoneyCircle,
-                text: translate('subscription.cardSection.changeCurrency'),
-                onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
-            },
-        ],
-        [translate],
-    );
-
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
-        if (shouldUseNarrowLayout) {
-            return;
-        }
-        threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
-            setThreeDotsMenuPosition({
-                horizontal: x + width,
-                vertical: y + height,
-            });
-        });
-    }, [shouldUseNarrowLayout]);
+    const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
+        {
+            icon: icons.CreditCard,
+            text: translate('subscription.cardSection.changeCard'),
+            onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)),
+        },
+        {
+            icon: icons.MoneyCircle,
+            text: translate('subscription.cardSection.changeCurrency'),
+            onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
+        },
+    ];
 
     return (
-        <View ref={threeDotsMenuContainerRef}>
-            <ThreeDotsMenu
-                onIconPress={calculateAndSetThreeDotsMenuPosition}
-                menuItems={overflowMenu}
-                anchorPosition={threeDotsMenuPosition}
-                anchorAlignment={anchorAlignment}
-                shouldOverlay
-            />
-        </View>
+        <ThreeDotsMenu
+            shouldSelfPosition
+            menuItems={overflowMenu}
+            anchorAlignment={anchorAlignment}
+            shouldOverlay
+        />
     );
 }
-
-CardSectionActions.displayName = 'CardSectionActions';
 
 export default CardSectionActions;

@@ -37,6 +37,7 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
     });
 
     test('when query has multiple substitutions and some changed but some stayed', () => {
+        // cspell:disable-next-line
         const userTypedQuery = 'from:Johnny to:Steven category:Fruitzzzz';
         const substitutionsMock = {
             'from:Johnny': '@johnny',
@@ -50,6 +51,22 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
         expect(result).toStrictEqual({
             'from:Johnny': '@johnny',
             'to:Steven': '@steven',
+        });
+    });
+
+    test('when query has duplicate workspace names with indexed substitution keys', () => {
+        const userTypedQuery = 'workspace:"Test Workspace","Test Workspace"';
+        const substitutionsMock = {
+            'policyID:Test Workspace': 'policyA',
+            'policyID:Test Workspace:1': 'policyB',
+            'policyID:Test Workspace:2': 'policyC',
+        };
+
+        const result = getUpdatedSubstitutionsMap(userTypedQuery, substitutionsMock);
+
+        expect(result).toStrictEqual({
+            'policyID:Test Workspace': 'policyA',
+            'policyID:Test Workspace:1': 'policyB',
         });
     });
 });

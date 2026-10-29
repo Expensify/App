@@ -66,4 +66,7 @@ export default {
     b2: {
         bottom: 8,
     },
+    bFull: {
+        bottom: '100%',
+    },
 } satisfies Record<string, ViewStyle>;

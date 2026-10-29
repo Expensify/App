@@ -1,0 +1,234 @@
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/check-modifiers.js b/node_modules/@typescript-eslint/typescript-estree/dist/check-modifiers.js
+index 33ec104..b90b905 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/check-modifiers.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/check-modifiers.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.checkModifiers = checkModifiers;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const getModifiers_1 = require("./getModifiers");
+ const node_utils_1 = require("./node-utils");
+ const SyntaxKind = ts.SyntaxKind;
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/check-syntax-errors.js b/node_modules/@typescript-eslint/typescript-estree/dist/check-syntax-errors.js
+index 9d40bd0..be91346 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/check-syntax-errors.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/check-syntax-errors.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.checkSyntaxError = checkSyntaxError;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const check_modifiers_1 = require("./check-modifiers");
+ const node_utils_1 = require("./node-utils");
+ const SyntaxKind = ts.SyntaxKind;
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/convert-comments.js b/node_modules/@typescript-eslint/typescript-estree/dist/convert-comments.js
+index 16ce827..e7cc60c 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/convert-comments.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/convert-comments.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.convertComments = convertComments;
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const node_utils_1 = require("./node-utils");
+ const ts_estree_1 = require("./ts-estree");
+ /**
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/convert.js b/node_modules/@typescript-eslint/typescript-estree/dist/convert.js
+index 3e7dc72..70d8fe3 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/convert.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/convert.js
+@@ -37,7 +37,7 @@ exports.Converter = void 0;
+ exports.convertError = convertError;
+ // There's lots of funny stuff due to the typing of ts.Node
+ /* eslint-disable @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access */
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const check_syntax_errors_1 = require("./check-syntax-errors");
+ const getModifiers_1 = require("./getModifiers");
+ const node_utils_1 = require("./node-utils");
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createIsolatedProgram.js b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createIsolatedProgram.js
+index 85fb0b0..c2a22c7 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createIsolatedProgram.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createIsolatedProgram.js
+@@ -38,7 +38,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.createIsolatedProgram = createIsolatedProgram;
+ const debug_1 = __importDefault(require("debug"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const getScriptKind_1 = require("./getScriptKind");
+ const shared_1 = require("./shared");
+ const log = (0, debug_1.default)('typescript-eslint:typescript-estree:create-program:createIsolatedProgram');
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js
+index 2ec8646..e3e1230 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js
+@@ -39,7 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.createSourceFile = createSourceFile;
+ exports.createNoProgram = createNoProgram;
+ const debug_1 = __importDefault(require("debug"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const source_files_1 = require("../source-files");
+ const getScriptKind_1 = require("./getScriptKind");
+ const log = (0, debug_1.default)('typescript-eslint:typescript-estree:create-program:createSourceFile');
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/getScriptKind.js b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/getScriptKind.js
+index 6c948b5..c9fc142 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/getScriptKind.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/getScriptKind.js
+@@ -39,7 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getScriptKind = getScriptKind;
+ exports.getLanguageVariant = getLanguageVariant;
+ const node_path_1 = __importDefault(require("node:path"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ function getScriptKind(filePath, jsx) {
+     const extension = node_path_1.default.extname(filePath).toLowerCase();
+     // note - we only respect the user's jsx setting for unknown extensions
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/getWatchProgramsForProjects.js b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/getWatchProgramsForProjects.js
+index 1979990..9a42011 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/getWatchProgramsForProjects.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/getWatchProgramsForProjects.js
+@@ -40,7 +40,7 @@ exports.clearWatchCaches = clearWatchCaches;
+ exports.getWatchProgramsForProjects = getWatchProgramsForProjects;
+ const debug_1 = __importDefault(require("debug"));
+ const node_fs_1 = __importDefault(require("node:fs"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const source_files_1 = require("../source-files");
+ const shared_1 = require("./shared");
+ const log = (0, debug_1.default)('typescript-eslint:typescript-estree:create-program:getWatchProgramsForProjects');
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/shared.js b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/shared.js
+index cbbd59c..4552d4a 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/shared.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/shared.js
+@@ -45,7 +45,7 @@ exports.getAstFromProgram = getAstFromProgram;
+ exports.createHash = createHash;
+ const tsconfig_utils_1 = require("@typescript-eslint/tsconfig-utils");
+ const node_path_1 = __importDefault(require("node:path"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ /**
+  * Default compiler options for program generation
+  */
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/useProvidedPrograms.js b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/useProvidedPrograms.js
+index 7369ed9..979deb6 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/create-program/useProvidedPrograms.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/create-program/useProvidedPrograms.js
+@@ -41,7 +41,7 @@ exports.createProgramFromConfigFile = createProgramFromConfigFile;
+ const tsconfig_utils_1 = require("@typescript-eslint/tsconfig-utils");
+ const debug_1 = __importDefault(require("debug"));
+ const path = __importStar(require("node:path"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const shared_1 = require("./shared");
+ const log = (0, debug_1.default)('typescript-eslint:typescript-estree:create-program:useProvidedPrograms');
+ function useProvidedPrograms(programInstances, parseSettings) {
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/getModifiers.js b/node_modules/@typescript-eslint/typescript-estree/dist/getModifiers.js
+index 4c16405..ca0f2da 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/getModifiers.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/getModifiers.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getModifiers = getModifiers;
+ exports.getDecorators = getDecorators;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const version_check_1 = require("./version-check");
+ const isAtLeast48 = version_check_1.typescriptVersionIsAtLeast['4.8'];
+ function getModifiers(node, includeIllegalModifiers = false) {
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/node-utils.js b/node_modules/@typescript-eslint/typescript-estree/dist/node-utils.js
+index 6833020..3f25936 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/node-utils.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/node-utils.js
+@@ -71,7 +71,7 @@ exports.isValidAssignmentTarget = isValidAssignmentTarget;
+ exports.getNamespaceModifiers = getNamespaceModifiers;
+ exports.declarationNameToString = declarationNameToString;
+ exports.isEntityNameExpression = isEntityNameExpression;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const getModifiers_1 = require("./getModifiers");
+ const xhtml_entities_1 = require("./jsx/xhtml-entities");
+ const ts_estree_1 = require("./ts-estree");
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js b/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js
+index 0109180..987ea36 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js
+@@ -42,7 +42,7 @@ exports.clearTSServerProjectService = clearTSServerProjectService;
+ const project_service_1 = require("@typescript-eslint/project-service");
+ const debug_1 = __importDefault(require("debug"));
+ const node_path_1 = __importDefault(require("node:path"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const shared_1 = require("../create-program/shared");
+ const validateDefaultProjectForFilesGlob_1 = require("../create-program/validateDefaultProjectForFilesGlob");
+ const source_files_1 = require("../source-files");
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/warnAboutTSVersion.js b/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/warnAboutTSVersion.js
+index 7a133e8..7e3a827 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/warnAboutTSVersion.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/warnAboutTSVersion.js
+@@ -39,7 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.SUPPORTED_TYPESCRIPT_VERSIONS = void 0;
+ exports.warnAboutTSVersion = warnAboutTSVersion;
+ const semver_1 = __importDefault(require("semver"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const version_1 = require("../version");
+ /**
+  * This needs to be kept in sync with package.json in the typescript-eslint monorepo
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/semantic-or-syntactic-errors.js b/node_modules/@typescript-eslint/typescript-estree/dist/semantic-or-syntactic-errors.js
+index 5e77d97..241dd97 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/semantic-or-syntactic-errors.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/semantic-or-syntactic-errors.js
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getFirstSemanticOrSyntacticError = getFirstSemanticOrSyntacticError;
+-const typescript_1 = require("typescript");
++const typescript_1 = require("@typescript/typescript6");
+ /**
+  * By default, diagnostics from the TypeScript compiler contain all errors - regardless of whether
+  * they are related to generic ECMAScript standards, or TypeScript-specific constructs.
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/source-files.js b/node_modules/@typescript-eslint/typescript-estree/dist/source-files.js
+index 51151c0..f0787ea 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/source-files.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/source-files.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.isSourceFile = isSourceFile;
+ exports.getCodeText = getCodeText;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ function isSourceFile(code) {
+     if (typeof code !== 'object' || code == null) {
+         return false;
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/useProgramFromProjectService.js b/node_modules/@typescript-eslint/typescript-estree/dist/useProgramFromProjectService.js
+index 20f3d7b..a5fde52 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/useProgramFromProjectService.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/useProgramFromProjectService.js
+@@ -41,7 +41,7 @@ const debug_1 = __importDefault(require("debug"));
+ const minimatch_1 = require("minimatch");
+ const node_path_1 = __importDefault(require("node:path"));
+ const node_util_1 = __importDefault(require("node:util"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const createProjectProgram_1 = require("./create-program/createProjectProgram");
+ const createSourceFile_1 = require("./create-program/createSourceFile");
+ const shared_1 = require("./create-program/shared");
+diff --git a/node_modules/@typescript-eslint/typescript-estree/dist/version-check.js b/node_modules/@typescript-eslint/typescript-estree/dist/version-check.js
+index 54d545d..19fcc22 100644
+--- a/node_modules/@typescript-eslint/typescript-estree/dist/version-check.js
++++ b/node_modules/@typescript-eslint/typescript-estree/dist/version-check.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.typescriptVersionIsAtLeast = void 0;
+ const semver = __importStar(require("semver"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ function semverCheck(version) {
+     return semver.satisfies(ts.version, `>= ${version}.0 || >= ${version}.1-rc || >= ${version}.0-beta`, {
+         includePrerelease: true,

@@ -1,12 +1,26 @@
+import {
+    enablePolicyFeatureCommand,
+    resolveCommentDeletionConflicts,
+    resolveDuplicationConflictAction,
+    resolveEditCommentWithNewAddCommentRequest,
+    resolveEnableFeatureConflicts,
+    resolveOpenAppDuplicationConflictAction,
+    resolveOpenReportDuplicationConflictAction,
+    resolveReconnectDuplicationConflictAction,
+    resolveVacationDelegateDeletionConflicts,
+} from '@libs/actions/RequestConflictUtils';
+import {WRITE_COMMANDS} from '@libs/API/types';
+
+import type {AnyRequest} from '@src/types/onyx/Request';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
-import {resolveCommentDeletionConflicts, resolveDuplicationConflictAction, resolveEditCommentWithNewAddCommentRequest} from '@libs/actions/RequestConflictUtils';
-import type {WriteCommand} from '@libs/API/types';
 
 describe('RequestConflictUtils', () => {
     it.each([['OpenApp'], ['ReconnectApp']])('resolveDuplicationConflictAction when %s do not exist in the queue should push %i', (command) => {
         const persistedRequests = [{command: 'OpenReport'}, {command: 'AddComment'}, {command: 'CloseAccount'}];
-        const commandToFind = command as WriteCommand;
-        const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === commandToFind);
+        const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === command);
         expect(result).toEqual({conflictAction: {type: 'push'}});
     });
 
@@ -15,8 +29,7 @@ describe('RequestConflictUtils', () => {
         ['ReconnectApp', 2],
     ])('resolveDuplicationConflictAction when %s exist in the queue should replace at index %i', (command, index) => {
         const persistedRequests = [{command: 'OpenApp'}, {command: 'AddComment'}, {command: 'ReconnectApp'}];
-        const commandToFind = command as WriteCommand;
-        const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === commandToFind);
+        const result = resolveDuplicationConflictAction(persistedRequests, (request) => request.command === command);
         expect(result).toEqual({conflictAction: {type: 'replace', index}});
     });
 
@@ -132,6 +145,326 @@ describe('RequestConflictUtils', () => {
                 index: addCommentIndex,
                 request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'new edit comment'}},
             },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should drop the queued attachment when the edit removed it', () => {
+        const reportActionID = '2';
+        const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'attachment removed'};
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['5']);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'attachment removed'}},
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should drop only the queued attachments the edit removed', () => {
+        // Given a queued message with three files and an attachment ID for each
+        const reportActionID = '2';
+        const persistedRequests = [
+            {
+                command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
+                data: {reportActionID, reportComment: 'test', file: {uri: 'blob:a'}, file_1: {uri: 'blob:b'}, file_2: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,6,7'},
+            },
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'b removed'};
+
+        // When the edit removes the middle file
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['6']);
+
+        // Then the request still sends the other two files, renumbered with their own IDs
+        expect(result.conflictAction).toEqual({
+            type: 'replace',
+            index: 0,
+            request: {
+                command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
+                data: {reportID: '1', reportActionID, reportComment: 'b removed', file: {uri: 'blob:a'}, file_1: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,7'},
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should move the remaining queued attachment into the first slot', () => {
+        // Given a queued message with three files
+        const reportActionID = '2';
+        const persistedRequests = [
+            {
+                command: 'AddTextAndAttachment',
+                // eslint-disable-next-line @typescript-eslint/naming-convention -- the API names extra files file_1, file_2, ...
+                data: {reportActionID, reportComment: 'test', file: {uri: 'blob:a'}, file_1: {uri: 'blob:b'}, file_2: {uri: 'blob:c'}, attachmentID: '5', attachmentIDs: '5,6,7'},
+            },
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'only b left'};
+
+        // When the edit removes the first and last files
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, ['5', '7']);
+
+        // Then the request sends the one file left as a single attachment
+        expect(result.conflictAction).toEqual({
+            type: 'replace',
+            index: 0,
+            request: {
+                command: 'AddTextAndAttachment',
+                data: {reportID: '1', reportActionID, reportComment: 'only b left', file: {uri: 'blob:b'}, attachmentID: '6'},
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should rename the queued attachment when the edit renamed it', () => {
+        // Given a text-and-attachment request still queued, with the file picked on native as a plain object
+        const reportActionID = '2';
+        const attachmentID = '5';
+        const persistedRequests = [
+            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID}},
+            {command: 'OpenReport'},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an edit renames the attachment before the request is sent
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, [], {[attachmentID]: 'renamed.csv'});
+
+        // Then the queued request carries the edited text and the file under its new name, since the server names the attachment after the upload
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local', name: 'renamed.csv'}, attachmentID},
+                },
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should keep the extension when the new name has none', () => {
+        // Given a queued attachment the editor renames to a bare word
+        const reportActionID = '2';
+        const attachmentID = '5';
+        const persistedRequests = [
+            {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local', name: 'data.csv'}, attachmentID}},
+            {command: 'OpenReport'},
+        ];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When the rename is applied to the queued file
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, [], {[attachmentID]: 'report'});
+
+        // Then the original extension travels with it, because the server names the stored file after the upload and
+        // a download can only add back an extension the stored copy already has
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local', name: 'report.csv'}, attachmentID},
+                },
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should rebuild a renamed File, whose name cannot be reassigned', () => {
+        // Given a queued request whose attachment is a web File, where the name is read-only
+        const reportActionID = '2';
+        const attachmentID = '5';
+        const file = new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an edit renames the attachment before the request is sent
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, [], {[attachmentID]: 'renamed.csv'});
+        const renamedFile = queuedRequest.data.file;
+
+        // Then a new File under the new name replaces it and keeps the original type
+        expect(renamedFile).toBeInstanceOf(File);
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.type).toBe('text/csv');
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should keep the native upload properties when it renames a File', () => {
+        // Given a queued attachment shaped the way readFileAsync builds one for the native share flow
+        const reportActionID = '2';
+        const attachmentID = '5';
+        const localUri = 'file:///storage/emulated/0/Android/data/com.expensify.chat/files/Download/Receipts-Upload/data.csv';
+        const file = Object.assign(new File(['id,total\n1,2'], 'data.csv', {type: 'text/csv'}), {uri: localUri, source: localUri});
+        const queuedRequest = {command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file, attachmentID}};
+        const persistedRequests = [queuedRequest, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+
+        // When an offline edit renames it
+        resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, [], {[attachmentID]: 'renamed.csv'});
+        const renamedFile = queuedRequest.data.file;
+
+        // Then the properties the native payload reads to find the file on disk survive the rename
+        expect(renamedFile.name).toBe('renamed.csv');
+        expect(renamedFile.source).toBe(localUri);
+        expect(renamedFile.uri).toBe(localUri);
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should keep the queued attachment when the edit kept it', () => {
+        const reportActionID = '2';
+        const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local'}, attachmentID: '5'},
+                },
+            },
+        });
+    });
+
+    it.each(enablePolicyFeatureCommand)('resolveEnableFeatureConflicts should return push when the same enable feature API is not found', (commandName) => {
+        const persistedRequests = [{command: commandName, data: {policyID: '1', enabled: true}}];
+        const parameters = {policyID: '2', enabled: false};
+        const result = resolveEnableFeatureConflicts(commandName, persistedRequests, parameters);
+        expect(result).toEqual({conflictAction: {type: 'push'}});
+    });
+
+    it.each(enablePolicyFeatureCommand)('resolveEnableFeatureConflicts should return delete when the same enable feature API is found', (commandName) => {
+        const persistedRequests = [{command: commandName, data: {policyID: '1', enabled: true}}];
+        const parameters = {policyID: '1', enabled: false};
+        const result = resolveEnableFeatureConflicts(commandName, persistedRequests, parameters);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'delete',
+                indices: [0],
+                pushNewRequest: false,
+            },
+        });
+    });
+
+    describe('resolveOpenReportDuplicationConflictAction', () => {
+        it('returns push when no matching OpenReport for the reportID exists in the queue', () => {
+            const persistedRequests = [{command: 'OpenApp'}, {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '2'}}];
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1'});
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('returns noAction when the queued OpenReport carries guidedSetupData', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', guidedSetupData: '[{}]'}}];
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1'});
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('returns noAction when the queued request carries accountIDList but the new one has no participants', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '10,20'}}];
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1'});
+            expect(result).toEqual({conflictAction: {type: 'noAction'}});
+        });
+
+        it('replaces when the new request also carries an accountIDList', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1', accountIDList: '10,20'}}];
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1', accountIDList: '10,20'});
+            expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
+        });
+
+        it('replaces when neither queued nor new request has participants', () => {
+            const persistedRequests = [{command: 'OpenApp'}, {command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1'});
+            expect(result).toEqual({conflictAction: {type: 'replace', index: 1}});
+        });
+
+        it('replaces when the queued request has no participants but the new request does', () => {
+            const persistedRequests = [{command: WRITE_COMMANDS.OPEN_REPORT, data: {reportID: '1'}}];
+            const result = resolveOpenReportDuplicationConflictAction<OnyxKey>(persistedRequests, {reportID: '1', accountIDList: '10,20'});
+            expect(result).toEqual({conflictAction: {type: 'replace', index: 0}});
+        });
+    });
+
+    describe('resolveVacationDelegateDeletionConflicts', () => {
+        it('drops a queued self-service set and keeps a domain admin set for a member', () => {
+            // Given a self-service set queued offline (e.g. a changed clear after date) next to a domain admin's set for a member
+            const persistedRequests = [
+                {command: WRITE_COMMANDS.SET_VACATION_DELEGATE, data: {vacationDelegateEmail: 'delegate@example.com', clearAfter: '2026-10-02 06:59:59'}},
+                {command: 'OpenReport'},
+                {command: WRITE_COMMANDS.SET_VACATION_DELEGATE, data: {vacationDelegateEmail: 'delegate@example.com', domainAccountID: 123}},
+            ];
+
+            // When the user removes their own delegate
+            const result = resolveVacationDelegateDeletionConflicts<OnyxKey>(persistedRequests);
+
+            // Then only the self-service set is dropped, since its response would bring the removed delegate back, and the removal is still sent
+            expect(result).toEqual({conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}});
+        });
+
+        it('pushes when no self-service set is queued', () => {
+            // Given a queue with only unrelated requests and a domain admin's set for a member
+            const persistedRequests = [{command: 'OpenReport'}, {command: WRITE_COMMANDS.SET_VACATION_DELEGATE, data: {domainAccountID: 123}}];
+
+            // When the user removes their own delegate
+            const result = resolveVacationDelegateDeletionConflicts<OnyxKey>(persistedRequests);
+
+            // Then nothing is dropped and the removal is pushed as usual
+            expect(result).toEqual({conflictAction: {type: 'push'}});
+        });
+    });
+
+    const openApp = (): AnyRequest => ({command: WRITE_COMMANDS.OPEN_APP});
+    const fullReconnect = (): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP});
+    const drop = {conflictAction: {type: 'noAction'}};
+    const push = {conflictAction: {type: 'push'}};
+
+    describe('resolveReconnectDuplicationConflictAction', () => {
+        const incrementalReconnect = (updateIDFrom: number): AnyRequest => ({command: WRITE_COMMANDS.RECONNECT_APP, data: {updateIDFrom}});
+
+        // Redundant incoming reconnect is dropped (noAction); a wider one is pushed. A wider one also
+        // deletes a narrower request that is only queued (redundant now), but can't delete an in-flight one.
+        const replaceQueued = {conflictAction: {type: 'delete', indices: [0], pushNewRequest: true}};
+        it.each([
+            ['full', 'full', drop, drop, fullReconnect(), fullReconnect()],
+            ['full', 'incremental', drop, drop, fullReconnect(), incrementalReconnect(500)],
+            ['incremental(500)', 'incremental(600)', drop, drop, incrementalReconnect(500), incrementalReconnect(600)],
+            ['incremental(500)', 'incremental(500)', drop, drop, incrementalReconnect(500), incrementalReconnect(500)],
+            ['incremental(500)', 'full', push, replaceQueued, incrementalReconnect(500), fullReconnect()],
+            ['incremental(500)', 'incremental(400)', push, replaceQueued, incrementalReconnect(500), incrementalReconnect(400)],
+            ['OpenApp', 'incremental', drop, drop, openApp(), incrementalReconnect(500)],
+        ])('live %s vs incoming reconnect %s', (_live, _incoming, expectedOngoing, expectedQueued, live: AnyRequest, incoming: AnyRequest) => {
+            // Decided against the in-flight (ongoing) request, which can never be deleted.
+            expect(resolveReconnectDuplicationConflictAction([], live, incoming)).toEqual(expectedOngoing);
+            // And against a waiting-queue request, which a wider incoming one can replace.
+            expect(resolveReconnectDuplicationConflictAction([live], null, incoming)).toEqual(expectedQueued);
+        });
+
+        // OpenApp only ever appears on the live side here (it covers an incoming reconnect because it
+        // re-fetches everything). An incoming OpenApp does not use this resolver: it goes through
+        // resolveOpenAppDuplicationConflictAction, covered below and end-to-end by "OpenApp should replace
+        // same requests" in tests/actions/SessionTest.ts.
+        it('pushes when no reconnect-family request is live', () => {
+            expect(resolveReconnectDuplicationConflictAction([], null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
+        });
+
+        it('ignores unrelated commands in the queue when deciding coverage', () => {
+            const persistedRequests: AnyRequest[] = [{command: 'AddComment'}, {command: 'OpenReport', data: {reportID: '1'}}];
+            // No reconnect-family request is live, so an incoming reconnect is pushed.
+            expect(resolveReconnectDuplicationConflictAction(persistedRequests, null, fullReconnect())).toEqual({conflictAction: {type: 'push'}});
+            // A queued full reconnect alongside unrelated commands still covers an incoming incremental one.
+            expect(resolveReconnectDuplicationConflictAction([...persistedRequests, fullReconnect()], null, incrementalReconnect(500))).toEqual({conflictAction: {type: 'noAction'}});
+        });
+    });
+
+    describe('resolveOpenAppDuplicationConflictAction', () => {
+        const replaceQueued = (index: number) => ({conflictAction: {type: 'replace', index}});
+        it.each([
+            ['an OpenApp is in flight', [], openApp(), true, drop],
+            ['an OpenApp is in flight and the caller opted out', [], openApp(), false, push],
+            ['an OpenApp is both in flight and queued', [openApp()], openApp(), true, drop],
+            ['only a reconnect is in flight', [], fullReconnect(), true, push],
+            ['nothing is live', [], null, true, push],
+            ['an OpenApp is queued behind unrelated commands', [{command: 'AddComment'}, openApp()], null, true, replaceQueued(1)],
+            ['an OpenApp is queued and the caller opted out', [openApp()], null, false, replaceQueued(0)],
+        ])('%s', (_case, persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean, expected) => {
+            expect(resolveOpenAppDuplicationConflictAction(persistedRequests, ongoingRequest, shouldDedupeWithInFlight)).toEqual(expected);
         });
     });
 });

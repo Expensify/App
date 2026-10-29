@@ -1,8 +1,10 @@
-import type {ForwardedRef, ReactNode} from 'react';
-import React, {forwardRef} from 'react';
-import {View} from 'react-native';
-import type {EdgeInsets, useSafeAreaFrame as LibUseSafeAreaFrame, WithSafeAreaInsetsProps} from 'react-native-safe-area-context';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ForwardedRef, ReactNode} from 'react';
+import type {EdgeInsets, useSafeAreaFrame as LibUseSafeAreaFrame, WithSafeAreaInsetsProps} from 'react-native-safe-area-context';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SafeAreaProviderProps = ChildrenProps;
 type SafeAreaConsumerProps = {
@@ -20,25 +22,24 @@ const insets: EdgeInsets = {
 };
 
 function withSafeAreaInsets(WrappedComponent: React.ComponentType<WithSafeAreaInsetsProps & {ref: ForwardedRef<unknown>}>) {
-    function WithSafeAreaInsets(props: WithSafeAreaInsetsProps & {forwardedRef: React.ForwardedRef<unknown>}) {
+    function WithSafeAreaInsets(props: WithSafeAreaInsetsProps & {ref: React.ForwardedRef<unknown>}) {
         return (
             <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                // eslint-disable-next-line react/prop-types
-                ref={props.forwardedRef}
+                ref={props.ref}
                 insets={insets}
             />
         );
     }
 
-    const WithSafeAreaInsetsWithRef = forwardRef((props: WithSafeAreaInsetsProps, ref: ForwardedRef<unknown>) => (
-        <WithSafeAreaInsets
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            forwardedRef={ref}
-        />
-    ));
+    function WithSafeAreaInsetsWithRef(props: WithSafeAreaInsetsProps & {ref: ForwardedRef<unknown>}) {
+        return (
+            <WithSafeAreaInsets
+                {...props}
+                ref={props.ref}
+            />
+        );
+    }
 
     return WithSafeAreaInsetsWithRef;
 }

@@ -1,21 +1,26 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import ExpensifyWordmark from '@components/ExpensifyWordmark';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {signInWithValidateCode} from '@libs/actions/Session';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isValidValidateCode} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ValidateCodeModalProps = {
     /** Code to display. */
@@ -27,29 +32,37 @@ type ValidateCodeModalProps = {
 function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['ValidateCode']);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const signInHere = useCallback(() => Session.signInWithValidateCode(accountID, code), [accountID, code]);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const signInHere = () => signInWithValidateCode(accountID, code, preferredLocale);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isValidCode = isValidValidateCode(code);
 
     return (
         <FullPageNotFoundView
-            shouldShow={!ValidationUtils.isValidValidateCode(code)}
+            testID="validate-code-not-found"
+            shouldShow={!isValidCode}
+            shouldForceFullScreen={!isValidCode}
             shouldShowBackButton={shouldUseNarrowLayout}
             onLinkPress={() => {
                 Navigation.goBack();
             }}
         >
-            <View style={styles.deeplinkWrapperContainer}>
+            <View
+                style={styles.deeplinkWrapperContainer}
+                testID="validate-code"
+            >
                 <View style={styles.deeplinkWrapperMessage}>
                     <View style={styles.mb2}>
                         <Icon
                             width={variables.modalTopIconWidth}
                             height={variables.modalTopIconHeight}
-                            src={Illustrations.MagicCode}
+                            src={illustrations.ValidateCode}
                         />
                     </View>
-                    <Text style={[styles.textHeadline, styles.textXXLarge, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
+                    <Text style={[styles.textHeadline, styles.textAlignCenter]}>{translate('validateCodeModal.title')}</Text>
                     <View style={[styles.mt2, styles.mb2]}>
                         <Text style={styles.textAlignCenter}>
                             {translate('validateCodeModal.description')}
@@ -64,20 +77,21 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                     <View style={styles.mt6}>
                         <Text style={styles.validateCodeDigits}>{code}</Text>
                     </View>
+                    <View style={[styles.mt6]}>
+                        <Text style={styles.textAlignCenter}>{translate('validateCodeModal.doNotShare')}</Text>
+                    </View>
                 </View>
                 <View style={styles.deeplinkWrapperFooter}>
                     <Icon
                         width={variables.modalWordmarkWidth}
                         height={variables.modalWordmarkHeight}
                         fill={theme.success}
-                        src={Expensicons.ExpensifyWordmark}
+                        src={ExpensifyWordmark}
                     />
                 </View>
             </View>
         </FullPageNotFoundView>
     );
 }
-
-ValidateCodeModal.displayName = 'ValidateCodeModal';
 
 export default ValidateCodeModal;

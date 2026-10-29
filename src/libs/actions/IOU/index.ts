@@ -1,0 +1,167 @@
+import {getAllPersonalDetails as getAllPersonalDetailsFromStore, getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    callback: (value) => {
+        if (!value) {
+            allTransactions = {};
+            return;
+        }
+
+        allTransactions = value;
+    },
+});
+
+let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
+    callback: (value) => {
+        allTransactionDrafts = value ?? {};
+    },
+});
+
+// TODO: https://github.com/Expensify/App/issues/66512
+let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+    callback: (value) => {
+        if (!value) {
+            allTransactionViolations = {};
+            return;
+        }
+
+        allTransactionViolations = value;
+    },
+});
+
+let allReports: OnyxCollection<OnyxTypes.Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+
+let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    callback: (value) => {
+        allReportNameValuePairs = value;
+    },
+});
+
+let deprecatedUserAccountID = -1;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (value) => {
+        deprecatedUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    },
+});
+
+let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    callback: (actions) => {
+        if (!actions) {
+            return;
+        }
+        allReportActions = actions;
+    },
+});
+
+// Use connectWithoutView because this is created for non-UI task only
+let recentAttendees: OnyxEntry<Attendee[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_RECENT_ATTENDEES,
+    callback: (value) => (recentAttendees = value),
+});
+
+let allSnapshots: OnyxCollection<OnyxTypes.SearchResults> = {};
+// Expense actions run outside React and use this cache to optimistically update loaded searches without a view subscription.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    callback: (value) => {
+        allSnapshots = value ?? {};
+    },
+});
+
+function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
+    return getAllPersonalDetailsFromStore();
+}
+
+function getAllTransactions(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
+    return allTransactions;
+}
+
+/**
+ * @deprecated Use `useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)` in components and pass the data down as a parameter instead.
+ */
+// TODO: https://github.com/Expensify/App/issues/66512
+function getAllTransactionViolations(): NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> {
+    return allTransactionViolations;
+}
+
+function getAllReports(): OnyxCollection<OnyxTypes.Report> {
+    return allReports;
+}
+
+function getAllReportActionsFromIOU(): OnyxCollection<OnyxTypes.ReportActions> {
+    return allReportActions;
+}
+
+function getAllReportNameValuePairs(): OnyxCollection<OnyxTypes.ReportNameValuePairs> {
+    return allReportNameValuePairs;
+}
+
+function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
+    return allTransactionDrafts;
+}
+
+function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
+    return getPersonalDetail(deprecatedUserAccountID);
+}
+
+function getCurrentUserAccountIDFromSession(): number {
+    return deprecatedUserAccountID;
+}
+
+function getRecentAttendees(): OnyxEntry<Attendee[]> {
+    return recentAttendees;
+}
+
+function getAllSnapshots(): OnyxCollection<OnyxTypes.SearchResults> {
+    return allSnapshots;
+}
+
+function getIOUAndChatReportForIOUAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>, reports: OnyxCollection<OnyxTypes.Report>) {
+    const iouReportID = isMoneyRequestAction(reportAction) ? reportAction.reportID : undefined;
+    const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    return {iouReport, chatReport: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`]};
+}
+
+export {
+    getAllPersonalDetails,
+    getAllTransactions,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getAllTransactionViolations,
+    getAllReports,
+    getAllReportActionsFromIOU,
+    getAllReportNameValuePairs,
+    getAllTransactionDrafts,
+    getCurrentUserPersonalDetails,
+    getCurrentUserAccountIDFromSession,
+    getRecentAttendees,
+    getAllSnapshots,
+    getIOUAndChatReportForIOUAction,
+};

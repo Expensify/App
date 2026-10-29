@@ -6,20 +6,36 @@ type ShareTrackedExpenseParams = {
     comment: string;
     created: string;
     merchant: string;
-    policyID: string;
-    transactionID: string;
-    moneyRequestPreviewReportActionID: string;
-    moneyRequestReportID: string;
-    moneyRequestCreatedReportActionID: string;
-    actionableWhisperReportActionID: string;
+    policyID: string | undefined;
+    transactionID: string | undefined;
+    moneyRequestPreviewReportActionID: string | undefined;
+    moneyRequestReportID: string | undefined;
+    moneyRequestCreatedReportActionID: string | undefined;
+    actionableWhisperReportActionID: string | undefined;
     modifiedExpenseReportActionID: string;
-    reportPreviewReportActionID: string;
+    reportPreviewReportActionID: string | undefined;
     category?: string;
     tag?: string;
     receipt?: Receipt;
     taxCode: string;
     taxAmount: number;
     billable?: boolean;
+    waypoints?: string;
+    customUnitID?: string;
+    customUnitRateID?: string;
+    policyExpenseChatReportID?: string;
+    policyExpenseCreatedReportActionID?: string;
+    adminsChatReportID?: string;
+    adminsCreatedReportActionID?: string;
+    engagementChoice?: string;
+    guidedSetupData?: string;
+    description?: string;
+    accountantEmail: string;
+    policyName?: string;
+    attendees?: string;
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
+    selectedRouteDistance?: number;
 };
 
 export default ShareTrackedExpenseParams;

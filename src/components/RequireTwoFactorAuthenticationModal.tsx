@@ -1,15 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import Accessibility from '@libs/Accessibility';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
+import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
 import LottieAnimations from './LottieAnimations';
 import Modal from './Modal';
-import SafeAreaConsumer from './SafeAreaConsumer';
 import Text from './Text';
 
 type RequireTwoFactorAuthenticationModalProps = {
@@ -22,7 +29,6 @@ type RequireTwoFactorAuthenticationModalProps = {
     /** Modal visibility */
     isVisible: boolean;
 
-    /** Describe what is showing */
     description: string;
 
     /**
@@ -33,60 +39,60 @@ type RequireTwoFactorAuthenticationModalProps = {
 };
 
 function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, isVisible, onSubmit, shouldEnableNewFocusManagement}: RequireTwoFactorAuthenticationModalProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['Safe']);
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false});
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <Modal
-                    onClose={onCancel}
-                    isVisible={isVisible}
-                    type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-                    innerContainerStyle={{...styles.pb5, ...styles.pt3, ...styles.boxShadowNone}}
-                    shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
-                    animationOutTiming={500}
-                >
-                    <View style={safeAreaPaddingBottomStyle}>
-                        <View
-                            style={[
-                                styles.mh3,
-                                styles.br3,
-                                styles.cardSectionIllustration,
-                                styles.alignItemsCenter,
-                                StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor),
-                            ]}
-                        >
-                            <Lottie
-                                source={LottieAnimations.Safe}
-                                style={styles.h100}
-                                webStyle={styles.h100}
-                                autoPlay
-                                loop
-                            />
-                        </View>
-                        <View style={[styles.mt5, styles.mh5]}>
-                            <View style={[styles.gap2, styles.mb10]}>
-                                <Text style={[styles.textHeadlineH1]}>{translate('twoFactorAuth.pleaseEnableTwoFactorAuth')}</Text>
-                                <Text style={styles.textSupporting}>{description}</Text>
-                            </View>
-                            <Button
-                                large
-                                success
-                                pressOnEnter
-                                onPress={onSubmit}
-                                text={translate('twoFactorAuth.enableTwoFactorAuth')}
-                            />
-                        </View>
+        <Modal
+            onClose={onCancel}
+            isVisible={isVisible}
+            shouldTreatModalAsCovering
+            type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
+            innerContainerStyle={{...styles.pb5, ...styles.pt0, ...styles.boxShadowNone}}
+            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            enableEdgeToEdgeBottomSafeAreaPadding
+        >
+            <View style={bottomSafeAreaPaddingStyle}>
+                <View style={[styles.cardSectionIllustration, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
+                    {isReduceMotionEnabled ? (
+                        <ImageSVG
+                            src={illustrations.Safe}
+                            style={styles.h100}
+                        />
+                    ) : (
+                        <Lottie
+                            source={LottieAnimations.Safe}
+                            style={styles.h100}
+                            webStyle={styles.h100}
+                            autoPlay
+                            loop
+                        />
+                    )}
+                </View>
+                <View style={[styles.mt5, styles.mh5]}>
+                    <View style={[styles.gap2, styles.mb10]}>
+                        <Text style={[styles.textHeadlineH1]}>{translate('twoFactorAuth.pleaseEnableTwoFactorAuth')}</Text>
+                        <Text style={styles.textSupporting}>{description}</Text>
                     </View>
-                </Modal>
-            )}
-        </SafeAreaConsumer>
+                    <Button
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={onSubmit}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
+                    </Button>
+                </View>
+            </View>
+        </Modal>
     );
 }
-
-RequireTwoFactorAuthenticationModal.displayName = 'RequireTwoFactorAuthenticationModal';
 
 export default RequireTwoFactorAuthenticationModal;

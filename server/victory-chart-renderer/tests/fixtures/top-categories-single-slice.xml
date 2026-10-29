@@ -1,0 +1,8 @@
+<victorychart width="680" height="530" domainpadding="0" style="{parent: {backgroundColor: '#F7F2EF', borderRadius: 16, width: '100%', maxWidth: 680}}">
+    <victoryaxis style="{axis: {stroke: 'transparent'}, ticks: {stroke: 'transparent'}, grid: {stroke: 'transparent'}, tickLabels: {fill: 'transparent'}}" />
+    <victoryaxis dependentaxis style="{axis: {stroke: 'transparent'}, ticks: {stroke: 'transparent'}, grid: {stroke: 'transparent'}, tickLabels: {fill: 'transparent'}}" />
+    <victorylabel x="32" y="40" text="Top categories" style="{fill: '#002E22', fontSize: 17, fontWeight: 700, fontFamily: 'Expensify Neue'}" />
+    <victorylabel x="32" y="62" text="As of: Jul 9, 2026 at 1:47 PM" style="{fill: '#76847E', fontSize: 11, fontWeight: 400, fontFamily: 'Expensify Neue'}" />
+    <victorypie innerradius="125" padangle="0.5" radius="145" labelindicator="&lt;ShiftedLineSegment dy=&quot;0&quot; style=&quot;{stroke: '#E6E1DA', strokeWidth: 1}&quot; /&gt;" labelindicatorinneroffset="12" labelindicatorouteroffset="24" colorscale="['#FED607']" data="[{x: 'Uncategorized', y: 380}]" labels="['Uncategorized\n$380']" labelcomponent="&lt;victorylabel lineheight=&quot;[1.2, 1.4]&quot; style=&quot;[{fill: '#002E22', fontSize: 11, fontWeight: 700, fontFamily: 'Expensify Neue'}, {fill: '#76847E', fontSize: 11, fontWeight: 400, fontFamily: 'Expensify Neue'}]&quot; /&gt;" labelradius="215" style="{data: {stroke: '#F7F2EF'}}" />
+    <victorylabel x="340" y="265" textanchor="middle" verticalanchor="middle" text="'Total\n$380'" lineheight="[1.23, 1.27]" style="[{fill: '#76847E', fontSize: 13, fontFamily: 'Expensify Neue'}, {fill: '#002E22', fontSize: 26, fontFamily: 'Expensify New Kansas'}]" />
+</victorychart>

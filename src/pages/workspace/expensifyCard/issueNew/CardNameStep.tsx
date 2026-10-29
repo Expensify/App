@@ -1,73 +1,107 @@
-import React, {useCallback} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Card from '@userActions/Card';
+
+import {getCardNameError, getCardNameErrorMessage, getDefaultCardName} from '@libs/CardUtils';
+import {isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
+
+import {setIssueNewCardStepAndData} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
+import KeyboardUtils from '@src/utils/keyboard';
 
-function CardNameStep() {
-    const {translate} = useLocalize();
+import React from 'react';
+
+type CardNameStepProps = {
+    policyID: string | undefined;
+    stepNames: readonly string[];
+    startStepIndex: number;
+};
+
+function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) {
     const styles = useThemeStyles();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [issueNewCard] = useOnyx(ONYXKEYS.ISSUE_NEW_EXPENSIFY_CARD);
+    const isInLandscapeMode = useIsInLandscapeMode();
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
+    const userName = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
+        return formatPhoneNumber(personalDetail?.firstName || data?.assigneeEmail || '');
+    });
+    const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
+    const areSpendRulesAvailable = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, policyCategories);
 
-    const userName = PersonalDetailsUtils.getUserNameByEmail(data?.assigneeEmail ?? '', 'firstName');
-    const defaultCardTitle = data?.cardType !== CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL ? CardUtils.getDefaultCardName(userName) : '';
+    const defaultCardTitle = !isVirtualCard ? getDefaultCardName(userName) : '';
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.CARD_TITLE]);
-        const length = values.cardTitle.length;
-        if (length > CONST.STANDARD_LENGTH_LIMIT) {
-            ErrorUtils.addErrorMessage(errors, INPUT_IDS.CARD_TITLE, translate('common.error.characterLimitExceedCounter', {length, limit: CONST.STANDARD_LENGTH_LIMIT}));
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM> = {};
+        const error = getCardNameError(values.cardTitle);
+
+        if (error) {
+            errors[INPUT_IDS.CARD_TITLE] = getCardNameErrorMessage(translate, error, values.cardTitle);
         }
+
         return errors;
     };
 
-    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-        Card.setIssueNewCardStepAndData({
-            step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
-            data: {
-                cardTitle: values.cardTitle,
-            },
-            isEditing: false,
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
+        KeyboardUtils.dismiss().then(() => {
+            setIssueNewCardStepAndData({
+                step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
+                data: {
+                    cardTitle: StringUtils.sanitizeName(values.cardTitle),
+                },
+                isEditing: false,
+                policyID,
+            });
         });
-    }, []);
+    };
 
-    const handleBackButtonPress = useCallback(() => {
-        if (isEditing) {
-            Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false});
-            return;
-        }
-        Card.setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT});
-    }, [isEditing]);
+    const handleBackButtonPress = () => {
+        KeyboardUtils.dismiss().then(() => {
+            if (isEditing) {
+                setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
+                return;
+            }
+            if (isVirtualCard || areSpendRulesAvailable) {
+                setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.SPEND_RULES, policyID});
+                return;
+            }
+
+            setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, policyID});
+        });
+    };
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CardNameStep.displayName}
+            wrapperID="CardNameStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={4}
-            stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            startStepIndex={startStepIndex}
+            stepNames={stepNames}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>
+            {!isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
             <FormProvider
                 formID={ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM}
                 submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
@@ -75,7 +109,10 @@ function CardNameStep() {
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
+                addBottomSafeAreaPadding
             >
+                {isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.CARD_TITLE}
@@ -91,7 +128,5 @@ function CardNameStep() {
         </InteractiveStepWrapper>
     );
 }
-
-CardNameStep.displayName = 'CardNameStep';
 
 export default CardNameStep;

@@ -1,29 +1,34 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef, useState} from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import AddressSearch from '@components/AddressSearch';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import CurrencySelector from '@components/CurrencySelector';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import RenderHTML from '@components/RenderHTML';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import StateSelector from '@components/StateSelector';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import TextLink from '@components/TextLink';
+
+import useClearedAddCardDraftCurrency from '@hooks/useClearedAddCardDraftCurrency';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+
+import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidNameOnCard, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ReactNode} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type PaymentCardFormProps = {
     shouldShowPaymentCardForm?: boolean;
@@ -38,20 +43,12 @@ type PaymentCardFormProps = {
     footerContent?: ReactNode;
     /** Custom content to display in the header before card form */
     headerContent?: ReactNode;
-    /** object to get currency route details from */
-    currencySelectorRoute?: typeof ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY;
 };
 
 function IAcceptTheLabel() {
     const {translate} = useLocalize();
 
-    return (
-        <Text>
-            {`${translate('common.iAcceptThe')}`}
-            <TextLink href={CONST.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink> {`${translate('common.and')}`}
-            <TextLink href={CONST.PRIVACY_URL}> {` ${translate('common.privacyPolicy')} `}</TextLink>
-        </Text>
-    );
+    return <RenderHTML html={translate('common.acceptTermsAndPrivacy')} />;
 }
 
 const REQUIRED_FIELDS = [
@@ -129,44 +126,99 @@ function PaymentCardForm({
     showStateSelector,
     footerContent,
     headerContent,
-    currencySelectorRoute,
 }: PaymentCardFormProps) {
     const styles = useThemeStyles();
-    const [data] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
+    const preferredCurrency = usePreferredCurrency();
+    const {isBetaEnabled} = usePermissions();
+    // EUR is only a selectable billing currency behind CONST.BETAS.EUR_BILLING; without it, default to a currency the
+    // selector actually offers so a EUR-locale user can't silently submit a EUR card and get pushed onto the SCA/3DS path.
+    const defaultCurrency = preferredCurrency === CONST.PAYMENT_CARD_CURRENCY.EUR && !isBetaEnabled(CONST.BETAS.EUR_BILLING) ? CONST.PAYMENT_CARD_CURRENCY.USD : preferredCurrency;
+
+    const hasClearedDraftCurrency = useClearedAddCardDraftCurrency();
 
     const {translate} = useLocalize();
-    const route = useRoute();
     const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
+    const [expirationDate, setExpirationDate] = useState(data?.expirationDate);
+
+    const previousValueRef = useRef<string>('');
+
+    // Formats user input into a valid expiration date (MM/YY) and automatically adds slash after the month.
+    // Ensures the month is always between 01 and 12 by correcting invalid value to match the proper format.
+    const onChangeExpirationDate = (newValue: string) => {
+        if (typeof newValue !== 'string') {
+            return;
+        }
+
+        let value = newValue.replaceAll(CONST.REGEX.NON_NUMERIC, '');
+
+        if (value.length === 1) {
+            const firstDigit = value.charAt(0);
+            if (parseInt(firstDigit, 10) > 1) {
+                value = `0${firstDigit}`;
+            }
+        }
+
+        if (value.length >= 2) {
+            const month = parseInt(value.slice(0, 2), 10);
+            if (value.startsWith('00')) {
+                value = '0';
+            }
+            if (month > 12) {
+                value = `0${value.charAt(0)}${value.charAt(1)}${value.charAt(2)}`;
+            }
+        }
+
+        const prevValue = previousValueRef.current?.replaceAll(CONST.REGEX.NON_NUMERIC, '') ?? '';
+        let formattedValue = value;
+
+        if (value.length === 2 && prevValue.length < 2) {
+            formattedValue = `${value}/`;
+        } else if (value.length > 2) {
+            formattedValue = `${value.slice(0, 2)}/${value.slice(2, 4)}`;
+        }
+
+        previousValueRef.current = formattedValue;
+        setExpirationDate(formattedValue);
+    };
 
     const [cardNumber, setCardNumber] = useState('');
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, REQUIRED_FIELDS);
+        const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
 
-        if (values.nameOnCard && !ValidationUtils.isValidLegalName(values.nameOnCard)) {
+        if (values.nameOnCard && !isValidNameOnCard(values.nameOnCard)) {
             errors.nameOnCard = translate(label.error.nameOnCard);
         }
 
-        if (values.cardNumber && !ValidationUtils.isValidDebitCard(values.cardNumber.replace(/ /g, ''))) {
+        if (values.cardNumber && !isValidDebitCard(values.cardNumber.replaceAll(' ', ''))) {
             errors.cardNumber = translate(label.error.cardNumber);
         }
 
-        if (values.expirationDate && !ValidationUtils.isValidExpirationDate(values.expirationDate)) {
+        // When user pastes 5 digit value without slash, trim it to the first 4 digits before validation.
+        const normalizedExpirationDate = values.expirationDate?.length === 5 && !values.expirationDate.includes('/') ? values.expirationDate.slice(0, 4) : values.expirationDate;
+
+        if (normalizedExpirationDate && !isValidExpirationDate(normalizedExpirationDate)) {
             errors.expirationDate = translate(label.error.expirationDate);
         }
 
-        if (values.securityCode && !ValidationUtils.isValidSecurityCode(values.securityCode)) {
+        if (values.securityCode && !isValidSecurityCode(values.securityCode)) {
             errors.securityCode = translate(label.error.securityCode);
         }
 
-        if (values.addressStreet && !ValidationUtils.isValidAddress(values.addressStreet)) {
+        if (values.addressStreet && !isValidAddress(values.addressStreet)) {
             errors.addressStreet = translate(label.error.addressStreet);
         }
 
-        if (values.addressZipCode && !ValidationUtils.isValidZipCode(values.addressZipCode)) {
-            errors.addressZipCode = translate(label.error.addressZipCode);
+        // If tempered with, this can block users from adding payment cards so
+        // do not touch unless you are aware of the context.
+        // See issue: https://github.com/Expensify/App/issues/55493#issuecomment-2616349754
+        if (values.addressZipCode && !isValidPaymentZipCode(values.addressZipCode)) {
+            errors.addressZipCode = translate('addPaymentCardPage.error.addressZipCode');
+        } else if (values.addressZipCode.length > CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE) {
+            errors.addressZipCode = translate('common.error.characterLimitExceedCounter', values.addressZipCode.length, CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE);
         }
 
         if (!values.acceptTerms) {
@@ -176,15 +228,15 @@ function PaymentCardForm({
         return errors;
     };
 
-    const onChangeCardNumber = useCallback((newValue: string) => {
+    const onChangeCardNumber = (newValue: string) => {
         // Replace all characters that are not spaces or digits
-        let validCardNumber = newValue.replace(/[^\d ]/g, '');
+        let validCardNumber = newValue.replaceAll(/[^\d ]/g, '');
 
         // Gets only the first 16 digits if the inputted number have more digits than that
         validCardNumber = validCardNumber.match(/(?:\d *){1,16}/)?.[0] ?? '';
 
         // Remove all spaces to simplify formatting
-        const cleanedNumber = validCardNumber.replace(/ /g, '');
+        const cleanedNumber = validCardNumber.replaceAll(' ', '');
 
         // Check if the number is a potential Amex card (starts with 34 or 37 and has up to 15 digits)
         const isAmex = /^3[47]\d{0,13}$/.test(cleanedNumber);
@@ -192,16 +244,16 @@ function PaymentCardForm({
         // Format based on Amex or standard 4-4-4-4 pattern
         if (isAmex) {
             // Format as 4-6-5 for Amex
-            validCardNumber = cleanedNumber.replace(/(\d{1,4})(\d{1,6})?(\d{1,5})?/, (match, p1, p2, p3) => [p1, p2, p3].filter(Boolean).join(' '));
+            validCardNumber = cleanedNumber.replaceAll(/(\d{1,4})(\d{1,6})?(\d{1,5})?/g, (match, p1, p2, p3) => [p1, p2, p3].filter(Boolean).join(' '));
         } else {
             // Format as 4-4-4-4 for non-Amex
             validCardNumber = cleanedNumber.match(/.{1,4}/g)?.join(' ') ?? '';
         }
 
         setCardNumber(validCardNumber);
-    }, []);
+    };
 
-    if (!shouldShowPaymentCardForm) {
+    if (!shouldShowPaymentCardForm || isLoadingOnyxValue(metadata) || !hasClearedDraftCurrency) {
         return null;
     }
 
@@ -215,6 +267,7 @@ function PaymentCardForm({
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
+                shouldPreserveCustomValidationErrors
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -227,6 +280,8 @@ function PaymentCardForm({
                     inputMode={CONST.INPUT_MODE.NUMERIC}
                     onChangeText={onChangeCardNumber}
                     value={cardNumber}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                    autoComplete="cc-number"
                 />
                 <InputWrapper
                     InputComponent={TextInput}
@@ -237,19 +292,26 @@ function PaymentCardForm({
                     role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.mt5]}
                     spellCheck={false}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                    autoComplete="cc-name"
                 />
                 <View style={[styles.flexRow, styles.mt5]}>
                     <View style={[styles.mr2, styles.flex1]}>
                         <InputWrapper
                             defaultValue={data?.expirationDate}
+                            value={expirationDate}
+                            onChangeText={onChangeExpirationDate}
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.EXPIRATION_DATE}
                             label={translate(label.defaults.expiration)}
+                            testID={label.defaults.expiration}
                             aria-label={translate(label.defaults.expiration)}
                             role={CONST.ROLE.PRESENTATION}
                             placeholder={translate(label.defaults.expirationDate)}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
-                            maxLength={4}
+                            maxLength={5}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                            autoComplete="cc-exp"
                         />
                     </View>
                     <View style={styles.flex1}>
@@ -262,6 +324,8 @@ function PaymentCardForm({
                             role={CONST.ROLE.PRESENTATION}
                             maxLength={4}
                             inputMode={CONST.INPUT_MODE.NUMERIC}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                            autoComplete="cc-csc"
                         />
                     </View>
                 </View>
@@ -275,7 +339,9 @@ function PaymentCardForm({
                             containerStyles={[styles.mt5]}
                             maxInputLength={CONST.FORM_CHARACTER_LIMIT}
                             // Limit the address search only to the USA until we fully can support international debit cards
-                            isLimitedToUSA
+                            limitSearchesToCountry={CONST.COUNTRY.US}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                            autoComplete="street-address"
                         />
                     </View>
                 )}
@@ -283,17 +349,15 @@ function PaymentCardForm({
                     InputComponent={TextInput}
                     defaultValue={data?.addressZipCode}
                     inputID={INPUT_IDS.ADDRESS_ZIP_CODE}
-                    label={translate('common.zip')}
-                    aria-label={translate('common.zip')}
+                    label={translate('common.zipPostCode')}
+                    aria-label={translate('common.zipPostCode')}
                     role={CONST.ROLE.PRESENTATION}
-                    inputMode={CONST.INPUT_MODE.NUMERIC}
-                    maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     containerStyles={[styles.mt5]}
+                    autoComplete="postal-code"
                 />
                 {!!showStateSelector && (
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
-                            stateSelectorRoute={route.name === SCREENS.IOU_SEND.ADD_DEBIT_CARD ? ROUTES.MONEY_REQUEST_STATE_SELECTOR : undefined}
                             InputComponent={StateSelector}
                             inputID={INPUT_IDS.ADDRESS_STATE}
                         />
@@ -302,8 +366,7 @@ function PaymentCardForm({
                 {!!showCurrencyField && (
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
-                            currencySelectorRoute={currencySelectorRoute}
-                            value={data?.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD}
+                            defaultValue={defaultCurrency}
                             InputComponent={CurrencySelector}
                             inputID={INPUT_IDS.CURRENCY}
                         />
@@ -327,7 +390,5 @@ function PaymentCardForm({
         </>
     );
 }
-
-PaymentCardForm.displayName = 'PaymentCardForm';
 
 export default PaymentCardForm;

@@ -1,5 +1,4 @@
 type CardDeactivateParams = {
-    authToken: string;
     cardID: number;
 };
 

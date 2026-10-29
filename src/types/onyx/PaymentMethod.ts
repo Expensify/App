@@ -1,5 +1,7 @@
-import type {ViewStyle} from 'react-native';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import type BankAccount from './BankAccount';
 import type Fund from './Fund';
 
@@ -20,8 +22,10 @@ type PaymentMethod = (BankAccount | Fund) & {
     /** Width of the menu item icon */
     iconWidth?: number;
 
-    /** Icon wrapper styles */
-    iconStyles?: ViewStyle[];
+    iconStyles?: StyleProp<ViewStyle>;
+
+    /** The fill color to pass into the icon. */
+    iconFill?: string | ((isHovered: boolean) => string);
 };
 
 export default PaymentMethod;

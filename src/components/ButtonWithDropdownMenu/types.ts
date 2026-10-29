@@ -1,16 +1,24 @@
-import type {RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {SwitchProps} from '@components/Switch';
+
+import type {ButtonVariant} from '@styles/utils/types';
+
 import type CONST from '@src/CONST';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.REPORT_ACTION_TYPE>;
+import type {ComponentRef, RefObject} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
 type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
+
+type DomainMemberBulkActionType = DeepValueOf<typeof CONST.DOMAIN.MEMBERS.BULK_ACTION_TYPES>;
 
 type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
 
@@ -18,34 +26,78 @@ type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTI
 
 type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
 
-type DropdownOption<TValueType> = {
+type OnboardingHelpType = DeepValueOf<typeof CONST.ONBOARDING_HELP>;
+
+type DropdownOption<TValueType> = WithSentryLabel & {
     value: TValueType;
     text: string;
     icon?: IconAsset;
+    shouldShowButtonRightIcon?: boolean;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
     additionalIconStyles?: StyleProp<ViewStyle>;
-    onSelected?: () => void;
+    onSelected?: () => void | Promise<void>;
     disabled?: boolean;
     iconFill?: string;
     interactive?: boolean;
     numberOfLinesTitle?: number;
-    titleStyle?: ViewStyle;
+    titleStyle?: StyleProp<TextStyle>;
     shouldCloseModalOnSelect?: boolean;
+    description?: string;
+    /** Whether to show the description above the title (e.g. a gray label on top of a prominent value) */
+    shouldShowDescriptionOnTop?: boolean;
+    descriptionTextStyle?: StyleProp<TextStyle>;
+    wrapperStyle?: StyleProp<ViewStyle>;
+    displayInDefaultIconColor?: boolean;
+    /** Whether the selected index should be updated when the option is selected even if we have onSelected callback */
+    shouldUpdateSelectedIndex?: boolean;
+    subMenuItems?: PopoverMenuItem[];
+    backButtonText?: string;
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+    shouldShow?: boolean;
+    shouldShowLoadingSpinnerIcon?: boolean;
+    /** Whether to render a divider before this option */
+    addSeparatorBefore?: boolean;
+
+    /** When set, renders a Switch on the right of the option as an inline toggle row. The menu builds the Switch from this data so no JSX is threaded through the option config. */
+    switchProps?: SwitchProps;
+
+    /** Errors to display under the option (e.g. when an inline toggle's save fails) */
+    errors?: Errors | null;
+
+    /** Callback to dismiss the option's errors */
+    onCloseError?: () => void;
+
+    /** Whether to show the default right chevron icon (e.g. for a row that opens another page) */
+    shouldShowRightIcon?: boolean;
+
+    /** Style for the row that holds the title and the Switch (e.g. to vertically center a toggle against wrapped text) */
+    innerContainerStyle?: StyleProp<ViewStyle>;
+    /** The type of brick road indicator to show */
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    /** Whether selecting this option should bypass the delete confirmation modal */
+    shouldSkipDeleteModal?: boolean;
+
+    /** Whether selecting this option should avoid restoring focus to the dropdown before a follow-up modal opens on iOS */
+    shouldSkipFocusRestore?: boolean;
+
+    /** Whether to ignore compact popover menu styling for this item */
+    shouldIgnoreCompactStyle?: boolean;
+
+    /** Text shown above `subMenuItems` once the sub-menu is open */
+    subMenuHeaderText?: string;
 };
 
-type ButtonWithDropdownMenuProps<TValueType> = {
+type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** The custom text to display on the main button instead of selected option */
     customText?: string;
 
-    /** Text to display for the menu header */
     menuHeaderText?: string;
 
     /** Callback to execute when the main button is pressed */
     onPress: (event: GestureResponderEvent | KeyboardEvent | undefined, value: TValueType) => void;
 
-    /** Callback to execute when a dropdown option is selected */
     onOptionSelected?: (option: DropdownOption<TValueType>) => void;
 
     /** Callback when the options popover is shown */
@@ -60,16 +112,19 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Whether we should show a loading state for the main button */
     isLoading?: boolean;
 
-    /** The size of button size */
-    buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    size?: ValueOf<typeof CONST.BUTTON_SIZE>;
 
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
 
-    /** Additional styles to add to the component */
+    /** Whether the button should stay visually normal even when disabled. */
+    stayNormalOnDisable?: boolean;
+
     style?: StyleProp<ViewStyle>;
 
-    /** Additional styles to add to the component when it's disabled */
+    /** Additional styles for the inner button when isSplitButton is false (wrapper uses style). */
+    buttonStyle?: StyleProp<ViewStyle>;
+
     disabledStyle?: StyleProp<ViewStyle>;
 
     /** Menu options to display */
@@ -79,44 +134,79 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
 
-    /* ref for the button */
-    buttonRef?: RefObject<View>;
+    /** Whether the popover menu should flip to the opposite side of the button when it doesn't fit, instead of being clamped to the window edge */
+    shouldSwitchPositionIfOverflow?: boolean;
+
+    buttonRef?: RefObject<ComponentRef<typeof View> | null>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
 
-    /** Whether the button should use success style or not */
-    success?: boolean;
+    /** The visual variant of the button (success/danger) */
+    variant?: ButtonVariant;
 
     /** Whether the dropdown menu should be shown even if it has only one option */
     shouldAlwaysShowDropdownMenu?: boolean;
 
-    /** Additional style to add to the wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
-
-    /** Whether the button should use split style or not */
     isSplitButton?: boolean;
 
     /** Whether to use keyboard shortcuts for confirmation or not */
     useKeyboardShortcuts?: boolean;
 
-    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
-    shouldUseStyleUtilityForAnchorPosition?: boolean;
-
     /** Decides which index in menuItems should be selected */
     defaultSelectedIndex?: number;
 
-    /** Whether selected items should be marked as selected */
-    shouldShowSelectedItemCheck?: boolean;
+    shouldShowRadioButton?: boolean;
+
+    /** Used to locate the component in the tests */
+    testID?: string;
+
+    /** The second line text displays under the first line */
+    secondLineText?: string;
+
+    /** Callback to execute when a dropdown submenu option is selected */
+    onSubItemSelected?: (selectedItem: PopoverMenuItem, index: number, event?: GestureResponderEvent | KeyboardEvent) => void;
+
+    /** Icon for main button */
+    icon?: IconAsset;
+
+    shouldPopoverUseScrollView?: boolean;
+
+    /** Container style to be applied to the popover of the dropdown menu */
+    containerStyles?: StyleProp<ViewStyle>;
+
+    /** Whether to use modal padding style for the popover menu */
+    shouldUseModalPaddingStyle?: boolean;
+
+    shouldUseShortForm?: boolean;
+
+    /** Whether to display the option icon when only one option is available */
+    shouldUseOptionIcon?: boolean;
+
+    /** Used to apply styles specifically to the header text */
+    headerTextStyles?: StyleProp<TextStyle>;
+
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    ref?: React.Ref<ButtonWithDropdownMenuRef>;
+
+    /** Whether to put the header text after the back button */
+    shouldPutHeaderTextAfterBackButton?: boolean;
+};
+
+type ButtonWithDropdownMenuRef = {
+    setIsMenuVisible: (visible: boolean) => void;
 };
 
 export type {
-    PaymentType,
     WorkspaceMemberBulkActionType,
+    DomainMemberBulkActionType,
     RoomMemberBulkActionType,
     WorkspaceDistanceRatesBulkActionType,
     DropdownOption,
     ButtonWithDropdownMenuProps,
     WorkspaceTaxRatesBulkActionType,
     ReportExportType,
+    OnboardingHelpType,
+    ButtonWithDropdownMenuRef,
 };

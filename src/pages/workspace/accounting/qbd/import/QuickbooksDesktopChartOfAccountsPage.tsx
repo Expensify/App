@@ -1,19 +1,27 @@
-import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -24,7 +32,7 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
     return (
         <ConnectionLayout
             policyID={policyID}
-            displayName={QuickbooksDesktopChartOfAccountsPage.displayName}
+            displayName="QuickbooksDesktopChartOfAccountsPage"
             headerTitle="workspace.accounting.accounts"
             title="workspace.qbd.accountsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -42,12 +50,14 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
                 disabled
                 showLockIcon
             />
-            <MenuItemWithTopDescription
-                interactive={false}
-                title={translate('workspace.common.categories')}
-                description={translate('workspace.common.displayedAs')}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt2]}
-            />
+            <View style={styles.mt2}>
+                <MenuItemSectionRoot>
+                    <MenuItemField.Row
+                        name={translate('workspace.common.displayedAs')}
+                        value={translate('workspace.common.categories')}
+                    />
+                </MenuItemSectionRoot>
+            </View>
             <Text style={styles.pv5}>{translate('workspace.qbd.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}
@@ -63,7 +73,5 @@ function QuickbooksDesktopChartOfAccountsPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksDesktopChartOfAccountsPage.displayName = 'QuickbooksDesktopChartOfAccountsPage';
 
 export default withPolicyConnections(QuickbooksDesktopChartOfAccountsPage);

@@ -1,10 +1,16 @@
-import React, {useEffect} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
+import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
+
+import {handleExitToNavigation, signInWithValidateCodeAndNavigate} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect} from 'react';
+
 import type ValidateLoginPageProps from './types';
 
 function ValidateLoginPage({
@@ -13,6 +19,7 @@ function ValidateLoginPage({
     },
 }: ValidateLoginPageProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
 
     useEffect(() => {
         // Wait till navigation becomes available
@@ -21,15 +28,15 @@ function ValidateLoginPage({
                 // If already signed in, do not show the validate code if not on web,
                 // because we don't want to block the user with the interstitial page.
                 if (exitTo) {
-                    Session.handleExitToNavigation(exitTo);
+                    handleExitToNavigation(exitTo);
                     return;
                 }
                 Navigation.goBack();
             } else {
-                Session.signInWithValidateCodeAndNavigate(Number(accountID), validateCode, '', exitTo);
+                signInWithValidateCodeAndNavigate(Number(accountID), validateCode, preferredLocale, exitTo);
             }
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
@@ -42,9 +49,8 @@ function ValidateLoginPage({
         });
     }, [session?.autoAuthState]);
 
-    return <FullScreenLoadingIndicator />;
+    // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
+    return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
 }
-
-ValidateLoginPage.displayName = 'ValidateLoginPage';
 
 export default ValidateLoginPage;

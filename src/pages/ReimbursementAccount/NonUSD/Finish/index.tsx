@@ -1,88 +1,109 @@
-import React from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import Navigation from '@navigation/Navigation';
-import * as Report from '@userActions/Report';
+
+import {navigateToConciergeChat} from '@userActions/Report';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {View} from 'react-native';
 
 function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Shield', 'ChatBubble']);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow']);
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const policyID = reimbursementAccount?.achData?.policyID ?? '-1';
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
     const handleBackButtonPress = () => {
-        Navigation.goBack();
+        Navigation.dismissModal();
     };
-    const handleNavigateToConciergeChat = () => Report.navigateToConciergeChat(true);
+    const handleNavigateToConciergeChat = () =>
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: true});
 
     return (
         <ScreenWrapper
-            testID={Finish.displayName}
+            testID="Finish"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('finishStep.connect')}
+                title={translate('bankAccount.addBankAccount')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <ScrollView style={[styles.flex1]}>
                 <Section
                     title={translate('finishStep.letsFinish')}
-                    icon={Illustrations.ConciergeBubble}
-                    containerStyles={[styles.mb8, styles.mh5]}
+                    icon={illustrations.ConciergeBubble}
+                    containerStyles={styles.mb8}
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
-                    <Button
-                        text={translate('finishStep.iHaveA')}
-                        onPress={handleNavigateToConciergeChat}
-                        icon={Expensicons.ChatBubble}
-                        success
-                        large
-                        innerStyles={[styles.h13]}
-                    />
+                    <View style={styles.mhn5}>
+                        <MenuItemNavigation
+                            icon={icons.ChatBubble}
+                            title={translate('finishStep.iHaveA')}
+                            onPress={handleNavigateToConciergeChat}
+                        />
+                    </View>
                 </Section>
                 <Section
                     title={translate('finishStep.enable2FA')}
-                    icon={Illustrations.ShieldYellow}
+                    icon={illustrations.ShieldYellow}
                     titleStyles={[styles.mb4, styles.textHeadline]}
-                    containerStyles={[styles.mh5]}
-                    menuItems={[
-                        {
-                            title: translate('finishStep.secure'),
-                            onPress: () => {
-                                Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute('', policyID)));
-                            },
-                            icon: Expensicons.Shield,
-                            shouldShowRightIcon: true,
-                            iconRight: Expensicons.NewWindow,
-                            wrapperStyle: [styles.cardMenuItem],
-                        },
-                    ]}
                 >
                     <View style={styles.mb6}>
                         <Text style={[styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.weTake')}</Text>
                     </View>
+                    <MenuItemSectionRoot
+                        onPress={() => {
+                            Navigation.navigate(getTwoFactorAuthRoute());
+                        }}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Shield} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('finishStep.secure')}</MenuItem.Title>
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItemSectionRoot>
                 </Section>
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-Finish.displayName = 'Finish';
 
 export default Finish;

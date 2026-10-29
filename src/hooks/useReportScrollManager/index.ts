@@ -1,36 +1,58 @@
-import {useCallback, useContext} from 'react';
-import {ActionListContext} from '@pages/home/ReportScreenContext';
-import type ReportScrollManagerData from './types';
+import {useActionListContext} from '@pages/inbox/ActionListContext';
+
+import type {ReportScrollManagerData, ScrollToIndexOptions} from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const {flatListRef} = useContext(ActionListContext);
+    const {getListRef} = useActionListContext();
 
     /**
-     * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
+     * Scroll to the provided index. When `isEditing` is set we skip the scroll so the list doesn't
+     * jump while the user is editing a message.
      */
-    const scrollToIndex = useCallback(
-        (index: number, isEditing?: boolean) => {
-            if (!flatListRef?.current || isEditing) {
-                return;
-            }
-
-            flatListRef.current.scrollToIndex({index, animated: true});
-        },
-        [flatListRef],
-    );
-
-    /**
-     * Scroll to the bottom of the flatlist.
-     */
-    const scrollToBottom = useCallback(() => {
-        if (!flatListRef?.current) {
+    const scrollToIndex = (index: number, {isEditing = false, animated = true, viewOffset, viewPosition}: ScrollToIndexOptions = {}) => {
+        const listRef = getListRef();
+        if (!listRef?.current || isEditing) {
             return;
         }
 
-        flatListRef.current.scrollToOffset({animated: false, offset: 0});
-    }, [flatListRef]);
+        listRef.current.scrollToIndex({index, animated, viewOffset, viewPosition});
+    };
 
-    return {ref: flatListRef, scrollToIndex, scrollToBottom};
+    /**
+     * Scroll to the bottom of the inverted FlatList.
+     * When FlatList is inverted it's "bottom" is really it's top
+     */
+    const scrollToBottom = () => {
+        const listRef = getListRef();
+        if (!listRef?.current) {
+            return;
+        }
+
+        listRef.current.scrollToIndex({animated: false, index: 0});
+    };
+
+    /**
+     * Scroll to the end of the FlatList.
+     */
+    const scrollToEnd = () => {
+        const listRef = getListRef();
+        if (!listRef?.current) {
+            return;
+        }
+
+        listRef.current.scrollToEnd({animated: false});
+    };
+
+    const scrollToOffset = (offset: number) => {
+        const listRef = getListRef();
+        if (!listRef?.current) {
+            return;
+        }
+
+        listRef.current.scrollToOffset({animated: true, offset});
+    };
+
+    return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }
 
 export default useReportScrollManager;

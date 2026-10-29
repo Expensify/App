@@ -1,8 +1,13 @@
-import type {ValueOf} from 'type-fest';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Icon} from './OnyxCommon';
 import type Report from './Report';
+import type {Routes, TransactionCustomUnit, WaypointCollection} from './Transaction';
 
 /** Model of IOU participant */
 type Participant = {
@@ -77,6 +82,9 @@ type Participant = {
 
     /** The report associated to the IOU participant */
     item?: Report;
+
+    /** The avatar of the IOU participant */
+    avatar?: AvatarSource;
 };
 
 /** Model of IOU split */
@@ -90,83 +98,75 @@ type Split = {
     /** IOU split participant account ID */
     accountID?: number;
 
-    /** Chat report ID */
     chatReportID?: string;
-
-    /** IOU report ID */
     iouReportID?: string;
-
-    /** Report Action ID */
     reportActionID?: string;
-
-    /** Transaction ID */
     transactionID?: string;
-
-    /** Policy ID */
     policyID?: string;
-
-    /** Created chat report action ID */
     createdChatReportActionID?: string;
-
-    /** Created IOU report action ID */
     createdIOUReportActionID?: string;
-
-    /** Report preview report action ID */
     reportPreviewReportActionID?: string;
-
-    /** Transaction thread report ID */
     transactionThreadReportID?: string;
-
-    /** Created report action ID for thread */
     createdReportActionIDForThread?: string;
-
-    /** IOU tax amount */
     taxAmount?: number;
 };
 
-/** Model of IOU request */
-type IOU = {
-    /** ID of the IOU request */
-    id: string;
+/** Model for one portion of a shared expense */
+type SplitExpense = {
+    /** Unique identifier of this split expense */
+    transactionID: string;
 
-    /** Amount requested in IOU */
-    amount?: number;
+    /** Amount allocated to this split */
+    amount: number;
 
-    /** Selected Currency Code of the current IOU */
-    currency?: string;
+    /** Description of this split */
+    description?: string;
 
-    /** Comment of the IOU request creator */
-    comment?: string;
-
-    /** Category assigned to the IOU request */
+    /** Category assigned to this split */
     category?: string;
+
+    /** Tags associated with this split */
+    tags?: string[];
+
+    /** Timestamp when this split was created */
+    created: string;
 
     /** Merchant where the amount was spent */
     merchant?: string;
 
-    /** Date timestamp when the IOU request was created */
-    created?: string;
+    /** ID of the report the split expense belongs to */
+    reportID?: string;
 
-    /** Local file path of the expense receipt */
-    receiptPath?: string;
+    /** Whether the split expense is reimbursable (out-of-pocket) or non-reimbursable (company spend) */
+    reimbursable?: boolean;
 
-    /** File name of the expense receipt */
-    receiptFilename?: string;
-
-    /** Transaction ID assigned to the IOU request */
-    transactionID?: string;
-
-    /** Users involved in the IOU request */
-    participants?: Participant[];
-
-    /** Tag assigned to the IOU request */
-    tag?: string;
-
-    /** Whether the IOU request is billable */
+    /** Whether the split expense is billable */
     billable?: boolean;
 
-    /** Whether the IOU request is to be split with multiple users */
-    isSplitRequest?: boolean;
+    /** Tax code applied to this split */
+    taxCode?: string;
+
+    /** Tax amount for this split (in cents) */
+    taxAmount?: number;
+
+    /** Tax percentage value as a string (e.g. "20%") */
+    taxValue?: string;
+
+    /** Custom unit data for distance requests */
+    customUnit?: TransactionCustomUnit;
+
+    /** Collection of waypoints associated with the transaction */
+    waypoints?: WaypointCollection;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number;
+
+    routes?: Routes;
+    /** Whether this split has been manually edited by the user (locks the value from auto-adjustment) */
+    isManuallyEdited?: boolean;
 };
 
 /** Model of IOU attendee */
@@ -175,32 +175,25 @@ type Attendee = {
     email?: string;
 
     /** IOU attendee display name */
-    displayName?: string;
+    displayName: string;
 
     /** IOU attendee avatar url */
-    avatarUrl?: string;
-
-    /** Account ID */
-    accountID?: number;
-
-    /** Text to be displayed in lists (participant display name) */
-    text?: string;
-
-    /** IOU attendee login */
-    login?: string;
-
-    /** Text that IOU attendee display name and login, if available, for searching purposes */
-    searchText?: string;
-
-    /** Is IOU attendee selected in list */
-    selected?: boolean;
-
-    /** The type of IOU report, i.e. split, request, send, track */
-    iouType?: IOUType;
-
-    /** IOU attendee report ID */
-    reportID?: string;
+    avatarUrl: string;
 };
 
-export default IOU;
-export type {Participant, Split, Attendee};
+/** Model of IOU accountant */
+type Accountant = {
+    accountID?: number;
+
+    /** Account login */
+    login?: string;
+};
+
+/** Type of distance expense */
+type DistanceExpenseType =
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_MAP
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_GPS
+    | typeof CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
+
+export type {Participant, Split, Attendee, Accountant, SplitExpense, DistanceExpenseType};

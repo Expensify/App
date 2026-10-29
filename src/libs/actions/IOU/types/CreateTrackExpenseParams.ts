@@ -1,0 +1,75 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
+import type {WriteReadyBarrier} from '@libs/API';
+
+import type {CurrentUser} from '@userActions/Policy/Policy';
+
+import type {IOUAction} from '@src/CONST';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {Accountant} from '@src/types/onyx/IOU';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import type BasePolicyParams from './BasePolicyParams';
+import type RequestMoneyParticipantParams from './RequestMoneyParticipantParams';
+import type {TrackExpenseTransactionParams} from './TrackExpenseTransactionParams';
+
+type TrackExpenseAccountantParams = {
+    accountant?: Accountant;
+    newAccountIDs: number[] | undefined;
+    newLogins: string[] | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
+type CreateTrackExpenseParams = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    isDraftPolicy: boolean;
+    action?: IOUAction;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: BasePolicyParams;
+    transactionParams: TrackExpenseTransactionParams;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    accountantParams?: TrackExpenseAccountantParams;
+    isRetry?: boolean;
+    shouldPlaySound?: boolean;
+    /** Retry-path cleanup only; the action itself never reads this. */
+    draftTransactionIDs?: string[];
+    optimisticChatReportID?: string;
+    optimisticTransactionID?: string;
+    currentReportActionID?: string;
+    existingTransactionThreadReportID?: string;
+    existingTransactionThreadCreatedReportActionID?: string;
+    existingActionableWhisperReportActionID?: string;
+    isASAPSubmitBetaEnabled: boolean;
+    currentUser: CurrentUser;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    isSelfTourViewed: boolean;
+    defaultWorkspaceName?: string;
+    currentUserLocalCurrency: string | undefined;
+    previousOdometerDraft?: OnyxEntry<OnyxTypes.OdometerDraft>;
+    delegateAccountID: number | undefined;
+    reportActionsList: OnyxCollection<OnyxTypes.ReportActions> | undefined;
+    isDraftChatReport: boolean;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
+
+    /** Current "Reuse route" list value, so the just used route can be saved locally */
+    reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
+};
+
+/** Saved with a failed track's receipt error, because the failure deletes the whisper and a retry needs its ID to rebuild it. */
+type TrackExpenseRetryParams = {
+    actionableWhisperReportActionID: string;
+};
+
+export type {CreateTrackExpenseParams, TrackExpenseAccountantParams, TrackExpenseRetryParams};

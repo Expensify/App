@@ -1,21 +1,24 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import Debug from '@userActions/Debug';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +26,10 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TransactionViolation} from '@src/types/onyx';
 
-type DebugTransactionViolationCreatePageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE>;
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+type DebugTransactionViolationCreatePageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION_CREATE>;
 
 const getInitialTransactionViolation = () =>
     DebugUtils.stringifyJSON({
@@ -33,6 +39,8 @@ const getInitialTransactionViolation = () =>
             rejectedBy: undefined,
             rejectReason: undefined,
             formattedLimit: undefined,
+            amount: undefined,
+            currency: undefined,
             surcharge: undefined,
             invoiceMarkup: undefined,
             maxAge: undefined,
@@ -52,6 +60,7 @@ const getInitialTransactionViolation = () =>
             displayPercentVariance: undefined,
             duplicates: [],
             rterType: undefined,
+            comment: undefined,
         },
     } satisfies TransactionViolation);
 
@@ -62,30 +71,26 @@ function DebugTransactionViolationCreatePage({
 }: DebugTransactionViolationCreatePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-    const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(getInitialTransactionViolation());
+    const transactionViolations = useTransactionViolations(transactionID);
+    const [draftTransactionViolation, setDraftTransactionViolation] = useState<string>(() => getInitialTransactionViolation());
     const [error, setError] = useState<string>();
 
-    const editJSON = useCallback(
-        (updatedJSON: string) => {
-            try {
-                DebugUtils.validateTransactionViolationJSON(updatedJSON);
-                setError('');
-            } catch (e) {
-                const {cause, message} = e as SyntaxError;
-                setError(cause ? translate(message as TranslationPaths, cause as never) : message);
-            } finally {
-                setDraftTransactionViolation(updatedJSON);
-            }
-        },
-        [translate],
-    );
+    const editJSON = (updatedJSON: string) => {
+        try {
+            DebugUtils.validateTransactionViolationJSON(updatedJSON);
+            setError('');
+        } catch (e) {
+            const {cause, message} = e as SyntaxError;
+            setError(cause ? translate(message as TranslationPaths, cause as never) : message);
+        }
+        setDraftTransactionViolation(updatedJSON);
+    };
 
-    const createTransactionViolation = useCallback(() => {
+    const createTransactionViolation = () => {
         const parsedTransactionViolation = DebugUtils.stringToOnyxData(draftTransactionViolation, 'object') as TransactionViolation;
         Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [...(transactionViolations ?? []), parsedTransactionViolation]);
         Navigation.navigate(ROUTES.DEBUG_TRANSACTION_TAB_VIOLATIONS.getRoute(transactionID));
-    }, [draftTransactionViolation, transactionID, transactionViolations]);
+    };
 
     if (!transactionID) {
         return <NotFoundPage />;
@@ -95,8 +100,8 @@ function DebugTransactionViolationCreatePage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
-            testID={DebugTransactionViolationCreatePage.displayName}
+            shouldEnableMinHeight={canUseTouchScreen()}
+            testID="DebugTransactionViolationCreatePage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -115,23 +120,23 @@ function DebugTransactionViolationCreatePage({
                                 multiline
                                 value={draftTransactionViolation}
                                 onChangeText={editJSON}
-                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.p5]}
+                                // We need to explicitly add styles.pt5 and styles.pb5 to override the default top and bottom padding of the text input
+                                textInputContainerStyles={[styles.border, styles.borderBottom, styles.ph5, styles.pt5, styles.pb5]}
                             />
                         </View>
                         <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                         <Button
-                            success
-                            text={translate('common.save')}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             isDisabled={!draftTransactionViolation || !!error}
                             onPress={createTransactionViolation}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     </ScrollView>
                 </View>
             )}
         </ScreenWrapper>
     );
 }
-
-DebugTransactionViolationCreatePage.displayName = 'DebugTransactionViolationCreatePage';
 
 export default DebugTransactionViolationCreatePage;

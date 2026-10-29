@@ -1,128 +1,290 @@
-import React from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
+import UserAvatar from '@components/Avatar/UserAvatar';
+import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import AvatarSkeleton from '@components/AvatarSkeleton';
-import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import useVacationDelegatePersonalDetails from '@hooks/useVacationDelegatePersonalDetails';
+
+import {clearDraftValues} from '@libs/actions/FormActions';
+import getVacationDelegateDisplayName from '@libs/getVacationDelegateDisplayName';
+import getVacationDelegateErrors from '@libs/getVacationDelegateErrors';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
+import {formatVacationDelegateClearDateTime, getActiveVacationDelegate, getVacationDelegateClearDateTime} from '@libs/VacationDelegateUtils';
+
+import useTimeSensitiveHomeAddress from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveHomeAddress';
+
+import {clearAgentAvatarUpdateError} from '@userActions/Agent';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ComponentRef, ReactNode} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import {homeAndOfficeCommuterExclusionPolicyNameSelector} from '@selectors/Policy';
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
+import AgentAIPromptSection from './AgentAIPromptSection';
 
 function ProfilePage() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
+    const scrollEnabled = useScrollEnabled();
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-
+    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
+    useDocumentTitle(translate('common.profile'));
+    const isAppLoadPending = useIsAppLoadPending();
     const getPronouns = (): string => {
         const pronounsKey = currentUserPersonalDetails?.pronouns?.replace(CONST.PRONOUNS.PREFIX, '') ?? '';
         return pronounsKey ? translate(`pronouns.${pronounsKey}` as TranslationPaths) : translate('profilePage.selectYourPronouns');
     };
+    const logins = getContactMethodsOptions(translate, formatPhoneNumber, loginList, session?.email);
 
     const avatarURL = currentUserPersonalDetails?.avatar ?? '';
-    const accountID = currentUserPersonalDetails?.accountID ?? '-1';
+    const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isAgentAccount = useIsAgentAccount();
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
+    const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
-    const contactMethodBrickRoadIndicator = UserUtils.getLoginListBrickRoadIndicator(loginList);
+    const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const privateDetails = privatePersonalDetails ?? {};
     const legalName = `${privateDetails.legalFirstName ?? ''} ${privateDetails.legalLastName ?? ''}`.trim();
+    const {shouldShowAddHomeAddress: shouldShowAddHomeAddressGBR} = useTimeSensitiveHomeAddress();
+    const [commuterExclusionsWorkspaceName] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: homeAndOfficeCommuterExclusionPolicyNameSelector});
 
-    const publicOptions = [
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const activeVacationDelegate = getActiveVacationDelegate(vacationDelegate);
+    const hasVacationDelegate = !!activeVacationDelegate;
+    const vacationDelegatePersonalDetails = useVacationDelegatePersonalDetails(activeVacationDelegate);
+    const vacationDelegateName = hasVacationDelegate
+        ? getVacationDelegateDisplayName(vacationDelegatePersonalDetails?.login ?? activeVacationDelegate, vacationDelegatePersonalDetails?.displayName, formatPhoneNumber)
+        : '';
+    const vacationDelegateClearDate = hasVacationDelegate
+        ? formatVacationDelegateClearDateTime(getVacationDelegateClearDateTime(vacationDelegate?.clearAfter, currentUserPersonalDetails?.timezone?.selected), dateFnsLocale)
+        : '';
+    const vacationDelegateUntilText = vacationDelegateClearDate ? translate('statusPage.vacationDelegate.until', vacationDelegateClearDate) : '';
+    const vacationDelegateBrickRoadIndicator = isEmptyObject(getVacationDelegateErrors(vacationDelegate)) ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const publicOptions: Array<{
+        description: string;
+        title: string;
+        pageRoute?: Route;
+        onPress?: () => void;
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+        testID?: string;
+        sentryLabel?: string;
+
+        /** Replaces the default name and value line, for a value that is not plain text */
+        content?: ReactNode;
+
+        /** Accessibility label for a row whose `content` is not plain text */
+        accessibilityLabel?: string;
+
+        /** Greys the row out while a change to its value is waiting for the network */
+        pendingAction?: PendingAction;
+    }> = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: currentUserPersonalDetails?.displayName ?? '',
+            title: temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate, formatPhoneNumber}),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
+            testID: 'display-name-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
         },
         {
-            description: translate('contacts.contactMethod'),
-            title: LocalePhoneNumber.formatPhoneNumber(currentUserPersonalDetails?.login ?? ''),
-            pageRoute: ROUTES.SETTINGS_CONTACT_METHODS.route,
+            description: translate('contacts.contactMethods'),
+            title: logins
+                .map((login) => login?.menuItemTitle)
+                .filter(Boolean)
+                .join(', '),
+            pageRoute: createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, ROUTES.SETTINGS_PROFILE.route),
             brickRoadIndicator: contactMethodBrickRoadIndicator,
+            testID: 'contact-method-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.CONTACT_METHODS,
         },
         {
             description: translate('statusPage.status'),
             title: emojiCode ? `${emojiCode} ${currentUserPersonalDetails?.status?.text ?? ''}` : '',
             pageRoute: ROUTES.SETTINGS_STATUS,
+            testID: 'status-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
         {
-            description: translate('pronounsPage.pronouns'),
-            title: getPronouns(),
-            pageRoute: ROUTES.SETTINGS_PRONOUNS,
+            description: translate('common.vacationDelegate'),
+            title: vacationDelegateName,
+            content: hasVacationDelegate ? (
+                <VacationDelegateMenuItem.Row
+                    label={translate('common.vacationDelegate')}
+                    displayName={vacationDelegateName}
+                    avatar={vacationDelegatePersonalDetails?.avatar}
+                    accountID={vacationDelegatePersonalDetails?.accountID}
+                    login={vacationDelegatePersonalDetails?.login ?? activeVacationDelegate}
+                    untilText={vacationDelegateUntilText}
+                    brickRoadIndicator={vacationDelegateBrickRoadIndicator}
+                />
+            ) : undefined,
+            accessibilityLabel: hasVacationDelegate ? [translate('common.vacationDelegate'), vacationDelegateName, vacationDelegateUntilText].filter(Boolean).join(', ') : undefined,
+            pageRoute: ROUTES.SETTINGS_VACATION_DELEGATE,
+            onPress: () => {
+                clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
+                Navigation.navigate(ROUTES.SETTINGS_VACATION_DELEGATE);
+            },
+            brickRoadIndicator: vacationDelegateBrickRoadIndicator,
+            pendingAction: vacationDelegate?.pendingAction ?? undefined,
+            testID: 'vacation-delegate-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.VACATION_DELEGATE,
         },
-        {
-            description: translate('timezonePage.timezone'),
-            title: currentUserPersonalDetails?.timezone?.selected ?? '',
-            pageRoute: ROUTES.SETTINGS_TIMEZONE,
-        },
+        ...(isAgentAccount === false
+            ? [
+                  {
+                      description: translate('pronounsPage.pronouns'),
+                      title: getPronouns(),
+                      pageRoute: ROUTES.SETTINGS_PRONOUNS as Route,
+                      testID: 'pronouns-menu-item',
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PRONOUNS,
+                  },
+                  {
+                      description: translate('timezonePage.timezone'),
+                      title: currentUserPersonalDetails?.timezone?.selected ?? '',
+                      pageRoute: ROUTES.SETTINGS_TIMEZONE as Route,
+                      testID: 'timezone-menu-item',
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.TIMEZONE,
+                  },
+              ]
+            : []),
     ];
 
-    const privateOptions = [
+    const navigateToPrivateDetails = (fieldToFocus?: string) => {
+        if (isActingAsDelegate) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_PRIVATE_PERSONAL_DETAILS.getRoute(fieldToFocus));
+    };
+
+    const privateOptions: Array<{
+        description: string;
+        title: string;
+        testID: string;
+        sentryLabel: string;
+        action: () => void;
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+        furtherDetails?: string;
+    }> = [
         {
             description: translate('privatePersonalDetails.legalName'),
             title: legalName,
-            pageRoute: ROUTES.SETTINGS_LEGAL_NAME,
+            testID: 'legal-name-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.LEGAL_NAME,
+            action: () => navigateToPrivateDetails(INPUT_IDS.LEGAL_FIRST_NAME),
         },
         {
             description: translate('common.dob'),
             title: privateDetails.dob ?? '',
-            pageRoute: ROUTES.SETTINGS_DATE_OF_BIRTH,
+            testID: 'dob-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DATE_OF_BIRTH,
+            action: () => navigateToPrivateDetails(INPUT_IDS.DATE_OF_BIRTH),
         },
         {
             description: translate('common.phoneNumber'),
             title: privateDetails.phoneNumber ?? '',
-            pageRoute: ROUTES.SETTINGS_PHONE_NUMBER,
+            testID: 'phone-number-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.PHONE_NUMBER,
+            action: () => navigateToPrivateDetails(INPUT_IDS.PHONE_NUMBER),
             brickRoadIndicator: privatePersonalDetails?.errorFields?.phoneNumber ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
         },
         {
             description: translate('privatePersonalDetails.address'),
-            title: PersonalDetailsUtils.getFormattedAddress(privateDetails),
-            pageRoute: ROUTES.SETTINGS_ADDRESS,
+            title: getFormattedAddress(privateDetails),
+            testID: 'address-menu-item',
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.ADDRESS,
+            action: () => navigateToPrivateDetails(INPUT_IDS.ADDRESS_LINE_1),
+            brickRoadIndicator: shouldShowAddHomeAddressGBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined,
+            furtherDetails: commuterExclusionsWorkspaceName ? translate('privatePersonalDetails.commuterExclusionsHint', {workspaceName: commuterExclusionsWorkspaceName}) : undefined,
         },
     ];
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={ProfilePage.displayName}
+            testID="ProfilePage"
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldDisplaySearchRouter
-                icon={Illustrations.Profile}
-            />
-            <ScrollView style={styles.pt3}>
+            <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    title={translate('common.profile')}
+                    onBackButtonPress={() => {
+                        if (route.params?.backTo) {
+                            Navigation.goBack(route.params?.backTo);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    shouldUseHeadlineHeader
+                />
+            </CollapsibleHeaderOnKeyboard>
+            <ScrollView
+                ref={scrollViewRef}
+                style={styles.pt3}
+                contentContainerStyle={safeAreaPaddingBottomStyle}
+                scrollEnabled={scrollEnabled}
+                keyboardShouldPersistTaps="handled"
+            >
                 <MenuItemGroup>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
@@ -135,50 +297,74 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XLARGE} />
+                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XXXX_LARGE} />
                                 ) : (
-                                    <MenuItemGroup shouldUseSingleExecution={false}>
-                                        <AvatarWithImagePicker
-                                            isUsingDefaultAvatar={UserUtils.isDefaultAvatar(currentUserPersonalDetails?.avatar ?? '')}
-                                            source={avatarURL}
-                                            avatarID={accountID}
-                                            onImageSelected={PersonalDetails.updateAvatar}
-                                            onImageRemoved={PersonalDetails.deleteAvatar}
-                                            size={CONST.AVATAR_SIZE.XLARGE}
-                                            avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
-                                            pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
-                                            errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}
-                                            errorRowStyles={styles.mt6}
-                                            onErrorClose={PersonalDetails.clearAvatarErrors}
-                                            onViewPhotoPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(String(accountID)))}
-                                            previewSource={UserUtils.getFullSizeAvatar(avatarURL, accountID)}
-                                            originalFileName={currentUserPersonalDetails.originalFileName}
-                                            headerTitle={translate('profilePage.profileAvatar')}
-                                            fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
-                                            editIconStyle={styles.profilePageAvatar}
-                                        />
-                                    </MenuItemGroup>
+                                    <OfflineWithFeedback
+                                        errors={isAgentAccount ? agentPrompt?.avatarErrors : undefined}
+                                        errorRowStyles={[styles.mh5, styles.mt5]}
+                                        onClose={() => clearAgentAvatarUpdateError(accountID)}
+                                    >
+                                        <MenuItemGroup shouldUseSingleExecution={false}>
+                                            <AvatarButtonWithIcon
+                                                text={translate('avatarWithImagePicker.editImage')}
+                                                avatar={
+                                                    <UserAvatar
+                                                        source={avatarURL}
+                                                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                                                        accountID={accountID}
+                                                        fallbackIcon={currentUserPersonalDetails?.fallbackIcon}
+                                                    />
+                                                }
+                                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_AVATAR)}
+                                                avatarStyle={styles.alignSelfStart}
+                                                pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
+                                                editIconStyle={styles.profilePageAvatar}
+                                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AVATAR}
+                                            />
+                                        </MenuItemGroup>
+                                    </OfflineWithFeedback>
                                 )}
                             </View>
-                            {publicOptions.map((detail, index) => (
-                                <MenuItemWithTopDescription
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={`${detail.title}_${index}`}
-                                    shouldShowRightIcon
-                                    title={detail.title}
-                                    description={detail.description}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                    onPress={() => Navigation.navigate(detail.pageRoute)}
-                                    brickRoadIndicator={detail.brickRoadIndicator}
-                                />
-                            ))}
+                            {publicOptions.map((detail) => {
+                                const {pageRoute} = detail;
+                                return (
+                                    <OfflineWithFeedback
+                                        key={detail.testID}
+                                        pendingAction={detail.pendingAction}
+                                        shouldHideOnDelete={false}
+                                    >
+                                        <MenuItemSectionRoot
+                                            onPress={detail.onPress ?? (pageRoute ? () => Navigation.navigate(pageRoute) : undefined)}
+                                            testID={detail?.testID}
+                                            sentryLabel={detail.sentryLabel}
+                                            accessibilityLabel={detail.accessibilityLabel}
+                                        >
+                                            {detail.content ?? (
+                                                <MenuItemField.Row
+                                                    name={detail.description}
+                                                    value={detail.title}
+                                                >
+                                                    {(!!detail.brickRoadIndicator || !!pageRoute) && (
+                                                        <>
+                                                            {!!detail.brickRoadIndicator && <MenuItem.BrickRoadIndicator status={detail.brickRoadIndicator} />}
+                                                            {!!pageRoute && <MenuItem.Chevron />}
+                                                        </>
+                                                    )}
+                                                </MenuItemField.Row>
+                                            )}
+                                        </MenuItemSectionRoot>
+                                    </OfflineWithFeedback>
+                                );
+                            })}
                             <Button
                                 accessibilityLabel={translate('common.shareCode')}
-                                text={translate('common.share')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_SHARE_CODE)}
-                                icon={Expensicons.QrCode}
                                 style={[styles.alignSelfStart, styles.mt6]}
-                            />
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.SHARE_CODE}
+                            >
+                                <Button.Icon src={icons.QrCode} />
+                                <Button.Text>{translate('common.share')}</Button.Text>
+                            </Button>
                         </Section>
                         <Section
                             title={translate('profilePage.privateSection.title')}
@@ -188,32 +374,40 @@ function ProfilePage() {
                             childrenStyles={styles.pt3}
                             titleStyles={styles.accountSettingsSectionTitle}
                         >
-                            {isLoadingApp ? (
-                                <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]} />
+                            {isAppLoadPending ? (
+                                <View style={[styles.flex1, styles.pRelative, StyleUtils.getBackgroundColorStyle(theme.cardBG)]}>
+                                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                                </View>
                             ) : (
-                                <>
-                                    {privateOptions.map((detail, index) => (
+                                <MenuItemGroup shouldUseSingleExecution={!isActingAsDelegate}>
+                                    {privateOptions.map((detail) => (
                                         <MenuItemWithTopDescription
-                                            // eslint-disable-next-line react/no-array-index-key
-                                            key={`${detail.title}_${index}`}
+                                            key={detail.testID}
                                             shouldShowRightIcon
                                             title={detail.title}
                                             description={detail.description}
                                             wrapperStyle={styles.sectionMenuItemTopDescription}
-                                            onPress={() => Navigation.navigate(detail.pageRoute)}
+                                            onPress={detail.action}
                                             brickRoadIndicator={detail.brickRoadIndicator}
+                                            furtherDetails={detail.furtherDetails}
+                                            pressableTestID={detail?.testID}
+                                            sentryLabel={detail.sentryLabel}
                                         />
                                     ))}
-                                </>
+                                </MenuItemGroup>
                             )}
                         </Section>
+                        {isAgentAccount === true && (
+                            <AgentAIPromptSection
+                                accountID={accountID}
+                                parentScrollViewRef={scrollViewRef}
+                            />
+                        )}
                     </View>
                 </MenuItemGroup>
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;

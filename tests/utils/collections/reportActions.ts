@@ -1,19 +1,20 @@
-import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
-import {format} from 'date-fns';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepRecord from '@src/types/utils/DeepRecord';
 
+import {rand, randAggregation, randBoolean, randWord} from '@ngneat/falso';
+import {format} from 'date-fns';
+
 const flattenActionNamesValues = (actionNames: DeepRecord<string, ReportActionName>): ReportActionName[] => {
     let result: ReportActionName[] = [];
-    Object.values(actionNames).forEach((value) => {
+    for (const value of Object.values(actionNames)) {
         if (typeof value === 'object') {
             result = result.concat(flattenActionNamesValues(value));
         } else {
             result.push(value);
         }
-    });
+    }
     return result;
 };
 
@@ -31,14 +32,12 @@ const deprecatedReportActions: ReportActionName[] = [
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
     CONST.REPORT.ACTIONS.TYPE.DONATION,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
 ] as const;
 
 export default function createRandomReportAction(index: number): ReportAction {
     return {
-        // We need to assert the type of actionName so that rest of the properties are inferred correctly
-        actionName: rand(
-            flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ReportActionName) => !deprecatedReportActions.includes(actionType)),
-        ) as typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        actionName: rand(flattenActionNamesValues(CONST.REPORT.ACTIONS.TYPE).filter((actionType: ReportActionName) => !deprecatedReportActions.includes(actionType))),
         reportActionID: index.toString(),
         actorAccountID: index,
         person: [
@@ -69,7 +68,6 @@ export default function createRandomReportAction(index: number): ReportAction {
         automatic: randBoolean(),
         shouldShow: randBoolean(),
         lastModified: getRandomDate(),
-        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
         delegateAccountID: index,
         errors: {},
         isAttachmentOnly: randBoolean(),

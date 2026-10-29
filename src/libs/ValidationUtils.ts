@@ -1,18 +1,32 @@
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
+import type {OnyxFormKey} from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, TaxRates} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {PUBLIC_DOMAINS, Str, Url} from 'expensify-common';
+import {CONST as COMMON_CONST, PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
-import type {OnyxCollection} from 'react-native-onyx';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
-import CONST from '@src/CONST';
-import type {OnyxFormKey} from '@src/ONYXKEYS';
-import type {Report, TaxRates} from '@src/types/onyx';
-import * as CardUtils from './CardUtils';
+
+import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
+import containsHtmlTag from './containsHtmlTag';
 import DateUtils from './DateUtils';
-import * as Localize from './Localize';
-import * as LoginUtils from './LoginUtils';
+import {addErrorMessage} from './ErrorUtils';
+import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
 import StringUtils from './StringUtils';
+
+type CountryZipRegex = {
+    regex?: RegExp;
+    samples?: string;
+};
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -42,18 +56,40 @@ function validateCardNumber(value: string): boolean {
 }
 
 /**
- * Validating that this is a valid address (PO boxes are not allowed)
+ * Returns whether the value is a PO box or a private mailbox (PMB / mail drop), which are not accepted as physical addresses.
  */
-function isValidAddress(value: FormValue): boolean {
+function isPOBoxOrMailDrop(value: FormValue): boolean {
     if (typeof value !== 'string') {
         return false;
     }
 
-    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
-        return false;
+    return CONST.REGEX.PO_BOX.test(value) || CONST.REGEX.PMB.test(value);
+}
+
+/**
+ * Returns the translation path for the error to display on an invalid address input, or undefined when the value is valid.
+ */
+function getInvalidAddressErrorTranslationPath(value: FormValue): TranslationPaths | undefined {
+    if (typeof value !== 'string') {
+        return 'bankAccount.error.addressStreet';
     }
 
-    return !CONST.REGEX.PO_BOX.test(value);
+    if (!CONST.REGEX.ANY_VALUE.test(value) || value.match(CONST.REGEX.ALL_EMOJIS)) {
+        return 'bankAccount.error.addressStreet';
+    }
+
+    if (isPOBoxOrMailDrop(value)) {
+        return 'bankAccount.error.physicalAddressRequired';
+    }
+
+    return undefined;
+}
+
+/**
+ * Validating that this is a valid address (PO boxes and PMBs are not allowed)
+ */
+function isValidAddress(value: FormValue): boolean {
+    return getInvalidAddressErrorTranslationPath(value) === undefined;
 }
 
 /**
@@ -66,6 +102,15 @@ function isValidDate(date: string | Date): boolean {
 
     const pastDate = subYears(new Date(), 1000);
     const futureDate = addYears(new Date(), 1000);
+
+    if (typeof date === 'string') {
+        const parsedDate = parse(date, 'yyyy-MM-dd', new Date());
+        if (!isValid(parsedDate)) {
+            return false;
+        }
+        return isAfter(parsedDate, pastDate) && isBefore(parsedDate, futureDate);
+    }
+
     const testDate = new Date(date);
     return isValid(testDate) && isAfter(testDate, pastDate) && isBefore(testDate, futureDate);
 }
@@ -88,7 +133,7 @@ function isValidPastDate(date: string | Date): boolean {
  * Used to validate a value that is "required".
  * @param value - field value
  */
-function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<string, string>): boolean {
+function isRequiredFulfilled(value?: unknown): boolean {
     if (!value) {
         return false;
     }
@@ -110,16 +155,49 @@ function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<st
  * @param values - all form values
  * @param requiredFields - required fields for particular form
  */
-function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
+function getFieldRequiredErrors<TFormID extends OnyxFormKey>(
+    values: FormOnyxValues<TFormID>,
+    requiredFields: Array<FormOnyxKeys<TFormID>>,
+    translate: LocalizedTranslate,
+): FormInputErrors<TFormID> {
     const errors: FormInputErrors<TFormID> = {};
 
-    requiredFields.forEach((fieldKey) => {
-        if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
-            return;
+    for (const fieldKey of requiredFields) {
+        if (isRequiredFulfilled(values[fieldKey])) {
+            continue;
         }
 
-        errors[fieldKey] = Localize.translateLocal('common.error.fieldRequired');
-    });
+        errors[fieldKey] = translate('common.error.fieldRequired');
+    }
+
+    return errors;
+}
+
+/**
+ * Builds the errors for a first and last name that a display name is made of.
+ */
+function getDisplayNameErrors(firstName: string, lastName: string, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> {
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.DISPLAY_NAME_FORM> = {};
+
+    if (!isValidDisplayName(firstName)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+    } else if (firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+        addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
+    } else if (!isRequiredFulfilled(firstName)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.requiredFirstName'));
+    }
+    if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
+    }
+
+    if (!isValidDisplayName(lastName)) {
+        addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+    } else if (lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
+        addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', lastName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
+    }
+    if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+        addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
+    }
 
     return errors;
 }
@@ -137,7 +215,7 @@ function isValidExpirationDate(string: string): boolean {
     }
 
     // Use the last of the month to check if the expiration date is in the future or not
-    const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
+    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
     return isAfter(new Date(expirationDate), endOfMonth(new Date()));
 }
 
@@ -166,6 +244,29 @@ function isValidIndustryCode(code: string): boolean {
 
 function isValidZipCode(zipCode: string): boolean {
     return CONST.REGEX.ZIP_CODE.test(zipCode);
+}
+
+function getCountryZipRegexDetails(country?: Country | ''): CountryZipRegex | undefined {
+    if (!country) {
+        return undefined;
+    }
+
+    return COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country];
+}
+
+function isValidZipCodeForCountry(zipCode: string, country?: Country | ''): boolean {
+    const normalizedZipCode = zipCode.trim().toUpperCase();
+    const countrySpecificZipRegex = getCountryZipRegexDetails(country)?.regex;
+
+    if (countrySpecificZipRegex) {
+        return countrySpecificZipRegex.test(normalizedZipCode);
+    }
+
+    return COMMON_CONST.GENERIC_ZIP_CODE_REGEX.test(normalizedZipCode);
+}
+
+function isValidPaymentZipCode(zipCode: string): boolean {
+    return CONST.REGEX.ALPHANUMERIC_WITH_SPACE_AND_HYPHEN.test(zipCode);
 }
 
 function isValidSSNLastFour(ssnLast4: string): boolean {
@@ -197,12 +298,12 @@ function meetsMaximumAgeRequirement(date: string): boolean {
 /**
  * Validate that given date is in a specified range of years before now.
  */
-function getAgeRequirementError(date: string, minimumAge: number, maximumAge: number): string {
+function getAgeRequirementError(translate: LocalizedTranslate, date: string, minimumAge: number, maximumAge: number): string {
     const currentDate = startOfDay(new Date());
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translate('common.error.dateInvalid');
     }
 
     const maximalDate = subYears(currentDate, minimumAge);
@@ -213,29 +314,29 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
+        return translate('privatePersonalDetails.error.dateShouldBeBefore', format(maximalDate, CONST.DATE.FNS_FORMAT_STRING));
     }
 
-    return Localize.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
+    return translate('privatePersonalDetails.error.dateShouldBeAfter', format(minimalDate, CONST.DATE.FNS_FORMAT_STRING));
 }
 
 /**
  * Validate that given date is not in the past.
  */
-function getDatePassedError(inputDate: string): string {
+function getDatePassedError(translate: LocalizedTranslate, inputDate: string): string {
     const currentDate = new Date();
     const parsedDate = new Date(`${inputDate}T00:00:00`); // set time to 00:00:00 for accurate comparison
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translate('common.error.dateInvalid');
     }
 
     // Clear time for currentDate so comparison is based solely on the date
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
-        return Localize.translateLocal('common.error.dateInvalid');
+        return translate('common.error.dateInvalid');
     }
 
     return '';
@@ -251,41 +352,7 @@ function isValidWebsite(url: string): boolean {
 
 /** Checks if the domain is public */
 function isPublicDomain(domain: string): boolean {
-    return PUBLIC_DOMAINS.some((publicDomain) => publicDomain === domain.toLowerCase());
-}
-
-function validateIdentity(identity: Record<string, string>): Record<string, boolean> {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
-    const errors: Record<string, boolean> = {};
-
-    // Check that all required fields are filled
-    requiredFields.forEach((fieldName) => {
-        if (isRequiredFulfilled(identity[fieldName])) {
-            return;
-        }
-        errors[fieldName] = true;
-    });
-
-    if (!isValidAddress(identity.street)) {
-        errors.street = true;
-    }
-
-    if (!isValidZipCode(identity.zipCode)) {
-        errors.zipCode = true;
-    }
-
-    // dob field has multiple validations/errors, we are handling it temporarily like this.
-    if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
-        errors.dob = true;
-    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
-        errors.dobAge = true;
-    }
-
-    if (!isValidSSNLastFour(identity.ssnLast4)) {
-        errors.ssnLast4 = true;
-    }
-
-    return errors;
+    return PUBLIC_DOMAINS_SET.has(domain.toLowerCase());
 }
 
 function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): boolean {
@@ -299,7 +366,19 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     }
 
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
-    return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
+
+    // US territories share the +1 country calling code but have their own ISO region codes.
+    // We accept these as valid US phone numbers for wallet/bank account verification.
+    const validUSRegionCodes: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI, CONST.COUNTRY.AS, CONST.COUNTRY.MP];
+    return parsedPhoneNumber.possible && validUSRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
+}
+
+function isValidPhoneNumber(phoneNumber: string): boolean {
+    if (!CONST.ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) || CONST.REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber)) {
+        return false;
+    }
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
+    return parsedPhoneNumber.possible;
 }
 
 function isValidValidateCode(validateCode: string): boolean {
@@ -318,7 +397,7 @@ function isValidTwoFactorCode(code: string): boolean {
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  */
 function isNumericWithSpecialChars(input: string): boolean {
-    return /^\+?[\d\\+]*$/.test(LoginUtils.getPhoneNumberWithoutSpecialChars(input));
+    return /^\+?[\d\\+]*$/.test(getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
@@ -346,10 +425,6 @@ function isValidCompanyName(name: string) {
     return !name.match(CONST.REGEX.ALL_EMOJIS);
 }
 
-function isValidReportName(name: string) {
-    return new Blob([name.trim()]).size <= CONST.REPORT_NAME_LIMIT;
-}
-
 /**
  * Checks that the provided name doesn't contain any commas or semicolons
  */
@@ -362,6 +437,14 @@ function isValidDisplayName(name: string): boolean {
  */
 function isValidLegalName(name: string): boolean {
     return CONST.REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+}
+
+/**
+ * Checks that the provided name on card does not contain HTML-like tags (e.g. `<script>`).
+ * Lone `<` or `>` characters are allowed; the backend sanitizes the value before embossing.
+ */
+function isValidNameOnCard(name: string): boolean {
+    return !CONST.REGEX.NAME_ON_CARD_INVALID_CHARS.test(name);
 }
 
 /**
@@ -390,8 +473,8 @@ function isReservedRoomName(roomName: string): boolean {
 /**
  * Checks if the room name already exists.
  */
-function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string): boolean {
-    return Object.values(reports ?? {}).some((report) => report && report.policyID === policyID && report.reportName === roomName);
+function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, policyID: string | undefined): boolean {
+    return Object.values(reports ?? {}).some((report) => report && policyID && report.policyID === policyID && report.reportName === roomName);
 }
 
 /**
@@ -402,6 +485,15 @@ function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, p
  */
 function isValidRoomName(roomName: string): boolean {
     return CONST.REGEX.ROOM_NAME.test(roomName);
+}
+
+/**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ */
+function isValidRoomNameWithoutLimits(roomName: string): boolean {
+    return CONST.REGEX.ROOM_NAME_WITHOUT_LIMIT.test(roomName);
 }
 
 /**
@@ -437,7 +529,7 @@ type DateTimeValidationErrorKeys = {
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
  */
-const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValidationErrorKeys => {
+const validateDateTimeIsAtLeastOneMinuteInFuture = (translate: LocalizedTranslate, data: string): DateTimeValidationErrorKeys => {
     if (!data) {
         return {
             dateValidationErrorKey: '',
@@ -446,8 +538,8 @@ const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValid
     }
     const parsedInputData = parseISO(data);
 
-    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(parsedInputData);
-    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
+    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(translate, parsedInputData);
+    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(translate, parsedInputData);
     return {
         dateValidationErrorKey,
         timeValidationErrorKey,
@@ -510,13 +602,30 @@ function isValidEmail(email: string): boolean {
     return Str.isValidEmail(email);
 }
 
+const VALID_TLD_REGEX = new RegExp(`^(${TLD_REGEX})$`, 'i');
+
+/**
+ * Validates the given value if it is correct email address including TLD check against IANA list.
+ * @param email
+ */
+function isValidEmailWithTLD(email: string): boolean {
+    if (!Str.isValidEmail(email)) {
+        return false;
+    }
+    const domain = Str.extractEmailDomain(email);
+    if (!domain) {
+        return false;
+    }
+    const tld = domain.split('.').pop() ?? '';
+    return VALID_TLD_REGEX.test(tld);
+}
+
 /**
  * Validates the given value if it is correct phone number in E164 format (international standard).
  * @param phoneNumber
  */
 function isValidPhoneInternational(phoneNumber: string): boolean {
-    const phoneNumberWithCountryCode = LoginUtils.appendCountryCode(phoneNumber);
-    const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
+    const parsedPhoneNumber = parsePhoneNumber(phoneNumber);
 
     return parsedPhoneNumber.possible && Str.isValidE164Phone(parsedPhoneNumber.number?.e164 ?? '');
 }
@@ -541,17 +650,263 @@ function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<
 
     let totalOwnedPercentageSum = 0;
     const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
-    totalOwnedPercentageKeys.forEach((key) => {
+    for (const key of totalOwnedPercentageKeys) {
         if (key === ownerBeingModifiedID) {
-            return;
+            continue;
         }
 
         totalOwnedPercentageSum += totalOwnedPercentage[key];
-    });
+    }
 
     const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
 
     return isValidNumber && isTotalSumValid;
+}
+
+/**
+ * Validates the given value if it is correct ABN number - https://abr.business.gov.au/Help/AbnFormat
+ * @param registrationNumber - number to validate.
+ */
+function isValidABN(registrationNumber: string): boolean {
+    const cleanedAbn: string = registrationNumber.replaceAll(/[ _]/g, '');
+    if (cleanedAbn.length !== 11) {
+        return false;
+    }
+
+    const weights: number[] = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+    const checksum: number = [...cleanedAbn].reduce((total: number, char: string, index: number) => {
+        let digit = Number(char);
+        if (index === 0) {
+            digit--;
+        } // First digit special rule
+        return total + digit * (weights.at(index) ?? 0); // Using optional chaining for safety
+    }, 0);
+
+    return checksum % 89 === 0;
+}
+
+/**
+ * Validates the given value if it is correct ACN number - https://asic.gov.au/for-business/registering-a-company/steps-to-register-a-company/australian-company-numbers/australian-company-number-digit-check/
+ * @param registrationNumber - number to validate.
+ */
+function isValidACN(registrationNumber: string): boolean {
+    const cleanedAcn: string = registrationNumber.replaceAll(/\s|-/g, '');
+    if (cleanedAcn.length !== 9 || Number.isNaN(Number(cleanedAcn))) {
+        return false;
+    }
+
+    const weights: number[] = [8, 7, 6, 5, 4, 3, 2, 1];
+    const tally: number = weights.reduce((total: number, weight: number, index: number) => {
+        return total + Number(cleanedAcn[index]) * weight;
+    }, 0);
+
+    const checkDigit: number = 10 - (tally % 10);
+    return checkDigit === Number(cleanedAcn[8]) || (checkDigit === 10 && Number(cleanedAcn[8]) === 0);
+}
+
+/**
+ * Validates the given value if it is correct australian registration number.
+ * @param registrationNumber
+ */
+function isValidAURegistrationNumber(registrationNumber: string): boolean {
+    return isValidABN(registrationNumber) || isValidACN(registrationNumber);
+}
+
+/**
+ * Validates the given value if it is correct british registration number.
+ * @param registrationNumber
+ */
+function isValidGBRegistrationNumber(registrationNumber: string): boolean {
+    return /^(?:\d{8}|[A-Z]{2}\d{6})$/.test(registrationNumber);
+}
+
+/**
+ * Validates the given value if it is correct canadian registration number.
+ * @param registrationNumber
+ */
+function isValidCARegistrationNumber(registrationNumber: string): boolean {
+    return /^\d{9}(?:[A-Z]{2}\d{4})?$/.test(registrationNumber);
+}
+
+type EUCountry = keyof typeof CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+
+/**
+ * Validates the given value if it is EU member country
+ * @param country
+ */
+function isEUMember(country: Country | ''): country is EUCountry {
+    return country in CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+}
+
+/**
+ * Validates the given values if its is correct registration number for given EU member country
+ * @param registrationNumber
+ * @param country
+ */
+function isValidEURegistrationNumber(registrationNumber: string, country: EUCountry): boolean {
+    const regex = CONST.EU_REGISTRATION_NUMBER_REGEX[country];
+    return !!regex && regex.test(registrationNumber);
+}
+
+/**
+ * Validates the given value if it is correct registration number for the given country.
+ * @param registrationNumber
+ * @param country
+ */
+function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
+    if (isEUMember(country)) {
+        return isValidEURegistrationNumber(registrationNumber, country);
+    }
+
+    switch (country) {
+        case CONST.COUNTRY.AU:
+            return isValidAURegistrationNumber(registrationNumber);
+        case CONST.COUNTRY.GB:
+            return isValidGBRegistrationNumber(registrationNumber);
+        case CONST.COUNTRY.CA:
+            return isValidCARegistrationNumber(registrationNumber);
+        case CONST.COUNTRY.US:
+            return isValidTaxID(registrationNumber);
+        default:
+            return true;
+    }
+}
+
+/**
+ * Checks if the `inputValue` byte length exceeds the specified byte length,
+ * returning `isValid` (boolean) and `byteLength` (number) to be used in dynamic error copy.
+ */
+function isValidInputLength(inputValue: string, byteLength: number) {
+    const valueByteLength = StringUtils.getUTF8ByteLength(inputValue);
+    return {
+        isValid: valueByteLength <= byteLength,
+        byteLength: valueByteLength,
+    };
+}
+
+/**
+ * Validates the given value as a U.S. Employer Identification Number (EIN).
+ * Format: XX-XXXXXXX
+ * @param ein - The EIN to validate.
+ */
+function isValidEIN(ein: string): boolean {
+    return /^\d{2}-\d{7}$/.test(ein);
+}
+
+/**
+ * Validates the given value as a UK VAT Registration Number (VRN).
+ * Format: Optional "GB" prefix followed by 9 digits.
+ * @param vrn - The VRN to validate.
+ */
+function isValidVRN(vrn: string): boolean {
+    return /^(GB)?\d{9}$/.test(vrn);
+}
+
+/**
+ * Validates the given value as a Canadian Business Number (BN).
+ * Format: 9 digits, optionally followed by a 2-letter program ID and 4-digit reference number.
+ * Valid program IDs include: RT, RC, RM, RP, etc.
+ * @param bn - The Business Number to validate.
+ */
+function isValidBN(bn: string): boolean {
+    return /^\d{9}([A-Z]{2}\d{4})?$/.test(bn);
+}
+
+/**
+ * Validates the given value as a European Union VAT Number.
+ * Format: Two-letter country code followed by 8–12 alphanumeric characters.
+ * @param vat - The VAT number to validate.
+ * @returns True if the value is a valid EU VAT number; otherwise, false.
+ */
+function isValidEUVATNumber(vat: string): boolean {
+    return /^[A-Z]{2}[A-Z0-9]{8,12}$/.test(vat);
+}
+
+/**
+ * Validates the given value as a country-specific tax identification number.
+ * Delegates to the appropriate country-specific validation function.
+ * @param number - The tax ID number to validate.
+ * @param country - The country code (e.g., 'US', 'GB', 'CA', 'AU').
+ */
+function isValidTaxIDEINNumber(number: string, country: Country | '') {
+    switch (country) {
+        case CONST.COUNTRY.AU:
+            return isValidABN(number);
+        case CONST.COUNTRY.GB:
+            return isValidVRN(number);
+        case CONST.COUNTRY.CA:
+            return isValidBN(number);
+        case CONST.COUNTRY.US:
+            return isValidEIN(number);
+        default:
+            return isValidEUVATNumber(number);
+    }
+}
+
+/**
+ * Checks if a merchant string value is considered invalid/empty
+ */
+function isInvalidMerchantValue(merchant?: string): boolean {
+    return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+}
+
+type MerchantValidationError =
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.REQUIRED}
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.INVALID}
+    | {type: typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG; byteLength: number};
+
+/**
+ * Copy for a merchant validation error on the merchant form.
+ */
+function getMerchantErrorMessage(translate: LocalizedTranslate, error: MerchantValidationError): string {
+    // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+    // eslint-disable-next-line default-case
+    switch (error.type) {
+        case CONST.INPUT_VALIDATION_ERRORS.REQUIRED:
+            return translate('common.error.fieldRequired');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+            return translate('iou.error.invalidMerchant');
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LONG:
+            return translate('common.error.characterLimitExceedCounter', error.byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+    }
+}
+
+/**
+ * Returns the first merchant validation error (required, invalid value, or too long), or `undefined` if the merchant is valid.
+ */
+function getMerchantError(merchant: string | undefined, isMerchantRequired: boolean): MerchantValidationError | undefined {
+    const trimmedMerchant = merchant?.trim() ?? '';
+
+    if (isMerchantRequired && !trimmedMerchant) {
+        return {type: CONST.INPUT_VALIDATION_ERRORS.REQUIRED};
+    }
+    if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+        return {type: CONST.INPUT_VALIDATION_ERRORS.INVALID};
+    }
+    const {isValid: isLengthValid, byteLength} = isValidInputLength(trimmedMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
+    if (!isLengthValid) {
+        return {type: CONST.INPUT_VALIDATION_ERRORS.TOO_LONG, byteLength};
+    }
+    return undefined;
+}
+
+/**
+ * Checks if a merchant is a placeholder the user never typed: the flow seeded the "Expense" / "(none)" value,
+ * so it should be treated as empty rather than as an invalid entry the user is responsible for.
+ */
+function isUntypedPlaceholderMerchant(isMerchantSet: boolean | undefined, merchant?: string): boolean {
+    return !isMerchantSet && isInvalidMerchantValue(merchant);
+}
+
+/**
+ * Validates a 4-digit PIN for UK/EU Expensify Card.
+ * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
+ */
+function isValidPIN(pin: string): boolean {
+    if (!/^\d{4}$/.test(pin)) {
+        return false;
+    }
+    return !(CONST.EXPENSIFY_CARD.PIN.INVALID_PINS as readonly string[]).includes(pin);
 }
 
 export {
@@ -559,6 +914,8 @@ export {
     meetsMaximumAgeRequirement,
     getAgeRequirementError,
     isValidAddress,
+    isPOBoxOrMailDrop,
+    getInvalidAddressErrorTranslationPath,
     isValidDate,
     isValidPastDate,
     isValidSecurityCode,
@@ -566,11 +923,15 @@ export {
     isValidDebitCard,
     isValidIndustryCode,
     isValidZipCode,
+    getCountryZipRegexDetails,
+    isValidZipCodeForCountry,
+    isValidPaymentZipCode,
     isRequiredFulfilled,
+    getDisplayNameErrors,
     getFieldRequiredErrors,
     isValidUSPhone,
+    isValidPhoneNumber,
     isValidWebsite,
-    validateIdentity,
     isValidTwoFactorCode,
     isNumericWithSpecialChars,
     isValidRoutingNumber,
@@ -579,9 +940,11 @@ export {
     isReservedRoomName,
     isExistingRoomName,
     isValidRoomName,
+    isValidRoomNameWithoutLimits,
     isValidTaxID,
     isValidValidateCode,
     isValidCompanyName,
+    isValidNameOnCard,
     isValidDisplayName,
     isValidLegalName,
     doesContainReservedWord,
@@ -593,13 +956,22 @@ export {
     prepareValues,
     isValidPersonName,
     isValidPercentage,
-    isValidReportName,
     isExistingTaxName,
     isValidSubscriptionSize,
     isExistingTaxCode,
     isPublicDomain,
     isValidEmail,
+    isValidEmailWithTLD,
     isValidPhoneInternational,
     isValidZipCodeInternational,
     isValidOwnershipPercentage,
+    isValidRegistrationNumber,
+    isValidInputLength,
+    isValidTaxIDEINNumber,
+    isInvalidMerchantValue,
+    getMerchantError,
+    getMerchantErrorMessage,
+    isUntypedPlaceholderMerchant,
+    isValidPIN,
+    containsHtmlTag,
 };

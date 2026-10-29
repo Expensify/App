@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+
 import type {NotificationDataMap} from './NotificationType';
 import type NotificationType from './NotificationType';
 

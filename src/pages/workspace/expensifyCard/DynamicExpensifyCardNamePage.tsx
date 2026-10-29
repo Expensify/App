@@ -1,0 +1,109 @@
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import TextInput from '@components/TextInput';
+
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {updateExpensifyCardTitle} from '@libs/actions/Card';
+import {filterInactiveCardsForWorkspace, getCardNameError, getCardNameErrorMessage} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import StringUtils from '@libs/StringUtils';
+
+import Navigation from '@navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
+
+import React from 'react';
+
+type DynamicExpensifyCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME>;
+
+function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps) {
+    const {policyID, cardID} = route.params;
+    const defaultFundID = useDefaultFundID(policyID);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path);
+
+    const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const styles = useThemeStyles();
+
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
+    const card = cardsList?.[cardID];
+
+    const goBack = () => {
+        Navigation.goBack(backPath, {compareParams: false});
+    };
+
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
+        updateExpensifyCardTitle(defaultFundID, Number(cardID), StringUtils.sanitizeName(values[INPUT_IDS.NAME]), card?.nameValuePairs?.cardTitle);
+        goBack();
+    };
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM> = {};
+        const error = getCardNameError(values.name);
+
+        if (error) {
+            errors[INPUT_IDS.NAME] = getCardNameErrorMessage(translate, error, values.name);
+        }
+
+        return errors;
+    };
+
+    return (
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <ScreenWrapper
+                testID="WorkspaceEditCardNamePage"
+                shouldEnablePickerAvoiding={false}
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.card.issueNewCard.cardName')}
+                    onBackButtonPress={goBack}
+                />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM}
+                    submitButtonText={translate('common.save')}
+                    onSubmit={submit}
+                    style={[styles.flex1, styles.mh5]}
+                    enabledWhenOffline
+                    validate={validate}
+                    shouldHideFixErrorsAlert
+                >
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.NAME}
+                        label={translate('workspace.card.issueNewCard.cardName')}
+                        hint={translate('workspace.card.issueNewCard.giveItNameInstruction')}
+                        aria-label={translate('workspace.card.issueNewCard.cardName')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={card?.nameValuePairs?.cardTitle}
+                        ref={inputCallbackRef}
+                    />
+                </FormProvider>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default DynamicExpensifyCardNamePage;

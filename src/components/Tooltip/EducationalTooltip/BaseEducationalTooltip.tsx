@@ -1,9 +1,21 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
-import type {LayoutRectangle, NativeSyntheticEvent} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
-import type {EducationalTooltipProps} from '@components/Tooltip/types';
-import measureTooltipCoordinate from './measureTooltipCoordinate';
-import * as TooltipManager from './TooltipManager';
+import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
+
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useIsResizing from '@hooks/useIsResizing';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import type {HostInstance, LayoutRectangle, NativeSyntheticEvent} from 'react-native';
+
+import {NavigationContext, useIsFocused} from '@react-navigation/native';
+import React, {useContext, useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
+import {DeviceEventEmitter, Dimensions} from 'react-native';
+
+import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipCoordinate';
 
 type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
 
@@ -11,93 +23,210 @@ type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle
  * A component used to wrap an element intended for displaying a tooltip.
  * This tooltip would show immediately without user's interaction and hide after 5 seconds.
  */
-function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, shouldAutoDismiss = false, ...props}: EducationalTooltipProps) {
-    const hideTooltipRef = useRef<() => void>();
+function BaseEducationalTooltip({
+    children,
+    shouldRender = false,
+    shouldDisplayTooltip,
+    shouldHideOnNavigate = true,
+    shouldHideOnScroll = false,
+    shouldCheckVisibilityOnFirstDisplay = false,
+    uniqueID,
+    ...props
+}: EducationalTooltipProps) {
+    const shouldShowTooltip = shouldDisplayTooltip ?? shouldRender;
+    const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
+    const tooltipElementRef = useRef<Readonly<HostInstance> | undefined>(undefined);
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
-    const show = useRef<() => void>();
-    const removeActiveTooltipRef = useRef(() => {});
-    const removePendingTooltipRef = useRef(() => {});
+    const show = useRef<(() => void) | undefined>(undefined);
+    const hasDisplayedTooltipRef = useRef(false);
 
-    const didShow = useRef(false);
+    const navigator = useContext(NavigationContext);
+    const isFocused = useIsFocused();
+    const insets = useSafeAreaInsets();
+    const {contentHeaderHeight} = useContentHeaderHeight();
 
-    const closeTooltip = useCallback(() => {
-        if (!didShow.current) {
+    const isResizing = useIsResizing();
+
+    const shouldSuppressTooltip = !isFocused && shouldHideOnNavigate;
+
+    const renderTooltip = () => {
+        if (!tooltipElementRef.current || !genericTooltipStateRef.current || shouldSuppressTooltip) {
             return;
         }
-        hideTooltipRef.current?.();
-        onHideTooltip?.();
-        removeActiveTooltipRef.current();
-    }, [onHideTooltip]);
 
-    useEffect(
-        () => () => {
-            if (!hideTooltipRef.current) {
+        if (!shouldShowTooltip) {
+            genericTooltipStateRef.current.hideTooltip();
+            return;
+        }
+
+        const {hideTooltip, showTooltip, updateTargetBounds} = genericTooltipStateRef.current;
+
+        getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
+            updateTargetBounds(bounds);
+
+            if (!shouldHideOnScroll) {
+                showTooltip();
                 return;
             }
 
-            hideTooltipRef.current();
-        },
-        [],
-    );
+            const {x, y, width: elementWidth, height} = bounds;
 
-    // Automatically hide tooltip after 5 seconds
+            const offset = 10; // Tooltip hides when content moves 10px past header/footer.
+            const dimensions = Dimensions.get('window');
+            const top = y - (insets.top || 0);
+            const bottom = y + height + insets.bottom || 0;
+            const left = x - (insets.left || 0);
+            // dimensions already excludes the horizontal safe-area insets, so anchoring the right edge to
+            // the inset-adjusted left keeps both on the same origin. Adding the right inset back counted it
+            // twice and read anything near the right edge as overflowing, hiding the tooltip in landscape.
+            const right = left + elementWidth;
+            // Calculate the available space at the top, considering the header height and offset
+            const availableHeightForTop = top - (contentHeaderHeight - offset);
+
+            // Calculate the total height available after accounting for the bottom tab and offset
+            const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
+
+            // Calculate available horizontal space, taking into account safe-area insets
+            const availableWidthForLeft = left + offset;
+            const availableWidthForRight = dimensions.width - (right - offset);
+
+            // Hide if the element scrolled out vertically or horizontally
+            if (availableHeightForTop < 0 || availableHeightForBottom < 0 || availableWidthForLeft < 0 || availableWidthForRight < 0) {
+                hideTooltip();
+            } else {
+                showTooltip();
+            }
+        });
+    };
+
     useEffect(() => {
-        if (!shouldAutoDismiss) {
+        if (!genericTooltipStateRef.current || !shouldRender) {
             return;
         }
 
-        // Automatically hide tooltip after 5 seconds if shouldAutoDismiss is true
-        const timerID = setTimeout(() => {
-            closeTooltip();
-        }, 5000);
-        return () => {
-            clearTimeout(timerID);
-        };
-    }, [shouldAutoDismiss, closeTooltip]);
+        if (isResizing) {
+            const {hideTooltip} = genericTooltipStateRef.current;
+
+            // Hide the tooltip if the screen is being resized
+            hideTooltip();
+        } else {
+            // Re-render the tooltip when resizing ends
+            // This is necessary to ensure the tooltip is positioned correctly after resizing
+            renderTooltip();
+        }
+    }, [isResizing, renderTooltip, shouldRender, uniqueID]);
+
+    const setTooltipPosition = (isScrolling: boolean) => {
+        if (!shouldHideOnScroll || !genericTooltipStateRef.current) {
+            return;
+        }
+
+        const {hideTooltip} = genericTooltipStateRef.current;
+        if (isScrolling) {
+            hideTooltip();
+        } else {
+            renderTooltip();
+        }
+    };
+
+    useLayoutEffect(() => {
+        if (!shouldRender || !shouldHideOnScroll) {
+            return;
+        }
+
+        setTooltipPosition(false);
+        const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, (isScrolling: boolean) => {
+            setTooltipPosition(isScrolling);
+        });
+
+        return () => scrollingListener.remove();
+    }, [shouldRender, shouldHideOnScroll, setTooltipPosition]);
 
     useEffect(() => {
-        if (!shouldMeasure || !shouldRender || didShow.current) {
+        return () => {
+            genericTooltipStateRef.current?.hideTooltip();
+        };
+    }, []);
+
+    const showOnFirstDisplay = useEffectEvent(() => {
+        if (shouldCheckVisibilityOnFirstDisplay) {
+            renderTooltip();
+            return;
+        }
+        show.current?.();
+    });
+
+    useEffect(() => {
+        if (!shouldMeasure || shouldSuppressTooltip || !shouldShowTooltip) {
+            return;
+        }
+        if (!shouldRender) {
+            genericTooltipStateRef.current?.hideTooltip();
             return;
         }
         // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
         const timerID = setTimeout(() => {
-            removePendingTooltipRef.current();
-            show.current?.();
-            didShow.current = true;
-            removeActiveTooltipRef.current = TooltipManager.addActiveTooltip(closeTooltip);
-        }, 500);
-        removePendingTooltipRef.current = TooltipManager.addPendingTooltip(timerID);
+            showOnFirstDisplay();
+            // Mark the first display as done only once it has actually happened, so paths that re-measure
+            // on a later layout (e.g. rotation) don't fire against a still-animating layout beforehand.
+            hasDisplayedTooltipRef.current = true;
+        }, CONST.TOOLTIP_ANIMATION_DURATION);
         return () => {
-            removePendingTooltipRef.current();
             clearTimeout(timerID);
         };
-    }, [shouldMeasure, shouldRender, closeTooltip]);
+    }, [shouldMeasure, shouldRender, shouldShowTooltip, shouldSuppressTooltip]);
 
-    useEffect(
-        () => closeTooltip,
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [],
-    );
+    useEffect(() => {
+        if (!shouldRender || !shouldShowTooltip || shouldSuppressTooltip || !shouldMeasure) {
+            return;
+        }
+        // Re-measure immediately only after the tooltip has been shown at least once (e.g. when
+        // shouldDisplayTooltip flips back to true after scroll/product-training gating). The first
+        // display still relies on the delayed onLayout path above so animated containers can settle.
+        if (hasDisplayedTooltipRef.current) {
+            renderTooltip();
+        }
+    }, [shouldRender, shouldShowTooltip, shouldSuppressTooltip, shouldMeasure, renderTooltip]);
+
+    useEffect(() => {
+        if (!navigator) {
+            return;
+        }
+        const unsubscribe = navigator.addListener('blur', () => {
+            if (!shouldHideOnNavigate) {
+                return;
+            }
+            genericTooltipStateRef.current?.hideTooltip();
+        });
+        return unsubscribe;
+    }, [navigator, shouldHideOnNavigate]);
 
     return (
         <GenericTooltip
             shouldForceAnimate
-            // eslint-disable-next-line react/jsx-props-no-spreading
+            shouldRender={shouldShowTooltip}
+            isEducationTooltip
             {...props}
-            onHideTooltip={onHideTooltip}
         >
-            {({showTooltip, hideTooltip, updateTargetBounds}) => {
-                // eslint-disable-next-line react-compiler/react-compiler
-                hideTooltipRef.current = hideTooltip;
-                return React.cloneElement(children as React.ReactElement, {
+            {(genericTooltipState) => {
+                const {updateTargetBounds, showTooltip} = genericTooltipState;
+                genericTooltipStateRef.current = genericTooltipState;
+                return React.cloneElement(children as React.ReactElement<{onLayout?: (e: LayoutChangeEventWithTarget) => void}>, {
                     onLayout: (e: LayoutChangeEventWithTarget) => {
                         if (!shouldMeasure) {
                             setShouldMeasure(true);
                         }
                         // e.target is specific to native, use e.nativeEvent.target on web instead
                         const target = e.target || e.nativeEvent.target;
+                        tooltipElementRef.current = target;
                         show.current = () => measureTooltipCoordinate(target, updateTargetBounds, showTooltip);
+
+                        // The wrapped component just moved (e.g. the device rotated). measure() only reports the
+                        // new position once the native layout has landed, so this is the earliest we can trust it.
+                        if (hasDisplayedTooltipRef.current) {
+                            renderTooltip();
+                        }
                     },
                 });
             }}
@@ -105,6 +234,4 @@ function BaseEducationalTooltip({children, onHideTooltip, shouldRender = false, 
     );
 }
 
-BaseEducationalTooltip.displayName = 'BaseEducationalTooltip';
-
-export default memo(BaseEducationalTooltip);
+export default BaseEducationalTooltip;

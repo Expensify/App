@@ -1,20 +1,25 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import Animated, {runOnJS, useAnimatedStyle} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
 import Tooltip from '@components/Tooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+
+import {isMobileSafari} from '@libs/Browser';
 import ControlSelection from '@libs/ControlSelection';
+
+import type {PanGestureActiveEvent} from 'react-native-gesture-handler';
+import type {SharedValue} from 'react-native-reanimated';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 
 type SliderProps = {
     /** React-native-reanimated lib handler which executes when the user is panning slider */
     gestureCallbacks: {
         onBegin: () => void;
-        onChange: (event: GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => void;
+        onUpdate: (event: PanGestureActiveEvent) => void;
         onFinalize: () => void;
     };
 
@@ -34,23 +39,24 @@ function Slider({sliderValue, gestureCallbacks}: SliderProps) {
         'worklet';
 
         return {
-            transform: [{translateX: sliderValue.value}],
+            transform: [{translateX: sliderValue.get()}],
         };
     });
 
-    const panGesture = Gesture.Pan()
-        .minDistance(5)
-        .onBegin(() => {
-            runOnJS(setTooltipIsVisible)(false);
+    const panGesture = usePanGesture({
+        minDistance: 5,
+        onBegin: () => {
+            scheduleOnRN(setTooltipIsVisible, false);
             gestureCallbacks.onBegin();
-        })
-        .onChange((event) => {
-            gestureCallbacks.onChange(event);
-        })
-        .onFinalize(() => {
-            runOnJS(setTooltipIsVisible)(true);
+        },
+        onUpdate: (event) => {
+            gestureCallbacks.onUpdate(event);
+        },
+        onFinalize: () => {
+            scheduleOnRN(setTooltipIsVisible, true);
             gestureCallbacks.onFinalize();
-        });
+        },
+    });
 
     // We're preventing text selection with ControlSelection.blockElement to prevent safari
     // default behaviour of cursor - I-beam cursor on drag. See https://github.com/Expensify/App/issues/13688
@@ -67,7 +73,7 @@ function Slider({sliderValue, gestureCallbacks}: SliderProps) {
                             shiftVertical={-2}
                         >
                             {/* pointerEventsNone is a workaround to make sure the pan gesture works correctly on mobile safari */}
-                            <View style={[styles.sliderKnobTooltipView, Browser.isMobileSafari() && styles.pointerEventsNone]} />
+                            <View style={[styles.sliderKnobTooltipView, isMobileSafari() && styles.pointerEventsNone]} />
                         </Tooltip>
                     )}
                 </Animated.View>
@@ -76,5 +82,4 @@ function Slider({sliderValue, gestureCallbacks}: SliderProps) {
     );
 }
 
-Slider.displayName = 'Slider';
 export default Slider;

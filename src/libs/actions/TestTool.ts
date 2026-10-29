@@ -1,32 +1,67 @@
-import throttle from 'lodash/throttle';
-import Onyx from 'react-native-onyx';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import * as Modal from './Modal';
+import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
 
-let isTestToolsModalOpen = false;
-Onyx.connect({
-    key: ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN,
-    callback: (val) => (isTestToolsModalOpen = val ?? false),
-});
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+
+import throttle from 'lodash/throttle';
+
+import {close} from './Modal';
+
+/** Only the screen the URL built carries a backTo, so take it from the first one that has it. */
+function getBackToParam(): Route | undefined {
+    const modalRoute = navigationRef.current?.getRootState()?.routes.find((route) => route.name === NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR);
+    const screenWithBackTo = modalRoute?.state?.routes?.find((route) => !!(route.params as {backTo?: Route} | undefined)?.backTo);
+    return (screenWithBackTo?.params as {backTo?: Route} | undefined)?.backTo;
+}
 
 /**
  * Toggle the test tools modal open or closed.
  * Throttle the toggle to make the modal stay open if you accidentally tap an extra time, which is easy to do.
  */
-function toggleTestToolsModal() {
-    const toggle = () => {
-        const toggleIsTestToolsModalOpen = () => {
-            Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, !isTestToolsModalOpen);
-        };
-        if (!isTestToolsModalOpen) {
-            Modal.close(toggleIsTestToolsModalOpen);
+const throttledToggle = throttle(
+    () => {
+        const currentRoute = Navigation.getActiveRoute();
+        const backTo = getBackToParam();
+
+        if (currentRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
+            if (backTo) {
+                Navigation.goBack(backTo);
+                return;
+            }
+            // dismissModal() would not close this modal: the public root is a plain platform stack that never handles DISMISS_MODAL.
+            const rootKey = navigationRef.current?.getRootState()?.key;
+            if (rootKey) {
+                Navigation.pop(rootKey);
+            }
             return;
         }
-        toggleIsTestToolsModalOpen();
-    };
-    const throttledToggle = throttle(toggle, CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME);
+        const isAuthenticated = navigationRef.current?.getRootState()?.routes.some((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        const backToRoute = isAuthenticated ? Navigation.getActiveRoute() : ROUTES.ROOT;
+        const openTestToolsModal = () => {
+            setTimeout(() => Navigation.navigate(ROUTES.TEST_TOOLS_MODAL.getRoute(backToRoute)), CONST.MODAL.ANIMATION_TIMING.DEFAULT_IN);
+        };
+        // Dismiss any current modal before showing test tools modal
+        // We need to handle test drive modal differently using Navigation.goBack() to properly clean up its navigation state
+        // Without this, the URL would revert to onboarding/test-drive or onboarding/test-drive/demo while the modal is already dismissed, leading to an unresponsive state
+        if (currentRoute.includes('test-drive')) {
+            Navigation.goBack();
+            openTestToolsModal();
+        } else {
+            close(() => {
+                openTestToolsModal();
+            });
+        }
+    },
+    CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME,
+    {leading: true, trailing: false},
+);
+
+function toggleTestToolsModal() {
     throttledToggle();
 }
 
 export default toggleTestToolsModal;
+export {getBackToParam};

@@ -1,0 +1,172 @@
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import useDomainsTabBadge from '@pages/home/ForYouSection/useDomainsTabBadge';
+
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import {useDebugTabViewHeight} from './Navigation/DebugTabView';
+import NAVIGATION_TABS from './Navigation/NavigationTabBar/NAVIGATION_TABS';
+import useTabRootScreenWrapperProps from './Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import TopBarWithLoadingBar from './Navigation/TopBarWithLoadingBar';
+import OfflineIndicator from './OfflineIndicator';
+import ScreenWrapper from './ScreenWrapper';
+import TabSelectorBase from './TabSelector/TabSelectorBase';
+
+type WorkspaceListActiveTabKey = 'workspaces' | 'domains';
+
+const TAB_LABEL_KEYS = {
+    workspaces: 'common.workspaces',
+    domains: 'common.domains',
+} as const;
+
+type WorkspaceListHeaderContentProps = {
+    activeTabKey: WorkspaceListActiveTabKey;
+    headerButton?: React.ReactNode;
+    shouldShowHeaderButton?: boolean;
+};
+
+type WorkspaceListLayoutProps = {
+    children: React.ReactNode;
+    headerButton?: React.ReactNode;
+    headerComponent?: React.ReactElement;
+    activeTabKey: WorkspaceListActiveTabKey;
+    scrollHeaderWithTable?: boolean;
+};
+
+function WorkspaceListHeaderContent({activeTabKey, headerButton, shouldShowHeaderButton = true}: WorkspaceListHeaderContentProps) {
+    const styles = useThemeStyles();
+    const {pageGutterRight, pageGutter} = useLayoutSpacing();
+    const {translate} = useLocalize();
+    const shouldRenderTopBar = useIsMobileWebLandscape();
+    const icons = useMemoizedLazyExpensifyIcons(['Globe', 'Building']);
+    const {badgeText: domainsBadgeText, hasDomainErrors} = useDomainsTabBadge();
+    const navigationOptions = [
+        {
+            key: 'workspaces',
+            title: translate('common.workspaces'),
+            icon: icons.Building,
+            route: ROUTES.WORKSPACES_LIST.getRoute(),
+            screenName: SCREENS.WORKSPACES_LIST,
+        },
+        {
+            key: 'domains',
+            title: translate('common.domains'),
+            icon: icons.Globe,
+            route: ROUTES.DOMAINS_LIST.getRoute(),
+            screenName: SCREENS.DOMAINS_LIST,
+            badgeText: domainsBadgeText,
+            isBadgeCondensed: true,
+            isBadgeError: hasDomainErrors,
+        },
+    ];
+
+    const onTabPress = (key: string) => {
+        const matchingNavigationOption = navigationOptions.find((option) => option.key === key);
+
+        if (!matchingNavigationOption) {
+            return;
+        }
+
+        Navigation.navigate(matchingNavigationOption.route);
+    };
+
+    return (
+        <>
+            {shouldRenderTopBar && (
+                <TopBarWithLoadingBar
+                    shouldDisplayHelpButton
+                    breadcrumbLabel={translate(TAB_LABEL_KEYS[activeTabKey])}
+                />
+            )}
+            <View style={[styles.flexRow, styles.justifyContentBetween, pageGutterRight, styles.pt1, styles.pb2]}>
+                <TabSelectorBase
+                    contentContainerStyles={pageGutter}
+                    tabs={navigationOptions}
+                    activeTabKey={activeTabKey}
+                    onTabPress={onTabPress}
+                />
+                {shouldShowHeaderButton && headerButton}
+            </View>
+        </>
+    );
+}
+
+function WorkspaceListLayout({children, activeTabKey, headerButton, headerComponent, scrollHeaderWithTable = false}: WorkspaceListLayoutProps) {
+    const styles = useThemeStyles();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const debugTabViewHeight = useDebugTabViewHeight();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
+
+    // When the header scrolls with the table, the top bar is rendered by WorkspaceListHeaderContent inside the list instead.
+    const shouldScrollTopBarWithTable = scrollHeaderWithTable && shouldScrollMainHeader;
+
+    const isWorkspacesListPage = activeTabKey === 'workspaces';
+    const testID = isWorkspacesListPage ? 'WorkspacesListPage' : 'DomainsListPage';
+    const headerContent = headerComponent ?? (
+        <WorkspaceListHeaderContent
+            activeTabKey={activeTabKey}
+            headerButton={headerButton}
+            shouldShowHeaderButton={shouldDisplayButtonsInSeparateLine}
+        />
+    );
+
+    const content = (
+        <>
+            {!scrollHeaderWithTable && headerContent}
+            {children}
+        </>
+    );
+
+    return (
+        <ScreenWrapper
+            testID={testID}
+            shouldEnableMaxHeight
+            shouldEnablePickerAvoiding={false}
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
+            {...tabRootScreenWrapperProps}
+        >
+            <View style={[styles.flex1, styles.flexRow]}>
+                <View style={[styles.flex1]}>
+                    {!shouldScrollTopBarWithTable && (
+                        <TopBarWithLoadingBar
+                            shouldDisplayHelpButton
+                            breadcrumbLabel={translate(TAB_LABEL_KEYS[activeTabKey])}
+                        >
+                            {!scrollHeaderWithTable && <View style={[styles.pr3]}>{!shouldDisplayButtonsInSeparateLine && headerButton}</View>}
+                        </TopBarWithLoadingBar>
+                    )}
+
+                    {content}
+                    {!shouldUseNarrowLayout && <OfflineIndicator style={styles.pl5} />}
+                    {debugTabViewHeight > 0 && (
+                        <View
+                            style={StyleUtils.getHeight(debugTabViewHeight)}
+                            testID="DebugTabViewSpacer"
+                        />
+                    )}
+                </View>
+            </View>
+        </ScreenWrapper>
+    );
+}
+
+export {WorkspaceListHeaderContent};
+export default WorkspaceListLayout;

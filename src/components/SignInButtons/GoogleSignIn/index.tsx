@@ -1,24 +1,34 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Session from '@userActions/Session';
+
+import {beginGoogleSignIn} from '@userActions/Session';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/modules/google';
+import type Locale from '@src/types/onyx/Locale';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type GoogleSignInProps = {
     isDesktopFlow?: boolean;
     // eslint-disable-next-line react/no-unused-prop-types
     onPress?: () => void;
+    onPointerDown?: () => void;
 };
 
 /** Div IDs for styling the two different Google Sign-In buttons. */
 const mainId = 'google-sign-in-main';
 const desktopId = 'google-sign-in-desktop';
 
-const signIn = (response: Response) => {
-    Session.beginGoogleSignIn(response.credential);
+const signIn = (response: Response, preferredLocale?: Locale, marketingAttribution?: OnyxEntry<StoredMarketingAttribution>) => {
+    beginGoogleSignIn(response.credential, preferredLocale, marketingAttribution);
 };
 
 /**
@@ -27,16 +37,18 @@ const signIn = (response: Response) => {
  * @returns {React.Component}
  */
 
-function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
+function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const loadScript = useCallback(() => {
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [marketingAttribution] = useOnyx(ONYXKEYS.MARKETING_ATTRIBUTION);
+    const loadScript = () => {
         const google = window.google;
         if (google) {
             google.accounts.id.initialize({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 client_id: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
-                callback: signIn,
+                callback: (response) => signIn(response, preferredLocale, marketingAttribution),
             });
             // Apply styles for each button
             google.accounts.id.renderButton(document.getElementById(mainId), {
@@ -53,7 +65,7 @@ function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
                 width: '300px',
             });
         }
-    }, []);
+    };
 
     React.useEffect(() => {
         const script = document.createElement('script');
@@ -76,6 +88,7 @@ function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
                 id={desktopId}
                 role={CONST.ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
+                onPointerDown={onPointerDown}
             />
         </View>
     ) : (
@@ -84,12 +97,11 @@ function GoogleSignIn({isDesktopFlow = false}: GoogleSignInProps) {
                 id={mainId}
                 role={CONST.ROLE.BUTTON}
                 aria-label={translate('common.signInWithGoogle')}
+                onPointerDown={onPointerDown}
             />
         </View>
     );
 }
-
-GoogleSignIn.displayName = 'GoogleSignIn';
 
 export default GoogleSignIn;
 export type {GoogleSignInProps};

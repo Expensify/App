@@ -1,19 +1,33 @@
-import Onyx from 'react-native-onyx';
+import {renderHook} from '@testing-library/react-native';
+
+import useReportIsArchived from '@hooks/useReportIsArchived';
+
+import DateUtils from '@libs/DateUtils';
 import type {ObjectType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
+import {getObjectKeys} from '@libs/ObjectUtils';
+import {getAllReportErrors} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import type {Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
-import type ReportActionName from '../../src/types/onyx/ReportActionName';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import {chatReportR14932} from '../../__mocks__/reportData/reports';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import createRandomReport from '../utils/collections/reports';
+import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const MOCK_REPORT: Report = {
-    ...createRandomReport(0),
+    ...createRandomReport(0, undefined),
 };
 
 const MOCK_REPORT_ACTION: ReportAction = {
@@ -21,9 +35,16 @@ const MOCK_REPORT_ACTION: ReportAction = {
     originalMessage: undefined,
 };
 
-const MOCK_TRANSACTION: Transaction = createRandomTransaction(0);
+const MOCK_TRANSACTION: Transaction = {
+    ...createRandomTransaction(0),
+
+    // The shared factory leaves this off, so name it here to exercise its branch of the draft property validator.
+    commuterExclusionPreview: {policyID: '1', hasExclusion: true, isWholeTripExcluded: false, commuteDistanceMeters: 100},
+};
 
 const MOCK_DRAFT_REPORT_ACTION = DebugUtils.onyxDataToString(MOCK_REPORT_ACTION);
+const RORY_EMAIL = 'rory@email.com';
+const RORY_ACCOUNT_ID = 5;
 
 const MOCK_CONST_ENUM = {
     foo: 'foo',
@@ -47,6 +68,67 @@ const TEST_OBJECT_TYPE = {
     e: 'boolean',
     f: 'boolean',
 } satisfies ObjectType<Record<string, unknown>>;
+
+/** Stores an open expense report owned by Rory whose only expense was auto-rejected, and returns its chat and the violations collection */
+async function setUpAutoRejectedOpenReport() {
+    const chatReportID = '500';
+    const iouReportID = '501';
+    const policyID = '502';
+    const policy: Policy = {
+        ...createRandomPolicy(Number(policyID)),
+        id: policyID,
+        type: CONST.POLICY.TYPE.TEAM,
+        approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+        role: CONST.POLICY.ROLE.USER,
+        harvesting: {enabled: false},
+    };
+    const chatReport: Report = {
+        reportID: chatReportID,
+        reportName: 'Workspace chat',
+        type: CONST.REPORT.TYPE.CHAT,
+        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        policyID,
+        isOwnPolicyExpenseChat: true,
+        hasOutstandingChildRequest: false,
+    };
+    const iouReport: Report = {
+        reportID: iouReportID,
+        chatReportID,
+        type: CONST.REPORT.TYPE.EXPENSE,
+        policyID,
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        ownerAccountID: RORY_ACCOUNT_ID,
+        managerID: RORY_ACCOUNT_ID,
+    };
+    const transaction: Transaction = {
+        ...createRandomTransaction(0),
+        reportID: iouReportID,
+        amount: 100,
+        status: CONST.TRANSACTION.STATUS.POSTED,
+        bank: '',
+        merchant: 'TestMerchant',
+        modifiedMerchant: 'TestMerchant',
+    };
+    const reportPreviewAction = createMock<ReportAction>({
+        reportActionID: iouReportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+        created: '2024-08-08 19:00:00.000',
+        childReportID: iouReportID,
+        message: [{type: 'TEXT', text: 'Report preview', html: 'Report preview'}],
+    });
+    const transactionViolations = {
+        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [{name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE, type: CONST.VIOLATION_TYPES.VIOLATION}],
+    };
+    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {[reportPreviewAction.reportActionID]: reportPreviewAction});
+    await waitForBatchedUpdates();
+
+    return {chatReport, transactionViolations};
+}
 
 describe('DebugUtils', () => {
     describe('onyxDataToString', () => {
@@ -380,6 +462,50 @@ describe('DebugUtils', () => {
         });
     });
 
+    describe('validateStringRecord', () => {
+        it('does not throw SyntaxError when value is "undefined"', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('undefined');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a string representation of an empty object', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{}');
+            }).not.toThrow();
+        });
+
+        it('does not throw SyntaxError when value is a valid string representation of a string-to-string record', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":"CostCenterB","1":"IndicationZ"}');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when value is just a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('a');
+            }).toThrow();
+        });
+
+        it('throws SyntaxError when value is a string representation of an array', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('["a"]');
+            }).toThrow();
+        });
+
+        it('does not throw SyntaxError when value is "null" (treated as an empty value)', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('null');
+            }).not.toThrow();
+        });
+
+        it('throws SyntaxError when a value in the record is not a string', () => {
+            expect(() => {
+                DebugUtils.validateStringRecord('{"0":1}');
+            }).toThrow();
+        });
+    });
+
     describe('validateObject', () => {
         describe('value is undefined', () => {
             it('does not throw SyntaxError', () => {
@@ -501,7 +627,7 @@ describe('DebugUtils', () => {
     });
 
     describe('validateReportDraftProperty', () => {
-        describe.each(Object.keys(MOCK_REPORT) as Array<keyof Report>)('%s', (key) => {
+        describe.each(getObjectKeys(MOCK_REPORT))('%s', (key) => {
             describe('is undefined', () => {
                 it(`${DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key) ? 'throws SyntaxError' : 'does not throw SyntaxError'}`, () => {
                     if (DebugUtils.REPORT_REQUIRED_PROPERTIES.includes(key)) {
@@ -550,7 +676,7 @@ describe('DebugUtils', () => {
     });
 
     describe('validateReportActionDraftProperty', () => {
-        describe.each(Object.keys(MOCK_REPORT_ACTION) as Array<keyof ReportAction>)('%s', (key) => {
+        describe.each(getObjectKeys(MOCK_REPORT_ACTION))('%s', (key) => {
             it(`${DebugUtils.REPORT_ACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
                 if (DebugUtils.REPORT_ACTION_REQUIRED_PROPERTIES.includes(key)) {
                     expect(() => {
@@ -593,7 +719,7 @@ describe('DebugUtils', () => {
     });
 
     describe('validateTransactionDraftProperty', () => {
-        describe.each(Object.keys(MOCK_TRANSACTION) as Array<keyof Transaction>)('%s', (key) => {
+        describe.each(getObjectKeys(MOCK_TRANSACTION))('%s', (key) => {
             it(`${DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key) ? "throws SyntaxError when 'undefined'" : 'does not throw SyntaxError when "undefined"'}`, () => {
                 if (DebugUtils.TRANSACTION_REQUIRED_PROPERTIES.includes(key)) {
                     expect(() => {
@@ -643,9 +769,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid number', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                accountID: '2' as unknown as number,
+                accountID: '2',
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -661,9 +787,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid date', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                created: 2 as unknown as string,
+                created: 2,
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -679,9 +805,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is not a valid boolean', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                isLoading: 2 as unknown as boolean,
+                isLoading: 2,
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -697,9 +823,9 @@ describe('DebugUtils', () => {
         });
 
         it('throws SyntaxError when property is missing', () => {
-            const reportAction: ReportAction = {
+            const reportAction = {
                 ...MOCK_REPORT_ACTION,
-                actionName: undefined as unknown as ReportActionName,
+                actionName: undefined,
             };
             const draftReportAction = DebugUtils.onyxDataToString(reportAction);
             expect(() => {
@@ -730,77 +856,161 @@ describe('DebugUtils', () => {
             Onyx.clear();
         });
         it('returns null when report is not defined', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN(undefined);
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: undefined,
+                chatReport: chatReportR14932,
+                doesReportHaveViolations: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
             expect(reason).toBeNull();
         });
         it('returns correct reason when report has a valid draft comment', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`, 'Hello world!');
-            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport);
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: baseReport,
+                chatReport: chatReportR14932,
+                doesReportHaveViolations: false,
+                draftComment: 'Hello world!',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasDraftComment');
         });
         it('returns correct reason when report has GBR', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                lastMentionedTime: '2024-08-10 18:70:44.171',
-                lastReadTime: '2024-08-08 18:70:44.171',
+                report: {
+                    ...baseReport,
+                    lastMentionedTime: '2024-08-10 18:70:44.171',
+                    lastReadTime: '2024-08-08 18:70:44.171',
+                },
+                chatReport: chatReportR14932,
+                doesReportHaveViolations: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasGBR');
         });
         it('returns correct reason when report is pinned', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                isPinned: true,
+                report: {
+                    ...baseReport,
+                    isPinned: true,
+                },
+                chatReport: chatReportR14932,
+                doesReportHaveViolations: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.pinnedByUser');
         });
         it('returns correct reason when report has add workspace room errors', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                errorFields: {
-                    addWorkspaceRoom: {
-                        error: 'Something happened',
+                report: {
+                    ...baseReport,
+                    errorFields: {
+                        addWorkspaceRoom: {
+                            error: 'Something happened',
+                        },
                     },
                 },
+                chatReport: chatReportR14932,
+                doesReportHaveViolations: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasAddWorkspaceRoomErrors');
         });
         it('returns correct reason when report is unread', async () => {
-            await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
             await Onyx.set(ONYXKEYS.SESSION, {
                 accountID: 1234,
             });
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                participants: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    1234: {
-                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                report: {
+                    ...baseReport,
+                    participants: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        1234: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        },
                     },
+                    lastVisibleActionCreated: '2024-08-10 18:70:44.171',
+                    lastReadTime: '2024-08-08 18:70:44.171',
+                    lastMessageText: 'Hello world!',
                 },
-                lastVisibleActionCreated: '2024-08-10 18:70:44.171',
-                lastReadTime: '2024-08-08 18:70:44.171',
-                lastMessageText: 'Hello world!',
+                chatReport: chatReportR14932,
+                isInFocusMode: true,
+                doesReportHaveViolations: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isUnread');
         });
         it('returns correct reason when report is archived', async () => {
-            await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.DEFAULT);
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseReport.reportID}`, reportNameValuePairs);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(baseReport?.reportID));
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                private_isArchived: 'true',
+                report: {
+                    ...baseReport,
+                },
+                chatReport: chatReportR14932,
+                hasRBR: false,
+                isReportArchived: isReportArchived.current,
+                doesReportHaveViolations: false,
+                draftComment: '',
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isArchived');
         });
         it('returns correct reason when report is self DM', () => {
             const reason = DebugUtils.getReasonForShowingRowInLHN({
-                ...baseReport,
-                chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                report: {
+                    ...baseReport,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                },
+                chatReport: chatReportR14932,
+                doesReportHaveViolations: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
             });
             expect(reason).toBe('debug.reasonVisibleInLHN.isSelfDM');
         });
         it('returns correct reason when report is temporarily focused', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport);
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: baseReport,
+                chatReport: chatReportR14932,
+                doesReportHaveViolations: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
             expect(reason).toBe('debug.reasonVisibleInLHN.isFocused');
         });
         it('returns correct reason when report has one transaction thread with violations', async () => {
@@ -828,11 +1038,11 @@ describe('DebugUtils', () => {
                         actorAccountID: 12345,
                         created: '2024-08-08 18:20:44.171',
                         childReportID: '2',
+                        reportID: '1',
                         message: {
                             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                             amount: 10,
                             currency: CONST.CURRENCY.USD,
-                            IOUReportID: '1',
                             text: 'Vacation expense',
                             IOUTransactionID: '1',
                         },
@@ -851,14 +1061,18 @@ describe('DebugUtils', () => {
                     modifiedAmount: 10,
                     reportID: '1',
                 },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
-                    {
-                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                    },
-                ],
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_TRANSACTION_REPORT, true);
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: MOCK_TRANSACTION_REPORT,
+                chatReport: chatReportR14932,
+                hasRBR: true,
+                doesReportHaveViolations: true,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has violations', async () => {
@@ -886,11 +1100,11 @@ describe('DebugUtils', () => {
                         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                         actorAccountID: 12345,
                         created: '2024-08-08 18:20:44.171',
+                        reportID: '1',
                         message: {
                             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                             amount: 10,
                             currency: CONST.CURRENCY.USD,
-                            IOUReportID: '1',
                             text: 'Vacation expense',
                             IOUTransactionID: '1',
                         },
@@ -909,19 +1123,55 @@ describe('DebugUtils', () => {
                     modifiedAmount: 10,
                     reportID: '1',
                 },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
-                    {
-                        type: CONST.VIOLATION_TYPES.VIOLATION,
-                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
-                    },
-                ],
             });
-            const reason = DebugUtils.getReasonForShowingRowInLHN(MOCK_EXPENSE_REPORT, true);
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: MOCK_EXPENSE_REPORT,
+                chatReport: chatReportR14932,
+                hasRBR: true,
+                doesReportHaveViolations: true,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
         });
         it('returns correct reason when report has errors', () => {
-            const reason = DebugUtils.getReasonForShowingRowInLHN(baseReport, true);
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: baseReport,
+                chatReport: chatReportR14932,
+                hasRBR: true,
+                doesReportHaveViolations: false,
+                draftComment: '',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
             expect(reason).toBe('debug.reasonVisibleInLHN.hasRBR');
+        });
+        it('does not return hasGBR when every expense of the open report was auto-rejected', async () => {
+            // Given an open expense report owned by the current user whose only expense carries an auto-rejected violation
+            const {chatReport, transactionViolations} = await setUpAutoRejectedOpenReport();
+
+            // When the debug page asks why the chat is visible in the LHN, passing the violations like the LHN derived value does
+            const reason = DebugUtils.getReasonForShowingRowInLHN({
+                report: chatReport,
+                chatReport: undefined,
+                doesReportHaveViolations: false,
+                isReportArchived: false,
+                draftComment: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                conciergeReportID: undefined,
+                hasGuidesEmails: false,
+                derivedIsEmptyReport: undefined,
+                transactionViolations,
+            });
+
+            // Then the reason is not hasGBR, because the SUBMIT badge is suppressed when nothing is submittable, matching the LHN row
+            expect(reason).not.toBe('debug.reasonVisibleInLHN.hasGBR');
         });
     });
     describe('getReasonAndReportActionForGBRInLHNRow', () => {
@@ -934,94 +1184,126 @@ describe('DebugUtils', () => {
             Onyx.clear();
         });
         it('returns undefined reason when report is not defined', () => {
-            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined) ?? {};
+            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined) ?? {};
             expect(reason).toBeUndefined();
         });
         it('returns correct reason when report has a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '0': {
+                '0': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>({
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
                     created: '2024-08-08 19:70:44.171',
+                    // @ts-expect-error -- persisted join requests can contain an empty choice.
                     message: {
-                        choice: '' as JoinWorkspaceResolution,
+                        choice: '',
                         policyID: '0',
                     },
-                } as ReportAction<'ACTIONABLEJOINREQUEST'>,
+                }),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                    undefined,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasJoinRequest');
         });
         it('returns correct reason when report is unread with mention', () => {
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                    lastMentionedTime: '2024-08-10 18:70:44.171',
-                    lastReadTime: '2024-08-08 18:70:44.171',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                        lastMentionedTime: '2024-08-10 18:70:44.171',
+                        lastReadTime: '2024-08-08 18:70:44.171',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                    undefined,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.isUnreadWithMention');
         });
         it('returns correct reason when report has a task which is waiting for assignee to complete it', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: 12345});
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                    type: CONST.REPORT.TYPE.TASK,
-                    hasParentAccess: false,
-                    managerID: 12345,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                        type: CONST.REPORT.TYPE.TASK,
+                        hasParentAccess: false,
+                        managerID: 12345,
+                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                    undefined,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.isWaitingForAssigneeToCompleteAction');
         });
         it('returns correct reason when report has a child report awaiting action from the user', () => {
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                    hasOutstandingChildRequest: true,
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                        hasOutstandingChildRequest: true,
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                    undefined,
+                ) ?? {};
             expect(reason).toBe('debug.reasonGBR.hasChildReportAwaitingAction');
         });
         it('returns undefined reason when report has no GBR', () => {
             const {reason} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                    undefined,
+                ) ?? {};
             expect(reason).toBeUndefined();
         });
         it('returns undefined reportAction when report is not defined', () => {
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined) ?? {};
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined) ?? {};
             expect(reportAction).toBeUndefined();
         });
         it('returns the report action which is a join request', async () => {
             const MOCK_REPORT_ACTIONS = {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '0': {
+                '0': createMock<ReportAction<'CREATED'>>({
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     created: '2024-08-08 18:70:44.171',
-                } as ReportAction<'CREATED'>,
+                }),
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                '1': {
+                '1': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST>>({
                     reportActionID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
                     created: '2024-08-08 19:70:44.171',
+                    // @ts-expect-error -- persisted join requests can contain an empty choice.
                     message: {
-                        choice: '' as JoinWorkspaceResolution,
+                        choice: '',
                         policyID: '0',
                     },
-                } as ReportAction<'ACTIONABLEJOINREQUEST'>,
+                }),
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, MOCK_REPORT_ACTIONS);
             const {reportAction} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                    undefined,
+                ) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns the report action which is awaiting action', async () => {
@@ -1049,6 +1331,12 @@ describe('DebugUtils', () => {
                     reportActionID: '0',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     created: '2024-08-08 18:70:44.171',
+                    message: [
+                        {
+                            type: 'TEXT',
+                            text: 'Hello world!',
+                        },
+                    ],
                 },
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 '1': {
@@ -1056,36 +1344,67 @@ describe('DebugUtils', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                     created: '2024-08-08 19:70:44.171',
                     childReportID: '2',
+                    message: [
+                        {
+                            type: 'TEXT',
+                            text: 'Hello world!',
+                        },
+                    ],
                 },
             };
             await Onyx.multiSet({
                 ...MOCK_REPORTS,
-                [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}2` as const]: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    private_isArchived: false,
-                },
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
                 [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                     type: CONST.POLICY.TYPE.CORPORATE,
                 },
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
+                    amount: -100,
+                    currency: CONST.CURRENCY.USD,
+                    reportID: '2',
+                    merchant: 'test merchant',
+                },
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,
+                    email: RORY_EMAIL,
                 },
             });
-            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report) ?? {};
+            const report = MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`];
+            if (!report) {
+                throw new Error('Expected the report fixture to be present');
+            }
+            const {reportAction} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, RORY_EMAIL, 12345, undefined) ?? {};
             expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
         });
         it('returns undefined report action when report has no GBR', () => {
             const {reportAction} =
-                DebugUtils.getReasonAndReportActionForGBRInLHNRow({
-                    reportID: '1',
-                }) ?? {};
+                DebugUtils.getReasonAndReportActionForGBRInLHNRow(
+                    {
+                        reportID: '1',
+                    },
+                    RORY_EMAIL,
+                    RORY_ACCOUNT_ID,
+                    undefined,
+                ) ?? {};
             expect(reportAction).toBeUndefined();
+        });
+        it('returns undefined reason when every expense of the open report was auto-rejected', async () => {
+            // Given an open expense report owned by the current user whose only expense carries an auto-rejected violation
+            const {chatReport, transactionViolations} = await setUpAutoRejectedOpenReport();
+
+            // When the debug page asks why the chat shows a GBR, passing the violations like the LHN derived value does
+            const {reason} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(chatReport, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, transactionViolations) ?? {};
+
+            // Then no GBR reason is reported, because the SUBMIT badge is suppressed when nothing is submittable, matching the LHN row
+            expect(reason).toBeUndefined();
         });
     });
     describe('getReasonAndReportActionForRBRInLHNRow', () => {
+        const sharedTransaction = createRandomTransaction(77777);
+        const sharedAllTransactions: OnyxCollection<Transaction> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${sharedTransaction.transactionID}`]: sharedTransaction,
+        };
         beforeAll(() => {
             Onyx.init({
                 keys: ONYXKEYS,
@@ -1101,8 +1420,14 @@ describe('DebugUtils', () => {
                         {
                             reportID: '1',
                         },
+                        chatReportR14932,
+                        undefined,
+                        sharedAllTransactions,
                         undefined,
                         false,
+                        {},
+                        false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reportAction).toBeUndefined();
             });
@@ -1144,192 +1469,100 @@ describe('DebugUtils', () => {
                         accountID: 12345,
                     },
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                        amount: 0,
-                        modifiedAmount: 0,
+                        amount: 100,
+                        created: '',
+                        modifiedCreated: '',
                     },
                 });
-                const {reportAction} =
-                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                        MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
-                        undefined,
-                        false,
-                    ) ?? {};
+                const transactionForTest: OnyxCollection<Transaction> = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
+                        amount: 100,
+                        created: '',
+                        modifiedCreated: '',
+                    }),
+                };
+                const report = MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`];
+                if (!report) {
+                    throw new Error('Expected the report fixture to be present');
+                }
+                const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, undefined, transactionForTest, undefined, false, {}, false, 12345) ?? {};
                 expect(reportAction).toBe(undefined);
-            });
-            describe("Report has missing fields, isn't settled and it's owner is the current user", () => {
-                describe('Report is IOU', () => {
-                    it('returns correct report action which has missing fields', async () => {
-                        const MOCK_IOU_REPORT: Report = {
-                            reportID: '1',
-                            type: CONST.REPORT.TYPE.IOU,
-                            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                            ownerAccountID: 12345,
-                        };
-                        const MOCK_REPORT_ACTIONS: ReportActions = {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '0': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                reportActionID: '0',
-                                created: '2024-08-08 18:20:44.171',
-                            } as ReportAction<'CREATED'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '1': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '1',
-                                message: {
-                                    IOUTransactionID: '2',
-                                },
-                                actorAccountID: 1,
-                            } as ReportAction<'IOU'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '2': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '2',
-                                message: {
-                                    IOUTransactionID: '1',
-                                },
-                                actorAccountID: 1,
-                            } as ReportAction<'IOU'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '3': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '3',
-                                message: {
-                                    IOUTransactionID: '1',
-                                },
-                                actorAccountID: 12345,
-                            } as ReportAction<'IOU'>,
-                        };
-                        await Onyx.multiSet({
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                                amount: 0,
-                                modifiedAmount: 0,
-                            },
-                            [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
-                            [ONYXKEYS.SESSION]: {
-                                accountID: 12345,
-                            },
-                        });
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
-                        expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
-                    });
-                });
-                describe('Report is expense', () => {
-                    it('returns correct report action which has missing fields', async () => {
-                        const MOCK_IOU_REPORT: Report = {
-                            reportID: '1',
-                            type: CONST.REPORT.TYPE.EXPENSE,
-                            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                            ownerAccountID: 12345,
-                        };
-                        const MOCK_REPORT_ACTIONS: ReportActions = {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '0': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                reportActionID: '0',
-                                created: '2024-08-08 18:20:44.171',
-                            } as ReportAction<'CREATED'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '1': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '1',
-                                message: {
-                                    IOUTransactionID: '2',
-                                },
-                                actorAccountID: 1,
-                            } as ReportAction<'IOU'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '2': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '2',
-                                message: {
-                                    IOUTransactionID: '1',
-                                },
-                                actorAccountID: 1,
-                            } as ReportAction<'IOU'>,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '3': {
-                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                                reportActionID: '3',
-                                message: {
-                                    IOUTransactionID: '1',
-                                },
-                                actorAccountID: 12345,
-                            } as ReportAction<'IOU'>,
-                        };
-                        await Onyx.multiSet({
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                                amount: 0,
-                                modifiedAmount: 0,
-                            },
-                            [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
-                            [ONYXKEYS.SESSION]: {
-                                accountID: 12345,
-                            },
-                        });
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
-                        expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
-                    });
-                });
             });
             describe('There is a report action with smart scan errors', () => {
                 it('returns correct report action which is a report preview and has an error', async () => {
                     const MOCK_CHAT_REPORT: Report = {
                         reportID: '1',
                         type: CONST.REPORT.TYPE.CHAT,
-                        ownerAccountID: 12345,
+                        ownerAccountID: RORY_ACCOUNT_ID,
                     };
                     const MOCK_IOU_REPORT: Report = {
                         reportID: '2',
                         type: CONST.REPORT.TYPE.IOU,
                         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                        ownerAccountID: 12345,
+                        ownerAccountID: RORY_ACCOUNT_ID,
                     };
                     const MOCK_CHAT_REPORT_ACTIONS: ReportActions = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '0': {
+                        '0': createMock<ReportAction<'CREATED'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                             reportActionID: '0',
                             created: '2024-08-08 18:20:44.171',
-                        } as ReportAction<'CREATED'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
+                        '1': createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                             reportActionID: '3',
                             message: {
                                 linkedReportID: '2',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'REPORTPREVIEW'>,
+                        }),
                     };
                     const MOCK_IOU_REPORT_ACTIONS = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
+                        '1': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '1',
                             message: {
                                 IOUTransactionID: '1',
                             },
-                            actorAccountID: 12345,
-                        } as ReportAction<'IOU'>,
+                            actorAccountID: RORY_ACCOUNT_ID,
+                        }),
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_CHAT_REPORT_ACTIONS,
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2` as const]: MOCK_IOU_REPORT_ACTIONS,
                         [ONYXKEYS.SESSION]: {
-                            accountID: 12345,
+                            accountID: RORY_ACCOUNT_ID,
                         },
                     });
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, false) ?? {};
+                    const mockTransactions: OnyxCollection<Transaction> = {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
+                        }),
+                    };
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
+                    const {reportAction} =
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                            MOCK_CHAT_REPORT,
+                            chatReportR14932,
+                            MOCK_CHAT_REPORT_ACTIONS,
+                            mockTransactions,
+                            undefined,
+                            false,
+                            reportErrors,
+                            false,
+                            RORY_ACCOUNT_ID,
+                        ) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
                 it('returns correct report action which is a split bill and has an error', async () => {
@@ -1345,31 +1578,31 @@ describe('DebugUtils', () => {
                     };
                     const MOCK_REPORT_ACTIONS: ReportActions = {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '0': {
+                        '0': createMock<ReportAction<'CREATED'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                             reportActionID: '0',
                             created: '2024-08-08 18:20:44.171',
-                        } as ReportAction<'CREATED'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
+                        '1': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '1',
                             message: {
                                 IOUTransactionID: '2',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '2': {
+                        '2': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '2',
                             message: {
                                 IOUTransactionID: '1',
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
+                        }),
                         // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '3': {
+                        '3': createMock<ReportAction<'IOU'>>({
                             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                             reportActionID: '3',
                             message: {
@@ -1377,12 +1610,13 @@ describe('DebugUtils', () => {
                                 type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
                             },
                             actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
+                        }),
                     };
                     await Onyx.multiSet({
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
                         },
                         [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_CHAT_REPORT,
                         [`${ONYXKEYS.COLLECTION.REPORT}2` as const]: MOCK_IOU_REPORT,
@@ -1391,63 +1625,26 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
-                    expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
-                });
-                it("returns undefined if there's no report action is a report preview or a split bill", async () => {
-                    const MOCK_IOU_REPORT: Report = {
-                        reportID: '1',
-                        type: CONST.REPORT.TYPE.EXPENSE,
-                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                        ownerAccountID: 12345,
+                    const mockTransactions: OnyxCollection<Transaction> = {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
+                        }),
                     };
-                    const MOCK_REPORT_ACTIONS: ReportActions = {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '0': {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                            reportActionID: '0',
-                            created: '2024-08-08 18:20:44.171',
-                        } as ReportAction<'CREATED'>,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '1': {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                            reportActionID: '1',
-                            message: {
-                                IOUTransactionID: '2',
-                            },
-                            actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '2': {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                            reportActionID: '2',
-                            message: {
-                                IOUTransactionID: '1',
-                            },
-                            actorAccountID: 1,
-                        } as ReportAction<'IOU'>,
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        '3': {
-                            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                            reportActionID: '3',
-                            message: {
-                                IOUTransactionID: '1',
-                            },
-                            actorAccountID: 12345,
-                        } as ReportAction<'IOU'>,
-                    };
-                    await Onyx.multiSet({
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1` as const]: {
-                            amount: 0,
-                            modifiedAmount: 0,
-                        },
-                        [`${ONYXKEYS.COLLECTION.REPORT}1` as const]: MOCK_IOU_REPORT,
-                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1` as const]: MOCK_REPORT_ACTIONS,
-                        [ONYXKEYS.SESSION]: {
-                            accountID: 12345,
-                        },
-                    });
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions, RORY_ACCOUNT_ID, undefined);
+                    const {reportAction} =
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                            MOCK_CHAT_REPORT,
+                            chatReportR14932,
+                            MOCK_REPORT_ACTIONS,
+                            mockTransactions,
+                            undefined,
+                            false,
+                            reportErrors,
+                            false,
+                            12345,
+                        ) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1493,41 +1690,58 @@ describe('DebugUtils', () => {
                         ],
                     },
                 };
+                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
                             reportID: '1',
                         },
+                        chatReportR14932,
                         MOCK_REPORT_ACTIONS,
+                        sharedAllTransactions,
+                        undefined,
                         false,
+                        reportErrors,
+                        false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
         });
         describe('reason', () => {
             it('returns correct reason when there are errors', () => {
+                const mockedReport = {
+                    reportID: '1',
+                };
+                const mockedReportActions = {
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        created: '2024-09-20 13:11:11.122',
+                        message: [
+                            {
+                                type: 'TEXT',
+                                text: 'Hello world!',
+                            },
+                        ],
+                        errors: {
+                            randomError: 'Something went wrong',
+                        },
+                    },
+                };
+
+                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions, RORY_ACCOUNT_ID, undefined);
                 const {reason} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
-                        {
-                            reportID: '1',
-                        },
-                        {
-                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
-                                reportActionID: '1',
-                                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                                created: '2024-09-20 13:11:11.122',
-                                message: [
-                                    {
-                                        type: 'TEXT',
-                                        text: 'Hello world!',
-                                    },
-                                ],
-                                errors: {
-                                    randomError: 'Something went wrong',
-                                },
-                            },
-                        },
+                        mockedReport,
+                        chatReportR14932,
+                        mockedReportActions,
+                        sharedAllTransactions,
+                        undefined,
                         false,
+                        reportErrors,
+                        false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
@@ -1537,18 +1751,51 @@ describe('DebugUtils', () => {
                         {
                             reportID: '1',
                         },
+                        chatReportR14932,
+                        undefined,
+                        sharedAllTransactions,
                         undefined,
                         true,
+                        {},
+                        false,
+                        RORY_ACCOUNT_ID,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
-            it('returns correct reason when there are reports on the workspace chat with violations', async () => {
+            it('returns an undefined reason when the report is archived', () => {
+                const {reason} =
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                        {
+                            reportID: '1',
+                        },
+                        chatReportR14932,
+                        undefined,
+                        sharedAllTransactions,
+                        undefined,
+                        true,
+                        {},
+                        false,
+                        RORY_ACCOUNT_ID,
+                        true,
+                    ) ?? {};
+                expect(reason).toBe(undefined);
+            });
+            it('returns correct reason when there are reports on the expense chat with violations', async () => {
                 const report: Report = {
                     reportID: '0',
                     type: CONST.REPORT.TYPE.CHAT,
                     ownerAccountID: 1234,
                     policyID: '1',
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                };
+                const transactionViolations = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
+                        {
+                            type: CONST.VIOLATION_TYPES.VIOLATION,
+                            name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                            showInReview: true,
+                        },
+                    ],
                 };
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {
@@ -1559,6 +1806,7 @@ describe('DebugUtils', () => {
                         reportID: '1',
                         parentReportActionID: '0',
                         stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                         ownerAccountID: 1234,
                         policyID: '1',
                     },
@@ -1566,17 +1814,111 @@ describe('DebugUtils', () => {
                         transactionID: '1',
                         amount: 10,
                         modifiedAmount: 10,
-                        reportID: '0',
+                        reportID: '1',
                     },
                     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1` as const]: [
                         {
                             type: CONST.VIOLATION_TYPES.VIOLATION,
                             name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                            showInReview: true,
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}, false) ?? {};
+                const violationTransactions: OnyxCollection<Transaction> = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createMock<Transaction>({
+                        transactionID: '1',
+                        amount: 10,
+                        modifiedAmount: 10,
+                        reportID: '1',
+                    }),
+                };
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}, false, 1234) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
+            });
+            it('forwards isOffline through to SidebarUtils so the live IOU transaction-thread receipt error surfaces only when isOffline=false excludes the deleted pending-delete action', () => {
+                // Given: an expense report with two IOU actions — one live (with a receipt-errored transaction) and one deleted-with-pending-delete.
+                const OFFLINE_EXPENSE_REPORT: Report = {
+                    reportID: '1',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID: '2',
+                };
+                const OFFLINE_CHAT_REPORT: Report = {
+                    reportID: '2',
+                };
+                const liveTransactionID = 'tx-debug-live';
+                const deletedTransactionID = 'tx-debug-deleted';
+                const OFFLINE_REPORT_ACTIONS: OnyxEntry<ReportActions> = {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '1': createMock<ReportAction>({
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 12345,
+                        created: '2024-08-08 18:20:44.171',
+                        message: [{type: 'TEXT', text: 'live'}],
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: liveTransactionID,
+                            amount: 10,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    }),
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    '2': createMock<ReportAction>({
+                        reportActionID: '2',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 12345,
+                        created: '2024-08-08 18:25:44.171',
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                        message: [{type: 'TEXT', text: '', html: ''}],
+                        originalMessage: {
+                            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                            IOUTransactionID: deletedTransactionID,
+                            amount: 20,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    }),
+                };
+                const OFFLINE_TRANSACTIONS: OnyxCollection<Transaction> = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${liveTransactionID}`]: createMock<Transaction>({
+                        transactionID: liveTransactionID,
+                        amount: 10,
+                        errors: {
+                            someErrorKey: {error: CONST.IOU.RECEIPT_ERROR},
+                        },
+                    }),
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`]: createMock<Transaction>({
+                        transactionID: deletedTransactionID,
+                        amount: 20,
+                    }),
+                };
+
+                const offline = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                    OFFLINE_EXPENSE_REPORT,
+                    OFFLINE_CHAT_REPORT,
+                    OFFLINE_REPORT_ACTIONS,
+                    OFFLINE_TRANSACTIONS,
+                    {},
+                    false,
+                    {},
+                    true,
+                    12345,
+                );
+                const online = DebugUtils.getReasonAndReportActionForRBRInLHNRow(
+                    OFFLINE_EXPENSE_REPORT,
+                    OFFLINE_CHAT_REPORT,
+                    OFFLINE_REPORT_ACTIONS,
+                    OFFLINE_TRANSACTIONS,
+                    {},
+                    false,
+                    {},
+                    false,
+                    12345,
+                );
+
+                // Online: deleted pending-delete is skipped → 1 IOU thread → receipt error surfaces.
+                expect(online?.reason).toBe('debug.reasonRBR.hasErrors');
+                // Offline: deleted pending-delete is counted → 2 IOU actions → no single thread → no receipt error via that path.
+                expect(offline).toBeNull();
             });
         });
     });

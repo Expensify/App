@@ -3,6 +3,9 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
 $VCDisableFrameProcessors = true
+# Compiles react-native-screens' experimental (gamma) iOS code, which ScrollViewMarker needs.
+# Without it, rendering ScrollViewMarker crashes on iOS.
+ENV['RNS_GAMMA_ENABLED'] = '1'
 
 def node_require(script)
   # Resolve script with node to allow for hoisting
@@ -16,23 +19,26 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-# Our min supported iOS version is higher than the default (min_ios_version_supported) to support libraires such as Airship
-platform :ios, 14.0
+# Must come after react_native_pods.rb, which defines ReactNativeCoreUtils.
+require_relative '../scripts/artifacts-utils/ios/patched_ios_artifacts.rb'
+PatchedIOSArtifacts.setup
+
+MIN_IOS_VERSION = '16.4'
+platform :ios, MIN_IOS_VERSION
 prepare_react_native_project!
 
 
 setup_permissions([
   'Camera',
+  'Contacts',
   'LocationAccuracy',
   'LocationAlways',
   'LocationWhenInUse'
 ])
 
-linkage = ENV['USE_FRAMEWORKS']
-if linkage != nil
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
-end
+# As per the official React Native Firebase documentation: https://rnfirebase.io/#altering-cocoapods-to-use-frameworks
+use_frameworks! :linkage => :static
+$RNFirebaseAsStaticFramework = true
 
 # Force pods to match minimum iOS version for React Native
 # Fixes build issue on Xcode Cloud where some pods
@@ -52,9 +58,27 @@ end
 # Configure Mapbox before installing dependencies
 pre_install do |installer|
   $RNMapboxMaps.pre_install(installer)
+
+  # Build RNFB/RNSentry as static libraries when consuming a prebuilt React Core.
+  PatchedIOSArtifacts.configure_prebuilt_pods(installer)
 end
 
+# Declare project globally so all targets inherit the same build configurations
+project 'NewExpensify',
+  'DebugDevelopment' => :debug,
+  'DebugAdHoc' => :debug,
+  'DebugProduction' => :debug,
+  'ReleaseDevelopment' => :release,
+  'ReleaseAdHoc' => :release,
+  'ReleaseProduction' => :release,
+  'Debug' => :debug
+
 target 'NewExpensify' do
+  # Certificate pinning (Iteration 1 - NewDot). TrustKit swizzles NSURLSession delegates so the
+  # pinning policy in CertificatePinning.swift applies to all URLSession traffic (fetch(),
+  # react-native-blob-util, etc.) without per-call code changes.
+  pod 'TrustKit', '~> 3.0'
+  pod 'NWWebSocket', '~> 0.5.10'
   use_expo_modules!
   post_integrate do |installer|
     begin
@@ -65,16 +89,7 @@ target 'NewExpensify' do
   end
   permissions_path = '../node_modules/react-native-permissions/ios'
 
-  project 'NewExpensify',
-    'DebugDevelopment' => :debug,
-    'DebugAdHoc' => :debug,
-    'DebugProduction' => :debug,
-    'ReleaseDevelopment' => :release,
-    'ReleaseAdHoc' => :release,
-    'ReleaseProduction' => :release,
-    'Debug' => :debug
-
-  config = use_native_modules!
+  config = use_native_modules!(['npx', 'rock', 'config', '-p', 'ios'])
 
   # Flags change depending on the env values.
   flags = get_default_flags()
@@ -82,17 +97,12 @@ target 'NewExpensify' do
   # ENV Variable enables/disables TurboModules
   ENV['RCT_NEW_ARCH_ENABLED'] = '1';
 
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-
-
-  target 'NewExpensifyTests' do
-    inherit! :complete
-    # Pods for testing
-  end
 
   post_install do |installer|
     # Configure Mapbox after installation
@@ -107,7 +117,17 @@ target 'NewExpensify' do
     )
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
 
+    # Build phase keeping the extracted prebuilt React Core in sync with the patched
+    # artifact version resolved at install (no-op on a source build).
+    PatchedIOSArtifacts.add_sync_prebuilt_script_phase(installer)
+
     installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+        config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited) '
+        config.build_settings['HEADER_SEARCH_PATHS'] << '"${PODS_ROOT}/../../node_modules/react-native/ReactCommon/jsitooling" '
+      end
+
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"
         target.build_configurations.each do |config|
           config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
@@ -119,7 +139,8 @@ end
 
 target 'NotificationServiceExtension' do
   pod 'AirshipServiceExtension'
+  pod 'GzipSwift'
   pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
 
-pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz'
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz'

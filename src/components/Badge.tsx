@@ -1,21 +1,29 @@
-import React, {useCallback} from 'react';
-import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
 type BadgeProps = {
-    /** Is Success type */
     success?: boolean;
-
-    /** Is Error type */
     error?: boolean;
+
+    /** Whether badge uses strong (filled) style instead of outlined */
+    isStrong?: boolean;
+
+    /** Whether badge uses condensed (smaller) sizing */
+    isCondensed?: boolean;
 
     /** Whether badge is clickable */
     pressable?: boolean;
@@ -26,10 +34,7 @@ type BadgeProps = {
     /** Text to display in the Badge */
     environment?: string;
 
-    /** Styles for Badge */
     badgeStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for Badge Text */
     textStyles?: StyleProp<TextStyle>;
 
     /** Callback to be called on onPress */
@@ -41,13 +46,21 @@ type BadgeProps = {
     /** Any additional styles to pass to the left icon container. */
     iconStyles?: StyleProp<ViewStyle>;
 
+    /** Override fill color for the icon */
+    iconFill?: string;
+
     /** Additional styles from OfflineWithFeedback applied to the row */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether to use XXSmall icon size */
+    shouldUseXXSmallIcon?: boolean;
 };
 
 function Badge({
     success = false,
     error = false,
+    isStrong = false,
+    isCondensed = false,
     pressable = false,
     text,
     environment = CONST.ENVIRONMENT.DEV,
@@ -56,26 +69,32 @@ function Badge({
     onPress = () => {},
     icon,
     iconStyles = [],
+    iconFill,
     style,
+    shouldUseXXSmallIcon = false,
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
-    const iconColor = StyleUtils.getIconColorStyle(success, error);
+    const iconColor = StyleUtils.getIconColorStyle(success, error, isStrong);
 
-    const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
-        ({pressed}) => [
-            styles.defaultBadge,
-            styles.alignSelfCenter,
-            styles.ml2,
-            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC),
-            badgeStyles,
-        ],
-        [styles.defaultBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles],
-    );
+    const iconSize = isCondensed || shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
+
+    const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = ({pressed}) => [
+        styles.defaultBadge,
+        isCondensed && styles.condensedBadge,
+        styles.alignSelfCenter,
+        styles.ml2,
+        StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
+        badgeStyles,
+    ];
+
+    if (!text && !icon) {
+        return null;
+    }
 
     return (
         <Wrapper
@@ -83,29 +102,47 @@ function Badge({
             onPress={onPress}
             role={pressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
             accessibilityLabel={pressable ? text : undefined}
-            aria-label={!pressable ? text : undefined}
+            // Deliberately no aria-label here for the non-pressable case: a global ARIA property makes the browser
+            // ignore role="presentation", which exposes the wrapper as an extra screen reader stop on top of the text
+            // node that already provides the accessible name.
             accessible={false}
         >
             {!!icon && (
-                <View style={[styles.mr2, iconStyles]}>
+                // The icon is decorative whenever the badge has text. aria-hidden covers both platforms: react-native-web
+                // forwards it to the DOM, and React Native maps it to accessibilityElementsHidden/importantForAccessibility.
+                <View
+                    style={[!!text && styles.mr1, iconStyles]}
+                    aria-hidden={!!text || undefined}
+                >
                     <Icon
-                        width={variables.iconSizeExtraSmall}
-                        height={variables.iconSizeExtraSmall}
+                        width={iconSize}
+                        height={iconSize}
                         src={icon}
-                        fill={iconColor}
+                        fill={iconFill ?? iconColor}
                     />
                 </View>
             )}
-            <Text
-                style={[styles.badgeText, styles.textStrong, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
-                numberOfLines={1}
-            >
-                {text}
-            </Text>
+            {!!text && (
+                <Text
+                    style={[
+                        styles.badgeText,
+                        styles.textStrong,
+                        isCondensed && styles.condensedBadgeText,
+                        !isStrong && !success && !error && styles.badgeDefaultText,
+                        !isStrong && success && styles.badgeSuccessText,
+                        !isStrong && error && styles.badgeDangerText,
+                        isStrong && success && styles.buttonSuccessText,
+                        isStrong && error && styles.buttonDangerText,
+                        textStyles,
+                        isDeleted ? styles.offlineFeedbackDeleted : {},
+                    ]}
+                    numberOfLines={1}
+                >
+                    {text}
+                </Text>
+            )}
         </Wrapper>
     );
 }
-
-Badge.displayName = 'Badge';
 
 export default Badge;

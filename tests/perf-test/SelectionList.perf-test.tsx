@@ -1,41 +1,42 @@
-import {fireEvent} from '@testing-library/react-native';
 import type {RenderResult} from '@testing-library/react-native';
-import React, {useState} from 'react';
-import type {ComponentType} from 'react';
-import {measureRenders} from 'reassure';
+import {fireEvent} from '@testing-library/react-native';
+
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
-import type {KeyboardStateContextValue} from '@components/withKeyboardState';
-import type {WithLocalizeProps} from '@components/withLocalize';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import variables from '@styles/variables';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import {measureFirstChildLayout, measureItemLayout, measureParentSize} from '@shopify/flash-list/dist/recyclerview/utils/measureLayout';
+import React, {useState} from 'react';
+import {measureRenders} from 'reassure';
 
 type SelectionListWrapperProps = {
     /** Whether this is a multi-select list */
     canSelectMultiple?: boolean;
 };
 
-jest.mock('@components/Icon/Expensicons');
+const ITEM_COUNT = 1000;
+const LIST_WIDTH = 100;
+const VIEWPORT_HEIGHT = variables.optionRowHeight * 5;
+
+// Jest has no layout engine, so FlashList reads row and viewport sizes from the measureLayout mock in
+// jest/setupAfterEnv.ts. Size them from variables here so the scroll event below matches what FlashList renders.
+beforeEach(() => {
+    jest.mocked(measureParentSize).mockImplementation(() => ({x: 0, y: 0, width: LIST_WIDTH, height: VIEWPORT_HEIGHT}));
+    jest.mocked(measureFirstChildLayout).mockImplementation(() => ({x: 0, y: 0, width: LIST_WIDTH, height: VIEWPORT_HEIGHT}));
+    jest.mocked(measureItemLayout).mockImplementation(() => ({x: 0, y: 0, width: LIST_WIDTH, height: variables.optionRowHeight}));
+});
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn(),
+        numberFormat: jest.fn(),
     })),
 );
-
-jest.mock('@components/withLocalize', <TProps extends WithLocalizeProps>() => (Component: ComponentType<TProps>) => {
-    function WrappedComponent(props: Omit<TProps, keyof WithLocalizeProps>) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
-                translate={() => ''}
-            />
-        );
-    }
-    WrappedComponent.displayName = `WrappedComponent`;
-    return WrappedComponent;
-});
 
 jest.mock('@hooks/useNetwork', () =>
     jest.fn(() => ({
@@ -43,32 +44,23 @@ jest.mock('@hooks/useNetwork', () =>
     })),
 );
 
-jest.mock('@components/withKeyboardState', () => <TProps extends KeyboardStateContextValue>(Component: ComponentType<TProps>) => {
-    function WrappedComponent(props: Omit<TProps, keyof KeyboardStateContextValue>) {
-        return (
-            <Component
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
-                isKeyboardShown={false}
-            />
-        );
-    }
-    WrappedComponent.displayName = `WrappedComponent`;
-    return WrappedComponent;
-});
-
 jest.mock('@react-navigation/stack', () => ({
     useCardAnimation: () => {},
 }));
 
-jest.mock('@react-navigation/native', () => ({
-    useFocusEffect: () => {},
-    useIsFocused: () => true,
-    createNavigationContainerRef: jest.fn(),
-}));
+jest.mock('@react-navigation/native', () => {
+    // Spread the actual module so context objects like NavigationContainerRefContext and NavigationContext
+    // remain defined. useResponsiveLayout (native) reads them via useContext, which crashes if they are undefined.
+    const actualNav = jest.requireActual<typeof NativeNavigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useFocusEffect: () => {},
+        useIsFocused: () => true,
+        createNavigationContainerRef: jest.fn(),
+    };
+});
 
 jest.mock('../../src/hooks/useKeyboardState', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         isKeyboardShown: false,
@@ -77,26 +69,22 @@ jest.mock('../../src/hooks/useKeyboardState', () => ({
 }));
 
 jest.mock('../../src/hooks/useScreenWrapperTransitionStatus', () => ({
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(() => ({
         didScreenTransitionEnd: true,
     })),
 }));
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
 function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-    const sections = [
-        {
-            data: Array.from({length: 1000}, (element, index) => ({
-                text: `Item ${index}`,
-                keyForList: `item-${index}`,
-                isSelected: selectedIds.includes(`item-${index}`),
-            })),
-            isDisabled: false,
-        },
-    ];
+    const data = Array.from({length: ITEM_COUNT}, (element, index) => ({
+        text: `Item ${index}`,
+        keyForList: `item-${index}`,
+        isSelected: selectedIds.includes(`item-${index}`),
+    }));
 
     const onSelectRow = (item: ListItem) => {
         if (!item.keyForList) {
@@ -116,11 +104,11 @@ function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
 
     return (
         <SelectionList
-            textInputLabel="Perf test"
-            sections={sections}
+            textInputOptions={{label: 'Perf test'}}
+            data={data}
             onSelectRow={onSelectRow}
-            initiallyFocusedOptionKey="item-0"
-            ListItem={RadioListItem}
+            initiallyFocusedItemKey="item-0"
+            ListItem={canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
             canSelectMultiple={canSelectMultiple}
         />
     );
@@ -131,7 +119,6 @@ test('[SelectionList] should render 1 section and a thousand items', async () =>
 });
 
 test('[SelectionList] should press a list item', async () => {
-    // eslint-disable-next-line @typescript-eslint/require-await
     const scenario = async (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 5'));
     };
@@ -140,7 +127,6 @@ test('[SelectionList] should press a list item', async () => {
 });
 
 test('[SelectionList] should render multiple selection and select 3 items', async () => {
-    // eslint-disable-next-line @typescript-eslint/require-await
     const scenario = async (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 1'));
         fireEvent.press(screen.getByText('Item 2'));
@@ -151,25 +137,25 @@ test('[SelectionList] should render multiple selection and select 3 items', asyn
 });
 
 test('[SelectionList] should scroll and select a few items', async () => {
+    // Scrolls 8 rows down, so the rendered window covers both Item 7 and Item 15.
     const eventData = {
         nativeEvent: {
             contentOffset: {
-                y: variables.optionRowHeight * 5,
+                y: variables.optionRowHeight * 8,
             },
             contentSize: {
                 // Dimensions of the scrollable content
-                height: variables.optionRowHeight * 10,
-                width: 100,
+                height: variables.optionRowHeight * ITEM_COUNT,
+                width: LIST_WIDTH,
             },
             layoutMeasurement: {
                 // Dimensions of the device
-                height: variables.optionRowHeight * 5,
-                width: 100,
+                height: VIEWPORT_HEIGHT,
+                width: LIST_WIDTH,
             },
         },
     };
 
-    // eslint-disable-next-line @typescript-eslint/require-await
     const scenario = async (screen: RenderResult) => {
         fireEvent.press(screen.getByText('Item 1'));
         // see https://github.com/callstack/react-native-testing-library/issues/1540

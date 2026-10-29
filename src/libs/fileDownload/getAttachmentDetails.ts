@@ -1,11 +1,48 @@
+import {isOwnAttachmentURL} from '@libs/AttachmentAnchorUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import CONST from '@src/CONST';
+
 import type {GetAttachmentDetails} from './types';
+
+/**
+ * An edit re-serializes the anchor without `data-expensify-source`, so the attachment is recognized by its own href
+ * instead. The auth token gets appended to whatever is returned, so only Expensify-hosted URLs qualify.
+ */
+const ANCHOR_HREF_AND_LABEL_REGEX = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"[^>]*>([^<]*)<\/a>/gi;
+
+const SOURCE_ELEMENT_REGEX = new RegExp(`<(?:a|video)\\s[^>]*?(?:${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}|href)="([^"]*)"[^>]*>([^<]*)</(?:a|video)>`, 'gi');
+
+/** The name belongs to the element holding the file that is being downloaded, not to another link beside it. */
+function findLabelForSource(html: string, source: string): string | undefined {
+    for (const [, url, label] of html.matchAll(SOURCE_ELEMENT_REGEX)) {
+        if (url === source && label) {
+            return label;
+        }
+    }
+    return undefined;
+}
+
+function findAttachmentAnchor(html: string, reportActionID?: string): {href: string; label: string} | undefined {
+    const attachmentURLRegex = new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i');
+    let firstHostedAnchor: {href: string; label: string} | undefined;
+    for (const [, href, label] of html.matchAll(ANCHOR_HREF_AND_LABEL_REGEX)) {
+        if (!attachmentURLRegex.test(href)) {
+            continue;
+        }
+        if (isOwnAttachmentURL(href, reportActionID)) {
+            return {href, label};
+        }
+        firstHostedAnchor ??= {href, label};
+    }
+    // A receipt and a few other shapes name no action, so the first Expensify-hosted anchor is the best guess left.
+    return firstHostedAnchor;
+}
 
 /**
  * Extract the thumbnail URL, source URL and the original filename from the HTML.
  */
-const getAttachmentDetails: GetAttachmentDetails = (html) => {
+const getAttachmentDetails: GetAttachmentDetails = (html, reportActionID) => {
     // Files can be rendered either as anchor tag or as an image so based on that we have to form regex.
     const IS_IMAGE_TAG = /<img([\w\W]+?)\/>/i.test(html);
     const PREVIEW_SOURCE_REGEX = new RegExp(`${CONST.ATTACHMENT_PREVIEW_ATTRIBUTE}*=*"(.+?)"`, 'i');
@@ -20,10 +57,12 @@ const getAttachmentDetails: GetAttachmentDetails = (html) => {
     }
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
-    const sourceURL = tryResolveUrlFromApiRoot(html.match(SOURCE_REGEX)?.[1] ?? '');
+    const attachmentAnchor = IS_IMAGE_TAG ? undefined : findAttachmentAnchor(html, reportActionID);
+    const rawSourceURL = html.match(SOURCE_REGEX)?.[1] ?? attachmentAnchor?.href;
+    const sourceURL = tryResolveUrlFromApiRoot(rawSourceURL ?? '');
     const imageURL = IS_IMAGE_TAG ? tryResolveUrlFromApiRoot(html.match(PREVIEW_SOURCE_REGEX)?.[1] ?? '') : null;
     const previewSourceURL = IS_IMAGE_TAG ? imageURL : sourceURL;
-    const originalFileName = html.match(ORIGINAL_FILENAME_REGEX)?.[1] ?? null;
+    const originalFileName = (rawSourceURL ? findLabelForSource(html, rawSourceURL) : undefined) ?? html.match(ORIGINAL_FILENAME_REGEX)?.[1] ?? null;
 
     // Update the image URL so the images can be accessed depending on the config environment
     return {

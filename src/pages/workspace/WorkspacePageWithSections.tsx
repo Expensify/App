@@ -1,47 +1,53 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BankAccount from '@libs/models/BankAccount';
+
+import {openWorkspaceView} from '@libs/actions/BankAccounts';
+import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as BankAccounts from '@userActions/BankAccounts';
+import {canEditWorkspaceSettings, canMemberRead, isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+import type {PolicyFeature} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
 type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
-    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'threeDotsAnchorPosition' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
+    Pick<HeaderWithBackButtonProps, 'shouldShowThreeDotsButton' | 'threeDotsMenuItems' | 'shouldShowBackButton' | 'onBackButtonPress'> & {
         shouldSkipVBBACall?: boolean;
-
-        /** The text to display in the header */
         headerText: string;
 
         /** Main content of the page */
-        children: ((hasVBA: boolean, policyID: string, isUsingECard: boolean) => ReactNode) | ReactNode;
+        children: ((policyID: string | undefined, isUsingECard: boolean) => ReactNode) | ReactNode;
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
-
-        /** The guides call task ID to associate with the workspace page being shown */
-        guidesCallTaskID: string;
 
         /** The route where we navigate when the user press the back button */
         backButtonRoute?: Route;
@@ -58,16 +64,14 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Whether to show this page to non admin policy members */
         shouldShowNonAdmin?: boolean;
 
-        /** Whether to show the not found page */
-        shouldShowNotFoundPage?: boolean;
+        /** Policy feature permission needed to show this page */
+        policyFeature?: PolicyFeature;
 
-        /** Whether to include safe area padding bottom or not */
-        includeSafeAreaPaddingBottom?: boolean;
+        shouldShowNotFoundPage?: boolean;
 
         /** Makes firstRender ref display loading page before isLoading is change to true */
         showLoadingAsFirstRender?: boolean;
 
-        /** Policy values needed in the component */
         policy: OnyxEntry<Policy>;
 
         /**
@@ -77,22 +81,31 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
          * */
         icon?: IconAsset;
 
-        /** Content to be added to the header */
         headerContent?: ReactNode;
-
-        /** TestID of the component */
         testID?: string;
 
-        /** Whether the page is loading, example any other API call in progres */
+        /** Whether the page is loading, example any other API call in progress */
         isLoading?: boolean;
+
+        shouldUseHeadlineHeader?: boolean;
+
+        /**
+         * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+         */
+        addBottomSafeAreaPadding?: boolean;
+
+        modals?: ReactNode;
+
+        /** Whether to use the maxHeight (true) or use the 100% of the height (false) */
+        shouldEnableMaxHeight?: boolean;
     };
 
-function fetchData(policyID: string, skipVBBACal?: boolean) {
+function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
     if (skipVBBACal) {
         return;
     }
 
-    BankAccounts.openWorkspaceView(policyID);
+    openWorkspaceView(policyID);
 }
 
 function WorkspacePageWithSections({
@@ -100,7 +113,6 @@ function WorkspacePageWithSections({
     children = () => null,
     footer = null,
     icon = undefined,
-    guidesCallTaskID = '',
     headerText,
     policy,
     policyDraft,
@@ -111,8 +123,9 @@ function WorkspacePageWithSections({
     shouldShowBackButton = false,
     shouldShowLoading = true,
     shouldShowOfflineIndicatorInWideScreen = false,
-    includeSafeAreaPaddingBottom = false,
     shouldShowNonAdmin = false,
+    policyFeature,
+    shouldEnableMaxHeight = true,
     headerContent,
     testID,
     shouldShowNotFoundPage = false,
@@ -120,85 +133,121 @@ function WorkspacePageWithSections({
     onBackButtonPress,
     shouldShowThreeDotsButton,
     threeDotsMenuItems,
-    threeDotsAnchorPosition,
+    shouldUseHeadlineHeader = true,
+    addBottomSafeAreaPadding = false,
+    modals,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
-    const policyID = route.params?.policyID ?? '-1';
+    const policyID = route.params?.policyID;
     const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
 
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const isLoading = (reimbursementAccount?.isLoading || isPageLoading) ?? true;
-    const achState = reimbursementAccount?.achData?.state ?? '-1';
-    const isUsingECard = user?.isUsingExpensifyCard ?? false;
-    const hasVBA = achState === BankAccount.STATE.OPEN;
-    const content = typeof children === 'function' ? children(hasVBA, policyID, isUsingECard) : children;
+    const isLoading = isPageLoading ? true : !shouldSkipVBBACall && (reimbursementAccount?.isLoading ?? false);
+    const isUsingECard = account?.isUsingExpensifyCard ?? false;
+    const content = typeof children === 'function' ? children(policyID, isUsingECard) : children;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
+    const isWorkspacesTabFocused = useIsWorkspacesTabFocused();
     const prevPolicy = usePrevious(policy);
+    // Because isLoading is false before merging in Onyx, show the loading page while the policy data is still empty.
+    const shouldShowInitialLoading = showLoadingAsFirstRender && isEmptyObject(policy);
+
     useEffect(() => {
-        // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
-        firstRender.current = false;
+        fetchData(policyID, shouldSkipVBBACall);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    const shouldShowPolicy = shouldShowPolicyUtil(policy, false, currentUserLogin);
+    let hasAccessToPolicyFeature: boolean | undefined;
+    if (policyFeature) {
+        hasAccessToPolicyFeature = canMemberRead(policy, currentUserLogin ?? '', policyFeature);
+    }
+    const isPendingDelete = isPendingDeletePolicy(policy);
+    const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchData(policyID, shouldSkipVBBACall);
-        }, [policyID, shouldSkipVBBACall]),
-    );
+    const prevPolicyID = usePrevious(policyID);
+    const [deletedPolicyID, setDeletedPolicyID] = useState<string | undefined>(undefined);
+    if (deletedPolicyID !== policyID && (isPendingDelete || (prevIsPendingDelete && isEmptyObject(policy) && prevPolicyID === policyID))) {
+        setDeletedPolicyID(policyID);
+    }
+    const hasWorkspaceBeenDeleted = deletedPolicyID !== undefined && deletedPolicyID === policyID;
 
-    const shouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(policy, isOffline, currentUserLogin), [policy, isOffline, currentUserLogin]);
-    const prevShouldShowPolicy = useMemo(() => PolicyUtils.shouldShowPolicy(prevPolicy, isOffline, currentUserLogin), [prevPolicy, isOffline, currentUserLogin]);
-    const shouldShow = useMemo(() => {
-        // If the policy object doesn't exist or contains only error data, we shouldn't display it.
-        if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
+    let shouldShow;
+    // Suppress the not-found view during the deletion exit animation and while outside the workspace flow.
+    if (hasWorkspaceBeenDeleted || !isWorkspacesTabFocused) {
+        shouldShow = false;
+    } else if (((isEmptyObject(policy) || (Object.keys(policy).length === 1 && !isEmptyObject(policy.errors))) && isEmptyObject(policyDraft)) || shouldShowNotFoundPage) {
+        shouldShow = true;
+    } else {
+        // We check isPendingDelete and prevIsPendingDelete to prevent the NotFound view from showing right after we delete the workspace
+        const canShowPage = hasAccessToPolicyFeature ?? (canEditWorkspaceSettings(policy, currentUserLogin) || shouldShowNonAdmin);
+        const shouldShowPolicyOrFeature = hasAccessToPolicyFeature ?? shouldShowPolicy;
+        shouldShow = (!isEmptyObject(policy) && !canShowPage) || (!shouldShowPolicyOrFeature && !(isPendingDelete && !prevIsPendingDelete));
+    }
+
+    const handleOnBackButtonPress = () => {
+        if (shouldShow) {
+            goBackFromWorkspaceSettingPages();
             return true;
         }
 
-        // We check shouldShowPolicy and prevShouldShowPolicy to prevent the NotFound view from showing right after we delete the workspace
-        return (!isEmptyObject(policy) && !PolicyUtils.isPolicyAdmin(policy) && !shouldShowNonAdmin) || (!shouldShowPolicy && !prevShouldShowPolicy);
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policy, shouldShowNonAdmin, shouldShowPolicy, prevShouldShowPolicy]);
+        if (onBackButtonPress) {
+            onBackButtonPress();
+            return true;
+        }
+
+        if (backButtonRoute) {
+            Navigation.goBack(backButtonRoute);
+            return true;
+        }
+
+        Navigation.goBack();
+        return true;
+    };
+
+    useAndroidBackButtonHandler(handleOnBackButtonPress);
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
-            shouldEnableMaxHeight
-            testID={testID ?? WorkspacePageWithSections.displayName}
+            shouldEnableMaxHeight={shouldEnableMaxHeight}
+            testID={testID ?? 'WorkspacePageWithSections'}
+            shouldShowOfflineIndicator={!shouldShow}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
             <FullPageNotFoundView
-                onBackButtonPress={Navigation.dismissModal}
-                onLinkPress={Navigation.resetToHome}
+                onBackButtonPress={handleOnBackButtonPress}
+                onLinkPress={() => Navigation.goBackToHome()}
                 shouldShow={shouldShow}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
                 shouldForceFullScreen
+                shouldDisplaySearchRouter
             >
                 <HeaderWithBackButton
                     title={headerText}
-                    guidesCallTaskID={guidesCallTaskID}
-                    onBackButtonPress={() => (onBackButtonPress ? onBackButtonPress() : Navigation.goBack(backButtonRoute))}
+                    onBackButtonPress={handleOnBackButtonPress}
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
-                    style={styles.headerBarDesktopHeight}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
+                    shouldUseHeadlineHeader={shouldUseHeadlineHeader}
+                    shouldDisplayHelpButton
                 >
                     {headerContent}
                 </HeaderWithBackButton>
-                {(isLoading || firstRender.current) && shouldShowLoading && isFocused ? (
-                    <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                {!isOffline && (isLoading || shouldShowInitialLoading) && shouldShowLoading && isFocused ? (
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </View>
                 ) : (
                     <>
                         {shouldUseScrollView ? (
                             <ScrollViewWithContext
                                 keyboardShouldPersistTaps="handled"
+                                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                                 style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
                             >
                                 <View style={[styles.w100, styles.flex1]}>{content}</View>
@@ -210,10 +259,9 @@ function WorkspacePageWithSections({
                     </>
                 )}
             </FullPageNotFoundView>
+            {modals}
         </ScreenWrapper>
     );
 }
-
-WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default withPolicyAndFullscreenLoading(WorkspacePageWithSections);

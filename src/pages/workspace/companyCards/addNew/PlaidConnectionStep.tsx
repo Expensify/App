@@ -1,0 +1,223 @@
+import ActivityIndicator from '@components/ActivityIndicator';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import PlaidLink from '@components/PlaidLink';
+import ScreenWrapper from '@components/ScreenWrapper';
+import Text from '@components/Text';
+
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {splitCardFeedWithDomainID} from '@libs/CardUtils';
+import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
+import KeyboardShortcut from '@libs/KeyboardShortcut';
+import Log from '@libs/Log';
+import getPlaidInstitutionID from '@libs/PlaidUtils';
+import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+
+import Navigation from '@navigation/Navigation';
+
+import {handleRestrictedEvent} from '@userActions/App';
+import {setPlaidEvent} from '@userActions/BankAccounts';
+import {importPlaidAccounts, openPlaidCompanyCardLogin} from '@userActions/Plaid';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+type PlaidConnectionStepProps = {
+    feed?: CompanyCardFeedWithDomainID;
+    policyID?: string;
+    onExit?: () => void;
+    title?: string;
+};
+
+function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionStepProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
+    const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
+    const plaidErrors = plaidData?.errors;
+    const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
+    const previousNetworkState = useRef<boolean | undefined>(undefined);
+    const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) ?? '') : '';
+    const {isOffline} = useNetwork();
+    const domain = getDomainNameForPolicy(policyID);
+
+    /**
+     * Blocks the keyboard shortcuts that can navigate
+     */
+    const subscribeToNavigationShortcuts = () => {
+        // find and block the shortcuts
+        const shortcutsToBlock = Object.values(CONST.KEYBOARD_SHORTCUTS).filter((shortcut) => 'type' in shortcut && shortcut.type === CONST.KEYBOARD_SHORTCUTS_TYPES.NAVIGATION_SHORTCUT);
+        subscribedKeyboardShortcuts.current = shortcutsToBlock.map((shortcut) =>
+            KeyboardShortcut.subscribe(
+                shortcut.shortcutKey,
+                () => {}, // do nothing
+                shortcut.descriptionKey,
+                shortcut.modifiers,
+                false,
+                () => (plaidData?.bankAccounts ?? []).length > 0, // start bubbling when there are bank accounts
+            ),
+        );
+    };
+
+    /**
+     * Unblocks the keyboard shortcuts that can navigate
+     */
+    const unsubscribeToNavigationShortcuts = () => {
+        for (const unsubscribe of subscribedKeyboardShortcuts.current) {
+            unsubscribe();
+        }
+        subscribedKeyboardShortcuts.current = [];
+    };
+
+    useEffect(() => {
+        subscribeToNavigationShortcuts();
+
+        // Always request a fresh link token. The response re-derives isPlaidDisabled from the server-side throttle state,
+        // so any error or throttle state left in Onyx by an earlier attempt is replaced instead of trusted.
+        if (addNewCard?.data?.selectedCountry) {
+            openPlaidCompanyCardLogin(addNewCard.data.selectedCountry, domain, feed);
+        }
+        return unsubscribeToNavigationShortcuts;
+
+        // disabling this rule, as we want this to run only on the first render
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        // If we are coming back from offline we need to re-run our call to kick off Plaid
+        // previousNetworkState.current also makes sure that this doesn't run on the first render.
+        if (previousNetworkState.current && !isOffline && addNewCard?.data?.selectedCountry) {
+            openPlaidCompanyCardLogin(addNewCard.data.selectedCountry, domain, feed);
+        }
+        previousNetworkState.current = isOffline;
+    }, [addNewCard?.data?.selectedCountry, domain, feed, isOffline]);
+
+    const handleBackButtonPress = () => {
+        if (feed) {
+            Navigation.goBack();
+            return;
+        }
+        setAddNewCompanyCardStepAndData({step: isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
+    };
+    const handlePlaidLinkError = (error: ErrorEvent | null) => {
+        Log.hmmm('[PlaidLink] Error: ', error?.message);
+    };
+
+    const renderPlaidLink = () => {
+        if (plaidLinkToken) {
+            return (
+                <PlaidLink
+                    token={plaidLinkToken}
+                    receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                    onSuccess={({publicToken, metadata}) => {
+                        // on success we need to move to bank connection screen with token, bank name = plaid
+                        Log.info('[PlaidLink] Success!');
+
+                        const institution = metadata.institution;
+                        const plaidConnectedFeed = getPlaidInstitutionID(institution);
+                        const plaidConnectedFeedName = institution?.name;
+
+                        if (feed) {
+                            if (plaidConnectedFeed && addNewCard?.data?.selectedCountry && plaidConnectedFeedName) {
+                                // Repairing an existing feed: send the existing `feed` (which keeps its `plaid.` prefix and
+                                // originating `#domainID`) rather than the freshly-derived bare institution ID, so the server
+                                // takes its repair branch and refreshes the existing feed instead of minting a duplicate.
+                                importPlaidAccounts(
+                                    publicToken,
+                                    feed,
+                                    plaidConnectedFeedName,
+                                    addNewCard.data.selectedCountry,
+                                    getDomainNameForPolicy(policyID),
+                                    JSON.stringify(metadata.accounts),
+                                    '',
+                                    splitCardFeedWithDomainID(feed)?.domainID,
+                                    true,
+                                );
+                            }
+                            setAssignCardStepAndData({
+                                cardToAssign: {
+                                    plaidAccessToken: publicToken,
+                                    institutionId: plaidConnectedFeed,
+                                    plaidConnectedFeedName,
+                                    plaidAccounts: metadata.accounts,
+                                },
+                                currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
+                            });
+                            return;
+                        }
+
+                        setAddNewCompanyCardStepAndData({
+                            step: CONST.COMPANY_CARDS.STEP.BANK_CONNECTION,
+                            data: {
+                                publicToken,
+                                plaidConnectedFeed,
+                                plaidConnectedFeedName,
+                                plaidAccounts: metadata.accounts,
+                            },
+                        });
+                    }}
+                    onError={handlePlaidLinkError}
+                    onEvent={(event) => {
+                        setPlaidEvent(event);
+                        // Limit the number of times a user can submit Plaid credentials
+                        if (event === 'SUBMIT_CREDENTIALS') {
+                            handleRestrictedEvent(event);
+                        }
+                    }}
+                    // User prematurely exited the Plaid flow
+
+                    onExit={() => {
+                        onExit?.();
+                        handleBackButtonPress();
+                    }}
+                />
+            );
+        }
+
+        if (plaidDataErrorMessage) {
+            return <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>;
+        }
+
+        if (plaidData?.isLoading) {
+            return (
+                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
+            );
+        }
+    };
+
+    return (
+        <ScreenWrapper
+            testID="PlaidConnectionStep"
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={title ?? translate('workspace.companyCards.addCards')}
+                onBackButtonPress={handleBackButtonPress}
+            />
+            {isPlaidDisabled ? (
+                <Text style={[styles.formError, styles.ph5, styles.mv3]}>{translate('bankAccount.error.tooManyAttempts')}</Text>
+            ) : (
+                <FullPageOfflineBlockingView>{renderPlaidLink()}</FullPageOfflineBlockingView>
+            )}
+        </ScreenWrapper>
+    );
+}
+
+export default PlaidConnectionStep;

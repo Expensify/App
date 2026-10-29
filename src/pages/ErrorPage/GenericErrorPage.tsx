@@ -1,29 +1,40 @@
-import React from 'react';
-import {View} from 'react-native';
-import LogoWordmark from '@assets/images/expensify-wordmark.svg';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePageRefresh from '@hooks/usePageRefresh';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import isChunkLoadError from '@libs/isChunkLoadError';
+
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
+
+import {signOutAndRedirectToSignIn} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ErrorBodyText from './ErrorBodyText';
 
-function GenericErrorPage() {
+function GenericErrorPage({error}: {error?: Error}) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const isAuthenticated = useIsAuthenticated();
     const {translate} = useLocalize();
+    const chunkLoadError = isChunkLoadError(error);
     const refreshPage = usePageRefresh();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark', 'Bug']);
 
     return (
         <SafeAreaConsumer>
@@ -33,14 +44,19 @@ function GenericErrorPage() {
                         <View>
                             <View style={styles.mb5}>
                                 <Icon
-                                    src={Expensicons.Bug}
+                                    src={icons.Bug}
                                     height={variables.componentSizeNormal}
                                     width={variables.componentSizeNormal}
                                     fill={theme.iconSuccessFill}
                                 />
                             </View>
                             <View style={styles.mb5}>
-                                <Text style={[styles.textHeadline]}>{translate('genericErrorPage.title')}</Text>
+                                <Text
+                                    accessibilityRole={CONST.ROLE.HEADER}
+                                    style={[styles.textHeadline]}
+                                >
+                                    {translate('genericErrorPage.title')}
+                                </Text>
                             </View>
                             <View style={styles.mb5}>
                                 <ErrorBodyText />
@@ -57,18 +73,22 @@ function GenericErrorPage() {
                             <View style={[styles.flexRow]}>
                                 <View style={[styles.flex1, styles.flexRow]}>
                                     <Button
-                                        success
-                                        text={translate('genericErrorPage.refresh')}
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         style={styles.mr3}
-                                        onPress={refreshPage}
-                                    />
-                                    <Button
-                                        text={translate('initialSettingsPage.signOut')}
-                                        onPress={() => {
-                                            Session.signOutAndRedirectToSignIn();
-                                            refreshPage();
-                                        }}
-                                    />
+                                        onPress={() => refreshPage(chunkLoadError)}
+                                    >
+                                        <Button.Text>{translate('genericErrorPage.refresh')}</Button.Text>
+                                    </Button>
+                                    {isAuthenticated && (
+                                        <Button
+                                            onPress={() => {
+                                                signOutAndRedirectToSignIn();
+                                                refreshPage();
+                                            }}
+                                        >
+                                            <Button.Text>{translate('initialSettingsPage.signOut')}</Button.Text>
+                                        </Button>
+                                    )}
                                 </View>
                             </View>
                         </View>
@@ -77,7 +97,7 @@ function GenericErrorPage() {
                         <View style={[styles.flex1, styles.flexRow, styles.justifyContentCenter]}>
                             <ImageSVG
                                 contentFit="contain"
-                                src={LogoWordmark}
+                                src={icons.ExpensifyWordmark}
                                 height={30}
                                 width={80}
                                 fill={theme.text}
@@ -89,7 +109,5 @@ function GenericErrorPage() {
         </SafeAreaConsumer>
     );
 }
-
-GenericErrorPage.displayName = 'ErrorPage';
 
 export default GenericErrorPage;

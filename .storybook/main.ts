@@ -1,9 +1,13 @@
-import type {StorybookConfig} from '@storybook/types';
+import type {StorybookConfig} from 'storybook-react-rsbuild';
+
+// Storybook 10 loads TS files directly and requires .ts extension for ESM imports
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import rsbuildFinal from './rsbuild.config.ts';
 
 const main: StorybookConfig = {
     stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|ts|tsx)'],
-    addons: ['@storybook/addon-essentials', '@storybook/addon-a11y', '@storybook/addon-webpack5-compiler-babel'],
-    staticDirs: ['./public', {from: '../assets/css', to: 'css'}, {from: '../assets/fonts/web', to: 'fonts'}],
+    addons: ['@storybook/addon-a11y', '@storybook/addon-docs'],
+    staticDirs: ['./public', {from: '../assets/css', to: 'css'}, {from: '../assets/fonts/web', to: 'fonts/web'}],
     core: {},
 
     managerHead: (head) => `
@@ -11,11 +15,13 @@ const main: StorybookConfig = {
         ${process.env.ENV === 'staging' ? '<meta name="robots" content="noindex">' : ''}
     `,
     framework: {
-        name: '@storybook/react-webpack5',
+        name: 'storybook-react-rsbuild',
         options: {},
     },
-    docs: {
-        autodocs: false,
+    rsbuildFinal,
+    docs: {},
+    typescript: {
+        reactDocgen: false,
     },
 };
 

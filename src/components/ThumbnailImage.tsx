@@ -1,18 +1,26 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
+import type {ImageObjectPosition} from './Image/types';
+
 import AttachmentDeletedIndicator from './AttachmentDeletedIndicator';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import type {ImageObjectPosition} from './Image/types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 
 // Cache for the dimensions of the thumbnails to avoid flickering incorrect size when the
@@ -21,31 +29,22 @@ import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 const thumbnailDimensionsCache = new Map<string, {width: number; height: number}>();
 
 type ThumbnailImageProps = {
-    /** Source URL for the preview image */
     previewSourceURL: string | ImageSourcePropType;
-
-    /** alt text for the image */
     altText?: string;
-
-    /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
 
-    /** Width of the thumbnail image */
     imageWidth?: number;
-
-    /** Height of the thumbnail image */
     imageHeight?: number;
+    loadingIconSize?: FullScreenLoadingIndicatorIconSize;
+    loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** If the image fails to load – show the provided fallback icon */
     fallbackIcon?: IconAsset;
 
-    /** The size of the fallback icon */
     fallbackIconSize?: number;
-
-    /** The color of the fallback icon */
     fallbackIconColor?: string;
 
     /** The background color of fallback icon */
@@ -54,10 +53,7 @@ type ThumbnailImageProps = {
     /** Should the image be resized on load or just fit container */
     shouldDynamicallyResize?: boolean;
 
-    /** The object position of image */
     objectPosition?: ImageObjectPosition;
-
-    /** Whether the image is deleted */
     isDeleted?: boolean;
 
     /** Callback fired when the image fails to load */
@@ -65,11 +61,17 @@ type ThumbnailImageProps = {
 
     /** Callback fired when the image has been measured */
     onMeasure?: () => void;
-};
 
-type UpdateImageSizeParams = {
-    width: number;
-    height: number;
+    /** Callback to be called when the image loads */
+    onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
+
+    resizeMode?: ImageProps['resizeMode'];
+
+    /** Low-resolution URI shown as a placeholder while the full image loads */
+    previewUri?: string;
+
+    /** Identity of the picture for the native image view, see BaseImageProps */
+    recyclingKey?: string;
 };
 
 function ThumbnailImage({
@@ -80,7 +82,8 @@ function ThumbnailImage({
     imageWidth = 200,
     imageHeight = 200,
     shouldDynamicallyResize = true,
-    fallbackIcon = Expensicons.Gallery,
+    loadingIconSize,
+    fallbackIcon,
     fallbackIconSize = variables.iconSizeSuperLarge,
     fallbackIconColor,
     fallbackIconBackground,
@@ -88,42 +91,37 @@ function ThumbnailImage({
     isDeleted,
     onLoadFailure,
     onMeasure,
+    loadingIndicatorStyles,
+    onLoad,
+    resizeMode,
+    previewUri,
+    recyclingKey,
 }: ThumbnailImageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery', 'OfflineCloud']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const [failedToLoad, setFailedToLoad] = useState(false);
+    const [failedLoadKey, setFailedLoadKey] = useState<{url: string | ImageSourcePropType; isOffline: boolean} | null>(null);
+    const failedToLoad = failedLoadKey !== null && failedLoadKey.url === previewSourceURL && failedLoadKey.isOffline === isOffline;
+
     const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
-    const [imageDimensions, setImageDimensions] = useState({width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight});
+    const [measuredDimensions, setMeasuredDimensions] = useState<{url: string | ImageSourcePropType; width: number; height: number} | null>(null);
+    const imageDimensions =
+        measuredDimensions?.url === previewSourceURL ? measuredDimensions : {width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight};
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);
     const StyleUtils = useStyleUtils();
 
-    useEffect(() => {
-        setFailedToLoad(false);
-    }, [isOffline, previewSourceURL]);
+    const updateImageSize = ({width, height}: Dimensions) => {
+        if (!shouldDynamicallyResize || (imageDimensions.width === width && imageDimensions.height === height)) {
+            return;
+        }
 
-    /**
-     * Update the state with the computed thumbnail sizes.
-     * @param Params - width and height of the original image.
-     */
-    const updateImageSize = useCallback(
-        ({width, height}: UpdateImageSizeParams) => {
-            if (
-                !shouldDynamicallyResize ||
-                // If the provided dimensions are good avoid caching them and updating state.
-                (imageDimensions.width === width && imageDimensions.height === height)
-            ) {
-                return;
-            }
+        if (typeof previewSourceURL === 'string') {
+            thumbnailDimensionsCache.set(previewSourceURL, {width, height});
+        }
 
-            if (typeof previewSourceURL === 'string') {
-                thumbnailDimensionsCache.set(previewSourceURL, {width, height});
-            }
-
-            setImageDimensions({width, height});
-        },
-        [previewSourceURL, imageDimensions, shouldDynamicallyResize],
-    );
+        setMeasuredDimensions({url: previewSourceURL, width, height});
+    };
 
     const sizeStyles = shouldDynamicallyResize ? [thumbnailDimensionsStyles] : [styles.w100, styles.h100];
 
@@ -134,7 +132,7 @@ function ThumbnailImage({
             <View style={[style, styles.overflowHidden, fallbackColor]}>
                 <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                     <Icon
-                        src={isOffline ? Expensicons.OfflineCloud : fallbackIcon}
+                        src={isOffline ? icons.OfflineCloud : (fallbackIcon ?? icons.Gallery)}
                         height={fallbackIconSize}
                         width={fallbackIconSize}
                         fill={fallbackIconColor ?? theme.border}
@@ -145,7 +143,7 @@ function ThumbnailImage({
     }
 
     return (
-        <View style={[style, styles.overflowHidden]}>
+        <View style={[styles.thumbnailImageContainerHighlight, style, styles.overflowHidden]}>
             {!!isDeleted && <AttachmentDeletedIndicator containerStyles={[...sizeStyles]} />}
             <View style={[...sizeStyles, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ImageWithSizeCalculation
@@ -156,11 +154,17 @@ function ThumbnailImage({
                         onMeasure?.();
                     }}
                     onLoadFailure={() => {
-                        setFailedToLoad(true);
+                        setFailedLoadKey({url: previewSourceURL, isOffline});
                         onLoadFailure?.();
                     }}
                     isAuthTokenRequired={isAuthTokenRequired}
                     objectPosition={objectPosition}
+                    loadingIconSize={loadingIconSize}
+                    loadingIndicatorStyles={loadingIndicatorStyles}
+                    onLoad={onLoad}
+                    resizeMode={resizeMode}
+                    previewUri={previewUri}
+                    recyclingKey={recyclingKey}
                 />
             </View>
         </View>
@@ -168,4 +172,5 @@ function ThumbnailImage({
 }
 
 ThumbnailImage.displayName = 'ThumbnailImage';
-export default React.memo(ThumbnailImage);
+
+export default ThumbnailImage;

@@ -1,5 +1,5 @@
 type SetWorkspaceEReceiptsEnabled = {
-    eReceipts: boolean;
+    enabled: boolean;
 };
 
 export default SetWorkspaceEReceiptsEnabled;

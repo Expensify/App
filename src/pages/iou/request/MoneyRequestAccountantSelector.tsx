@@ -1,0 +1,156 @@
+import EmptySelectionListContent from '@components/EmptySelectionListContent';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
+import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import memoize from '@libs/memoize';
+import {getHeaderMessage, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
+import type {OptionData} from '@libs/PersonalDetailOptionsListUtils/types';
+import {expensifyLoginsSelector} from '@libs/UserUtils';
+
+import {searchUserInServer} from '@userActions/Report';
+
+import type {IOUType} from '@src/CONST';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Accountant} from '@src/types/onyx/IOU';
+
+import lodashPick from 'lodash/pick';
+import React, {useEffect} from 'react';
+
+const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestAccountantSelector.getValidOptions'});
+
+const defaultListOptions = {
+    userToInvite: null,
+    recentOptions: [] as OptionData[],
+    personalDetails: [] as OptionData[],
+    selectedOptions: [] as OptionData[],
+};
+
+type MoneyRequestAccountantSelectorProps = {
+    /** Callback to request parent modal to go to next step */
+    onFinish: (value?: string) => void;
+
+    /** Callback to set accountant in MoneyRequestModal */
+    onAccountantSelected: (value: Accountant) => void;
+
+    /** The type of IOU report, i.e. split, request, send, track */
+    iouType: IOUType;
+};
+
+function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType}: MoneyRequestAccountantSelectorProps) {
+    const {translate, formatPhoneNumber} = useLocalize();
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const {isOffline} = useNetwork();
+    const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const {options: personalDetailOptions} = usePersonalDetailOptions({enabled: didScreenTransitionEnd});
+    const areOptionsInitialized = (personalDetailOptions?.length ?? 0) > 0;
+    const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+
+    useEffect(() => {
+        searchUserInServer(debouncedSearchTerm.trim());
+    }, [debouncedSearchTerm]);
+
+    const optionsList =
+        !areOptionsInitialized || !didScreenTransitionEnd
+            ? defaultListOptions
+            : memoizedGetValidOptions(personalDetailOptions ?? [], currentUserEmail, formatPhoneNumber, countryCode, loginList, {
+                  excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                  searchString: debouncedSearchTerm,
+                  includeUserToInvite: true,
+              });
+
+    let sections;
+    const newSections: Array<Section<OptionData>> = [];
+    if (!areOptionsInitialized || !didScreenTransitionEnd) {
+        sections = newSections;
+    } else {
+        let sectionIndex = 0;
+        if (optionsList.recentOptions.length > 0) {
+            newSections.push({
+                title: translate('common.recents'),
+                data: optionsList.recentOptions,
+                sectionIndex: sectionIndex++,
+            });
+        }
+        if (optionsList.personalDetails.length > 0) {
+            newSections.push({
+                title: translate('common.contacts'),
+                data: optionsList.personalDetails,
+                sectionIndex: sectionIndex++,
+            });
+        }
+        if (optionsList.userToInvite) {
+            newSections.push({
+                data: [optionsList.userToInvite],
+                sectionIndex: sectionIndex++,
+            });
+        }
+        sections = newSections;
+    }
+
+    const selectAccountant = (option: Accountant) => {
+        onAccountantSelected(lodashPick(option, 'accountID', 'login'));
+        onFinish();
+    };
+
+    const getHeaderMessageText = () => {
+        if (sections.length > 0) {
+            return '';
+        }
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
+        if (CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+            return translate('messages.errorMessageInvalidEmail');
+        }
+        return getHeaderMessage(translate, debouncedSearchTerm, countryCode);
+    };
+
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
+
+    const optionLength = !areOptionsInitialized ? 0 : sections.reduce((acc, section) => acc + section.data.length, 0);
+
+    const shouldShowListEmptyContent = optionLength === 0 && !shouldShowLoadingPlaceholder;
+
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        onChangeText: setSearchTerm,
+        headerMessage: getHeaderMessageText(),
+        hint: offlineMessage,
+    };
+
+    return (
+        <SelectionListWithSections
+            sections={areOptionsInitialized ? sections : []}
+            ListItem={InviteMemberListItem}
+            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            onSelectRow={selectAccountant}
+            confirmButtonOptions={{
+                onConfirmFocusedOption: selectAccountant,
+            }}
+            shouldShowTextInput
+            shouldSingleExecuteRowSelect
+            textInputOptions={textInputOptions}
+            listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+            isLoadingNewOptions={!!isSearchingForUsers}
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
+        />
+    );
+}
+
+export default MoneyRequestAccountantSelector;

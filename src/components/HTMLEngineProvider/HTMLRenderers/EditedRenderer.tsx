@@ -1,40 +1,33 @@
-import React from 'react';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
+import {fontScale} from '@styles/typography';
+
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+
+import React from 'react';
 
 function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps}: CustomRendererProps<TBlock>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isPendingDelete = !!(tnode.attributes.deleted !== undefined);
-    const isLarge = !!(tnode.attributes.islarge !== undefined);
     return (
-        <Text style={isLarge && styles.onlyEmojisTextLineHeight}>
+        <Text fontSize={fontScale.micro}>
+            <Text fontSize={fontScale.micro}> </Text>
             <Text
-                style={styles.userSelectNone}
-                fontSize={variables.fontSizeSmall}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-            >
-                {' '}
-            </Text>
-            <Text
-                // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultRendererProps}
-                fontSize={variables.fontSizeSmall}
+                fontSize={fontScale.micro}
                 color={theme.textSupporting}
-                style={[styles.editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
+                style={[styles.editedLabelStyles, isPendingDelete && styles.offlineFeedbackDeleted]}
             >
                 {translate('reportActionCompose.edited')}
             </Text>
         </Text>
     );
 }
-
-EditedRenderer.displayName = 'EditedRenderer';
 
 export default EditedRenderer;

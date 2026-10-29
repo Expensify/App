@@ -1,9 +1,11 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
-import type {PolicyReportField} from './Policy';
+import type {AutoReportingOffset, PolicyReportField} from './Policy';
 
 /** Preference that defines how regular the chat notifications are sent to the user */
 type NotificationPreference = ValueOf<typeof CONST.REPORT.NOTIFICATION_PREFERENCE>;
@@ -16,24 +18,9 @@ type RoomVisibility = ValueOf<typeof CONST.REPORT.VISIBILITY>;
 
 /** Model of report private note */
 type Note = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** Content of the note */
     note: string;
-
-    /** Collection of errors to show to the user */
     errors?: OnyxCommon.Errors;
 }>;
-
-/** The pending member of report */
-type PendingChatMember = {
-    /** Account ID of the pending member */
-    accountID: string;
-
-    /** Action to be applied to the pending member of report */
-    pendingAction: OnyxCommon.PendingAction;
-
-    /** Collection of errors to show to the user */
-    errors?: OnyxCommon.Errors;
-};
 
 /** Report participant properties */
 type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -42,27 +29,62 @@ type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether the participant is visible in the report */
     notificationPreference: NotificationPreference;
+
+    /** Permissions granted to the participant */
+    permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
 }>;
 
 /** Types of invoice receivers in a report */
 type InvoiceReceiver =
     | {
-          /** An individual */
           type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
-
-          /** Account ID of the user */
           accountID: number;
       }
     | {
-          /** A business */
           type: typeof CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
-
-          /** ID of the policy */
           policyID: string;
       };
 
+/** Type of invoice receiver */
+type InvoiceReceiverType = InvoiceReceiver['type'];
+
 /** Record of report participants, indexed by their accountID */
 type Participants = Record<number, Participant>;
+
+/** Report next step */
+type ReportNextStep = {
+    messageKey: ValueOf<typeof CONST.NEXT_STEP.MESSAGE_KEY>;
+    icon: ValueOf<typeof CONST.NEXT_STEP.ICONS>;
+
+    /** The account ID of the user who is required to take action. This could be -1 which translates to "an admin" */
+    actorAccountID?: number;
+
+    /** The ETA (if applicable, e.g. expected reimbursement date) */
+    eta?: {
+        etaKey?: ValueOf<typeof CONST.NEXT_STEP.ETA_KEY>;
+
+        /** The ETA date time */
+        dateTime?: string;
+
+        /** The submission frequency the ETA was calculated from */
+        autoReportingFrequency?: ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
+
+        /** The submission day the ETA was calculated from */
+        autoReportingOffset?: AutoReportingOffset;
+
+        /** The second twice a month submission day the ETA was calculated from */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The workspace timezone the ETA was calculated in */
+        timeZone?: string;
+    };
+
+    /** The fill color of the icon */
+    iconFill?: string;
+
+    /** Currency the submitter's deposit account must use for direct reimbursement, named in the waitingForSubmitterAccount copy */
+    requiredDepositCurrency?: string;
+};
 
 /** Model of report data */
 type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -70,7 +92,42 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The URL of the Group Chat report custom avatar */
         avatarUrl?: string;
 
-        /** The specific type of chat */
+        /** The date the report was created */
+        created?: string;
+
+        /** The date the report was submitted */
+        submitted?: string;
+
+        /** The date the report was approved */
+        approved?: string;
+
+        /** The date the report was paid */
+        paid?: string;
+
+        /** Custom field 1 value for the report submitter */
+        submitterUserID?: string;
+
+        /** Custom field 2 value for the report submitter */
+        submitterPayrollID?: string;
+
+        /** International reimbursement IDs associated with the report */
+        orderDealNumbers?: string;
+
+        /** Amount taken from the payer's account for this report's cross-border reimbursement */
+        debitedAmount?: number;
+
+        /** Currency of `debitedAmount` */
+        debitedCurrency?: string;
+
+        /** Amount delivered to the recipient by this report's cross-border reimbursement */
+        creditedAmount?: number;
+
+        /** Currency of `creditedAmount` */
+        creditedCurrency?: string;
+
+        /** Comma separated IDs of the report's settled withdrawals, in ascending order */
+        withdrawalIDs?: string;
+
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 
         /** Whether the report has a child that is an outstanding expense that is awaiting action from the current user */
@@ -85,7 +142,6 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates if the report is pinned to the LHN or not */
         isPinned?: boolean;
 
-        /** The text of the last message on the report */
         lastMessageText?: string;
 
         /** The time of the last message on the report */
@@ -94,79 +150,56 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The time when user read the last message */
         lastReadTime?: string;
 
+        /** reportActionID the user explicitly marked as unread. Unlike lastReadTime it is stable across the
+         *  optimistic→confirmed transition, so the "New" marker can anchor on a self-authored action. */
+        manuallyMarkedUnreadReportActionID?: string | null;
+
         /** The sequence number of the last report visit */
         lastReadSequenceNumber?: number;
 
         /** The time of the last mention of the report */
         lastMentionedTime?: string | null;
 
-        /** The policy avatar to use, if any */
         policyAvatar?: string | null;
-
-        /** The policy name to use */
         policyName?: string | null;
 
         /** The policy name to use for an archived report */
         oldPolicyName?: string;
 
-        /** Whether the report has parent access */
         hasParentAccess?: boolean;
-
-        /** Description of the report */
         description?: string;
-
-        /** Whether the parent action was deleted */
         isDeletedParentAction?: boolean;
 
         /** Linked policy's ID */
         policyID?: string;
 
-        /** Name of the report */
         reportName?: string;
-
-        /** ID of the report */
         reportID: string;
-
-        /** ID of the report action */
-        reportActionID?: string;
-
-        /** ID of the chat report */
         chatReportID?: string;
-
-        /** The state that the report is currently in */
         stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
-
-        /** The status of the current report */
         statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 
         /** Which user role is capable of posting messages on the report */
         writeCapability?: WriteCapability;
 
-        /** The report type */
         type?: string;
-
-        /** The report visibility */
         visibility?: RoomVisibility;
 
         /** Invoice room receiver data */
         invoiceReceiver?: InvoiceReceiver;
 
-        /** Translation key of the last message in the report */
-        lastMessageTranslationKey?: string;
+        /** Number of transactions in the report */
+        transactionCount?: number;
 
-        /** ID of the parent report of the current report, if it exists */
         parentReportID?: string;
-
-        /** ID of the parent report action of the current report, if it exists */
         parentReportActionID?: string;
-
-        /** Whether the current report is optimistic */
-        isOptimisticReport?: boolean;
 
         /** Account ID of the report manager */
         managerID?: number;
 
-        /** When was the last visible action last modified */
+        /** Calendar link for the support rep assigned to a support ticket */
+        supportTicketCalendarLink?: string;
+
         lastVisibleActionLastModified?: string;
 
         /** HTML content of the last message in the report */
@@ -175,10 +208,7 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Account ID of the user that sent the last message */
         lastActorAccountID?: number;
 
-        /** The type of the last action */
         lastActionType?: ValueOf<typeof CONST.REPORT.ACTIONS.TYPE>;
-
-        /** Account ID of the report owner */
         ownerAccountID?: number;
 
         /** Collection of report participants, indexed by their accountID */
@@ -190,19 +220,40 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** For expense reports, this is the total amount requested */
         unheldTotal?: number;
 
+        /** Total amount of unheld non-reimbursable transactions in an expense report */
+        unheldNonReimbursableTotal?: number;
+
+        /** Total amount of reimbursable transactions including held ones, freshly computed by the backend */
+        reimbursableTotal?: number;
+
+        /** Total amount of reimbursable transactions excluding held ones, freshly computed by the backend */
+        unheldReimbursableTotal?: number;
+
         /** For expense reports, this is the currency of the expense */
         currency?: string;
 
         /** Collection of errors that exist in report fields */
         errorFields?: OnyxCommon.ErrorFields;
 
-        /** Whether the report is waiting on a bank account */
+        /** Errors used by Search to show RBR */
+        errors?: OnyxCommon.Errors;
+
         isWaitingOnBankAccount?: boolean;
 
-        /** Whether the report is cancelled */
-        isCancelledIOU?: boolean;
+        /** Whether Auth still allows the bank reimbursement to be cancelled, returned by OpenReport */
+        canCancelReimbursement?: boolean;
 
-        /** The ID of the IOU report */
+        /** Whether the report can't be paid until the cancelled reimbursement finishes processing */
+        isWaitingForCancelledReimbursement?: boolean;
+
+        isCancelledIOU?: boolean;
+        hasReportBeenRetracted?: boolean;
+        hasReportBeenReopened?: boolean;
+
+        /** Whether the report has been exported to integration */
+        isExportedToIntegration?: boolean;
+
+        hasExportError?: boolean;
         iouReportID?: string;
 
         /** The ID of the preexisting report (it is possible that we optimistically created a Report for which a report already exists) */
@@ -214,32 +265,16 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of participant private notes, indexed by their accountID */
         privateNotes?: Record<number, Note>;
 
-        /** Pending members of the report */
-        pendingChatMembers?: PendingChatMember[];
-
         /** Collection of policy report fields, indexed by their fieldID */
-        fieldList?: Record<string, PolicyReportField>;
+        fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
 
         /** Collection of report permissions granted to the current user */
         permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
 
-        /** The trip data for a trip room */
-        tripData?: {
-            /** The start date of a trip */
-            startDate: string;
-
-            /** The end date of a trip */
-            endDate: string;
-
-            /** The trip ID in spotnana */
-            tripID: string;
-        };
-
-        /** Whether the report is archived */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        private_isArchived?: string;
+        welcomeMessage?: string;
+        nextStep?: ReportNextStep;
     },
-    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview'
+    'addWorkspaceRoom' | 'avatar' | 'createChat' | 'partial' | 'reimbursed' | 'preview' | 'createReport' | 'reportName' | 'export'
 >;
 
 /** Collection of reports, indexed by report_{reportID} */
@@ -247,4 +282,4 @@ type ReportCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.COLLECTION.REPO
 
 export default Report;
 
-export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, PendingChatMember, Participant, Participants, InvoiceReceiver};
+export type {NotificationPreference, RoomVisibility, WriteCapability, Note, ReportCollectionDataSet, Participant, Participants, InvoiceReceiver, InvoiceReceiverType, ReportNextStep};

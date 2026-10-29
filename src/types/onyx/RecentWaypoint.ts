@@ -8,7 +8,7 @@ type RecentWaypoint = {
     /** The full address of the waypoint */
     address?: string;
 
-    /** The lattitude of the waypoint */
+    /** The latitude of the waypoint */
     lat?: number;
 
     /** The longitude of the waypoint */
@@ -17,7 +17,6 @@ type RecentWaypoint = {
     /** A unique key for waypoint is required for correct draggable list rendering */
     keyForList?: string;
 
-    /** The pending action for recent waypoint */
     pendingAction?: OnyxCommon.PendingAction | null;
 };
 

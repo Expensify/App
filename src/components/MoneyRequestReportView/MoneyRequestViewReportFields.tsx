@@ -1,0 +1,231 @@
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useSaveReportField from '@hooks/useSaveReportField';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearReportFieldKeyErrors, deleteReportField} from '@libs/actions/Report';
+import {resolveReportFieldValue} from '@libs/Formula';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {
+    getFieldViolation,
+    getFieldViolationTranslation,
+    getReportFieldKey,
+    getReportFieldMaps,
+    isReportFieldDisabledForUser,
+    isReportFieldTargetMatchingReport,
+    shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
+    shouldHideSingleReportField,
+} from '@libs/ReportUtils';
+
+import type {ThemeStyles} from '@styles/index';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import ReportFieldInlineInput from './ReportFieldInlineInput';
+
+type MoneyRequestViewReportFieldsProps = {
+    report: OnyxEntry<Report>;
+
+    /** Policy that the report belongs to */
+    policy: OnyxEntry<Policy>;
+
+    /** Indicates whether we have any pending actions from parent component */
+    pendingAction?: PendingAction;
+
+    /** Extra styles for the block. Each call site sits in a container with its own padding, so it sets the spacing it needs. */
+    style?: StyleProp<ViewStyle>;
+
+    /**
+     * Stacks the fields one per row at any width, instead of filling rows of `CONST.REPORT_FIELDS_PER_ROW`.
+     * A one-expense report reads as a single expense rather than a table, so its fields stay vertical there.
+     * @default false
+     */
+    shouldUseSingleColumn?: boolean;
+};
+
+type EnrichedPolicyReportField = {
+    fieldValue: string;
+    isFieldDisabled: boolean;
+
+    /** Whether the field was deleted from the workspace but still holds a value on this report, so it can be removed */
+    isFieldDeletable: boolean;
+    fieldKey: string;
+    violation: ReportViolationName | undefined;
+    violationTranslation: string;
+} & PolicyReportField;
+
+function ReportFieldView(
+    reportField: EnrichedPolicyReportField,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    styles: ThemeStyles,
+    onSaveValue: (reportField: PolicyReportField, value: string) => void,
+    onDelete: (reportField: EnrichedPolicyReportField) => Promise<void>,
+    fieldPendingAction?: PendingAction,
+) {
+    return (
+        <View
+            // The next/previous report arrows only change the `reportID` param, so the screen stays mounted. Keying on
+            // the report gives every report fresh inputs instead of carrying one report's draft and errors into the next.
+            key={`reportField-${report?.reportID}-${reportField.fieldKey}`}
+            style={styles.flex1}
+        >
+            <OfflineWithFeedback
+                pendingAction={fieldPendingAction}
+                errors={report?.errorFields?.[reportField.fieldKey]}
+                onClose={() => clearReportFieldKeyErrors(report?.reportID, reportField.fieldKey)}
+            >
+                <ReportFieldInlineInput
+                    reportField={reportField}
+                    fieldKey={reportField.fieldKey}
+                    value={reportField.fieldValue}
+                    isDisabled={reportField.isFieldDisabled}
+                    errorText={reportField.violationTranslation}
+                    fieldList={policy?.fieldList}
+                    onSaveValue={(value) => onSaveValue(reportField, value)}
+                    onDelete={
+                        reportField.isFieldDeletable
+                            ? () => {
+                                  onDelete(reportField);
+                              }
+                            : undefined
+                    }
+                />
+            </OfflineWithFeedback>
+        </View>
+    );
+}
+function MoneyRequestViewReportFields({report, policy, pendingAction, style, shouldUseSingleColumn = false}: MoneyRequestViewReportFieldsProps) {
+    const styles = useThemeStyles();
+    // The report view is a RightModalNavigator screen shown as a wide RHP, where `useResponsiveLayout` reports a narrow layout at any pane width.
+    const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const saveReportField = useSaveReportField(report, policy);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+
+    const deleteField = async (reportField: EnrichedPolicyReportField) => {
+        const result = await showConfirmModal({
+            title: translate('workspace.reportFields.delete'),
+            prompt: translate('workspace.reportFields.deleteConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldEnableNewFocusManagement: true,
+        });
+        if (result.action !== ModalActions.CONFIRM || !report?.reportID) {
+            return;
+        }
+        // The failure data restores whatever field is passed here, so it gets the field as stored on the report rather
+        // than the copy enriched for display.
+        deleteReportField(report.reportID, report.fieldList?.[reportField.fieldKey] ?? reportField);
+    };
+
+    const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
+    const fields = Object.values(fieldsByName);
+    const sortedPolicyReportFields: EnrichedPolicyReportField[] = fields
+        .filter((field) => isReportFieldTargetMatchingReport(report, field))
+        .filter((reportField) => !shouldHideSingleReportField(reportField))
+        .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
+        .map((field): EnrichedPolicyReportField => {
+            const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
+            const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
+            const fieldKey = getReportFieldKey(field.fieldID);
+            const isFieldOnPolicy = !!(policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[field.fieldID]);
+            const isEditable = !isFieldDisabled || isDeletedFormulaField;
+
+            // An input the user can type into is seeded with the raw value, the same as the report field editor page.
+            // Seeding it with the computed value would save the resolved text over a `{field:X}` default the first
+            // time it was edited, so the field would stop following the field it refers to.
+            const shouldUseRawValue = isEditable && field.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
+            const fieldValue = shouldUseRawValue ? (field.value ?? field.defaultValue ?? '') : resolveReportFieldValue(field, report, policy, fieldValues, fieldsByName, getCurrencyDecimals);
+            const violation = isFieldDisabled ? undefined : getFieldViolation(field);
+            const violationTranslation = getFieldViolationTranslation(field, violation);
+            return {
+                ...field,
+                fieldValue,
+                isFieldDisabled: !isEditable,
+                // Only fields that are no longer on the workspace can be deleted. Their `deletable` flag is not
+                // checked: once the workspace drops a field, whether it was required no longer applies, and the
+                // report's copy of a date field can still be flagged as not deletable.
+                isFieldDeletable: field.fieldID !== CONST.REPORT_FIELD_TITLE_FIELD_ID && !isFieldOnPolicy && isEditable,
+                fieldKey,
+                violation,
+                violationTranslation,
+            };
+        });
+
+    // `sortedPolicyReportFields` already excludes fields hidden by `shouldHideSingleReportField`, including the title field.
+    // If no displayable custom fields remain, the early return below hides the section.
+    const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
+
+    if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
+        return null;
+    }
+
+    const pendingFieldsByKey = new Map(Object.entries(report?.pendingFields ?? {}));
+    const columnCount = shouldUseNarrowLayout || shouldUseSingleColumn ? 1 : CONST.REPORT_FIELDS_PER_ROW;
+    const fieldRows: EnrichedPolicyReportField[][] = [];
+    for (let index = 0; index < sortedPolicyReportFields.length; index += columnCount) {
+        fieldRows.push(sortedPolicyReportFields.slice(index, index + columnCount));
+    }
+
+    return (
+        <View style={[styles.ph5, styles.mb3, styles.gap3, style]}>
+            {fieldRows.map((fieldRow) => {
+                const rowKey = `reportFieldRow-${fieldRow.at(0)?.fieldKey}`;
+
+                return (
+                    <View
+                        key={rowKey}
+                        testID="reportFieldsRow"
+                        // Each cell sizes to its own content and hugs the top of the row, so a field showing an error
+                        // message grows downwards instead of stretching the cells beside it and shifting their inputs.
+                        style={[styles.flexRow, styles.gap3, styles.alignItemsStart]}
+                    >
+                        {fieldRow.map((reportField) =>
+                            ReportFieldView(
+                                reportField,
+                                report,
+                                policy,
+                                styles,
+                                saveReportField,
+                                deleteField,
+                                // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+                                pendingAction ? undefined : pendingFieldsByKey.get(reportField.fieldKey),
+                            ),
+                        )}
+                        {/* A partly filled last row is padded out so its fields stay the same width as the rows above it. */}
+                        {Array.from({length: columnCount - fieldRow.length}, (_unused, index) => (
+                            <View
+                                key={`${rowKey}-spacer-${index}`}
+                                style={styles.flex1}
+                            />
+                        ))}
+                    </View>
+                );
+            })}
+        </View>
+    );
+}
+
+export default MoneyRequestViewReportFields;

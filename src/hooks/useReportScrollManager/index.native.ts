@@ -1,38 +1,64 @@
-import {useCallback, useContext} from 'react';
-import {ActionListContext} from '@pages/home/ReportScreenContext';
-import type ReportScrollManagerData from './types';
+import {useActionListContext} from '@pages/inbox/ActionListContext';
+
+import type {ReportScrollManagerData, ScrollToIndexOptions} from './types';
 
 function useReportScrollManager(): ReportScrollManagerData {
-    const {flatListRef, setScrollPosition} = useContext(ActionListContext);
+    const {getListRef} = useActionListContext();
 
     /**
-     * Scroll to the provided index.
+     * Scroll to the provided index. `isEditing` is accepted for signature parity with the web
+     * implementation but is a no-op here, matching the previous native behavior. `animated`
+     * defaults to `false` to match FlashList's default (the previous native call omitted it).
      */
-    const scrollToIndex = useCallback(
-        (index: number) => {
-            if (!flatListRef?.current) {
-                return;
-            }
-
-            flatListRef.current.scrollToIndex({index});
-        },
-        [flatListRef],
-    );
+    const scrollToIndex = (index: number, {animated = false, viewOffset, viewPosition}: ScrollToIndexOptions = {}) => {
+        const listRef = getListRef();
+        if (!listRef?.current) {
+            return;
+        }
+        listRef.current.scrollToIndex({index, animated, viewOffset, viewPosition});
+    };
 
     /**
-     * Scroll to the bottom of the flatlist.
+     * Scroll to the bottom of the inverted FlatList.
+     * When FlatList is inverted it's "bottom" is really it's top
      */
-    const scrollToBottom = useCallback(() => {
-        if (!flatListRef?.current) {
+    const scrollToBottom = () => {
+        const listRef = getListRef();
+        if (!listRef?.current) {
             return;
         }
 
-        setScrollPosition({offset: 0});
+        listRef.current.scrollToIndex({animated: false, index: 0});
+    };
 
-        flatListRef.current?.scrollToOffset({animated: false, offset: 0});
-    }, [flatListRef, setScrollPosition]);
+    /**
+     * Scroll to the end of the FlatList.
+     */
+    const scrollToEnd = () => {
+        const listRef = getListRef();
+        if (!listRef?.current) {
+            return;
+        }
 
-    return {ref: flatListRef, scrollToIndex, scrollToBottom};
+        const scrollViewRef = listRef.current.getNativeScrollRef?.();
+        // Try to scroll on underlying scrollView if available, fallback to usual listRef
+        if (scrollViewRef && typeof scrollViewRef.scrollToEnd === 'function') {
+            scrollViewRef.scrollToEnd({animated: false});
+            return;
+        }
+
+        listRef.current.scrollToEnd({animated: false});
+    };
+
+    const scrollToOffset = (offset: number) => {
+        const listRef = getListRef();
+        if (!listRef?.current) {
+            return;
+        }
+        listRef.current.scrollToOffset({offset, animated: false});
+    };
+
+    return {scrollToIndex, scrollToBottom, scrollToEnd, scrollToOffset};
 }
 
 export default useReportScrollManager;

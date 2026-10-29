@@ -1,0 +1,24 @@
+import type {PersonalDetails} from '@src/types/onyx';
+
+import {useAllPersonalDetails} from './usePersonalDetails';
+
+/**
+ * Hook that returns personal details indexed by login email.
+ * Enables case-insensitive lookups.
+ */
+function usePersonalDetailsByLogin(): Record<string, PersonalDetails> {
+    const [personalDetails] = useAllPersonalDetails();
+
+    if (!personalDetails) {
+        return {};
+    }
+
+    return Object.values(personalDetails).reduce((acc: Record<string, PersonalDetails>, detail) => {
+        if (detail?.login) {
+            acc[detail.login.toLowerCase()] = detail;
+        }
+        return acc;
+    }, {});
+}
+
+export default usePersonalDetailsByLogin;

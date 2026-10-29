@@ -1,39 +1,52 @@
-import type {ListRenderItem} from '@shopify/flash-list';
-import throttle from 'lodash/throttle';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+
+import {isMobile} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import * as EmojiUtils from '@libs/EmojiUtils';
+import {getRemovedSkinToneEmoji} from '@libs/EmojiUtils';
+import type {EmojiPickerListItem} from '@libs/EmojiUtils';
 import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposition';
-import * as ReportUtils from '@libs/ReportUtils';
+import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
+
+import throttle from 'lodash/throttle';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type EmojiPickerMenuProps from './types';
+
+import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
-const throttleTime = Browser.isMobile() ? 200 : 50;
+const throttleTime = isMobile() ? 200 : 50;
 
-function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
+function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // The compact search input must be sized by the physical device width, not by `shouldUseNarrowLayout`. Using
+    // `shouldUseNarrowLayout` would grow the input to the tall mobile size whenever it is rendered inside an
+    // RHP/narrow pane on web/desktop, so `isSmallScreenWidth` is intentionally used here to keep it compact.
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
     const {
@@ -52,6 +65,54 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         spacersIndexes,
     } = useEmojiPickerMenu();
 
+    const headerRefs = useRef<Record<number, React.RefObject<ComponentRef<typeof View> | null>>>({});
+    const pendingHeaderFocusIndexRef = useRef<number | null>(null);
+    const [selectedHeaderIndex, setSelectedHeaderIndex] = useState<number | null>(null);
+
+    const getHeaderRef = useCallback((index: number) => {
+        if (!headerRefs.current[index]) {
+            headerRefs.current[index] = React.createRef<ComponentRef<typeof View>>();
+        }
+        return headerRefs.current[index];
+    }, []);
+
+    const focusHeaderAtIndex = useCallback((headerIndex: number) => {
+        const headerRef = headerRefs.current[headerIndex];
+        if (!headerRef?.current) {
+            return false;
+        }
+        pendingHeaderFocusIndexRef.current = null;
+
+        headerRef.current.focus();
+        return true;
+    }, []);
+
+    const scheduleHeaderFocus = useCallback(
+        function schedule(headerIndex: number, attempt = 0) {
+            if (pendingHeaderFocusIndexRef.current !== headerIndex) {
+                return;
+            }
+            if (focusHeaderAtIndex(headerIndex)) {
+                return;
+            }
+            if (attempt >= 2) {
+                return;
+            }
+            setTimeout(() => schedule(headerIndex, attempt + 1), CONST.ANIMATED_TRANSITION);
+        },
+        [focusHeaderAtIndex],
+    );
+
+    const handleHeaderLayout = useCallback(
+        (index: number) => {
+            if (pendingHeaderFocusIndexRef.current !== index) {
+                return;
+            }
+            focusHeaderAtIndex(index);
+        },
+        [focusHeaderAtIndex],
+    );
+
     // Ref for the emoji search input
     const searchInputRef = useRef<BaseTextInputRef>(null);
 
@@ -59,6 +120,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     // prevent auto focus when open picker for mobile device
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
+    const [searchText, setSearchText] = useState('');
     const [arePointerEventsDisabled, setArePointerEventsDisabled] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [isUsingKeyboardMovement, setIsUsingKeyboardMovement] = useState(false);
@@ -110,7 +172,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         allowNegativeIndexes: true,
     });
 
-    const filterEmojis = throttle((searchTerm: string) => {
+    const filterCallbackRef = useRef<(searchTerm: string) => void>(undefined);
+    filterCallbackRef.current = (searchTerm: string) => {
         const [normalizedSearchTerm, newFilteredEmojiList] = suggestEmojis(searchTerm);
 
         emojiListRef.current?.scrollToOffset({offset: 0, animated: false});
@@ -128,7 +191,12 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
         setHeaderIndices([]);
         setHighlightFirstEmoji(true);
         setIsUsingKeyboardMovement(false);
-    }, throttleTime);
+    };
+
+    // Stable throttled function that delegates to the latest callback via ref,
+    // preventing re-renders from recreating the throttle timer.
+
+    const filterEmojis = useMemo(() => throttle((text: string) => filterCallbackRef.current?.(text), throttleTime), []);
 
     const keyDownHandler = useCallback(
         (keyBoardEvent: KeyboardEvent) => {
@@ -148,7 +216,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
 
             // We allow typing in the search box if any key is pressed apart from Arrow keys.
-            if (searchInputRef.current && !isTextInputFocused(searchInputRef) && ReportUtils.shouldAutoFocusOnKeyPress(keyBoardEvent)) {
+            if (searchInputRef.current && !isTextInputFocused(searchInputRef) && shouldAutoFocusOnKeyPress(keyBoardEvent)) {
                 searchInputRef.current.focus();
             }
         },
@@ -174,7 +242,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
             if ('types' in item || 'name' in item) {
                 const emoji = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && item?.types?.at(preferredSkinTone) ? item.types.at(preferredSkinTone) : item.code;
-                onEmojiSelected(emoji ?? '', item);
+                onEmojiSelected(emoji ?? '', item, preferredSkinTone);
                 // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
                 keyBoardEvent.preventDefault();
                 // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
@@ -235,10 +303,15 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
 
             const calculatedOffset = Math.floor(headerIndex / CONST.EMOJI_NUM_PER_ROW) * CONST.EMOJI_PICKER_HEADER_HEIGHT;
+            setSelectedHeaderIndex(headerIndex);
+            pendingHeaderFocusIndexRef.current = headerIndex;
             emojiListRef.current?.scrollToOffset({offset: calculatedOffset, animated: true});
             setFocusedIndex(headerIndex);
+            setTimeout(() => {
+                scheduleHeaderFocus(headerIndex);
+            }, CONST.ANIMATED_TRANSITION);
         },
-        [emojiListRef, setFocusedIndex],
+        [emojiListRef, setFocusedIndex, scheduleHeaderFocus],
     );
 
     /**
@@ -247,7 +320,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
      * so that the sticky headers function properly.
      *
      */
-    const renderItem: ListRenderItem<EmojiUtils.EmojiPickerListItem> = useCallback(
+    const renderItem: ListRenderItem<EmojiPickerListItem> = useCallback(
         ({item, index, target}) => {
             const code = item.code;
             const types = 'types' in item ? item.types : undefined;
@@ -258,8 +331,18 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 
             if ('header' in item && item.header) {
                 return (
-                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(shouldUseNarrowLayout, windowWidth) : undefined]}>
-                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
+                    <View
+                        ref={getHeaderRef(index)}
+                        tabIndex={-1}
+                        role={CONST.ROLE.HEADING}
+                        onLayout={() => handleHeaderLayout(index)}
+                        style={[
+                            styles.emojiHeaderContainer,
+                            styles.emojiHeaderContainerWidth(shouldUseNarrowLayout, windowWidth),
+                            target === 'StickyHeader' ? styles.stickyHeaderEmoji : undefined,
+                        ]}
+                    >
+                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${item.code}`)}</Text>
                     </View>
                 );
             }
@@ -267,8 +350,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             const emojiCode = typeof preferredSkinTone === 'number' && types?.at(preferredSkinTone) && preferredSkinTone !== -1 ? types.at(preferredSkinTone) : code;
 
             const isEmojiFocused = index === focusedIndex && isUsingKeyboardMovement;
-            const shouldEmojiBeHighlighted =
-                (index === focusedIndex && highlightEmoji) || (!!activeEmoji && EmojiUtils.getRemovedSkinToneEmoji(emojiCode) === EmojiUtils.getRemovedSkinToneEmoji(activeEmoji));
+            const shouldEmojiBeHighlighted = (index === focusedIndex && highlightEmoji) || (!!activeEmoji && getRemovedSkinToneEmoji(emojiCode) === getRemovedSkinToneEmoji(activeEmoji));
             const shouldFirstEmojiBeHighlighted = index === 0 && highlightFirstEmoji;
 
             return (
@@ -277,7 +359,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                         if (!('name' in item)) {
                             return;
                         }
-                        onEmojiSelected(emoji, item);
+                        onEmojiSelected(emoji, item, preferredSkinTone);
                     })}
                     onHoverIn={() => {
                         setHighlightEmoji(false);
@@ -308,6 +390,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             onEmojiSelected,
             setFocusedIndex,
             activeEmoji,
+            getHeaderRef,
+            handleHeaderLayout,
         ],
     );
 
@@ -320,13 +404,23 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 arePointerEventsDisabled ? styles.pointerEventsNone : styles.pointerEventsAuto,
             ]}
         >
-            <View style={[styles.ph4, styles.pb3, styles.pt2]}>
+            <View style={[styles.p4, styles.pb3]}>
                 <TextInput
-                    label={translate('common.search')}
+                    placeholder={translate('common.search')}
+                    placeholderTextColor={theme.textSupporting}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
-                    onChangeText={filterEmojis}
-                    defaultValue=""
+                    // Size is based on device width (isSmallScreenWidth), not shouldUseNarrowLayout, so the search input
+                    // stays the compact 34px size on web/desktop and only grows to 46px on mobile.
+                    touchableInputWrapperStyle={isSmallScreenWidth ? styles.listSearchInputNarrowWrapper : styles.listSearchInputWideWrapper}
+                    textInputContainerStyles={[styles.pb0, isSmallScreenWidth ? styles.ph3 : styles.ph2]}
+                    inputStyle={[styles.w100, styles.lineHeightUndefined, isSmallScreenWidth ? undefined : styles.fontSizeLabel]}
+                    onChangeText={(text: string) => {
+                        setSearchText(text);
+                        filterEmojis(text);
+                    }}
+                    value={searchText}
+                    shouldHideClearButton={false}
                     ref={searchInputRef}
                     autoFocus={shouldFocusInputOnScreenFocus}
                     onFocus={() => {
@@ -336,12 +430,14 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                     }}
                     onBlur={() => setIsFocused(false)}
                     autoCorrect={false}
-                    blurOnSubmit={filteredEmojis.length > 0}
+                    submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
+                    sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
             </View>
             <BaseEmojiPickerMenu
                 isFiltered={isListFiltered}
                 headerEmojis={headerEmojis}
+                selectedHeaderIndex={selectedHeaderIndex}
                 scrollToHeader={scrollToHeader}
                 listWrapperStyle={[listStyle, styles.flexShrink1]}
                 ref={emojiListRef}
@@ -349,10 +445,10 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                 renderItem={renderItem}
                 extraData={[focusedIndex, preferredSkinTone]}
                 stickyHeaderIndices={headerIndices}
+                searchValue={searchText}
             />
         </View>
     );
 }
 
-EmojiPickerMenu.displayName = 'EmojiPickerMenu';
-export default React.forwardRef(EmojiPickerMenu);
+export default EmojiPickerMenu;

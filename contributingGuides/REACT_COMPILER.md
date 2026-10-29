@@ -4,19 +4,61 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-At Expensify, we are early adopters of this tool and aim to fully leverage its capabilities.
+React Compiler runs in every build lane via `oxc-transform-react` (the Rust React Compiler): the web build (Rsbuild), the native build (Re.Pack) and Jest all compile app source with it. They share one set of options, `config/babel/oxcReactCompilerConfig.js`, and the CI check and the ESLint processor use the same compiler through `config/reactCompiler/checkWithOxc.mjs`.
 
-## React Compiler compatibility check
+## Manual memoization
 
-To check if your code can be compiled by React Compiler and hence gets all its optimizations "for free", you can run the `npm run react-compiler-healthcheck-test` locally and analyze the output.
+`rulesdir/no-manual-memoization` disallows `React.memo`, `useMemo`, and `useCallback` in files fully compiled and memoized by React Compiler. Derive values directly in render and use plain functions instead of maintaining dependency arrays. The lint pipeline allows manual memoization when the compiler cannot memoize the file.
 
-## How can I check what exactly prevents file from successful optimization or whether my fix for passing `react-compiler` actually works?
+Callbacks passed to React Navigation's `useFocusEffect` are the exception: keep their `useCallback` wrapper because React Navigation requires a stable callback.
 
-You can run a dedicated script: `react-compiler-healthcheck-test` and examine the output. This command will list the files that failed to compile with details on what caused the failures. It will then save this output to `./react-compiler-output.txt` file. Read and examine the output to find what specific error the react-compiler throws.
+## React Compiler CI check
+
+A CI check runs on every PR that modifies `.ts` or `.tsx` files. For each changed file it runs `oxc-transform-react` and reports whether the file compiles and whether it is actually memoized.
+
+### What the CI check enforces
+
+The check enforces two rules:
+
+1. **New files must compile.** If you add a new file containing React components or hooks, they must all compile with the React Compiler. This prevents new Rules of React violations from entering the codebase.
+2. **No regressions.** If a file compiles on `main` and your PR breaks that, the check fails. This prevents introducing violations into files that were previously compliant.
+
+The check does **not** fail if:
+- A file has no React components or hooks (utilities, types, constants are silently skipped)
+- A file was already failing to compile on `main` and still fails on your branch (not a regression)
+
+### What to do when the check fails
+
+The CI output shows which files failed and the reason. Look for lines like:
+
+```
+FAILED   src/components/MyComponent.tsx (new file must compile)
+    42:8: Hooks must always be called in a consistent order...
+```
+
+Compile-failure messages come directly from React Compiler and describe which [Rule of React](https://react.dev/reference/rules) was violated; see the ["How to fix a particular problem?"](#how-to-fix-a-particular-problem) section below for common fixes.
+
+### Local usage
+
+You can run the same check locally before pushing:
 
 ```bash
-npm run react-compiler-healthcheck-test
+# Check specific files, directories, or glob patterns
+npm run react-compiler-compliance-check check src/components/Foo.tsx
+npm run react-compiler-compliance-check check src/components/
+npm run react-compiler-compliance-check check "src/hooks/**/*.ts"
+
+# Check only files changed relative to main (same as CI)
+npm run react-compiler-compliance-check check-changed
+
+# Show detailed output including files that compiled or were skipped
+npm run react-compiler-compliance-check check --verbose src/components/
 ```
+
+#### Flags
+
+- `--verbose` -- Show detailed output including skipped files and files that compiled successfully.
+- `--remote <name>` -- Git remote name for the base branch (default: `origin`).
 
 ## How to fix a particular problem?
 
@@ -36,7 +78,8 @@ If you encounter this error, you need to add the `Ref` postfix to the variable n
 If you added a modification to `SharedValue`, you'll likely encounter this error. You can ignore this error for now because the current `react-native-reanimated` API is not compatible with `react-compiler` rules. Once [this PR](https://github.com/software-mansion/react-native-reanimated/pull/6312) is merged, we'll rewrite the code to be compatible with `react-compiler`. Until then, you can ignore this error.
 
 ### Existing manual memoization could not be preserved. [...]
-These types of errors usually occur when the calls to `useMemo` that were made manually are too complex for react-compiler to understand. React compiler is still experimental so unfortunately this can happen.
+
+Remove the manual memoization and derive the value directly in render. This lets React Compiler infer dependencies and choose its own memoization boundaries. The examples below explain the historical errors in files that still need manual memoization because they do not compile on both platforms.
 
 Some specific cases of this error are described below.
 
@@ -96,7 +139,7 @@ return (
         <ToggleSettingOptionRow
             onToggle={item.onToggle}
             // ❌ such code triggers the error - `qboConfig?.pendingFields` is an external variable from the closure
-            // so this code is pretty complicated for `react-compiler` optimizations 
+            // so this code is pretty complicated for `react-compiler` optimizations
             pendingAction={settingsPendingAction([item.subscribedSetting], qboConfig?.pendingFields)}
             // ❌ such code triggers the error - `qboConfig` is an external variable from the closure
             errors={ErrorUtils.getLatestErrorField(qboConfig, item.subscribedSetting)}

@@ -1,385 +1,380 @@
-import type {ValueOf} from 'type-fest';
-import type {SearchStatus} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionList/ChatListItem';
-import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
-import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionReportGroupListItemType,
+    TripListItemType,
+} from '@components/Search/SearchList/ListItem/types';
+import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
+
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type {ACHAccount} from './Policy';
-import type {InvoiceReceiver} from './Report';
-import type ReportActionName from './ReportActionName';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {ValueOf} from 'type-fest';
+
+import type {BankName} from './Bank';
+import type {PendingAction, Errors} from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
+import type Policy from './Policy';
+import type Report from './Report';
+import type ReportAction from './ReportAction';
+import type ReportMetadata from './ReportMetadata';
 import type ReportNameValuePairs from './ReportNameValuePairs';
+import type Transaction from './Transaction';
+import type {TransactionViolation} from './TransactionViolation';
 
 /** Types of search data */
 type SearchDataTypes = ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
 
-/** Model of search result list item */
-type ListItemType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
-    ? typeof ChatListItem
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? typeof TransactionListItem
-    : typeof ReportListItem;
-
 /** Model of search list item data type */
-type ListItemDataType<C extends SearchDataTypes, T extends SearchStatus> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
+type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undefined> = C extends typeof CONST.SEARCH.DATA_TYPES.CHAT
     ? ReportActionListItemType[]
-    : T extends typeof CONST.SEARCH.STATUS.EXPENSE.ALL
-    ? TransactionListItemType[]
-    : ReportListItemType[];
-
-/** Model of columns to show for search results */
-type ColumnsToShow = {
-    /** Whether the category column should be shown */
-    shouldShowCategoryColumn: boolean;
-
-    /** Whether the tag column should be shown */
-    shouldShowTagColumn: boolean;
-
-    /** Whether the tax column should be shown */
-    shouldShowTaxColumn: boolean;
-};
+    : C extends typeof CONST.SEARCH.DATA_TYPES.TASK
+      ? TaskListItemType[]
+      : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
+        ? TransactionReportGroupListItemType[]
+        : C extends typeof CONST.SEARCH.DATA_TYPES.TRIP
+          ? TripListItemType[] | TransactionListItemType[]
+          : G extends SearchGroupBy
+            ? TransactionGroupListItemType[]
+            : TransactionListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
     /** Current search results offset/cursor */
     offset: number;
 
-    /** Type of search */
     type: SearchDataTypes;
 
-    /** The status filter for the current search */
-    status: SearchStatus;
+    /** The hash of the current search */
+    hash: number;
+
+    /** Client-only query string this snapshot was searched with, used to add optimistic expenses to matching snapshots */
+    inputQuery?: string;
+
+    /** Client-only footer breakdown the snapshot's `total` answers. Written once a response lands, as it can replace `snapshot.search` */
+    footerTotal?: SearchFooterTotal;
 
     /** Whether the user can fetch more search results */
     hasMoreResults: boolean;
 
-    /** Whether the search results are currently loading */
+    /** Whether the user has any valid data on the current search type, for instance,
+     * whether they have created any invoice yet when the search type is invoice */
+    hasResults: boolean;
+
     isLoading: boolean;
+    sortBy: SearchSortBy;
 
-    /** The optional columns that should be shown according to policy settings */
-    columnsToShow: ColumnsToShow;
-};
+    /** The sort order of the current search */
+    sortOrder: SortOrder;
 
-/** Model of personal details search result */
-type SearchPersonalDetails = {
-    /** ID of user account */
-    accountID: number;
+    /** Explicit lifecycle state of the most recent search request for this snapshot.
+     * Optional because snapshots persisted before this field existed (and snapshots written by
+     * non-search actions) may not carry it.
+     *
+     * Search pages use this state to decide whether to show a loading skeleton. If the app reloads while
+     * the state is `loading`, `useSearchPageSetup` starts the search again. `search()` ignores the call when
+     * the same request is already running. */
+    state?: ValueOf<typeof CONST.SEARCH.SNAPSHOT_STATE>;
 
-    /** User's avatar URL */
-    avatar: string;
+    /** jsonCode of the most recent failed search response for this snapshot. Cleared when a new request starts.
+     *
+     * The error view reads it to tell an invalid query, where retrying cannot help, apart from a retryable
+     * failure. That verdict otherwise lives in component state, which a reload resets while the errored
+     * snapshot survives, so without this a reload would offer a pointless Retry. */
+    responseJsonCode?: number;
 
-    /** User's display name */
-    displayName?: string;
+    /** The number of results */
+    count?: number;
 
-    /** User's email */
-    login?: string;
+    /** The number of matching reports across all pages, returned by the server for expense-report searches.
+     * Distinct from `count`, which is the number of expenses; used to label "Select all matching" on the Reports tab. */
+    reportCount?: number;
+
+    /** Expense reports a to-do search's responses held since its count. Those this device listed and no longer does come off `reportCount`. */
+    countedReportIDs?: Record<string, boolean>;
+
+    /** The total spend */
+    total?: number;
+
+    /** The currency of the total spend */
+    currency?: string;
+
+    /** The date from which violation snapshots are available for search */
+    violationSnapshotStartedAt?: string;
 };
 
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
-/** Model of report search result */
-type SearchReport = {
-    /** The ID of the report */
-    reportID: string;
+/** Model of a trip room returned by a trip search sent with shouldReturnTripRooms */
+type SearchTrip = Report & {
+    /** When the trip starts */
+    startDate?: string;
 
-    /** ID of the chat report */
-    chatReportID?: string;
+    /** When the trip ends */
+    endDate?: string;
 
-    /** The name of the report */
-    reportName?: string;
+    /** The trip's status, worked out by the backend */
+    status?: ValueOf<typeof CONST.SEARCH.TRIP_STATUS>;
 
-    /** The report total amount */
-    total?: number;
-
-    /** The report currency */
-    currency?: string;
-
-    /** The report type */
-    type?: ValueOf<typeof CONST.REPORT.TYPE>;
-
-    /** The accountID of the report manager */
-    managerID?: number;
-
-    /** The accountID of the user who created the report  */
-    accountID?: number;
-
-    /** The policyID of the report */
-    policyID?: string;
-
-    /** The date the report was created */
-    created?: string;
-
-    /** The action that can be performed for the report */
-    action?: SearchTransactionAction;
-
-    /** The type of chat if this is a chat report */
-    chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
-
-    /** Invoice room receiver data */
-    invoiceReceiver?: InvoiceReceiver;
-
-    /** Whether the report has a single transaction */
-    isOneTransactionReport?: boolean;
-
-    /** Whether the report is policyExpenseChat */
-    isPolicyExpenseChat?: boolean;
-
-    /** Whether the report is waiting on a bank account */
-    isWaitingOnBankAccount?: boolean;
-
-    /** If the report contains nonreimbursable expenses, send the nonreimbursable total */
-    nonReimbursableTotal?: number;
-
-    /** Account ID of the report owner */
-    ownerAccountID?: number;
-
-    /** The state that the report is currently in */
-    stateNum?: ValueOf<typeof CONST.REPORT.STATE_NUM>;
-
-    /** The status of the current report */
-    statusNum?: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
-
-    /** For expense reports, this is the total amount requested */
-    unheldTotal?: number;
-
-    /** Whether the report is archived */
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    private_isArchived?: string;
-
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
+    /** The account ID of the traveler, who created the trip room */
+    travelerAccountID?: number;
 };
 
-/** Model of report action search result */
-type SearchReportAction = {
-    /** The report action sender ID */
+/** Model of tasks search result */
+type SearchTask = {
+    /** The type of the response */
+    type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
+
+    /** The account ID of the user who created the task */
     accountID: number;
 
-    /** The name (or type) of the action */
-    actionName: ReportActionName;
-
-    /** The report action created date */
+    /** When the task was created */
     created: string;
 
-    /** report action message */
-    message: Array<{
-        /** The type of the action item fragment. Used to render a corresponding component */
-        type: string;
-
-        /** The text content of the fragment. */
-        text: string;
-
-        /** The html content of the fragment. */
-        html: string;
-
-        /** Collection of accountIDs of users mentioned in message */
-        whisperedTo?: number[];
-    }>;
-
-    /** The ID of the report action */
-    reportActionID: string;
-
-    /** The ID of the report */
-    reportID: string;
-};
-
-/** Model of policy search result */
-type SearchPolicy = {
-    /** The policy type */
-    type: ValueOf<typeof CONST.POLICY.TYPE>;
-
-    /** Whether the auto reporting is enabled */
-    autoReporting?: boolean;
-
-    /**
-     * The scheduled submit frequency set up on this policy.
-     * Note that manual does not exist in the DB and thus should not exist in Onyx, only as a param for the API.
-     * "manual" really means "immediate" (aka "daily") && harvesting.enabled === false
-     */
-    autoReportingFrequency?: Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL>;
-
-    /** The approval mode set up on this policy */
-    approvalMode?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
-
-    /** The reimbursement choice for policy */
-    reimbursementChoice?: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>;
-
-    /** The maximum report total allowed to trigger auto reimbursement */
-    autoReimbursementLimit?: number;
-
-    /** The verified bank account linked to the policy */
-    achAccount?: ACHAccount;
-
-    /** The current user's role in the policy */
-    role: ValueOf<typeof CONST.POLICY.ROLE>;
-
-    /** The employee list of the policy */
-    employeeList?: Record<string, Record<string, string>>;
-
-    /** Detailed settings for the autoReimbursement */
-    autoReimbursement?: {
-        /** The auto reimbursement limit */
-        limit: number;
-    };
-
-    /** Whether the self approval or submitting is enabled */
-    preventSelfApproval?: boolean;
-};
-
-/** Model of transaction search result */
-type SearchTransaction = {
-    /** The ID of the transaction */
-    transactionID: string;
-
-    /** The transaction created date */
-    created: string;
-
-    /** The edited transaction created date */
-    modifiedCreated: string;
-
-    /** The transaction amount */
-    amount: number;
-
-    /** If the transaction can be deleted */
-    canDelete: boolean;
-
-    /** If the transaction can be put on hold */
-    canHold: boolean;
-
-    /** If the transaction can be removed from hold */
-    canUnhold: boolean;
-
-    /** The edited transaction amount */
-    modifiedAmount: number;
-
-    /** The transaction currency */
-    currency: string;
-
-    /** The edited transaction currency */
-    modifiedCurrency: string;
-
-    /** The transaction merchant */
-    merchant: string;
-
-    /** The edited transaction merchant */
-    modifiedMerchant: string;
-
-    /** The receipt object */
-    receipt?: {
-        /** Source of the receipt */
-        source?: string;
-
-        /** State of the receipt */
-        state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
-    };
-
-    /** The transaction tag */
-    tag: string;
-
-    /** The transaction description */
-    comment?: {
-        /** Content of the transaction description */
-        comment?: string;
-    };
-
-    /** The transaction category */
-    category: string;
-
-    /** The type of request */
-    transactionType: ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-
-    /** The type of report the transaction is associated with */
-    reportType: string;
-
-    /** The ID of the policy the transaction is associated with */
-    policyID: string;
-
-    /** The ID of the parent of the transaction */
-    parentTransactionID?: string;
-
-    /** If the transaction has an Ereceipt */
-    hasEReceipt?: boolean;
-
-    /** The transaction description */
+    /** The description of the task that needs to be done */
     description: string;
 
-    /** The transaction sender ID */
-    accountID: number;
-
-    /** The transaction recipient ID */
+    /** The person the task was assigned to */
     managerID: number;
 
-    /** If the transaction has a Ereceipt */
-    hasViolation: boolean;
+    /** The chat report that the task was created in */
+    parentReportID: string;
 
-    /** The transaction tax amount */
-    taxAmount?: number;
-
-    /** The ID of the report the transaction is associated with */
+    /** The ID of the report that the task is associated with */
     reportID: string;
 
-    /** The report ID of the transaction thread associated with the transaction */
-    transactionThreadReportID: string;
+    /** The title of the task */
+    reportName: string;
 
-    /** The action that can be performed for the transaction */
-    action: SearchTransactionAction;
+    /** The state of the task */
+    stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>;
 
-    /** The MCC Group associated with the transaction */
-    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-
-    /** The modified MCC Group associated with the transaction */
-    modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-
-    /** The ID of the money request reportAction associated with the transaction */
-    moneyRequestReportActionID?: string;
-
-    /** Whether the transaction report has only a single transaction */
-    isFromOneTransactionReport?: boolean;
-
-    /** Whether the action is loading */
-    isActionLoading?: boolean;
+    /** The status of the task */
+    statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
-/** Types of searchable transactions */
-type SearchTransactionType = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
+/** Fields every grouped search result carries, whatever it is grouped by */
+type SearchGroupBase = {
+    /** Number of transactions */
+    count: number;
 
-/**
- * A utility type that creates a record where all keys are strings that start with a specified prefix.
- */
-type PrefixedRecord<Prefix extends string, ValueType> = {
-    [Key in `${Prefix}${string}`]: ValueType;
+    /** Total value of transactions */
+    total: number;
+
+    /** Currency of total value */
+    currency: string;
+
+    /** The group's share of `search.total` in percentage points */
+    percentOfTotal?: number;
+
+    /** Set to `delete` while every expense in the group is being deleted, so the row can leave the list before the next Search response drops the group */
+    pendingAction?: PendingAction;
 };
+
+/** Model of member grouped search result */
+type SearchMemberGroup = SearchGroupBase & {
+    /** Account ID */
+    accountID: number;
+};
+
+/** Model of card grouped search result */
+type SearchCardGroup = SearchGroupBase & {
+    /** Cardholder account ID */
+    accountID: number;
+
+    /** Bank name */
+    bank: string;
+
+    /** Card name */
+    cardName: string;
+
+    /** Card ID */
+    cardID: number;
+
+    /** Last four Primary Account Number digits */
+    lastFourPAN: string;
+
+    /** Expensify Card program (e.g. `TRAVEL_US`) */
+    feedCountry?: string;
+};
+
+/** Model of withdrawal ID grouped search result */
+type SearchWithdrawalIDGroup = SearchGroupBase & {
+    /** Withdrawal ID */
+    entryID: number;
+
+    /** Masked account number */
+    accountNumber: string;
+
+    bankName: BankName;
+
+    /** When the withdrawal completed */
+    debitPosted: string;
+
+    /** Settlement state (5/6/7=failed, 8=cleared, others=pending) */
+    state: number;
+
+    /** What the company was debited, when the settlement converted currencies */
+    debitedAmount?: number;
+
+    /** Currency the company was debited in */
+    debitedCurrency?: string;
+
+    /** What the employee was credited, when the settlement converted currencies */
+    creditedAmount?: number;
+
+    /** Currency the employee was credited in */
+    creditedCurrency?: string;
+
+    /** Workspace ID for the grouped settlement */
+    policyID?: string;
+
+    /** Expensify Card program for the grouped settlement */
+    feedCountry?: string;
+
+    /** The feed the settlement belongs to; absent when it spans more than one feed */
+    fundID?: number;
+
+    /** Whether the current user may export this settlement as a statement PDF (set by the backend, which applies the same admin authorization it uses to generate the PDF) */
+    canExportStatement?: boolean;
+
+    /** Whether this group is an ACH cash back credit rather than a card settlement withdrawal */
+    isCashBack?: boolean;
+
+    /** The feed a cash back credit was paid through; matches the fundID of that feed's settlements */
+    domainAccountID?: number;
+};
+
+/** Model of category grouped search result */
+type SearchCategoryGroup = SearchGroupBase & {
+    /** Category name */
+    category: string;
+};
+
+/** Model of merchant grouped search result */
+type SearchMerchantGroup = SearchGroupBase & {
+    /** Merchant name */
+    merchant: string;
+};
+
+/** Model of tag grouped search result */
+type SearchTagGroup = SearchGroupBase & {
+    /** Tag name */
+    tag: string;
+};
+
+/** Model of day grouped search result */
+type SearchDayGroup = SearchGroupBase & {
+    /** Date in YYYY-MM-DD format */
+    day: string;
+};
+
+/** Model of month grouped search result */
+type SearchMonthGroup = SearchGroupBase & {
+    /** Year */
+    year: number;
+
+    /** Month (1-12) */
+    month: number;
+};
+
+/** Model of week grouped search result */
+type SearchWeekGroup = SearchGroupBase & {
+    /** Week start date in YYYY-MM-DD format */
+    week: string;
+};
+
+/** Model of year grouped search result */
+type SearchYearGroup = SearchGroupBase & {
+    /** Year */
+    year: number;
+};
+
+/** Model of quarter grouped search result */
+type SearchQuarterGroup = SearchGroupBase & {
+    /** Year */
+    year: number;
+
+    /** Quarter (1-4) */
+    quarter: number;
+};
+
+/** Model of an expense in the search results */
+type SearchTransaction = Transaction & {
+    /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
+};
+
+/** Model of a report in the search results */
+type SearchReport = Report & {
+    /** Whether the expense report was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
+};
+
+/** SearchResultDataType */
+type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
+    Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
+    Partial<PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_METADATA, ReportMetadata>> &
+    // Trip rooms returned by a trip search carry the trip's fields on top of the report
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchTrip> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
+    PrefixedRecord<
+        typeof CONST.SEARCH.GROUP_PREFIX,
+        | SearchMemberGroup
+        | SearchCardGroup
+        | SearchWithdrawalIDGroup
+        | SearchCategoryGroup
+        | SearchMerchantGroup
+        | SearchTagGroup
+        | SearchDayGroup
+        | SearchMonthGroup
+        | SearchWeekGroup
+        | SearchYearGroup
+        | SearchQuarterGroup
+    >;
 
 /** Model of search results */
 type SearchResults = {
-    /** Current search results state */
     search: SearchResultsInfo;
-
-    /** Search results data */
-    data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, SearchPersonalDetails>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, SearchReportAction>> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, SearchPolicy> &
-        PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs>;
+    data: SearchResultDataType;
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
+
+    /** Whether search data fetch has failed */
+    errors?: Errors;
 };
 
 export default SearchResults;
 
 export type {
-    ListItemType,
     ListItemDataType,
+    SearchTask,
+    SearchTrip,
     SearchTransaction,
-    SearchTransactionType,
-    SearchTransactionAction,
-    SearchPersonalDetails,
-    SearchDataTypes,
     SearchReport,
-    SearchReportAction,
-    SearchPolicy,
+    SearchTransactionAction,
+    SearchDataTypes,
+    SearchResultsInfo,
+    SearchResultDataType,
+    SearchGroupBase,
+    SearchMemberGroup,
+    SearchCardGroup,
+    SearchWithdrawalIDGroup,
+    SearchCategoryGroup,
+    SearchMerchantGroup,
+    SearchTagGroup,
+    SearchDayGroup,
+    SearchMonthGroup,
+    SearchWeekGroup,
+    SearchYearGroup,
+    SearchQuarterGroup,
 };

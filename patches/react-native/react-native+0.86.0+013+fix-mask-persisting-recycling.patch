@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+index e9d532c..7455807 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm
+@@ -719,6 +719,8 @@ - (void)prepareForRecycle
+ 
+   self.autoresizingMask = UIViewAutoresizingNone;
+ 
++  self.layer.mask = nil;
++
+   _propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN = nil;
+   _eventEmitter.reset();
+   _isJSResponder = NO;

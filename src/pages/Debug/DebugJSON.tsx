@@ -1,15 +1,18 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScrollView from '@components/ScrollView';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
+
 import Clipboard from '@libs/Clipboard';
 import DebugUtils from '@libs/DebugUtils';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type DebugJSONProps = {
     /** The JSON data to be previewed. */
@@ -21,7 +24,8 @@ function DebugJSON({data}: DebugJSONProps) {
     const {translate} = useLocalize();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
-    const json = useMemo(() => DebugUtils.stringifyJSON(data), [data]);
+    const json = DebugUtils.stringifyJSON(data);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
     return (
         <ScrollView
@@ -30,23 +34,19 @@ function DebugJSON({data}: DebugJSONProps) {
         >
             <Button
                 isDisabled={!isThrottledButtonActive}
-                text={isThrottledButtonActive ? translate('reportActionContextMenu.copyOnyxData') : translate('reportActionContextMenu.copied')}
                 onPress={() => {
                     Clipboard.setString(json);
                     setThrottledButtonInactive();
                 }}
-                icon={Expensicons.Copy}
-            />
-            <View
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...SwipeInterceptPanResponder.panHandlers}
             >
+                <Button.Icon src={icons.Copy} />
+                <Button.Text>{isThrottledButtonActive ? translate('reportActionContextMenu.copyOnyxData') : translate('reportActionContextMenu.copied')}</Button.Text>
+            </Button>
+            <View {...SwipeInterceptPanResponder.panHandlers}>
                 <Text style={[styles.textLabel, styles.mb5, styles.border, styles.p2]}>{json}</Text>
             </View>
         </ScrollView>
     );
 }
-
-DebugJSON.displayName = 'DebugJSON';
 
 export default DebugJSON;

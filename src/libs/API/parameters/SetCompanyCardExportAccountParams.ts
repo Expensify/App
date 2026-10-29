@@ -1,5 +1,4 @@
 type SetCompanyCardExportAccountParams = {
-    authToken?: string | null;
     cardID: number;
     exportAccountDetails: string;
 };

@@ -1,11 +1,12 @@
-import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import React from 'react';
 
 function DisableAutoRenewSurveyPage() {
     return (
         <ScreenWrapper
-            testID={DisableAutoRenewSurveyPage.displayName}
+            testID="DisableAutoRenewSurveyPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -13,7 +14,5 @@ function DisableAutoRenewSurveyPage() {
         </ScreenWrapper>
     );
 }
-
-DisableAutoRenewSurveyPage.displayName = 'DisableAutoRenewSurveyPage';
 
 export default DisableAutoRenewSurveyPage;

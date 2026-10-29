@@ -1,112 +1,90 @@
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
+import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
-import useEnvironment from '@hooks/useEnvironment';
+
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsList from '@hooks/useCardsList';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePressLoading from '@hooks/usePressLoading';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import tokenizedSearch from '@libs/tokenizedSearch';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {UnassignedCard} from '@src/types/onyx/Card';
 
-type CardSelectionStepProps = {
-    /** Selected feed */
-    feed: CompanyCardFeed;
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
-    /** Current policy id */
-    policyID: string;
-};
+type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
 
-function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-
-    const {translate} = useLocalize();
+function CardSelectionStep({route}: CardSelectionStepProps) {
+    const policyID = route.params.policyID;
+    const feed = route.params.feed;
+    const cardID = route.params.cardID;
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const {environmentURL} = useEnvironment();
+    const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const accountCardList = cardFeeds?.settings?.oAuthAccountDetails?.[feed]?.accountList ?? [];
+    const [list] = useCardsList(feed);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const filteredCardList = CardUtils.getFilteredCardList(list);
+    const assigneeDisplayName = usePersonalDetailByLogin(assignCard?.cardToAssign?.email ?? '', (personalDetails) => {
+        const displayName = personalDetails?.displayName ?? '';
+        return Str.isSMSLogin(displayName) ? formatPhoneNumber(displayName) : displayName;
+    });
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds, feed);
 
-    const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
+    const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading();
 
-    const handleBackButtonPress = () => {
-        if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
-                isEditing: false,
-            });
-            return;
-        }
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
-    };
-
-    const handleSelectCard = (cardNumber: string) => {
-        setCardSelected(cardNumber);
-        setShouldShowError(false);
-    };
-
-    const accountCardListOptions = accountCardList.map((encryptedCardNumber) => ({
-        keyForList: encryptedCardNumber,
-        value: encryptedCardNumber,
-        text: encryptedCardNumber,
-        isSelected: cardSelected === encryptedCardNumber,
-        leftElement: (
-            <Icon
-                src={CardUtils.getCardFeedIcon(feed)}
-                height={variables.cardIconHeight}
-                width={variables.cardIconWidth}
-                additionalStyles={[styles.mr3, styles.cardIcon]}
+    const cardListOptions = filteredCardList.map((card: UnassignedCard) => ({
+        keyForList: card.cardID,
+        value: card.cardID,
+        text: maskCardNumber(card.cardName, feed),
+        alternateText: lastFourNumbersFromCardName(card.cardName),
+        isSelected: cardSelected === card.cardID,
+        leftElement: plaidUrl ? (
+            <PlaidCardFeedIcon
+                plaidUrl={plaidUrl}
+                style={styles.mr3}
             />
-        ),
-    }));
-
-    const submit = () => {
-        if (!cardSelected) {
-            setShouldShowError(true);
-            return;
-        }
-
-        const cardNumber =
-            Object.entries(filteredCardList)
-                .find(([, encryptedCardNumber]) => encryptedCardNumber === cardSelected)
-                ?.at(0) ?? '';
-
-        CompanyCards.setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {encryptedCardNumber: cardSelected, cardNumber: accountCardList?.length > 0 ? cardSelected : cardNumber},
-            isEditing: false,
-        });
-    };
-
-    const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
-        keyForList: encryptedCardNumber,
-        value: encryptedCardNumber,
-        text: CardUtils.maskCardNumber(cardNumber, feed),
-        isSelected: cardSelected === encryptedCardNumber,
-        leftElement: (
+        ) : (
             <Icon
-                src={CardUtils.getCardFeedIcon(feed)}
+                src={getCardFeedIcon(getCompanyCardFeed(feed), illustrations, companyCardFeedIcons)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -114,85 +92,130 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         ),
     }));
 
-    const listOptions = accountCardList?.length > 0 ? accountCardListOptions : cardListOptions;
+    const handleBackButtonPress = () => {
+        if (isEditing) {
+            setAssignCardStepAndData({
+                isEditing: false,
+            });
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
+            return;
+        }
+        Navigation.goBack();
+    };
 
-    const searchedListOptions = useMemo(() => {
-        return listOptions.filter((option) => option.text.toLowerCase().includes(searchText));
-    }, [searchText, listOptions]);
+    const handleSelectCard = (cardNumber: string) => {
+        setCardSelected(cardNumber);
+        setShouldShowError(false);
+    };
+
+    const submit = () => {
+        if (!cardSelected) {
+            setShouldShowError(true);
+            return;
+        }
+
+        startWithLoading(() => {
+            // Find the card by its ID to get the display name
+            const selectedCard = filteredCardList.find((card) => card.cardID === cardSelected);
+            const cardName = selectedCard?.cardName ?? '';
+
+            const customCardName = assignCard?.cardToAssign?.customCardName ?? '';
+
+            setAssignCardStepAndData({
+                cardToAssign: {encryptedCardNumber: cardSelected, cardName, customCardName},
+                isEditing: false,
+            });
+
+            if (isEditing) {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.path));
+            } else {
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute({policyID, feed, cardID}));
+            }
+        });
+    };
+
+    const searchedListOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
+
+    const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
+
+    const textInputOptions = {
+        headerMessage: searchedListOptions.length ? undefined : translate('common.noResultsFound'),
+        label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
+        value: searchText,
+        onChangeText: setSearchText,
+        shouldBeInsideList: true,
+    };
+
+    const customListHeader = (
+        <View>
+            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                <InteractiveStepSubHeader
+                    startStepIndex={1}
+                    stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                    currentStepAccessibilityDescription={translate('workspace.companyCards.chooseCard')}
+                />
+            </View>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+            <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
+                <RenderHTML html={translate('workspace.companyCards.chooseCardFor', assigneeDisplayName)} />
+            </View>
+        </View>
+    );
 
     return (
-        <InteractiveStepWrapper
-            wrapperID={CardSelectionStep.displayName}
-            handleBackButtonPress={handleBackButtonPress}
-            headerTitle={translate('workspace.companyCards.assignCard')}
-            headerSubtitle={assigneeDisplayName}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
-            {!listOptions.length ? (
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
-                    <Icon
-                        src={Illustrations.BrokenMagnifyingGlass}
-                        width={116}
-                        height={168}
-                    />
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.companyCards.noActiveCards')}</Text>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.mv3, styles.textAlignCenter]}>
-                        {translate('workspace.companyCards.somethingMightBeBroken')}{' '}
-                        <TextLink
-                            href={`${environmentURL}/${ROUTES.CONCIERGE}`}
-                            style={styles.link}
-                        >
-                            {translate('workspace.companyCards.contactConcierge')}
-                        </TextLink>
-                        .
-                    </Text>
-                </View>
-            ) : (
-                <>
+            <InteractiveStepWrapper
+                wrapperID="CardSelectionStep"
+                handleBackButtonPress={handleBackButtonPress}
+                headerTitle={translate('workspace.companyCards.assignCard')}
+                headerSubtitle={assigneeDisplayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                {!cardListOptions.length ? (
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9, safeAreaPaddingBottomStyle]}>
+                        <Icon
+                            src={lazyIllustrations.BrokenMagnifyingGlass}
+                            width={116}
+                            height={168}
+                        />
+                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mt3]}>{translate('workspace.companyCards.noActiveCards')}</Text>
+                        <View style={[styles.renderHTML, styles.flexRow, styles.ph5, styles.mv3]}>
+                            <RenderHTML html={translate('workspace.companyCards.somethingMightBeBroken')} />
+                        </View>
+                    </View>
+                ) : (
                     <SelectionList
-                        sections={[{data: searchedListOptions}]}
-                        shouldShowTextInput={listOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
-                        textInputLabel={translate('common.search')}
-                        textInputValue={searchText}
-                        onChangeText={setSearchText}
-                        ListItem={RadioListItem}
+                        data={searchedListOptions}
+                        ListItem={SingleSelectListItem}
                         onSelectRow={({value}) => handleSelectCard(value)}
-                        initiallyFocusedOptionKey={cardSelected}
-                        listHeaderContent={
-                            <View>
-                                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                                    <InteractiveStepSubHeader
-                                        startStepIndex={1}
-                                        stepNames={CONST.COMPANY_CARD.STEP_NAMES}
-                                    />
-                                </View>
-                                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
-                                    {translate('workspace.companyCards.chooseCardFor', {
-                                        assignee: assigneeDisplayName,
-                                        feed: CardUtils.getCardFeedName(feed),
-                                    })}
-                                </Text>
-                            </View>
-                        }
-                        shouldShowTextInputAfterHeader
-                        includeSafeAreaPaddingBottom={false}
+                        initiallyFocusedItemKey={cardSelected}
+                        textInputOptions={textInputOptions}
+                        customListHeaderContent={customListHeader}
+                        shouldScrollToFocusedIndex={false}
                         shouldShowListEmptyContent={false}
+                        addBottomSafeAreaPadding
                         shouldUpdateFocusedIndex
+                        footerContent={
+                            <FormAlertWithSubmitButton
+                                buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                                onSubmit={submit}
+                                isAlertVisible={shouldShowError}
+                                containerStyles={[!shouldShowError && styles.mt5]}
+                                message={translate('common.error.pleaseSelectOne')}
+                                shouldShowLoadingImmediatelyOnPress={false}
+                                isLoading={isLoading}
+                            />
+                        }
                     />
-                    <FormAlertWithSubmitButton
-                        buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                        onSubmit={submit}
-                        isAlertVisible={shouldShowError}
-                        containerStyles={styles.ph5}
-                        message={translate('common.error.pleaseSelectOne')}
-                        buttonStyles={styles.mb5}
-                    />
-                </>
-            )}
-        </InteractiveStepWrapper>
+                )}
+            </InteractiveStepWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
-
-CardSelectionStep.displayName = 'CardSelectionStep';
 
 export default CardSelectionStep;

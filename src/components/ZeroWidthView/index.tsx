@@ -1,7 +1,9 @@
-import React from 'react';
 import Text from '@components/Text';
+
 import * as Browser from '@libs/Browser';
 import * as EmojiUtils from '@libs/EmojiUtils';
+
+import React from 'react';
 
 type ZeroWidthViewProps = {
     /** If this is the Concierge chat, we'll open the modal for requesting a setup call instead of showing popover menu */
@@ -18,7 +20,5 @@ function ZeroWidthView({text = '', displayAsGroup = false}: ZeroWidthViewProps) 
     }
     return null;
 }
-
-ZeroWidthView.displayName = 'ZeroWidthView';
 
 export default ZeroWidthView;

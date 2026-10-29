@@ -1,25 +1,31 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TaxPicker from '@components/TaxPicker';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import {getWorkspaceTaxesSettingsName} from '@libs/TransactionUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import {setForeignCurrencyDefault} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import React from 'react';
+import {View} from 'react-native';
+
 type WorkspaceTaxesSettingsForeignCurrencyProps = WithPolicyAndFullscreenLoadingProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT>;
 function WorkspaceTaxesSettingsForeignCurrency({
     route: {
         params: {policyID},
@@ -31,10 +37,10 @@ function WorkspaceTaxesSettingsForeignCurrency({
 
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault ?? '';
 
-    const selectedTaxRate = TransactionUtils.getWorkspaceTaxesSettingsName(policy, foreignTaxDefault);
+    const selectedTaxRate = getWorkspaceTaxesSettingsName(policy, foreignTaxDefault);
 
-    const submit = (taxes: TaxOptionsListUtils.TaxRatesOption) => {
-        setForeignCurrencyDefault(policyID, taxes.code ?? '');
+    const submit = (taxes: TaxRatesOption) => {
+        setForeignCurrencyDefault(policyID, taxes.code ?? '', foreignTaxDefault);
         Navigation.goBack(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID));
     };
 
@@ -49,31 +55,25 @@ function WorkspaceTaxesSettingsForeignCurrency({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
+                testID="WorkspaceTaxesSettingsForeignCurrency"
                 style={styles.defaultModalContainer}
             >
-                {({insets}) => (
-                    <>
-                        <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
+                <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
 
-                        <View style={[styles.mb4, styles.flex1]}>
-                            <TaxPicker
-                                selectedTaxRate={selectedTaxRate}
-                                policyID={policyID}
-                                insets={insets}
-                                onSubmit={submit}
-                                onDismiss={dismiss}
-                            />
-                        </View>
-                    </>
-                )}
+                <View style={[styles.mb4, styles.flex1]}>
+                    <TaxPicker
+                        selectedTaxRate={selectedTaxRate}
+                        policyID={policyID}
+                        onSubmit={submit}
+                        onDismiss={dismiss}
+                        addBottomSafeAreaPadding
+                    />
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesSettingsForeignCurrency.displayName = 'WorkspaceTaxesSettingsForeignCurrency';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsForeignCurrency);

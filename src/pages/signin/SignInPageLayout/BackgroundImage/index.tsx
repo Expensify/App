@@ -1,39 +1,49 @@
-import React, {useEffect, useState} from 'react';
-import {InteractionManager} from 'react-native';
-import * as Animatable from 'react-native-animatable';
-import DesktopBackgroundImage from '@assets/images/home-background--desktop.svg';
-import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
+import {useSession} from '@components/OnyxListItemProvider';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAnonymousUser} from '@libs/actions/Session';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
+import CONST from '@src/CONST';
+
+import React, {lazy, Suspense, useEffect, useState} from 'react';
+import Animated, {FadeIn} from 'react-native-reanimated';
+
 import type BackgroundImageProps from './types';
 
-function BackgroundImage({width, transitionDuration, isSmallScreen = false}: BackgroundImageProps) {
-    const styles = useThemeStyles();
-    const fadeIn = {
-        from: {
-            opacity: 0,
-        },
-        to: {
-            opacity: 1,
-        },
-    };
+const BackgroundMobile = lazy(() =>
+    import('@assets/images/home-background--mobile.svg').catch((): {default: React.FC} => ({
+        default: () => null,
+    })),
+);
+const BackgroundDesktop = lazy(() =>
+    import('@assets/images/home-background--desktop.svg').catch((): {default: React.FC} => ({
+        default: () => null,
+    })),
+);
 
+function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
+    const styles = useThemeStyles();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
-    const isAnonymous = isAnonymousUser();
+    const session = useSession();
+    const isAnonymous = isAnonymousUser(session);
+
+    const BackgroundComponent = isSmallScreen ? BackgroundMobile : BackgroundDesktop;
 
     useEffect(() => {
         if (!isAnonymous) {
             return;
         }
 
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setIsInteractionComplete(true);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => setIsInteractionComplete(true),
         });
 
         return () => {
-            interactionTask.cancel();
+            handle.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (!isInteractionComplete && isAnonymous) {
@@ -41,26 +51,15 @@ function BackgroundImage({width, transitionDuration, isSmallScreen = false}: Bac
     }
 
     return (
-        <Animatable.View
-            style={styles.signInBackground}
-            animation={fadeIn}
-            duration={transitionDuration}
-        >
-            {isSmallScreen ? (
-                <MobileBackgroundImage
-                    width={width}
-                    style={styles.signInBackground}
-                />
-            ) : (
-                <DesktopBackgroundImage
-                    width={width}
-                    style={styles.signInBackground}
-                />
-            )}
-        </Animatable.View>
+        <Suspense fallback={null}>
+            <Animated.View
+                style={styles.signInBackground}
+                entering={FadeIn.duration(CONST.BACKGROUND_IMAGE_TRANSITION_DURATION)}
+            >
+                <BackgroundComponent width={width} />
+            </Animated.View>
+        </Suspense>
     );
 }
-
-BackgroundImage.displayName = 'BackgroundImage';
 
 export default BackgroundImage;

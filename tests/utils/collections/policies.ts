@@ -1,15 +1,18 @@
-import {rand, randAvatar, randBoolean, randCurrencyCode, randEmail, randPastDate, randWord} from '@ngneat/falso';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
-export default function createRandomPolicy(index: number, type?: ValueOf<typeof CONST.POLICY.TYPE>): Policy {
+import type {ValueOf} from 'type-fest';
+
+import {rand, randAvatar, randBoolean, randCurrencyCode, randEmail, randPastDate, randWord} from '@ngneat/falso';
+
+export default function createRandomPolicy(index: number, type?: ValueOf<typeof CONST.POLICY.TYPE>, name?: string): Policy {
     return {
         id: index.toString(),
-        name: randWord(),
-        type: type ?? rand(Object.values(CONST.POLICY.TYPE)),
+        name: name ?? randWord(),
+        // Exclude the Submit (submit2026) plan from the random default: it has distinct, plan-specific behavior
+        // (e.g. forced Editor role, locked role changes), so tests that exercise it pass the type explicitly.
+        type: type ?? rand(Object.values(CONST.POLICY.TYPE).filter((policyType) => policyType !== CONST.POLICY.TYPE.SUBMIT)),
         autoReporting: randBoolean(),
-        isPolicyExpenseChatEnabled: randBoolean(),
         autoReportingFrequency: rand(
             Object.values(CONST.POLICY.AUTO_REPORTING_FREQUENCIES).filter(
                 (frequency): frequency is Exclude<ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL> =>
@@ -22,16 +25,36 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
         autoReportingOffset: 1,
         preventSelfApproval: randBoolean(),
         outputCurrency: randCurrencyCode(),
-        role: rand(Object.values(CONST.POLICY.ROLE)),
+        // `owner` is a display-only role derived from `policy.owner` in the UI, it has no permission bundle,
+        // so randomizing it makes permission checks fail closed nondeterministically.
+        role: rand(Object.values(CONST.POLICY.ROLE).filter((role) => role !== CONST.POLICY.ROLE.APPROVE_ONLY && role !== CONST.POLICY.ROLE.OWNER)),
         owner: randEmail(),
         ownerAccountID: index,
         avatarURL: randAvatar(),
         isFromFullPolicy: randBoolean(),
         lastModified: randPastDate().toISOString(),
-        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION)),
+        // Exclude DELETE from the random default: a policy pending deletion blocks report state transitions.
+        pendingAction: rand(Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION).filter((action) => action !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
         errors: {},
         customUnits: {},
         errorFields: {},
         approvalMode: rand(Object.values(CONST.POLICY.APPROVAL_MODE)),
     };
 }
+
+function createCategoryTaxExpenseRules(category: string, taxCode: string) {
+    return [
+        {
+            applyWhen: [{condition: 'matches', field: 'category', value: category}],
+            id: '1',
+            tax: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                field_id_TAX: {
+                    externalID: taxCode,
+                },
+            },
+        },
+    ];
+}
+
+export {createCategoryTaxExpenseRules};

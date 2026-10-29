@@ -1,10 +1,15 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
-import BasePicker from './BasePicker';
-import type {AdditionalPickerEvents, BasePickerHandle, BasePickerProps, OnChange, OnMouseDown} from './types';
+import React from 'react';
 
-function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: ForwardedRef<BasePickerHandle>) {
-    const additionalPickerEvents = (onMouseDown: OnMouseDown, onChange: OnChange<TPickerValue>): AdditionalPickerEvents => ({
+import type {AdditionalPickerEvents, BasePickerProps, OnChange, OnMouseDown} from './types';
+
+import BasePicker from './BasePicker';
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function PickerImpl({ref, ...props}: BasePickerProps<unknown>) {
+    const additionalPickerEvents = (onMouseDown: OnMouseDown, onChange: OnChange<unknown>): AdditionalPickerEvents => ({
         onMouseDown,
         onChange: (e) => {
             if (e.target.selectedIndex === undefined) {
@@ -12,13 +17,12 @@ function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: Forward
             }
             const index = e.target.selectedIndex;
             const value = e.target.options[index].value;
-            onChange(value as TPickerValue, index);
+            onChange(value, index);
         },
     });
 
     return (
-        <BasePicker<TPickerValue>
-            // eslint-disable-next-line react/jsx-props-no-spreading
+        <BasePicker
             {...props}
             // Forward the ref to Picker, as we implement imperative methods there
             ref={ref}
@@ -32,4 +36,8 @@ function Picker<TPickerValue>(props: BasePickerProps<TPickerValue>, ref: Forward
     );
 }
 
-export default forwardRef(Picker);
+function Picker<TPickerValue>({ref, ...props}: BasePickerProps<TPickerValue>) {
+    return <PickerImpl {...({ref, ...props} as BasePickerProps<unknown>)} />;
+}
+
+export default Picker;

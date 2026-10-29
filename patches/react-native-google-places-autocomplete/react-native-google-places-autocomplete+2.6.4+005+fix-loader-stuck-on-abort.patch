@@ -1,0 +1,33 @@
+diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+index 131b42b..adcb77b 100644
+--- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
++++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
+@@ -244,6 +244,12 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+       request.abort();
+     });
+     requestsRef.current = [];
++    // `listLoaderDisplayed` is only ever cleared from `onreadystatechange` at
++    // readyState 4, and the handler is detached just above, so an aborted request
++    // would leave the loader spinning forever. Callers that immediately issue a
++    // replacement request set it back to true synchronously (`open()` moves the new
++    // request to readyState 1 in the same tick), so this cannot flicker.
++    setListLoaderDisplayed(false);
+   }, []);
+ 
+   // ==========================================================================
+@@ -1131,7 +1137,14 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
+     return () => {
+       _abortRequests();
+     };
+-  }, [queryString, debounceData, stateText, minLength, _abortRequests]);
++    // `stateText` is deliberately omitted from the deps. It is read above, but only
++    // inside the `queryChanged` guard, and this effect re-runs on every render where
++    // `queryString` changed, so the value read there is always current. Depending on
++    // it made this cleanup abort the in-flight request on every keystroke without
++    // re-issuing one (the body only requests when `queryString` changed), which left
++    // the list stuck on the loader. 2.5.6 keyed this effect to `[props.query]` alone.
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [queryString, debounceData, minLength, _abortRequests]);
+ 
+   // Auto-show list when dataSource has items in 'auto' mode
+   useEffect(() => {

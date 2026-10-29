@@ -1,0 +1,33 @@
+import {getLinkedPolicyIDsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings, isPolicyIDInLinkedExpensifyCardPolicyList} from '@libs/CardUtils';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {ExpensifyCardSettings} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import useOnyx from './useOnyx';
+import useWorkspaceAccountID from './useWorkspaceAccountID';
+
+function useExpensifyCardFeeds(policyID: string | undefined) {
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+
+    const getAllExpensifyCardFeeds = (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
+        const matchingEntries = Object.entries(cardSettings ?? {}).filter(([key, settings]) => {
+            const isDomainFeed =
+                !!(policyID && isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIDsFromExpensifyCardSettings(settings), policyID)) ||
+                (!!policyID && getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase());
+            const isWorkspaceFeed = key.includes(workspaceAccountID.toString()) && settings && Object.keys(settings).length > 1;
+            return isDomainFeed || isWorkspaceFeed;
+        });
+
+        return Object.fromEntries(matchingEntries);
+    };
+
+    const [allExpensifyCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+        selector: getAllExpensifyCardFeeds,
+    });
+
+    return allExpensifyCardFeeds;
+}
+
+export default useExpensifyCardFeeds;

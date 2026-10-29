@@ -2,16 +2,16 @@ type GetBrowser = () => string;
 
 type IsMobile = () => boolean;
 
+type IsMobileIOS = () => boolean;
+
 type IsMobileSafari = () => boolean;
 
 type IsMobileChrome = () => boolean;
 
 type IsMobileWebKit = () => boolean;
 
-type IsChromeIOS = () => boolean;
-
 type IsSafari = () => boolean;
 
-type OpenRouteInDesktopApp = (shortLivedAuthToken?: string, email?: string, initialRoute?: string) => void;
+type IsMobileSafariOnIos26 = () => boolean;
 
-export type {GetBrowser, IsMobile, IsMobileSafari, IsMobileChrome, IsMobileWebKit, IsSafari, IsChromeIOS, OpenRouteInDesktopApp};
+export type {GetBrowser, IsMobile, IsMobileIOS, IsMobileSafari, IsMobileChrome, IsMobileWebKit, IsSafari, IsMobileSafariOnIos26};

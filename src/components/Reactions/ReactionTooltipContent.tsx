@@ -1,12 +1,20 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 
-type ReactionTooltipContentProps = Pick<WithCurrentUserPersonalDetailsProps, 'currentUserPersonalDetails'> & {
+import useLocalize from '@hooks/useLocalize';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getLocalizedEmojiName} from '@libs/EmojiUtils';
+import {getDisplayNameOrYou, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+
+import type {PersonalDetailsList} from '@src/types/onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+type ReactionTooltipContentProps = {
     /**
      * A list of emoji codes to display in the tooltip.
      */
@@ -21,17 +29,24 @@ type ReactionTooltipContentProps = Pick<WithCurrentUserPersonalDetailsProps, 'cu
      * A list of account IDs to display in the tooltip.
      */
     accountIDs: number[];
+
+    currentUserAccountID: number;
 };
 
-function ReactionTooltipContent({accountIDs, currentUserPersonalDetails, emojiCodes, emojiName}: ReactionTooltipContentProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const users = useMemo(() => PersonalDetailsUtils.getPersonalDetailsByIDs(accountIDs, currentUserPersonalDetails.accountID, true), [currentUserPersonalDetails.accountID, accountIDs]);
+function userNamesStringSelector(accountIDs: number[], currentUserAccountID: number, translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
+    return (personalDetails: PersonalDetailsList) =>
+        getPersonalDetailsByIDs(accountIDs, personalDetails)
+            .map((user) => getDisplayNameOrYou(user.displayName ?? '', user.accountID, currentUserAccountID, translate))
+            .map((name) => (Str.isSMSLogin(name) ? formatPhoneNumber(name) : name))
+            .filter((name) => name)
+            .join(', ');
+}
 
-    const namesString = users
-        .map((user) => user?.displayName)
-        .filter((name) => name)
-        .join(', ');
+function ReactionTooltipContent({accountIDs, emojiCodes, emojiName, currentUserAccountID}: ReactionTooltipContentProps) {
+    const styles = useThemeStyles();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
+    const [namesString] = usePersonalDetailsByIDs(accountIDs, userNamesStringSelector(accountIDs, currentUserAccountID, translate, formatPhoneNumber));
+    const localizedEmojiName = getLocalizedEmojiName(emojiName, preferredLocale);
 
     return (
         <View style={[styles.alignItemsCenter, styles.ph2]}>
@@ -48,11 +63,11 @@ function ReactionTooltipContent({accountIDs, currentUserPersonalDetails, emojiCo
 
             <Text style={[styles.mt1, styles.textMicroBold, styles.textReactionSenders, styles.textAlignCenter]}>{namesString}</Text>
 
-            <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{`${translate('emojiReactions.reactedWith')} :${emojiName}:`}</Text>
+            <Text style={[styles.textMicro, styles.fontColorReactionLabel]}>{`${translate('emojiReactions.reactedWith')} :${localizedEmojiName}:`}</Text>
         </View>
     );
 }
 
 ReactionTooltipContent.displayName = 'ReactionTooltipContent';
 
-export default React.memo(ReactionTooltipContent);
+export default ReactionTooltipContent;

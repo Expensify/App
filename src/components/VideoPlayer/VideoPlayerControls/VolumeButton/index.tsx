@@ -1,77 +1,83 @@
-import React, {memo, useCallback, useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {GestureStateChangeEvent, GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {runOnJS, useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
 import Hoverable from '@components/Hoverable';
-import * as Expensicons from '@components/Icon/Expensicons';
 import IconButton from '@components/VideoPlayer/IconButton';
-import {useVolumeContext} from '@components/VideoPlayerContexts/VolumeContext';
+import {useVolumeActions, useVolumeState} from '@components/VideoPlayerContexts/VolumeContext';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as NumberUtils from '@libs/NumberUtils';
+
+import {clamp, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+
+import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {PanGestureEvent} from 'react-native-gesture-handler';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
+import Animated, {useAnimatedStyle, useDerivedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 
 type VolumeButtonProps = {
-    /** Style for the volume button. */
     style?: StyleProp<ViewStyle>;
 
     /** Is button icon small. */
     small?: boolean;
 };
 
-const getVolumeIcon = (volume: number) => {
+const getVolumeIcon = (icons: Record<'Mute' | 'VolumeHigh' | 'VolumeLow', IconAsset>, volume: number) => {
     if (volume === 0) {
-        return Expensicons.Mute;
+        return icons.Mute;
     }
     if (volume <= 0.5) {
-        return Expensicons.VolumeLow;
+        return icons.VolumeLow;
     }
-    return Expensicons.VolumeHigh;
+    return icons.VolumeHigh;
 };
 
 function VolumeButton({style, small = false}: VolumeButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateVolume, volume} = useVolumeContext();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Mute', 'VolumeHigh', 'VolumeLow']);
+    const {volume} = useVolumeState();
+    const {updateVolume, toggleMute} = useVolumeActions();
     const [sliderHeight, setSliderHeight] = useState(1);
-    const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(volume.value)});
+    const [volumeIcon, setVolumeIcon] = useState({icon: getVolumeIcon(expensifyIcons, volume.get())});
     const [isSliderBeingUsed, setIsSliderBeingUsed] = useState(false);
 
-    const onSliderLayout = useCallback((event: LayoutChangeEvent) => {
+    const onSliderLayout = (event: LayoutChangeEvent) => {
         setSliderHeight(event.nativeEvent.layout.height);
-    }, []);
+    };
 
-    const changeVolumeOnPan = useCallback(
-        (event: GestureStateChangeEvent<PanGestureHandlerEventPayload> | GestureUpdateEvent<PanGestureHandlerEventPayload & PanGestureChangeEventPayload>) => {
-            const val = NumberUtils.roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
-            // eslint-disable-next-line react-compiler/react-compiler
-            volume.value = NumberUtils.clamp(val, 0, 1);
+    const changeVolumeOnPan = (event: PanGestureEvent) => {
+        const val = roundToTwoDecimalPlaces(1 - event.y / sliderHeight);
+        volume.set(clamp(val, 0, 1));
+    };
+
+    const pan = usePanGesture({
+        onBegin: (event) => {
+            scheduleOnRN(setIsSliderBeingUsed, true);
+            changeVolumeOnPan(event);
         },
-        [sliderHeight, volume],
-    );
-
-    const pan = Gesture.Pan()
-        .onBegin((event) => {
-            runOnJS(setIsSliderBeingUsed)(true);
+        onUpdate: (event) => {
             changeVolumeOnPan(event);
-        })
-        .onChange((event) => {
-            changeVolumeOnPan(event);
-        })
-        .onFinalize(() => {
-            runOnJS(setIsSliderBeingUsed)(false);
-        });
+        },
+        onFinalize: () => {
+            scheduleOnRN(setIsSliderBeingUsed, false);
+        },
+    });
 
-    const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.value * 100}%`}));
+    const progressBarStyle = useAnimatedStyle(() => ({height: `${volume.get() * 100}%`}));
 
-    const updateIcon = useCallback((vol: number) => {
-        setVolumeIcon({icon: getVolumeIcon(vol)});
-    }, []);
+    const updateIcon = (vol: number) => {
+        setVolumeIcon({icon: getVolumeIcon(expensifyIcons, vol)});
+    };
 
     useDerivedValue(() => {
-        runOnJS(updateVolume)(volume.value);
-        runOnJS(updateIcon)(volume.value);
+        scheduleOnRN(updateVolume, volume.get());
+        scheduleOnRN(updateIcon, volume.get());
     }, [volume]);
 
     return (
@@ -95,11 +101,12 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
                     )}
 
                     <IconButton
-                        tooltipText={volume.value === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
-                        onPress={() => updateVolume(volume.value === 0 ? 1 : 0)}
+                        tooltipText={volume.get() === 0 ? translate('videoPlayer.unmute') : translate('videoPlayer.mute')}
+                        onPress={toggleMute}
                         src={volumeIcon.icon}
                         small={small}
                         shouldForceRenderingTooltipBelow
+                        sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MUTE_BUTTON}
                     />
                 </Animated.View>
             )}
@@ -107,6 +114,4 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
     );
 }
 
-VolumeButton.displayName = 'VolumeButton';
-
-export default memo(VolumeButton);
+export default VolumeButton;

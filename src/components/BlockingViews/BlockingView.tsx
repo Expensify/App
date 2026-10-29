@@ -1,21 +1,33 @@
-import type {ImageContentFit} from 'expo-image';
-import React, {useMemo} from 'react';
-import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
-import type {WebStyle} from 'react-native-web';
-import type {MergeExclusive} from 'type-fest';
-import AutoEmailLink from '@components/AutoEmailLink';
+import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+import useAbsentPageSpan from '@libs/telemetry/useAbsentPageSpan';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {ImageContentFit} from 'expo-image';
+import type {ImageSourcePropType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {SvgProps} from 'react-native-svg';
+import type {WebStyle} from 'react-native-web';
+import type {MergeExclusive} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import BlockingViewSubtitle from './BlockingViewSubtitle';
+import SubtitleWithBelowLink from './SubtitleWithBelowLink';
 
 type BaseBlockingViewProps = {
     /** Title message below the icon */
@@ -27,36 +39,44 @@ type BaseBlockingViewProps = {
     /** The style of the subtitle message */
     subtitleStyle?: StyleProp<TextStyle>;
 
-    /** Link message below the subtitle */
-    linkKey?: TranslationPaths;
+    /** The style of the title message */
+    titleStyles?: StyleProp<TextStyle>;
 
-    /** Whether we should show a link to navigate elsewhere */
-    shouldShowLink?: boolean;
+    /** Translation key for the link text displayed below the subtitle */
+    linkTranslationKey?: TranslationPaths;
+
+    /** Message below the link message */
+    subtitleKeyBelowLink?: TranslationPaths | '';
 
     /** Function to call when pressing the navigation link */
     onLinkPress?: () => void;
 
-    /** Whether we should embed the link with subtitle */
-    shouldEmbedLinkWithSubtitle?: boolean;
+    /** Translation key for an optional CTA button rendered below the subtitle */
+    buttonTranslationKey?: TranslationPaths;
 
-    /** Render custom subtitle */
+    /** Function to call when pressing the CTA button. The button only renders when this and `buttonTranslationKey` are both provided */
+    onButtonPress?: () => void;
+
+    shouldEmbedLinkWithSubtitle?: boolean;
     CustomSubtitle?: React.ReactElement;
 
     /** Determines how the image should be resized to fit its container */
     contentFitImage?: ImageContentFit;
 
-    /** Additional styles to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
+    addBottomSafeAreaPadding?: boolean;
+    accessibilityLabel?: string;
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** A testing ID that can be applied to the element on the page */
+    testID?: string;
 };
 
 type BlockingViewIconProps = {
     /** Expensicon for the page */
     icon: React.FC<SvgProps> | ImageSourcePropType;
 
-    /** The custom icon width */
     iconWidth?: number;
-
-    /** The custom icon height */
     iconHeight?: number;
 
     /** Color for the icon (should be from theme) */
@@ -67,10 +87,7 @@ type BlockingViewAnimationProps = {
     /** Animation for the page */
     animation: DotLottieAnimation;
 
-    /** Style for the animation */
     animationStyles?: StyleProp<ViewStyle>;
-
-    /** Style for the animation on web */
     animationWebStyle?: WebStyle;
 };
 
@@ -84,56 +101,40 @@ function BlockingView({
     title,
     subtitle = '',
     subtitleStyle,
-    linkKey = 'notFound.goBackHome',
-    shouldShowLink = false,
+    linkTranslationKey,
+    subtitleKeyBelowLink,
+    buttonTranslationKey,
+    onButtonPress,
     iconWidth = variables.iconSizeSuperLarge,
     iconHeight = variables.iconSizeSuperLarge,
     onLinkPress = () => Navigation.dismissModal(),
     shouldEmbedLinkWithSubtitle = false,
     animationStyles = [],
+    titleStyles = [],
     animationWebStyle = {},
+    accessibilityLabel = '',
     CustomSubtitle,
     contentFitImage,
-    containerStyle,
+    containerStyle: containerStyleProp,
+    addBottomSafeAreaPadding,
+    addOfflineIndicatorBottomSafeAreaPadding,
+    testID,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const SubtitleWrapper = shouldEmbedLinkWithSubtitle ? Text : View;
+    const subtitleWrapperStyle = shouldEmbedLinkWithSubtitle ? [styles.textAlignCenter] : [styles.alignItemsCenter, styles.justifyContentCenter];
+    const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
 
-    const subtitleText = useMemo(
-        () => (
-            <>
-                {!!subtitle && (
-                    <AutoEmailLink
-                        style={[styles.textAlignCenter, subtitleStyle]}
-                        text={subtitle}
-                    />
-                )}
-                {shouldShowLink ? (
-                    <TextLink
-                        onPress={onLinkPress}
-                        style={[styles.link, styles.mt2]}
-                    >
-                        {translate(linkKey)}
-                    </TextLink>
-                ) : null}
-            </>
-        ),
-        [styles, subtitle, shouldShowLink, linkKey, onLinkPress, translate, subtitleStyle],
-    );
-
-    const subtitleContent = useMemo(() => {
-        if (CustomSubtitle) {
-            return CustomSubtitle;
-        }
-        return shouldEmbedLinkWithSubtitle ? (
-            <Text style={[styles.textAlignCenter]}>{subtitleText}</Text>
-        ) : (
-            <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>{subtitleText}</View>
-        );
-    }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
+    useAbsentPageSpan();
 
     return (
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
+        <ScrollView
+            style={[styles.flex1]}
+            contentContainerStyle={[styles.flexGrow1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
+            accessibilityLabel={accessibilityLabel}
+            testID={testID}
+        >
             {!!animation && (
                 <Lottie
                     source={animation}
@@ -153,14 +154,41 @@ function BlockingView({
                 />
             )}
             <View>
-                <Text style={[styles.notFoundTextHeader]}>{title}</Text>
+                <Text style={[styles.notFoundTextHeader, titleStyles]}>{title}</Text>
 
-                {subtitleContent}
+                {CustomSubtitle}
+                {!CustomSubtitle && (
+                    <SubtitleWrapper style={subtitleWrapperStyle}>
+                        {!!subtitleKeyBelowLink && !!linkTranslationKey ? (
+                            <SubtitleWithBelowLink
+                                subtitle={subtitle}
+                                subtitleStyle={subtitleStyle}
+                                subtitleKeyBelowLink={subtitleKeyBelowLink}
+                                onLinkPress={onLinkPress}
+                                linkTranslationKey={linkTranslationKey}
+                            />
+                        ) : (
+                            <BlockingViewSubtitle
+                                subtitle={subtitle}
+                                subtitleStyle={subtitleStyle}
+                                onLinkPress={onLinkPress}
+                                linkTranslationKey={linkTranslationKey}
+                            />
+                        )}
+                    </SubtitleWrapper>
+                )}
             </View>
-        </View>
+            {!!onButtonPress && !!buttonTranslationKey && (
+                <Button
+                    onPress={onButtonPress}
+                    sentryLabel={CONST.SENTRY_LABEL.BLOCKING_VIEW.RETRY_BUTTON}
+                >
+                    <Button.Text>{translate(buttonTranslationKey)}</Button.Text>
+                </Button>
+            )}
+        </ScrollView>
     );
 }
 
-BlockingView.displayName = 'BlockingView';
-
+export type {BlockingViewProps};
 export default BlockingView;

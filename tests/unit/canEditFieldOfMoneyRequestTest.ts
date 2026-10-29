@@ -1,0 +1,1629 @@
+import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
+import type {EditRequestField} from '@libs/ReportUtils';
+
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
+
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomReportAction from '../utils/collections/reportActions';
+import {createExpenseReport, createInvoiceReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const currentUserAccountID = 5;
+const currentUserEmail = 'bjorn@vikings.net';
+const secondUserAccountID = 6;
+
+const policy: Policy = {
+    id: '1',
+    name: 'Vikings Policy',
+    role: 'user',
+    type: CONST.POLICY.TYPE.TEAM,
+    owner: '',
+    outputCurrency: '',
+};
+
+describe('canEditFieldOfMoneyRequest', () => {
+    describe('move expense', () => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
+            Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                ...policyCollectionDataSet,
+            });
+            initOnyxDerivedValues();
+
+            return waitForBatchedUpdates();
+        });
+
+        describe('type is invoice', () => {
+            const reportActionID = 2;
+            const IOUReportID = '1234';
+            const IOUTransactionID = '123';
+            const randomReportAction = createRandomReportAction(reportActionID);
+            const policyID = '2424';
+            const amount = 39;
+
+            const policy1 = {...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM), areInvoicesEnabled: true, role: CONST.POLICY.ROLE.ADMIN};
+
+            // Given that there is at least one outstanding expense report in a policy
+            const outstandingExpenseReport = {
+                ...createExpenseReport(483),
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            // When a user creates an invoice in the same policy
+
+            const reportAction = {
+                ...randomReportAction,
+                reportID: IOUReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+                childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                originalMessage: {
+                    ...randomReportAction.originalMessage,
+                    IOUTransactionID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const moneyRequestTransaction = {...createRandomTransaction(Number(IOUTransactionID)), reportID: IOUReportID, transactionID: IOUTransactionID, amount};
+
+            const invoiceReport = {
+                ...createInvoiceReport(Number(IOUReportID)),
+                policyID,
+                ownerAccountID: currentUserAccountID,
+                state: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: 8723,
+            };
+
+            beforeEach(() => {
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`, moneyRequestTransaction);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, invoiceReport);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${483}`, outstandingExpenseReport);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1);
+                return waitForBatchedUpdates();
+            });
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return false for invoice report action if it is not outstanding report', async () => {
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return true for invoice report action when there are outstanding reports', async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, outstandingExpenseReport);
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should return true for invoice report action when billable field is edited on an approved invoice report', async () => {
+                // Given an approved invoice
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                });
+                await waitForBatchedUpdates();
+
+                // When the billable field is edited
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: moneyRequestTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed, because billable follows the coding fields in every report state. This is what
+                // the single-expense view already does, so bulk edit has to agree with it
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return true for invoice report action when billable field is edited on a paid invoice report', async () => {
+                // Given an invoice that has already been paid, which lands on REIMBURSED rather than APPROVED
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+                await waitForBatchedUpdates();
+
+                // When the billable field is edited
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: moneyRequestTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed too, so approved and paid invoices stay consistent with each other
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return true for invoice report action when billable field is edited on an unapproved invoice report', () => {
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: moneyRequestTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+                expect(canEditBillable).toBe(true);
+            });
+        });
+
+        describe('type is expense', () => {
+            // Test constants for expense report scenarios
+            const EXPENSE_OUTSTANDING_REPORT_1_ID = 11;
+            const EXPENSE_OUTSTANDING_REPORT_2_ID = 22;
+            const EXPENSE_IOU_REPORT_ID = 33;
+            const EXPENSE_IOU_TRANSACTION_ID = 44;
+            const EXPENSE_AMOUNT = 50;
+            const EXPENSE_NON_SUBMITTER_ACCOUNT_ID = 9999;
+
+            const reportActionID = 11;
+            const IOUReportID = EXPENSE_IOU_REPORT_ID;
+            const IOUTransactionID = EXPENSE_IOU_TRANSACTION_ID;
+            const randomReportAction = createRandomReportAction(reportActionID);
+            const policyID = '11';
+
+            const expensePolicy = {
+                ...createRandomPolicy(Number(policyID), CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.USER,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+            };
+
+            // Create outstanding expense reports in the same policy (different IDs than our main expense report)
+            const outstandingExpenseReport1 = {
+                ...createExpenseReport(EXPENSE_OUTSTANDING_REPORT_1_ID),
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const outstandingExpenseReport2 = {
+                ...createExpenseReport(EXPENSE_OUTSTANDING_REPORT_2_ID),
+                policyID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+            };
+
+            const reportAction = {
+                ...randomReportAction,
+                reportID: String(IOUReportID),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                childStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                originalMessage: {
+                    ...randomReportAction.originalMessage,
+                    IOUTransactionID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: EXPENSE_AMOUNT,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const moneyRequestTransaction = {
+                ...createRandomTransaction(Number(IOUTransactionID)),
+                reportID: String(IOUReportID),
+                managedCard: false,
+                transactionID: String(IOUTransactionID),
+                amount: EXPENSE_AMOUNT,
+            };
+
+            const expenseReport = {
+                ...createExpenseReport(Number(IOUReportID)),
+                policyID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                managerID: currentUserAccountID,
+            };
+
+            beforeEach(() => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [expensePolicy], (current) => current.id);
+                Onyx.multiSet({
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOUTransactionID}`]: moneyRequestTransaction,
+                    ...policyCollectionDataSet,
+                });
+                return waitForBatchedUpdates();
+            });
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return true for submitter of a distance request for amount and currency fields', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${moneyRequestTransaction.transactionID}`, {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE});
+                await waitForBatchedUpdates();
+
+                // If it is the submitter of a distance request
+                const distanceTransaction = {...moneyRequestTransaction, iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE};
+                const canEditReportFieldAmount = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT,
+                    transaction: distanceTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+                const canEditReportFieldCurrency = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.CURRENCY,
+                    transaction: distanceTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then we should allow editing amount and currency fields.
+                expect(canEditReportFieldAmount).toBe(true);
+                expect(canEditReportFieldCurrency).toBe(true);
+            });
+
+            it('should return true for submitter when there are multiple outstanding reports', async () => {
+                // Given that there are multiple outstanding expense reports in the same policy
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, expensePolicy);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                // When the submitter tries to move an expense between reports
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then they should be able to move the expense since there are multiple outstanding expense reports
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should return false when the expense report is archived', async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, expensePolicy);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${IOUReportID}`]: {
+                            private_isArchived: 'true',
+                        },
+                    },
+                });
+
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return false when the current user is not the submitter or admin and the report is open', async () => {
+                // Given that there are outstanding expense reports but the current user is not the submitter
+                const nonSubmitterExpenseReport = {
+                    ...expenseReport,
+                    ownerAccountID: EXPENSE_NON_SUBMITTER_ACCOUNT_ID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, nonSubmitterExpenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                // When a user tries to move an expense between reports
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then they should not be able to move the expense since only the submitter or admin can edit the report when the report is open
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return false when there is only one outstanding report and the current user is not the submitter', async () => {
+                // Given that other reports in the policy are not outstanding (approved and reimbursed)
+                const approvedReport1 = {
+                    ...outstandingExpenseReport1,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                };
+                const reimbursedReport2 = {
+                    ...outstandingExpenseReport2,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                };
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {
+                    ...expenseReport,
+                    ownerAccountID: secondUserAccountID,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, approvedReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, reimbursedReport2);
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                // When trying to move an expense between reports
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then they should not be able to move the expense since there's only one outstanding report
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return false when the expense report is not outstanding report', async () => {
+                // Given that there are multiple outstanding expense reports in the same policy
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, {...expenseReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                // When the submitter tries to move an expense between reports
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then they should be able to move the expense since there are multiple outstanding expense reports
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return false when the user has approveOnly role on the policy and no other workspaces', async () => {
+                // Given a policy where the current user only has approveOnly role and no other workspaces
+                const approveOnlyPolicy = {
+                    ...expensePolicy,
+                    role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, approveOnlyPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                // When checking if the user can move the expense
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then the move action should be disallowed
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return true when an admin moves an expense owned by an approveOnly member', async () => {
+                // Given an admin viewing an expense owned by an approve-only member
+                const employeeAccountID = 12345;
+                const employeeEmail = 'employee@test.com';
+                const adminPolicy = {
+                    ...expensePolicy,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [employeeEmail]: {
+                            role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                        },
+                    },
+                };
+                const employeeExpenseReport = {
+                    ...expenseReport,
+                    ownerAccountID: employeeAccountID,
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, adminPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, employeeExpenseReport);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [employeeAccountID]: {
+                        accountID: employeeAccountID,
+                        login: employeeEmail,
+                    },
+                    [currentUserAccountID]: {
+                        accountID: currentUserAccountID,
+                        login: currentUserEmail,
+                    },
+                });
+                await waitForBatchedUpdates();
+                const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+
+                // When checking if the admin can move the expense
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: moneyRequestTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then the move action should be allowed for the admin
+                expect(canEditReportField).toBe(true);
+            });
+        });
+
+        describe('Policy has Dynamic External Workflow', () => {
+            const DEW_POLICY_ID = '77';
+            const IOU_REPORT_ID = '88';
+            const IOU_TRANSACTION_ID = '99';
+            const EXPENSE_AMOUNT = 345;
+
+            const dewReportAction = {
+                ...createRandomReportAction(7),
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: IOU_TRANSACTION_ID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: EXPENSE_AMOUNT,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const dewTransaction = {
+                ...createRandomTransaction(Number(IOU_TRANSACTION_ID)),
+                transactionID: IOU_TRANSACTION_ID,
+                reportID: IOU_REPORT_ID,
+                amount: EXPENSE_AMOUNT,
+            };
+
+            const dewPolicy: Policy = {
+                ...createRandomPolicy(Number(DEW_POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+                id: DEW_POLICY_ID,
+                role: CONST.POLICY.ROLE.USER,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return false for non-admin requestor editing receipt on a processing report', async () => {
+                const processingReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [dewPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: processingReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: dewReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: dewTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should return true for non-admin requestor editing receipt on an open report', async () => {
+                const openReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [dewPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: dewReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: dewTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(true);
+            });
+
+            it('should return true for admin editing receipt on a processing report', async () => {
+                const adminPolicy: Policy = {
+                    ...dewPolicy,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                };
+                const processingReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [adminPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: processingReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: dewReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: dewTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(true);
+            });
+
+            it('should return true for isDeleteAction when user is the requestor on an open report', async () => {
+                const openReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [dewPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: dewReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: dewTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canDeleteReceipt).toBe(true);
+            });
+
+            it('should return false for isDeleteAction when user is admin but not the requestor', async () => {
+                const adminPolicy: Policy = {
+                    ...dewPolicy,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                };
+
+                const nonRequestorReportAction = {
+                    ...dewReportAction,
+                    actorAccountID: secondUserAccountID,
+                };
+
+                const openReport = {
+                    ...createExpenseReport(Number(IOU_REPORT_ID)),
+                    policyID: DEW_POLICY_ID,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [adminPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${IOU_TRANSACTION_ID}`]: dewTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: nonRequestorReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: dewTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canDeleteReceipt).toBe(false);
+            });
+        });
+
+        describe('receipt on a distance expense', () => {
+            const DISTANCE_POLICY_ID = '33';
+            const DISTANCE_REPORT_ID = '44';
+            const DISTANCE_TRANSACTION_ID = '45';
+
+            const distanceReportAction = {
+                ...createRandomReportAction(8),
+                reportID: DISTANCE_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: DISTANCE_TRANSACTION_ID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const distancePolicy: Policy = {
+                ...createRandomPolicy(Number(DISTANCE_POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+                id: DISTANCE_POLICY_ID,
+                role: CONST.POLICY.ROLE.USER,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+
+            const openReport = {
+                ...createExpenseReport(Number(DISTANCE_REPORT_ID)),
+                policyID: DISTANCE_POLICY_ID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const createDistanceTransaction = (iouRequestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>) => ({
+                ...createRandomTransaction(Number(DISTANCE_TRANSACTION_ID)),
+                transactionID: DISTANCE_TRANSACTION_ID,
+                reportID: DISTANCE_REPORT_ID,
+                iouRequestType,
+            });
+
+            const setUpOnyx = async (transaction: ReturnType<typeof createDistanceTransaction>) => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [distancePolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${DISTANCE_TRANSACTION_ID}`]: transaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${DISTANCE_REPORT_ID}`]: openReport,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should let the submitter add, replace, and delete the receipt on an odometer expense', async () => {
+                // Given an odometer expense the current user submitted on an open report
+                const odometerTransaction = createDistanceTransaction(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+                await setUpOnyx(odometerTransaction);
+
+                // When checking whether the receipt can be edited or deleted
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: distanceReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: odometerTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: distanceReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: odometerTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then both are allowed, the same as for a manual distance expense, so the receipt can be attached by click or drop
+                expect(canEditReceipt).toBe(true);
+                expect(canDeleteReceipt).toBe(true);
+            });
+
+            it('should let the submitter edit the receipt on a manual distance expense', async () => {
+                // Given a manual distance expense the current user submitted on an open report
+                const manualTransaction = createDistanceTransaction(CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
+                await setUpOnyx(manualTransaction);
+
+                // When checking whether the receipt can be edited
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: distanceReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: manualTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed
+                expect(canEditReceipt).toBe(true);
+            });
+
+            it('should not let the submitter edit the receipt on a map distance expense', async () => {
+                // Given a map distance expense, whose receipt is generated from the route
+                const mapTransaction = createDistanceTransaction(CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
+                await setUpOnyx(mapTransaction);
+
+                // When checking whether the receipt can be edited
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction: distanceReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: mapTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is not allowed, because the map receipt must stay in sync with the route
+                expect(canEditReceipt).toBe(false);
+            });
+        });
+
+        describe('receipt on an approved expense', () => {
+            const APPROVED_POLICY_ID = '55';
+            const APPROVED_REPORT_ID = '66';
+            const APPROVED_TRANSACTION_ID = '77';
+            const EXPENSE_AMOUNT = 500;
+
+            const approvedReportAction = {
+                ...createRandomReportAction(9),
+                reportID: APPROVED_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: APPROVED_TRANSACTION_ID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: EXPENSE_AMOUNT,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const approvedTransaction = {
+                ...createRandomTransaction(Number(APPROVED_TRANSACTION_ID)),
+                transactionID: APPROVED_TRANSACTION_ID,
+                reportID: APPROVED_REPORT_ID,
+                amount: EXPENSE_AMOUNT,
+            };
+
+            const memberPolicy: Policy = {
+                ...createRandomPolicy(Number(APPROVED_POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
+                id: APPROVED_POLICY_ID,
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            const adminPolicy: Policy = {...memberPolicy, role: CONST.POLICY.ROLE.ADMIN};
+
+            const approvedReport = {
+                ...createExpenseReport(Number(APPROVED_REPORT_ID)),
+                policyID: APPROVED_POLICY_ID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+
+            const setUpOnyx = async (reportPolicy: Policy, report: Report = approvedReport, reportAction = approvedReportAction) => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [reportPolicy], (p) => p.id);
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${APPROVED_TRANSACTION_ID}`]: approvedTransaction,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${APPROVED_REPORT_ID}`]: report,
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+                return reportAction;
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return true for an admin replacing a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(true);
+            });
+
+            it('should return false for the non-admin submitter replacing a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(memberPolicy);
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should return false for a non-admin manager replacing a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(memberPolicy, {
+                    ...approvedReport,
+                    ownerAccountID: secondUserAccountID,
+                    managerID: currentUserAccountID,
+                });
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should return false for an admin deleting a receipt on an approved report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                const canDeleteReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    isDeleteAction: true,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canDeleteReceipt).toBe(false);
+            });
+
+            it('should return false for an admin replacing a receipt on a reimbursed report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy, {
+                    ...approvedReport,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+
+                const canEditReceipt = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReceipt).toBe(false);
+            });
+
+            it('should keep the other restricted fields locked for an admin on an approved report', async () => {
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                const restrictedFields = [
+                    CONST.EDIT_REQUEST_FIELD.AMOUNT,
+                    CONST.EDIT_REQUEST_FIELD.CURRENCY,
+                    CONST.EDIT_REQUEST_FIELD.MERCHANT,
+                    CONST.EDIT_REQUEST_FIELD.DATE,
+                    CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+                ];
+
+                for (const fieldToEdit of restrictedFields) {
+                    expect(canEditFieldOfMoneyRequest({reportAction, fieldToEdit, transaction: approvedTransaction, rules: undefined, reportNameValuePairs: undefined})).toBe(false);
+                }
+            });
+
+            it('should return true for an admin editing billable on an approved report', async () => {
+                // Given an expense on an approved report in a workspace the current user admins
+                const reportAction = await setUpOnyx(adminPolicy);
+
+                // When the admin edits the billable field
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is allowed, because billable is a coding field an admin can already change one expense at a
+                // time on an approved report, and bulk edit has to offer the same thing to stay consistent with it
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return true for an admin editing billable on a reimbursed report', async () => {
+                // Given an expense on a report that has already been paid
+                const reportAction = await setUpOnyx(adminPolicy, {
+                    ...approvedReport,
+                    statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                });
+
+                // When the admin edits the billable field
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is still allowed, since paying a report does not lock its coding
+                expect(canEditBillable).toBe(true);
+            });
+
+            it('should return false for the non-admin submitter editing billable on an approved report', async () => {
+                // Given the same approved report seen by the submitter, who is a plain workspace member
+                const reportAction = await setUpOnyx(memberPolicy);
+
+                // When they try to edit the billable field
+                const canEditBillable = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.BILLABLE,
+                    transaction: approvedTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then it is blocked, so dropping billable from the restricted fields does not widen access past
+                // admins and the report manager
+                expect(canEditBillable).toBe(false);
+            });
+        });
+
+        describe('legacy unreported expense (no report action)', () => {
+            const LEGACY_TRANSACTION_ID = '777';
+            const LEGACY_CUSTOM_UNIT_ID = 'legacyPerDiemUnit';
+            const LEGACY_POLICY_ID = '66';
+
+            const legacyTransaction = {
+                ...createRandomTransaction(Number(LEGACY_TRANSACTION_ID)),
+                transactionID: LEGACY_TRANSACTION_ID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 75,
+            };
+
+            const legacyPerDiemTransaction = {
+                ...legacyTransaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        customUnitID: LEGACY_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            };
+
+            const policyWithPerDiemRates: Policy = {
+                ...createRandomPolicy(Number(LEGACY_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                id: LEGACY_POLICY_ID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                arePerDiemRatesEnabled: true,
+                customUnits: {
+                    [LEGACY_CUSTOM_UNIT_ID]: {
+                        customUnitID: LEGACY_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {rate1: {customUnitRateID: 'rate1', name: 'Overnight', rate: 100, enabled: true}},
+                        enabled: true,
+                    },
+                },
+            };
+
+            const policyWithoutPerDiemRates: Policy = {
+                ...policyWithPerDiemRates,
+                customUnits: {
+                    [LEGACY_CUSTOM_UNIT_ID]: {
+                        customUnitID: LEGACY_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {},
+                        enabled: true,
+                    },
+                },
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return true for a regular legacy unreported expense with no report action', () => {
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: legacyTransaction,
+                    reportNameValuePairs: undefined,
+                });
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should return true for a legacy unreported per diem expense when policy has rates', async () => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policyWithPerDiemRates], (p) => p.id);
+                Onyx.multiSet({...policyCollectionDataSet});
+                await waitForBatchedUpdates();
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: legacyPerDiemTransaction,
+                    reportNameValuePairs: undefined,
+                });
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should return false for a legacy unreported per diem expense when policy has no rates', async () => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policyWithoutPerDiemRates], (p) => p.id);
+                Onyx.multiSet({...policyCollectionDataSet});
+                await waitForBatchedUpdates();
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: legacyPerDiemTransaction,
+                    reportNameValuePairs: undefined,
+                });
+                expect(canEditReportField).toBe(false);
+            });
+
+            it('should return false for a legacy unreported expense when field is not REPORT', () => {
+                const canEditDescription = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
+                    transaction: legacyTransaction,
+                    reportNameValuePairs: undefined,
+                });
+                expect(canEditDescription).toBe(false);
+            });
+        });
+
+        describe('reported expense with no IOU action', () => {
+            const ACTIONLESS_POLICY_ID = '77';
+            const ACTIONLESS_REPORT_ID = '7777';
+
+            const actionlessPolicy: Policy = {
+                ...createRandomPolicy(Number(ACTIONLESS_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                id: ACTIONLESS_POLICY_ID,
+                role: CONST.POLICY.ROLE.USER,
+            };
+
+            const openExpenseReport: Report = {
+                ...createExpenseReport(Number(ACTIONLESS_REPORT_ID)),
+                reportID: ACTIONLESS_REPORT_ID,
+                policyID: ACTIONLESS_POLICY_ID,
+                ownerAccountID: currentUserAccountID,
+                managerID: secondUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const actionlessTransaction = {
+                ...createRandomTransaction(7778),
+                transactionID: '7778',
+                reportID: ACTIONLESS_REPORT_ID,
+                managedCard: false,
+                amount: 75,
+            };
+
+            const setUpReport = async (report: Report, reportPolicy: Policy) => {
+                await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${reportPolicy.id}`, reportPolicy);
+                await waitForBatchedUpdates();
+            };
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should let the submitter edit and move the expense, but not edit reimbursable', async () => {
+                // Given an expense with no IOU action on an open expense report the current user submitted
+                await setUpReport(openExpenseReport, actionlessPolicy);
+
+                // When checking which fields the submitter can edit, without passing the report
+                const canEdit = (fieldToEdit: EditRequestField) =>
+                    canEditFieldOfMoneyRequest({rules: undefined, reportAction: undefined, fieldToEdit, transaction: actionlessTransaction, reportNameValuePairs: undefined});
+
+                // Then the report is found through the transaction, and the submitter stands in for the missing action's requester
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.CATEGORY)).toBe(true);
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.AMOUNT)).toBe(true);
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.REPORT)).toBe(true);
+
+                // And reimbursable stays limited to the action's real requester, admins, and approvers
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)).toBe(false);
+            });
+
+            it('should not let another member edit the expense', async () => {
+                // Given an expense with no IOU action on an open expense report another member submitted
+                await setUpReport({...openExpenseReport, ownerAccountID: secondUserAccountID}, actionlessPolicy);
+
+                // When the current user, who isn't an admin, checks whether they can edit it
+                const canEditCategory = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.CATEGORY,
+                    transaction: actionlessTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then they can't, because the missing action doesn't make them the requester
+                expect(canEditCategory).toBe(false);
+            });
+
+            it('should apply the approved report restrictions when the report is not passed', async () => {
+                // Given an admin and an expense with no IOU action on an approved expense report
+                await setUpReport(
+                    {...openExpenseReport, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                    {...actionlessPolicy, role: CONST.POLICY.ROLE.ADMIN},
+                );
+
+                // When checking which fields the admin can edit, without passing the report
+                const canEdit = (fieldToEdit: EditRequestField) =>
+                    canEditFieldOfMoneyRequest({rules: undefined, reportAction: undefined, fieldToEdit, transaction: actionlessTransaction, reportNameValuePairs: undefined});
+
+                // Then the coding fields stay editable, and the restricted fields are blocked because the approved report is found through the transaction
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.CATEGORY)).toBe(true);
+                expect(canEdit(CONST.EDIT_REQUEST_FIELD.AMOUNT)).toBe(false);
+            });
+
+            it('should not let the expense be edited on an IOU report', async () => {
+                // Given an expense with no IOU action on a submitted IOU report the current user owns
+                await setUpReport(
+                    {...openExpenseReport, type: CONST.REPORT.TYPE.IOU, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                    actionlessPolicy,
+                );
+
+                // When checking whether the owner can edit it
+                const canEditDescription = canEditFieldOfMoneyRequest({
+                    rules: undefined,
+                    reportAction: undefined,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
+                    transaction: actionlessTransaction,
+                    reportNameValuePairs: undefined,
+                });
+
+                // Then they can't, because the submitter only stands in for the requester on expense reports
+                expect(canEditDescription).toBe(false);
+            });
+        });
+
+        describe('unreported per diem expense', () => {
+            const PER_DIEM_IOU_TRANSACTION_ID = '99';
+            const PER_DIEM_CUSTOM_UNIT_ID = 'perDiemUnit1';
+            const PER_DIEM_POLICY_ID = '55';
+            const selfDMReportID = 'self-dm-report-1';
+
+            const perDiemReportAction = {
+                ...createRandomReportAction(1),
+                reportID: selfDMReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {
+                    IOUTransactionID: PER_DIEM_IOU_TRANSACTION_ID,
+                    type: CONST.IOU.ACTION.CREATE,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            const perDiemTransaction = {
+                ...createRandomTransaction(Number(PER_DIEM_IOU_TRANSACTION_ID)),
+                transactionID: PER_DIEM_IOU_TRANSACTION_ID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: 100,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        customUnitID: PER_DIEM_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            };
+
+            const policyWithPerDiemRates: Policy = {
+                ...createRandomPolicy(Number(PER_DIEM_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                id: PER_DIEM_POLICY_ID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                arePerDiemRatesEnabled: true,
+                customUnits: {
+                    [PER_DIEM_CUSTOM_UNIT_ID]: {
+                        customUnitID: PER_DIEM_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {
+                            rate1: {customUnitRateID: 'rate1', name: 'Overnight', rate: 100, enabled: true},
+                        },
+                        enabled: true,
+                    },
+                },
+            };
+
+            const policyWithoutPerDiemRates: Policy = {
+                ...policyWithPerDiemRates,
+                customUnits: {
+                    [PER_DIEM_CUSTOM_UNIT_ID]: {
+                        customUnitID: PER_DIEM_CUSTOM_UNIT_ID,
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                        rates: {},
+                        enabled: true,
+                    },
+                },
+            };
+
+            beforeEach(() => {
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${PER_DIEM_IOU_TRANSACTION_ID}`, perDiemTransaction);
+                return waitForBatchedUpdates();
+            });
+
+            afterEach(() => {
+                Onyx.clear();
+                return waitForBatchedUpdates();
+            });
+
+            it('should return true for unreported per diem expense when policy has per diem rates', async () => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policyWithPerDiemRates], (p) => p.id);
+                Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction: perDiemReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: perDiemTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReportField).toBe(true);
+            });
+
+            it('should return false for unreported per diem expense when policy has no per diem rates', async () => {
+                const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policyWithoutPerDiemRates], (p) => p.id);
+                Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                    ...policyCollectionDataSet,
+                });
+                await waitForBatchedUpdates();
+
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction: perDiemReportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    transaction: perDiemTransaction,
+                    rules: undefined,
+                    reportNameValuePairs: undefined,
+                });
+
+                expect(canEditReportField).toBe(false);
+            });
+        });
+    });
+
+    describe('receipt field', () => {
+        const RECEIPT_IOU_REPORT_ID = '5001';
+        const RECEIPT_IOU_TRANSACTION_ID = '5002';
+        const RECEIPT_AMOUNT = 100;
+        const receiptPolicyID = '5003';
+
+        const randomReportAction = createRandomReportAction(501);
+        const adminPolicy = {...createRandomPolicy(Number(receiptPolicyID), CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.ADMIN};
+
+        const reportAction = {
+            ...randomReportAction,
+            reportID: RECEIPT_IOU_REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            childStateNum: CONST.REPORT.STATE_NUM.OPEN,
+            childStatusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            originalMessage: {
+                ...randomReportAction.originalMessage,
+                IOUTransactionID: RECEIPT_IOU_TRANSACTION_ID,
+                type: CONST.IOU.ACTION.CREATE,
+                amount: RECEIPT_AMOUNT,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+
+        const moneyRequestTransaction = {
+            ...createRandomTransaction(Number(RECEIPT_IOU_TRANSACTION_ID)),
+            reportID: RECEIPT_IOU_REPORT_ID,
+            transactionID: RECEIPT_IOU_TRANSACTION_ID,
+            amount: RECEIPT_AMOUNT,
+            managedCard: false,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+        };
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+
+            Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+            });
+            initOnyxDerivedValues();
+
+            return waitForBatchedUpdates();
+        });
+
+        beforeEach(() => {
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [adminPolicy], (current) => current.id);
+            Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${RECEIPT_IOU_TRANSACTION_ID}`]: moneyRequestTransaction,
+                ...policyCollectionDataSet,
+            });
+            return waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            Onyx.clear();
+            return waitForBatchedUpdates();
+        });
+
+        it('should return false for receipt field when the expense report is closed', async () => {
+            // Given a closed expense report where the current user is an admin
+            const closedExpenseReport = {
+                ...createExpenseReport(Number(RECEIPT_IOU_REPORT_ID)),
+                policyID: receiptPolicyID,
+                ownerAccountID: currentUserAccountID,
+                managerID: secondUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${RECEIPT_IOU_REPORT_ID}`, closedExpenseReport);
+            await waitForBatchedUpdates();
+
+            // When the admin tries to edit the receipt field
+            const canEditReceipt = canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                transaction: moneyRequestTransaction,
+                rules: undefined,
+                reportNameValuePairs: undefined,
+            });
+
+            // Then they should not be able to edit the receipt on a closed report
+            expect(canEditReceipt).toBe(false);
+        });
+
+        it('should return true for receipt field when the expense report is open', async () => {
+            // Given an open expense report where the current user is an admin
+            const openExpenseReport = {
+                ...createExpenseReport(Number(RECEIPT_IOU_REPORT_ID)),
+                policyID: receiptPolicyID,
+                ownerAccountID: currentUserAccountID,
+                managerID: secondUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${RECEIPT_IOU_REPORT_ID}`, openExpenseReport);
+            await waitForBatchedUpdates();
+
+            // When the admin tries to edit the receipt field
+            const canEditReceipt = canEditFieldOfMoneyRequest({
+                reportAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+                transaction: moneyRequestTransaction,
+                rules: undefined,
+                reportNameValuePairs: undefined,
+            });
+
+            // Then they should be able to edit the receipt on an open report
+            expect(canEditReceipt).toBe(true);
+        });
+    });
+
+    describe('reportActions', () => {
+        // A corporate workspace where the current user submits to the second user, who is also the report's manager,
+        // so whether the submitter can still edit restricted fields depends only on the passed report actions
+        const secondUserEmail = 'floki@vikings.net';
+        const forwardedPolicyID = '77';
+        const forwardedReportID = '770';
+        const forwardedTransactionID = '771';
+        const corporatePolicy: Policy = {
+            id: forwardedPolicyID,
+            name: 'Advanced approval policy',
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: '',
+            outputCurrency: CONST.CURRENCY.USD,
+            employeeList: {
+                [currentUserEmail]: {email: currentUserEmail, role: CONST.POLICY.ROLE.USER, submitsTo: secondUserEmail},
+            },
+        };
+        const submittedExpenseReport = {
+            ...createExpenseReport(Number(forwardedReportID)),
+            policyID: forwardedPolicyID,
+            ownerAccountID: currentUserAccountID,
+            managerID: secondUserAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+        const transaction = {
+            ...createRandomTransaction(Number(forwardedTransactionID)),
+            transactionID: forwardedTransactionID,
+            reportID: forwardedReportID,
+            managedCard: false,
+        };
+        const moneyRequestAction: ReportAction = {
+            ...createRandomReportAction(772),
+            reportID: forwardedReportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            originalMessage: {
+                IOUTransactionID: forwardedTransactionID,
+                IOUReportID: forwardedReportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 50,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+        const submittedAction: ReportAction = {
+            ...createRandomReportAction(773),
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            created: '2026-04-21 17:00:00',
+        };
+        const forwardedAction: ReportAction = {
+            ...createRandomReportAction(774),
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            created: '2026-04-21 17:10:00',
+        };
+        const submitOnlyActions = {[submittedAction.reportActionID]: submittedAction};
+        const forwardedActions = {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction};
+
+        beforeEach(async () => {
+            const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [corporatePolicy], (current) => current.id);
+            const reportCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [submittedExpenseReport], (current) => current.reportID);
+            const transactionCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, [transaction], (current) => current.transactionID);
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
+                    [secondUserAccountID]: {accountID: secondUserAccountID, login: secondUserEmail},
+                },
+                ...policyCollectionDataSet,
+                ...reportCollectionDataSet,
+                ...transactionCollectionDataSet,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        const canEditAmount = (reportActions: Parameters<typeof canEditFieldOfMoneyRequest>[0]['reportActions']) =>
+            canEditFieldOfMoneyRequest({
+                reportAction: moneyRequestAction,
+                fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT,
+                transaction,
+                report: submittedExpenseReport,
+                policy: corporatePolicy,
+                reportActions,
+                rules: undefined,
+                reportNameValuePairs: undefined,
+            });
+
+        it('should let the submitter edit a restricted field when the passed reportActions show no forward since the last submit', () => {
+            expect(canEditAmount(submitOnlyActions)).toBe(true);
+        });
+
+        it('should block the submitter from editing a restricted field when the passed reportActions show the report was forwarded since the last submit', () => {
+            expect(canEditAmount(forwardedActions)).toBe(false);
+        });
+
+        it('should accept the report actions as an array', () => {
+            expect(canEditAmount([submittedAction])).toBe(true);
+            expect(canEditAmount([submittedAction, forwardedAction])).toBe(false);
+        });
+
+        it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+            // The Onyx-stored actions say the report was forwarded...
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${forwardedReportID}`, forwardedActions);
+            await waitForBatchedUpdates();
+
+            // ...but the passed reportActions only contain the submit, and they must win
+            expect(canEditAmount(submitOnlyActions)).toBe(true);
+        });
+    });
+});

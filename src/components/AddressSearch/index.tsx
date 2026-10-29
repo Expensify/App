@@ -1,30 +1,39 @@
-import React, {forwardRef, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {ActivityIndicator, Keyboard, LogBox, View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
-import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
-import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import LocationErrorMessage from '@components/LocationErrorMessage';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserLocation from '@libs/actions/UserLocation';
-import * as ApiUtils from '@libs/ApiUtils';
+
+import {setUserLocation} from '@libs/actions/UserLocation';
+import {getCommandURL} from '@libs/ApiUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCodeType} from '@libs/getCurrentPosition/getCurrentPosition.types';
-import * as GooglePlacesUtils from '@libs/GooglePlacesUtils';
+import {getAddressComponents, getPlaceAutocompleteTerms} from '@libs/GooglePlacesUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import type {ComponentRef} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
+import type {GooglePlaceData, GooglePlaceDetail} from 'react-native-google-places-autocomplete';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {Keyboard, LogBox, StyleSheet, View} from 'react-native';
+import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
+
+import type {AddressSearchProps, PredefinedPlace} from './types';
+
 import CurrentLocationButton from './CurrentLocationButton';
 import isCurrentTargetInsideContainer from './isCurrentTargetInsideContainer';
-import type {AddressSearchProps, PredefinedPlace} from './types';
 
 /**
  * Check if the place matches the search by the place name or description.
@@ -48,64 +57,108 @@ function isPlaceMatchForSearch(search: string, place: PredefinedPlace): boolean 
 // VirtualizedList component with a VirtualizedList-backed instead
 LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
-function AddressSearch(
-    {
-        canUseCurrentLocation = false,
-        containerStyles,
-        defaultValue,
-        errorText = '',
-        hint = '',
-        inputID,
-        isLimitedToUSA = false,
-        label,
-        maxInputLength,
-        onFocus,
-        onBlur,
-        onInputChange,
-        onPress,
-        onCountryChange,
-        predefinedPlaces = [],
-        preferredLocale,
-        renamedInputKeys = {
-            street: 'addressStreet',
-            street2: 'addressStreet2',
-            city: 'addressCity',
-            state: 'addressState',
-            zipCode: 'addressZipCode',
-            lat: 'addressLat',
-            lng: 'addressLng',
-        },
-        resultTypes = 'address',
-        shouldSaveDraft = false,
-        value,
-        locationBias,
-    }: AddressSearchProps,
-    ref: ForwardedRef<HTMLElement>,
-) {
+function AddressSearchListEmptyComponent({searchValue, onEmptyChange}: {searchValue: string; onEmptyChange: (isEmpty: boolean) => void}) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const noResultsFoundText = translate('common.noResultsFound');
+
+    useDebouncedAccessibilityAnnouncement(noResultsFoundText, true, searchValue);
+
+    useEffect(() => {
+        onEmptyChange(true);
+        return () => onEmptyChange(false);
+    }, [onEmptyChange]);
+
+    return (
+        <Text
+            style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}
+            aria-hidden
+        >
+            {noResultsFoundText}
+        </Text>
+    );
+}
+
+function AddressSearchListLoader({onLoadingChange}: {onLoadingChange: (isLoading: boolean) => void}) {
+    const styles = useThemeStyles();
+
+    useEffect(() => {
+        onLoadingChange(true);
+        return () => onLoadingChange(false);
+    }, [onLoadingChange]);
+
+    return (
+        <View style={[styles.pv4]}>
+            <ActivityIndicator />
+        </View>
+    );
+}
+
+function AddressSearch({
+    canUseCurrentLocation = false,
+    containerStyles,
+    defaultValue,
+    errorText = '',
+    hint = '',
+    inputID,
+    limitSearchesToCountry,
+    label,
+    maxInputLength,
+    onFocus,
+    onBlur,
+    onInputChange,
+    onPress,
+    onCountryChange,
+    predefinedPlaces = [],
+    renamedInputKeys = {
+        street: 'addressStreet',
+        street2: 'addressStreet2',
+        city: 'addressCity',
+        state: 'addressState',
+        zipCode: 'addressZipCode',
+        lat: 'addressLat',
+        lng: 'addressLng',
+    },
+    autoComplete = 'off',
+    autoFocus = false,
+    resultTypes = 'address',
+    shouldSaveDraft = false,
+    value,
+    locationBias,
+    caretHidden,
+    forwardedFSClass,
+    ref,
+}: AddressSearchProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {isOffline} = useNetwork();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
     const [searchValue, setSearchValue] = useState('');
     const [locationErrorCode, setLocationErrorCode] = useState<GeolocationErrorCodeType>(null);
     const [isFetchingCurrentLocation, setIsFetchingCurrentLocation] = useState(false);
+    const [isLoadingResults, setIsLoadingResults] = useState(false);
+    const [isListEmpty, setIsListEmpty] = useState(false);
     const shouldTriggerGeolocationCallbacks = useRef(true);
     const [shouldHidePredefinedPlaces, setShouldHidePredefinedPlaces] = useState(false);
-    const containerRef = useRef<View>(null);
-    const query = useMemo(
-        () => ({
-            language: preferredLocale,
-            types: resultTypes,
-            components: isLimitedToUSA ? 'country:us' : undefined,
-            ...(locationBias && {locationbias: locationBias}),
-        }),
-        [preferredLocale, resultTypes, isLimitedToUSA, locationBias],
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
+
+    useDebouncedAccessibilityAnnouncement(
+        translate('common.suggestionsAvailableFor', searchValue.trim()),
+        displayListViewBorder && isTyping && !isLoadingResults && !isListEmpty,
+        searchValue,
     );
+
+    const query = {
+        language: preferredLocale,
+        types: resultTypes,
+        components: limitSearchesToCountry ? `country:${limitSearchesToCountry.toLocaleLowerCase()}` : undefined,
+        ...(locationBias && {locationbias: locationBias}),
+    };
     const shouldShowCurrentLocationButton = canUseCurrentLocation && searchValue.trim().length === 0 && isFocused;
     const saveLocationDetails = (autocompleteData: GooglePlaceData, details: GooglePlaceDetail | null) => {
         const addressComponents = details?.address_components;
@@ -136,7 +189,7 @@ function AddressSearch(
             administrative_area_level_1: state,
             administrative_area_level_2: stateFallback,
             country: countryPrimary,
-        } = GooglePlacesUtils.getAddressComponents(addressComponents, {
+        } = getAddressComponents(addressComponents, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             street_number: 'long_name',
             route: 'long_name',
@@ -156,22 +209,17 @@ function AddressSearch(
 
         // The state's iso code (short_name) is needed for the StatePicker component but we also
         // need the state's full name (long_name) when we render the state in a TextInput.
-        const {administrative_area_level_1: longStateName} = GooglePlacesUtils.getAddressComponents(addressComponents, {
+        const {administrative_area_level_1: longStateName} = getAddressComponents(addressComponents, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             administrative_area_level_1: 'long_name',
         });
 
         // Make sure that the order of keys remains such that the country is always set above the state.
         // Refer to https://github.com/Expensify/App/issues/15633 for more information.
-        const {
-            country: countryFallbackLongName = '',
-            state: stateAutoCompleteFallback = '',
-            city: cityAutocompleteFallback = '',
-        } = GooglePlacesUtils.getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
+        const {country: countryFallbackLongName = '', state: stateAutoCompleteFallback = '', city: cityAutocompleteFallback = ''} = getPlaceAutocompleteTerms(autocompleteData?.terms ?? []);
 
         const countryFallback = Object.keys(CONST.ALL_COUNTRIES).find((country) => country === countryFallbackLongName);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const country = countryPrimary || countryFallback || '';
 
         const values = {
@@ -185,7 +233,7 @@ function AddressSearch(
             // When locality is not returned, many countries return the city as postalTown (e.g. 5 New Street
             // Square, London), otherwise as sublocality (e.g. 384 Court Street Brooklyn). If postalTown is
             // returned, the sublocality will be a city subdivision so shouldn't take precedence (e.g.
-            // Salagatan, Upssala, Sweden).
+            // Salagatan, Uppsala, Sweden).
             city: locality || postalTown || sublocality || cityAutocompleteFallback,
             zipCode,
 
@@ -234,13 +282,13 @@ function AddressSearch(
         }
 
         if (inputID) {
-            Object.entries(values).forEach(([key, inputValue]) => {
+            for (const [key, inputValue] of Object.entries(values)) {
                 const inputKey = renamedInputKeys?.[key as keyof Omit<Address, 'current'>] ?? key;
                 if (!inputKey) {
-                    return;
+                    continue;
                 }
                 onInputChange?.(inputValue, inputKey);
-            });
+            }
         } else {
             onInputChange?.(values);
         }
@@ -281,7 +329,7 @@ function AddressSearch(
                 };
 
                 // Update the current user location
-                UserLocation.setUserLocation({longitude, latitude});
+                setUserLocation({longitude, latitude});
                 onPress?.(location);
             },
             (errorData) => {
@@ -291,10 +339,6 @@ function AddressSearch(
 
                 setIsFetchingCurrentLocation(false);
                 setLocationErrorCode(errorData?.code ?? null);
-            },
-            {
-                maximumAge: 0, // No cache, always get fresh location info
-                timeout: 30000,
             },
         );
     };
@@ -317,7 +361,6 @@ function AddressSearch(
         </>
     );
 
-    // eslint-disable-next-line arrow-body-style
     useEffect(() => {
         return () => {
             // If the component unmounts we don't want any of the callback for geolocation to run.
@@ -325,32 +368,21 @@ function AddressSearch(
         };
     }, []);
 
-    const filteredPredefinedPlaces = useMemo(() => {
-        if (!searchValue) {
-            return predefinedPlaces ?? [];
-        }
-        if (shouldHidePredefinedPlaces) {
-            return [];
-        }
-        return predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? [];
-    }, [predefinedPlaces, searchValue, shouldHidePredefinedPlaces]);
+    let filteredPredefinedPlaces;
+    if (!searchValue) {
+        filteredPredefinedPlaces = predefinedPlaces ?? [];
+    } else {
+        filteredPredefinedPlaces = shouldHidePredefinedPlaces ? [] : (predefinedPlaces?.filter((predefinedPlace) => isPlaceMatchForSearch(searchValue, predefinedPlace)) ?? []);
+    }
 
-    const listEmptyComponent = useMemo(
-        () => (!isTyping ? undefined : <Text style={[styles.textLabel, styles.colorMuted, styles.pv4, styles.ph3, styles.overflowAuto]}>{translate('common.noResultsFound')}</Text>),
-        [isTyping, styles, translate],
-    );
+    const listEmptyComponent = isTyping ? (
+        <AddressSearchListEmptyComponent
+            searchValue={searchValue}
+            onEmptyChange={setIsListEmpty}
+        />
+    ) : undefined;
 
-    const listLoader = useMemo(
-        () => (
-            <View style={[styles.pv4]}>
-                <ActivityIndicator
-                    color={theme.spinner}
-                    size="small"
-                />
-            </View>
-        ),
-        [styles.pv4, theme.spinner],
-    );
+    const listLoader = <AddressSearchListLoader onLoadingChange={setIsLoadingResults} />;
 
     return (
         /*
@@ -372,6 +404,7 @@ function AddressSearch(
                 <View
                     style={styles.w100}
                     ref={containerRef}
+                    fsClass={forwardedFSClass}
                 >
                     <GooglePlacesAutocomplete
                         disableScroll
@@ -406,7 +439,7 @@ function AddressSearch(
                         query={query}
                         requestUrl={{
                             useOnPlatform: 'all',
-                            url: isOffline ? '' : ApiUtils.getCommandURL({command: 'Proxy_GooglePlaces?proxyUrl='}),
+                            url: isOffline ? '' : getCommandURL({command: 'Proxy_GooglePlaces?proxyUrl='}),
                         }}
                         textInputProps={{
                             InputComp: TextInput,
@@ -431,7 +464,8 @@ function AddressSearch(
                                 }
                                 onBlur?.();
                             },
-                            autoComplete: 'off',
+                            autoComplete,
+                            autoFocus,
                             onInputChange: (text: string) => {
                                 setSearchValue(text);
                                 setIsTyping(true);
@@ -449,6 +483,7 @@ function AddressSearch(
                             maxLength: maxInputLength,
                             spellCheck: false,
                             selectTextOnFocus: true,
+                            caretHidden,
                         }}
                         styles={{
                             textInputContainer: [styles.flexColumn],
@@ -488,13 +523,15 @@ function AddressSearch(
                     </GooglePlacesAutocomplete>
                 </View>
             </ScrollView>
-            {isFetchingCurrentLocation && <FullScreenLoadingIndicator />}
+            {isFetchingCurrentLocation && (
+                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
+            )}
         </>
     );
 }
 
-AddressSearch.displayName = 'AddressSearchWithRef';
-
-export default forwardRef(AddressSearch);
+export default AddressSearch;
 
 export type {AddressSearchProps};

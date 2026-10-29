@@ -1,77 +1,195 @@
-import React, {useCallback} from 'react';
-import {DragDropContext, Draggable, Droppable} from 'react-beautiful-dnd';
-import type {OnDragEndResponder} from 'react-beautiful-dnd';
+import ScrollView from '@components/ScrollView';
+
+import useListKeyboardNav from '@hooks/useListKeyboardNav';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {cancelDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
+import DragCursor from '@libs/DragCursor';
+
+import CONST from '@src/CONST';
+
+import type {DragEndEvent, DragStartEvent} from '@dnd-kit/core';
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
-import ScrollView from '@components/ScrollView';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {DraggableListProps} from './types';
-import useDraggableInPortal from './useDraggableInPortal';
 
-type ReorderParams<T> = {
-    list: T[];
-    startIndex: number;
-    endIndex: number;
-};
+import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
+import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
+import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
+import React, {useEffect, useId, useRef} from 'react';
+
+import type DraggableListProps from './types';
+
+import SortableItem from './SortableItem';
+
+const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 
 /**
- * Reorders a list by moving an item from a start index to an end index.
+ * Draggable (vertical) list using dnd-kit. Dragging is restricted to the vertical axis only.
+ *
+ * Supports two modes:
+ * - **Uncontrolled** (default): manages its own keyboard navigation internally
+ * - **Controlled**: when `focusedIndex` prop is provided, skips internal keyboard nav
+ *   and uses the external value. The parent is responsible for arrow keys, Enter/Space, and focus tracking.
  */
-const reorder = <T,>({list, startIndex, endIndex}: ReorderParams<T>): T[] => {
-    const result = [...list];
-    const [removed] = result.splice(startIndex, 1);
-
-    if (removed) {
-        result.splice(endIndex, 0, removed);
-    }
-
-    return result;
-};
-
-function DraggableList<T>(
-    {
-        data = [],
-        renderItem,
-        keyExtractor,
-        onDragEnd: onDragEndCallback,
-        renderClone,
-        shouldUsePortal = false,
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        ListFooterComponent,
-    }: DraggableListProps<T>,
-    ref: React.ForwardedRef<RNScrollView>,
-) {
+function DraggableList<T>({
+    data = [],
+    renderItem,
+    keyExtractor,
+    onDragEnd: onDragEndCallback,
+    onSelectRow,
+    isItemDragDisabled,
+    isItemDisabled,
+    ListFooterComponent,
+    disableScroll,
+    focusedIndex: controlledFocusedIndex,
+    ref,
+}: DraggableListProps<T> & {ref?: React.ForwardedRef<ComponentRef<typeof RNScrollView>>}) {
     const styles = useThemeStyles();
+    const isControlled = controlledFocusedIndex !== undefined;
+    const hasKeyboardNav = !isControlled && !!onSelectRow;
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Unique ID per mount to ensure DndContext state resets when component remounts
+    const instanceId = useId();
+
+    // Track if a drag is currently active to avoid dispatching global Escape when not needed
+    const isDraggingRef = useRef(false);
+
+    // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
+    useEffect(() => {
+        return () => {
+            if (!isDraggingRef.current) {
+                return;
+            }
+
+            // No drag end event fires for a list that unmounts mid-drag, which would strand the grabbing cursor.
+            DragCursor.hide();
+            cancelDndKeyboardDrag();
+        };
+    }, []);
+
+    const items = data.map((item, index) => {
+        return keyExtractor(item, index);
+    });
+
+    const disabledArrowKeyIndexes = isItemDisabled ? data.flatMap((item, index) => (isItemDisabled(item) ? [index] : [])) : [];
+
+    const {focusedIndex: internalFocusedIndex, setFocusedIndex: setInternalFocusedIndex} = useListKeyboardNav({
+        containerRef,
+        isActive: hasKeyboardNav,
+        itemKeys: items,
+        disabledIndexes: disabledArrowKeyIndexes,
+    });
+
+    const activeFocusedIndex = isControlled ? controlledFocusedIndex : internalFocusedIndex;
+
+    const onDragStart = (event: DragStartEvent) => {
+        isDraggingRef.current = true;
+
+        // A keyboard drag is driven by arrow keys, so forcing a cursor the user isn't holding would be noise.
+        if (event.activatorEvent instanceof KeyboardEvent) {
+            return;
+        }
+        DragCursor.show();
+    };
+
     /**
      * Function to be called when the user finishes dragging an item
      * It will reorder the list and call the callback function
      * to notify the parent component about the change
      */
-    const onDragEnd: OnDragEndResponder = useCallback(
-        (result) => {
-            // If user dropped the item outside of the list
-            if (!result.destination) {
-                return;
-            }
+    const onDragEnd = (event: DragEndEvent) => {
+        isDraggingRef.current = false;
+        DragCursor.hide();
+        const {active, over} = event;
 
-            const reorderedItems = reorder({
-                list: data,
-                startIndex: result.source.index,
-                endIndex: result.destination.index,
-            });
+        if (over !== null && active.id !== over.id) {
+            const oldIndex = items.indexOf(active.id.toString());
+            const newIndex = items.indexOf(over.id.toString());
 
+            const reorderedItems = arrayMove(data, oldIndex, newIndex);
             onDragEndCallback?.({data: reorderedItems});
-        },
-        [data, onDragEndCallback],
+            if (!isControlled) {
+                setInternalFocusedIndex(-1);
+            }
+        }
+    };
+
+    const onDragCancel = () => {
+        isDraggingRef.current = false;
+        DragCursor.hide();
+    };
+
+    const sortableItems = data.map((item, index) => {
+        const key = keyExtractor(item, index);
+        const isDragDisabled = isItemDragDisabled?.(item) ?? false;
+        const isDisabled = isItemDisabled?.(item) ?? false;
+        const isItemFocused = index === activeFocusedIndex && !isDisabled;
+
+        const renderedItem = renderItem({
+            item,
+            getIndex: () => index,
+            isActive: false,
+            drag: () => {},
+            isFocused: isItemFocused,
+        });
+
+        return (
+            <SortableItem
+                id={key}
+                key={key}
+                disabled={isDragDisabled}
+                isFocused={isItemFocused}
+            >
+                {renderedItem}
+            </SortableItem>
+        );
+    });
+
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: minimumActivationDistance,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+            keyboardCodes: {
+                start: [CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey],
+                cancel: [CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey],
+                end: [CONST.KEYBOARD_SHORTCUTS.SPACE.shortcutKey],
+            },
+        }),
     );
 
-    /**
-     * The `react-beautiful-dnd` library uses `position: fixed` to move the dragged item to the top of the screen.
-     * But when the parent component uses the `transform` property, the `position: fixed` doesn't work as expected.
-     * Since the TabSelector component uses the `transform` property to animate the tab change
-     * we have to use portals. It is required when any of the parent components use the `transform` property.
-     */
-    const renderDraggable = useDraggableInPortal({shouldUsePortal});
+    const content = (
+        <>
+            <div ref={isControlled ? undefined : containerRef}>
+                <DndContext
+                    key={instanceId}
+                    onDragStart={onDragStart}
+                    onDragEnd={onDragEnd}
+                    onDragCancel={onDragCancel}
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    modifiers={[restrictToParentElement, restrictToVerticalAxis]}
+                >
+                    <SortableContext
+                        items={items}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        {sortableItems}
+                    </SortableContext>
+                </DndContext>
+            </div>
+            {ListFooterComponent}
+        </>
+    );
+
+    if (disableScroll) {
+        return content;
+    }
 
     return (
         <ScrollView
@@ -79,54 +197,9 @@ function DraggableList<T>(
             style={styles.flex1}
             contentContainerStyle={styles.flex1}
         >
-            <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable
-                    droppableId="droppable"
-                    renderClone={renderClone}
-                >
-                    {(droppableProvided) => (
-                        <div
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...droppableProvided.droppableProps}
-                            ref={droppableProvided.innerRef}
-                        >
-                            {data.map((item, index) => {
-                                const key = keyExtractor(item, index);
-                                return (
-                                    <Draggable
-                                        key={key}
-                                        draggableId={key}
-                                        index={index}
-                                    >
-                                        {renderDraggable((draggableProvided, snapshot) => (
-                                            <div
-                                                ref={draggableProvided.innerRef}
-                                                // eslint-disable-next-line react/jsx-props-no-spreading
-                                                {...draggableProvided.draggableProps}
-                                                // eslint-disable-next-line react/jsx-props-no-spreading
-                                                {...draggableProvided.dragHandleProps}
-                                            >
-                                                {renderItem({
-                                                    item,
-                                                    getIndex: () => index,
-                                                    isActive: snapshot.isDragging,
-                                                    drag: () => {},
-                                                })}
-                                            </div>
-                                        ))}
-                                    </Draggable>
-                                );
-                            })}
-                            {droppableProvided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
-            </DragDropContext>
-            {ListFooterComponent}
+            {content}
         </ScrollView>
     );
 }
 
-DraggableList.displayName = 'DraggableList';
-
-export default React.forwardRef(DraggableList);
+export default DraggableList;

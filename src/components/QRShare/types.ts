@@ -1,7 +1,12 @@
-import type React from 'react';
-import type {ImageSourcePropType} from 'react-native';
-import type {Svg, SvgProps} from 'react-native-svg';
 import type {QRCodeLogoMarginRatio, QRCodeLogoRatio} from '@components/QRCode';
+
+import type CONST from '@src/CONST';
+
+import type React from 'react';
+import type {ForwardedRef} from 'react';
+import type {ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {Svg, SvgProps} from 'react-native-svg';
+import type {ValueOf} from 'type-fest';
 
 type QRShareProps = {
     /**
@@ -12,7 +17,7 @@ type QRShareProps = {
     /**
      * The title that is displayed below the QR Code (usually the user or report name)
      */
-    title: string;
+    title?: string;
 
     /**
      * The subtitle which will be shown below the title (usually user email or workspace name)
@@ -30,14 +35,7 @@ type QRShareProps = {
      */
     logo?: ImageSourcePropType;
 
-    /**
-     * Background color to be used for logo.
-     */
     logoBackgroundColor?: string;
-
-    /**
-     * Fill color to be used for logos of type SVG
-     */
     svgLogoFillColor?: string;
 
     /**
@@ -49,6 +47,16 @@ type QRShareProps = {
      * The size ratio of margin around logo to QR code
      */
     logoMarginRatio?: QRCodeLogoMarginRatio;
+
+    shouldShowExpensifyLogo?: boolean;
+
+    /**
+     * Additional styles to be applied to the QR code
+     */
+    additionalStyles?: StyleProp<ViewStyle>;
+
+    size?: ValueOf<typeof CONST.QR_CODE_SIZE>;
+    ref?: ForwardedRef<QRShareHandle>;
 };
 
 type QRShareHandle = {

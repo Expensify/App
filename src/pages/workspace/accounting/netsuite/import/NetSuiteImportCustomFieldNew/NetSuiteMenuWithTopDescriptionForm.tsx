@@ -1,6 +1,7 @@
-import React from 'react';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
+import React from 'react';
 
 type NetSuiteMenuWithTopDescriptionFormProps = MenuItemProps & {
     /** The value of the menu item */
@@ -13,12 +14,10 @@ type NetSuiteMenuWithTopDescriptionFormProps = MenuItemProps & {
 function NetSuiteMenuWithTopDescriptionForm({value, valueRenderer, ...props}: NetSuiteMenuWithTopDescriptionFormProps) {
     return (
         <MenuItemWithTopDescription
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             title={valueRenderer ? valueRenderer(value) : value}
         />
     );
 }
 
-NetSuiteMenuWithTopDescriptionForm.displayName = 'NetSuiteMenuWithTopDescriptionForm';
 export default NetSuiteMenuWithTopDescriptionForm;

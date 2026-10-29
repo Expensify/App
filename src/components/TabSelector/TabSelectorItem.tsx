@@ -1,66 +1,141 @@
-import React, {useState} from 'react';
-import {Animated} from 'react-native';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Badge from '@components/Badge';
+import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import Tooltip from '@components/Tooltip';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getGroupItemAccessibilityLabel from '@libs/Accessibility/getGroupItemAccessibilityLabel';
+
 import CONST from '@src/CONST';
-import type IconAsset from '@src/types/utils/IconAsset';
+
+import React, {useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Animated, View} from 'react-native';
+
+import type {TabSelectorItemProps as BaseTabSelectorItemProps} from './types';
+
 import TabIcon from './TabIcon';
 import TabLabel from './TabLabel';
+import {useTabSelectorActions} from './TabSelectorContext';
 
-const AnimatedPressableWithFeedback = Animated.createAnimatedComponent(PressableWithFeedback);
+// Use PressableWithSecondaryInteraction so the tab responds to both a long-press (touch) and a
+// right-click / context-menu (web). PressableWithFeedback's onLongPress alone never fires on a
+// right-click, so the desktop-web menu could not be opened.
+const AnimatedPressableWithSecondaryInteraction = Animated.createAnimatedComponent(PressableWithSecondaryInteraction);
 
-type TabSelectorItemProps = {
-    /** Function to call when onPress */
-    onPress?: () => void;
+type TabSelectorItemProps = BaseTabSelectorItemProps;
 
-    /** Icon to display on tab */
-    icon?: IconAsset;
+function TabSelectorItem({
+    tabKey,
+    tabRef,
+    icon,
+    title = '',
+    onPress = () => {},
+    onLongPress,
+    backgroundColor = '',
+    activeOpacity = 0,
+    inactiveOpacity = 1,
+    isActive = false,
+    shouldShowLabelWhenInactive = true,
+    testID,
+    sentryLabel,
+    equalWidth = false,
+    badgeText,
+    isBadgeCondensed = false,
+    badgeStyles,
+    isBadgeError = false,
+    isDisabled = false,
+    disabledAction,
+    pendingAction,
+    badgeEducationalTooltipProps,
+    tabButtonStyles,
+    role = CONST.ROLE.TAB,
+    groupAccessibilityLabel,
+}: TabSelectorItemProps) {
+    const {isOffline} = useNetwork();
 
-    /** Title of the tab */
-    title?: string;
-
-    /** Animated background color value for the tab button */
-    backgroundColor?: string | Animated.AnimatedInterpolation<string>;
-
-    /** Animated opacity value while the tab is in inactive state */
-    inactiveOpacity?: number | Animated.AnimatedInterpolation<number>;
-
-    /** Animated opacity value while the tab is in active state */
-    activeOpacity?: number | Animated.AnimatedInterpolation<number>;
-
-    /** Whether this tab is active */
-    isActive?: boolean;
-};
-
-function TabSelectorItem({icon, title = '', onPress = () => {}, backgroundColor = '', activeOpacity = 0, inactiveOpacity = 1, isActive = false}: TabSelectorItemProps) {
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
 
-    return (
-        <AnimatedPressableWithFeedback
-            accessibilityLabel={title}
-            style={[styles.tabSelectorButton, styles.tabBackground(isHovered, isActive, backgroundColor), styles.userSelectNone]}
-            wrapperStyle={[styles.flex1]}
-            onPress={onPress}
+    const {onTabLayout, scrollToTab} = useTabSelectorActions();
+
+    const accessibilityState = role === CONST.ROLE.RADIO ? {checked: isActive} : {selected: isActive};
+
+    const isOfflineWithPendingAction = !!isOffline && !!pendingAction;
+    const shouldTextHaveStrikeThrough = isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+    // PressableWithSecondaryInteraction handles the web `contextmenu` (right-click) event directly and does not respect the
+    // pressable's `disabled` prop, so gate the secondary interaction ourselves to match the primary press behavior below.
+    const isPressableDisabled = !disabledAction && isDisabled;
+
+    const children = (
+        <AnimatedPressableWithSecondaryInteraction
+            ref={tabRef}
+            accessibilityLabel={getGroupItemAccessibilityLabel(title, groupAccessibilityLabel)}
+            accessibilityState={accessibilityState}
+            accessibilityRole={role}
+            style={[
+                styles.tabSelectorButton,
+                styles.tabBackground(isHovered, isActive, isDisabled, backgroundColor),
+                styles.userSelectNone,
+                isOfflineWithPendingAction ? styles.offlineFeedbackPending : undefined,
+                tabButtonStyles,
+            ]}
+            wrapperStyle={equalWidth ? styles.flex1 : styles.flexGrow1}
+            onSecondaryInteraction={isPressableDisabled ? undefined : onLongPress}
+            onPress={() => {
+                scrollToTab(tabKey);
+                onPress();
+            }}
+            onWrapperLayout={(event) => onTabLayout(tabKey, event)}
             onHoverIn={() => setIsHovered(true)}
             onHoverOut={() => setIsHovered(false)}
-            role={CONST.ROLE.BUTTON}
+            role={role}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            testID={testID}
+            sentryLabel={sentryLabel}
+            disabled={isPressableDisabled}
         >
             <TabIcon
                 icon={icon}
-                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                activeOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                inactiveOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
             />
-            <TabLabel
-                title={title}
-                activeOpacity={styles.tabOpacity(isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
-                inactiveOpacity={styles.tabOpacity(isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
-            />
-        </AnimatedPressableWithFeedback>
+            {(shouldShowLabelWhenInactive || isActive) && (
+                <TabLabel
+                    textStyle={shouldTextHaveStrikeThrough ? styles.offlineFeedbackDeleted : undefined}
+                    title={title}
+                    activeOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, activeOpacity, inactiveOpacity).opacity}
+                    inactiveOpacity={styles.tabOpacity(isDisabled, isHovered, isActive, inactiveOpacity, activeOpacity).opacity}
+                    hasIcon={!!icon}
+                />
+            )}
+            {!!badgeText && (
+                <EducationalTooltip {...badgeEducationalTooltipProps}>
+                    <View style={styles.ml2}>
+                        <Badge
+                            text={badgeText}
+                            success={!isBadgeError}
+                            error={isBadgeError}
+                            isCondensed={isBadgeCondensed}
+                            badgeStyles={[badgeStyles, styles.ml0]}
+                        />
+                    </View>
+                </EducationalTooltip>
+            )}
+        </AnimatedPressableWithSecondaryInteraction>
+    );
+
+    return (
+        <Tooltip
+            shouldRender={!shouldShowLabelWhenInactive && !isActive}
+            text={title}
+        >
+            {children}
+        </Tooltip>
     );
 }
-
-TabSelectorItem.displayName = 'TabSelectorItem';
 
 export default TabSelectorItem;

@@ -1,0 +1,91 @@
+import BaseVacationDelegateSelectionComponent from '@components/BaseVacationDelegateSelectionComponent';
+import ScreenWrapper from '@components/ScreenWrapper';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
+
+import {setDraftValues} from '@libs/actions/FormActions';
+import Navigation from '@libs/Navigation/Navigation';
+import {getActiveVacationDelegate} from '@libs/VacationDelegateUtils';
+
+import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {VacationDelegateForm} from '@src/types/form';
+import INPUT_IDS from '@src/types/form/VacationDelegateForm';
+import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useNavigationState} from '@react-navigation/native';
+import {vacationDelegateSelector} from '@selectors/Domain';
+import React from 'react';
+
+type DomainMemberVacationDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.VACATION_DELEGATE_SELECT>;
+
+const draftDelegateSelector = (draft: OnyxEntry<VacationDelegateForm>) => draft?.[INPUT_IDS.DELEGATE];
+
+function DomainMemberVacationDelegatePage({route}: DomainMemberVacationDelegatePageProps) {
+    const {domainAccountID, accountID} = route.params;
+    const {translate} = useLocalize();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+
+    const [vacationDelegate] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        selector: vacationDelegateSelector(accountID),
+    });
+    const [draftDelegate] = useOnyx(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM_DRAFT, {selector: draftDelegateSelector});
+    const isFormInStack = useNavigationState((state) => state.routes.some((stackRoute) => stackRoute.name === SCREENS.DOMAIN.VACATION_DELEGATE));
+
+    const [personalDetails] = usePersonalDetail(accountID);
+    const memberLogin = personalDetails?.login;
+
+    const onSelectRow = (option: Participant) => {
+        const delegateLogin = option?.login;
+
+        if (!memberLogin || !delegateLogin) {
+            return;
+        }
+
+        // The pick is only saved from the form, where the clear after date is chosen too.
+        setDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM, {[INPUT_IDS.DELEGATE]: delegateLogin});
+
+        // Opened from the form's delegate row, so go back to it. Opened straight from the member details page, the form comes
+        // next, so push it and keep this picker under it for the form's back button.
+        if (isFormInStack) {
+            Navigation.goBack(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));
+            return;
+        }
+        Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));
+    };
+
+    return (
+        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID="DomainMemberVacationDelegate"
+            >
+                <BaseVacationDelegateSelectionComponent
+                    // An expired delegate reads as no delegate everywhere else, so it must not show up preselected here either
+                    vacationDelegate={{...vacationDelegate, delegate: draftDelegate ?? getActiveVacationDelegate(vacationDelegate)}}
+                    headerTitle={translate('statusPage.vacationDelegate.chooseDelegate')}
+                    onSelectRow={onSelectRow}
+                    onBackButtonPress={() => Navigation.goBack()}
+                    cannotSetDelegateMessage={translate('domain.members.cannotSetVacationDelegateForMember', memberLogin ?? '')}
+                    additionalExcludeLogins={memberLogin ? {[memberLogin]: true} : undefined}
+                    // The member can't be their own delegate. The current user is included by default, and that would override the
+                    // member exclusion above when an admin opens their own member page.
+                    includeCurrentUser={memberLogin !== currentUserLogin}
+                />
+            </ScreenWrapper>
+        </DomainNotFoundPageWrapper>
+    );
+}
+
+export default DomainMemberVacationDelegatePage;

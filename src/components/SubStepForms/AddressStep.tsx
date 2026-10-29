@@ -1,71 +1,89 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef, FormValue} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
+import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import {getCountryZipRegexDetails, getFieldRequiredErrors, getInvalidAddressErrorTranslationPath, isValidZipCode, isValidZipCodeForCountry} from '@libs/ValidationUtils';
+
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
-import HelpLinks from '@pages/ReimbursementAccount/PersonalInfo/HelpLinks';
+import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+
+import {setDraftValues} from '@userActions/FormActions';
+
+import type {Country} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type AddressValues = {
     street: string;
     city: string;
     state: string;
     zipCode: string;
+    country?: Country | '';
 };
 
-type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    /** The ID of the form */
-    formID: TFormID;
-
-    /** The title of the form */
-    formTitle: string;
-
-    /** The disclaimer informing that PO box is not allowed */
-    formPOBoxDisclaimer?: string;
-
-    /** The validation function to call when the form is submitted */
-    customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
-
-    /** A function to call when the form is submitted */
-    onSubmit: (values: FormOnyxValues<TFormID>) => void;
-
-    /** Fields list of the form */
-    stepFields: Array<FormOnyxKeys<TFormID>>;
-
-    /** The IDs of the input fields */
-    inputFieldsIDs: AddressValues;
-
-    /** The default values for the form */
-    defaultValues: AddressValues;
-
-    /** Should show help links */
-    shouldShowHelpLinks?: boolean;
-
-    /** Indicates if country selector should be displayed */
-    shouldDisplayCountrySelector?: boolean;
-
-    /** Indicates if state selector should be displayed */
-    shouldDisplayStateSelector?: boolean;
-
-    /** Label for the state selector */
-    stateSelectorLabel?: string;
-
-    /** The title of the state selector modal */
-    stateSelectorModalHeaderTitle?: string;
-
-    /** The title of the state selector search input */
-    stateSelectorSearchInputTitle?: string;
-
-    /** Callback to be called when the country is changed */
-    onCountryChange?: (country: unknown) => void;
+type AddressInputIDs = {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country?: string;
 };
 
-function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
+function getStringFormValue<TFormID extends keyof OnyxFormValuesMapping>(values: FormOnyxValues<TFormID>, fieldID?: string): string {
+    if (!fieldID) {
+        return '';
+    }
+
+    const value = values[fieldID as keyof FormOnyxValues<TFormID>];
+    return typeof value === 'string' ? value : '';
+}
+
+type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubPageProps &
+    ForwardedFSClassProps & {
+        formID: TFormID;
+        formTitle: string;
+
+        /** The disclaimer informing that PO box is not allowed */
+        formPOBoxDisclaimer?: string;
+
+        /** The validation function to call when the form is submitted */
+        customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+
+        onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        stepFields: Array<FormOnyxKeys<TFormID>>;
+        inputFieldsIDs: AddressInputIDs;
+        defaultValues: AddressValues;
+        shouldShowHelpLinks?: boolean;
+        shouldDisplayCountrySelector?: boolean;
+        shouldDisplayStateSelector?: boolean;
+        stateSelectorLabel?: string;
+        stateSelectorModalHeaderTitle?: string;
+        stateSelectorSearchInputTitle?: string;
+        onCountryChange?: (country: unknown) => void;
+        streetTranslationKey?: TranslationPaths;
+        shouldAllowCountryChange?: boolean;
+        shouldValidateZipCodeFormat?: boolean;
+
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
+    };
+
+type AddressStepPropsWidened = Omit<AddressStepProps<keyof OnyxFormValuesMapping>, never>;
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function AddressStepImpl({
     formID,
     formTitle,
     formPOBoxDisclaimer,
@@ -82,7 +100,12 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     onCountryChange,
-}: AddressStepProps<TFormID>) {
+    streetTranslationKey = 'common.streetAddress',
+    shouldAllowCountryChange = true,
+    shouldValidateZipCodeFormat = true,
+    shouldShowPatriotActLink = false,
+    forwardedFSClass,
+}: AddressStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -93,26 +116,40 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
         formRef.current?.resetFormFieldError(inputFieldsIDs.state);
     }, [inputFieldsIDs.state, stepFields]);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, stepFields);
+    useEffect(() => {
+        // When country is not editable we need to manually set its draft value in case user enters address manually
+        if (shouldAllowCountryChange || inputFieldsIDs.country === undefined) {
+            return;
+        }
 
-            const street = values[inputFieldsIDs.street as keyof typeof values];
-            if (street && !ValidationUtils.isValidAddress(street as FormValue)) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.street] = translate('bankAccount.error.addressStreet');
-            }
+        setDraftValues(formID, {[inputFieldsIDs.country]: defaultValues.country});
+    }, [defaultValues.country, formID, inputFieldsIDs.country, shouldAllowCountryChange]);
 
-            const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (zipCode && (shouldDisplayCountrySelector ? !ValidationUtils.isValidZipCodeInternational(zipCode as string) : !ValidationUtils.isValidZipCode(zipCode as string))) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
-            }
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            return errors;
-        },
-        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, stepFields, translate],
-    );
+        const street = getStringFormValue(values, inputFieldsIDs.street);
+        const streetError = getInvalidAddressErrorTranslationPath(street);
+        if (street && streetError) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[inputFieldsIDs.street] = translate(streetError);
+        }
+
+        const zipCode = getStringFormValue(values, inputFieldsIDs.zipCode);
+        const selectedCountry = (inputFieldsIDs.country ? getStringFormValue(values, inputFieldsIDs.country) : defaultValues.country) as Country | '';
+        const shouldValidateSelectedCountryZip = shouldDisplayCountrySelector && !!inputFieldsIDs.country;
+
+        if (zipCode && shouldValidateSelectedCountryZip && !isValidZipCodeForCountry(zipCode, selectedCountry)) {
+            const zipCodeSamples = getCountryZipRegexDetails(selectedCountry)?.samples;
+            // @ts-expect-error type mismatch to be fixed
+            errors[inputFieldsIDs.zipCode] = translate('privatePersonalDetails.error.incorrectZipFormat', zipCodeSamples);
+        } else if (zipCode && shouldValidateZipCodeFormat && !isValidZipCode(zipCode)) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
+        }
+
+        return errors;
+    };
 
     return (
         <FormProvider
@@ -122,13 +159,14 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             ref={formRef}
+            enabledWhenOffline
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
                 {!!formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
                 <AddressFormFields
                     inputKeys={inputFieldsIDs}
-                    streetTranslationKey="common.streetAddress"
+                    streetTranslationKey={streetTranslationKey}
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
                     shouldDisplayStateSelector={shouldDisplayStateSelector}
@@ -137,13 +175,22 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
                     onCountryChange={onCountryChange}
+                    shouldAllowCountryChange={shouldAllowCountryChange}
+                    forwardedFSClass={forwardedFSClass}
                 />
-                {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
+                {!!shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt6]} />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );
 }
 
-AddressStep.displayName = 'AddressStep';
+function AddressStep<TFormID extends keyof OnyxFormValuesMapping>(props: AddressStepProps<TFormID>) {
+    return <AddressStepImpl {...(props as unknown as AddressStepPropsWidened)} />;
+}
 
 export default AddressStep;

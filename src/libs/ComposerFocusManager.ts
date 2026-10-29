@@ -1,11 +1,15 @@
-import {TextInput} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import {TextInput} from 'react-native';
+
 import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 type ModalId = number | undefined;
 
-type InputElement = (TextInput & HTMLElement) | null;
+type InputElement = (ComponentRef<typeof TextInput> & HTMLElement) | null;
 
 type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
 
@@ -71,12 +75,16 @@ function releaseInput(input: InputElement) {
     if (input === focusedInput) {
         focusedInput = null;
     }
-    focusMap.forEach((value, key) => {
+    for (const [key, value] of focusMap.entries()) {
         if (value.input !== input) {
-            return;
+            continue;
         }
         focusMap.delete(key);
-    });
+    }
+}
+
+function blurActiveInput() {
+    getActiveInput()?.blur();
 }
 
 function getId() {
@@ -98,12 +106,12 @@ function saveFocusState(id: ModalId, isInUploadingContext = false, shouldClearFo
     activeModals.push(id);
 
     if (shouldClearFocusWithType) {
-        focusMap.forEach((value, key) => {
+        for (const [key, value] of focusMap.entries()) {
             if (value.isInUploadingContext !== isInUploadingContext) {
-                return;
+                continue;
             }
             focusMap.delete(key);
-        });
+        }
     }
 
     focusMap.set(id, {input, isInUploadingContext});
@@ -123,7 +131,7 @@ function focus(input: InputElement, shouldIgnoreFocused = false) {
 }
 
 function tryRestoreTopmostFocus(shouldIgnoreFocused: boolean, isInUploadingContext = false) {
-    const topmost = [...focusMap].filter(([, v]) => v.input && v.isInUploadingContext === isInUploadingContext).at(-1);
+    const topmost = [...focusMap].findLast(([, v]) => v.input && v.isInUploadingContext === isInUploadingContext);
     if (topmost === undefined) {
         return;
     }
@@ -222,9 +230,9 @@ function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType
     isReadyToFocus(id)?.then(() => restoreFocusState(id, false, restoreType, isInUploadingContext));
 }
 
-export type {InputElement};
-
 export default {
+    blurActiveInput,
+    getActiveInput,
     getId,
     saveFocusedInput,
     clearFocusedInput,

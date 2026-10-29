@@ -1,10 +1,13 @@
-import type {MutableRefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {TextInput} from 'react-native';
 
 type UseHtmlPaste = (
-    textInputRef: MutableRefObject<(HTMLTextAreaElement & TextInput) | TextInput | null>,
+    textInputRef: RefObject<(HTMLElement & Pick<TextInput, 'isFocused'>) | ComponentRef<typeof TextInput> | null>,
     preHtmlPasteCallback?: (event: ClipboardEvent) => boolean,
-    removeListenerOnScreenBlur?: boolean,
-) => void;
+    isActive?: boolean,
+    maxLength?: number, // Maximum length of the text input value after pasting
+) => void | {
+    handlePastePlainText: (event: ClipboardEvent) => void;
+};
 
 export default UseHtmlPaste;

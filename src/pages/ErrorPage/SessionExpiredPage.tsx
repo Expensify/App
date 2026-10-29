@@ -1,20 +1,27 @@
-import React from 'react';
-import {NativeModules, View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import * as Session from '@userActions/Session';
+
+import {clearSignInData} from '@userActions/Session';
+
+import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function SessionExpiredPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
+    const illustrations = useMemoizedLazyIllustrations(['RocketBlue']);
 
     return (
         <View style={styles.deeplinkWrapperContainer}>
@@ -23,21 +30,17 @@ function SessionExpiredPage() {
                     <Icon
                         width={200}
                         height={164}
-                        src={Illustrations.RocketBlue}
+                        src={illustrations.RocketBlue}
                     />
                 </View>
-                <Text style={[styles.textHeadline, styles.textXXLarge]}>{translate('deeplinkWrapper.launching')}</Text>
+                <Text style={[styles.textHeadline]}>{translate('deeplinkWrapper.launching')}</Text>
                 <View style={styles.mt2}>
                     <Text style={styles.textAlignCenter}>
                         {translate('deeplinkWrapper.expired')}{' '}
                         <TextLink
                             onPress={() => {
-                                if (!NativeModules.HybridAppModule) {
-                                    Session.clearSignInData();
-                                    Navigation.goBack();
-                                    return;
-                                }
-                                NativeModules.HybridAppModule.closeReactNativeApp(true, false);
+                                clearSignInData();
+                                Navigation.goBack(ROUTES.HOME);
                             }}
                         >
                             {translate('deeplinkWrapper.signIn')}
@@ -50,13 +53,11 @@ function SessionExpiredPage() {
                     width={154}
                     height={34}
                     fill={theme.success}
-                    src={Expensicons.ExpensifyWordmark}
+                    src={icons.ExpensifyWordmark}
                 />
             </View>
         </View>
     );
 }
-
-SessionExpiredPage.displayName = 'SessionExpiredPage';
 
 export default SessionExpiredPage;

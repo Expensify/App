@@ -29,6 +29,12 @@ const enEmojis: EmojisList = {
     '🙂': {
         keywords: ['face', 'smile'],
     },
+    '🙂‍↔️': {
+        keywords: ['head', 'horizontally', 'no', 'shake', 'shaking'],
+    },
+    '🙂‍↕️': {
+        keywords: ['head', 'nod', 'shaking', 'vertically', 'yes'],
+    },
     '🙃': {
         keywords: ['face', 'upside-down'],
     },
@@ -170,6 +176,9 @@ const enEmojis: EmojisList = {
     '😴': {
         keywords: ['zzz', 'face', 'sleep'],
     },
+    '🫩': {
+        keywords: ['bags', 'bored', 'exhausted', 'eyes', 'face', 'fatigued', 'late', 'sleepy', 'tired', 'weary'],
+    },
     '😷': {
         keywords: ['sick', 'ill', 'cold', 'doctor', 'face', 'medicine'],
     },
@@ -259,6 +268,9 @@ const enEmojis: EmojisList = {
     },
     '😨': {
         keywords: ['scared', 'shocked', 'oops', 'face', 'fear'],
+    },
+    '🫪': {
+        keywords: ['anxiety', 'bloated', 'panic', 'shocked', 'surprised', 'vulnerable'],
     },
     '😰': {
         keywords: ['nervous', 'blue', 'cold', 'face', 'mouth', 'open', 'rushed', 'sweat'],
@@ -481,6 +493,9 @@ const enEmojis: EmojisList = {
     },
     '💨': {
         keywords: ['wind', 'blow', 'fast', 'comic', 'running'],
+    },
+    '🫯': {
+        keywords: ['argument', 'brawl', 'debate', 'disagreement', 'fight', 'ruckus', 'wrestle'],
     },
     '🕳️': {
         keywords: [],
@@ -1187,6 +1202,9 @@ const enEmojis: EmojisList = {
     '🧌': {
         keywords: ['troll', 'mythical', 'creature', 'fantasy'],
     },
+    '🫈': {
+        keywords: ['bigfoot', 'cryptid', 'forest', 'giant', 'hairy', 'sasquatch', 'woodwose', 'yeti'],
+    },
     '🧞': {
         keywords: [],
     },
@@ -1232,6 +1250,15 @@ const enEmojis: EmojisList = {
     '🚶‍♀️': {
         keywords: [],
     },
+    '🚶‍➡️': {
+        keywords: ['amble', 'facing', 'gait', 'hike', 'man', 'pace', 'pedestrian', 'person', 'right', 'stride', 'stroll', 'walk', 'walking'],
+    },
+    '🚶‍♀️‍➡️': {
+        keywords: ['amble', 'facing', 'gait', 'hike', 'man', 'pace', 'pedestrian', 'right', 'stride', 'stroll', 'walk', 'walking', 'woman'],
+    },
+    '🚶‍♂️‍➡️': {
+        keywords: ['amble', 'facing', 'gait', 'hike', 'man', 'pace', 'pedestrian', 'right', 'stride', 'stroll', 'walk', 'walking'],
+    },
     '🧍': {
         keywords: [],
     },
@@ -1250,6 +1277,15 @@ const enEmojis: EmojisList = {
     '🧎‍♀️': {
         keywords: [],
     },
+    '🧎‍➡️': {
+        keywords: ['facing', 'kneel', 'kneeling', 'knees', 'person', 'right'],
+    },
+    '🧎‍♀️‍➡️': {
+        keywords: ['facing', 'kneel', 'kneeling', 'knees', 'right', 'woman'],
+    },
+    '🧎‍♂️‍➡️': {
+        keywords: ['facing', 'kneel', 'kneeling', 'knees', 'man', 'right'],
+    },
     '🧑‍🦯': {
         keywords: [],
     },
@@ -1258,6 +1294,15 @@ const enEmojis: EmojisList = {
     },
     '👩‍🦯': {
         keywords: [],
+    },
+    '🧑‍🦯‍➡️': {
+        keywords: ['accessibility', 'blind', 'cane', 'facing', 'person', 'probing', 'right', 'white'],
+    },
+    '👨‍🦯‍➡️': {
+        keywords: ['accessibility', 'blind', 'cane', 'facing', 'man', 'probing', 'right', 'white'],
+    },
+    '👩‍🦯‍➡️': {
+        keywords: ['accessibility', 'blind', 'cane', 'facing', 'probing', 'right', 'white', 'woman'],
     },
     '🧑‍🦼': {
         keywords: [],
@@ -1268,6 +1313,15 @@ const enEmojis: EmojisList = {
     '👩‍🦼': {
         keywords: [],
     },
+    '🧑‍🦼‍➡️': {
+        keywords: ['accessibility', 'facing', 'motorized', 'person', 'right', 'wheelchair'],
+    },
+    '👨‍🦼‍➡️': {
+        keywords: ['accessibility', 'facing', 'man', 'motorized', 'right', 'wheelchair'],
+    },
+    '👩‍🦼‍➡️': {
+        keywords: ['accessibility', 'facing', 'motorized', 'right', 'wheelchair', 'woman'],
+    },
     '🧑‍🦽': {
         keywords: [],
     },
@@ -1276,6 +1330,15 @@ const enEmojis: EmojisList = {
     },
     '👩‍🦽': {
         keywords: [],
+    },
+    '🧑‍🦽‍➡️': {
+        keywords: ['accessibility', 'facing', 'manual', 'person', 'right', 'wheelchair'],
+    },
+    '👨‍🦽‍➡️': {
+        keywords: ['accessibility', 'facing', 'man', 'manual', 'right', 'wheelchair'],
+    },
+    '👩‍🦽‍➡️': {
+        keywords: ['accessibility', 'facing', 'manual', 'right', 'wheelchair', 'woman'],
     },
     '🏃': {
         keywords: ['exercise', 'workout', 'marathon', 'running'],
@@ -1286,11 +1349,23 @@ const enEmojis: EmojisList = {
     '🏃‍♀️': {
         keywords: ['exercise', 'workout', 'marathon'],
     },
+    '🏃‍➡️': {
+        keywords: ['facing', 'fast', 'hurry', 'marathon', 'move', 'person', 'quick', 'race', 'racing', 'right', 'run', 'rush', 'speed'],
+    },
+    '🏃‍♀️‍➡️': {
+        keywords: ['facing', 'fast', 'hurry', 'marathon', 'move', 'quick', 'race', 'racing', 'right', 'run', 'rush', 'speed', 'woman'],
+    },
+    '🏃‍♂️‍➡️': {
+        keywords: ['facing', 'fast', 'hurry', 'man', 'marathon', 'move', 'quick', 'race', 'racing', 'right', 'run', 'rush', 'speed'],
+    },
     '💃': {
         keywords: ['dress', 'dancer'],
     },
     '🕺': {
         keywords: ['dancer', 'dance', 'man'],
+    },
+    '🧑‍🩰': {
+        keywords: ['ballet', 'dancer'],
     },
     '🕴️': {
         keywords: [],
@@ -1580,6 +1655,18 @@ const enEmojis: EmojisList = {
     '👩‍👧‍👧': {
         keywords: [],
     },
+    '🧑‍🧒': {
+        keywords: ['adult', 'child', 'family'],
+    },
+    '🧑‍🧒‍🧒': {
+        keywords: ['adult', 'child', 'family'],
+    },
+    '🧑‍🧑‍🧒': {
+        keywords: ['adult', 'child', 'family'],
+    },
+    '🧑‍🧑‍🧒‍🧒': {
+        keywords: ['adult', 'child', 'family'],
+    },
     '🗣️': {
         keywords: [],
     },
@@ -1594,6 +1681,9 @@ const enEmojis: EmojisList = {
     },
     '👣': {
         keywords: ['feet', 'tracks', 'body', 'clothing', 'footprint', 'print'],
+    },
+    '🫆': {
+        keywords: ['clue', 'crime', 'detective', 'forensics', 'identity', 'mystery', 'print', 'safety', 'trace'],
     },
     '🐵': {
         keywords: ['face', 'monkey'],
@@ -1827,6 +1917,9 @@ const enEmojis: EmojisList = {
     '🐦': {
         keywords: [],
     },
+    '🐦‍🔥': {
+        keywords: ['ascend', 'ascension', 'emerge', 'fantasy', 'firebird', 'glory', 'immortal', 'rebirth', 'reincarnation', 'reinvent', 'renewal', 'revival', 'revive', 'rise', 'transform'],
+    },
     '🐧': {
         keywords: [],
     },
@@ -1892,6 +1985,9 @@ const enEmojis: EmojisList = {
     },
     '🐋': {
         keywords: ['whale'],
+    },
+    '🫍': {
+        keywords: ['marine', 'ocean', 'whale'],
     },
     '🐬': {
         keywords: ['flipper'],
@@ -2016,6 +2112,9 @@ const enEmojis: EmojisList = {
     '🌳': {
         keywords: ['wood', 'deciduous', 'plant', 'shedding', 'tree'],
     },
+    '🪾': {
+        keywords: ['bare', 'barren', 'branches', 'dead', 'drought', 'leafless', 'tree', 'trunk', 'winter', 'wood'],
+    },
     '🌴': {
         keywords: ['palm', 'plant', 'tree'],
     },
@@ -2063,6 +2162,9 @@ const enEmojis: EmojisList = {
     },
     '🍋': {
         keywords: ['citrus', 'fruit', 'plant'],
+    },
+    '🍋‍🟩': {
+        keywords: ['acidity', 'citrus', 'cocktail', 'fruit', 'garnish', 'key', 'margarita', 'mojito', 'refreshing', 'salsa', 'sour', 'tangy', 'tequila', 'tropical', 'zest'],
     },
     '🍌': {
         keywords: ['fruit', 'plant'],
@@ -2144,6 +2246,29 @@ const enEmojis: EmojisList = {
     },
     '🍄': {
         keywords: ['plant'],
+    },
+    '🍄‍🟫': {
+        keywords: [
+            'food',
+            'fungi',
+            'fungus',
+            'mushroom',
+            'nature',
+            'pizza',
+            'portobello',
+            'shiitake',
+            'shroom',
+            'spore',
+            'sprout',
+            'toppings',
+            'truffle',
+            'vegetable',
+            'vegetarian',
+            'veggie',
+        ],
+    },
+    '🫜': {
+        keywords: ['beet', 'food', 'garden', 'radish', 'root', 'salad', 'turnip', 'vegetable', 'vegetarian'],
     },
     '🥜': {
         keywords: ['nut', 'peanut', 'vegetable'],
@@ -2480,6 +2605,9 @@ const enEmojis: EmojisList = {
     },
     '🌋': {
         keywords: ['eruption', 'mountain', 'weather'],
+    },
+    '🛘': {
+        keywords: ['avalanche', 'danger', 'disaster', 'earthquake', 'mountain', 'mudslide', 'rocks'],
     },
     '🗻': {
         keywords: ['fuji', 'mountain'],
@@ -3579,6 +3707,12 @@ const enEmojis: EmojisList = {
     '🎻': {
         keywords: ['activity', 'entertainment', 'instrument', 'music'],
     },
+    '🪊': {
+        keywords: ['brass', 'instrument', 'jazz', 'music', 'sad', 'slide'],
+    },
+    '🪉': {
+        keywords: ['cupid', 'instrument', 'love', 'music', 'orchestra'],
+    },
     '🪈': {
         keywords: ['flute', 'instrument', 'music', 'wind', 'melody', 'play'],
     },
@@ -3752,6 +3886,9 @@ const enEmojis: EmojisList = {
     },
     '💰': {
         keywords: ['dollar', 'cream', 'bag', 'money'],
+    },
+    '🪎': {
+        keywords: ['gem', 'gold', 'jewels', 'loot', 'money', 'prize', 'silver', 'valuables', 'wealth'],
     },
     '🪙': {
         keywords: [],
@@ -3992,6 +4129,12 @@ const enEmojis: EmojisList = {
     },
     '⛓️': {
         keywords: [],
+    },
+    '⛓️‍💥': {
+        keywords: ['break', 'breaking', 'broken', 'chain', 'cuffs', 'freedom'],
+    },
+    '🪏': {
+        keywords: ['bury', 'dig', 'garden', 'hole', 'plant', 'scoop', 'snow', 'spade'],
     },
     '🪝': {
         keywords: [],
@@ -4497,6 +4640,9 @@ const enEmojis: EmojisList = {
     '🔱': {
         keywords: ['anchor', 'emblem', 'ship', 'tool'],
     },
+    '🫟': {
+        keywords: ['drip', 'holi', 'ink', 'liquid', 'mess', 'paint', 'spill', 'stain'],
+    },
     '📛': {
         keywords: ['badge', 'name'],
     },
@@ -4982,6 +5128,9 @@ const enEmojis: EmojisList = {
     },
     '🇨🇵': {
         keywords: ['clipperton', 'flag', 'island'],
+    },
+    '🇨🇶': {
+        keywords: ['CQ', 'flag'],
     },
     '🇨🇷': {
         keywords: ['costa rica', 'flag'],
@@ -5612,6 +5761,9 @@ const enEmojis: EmojisList = {
     },
     '🏴󠁧󠁢󠁷󠁬󠁳󠁿': {
         keywords: ['flag'],
+    },
+    '\uE100': {
+        keywords: ['fab', 'floating', 'action', 'button', 'green', 'plus'],
     },
 };
 

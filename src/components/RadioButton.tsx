@@ -1,54 +1,62 @@
-import React from 'react';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
-type RadioButtonProps = {
-    /** Whether radioButton is checked */
-    isChecked: boolean;
+import React from 'react';
 
-    /** A function that is called when the box/label is pressed */
-    onPress: () => void;
+import type {RadioButtonProps} from './SelectionButton';
 
-    /** Specifies the accessibility label for the radio button */
-    accessibilityLabel: string;
+import SelectionButton from './SelectionButton';
 
-    /** Should the input be styled for errors  */
-    hasError?: boolean;
-
-    /** Should the input be disabled  */
-    disabled?: boolean;
-};
-
-function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false}: RadioButtonProps) {
-    const theme = useTheme();
-    const styles = useThemeStyles();
-
+/**
+ * A circular radio button for single-selection contexts.
+ */
+function RadioButton({
+    isChecked,
+    onPress,
+    hasError,
+    disabled,
+    style,
+    containerStyle,
+    children,
+    onMouseDown,
+    containerSize,
+    containerBorderRadius,
+    caretSize,
+    accessibilityLabel,
+    shouldStopMouseDownPropagation,
+    shouldSelectOnPressEnter = true,
+    wrapperStyle,
+    testID,
+    ref,
+    sentryLabel = CONST.SENTRY_LABEL.RADIO_BUTTON.BUTTON,
+    tabIndex,
+    accessible,
+}: RadioButtonProps) {
     return (
-        <PressableWithFeedback
-            disabled={disabled}
-            onPress={onPress}
-            hoverDimmingValue={1}
-            pressDimmingValue={1}
-            accessibilityLabel={accessibilityLabel}
+        <SelectionButton
             role={CONST.ROLE.RADIO}
-            style={[styles.radioButtonContainer, hasError && styles.borderColorDanger, disabled && styles.cursorDisabled]}
+            isChecked={isChecked}
+            onPress={onPress}
+            hasError={hasError}
+            disabled={disabled}
+            style={style}
+            containerStyle={containerStyle}
+            onMouseDown={onMouseDown}
+            containerSize={containerSize}
+            containerBorderRadius={containerBorderRadius}
+            caretSize={caretSize}
+            accessibilityLabel={accessibilityLabel}
+            shouldStopMouseDownPropagation={shouldStopMouseDownPropagation}
+            shouldSelectOnPressEnter={shouldSelectOnPressEnter}
+            wrapperStyle={wrapperStyle}
+            testID={testID}
+            ref={ref}
+            sentryLabel={sentryLabel}
+            tabIndex={tabIndex}
+            accessible={accessible}
         >
-            {isChecked && (
-                <Icon
-                    src={Expensicons.Checkmark}
-                    fill={theme.checkBox}
-                    height={20}
-                    width={20}
-                />
-            )}
-        </PressableWithFeedback>
+            {children}
+        </SelectionButton>
     );
 }
-
-RadioButton.displayName = 'RadioButton';
 
 export default RadioButton;

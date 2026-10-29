@@ -1,208 +1,359 @@
-import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
-import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
-import getButtonState from '@libs/getButtonState';
+
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import {addMonths, addYears, clamp, isSameDay, isValid, setMonth, setYear, startOfDay, startOfMonth, subMonths, subYears} from 'date-fns';
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+
 import ArrowIcon from './ArrowIcon';
+import Day from './Day';
 import generateMonthMatrix from './generateMonthMatrix';
-import type CalendarPickerListItem from './types';
+import MonthPickerModal from './MonthPickerModal';
 import YearPickerModal from './YearPickerModal';
 
 type CalendarPickerProps = {
-    /** An initial value of date string */
-    value?: Date | string;
+    /** The selected date. Without it, no day is selected and the calendar opens on defaultMonth, or on today. When the date it opens on is outside minDate and maxDate, it opens on the nearest one. */
+    value?: Date;
 
-    /** A minimum date (oldest) allowed to select */
+    /** The month the calendar shows when there is no value. When it moves to another month, the calendar moves with it. Without it, the calendar opens on today. */
+    defaultMonth?: Date;
+
+    /** A minimum date (oldest) allowed to select. The calendar can't move to a month before it. Without a valid one, it is today's date in CONST.CALENDAR_PICKER.MIN_YEAR. */
     minDate?: Date;
 
-    /** A maximum date (earliest) allowed to select */
+    /** A maximum date (latest) allowed to select. The calendar can't move to a month after it. Without a valid one, it is today's date in CONST.CALENDAR_PICKER.MAX_YEAR. */
     maxDate?: Date;
 
-    /** A function called when the date is selected */
-    onSelected?: (selectedDate: string) => void;
+    /** Whether a day between minDate and maxDate can be selected. Unlike the bounds, it doesn't limit which months and years can be shown. */
+    isDateSelectable?: (date: Date) => boolean;
+
+    /** Day component to render for dates */
+    DayComponent?: typeof Day;
+
+    /** Called with the picked day at local midnight */
+    onSelected?: (selectedDate: Date) => void;
+
+    /** Optional style override for the header container */
+    headerContainerStyle?: StyleProp<ViewStyle>;
+
+    /** Optional additional style for the outermost container */
+    containerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether Month/Year right-docked picker modals should keep backdrop in narrow pane context */
+    shouldEnableMonthYearBackdropInNarrowPane?: boolean;
 };
 
-function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
-    let initialCurrentDateView = typeof value === 'string' ? parseISO(value) : new Date(value);
-
-    if (maxDate < initialCurrentDateView) {
-        initialCurrentDateView = maxDate;
-    } else if (minDate > initialCurrentDateView) {
-        initialCurrentDateView = minDate;
-    }
-
-    return initialCurrentDateView;
+/** A bound can be built from data, such as a time zone or a stored date, so an invalid one falls back to the default like a missing one, instead of making every date invalid. */
+function getBound(date: Date | undefined, defaultYear: number): Date {
+    return date && isValid(date) ? date : setYear(new Date(), defaultYear);
 }
 
 function CalendarPicker({
-    value = new Date(),
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    value,
+    defaultMonth,
+    minDate: minDateProp,
+    maxDate: maxDateProp,
     onSelected,
+    DayComponent = Day,
+    isDateSelectable,
+    headerContainerStyle,
+    containerStyle,
+    shouldEnableMonthYearBackdropInNarrowPane = false,
 }: CalendarPickerProps) {
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const styles = useThemeStyles();
     const themeStyles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {preferredLocale, translate} = useLocalize();
-    const pressableRef = useRef<View>(null);
-
-    const [currentDateView, setCurrentDateView] = useState(getInitialCurrentDateView(value, minDate, maxDate));
-
+    const {translate, dateFnsLocale} = useLocalize();
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const monthPressableRef = useRef<ComponentRef<typeof View>>(null);
+    const minDate = getBound(minDateProp, CONST.CALENDAR_PICKER.MIN_YEAR);
+    const maxDate = getBound(maxDateProp, CONST.CALENDAR_PICKER.MAX_YEAR);
+    const [dateView, setDateView] = useState(value ?? defaultMonth ?? new Date());
+    // defaultMonth can be a new Date on every render, such as today, so the view follows it only when it moves to another month and nothing is selected.
+    const validDefaultMonth = defaultMonth && isValid(defaultMonth) ? defaultMonth : undefined;
+    const defaultMonthTime = validDefaultMonth && startOfMonth(validDefaultMonth).getTime();
+    const [prevDefaultMonthTime, setPrevDefaultMonthTime] = useState(defaultMonthTime);
+    if (defaultMonthTime !== prevDefaultMonthTime) {
+        setPrevDefaultMonthTime(defaultMonthTime);
+        if (!value) {
+            setDateView(validDefaultMonth ?? new Date());
+        }
+    }
+    const currentDateView = clamp(dateView, {start: minDate, end: maxDate});
     const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
+    const [isMonthPickerVisible, setIsMonthPickerVisible] = useState(false);
+    const isFirstRender = useRef(true);
 
-    const minYear = getYear(new Date(minDate));
-    const maxYear = getYear(new Date(maxDate));
+    const currentMonthView = currentDateView.getMonth();
+    const currentYearView = currentDateView.getFullYear();
+    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
+    const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
+    const heightValue = useSharedValue(initialHeight);
 
-    const [years, setYears] = useState<CalendarPickerListItem[]>(
-        Array.from({length: maxYear - minYear + 1}, (v, i) => i + minYear).map((year) => ({
-            text: year.toString(),
-            value: year,
-            keyForList: year.toString(),
-            isSelected: year === currentDateView.getFullYear(),
-        })),
-    );
+    const minYear = minDate.getFullYear();
+    const maxYear = maxDate.getFullYear();
+    const minDay = startOfDay(minDate);
+    const maxDay = startOfDay(maxDate);
+    const minMonthStart = startOfMonth(minDate);
+    const maxMonthStart = startOfMonth(maxDate);
+    const currentMonthStart = startOfMonth(currentDateView);
 
     const onYearSelected = (year: number) => {
-        setIsYearPickerVisible(false);
-        setCurrentDateView((prev) => {
-            const newCurrentDateView = setYear(new Date(prev), year);
-            setYears((prevYears) =>
-                prevYears.map((item) => ({
-                    ...item,
-                    isSelected: item.value === newCurrentDateView.getFullYear(),
-                })),
-            );
-            return newCurrentDateView;
-        });
+        setDateView(addYears(currentDateView, year - currentYearView));
+        requestAnimationFrame(() => setIsYearPickerVisible(false));
+    };
+
+    const onMonthSelected = (month: number) => {
+        setDateView(setMonth(currentDateView, month));
+        requestAnimationFrame(() => setIsMonthPickerVisible(false));
     };
 
     /**
      * Calls the onSelected function with the selected date.
-     * @param day - The day of the month that was selected.
+     * @param date - The day that was selected, at local midnight.
      */
-    const onDayPressed = (day: number) => {
-        setCurrentDateView((prev) => {
-            const newCurrentDateView = setDate(new Date(prev), day);
-            onSelected?.(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
-            return newCurrentDateView;
-        });
+    const onDayPressed = (date: Date) => {
+        setDateView(date);
+        onSelected?.(date);
     };
+
+    const isAtMinBoundary = currentMonthStart <= minMonthStart;
+    const isAtMaxBoundary = currentMonthStart >= maxMonthStart;
+    const isAtMinYear = currentYearView <= minYear;
+    const isAtMaxYear = currentYearView >= maxYear;
 
     /**
      * Handles the user pressing the previous month arrow of the calendar picker.
      */
     const moveToPrevMonth = () => {
-        setCurrentDateView((prev) => {
-            const prevMonth = subMonths(new Date(prev), 1);
-            // if year is subtracted, we need to update the years list
-            if (prevMonth.getFullYear() < prev.getFullYear()) {
-                setYears((prevYears) =>
-                    prevYears.map((item) => ({
-                        ...item,
-                        isSelected: item.value === prevMonth.getFullYear(),
-                    })),
-                );
-            }
-            return prevMonth;
-        });
+        setDateView(subMonths(currentDateView, 1));
     };
 
     /**
      * Handles the user pressing the next month arrow of the calendar picker.
      */
     const moveToNextMonth = () => {
-        setCurrentDateView((prev) => {
-            const nextMonth = addMonths(new Date(prev), 1);
-            // if year is added, we need to update the years list
-            if (nextMonth.getFullYear() > prev.getFullYear()) {
-                setYears((prevYears) =>
-                    prevYears.map((item) => ({
-                        ...item,
-                        isSelected: item.value === nextMonth.getFullYear(),
-                    })),
-                );
-            }
-
-            return nextMonth;
-        });
+        setDateView(addMonths(currentDateView, 1));
     };
 
-    const monthNames = DateUtils.getMonthNames(preferredLocale).map((month) => Str.recapitalize(month));
-    const daysOfWeek = DateUtils.getDaysOfWeek(preferredLocale).map((day) => day.toUpperCase());
-    const currentMonthView = currentDateView.getMonth();
-    const currentYearView = currentDateView.getFullYear();
-    const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-    const hasAvailableDatesNextMonth = startOfDay(new Date(maxDate)) > endOfMonth(new Date(currentDateView));
-    const hasAvailableDatesPrevMonth = endOfDay(new Date(minDate)) < startOfMonth(new Date(currentDateView));
+    const moveToPrevYear = () => {
+        setDateView(subYears(currentDateView, 1));
+    };
+
+    const moveToNextYear = () => {
+        setDateView(addYears(currentDateView, 1));
+    };
+
+    const monthNames = DateUtils.getMonthNames(dateFnsLocale).map((month) => Str.UCFirst(month));
+    const minMonth = currentYearView === minYear ? minDate.getMonth() : 0;
+    const maxMonth = currentYearView === maxYear ? maxDate.getMonth() : monthNames.length - 1;
+    const daysOfWeek = DateUtils.getDaysOfWeek(dateFnsLocale).map((day) => day.toUpperCase());
+    useEffect(() => {
+        if (isSmallScreenWidth || isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
+        const rowCount = calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS;
+        const newHeight = rowCount * CONST.CALENDAR_PICKER_DAY_HEIGHT;
+
+        heightValue.set(withTiming(newHeight, {duration: 50}));
+    }, [calendarDaysMatrix?.length, heightValue, isSmallScreenWidth]);
+
+    const animatedStyle = useAnimatedStyle(() => {
+        return {
+            height: heightValue.get(),
+        };
+    });
+
+    const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
+    const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph3;
+
+    const getAccessibilityState = (isSelected: boolean) => ({selected: isSelected});
+
+    const calendarWeeks = calendarDaysMatrix?.map((week) => (
+        <View
+            key={`week-${week.toString()}`}
+            collapsable={false}
+            style={[themeStyles.flexRow, themeStyles.calendarWeekContainer]}
+        >
+            {week.map((day, index) => {
+                const currentDate = day ? new Date(currentYearView, currentMonthView, day) : undefined;
+                const isDisabled = !currentDate || currentDate < minDay || currentDate > maxDay || !(isDateSelectable?.(currentDate) ?? true);
+                const isSelected = !!currentDate && !!value && isSameDay(value, currentDate);
+                const handleOnPress = () => {
+                    if (!currentDate || isDisabled) {
+                        return;
+                    }
+
+                    onDayPressed(currentDate);
+                };
+                const key = `${index}_day-${day}`;
+                const accessibilityDateLabel = currentDate ? DateUtils.formatToLongDateWithWeekday(currentDate, dateFnsLocale) : '';
+                return (
+                    <PressableWithoutFeedback
+                        key={key}
+                        disabled={isDisabled}
+                        onPress={handleOnPress}
+                        style={themeStyles.calendarDayRoot}
+                        accessibilityLabel={accessibilityDateLabel}
+                        accessibilityHint=""
+                        accessibilityState={getAccessibilityState(isSelected)}
+                        aria-selected={isSelected}
+                        tabIndex={day ? 0 : -1}
+                        accessible={!!day}
+                        accessibilityElementsHidden={!day}
+                        importantForAccessibility={day ? 'auto' : 'no-hide-descendants'}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.DAY}
+                    >
+                        {({hovered, pressed}) => (
+                            <DayComponent
+                                selected={isSelected}
+                                disabled={isDisabled}
+                                hovered={hovered}
+                                pressed={pressed}
+                            >
+                                {day}
+                            </DayComponent>
+                        )}
+                    </PressableWithoutFeedback>
+                );
+            })}
+        </View>
+    ));
 
     return (
-        <View>
+        <View style={[themeStyles.pb4, themeStyles.pt1, containerStyle]}>
             <View
-                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph4, themeStyles.pr1]}
+                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.gap3, headerPaddingStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
-                <PressableWithFeedback
-                    onPress={() => {
-                        pressableRef?.current?.blur();
-                        setIsYearPickerVisible(true);
-                    }}
-                    ref={pressableRef}
-                    style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentStart]}
-                    wrapperStyle={[themeStyles.alignItemsCenter]}
-                    hoverDimmingValue={1}
-                    testID="currentYearButton"
-                    accessibilityLabel={translate('common.currentYear')}
-                >
-                    <Text
-                        style={themeStyles.sidebarLinkTextBold}
-                        testID="currentYearText"
-                        accessibilityLabel={translate('common.currentYear')}
-                    >
-                        {currentYearView}
-                    </Text>
-                    <ArrowIcon />
-                </PressableWithFeedback>
-                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, themeStyles.flex1, themeStyles.justifyContentEnd]}>
-                    <Text
-                        style={themeStyles.sidebarLinkTextBold}
-                        testID="currentMonthText"
-                        accessibilityLabel={translate('common.currentMonth')}
-                    >
-                        {monthNames.at(currentMonthView)}
-                    </Text>
+                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, {flex: 3}]}>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="prev-month-arrow"
-                        disabled={!hasAvailableDatesPrevMonth}
+                        disabled={isAtMinBoundary}
                         onPress={moveToPrevMonth}
                         hoverDimmingValue={1}
-                        accessibilityLabel={translate('common.previous')}
+                        accessibilityLabel={translate('common.previousMonth')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_MONTH}
                     >
                         <ArrowIcon
-                            disabled={!hasAvailableDatesPrevMonth}
+                            disabled={isAtMinBoundary}
                             direction={CONST.DIRECTION.LEFT}
                         />
                     </PressableWithFeedback>
+                    <View style={[themeStyles.flex1, themeStyles.alignItemsCenter]}>
+                        <PressableWithFeedback
+                            onPress={() => {
+                                monthPressableRef?.current?.blur();
+                                setIsMonthPickerVisible(true);
+                            }}
+                            ref={monthPressableRef}
+                            style={[themeStyles.alignItemsCenter]}
+                            wrapperStyle={[themeStyles.alignItemsCenter]}
+                            hoverDimmingValue={1}
+                            disabled={maxMonth <= minMonth}
+                            testID="currentMonthButton"
+                            accessibilityLabel={`${monthNames.at(currentMonthView)}, ${translate('common.currentMonth')}`}
+                            role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.MONTH_PICKER}
+                        >
+                            <Text
+                                style={themeStyles.sidebarLinkTextBold}
+                                testID="currentMonthText"
+                                numberOfLines={1}
+                            >
+                                {monthNames.at(currentMonthView)}
+                            </Text>
+                        </PressableWithFeedback>
+                    </View>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="next-month-arrow"
-                        disabled={!hasAvailableDatesNextMonth}
+                        disabled={isAtMaxBoundary}
                         onPress={moveToNextMonth}
                         hoverDimmingValue={1}
-                        accessibilityLabel={translate('common.next')}
+                        accessibilityLabel={translate('common.nextMonth')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_MONTH}
                     >
-                        <ArrowIcon disabled={!hasAvailableDatesNextMonth} />
+                        <ArrowIcon disabled={isAtMaxBoundary} />
+                    </PressableWithFeedback>
+                </View>
+                <View style={[themeStyles.alignItemsCenter, themeStyles.flexRow, {flex: 2}]}>
+                    <PressableWithFeedback
+                        shouldUseAutoHitSlop={false}
+                        testID="prev-year-arrow"
+                        disabled={isAtMinYear}
+                        onPress={moveToPrevYear}
+                        hoverDimmingValue={1}
+                        accessibilityLabel={translate('common.previousYear')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.PREV_YEAR}
+                    >
+                        <ArrowIcon
+                            disabled={isAtMinYear}
+                            direction={CONST.DIRECTION.LEFT}
+                        />
+                    </PressableWithFeedback>
+                    <View style={[themeStyles.flex1, themeStyles.alignItemsCenter]}>
+                        <PressableWithFeedback
+                            onPress={() => {
+                                pressableRef?.current?.blur();
+                                setIsYearPickerVisible(true);
+                            }}
+                            ref={pressableRef}
+                            style={[themeStyles.alignItemsCenter]}
+                            wrapperStyle={[themeStyles.alignItemsCenter]}
+                            hoverDimmingValue={1}
+                            disabled={maxYear <= minYear}
+                            testID="currentYearButton"
+                            accessibilityLabel={`${currentYearView}, ${translate('common.currentYear')}`}
+                            role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.YEAR_PICKER}
+                        >
+                            <Text
+                                style={themeStyles.sidebarLinkTextBold}
+                                testID="currentYearText"
+                            >
+                                {currentYearView}
+                            </Text>
+                        </PressableWithFeedback>
+                    </View>
+                    <PressableWithFeedback
+                        shouldUseAutoHitSlop={false}
+                        testID="next-year-arrow"
+                        disabled={isAtMaxYear}
+                        onPress={moveToNextYear}
+                        hoverDimmingValue={1}
+                        accessibilityLabel={translate('common.nextYear')}
+                        role={CONST.ROLE.BUTTON}
+                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.NEXT_YEAR}
+                    >
+                        <ArrowIcon disabled={isAtMaxYear} />
                     </PressableWithFeedback>
                 </View>
             </View>
-            <View style={themeStyles.flexRow}>
+            <View style={[themeStyles.flexRow, webOnlyMarginStyle]}>
                 {daysOfWeek.map((dayOfWeek) => (
                     <View
                         key={dayOfWeek}
@@ -213,58 +364,42 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            {calendarDaysMatrix?.map((week) => (
+            {/* On mobile (isSmallScreenWidth is always true on native), the height animation is skipped
+                so using Animated.View is unnecessary. Using a plain View with collapsable={false} avoids
+                activating Reanimated's Fabric commit hook, which on Android can interfere with React's
+                reconciliation of child view styles and prevent day-selection background changes from painting. */}
+            {isSmallScreenWidth ? (
                 <View
-                    key={`week-${week.toString()}`}
-                    style={themeStyles.flexRow}
+                    collapsable={false}
+                    style={[webOnlyMarginStyle, themeStyles.calendarBodyContainer]}
                 >
-                    {week.map((day, index) => {
-                        const currentDate = new Date(currentYearView, currentMonthView, day);
-                        const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
-                        const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
-                        const isDisabled = !day || isBeforeMinDate || isAfterMaxDate;
-                        const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
-                        const handleOnPress = () => {
-                            if (!day) {
-                                return;
-                            }
-
-                            onDayPressed(day);
-                        };
-                        const key = `${index}_day-${day}`;
-                        return (
-                            <PressableWithoutFeedback
-                                key={key}
-                                disabled={isDisabled}
-                                onPress={handleOnPress}
-                                style={themeStyles.calendarDayRoot}
-                                accessibilityLabel={day?.toString() ?? ''}
-                                tabIndex={day ? 0 : -1}
-                                accessible={!!day}
-                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                            >
-                                {({hovered, pressed}) => (
-                                    <View
-                                        style={[
-                                            themeStyles.calendarDayContainer,
-                                            isSelected ? themeStyles.buttonDefaultBG : {},
-                                            !isDisabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
-                                        ]}
-                                    >
-                                        <Text style={isDisabled ? themeStyles.buttonOpacityDisabled : {}}>{day}</Text>
-                                    </View>
-                                )}
-                            </PressableWithoutFeedback>
-                        );
-                    })}
+                    {calendarWeeks}
                 </View>
-            ))}
+            ) : (
+                <Animated.View
+                    collapsable={false}
+                    style={[webOnlyMarginStyle, animatedStyle]}
+                >
+                    {calendarWeeks}
+                </Animated.View>
+            )}
             <YearPickerModal
                 isVisible={isYearPickerVisible}
-                years={years}
+                minYear={minYear}
+                maxYear={maxYear}
                 currentYear={currentYearView}
                 onYearChange={onYearSelected}
                 onClose={() => setIsYearPickerVisible(false)}
+                shouldEnableBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
+            />
+            <MonthPickerModal
+                isVisible={isMonthPickerVisible}
+                currentMonth={currentMonthView}
+                minMonth={minMonth}
+                maxMonth={maxMonth}
+                onMonthChange={onMonthSelected}
+                onClose={() => setIsMonthPickerVisible(false)}
+                shouldEnableBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </View>
     );

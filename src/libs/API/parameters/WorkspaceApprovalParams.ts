@@ -1,5 +1,4 @@
 type CreateWorkspaceApprovalParams = {
-    authToken: string;
     policyID: string;
     /**
      * Stringified JSON object with type of following structure:
@@ -10,11 +9,12 @@ type CreateWorkspaceApprovalParams = {
      * }>
      */
     employees: string;
-};
 
-type UpdateWorkspaceApprovalParams = CreateWorkspaceApprovalParams & {
+    /** Email of the approver to make the policy's default approver */
     defaultApprover?: string;
 };
+
+type UpdateWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
 
 type RemoveWorkspaceApprovalParams = CreateWorkspaceApprovalParams;
 

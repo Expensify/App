@@ -1,29 +1,38 @@
-import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
-import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
-import LottieView from 'lottie-react-native';
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useContext, useEffect, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+
 import useAppState from '@hooks/useAppState';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import isSideModalNavigator from '@libs/Navigation/isSideModalNavigator';
+
+import Accessibility from '@libs/Accessibility';
+import {getBrowser, isMobile} from '@libs/Browser';
+import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
-import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import {useSplashScreenState} from '@src/SplashScreenStateContext';
+
+import type {AnimationObject, LottieViewProps} from 'lottie-react-native';
+import type {ForwardedRef} from 'react';
+
+import {NavigationContainerRefContext, NavigationContext} from '@react-navigation/native';
+import LottieView from 'lottie-react-native';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type Props = {
+    ref?: ForwardedRef<LottieView | null>;
     source: DotLottieAnimation;
     shouldLoadAfterInteractions?: boolean;
 } & Omit<LottieViewProps, 'source'>;
 
-function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props, forwardedRef: ForwardedRef<LottieView>) {
+function Lottie({ref, source, webStyle, shouldLoadAfterInteractions, ...props}: Props) {
     const animationRef = useRef<LottieView | null>(null);
     const appState = useAppState();
-    const {splashScreenState} = useSplashScreenStateContext();
+    const {splashScreenState} = useSplashScreenState();
     const styles = useThemeStyles();
     const [isError, setIsError] = React.useState(false);
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
 
     useNetwork({onReconnect: () => setIsError(false)});
 
@@ -39,19 +48,19 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             return;
         }
 
-        const interactionTask = InteractionManager.runAfterInteractions(() => {
-            setIsInteractionComplete(true);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => setIsInteractionComplete(true),
         });
 
         return () => {
-            interactionTask.cancel();
+            handle.cancel();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const aspectRatioStyle = styles.aspectRatioLottie(source);
 
-    const browser = Browser.getBrowser();
+    const browser = getBrowser();
     const [hasNavigatedAway, setHasNavigatedAway] = React.useState(false);
     const navigationContainerRef = useContext(NavigationContainerRefContext);
     const navigator = useContext(NavigationContext);
@@ -62,9 +71,12 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         }
         const unsubscribeNavigationFocus = navigator.addListener('focus', () => {
             setHasNavigatedAway(false);
+            if (!isReduceMotionEnabled) {
+                animationRef.current?.play();
+            }
         });
         return unsubscribeNavigationFocus;
-    }, [browser, navigationContainerRef, navigator]);
+    }, [browser, navigationContainerRef, navigator, isReduceMotionEnabled]);
 
     useEffect(() => {
         if (!browser || !navigationContainerRef || !navigator) {
@@ -73,7 +85,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
         const unsubscribeNavigationBlur = navigator.addListener('blur', () => {
             const state = navigationContainerRef.getRootState();
             const targetRouteName = state?.routes?.[state?.index ?? 0]?.name;
-            if (!isSideModalNavigator(targetRouteName)) {
+            if (!isSideModalNavigator(targetRouteName) || isMobile()) {
                 setHasNavigatedAway(true);
             }
         });
@@ -93,31 +105,44 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
     // we'll just render an empty view as the fallback to prevent
     // 1. heavy rendering, see issues: https://github.com/Expensify/App/issues/34696 and https://github.com/Expensify/App/issues/47273
     // 2. lag on react navigation transitions, see issue: https://github.com/Expensify/App/issues/44812
-    if (isError || appState.isBackground || !animationFile || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || (!isInteractionComplete && shouldLoadAfterInteractions)) {
-        return <View style={[aspectRatioStyle, props.style]} />;
+    if (
+        isError ||
+        appState.isBackground ||
+        !animationFile ||
+        hasNavigatedAway ||
+        splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN ||
+        (!isInteractionComplete && shouldLoadAfterInteractions)
+    ) {
+        return (
+            <View
+                style={[aspectRatioStyle, props.style]}
+                testID={CONST.LOTTIE_VIEW_TEST_ID}
+            />
+        );
     }
 
     return (
         <LottieView
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             source={animationFile}
-            ref={(ref) => {
-                if (typeof forwardedRef === 'function') {
-                    forwardedRef(ref);
-                } else if (forwardedRef && 'current' in forwardedRef) {
+            key={`${hasNavigatedAway}`}
+            ref={(newRef) => {
+                animationRef.current = newRef;
+                if (typeof ref === 'function') {
+                    ref(newRef);
+                } else if (ref && 'current' in ref) {
+                    // Forwarding the LottieView ref onto the caller-provided RefObject requires mutating `.current`.
                     // eslint-disable-next-line no-param-reassign
-                    forwardedRef.current = ref;
+                    ref.current = newRef;
                 }
-                animationRef.current = ref;
             }}
+            autoPlay={props.autoPlay && !isReduceMotionEnabled}
             style={[aspectRatioStyle, props.style]}
             webStyle={{...aspectRatioStyle, ...webStyle}}
             onAnimationFailure={() => setIsError(true)}
+            testID={CONST.LOTTIE_VIEW_TEST_ID}
         />
     );
 }
 
-Lottie.displayName = 'Lottie';
-
-export default forwardRef(Lottie);
+export default Lottie;

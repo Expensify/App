@@ -1,23 +1,30 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
-import * as ErrorUtils from '@libs/ErrorUtils';
+
+import {updateQuickbooksOnlineReimbursementAccountID} from '@libs/actions/connections/QuickbooksOnline';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
+
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SelectorType = ListItem & {
     value: string;
@@ -26,55 +33,42 @@ type SelectorType = ListItem & {
 function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const accountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
+    const accountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])];
 
-    const qboOnlineSelectorOptions = useMemo<SelectorType[]>(
-        () =>
-            accountOptions?.map(({id, name}) => ({
-                value: id,
-                text: name,
-                keyForList: id,
-                isSelected: qboConfig?.reimbursementAccountID === id,
-            })),
-        [qboConfig?.reimbursementAccountID, accountOptions],
-    );
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.accountSelectDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    const qboOnlineSelectorOptions: SelectorType[] = accountOptions?.map(({id, name}) => ({
+        value: id,
+        text: name,
+        keyForList: id,
+        isSelected: qboConfig?.reimbursementAccountID === id,
+    }));
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.qbo.advancedConfig.accountSelectDescription', integrationName)}</Text>
+        </View>
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList, [qboOnlineSelectorOptions]);
+    const initiallyFocusedOptionKey = qboOnlineSelectorOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const saveSelection = useCallback(
-        ({value}: SelectorType) => {
-            if (value !== qboConfig?.reimbursementAccountID) {
-                QuickbooksOnline.updateQuickbooksOnlineReimbursementAccountID(policyID, value, qboConfig?.reimbursementAccountID);
-            }
-            Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
-        },
-        [policyID, qboConfig?.reimbursementAccountID],
-    );
+    const saveSelection = ({value}: SelectorType) => {
+        updateQuickbooksOnlineReimbursementAccountID(policyID, value, qboConfig?.reimbursementAccountID);
+        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID));
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={Illustrations.TeleScope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.qbo.noAccountsFound')}
+            subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (
@@ -82,25 +76,23 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksAccountSelectPage.displayName}
-            sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
-            listItem={RadioListItem}
+            displayName="QuickbooksAccountSelectPage"
+            data={qboOnlineSelectorOptions}
             headerContent={listHeaderComponent}
             onSelectRow={saveSelection}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             listEmptyContent={listEmptyContent}
             title="workspace.qbo.advancedConfig.qboBillPaymentAccount"
+            headerTitleAlreadyTranslated={translate('workspace.qbo.advancedConfig.qboBillPaymentAccount', integrationName)}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID], qboConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
+            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.mv3]}
             onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
         />
     );
 }
-
-QuickbooksAccountSelectPage.displayName = 'QuickbooksAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksAccountSelectPage);

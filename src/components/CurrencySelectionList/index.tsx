@@ -1,110 +1,125 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import SelectableListItem from '@components/SelectionList/SelectableListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
+
+import getMatchScore from '@libs/getMatchScore';
+
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
 
 function CurrencySelectionList({
     searchInputLabel,
     initiallySelectedCurrencyCode,
     onSelect,
-    selectedCurrencies = [],
-    canSelectMultiple = false,
+    didScreenTransitionEnd = true,
+    selectedCurrencies = getEmptyArray<string>(),
     recentlyUsedCurrencies,
+    excludedCurrencies = [],
+    ...restProps
 }: CurrencySelectionListProps) {
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const {currencyList} = useCurrencyListState();
+    const {getCurrencySymbol} = useCurrencyListActions();
     const [searchValue, setSearchValue] = useState('');
+    const selectedCurrencyCodes = [initiallySelectedCurrencyCode, ...selectedCurrencies].filter(Boolean);
+    const initiallyPinnedCurrencyCodes = useInitialSelection(selectedCurrencyCodes, {resetOnFocus: true});
     const {translate} = useLocalize();
-    const getUnselectedOptions = useCallback((options: CurrencyListItem[]) => options.filter((option) => !option.isSelected), []);
-    const {sections, headerMessage} = useMemo(() => {
-        const currencyOptions: CurrencyListItem[] = Object.entries(currencyList ?? {}).reduce((acc, [currencyCode, currencyInfo]) => {
-            const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
-            if (isSelectedCurrency || !currencyInfo?.retired) {
-                acc.push({
-                    currencyName: currencyInfo?.name ?? '',
-                    text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
-                    currencyCode,
-                    keyForList: currencyCode,
-                    isSelected: isSelectedCurrency,
-                });
-            }
-            return acc;
-        }, [] as CurrencyListItem[]);
+    const initiallyPinnedCurrencyCodeSet = new Set(initiallyPinnedCurrencyCodes);
+    const getUnpinnedOptions = (options: CurrencyListItem[]) => options.filter((option) => !initiallyPinnedCurrencyCodeSet.has(option.currencyCode));
 
-        const recentlyUsedCurrencyOptions: CurrencyListItem[] = Array.isArray(recentlyUsedCurrencies)
-            ? recentlyUsedCurrencies?.map((currencyCode) => {
-                  const currencyInfo = currencyList?.[currencyCode];
-                  const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
-                  return {
-                      currencyName: currencyInfo?.name ?? '',
-                      text: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`,
-                      currencyCode,
-                      keyForList: currencyCode,
-                      isSelected: isSelectedCurrency,
-                  };
-              })
-            : [];
-
-        const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
-        const filteredCurrencies = currencyOptions.filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName));
-        const isEmpty = searchValue.trim() && !filteredCurrencies.length;
-        const shouldDisplayRecentlyOptions = !isEmptyObject(recentlyUsedCurrencyOptions) && !searchValue;
-        const selectedOptions = filteredCurrencies.filter((option) => option.isSelected);
-        const shouldDisplaySelectedOptionOnTop = selectedOptions.length > 0;
-        const unselectedOptions = getUnselectedOptions(filteredCurrencies);
-        const result = [];
-
-        if (shouldDisplaySelectedOptionOnTop) {
-            result.push({
-                title: '',
-                data: selectedOptions,
-                shouldShow: true,
+    const currencyOptions: CurrencyListItem[] = Object.entries(currencyList).reduce((acc, [currencyCode, currencyInfo]) => {
+        const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
+        if (!excludedCurrencies.includes(currencyCode) && (isSelectedCurrency || !currencyInfo?.retired)) {
+            acc.push({
+                currencyName: currencyInfo?.name ?? '',
+                text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`,
+                currencyCode,
+                keyForList: currencyCode,
+                isSelected: isSelectedCurrency,
             });
         }
+        return acc;
+    }, [] as CurrencyListItem[]);
 
-        if (shouldDisplayRecentlyOptions) {
-            if (!isEmpty) {
-                result.push(
-                    {
-                        title: translate('common.recents'),
-                        data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(recentlyUsedCurrencyOptions) : recentlyUsedCurrencyOptions,
-                        shouldShow: shouldDisplayRecentlyOptions,
-                    },
-                    {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unselectedOptions : filteredCurrencies},
-                );
-            }
-        } else if (!isEmpty) {
-            result.push({
-                data: shouldDisplaySelectedOptionOnTop ? unselectedOptions : filteredCurrencies,
-            });
+    const recentlyUsedCurrencyOptions: CurrencyListItem[] = Array.isArray(recentlyUsedCurrencies)
+        ? recentlyUsedCurrencies?.map((currencyCode) => {
+              const currencyInfo = currencyList?.[currencyCode];
+              const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode;
+              return {
+                  currencyName: currencyInfo?.name ?? '',
+                  text: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`,
+                  currencyCode,
+                  keyForList: currencyCode,
+                  isSelected: isSelectedCurrency,
+              };
+          })
+        : [];
+
+    const searchRegex = new RegExp(Str.escapeForRegExp(searchValue.trim()), 'i');
+    const filteredCurrencies = currencyOptions
+        .filter((currencyOption) => searchRegex.test(currencyOption.text ?? '') || searchRegex.test(currencyOption.currencyName))
+        .sort((currency1, currency2) => getMatchScore(currency2.text ?? '', searchValue) - getMatchScore(currency1.text ?? '', searchValue));
+
+    const isEmpty = searchValue.trim() && !filteredCurrencies.length;
+    const shouldDisplayRecentlyOptions = !isEmptyObject(recentlyUsedCurrencyOptions) && !searchValue;
+    const initiallyPinnedOptions = filteredCurrencies.filter((option) => initiallyPinnedCurrencyCodeSet.has(option.currencyCode));
+    const shouldDisplayInitiallyPinnedOptionsOnTop = initiallyPinnedOptions.length > 0;
+    const unpinnedOptions = getUnpinnedOptions(filteredCurrencies);
+    const sections = [];
+
+    if (shouldDisplayInitiallyPinnedOptionsOnTop) {
+        sections.push({
+            title: undefined,
+            data: initiallyPinnedOptions,
+            sectionIndex: 0,
+        });
+    }
+
+    if (shouldDisplayRecentlyOptions) {
+        if (!isEmpty) {
+            sections.push(
+                {
+                    title: translate('common.recents'),
+                    data: shouldDisplayInitiallyPinnedOptionsOnTop ? getUnpinnedOptions(recentlyUsedCurrencyOptions) : recentlyUsedCurrencyOptions,
+                    sectionIndex: 1,
+                },
+                {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unpinnedOptions : filteredCurrencies, sectionIndex: 2},
+            );
         }
-
-        return {sections: result, headerMessage: isEmpty ? translate('common.noResultsFound') : ''};
-    }, [currencyList, searchValue, translate, initiallySelectedCurrencyCode, selectedCurrencies, getUnselectedOptions, recentlyUsedCurrencies]);
+    } else if (!isEmpty) {
+        sections.push({
+            data: shouldDisplayInitiallyPinnedOptionsOnTop ? unpinnedOptions : filteredCurrencies,
+            sectionIndex: 3,
+        });
+    }
+    const textInputOptions = {
+        label: searchInputLabel,
+        value: searchValue,
+        onChangeText: setSearchValue,
+        headerMessage: isEmpty ? translate('common.noResultsFound') : undefined,
+    };
 
     return (
-        <SelectionList
+        <SelectionListWithSections
+            {...restProps}
             sections={sections}
-            ListItem={canSelectMultiple ? SelectableListItem : RadioListItem}
-            textInputLabel={searchInputLabel}
-            textInputValue={searchValue}
-            onChangeText={setSearchValue}
+            ListItem={SingleSelectListItem}
             onSelectRow={onSelect}
+            textInputOptions={textInputOptions}
+            shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect
-            headerMessage={headerMessage}
-            initiallyFocusedOptionKey={initiallySelectedCurrencyCode}
-            showScrollIndicator
-            canSelectMultiple={canSelectMultiple}
+            shouldUpdateFocusedIndex
+            initiallyFocusedItemKey={initiallySelectedCurrencyCode}
+            shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
         />
     );
 }
-
-CurrencySelectionList.displayName = 'CurrencySelectionList';
 
 export default CurrencySelectionList;

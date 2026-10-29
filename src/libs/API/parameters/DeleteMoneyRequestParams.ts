@@ -1,6 +1,6 @@
 type DeleteMoneyRequestParams = {
-    transactionID: string;
-    reportActionID: string;
+    transactionID: string | undefined;
+    reportActionID?: string;
 };
 
 export default DeleteMoneyRequestParams;

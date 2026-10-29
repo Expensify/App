@@ -1,27 +1,32 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TabSelector from '@components/TabSelector/TabSelector';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolations from '@hooks/useTransactionViolations';
+
 import Debug from '@libs/actions/Debug';
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
+import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
+
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {TransactionViolation} from '@src/types/onyx';
 
-type DebugTransactionViolationPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION>;
+import React from 'react';
+import {View} from 'react-native';
+
+type DebugTransactionViolationPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.TRANSACTION_VIOLATION>;
 
 function DebugTransactionViolationPage({
     route: {
@@ -29,24 +34,45 @@ function DebugTransactionViolationPage({
     },
 }: DebugTransactionViolationPageProps) {
     const {translate} = useLocalize();
-    const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-    const transactionViolation = useMemo(() => transactionViolations?.[Number(index)], [index, transactionViolations]);
+    const transactionViolations = useTransactionViolations(transactionID);
+    const transactionViolation = transactionViolations?.[Number(index)];
+
     const styles = useThemeStyles();
 
-    const saveChanges = useCallback(
-        (data: Record<string, unknown>) => {
-            const updatedTransactionViolations = [...(transactionViolations ?? [])];
-            updatedTransactionViolations.splice(Number(index), 1, data as TransactionViolation);
-            Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
-        },
-        [index, transactionID, transactionViolations],
-    );
+    const saveChanges = (data: Record<string, unknown>) => {
+        const updatedTransactionViolations = [...(transactionViolations ?? [])];
+        updatedTransactionViolations.splice(Number(index), 1, data as TransactionViolation);
+        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+    };
 
-    const deleteTransactionViolation = useCallback(() => {
+    const deleteTransactionViolation = () => {
         const updatedTransactionViolations = [...(transactionViolations ?? [])];
         updatedTransactionViolations.splice(Number(index), 1);
-        Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
-    }, [index, transactionID, transactionViolations]);
+        Navigation.goBack(undefined, {
+            // We need to wait for navigation animations to finish before deleting a violation,
+            // otherwise the user will see a not found page briefly.
+            afterTransition: () => {
+                Debug.setDebugData(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, updatedTransactionViolations);
+            },
+        });
+    };
+
+    const detailsTab = (
+        <DebugDetails
+            formType={CONST.DEBUG.FORMS.TRANSACTION_VIOLATION}
+            data={transactionViolation}
+            onSave={saveChanges}
+            onDelete={deleteTransactionViolation}
+            validate={DebugUtils.validateTransactionViolationDraftProperty}
+        />
+    );
+
+    const jsonTab = <DebugJSON data={transactionViolation ?? {}} />;
+
+    const routes: DebugTabNavigatorRoutes = [
+        {name: CONST.DEBUG.DETAILS, content: detailsTab},
+        {name: CONST.DEBUG.JSON, content: jsonTab},
+    ];
 
     if (!transactionViolation) {
         return <NotFoundPage />;
@@ -56,8 +82,8 @@ function DebugTransactionViolationPage({
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
-            testID={DebugTransactionViolationPage.displayName}
+            shouldEnableMinHeight={canUseTouchScreen()}
+            testID="DebugTransactionViolationPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -65,29 +91,14 @@ function DebugTransactionViolationPage({
                         title={`${translate('debug.debug')} - ${translate('debug.transactionViolation')}`}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <OnyxTabNavigator
+                    <DebugTabNavigator
                         id={CONST.TAB.DEBUG_TAB_ID}
-                        tabBar={TabSelector}
-                    >
-                        <TopTab.Screen name={CONST.DEBUG.DETAILS}>
-                            {() => (
-                                <DebugDetails
-                                    formType={CONST.DEBUG.FORMS.TRANSACTION_VIOLATION}
-                                    data={transactionViolation}
-                                    onSave={saveChanges}
-                                    onDelete={deleteTransactionViolation}
-                                    validate={DebugUtils.validateTransactionViolationDraftProperty}
-                                />
-                            )}
-                        </TopTab.Screen>
-                        <TopTab.Screen name={CONST.DEBUG.JSON}>{() => <DebugJSON data={transactionViolation ?? {}} />}</TopTab.Screen>
-                    </OnyxTabNavigator>
+                        routes={routes}
+                    />
                 </View>
             )}
         </ScreenWrapper>
     );
 }
-
-DebugTransactionViolationPage.displayName = 'DebugTransactionViolationPage';
 
 export default DebugTransactionViolationPage;

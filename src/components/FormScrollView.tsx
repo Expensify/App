@@ -1,16 +1,21 @@
-import type {ForwardedRef} from 'react';
-import React from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import ScrollView from './ScrollView';
 
 type FormScrollViewProps = ScrollViewProps & {
     /** Form elements */
     children: React.ReactNode;
+
+    ref?: ForwardedRef<ComponentRef<typeof RNScrollView>>;
 };
 
-function FormScrollView({children, ...rest}: FormScrollViewProps, ref: ForwardedRef<RNScrollView>) {
+function FormScrollView({children, ref, ...rest}: FormScrollViewProps) {
     const styles = useThemeStyles();
     return (
         <ScrollView
@@ -18,7 +23,6 @@ function FormScrollView({children, ...rest}: FormScrollViewProps, ref: Forwarded
             ref={ref}
             contentContainerStyle={styles.flexGrow1}
             keyboardShouldPersistTaps="handled"
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
             {children}
@@ -26,6 +30,4 @@ function FormScrollView({children, ...rest}: FormScrollViewProps, ref: Forwarded
     );
 }
 
-FormScrollView.displayName = 'FormScrollView';
-
-export default React.forwardRef(FormScrollView);
+export default FormScrollView;

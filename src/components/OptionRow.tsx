@@ -1,66 +1,49 @@
-import lodashIsEqual from 'lodash/isEqual';
-import React, {useEffect, useRef, useState} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {InteractionManager, StyleSheet, View} from 'react-native';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
-import Button from './Button';
+
+import type {ComponentRef} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import AccountAvatar from './Avatar/connected/AccountAvatar';
+import ReportAvatar from './Avatar/connected/ReportAvatar';
+import {AvatarTooltipsProvider} from './Avatar/tooltips/AvatarTooltipContext';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
-import MultipleAvatars from './MultipleAvatars';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import SelectCircle from './SelectCircle';
-import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 
+type OptionDataWithOptionalReportID = Omit<OptionData, 'reportID'> & {reportID?: string};
+
 type OptionRowProps = {
-    /** Style for hovered state */
     hoverStyle?: StyleProp<ViewStyle>;
 
     /** Option to allow the user to choose from can be type 'report' or 'user' */
-    option: OptionData;
+    option: OptionDataWithOptionalReportID;
 
-    /** Whether this option is currently in focus so we can modify its style */
     optionIsFocused?: boolean;
-
-    /** A function that is called when an option is selected. Selected option is passed as a param */
-    onSelectRow?: (option: OptionData, refElement: View | HTMLDivElement | null) => void | Promise<void>;
-
-    /** Whether we should show the selected state */
-    showSelectedState?: boolean;
-
-    /** Whether to show a button pill instead of a tickbox */
-    shouldShowSelectedStateAsButton?: boolean;
-
-    /** Text for button pill */
-    selectedStateButtonText?: string;
-
-    /** Callback to fire when the multiple selector (tickbox or button) is clicked */
-    onSelectedStatePressed?: (option: OptionData) => void;
-
-    /** Whether we highlight selected option */
-    highlightSelected?: boolean;
-
-    /** Whether this item is selected */
+    onSelectRow?: () => void;
     isSelected?: boolean;
 
     /** Display the text of the option in bold font style */
     boldStyle?: boolean;
 
-    /** Whether to show the title tooltip */
     showTitleTooltip?: boolean;
-
-    /** Whether this option should be disabled */
     isDisabled?: boolean;
 
     /** Whether to show a line separating options in list */
@@ -69,7 +52,6 @@ type OptionRowProps = {
     /** Whether to remove the lateral padding and align the content with the margins */
     shouldDisableRowInnerPadding?: boolean;
 
-    /** Whether to prevent default focusing on select */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to wrap large text up to 2 lines */
@@ -90,40 +72,41 @@ function OptionRow({
     onSelectRow,
     style,
     hoverStyle,
-    selectedStateButtonText,
     keyForList,
     isDisabled: isOptionDisabled = false,
     isMultilineSupported = false,
-    shouldShowSelectedStateAsButton = false,
-    highlightSelected = false,
     shouldHaveOptionSeparator = false,
     showTitleTooltip = false,
     optionIsFocused = false,
     boldStyle = false,
-    onSelectedStatePressed = () => {},
     backgroundColor,
     isSelected = false,
-    showSelectedState = false,
     shouldDisableRowInnerPadding = false,
     shouldPreventDefaultFocusOnSelectRow = false,
 }: OptionRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const pressableRef = useRef<View | HTMLDivElement>(null);
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark']);
+    const pressableRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
     useEffect(() => {
         setIsDisabled(isOptionDisabled);
     }, [isOptionDisabled]);
 
+    const onFormatAmount = (amountAsInt: number, currencyParam?: string) => {
+        const decimals = getCurrencyDecimals(currencyParam);
+        return convertToFrontendAmountAsString(amountAsInt, decimals);
+    };
+
     const text = option.text ?? '';
     const fullTitle = isMultilineSupported ? text.trimStart() : text;
     const indentsLength = text.length - fullTitle.length;
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
-    const textStyle = optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = boldStyle || option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textUnreadStyle = boldStyle || option.boldStyle ? [styles.sidebarLinkText, styles.sidebarLinkTextBold] : [styles.sidebarLinkText];
     const displayNameStyle: StyleProp<TextStyle> = [
         styles.optionDisplayName,
         textUnreadStyle,
@@ -133,7 +116,7 @@ function OptionRow({
         isMultilineSupported ? {paddingLeft} : {},
     ];
     const alternateTextStyle: StyleProp<TextStyle> = [
-        textStyle,
+        styles.sidebarLinkText,
         styles.optionAlternateText,
         styles.textLabelSupporting,
         style,
@@ -149,11 +132,19 @@ function OptionRow({
     const firstIcon = option?.icons?.at(0);
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = ReportUtils.getDisplayNamesWithTooltips((option.participantsList ?? (option.accountID ? [option] : [])).slice(0, 10), shouldUseShortFormInTooltip);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        (option.participantsList ?? (option.accountID ? [option as OptionData] : [])).slice(0, 10),
+        shouldUseShortFormInTooltip,
+        localeCompare,
+        formatPhoneNumber,
+        translate,
+    );
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
     }
+
+    const reportID = (option.iouReportID ?? option.reportID) || undefined;
 
     return (
         <Hoverable>
@@ -167,23 +158,15 @@ function OptionRow({
                     <PressableWithFeedback
                         id={keyForList}
                         ref={pressableRef}
+                        sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.BASE_LIST_ITEM}
                         onPress={(e) => {
                             if (!onSelectRow) {
                                 return;
                             }
 
                             setIsDisabled(true);
-                            if (e) {
-                                e.preventDefault();
-                            }
-                            let result = onSelectRow(option, pressableRef.current);
-                            if (!(result instanceof Promise)) {
-                                result = Promise.resolve();
-                            }
-
-                            InteractionManager.runAfterInteractions(() => {
-                                result?.finally(() => setIsDisabled(isOptionDisabled));
-                            });
+                            e?.preventDefault();
+                            onSelectRow();
                         }}
                         disabled={isDisabled}
                         style={[
@@ -200,30 +183,30 @@ function OptionRow({
                         accessibilityLabel={option.text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
-                        hoverStyle={!optionIsFocused ? hoverStyle ?? styles.sidebarLinkHover : undefined}
+                        hoverStyle={!optionIsFocused ? (hoverStyle ?? styles.sidebarLinkHover) : undefined}
                         needsOffscreenAlphaCompositing={(option.icons?.length ?? 0) >= 2}
                         onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (event) => event.preventDefault() : undefined}
                         tabIndex={option.tabIndex ?? 0}
                     >
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                {!!option.icons?.length &&
-                                    firstIcon &&
-                                    (option.shouldShowSubscript ? (
-                                        <SubscriptAvatar
-                                            mainAvatar={firstIcon}
-                                            secondaryAvatar={option.icons.at(1)}
-                                            backgroundColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
-                                        />
-                                    ) : (
-                                        <MultipleAvatars
-                                            icons={option.icons}
-                                            size={CONST.AVATAR_SIZE.DEFAULT}
-                                            secondAvatarStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                            shouldShowTooltip={showTitleTooltip && OptionsListUtils.shouldOptionShowTooltip(option)}
-                                        />
-                                    ))}
+                                {!!option.icons?.length && !!firstIcon && (
+                                    <AvatarTooltipsProvider isEnabled={showTitleTooltip && !option.private_isArchived}>
+                                        {!reportID && option.accountID ? (
+                                            <AccountAvatar
+                                                accountID={option.accountID}
+                                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                            />
+                                        ) : (
+                                            <ReportAvatar
+                                                backdropColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                                reportID={reportID}
+                                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                            />
+                                        )}
+                                    </AvatarTooltipsProvider>
+                                )}
+
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
@@ -260,6 +243,7 @@ function OptionRow({
                                         amount={option.amountInputProps.amount}
                                         currency={option.amountInputProps.currency}
                                         prefixCharacter={option.amountInputProps.prefixCharacter}
+                                        onFormatAmount={onFormatAmount}
                                         disableKeyboard={false}
                                         isCurrencyPressable={false}
                                         hideFocusedState={false}
@@ -274,12 +258,13 @@ function OptionRow({
                                         ]}
                                         onAmountChange={option.amountInputProps.onAmountChange}
                                         maxLength={option.amountInputProps.maxLength}
+                                        shouldWrapInputInContainer={false}
                                     />
                                 ) : null}
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
-                                            src={Expensicons.DotIndicator}
+                                            src={icons.DotIndicator}
                                             fill={theme.danger}
                                         />
                                     </View>
@@ -287,38 +272,7 @@ function OptionRow({
                                 {!isSelected && option.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
                                     <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
                                         <Icon
-                                            src={Expensicons.DotIndicator}
-                                            fill={theme.iconSuccessFill}
-                                        />
-                                    </View>
-                                )}
-                                {showSelectedState &&
-                                    (shouldShowSelectedStateAsButton && !isSelected ? (
-                                        <Button
-                                            style={[styles.pl2]}
-                                            text={selectedStateButtonText ?? translate('common.select')}
-                                            onPress={() => onSelectedStatePressed(option)}
-                                            small
-                                            shouldUseDefaultHover={false}
-                                        />
-                                    ) : (
-                                        <PressableWithFeedback
-                                            onPress={() => onSelectedStatePressed(option)}
-                                            disabled={isDisabled}
-                                            role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={CONST.ROLE.BUTTON}
-                                            style={[styles.ml2, styles.optionSelectCircle]}
-                                        >
-                                            <SelectCircle
-                                                isChecked={isSelected}
-                                                selectCircleStyles={styles.ml0}
-                                            />
-                                        </PressableWithFeedback>
-                                    ))}
-                                {isSelected && highlightSelected && (
-                                    <View style={styles.defaultCheckmarkWrapper}>
-                                        <Icon
-                                            src={Expensicons.Checkmark}
+                                            src={icons.DotIndicator}
                                             fill={theme.iconSuccessFill}
                                         />
                                     </View>
@@ -347,30 +301,6 @@ function OptionRow({
 
 OptionRow.displayName = 'OptionRow';
 
-export default React.memo(
-    OptionRow,
-    (prevProps, nextProps) =>
-        prevProps.isDisabled === nextProps.isDisabled &&
-        prevProps.isMultilineSupported === nextProps.isMultilineSupported &&
-        prevProps.isSelected === nextProps.isSelected &&
-        prevProps.shouldHaveOptionSeparator === nextProps.shouldHaveOptionSeparator &&
-        prevProps.selectedStateButtonText === nextProps.selectedStateButtonText &&
-        prevProps.showSelectedState === nextProps.showSelectedState &&
-        prevProps.highlightSelected === nextProps.highlightSelected &&
-        prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
-        lodashIsEqual(prevProps.option.icons, nextProps.option.icons) &&
-        prevProps.optionIsFocused === nextProps.optionIsFocused &&
-        prevProps.option.text === nextProps.option.text &&
-        prevProps.option.alternateText === nextProps.option.alternateText &&
-        prevProps.option.descriptiveText === nextProps.option.descriptiveText &&
-        prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator &&
-        prevProps.option.shouldShowSubscript === nextProps.option.shouldShowSubscript &&
-        prevProps.option.ownerAccountID === nextProps.option.ownerAccountID &&
-        prevProps.option.subtitle === nextProps.option.subtitle &&
-        prevProps.option.pendingAction === nextProps.option.pendingAction &&
-        prevProps.option.customIcon === nextProps.option.customIcon &&
-        prevProps.option.tabIndex === nextProps.option.tabIndex &&
-        lodashIsEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
-);
+export default OptionRow;
 
 export type {OptionRowProps};

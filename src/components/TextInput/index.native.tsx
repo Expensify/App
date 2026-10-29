@@ -1,11 +1,15 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useEffect} from 'react';
-import {AppState, Keyboard} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BaseTextInput from './BaseTextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from './BaseTextInput/types';
 
-function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef>) {
+import Log from '@libs/Log';
+
+import React, {useEffect} from 'react';
+import {AppState, Keyboard} from 'react-native';
+
+import type {BaseTextInputProps} from './BaseTextInput/types';
+
+import BaseTextInput from './BaseTextInput';
+
+function TextInput({ref, navigation, ...props}: BaseTextInputProps) {
     const styles = useThemeStyles();
 
     useEffect(() => {
@@ -13,8 +17,12 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
             return;
         }
 
+        if (!navigation) {
+            Log.warn('disableKeyboard is enabled, but "navigation" isn\'t passed to the TextInput component!');
+        }
+
         const appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
-            if (!nextAppState.match(/inactive|background/)) {
+            if (!nextAppState.match(/inactive|background/) || (navigation && !navigation.isFocused())) {
                 return;
             }
 
@@ -24,21 +32,25 @@ function TextInput(props: BaseTextInputProps, ref: ForwardedRef<BaseTextInputRef
         return () => {
             appStateSubscription.remove();
         };
-    }, [props.disableKeyboard]);
+    }, [props.disableKeyboard, navigation]);
 
     return (
         <BaseTextInput
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             // Setting autoCompleteType to new-password throws an error on Android/iOS, so fall back to password in that case
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+
             ref={ref}
             autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
             inputStyle={[styles.baseTextInput, props.inputStyle]}
+            textInputContainerStyles={[props.textInputContainerStyles]}
         />
     );
 }
 
-TextInput.displayName = 'TextInput';
+// No-op on native — keyboard restoration is only needed on mobile Chrome (web)
+function getIsRestoringKeyboardFocus() {
+    return false;
+}
 
-export default forwardRef(TextInput);
+export default TextInput;
+export {getIsRestoringKeyboardFocus};

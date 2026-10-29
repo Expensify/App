@@ -1,54 +1,60 @@
-import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type {ValueSelectorModalProps} from './types';
 
-function ValueSelectorModal({items = [], selectedItem, label = '', isVisible, onClose, onItemSelected, shouldShowTooltips = true, onBackdropPress}: ValueSelectorModalProps) {
-    const styles = useThemeStyles();
+import ValueSelectionList from './ValueSelectionList';
 
-    const sections = useMemo(
-        () => [{data: items.map((item) => ({value: item.value, alternateText: item.description, text: item.label ?? '', isSelected: item === selectedItem, keyForList: item.value ?? ''}))}],
-        [items, selectedItem],
-    );
-
+function ValueSelectorModal({
+    items = [],
+    selectedItem,
+    label = '',
+    isVisible,
+    onClose,
+    onItemSelected,
+    shouldShowTooltips = true,
+    onBackdropPress,
+    shouldEnableKeyboardAvoidingView = true,
+    disableKeyboardShortcuts = false,
+    alternateNumberOfSupportedLines,
+}: ValueSelectorModalProps) {
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             isVisible={isVisible}
             onClose={() => onClose?.()}
             onModalHide={onClose}
-            hideModalContentWhileAnimating
-            useNativeDriver
             onBackdropPress={onBackdropPress}
+            shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
-                style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
-                testID={ValueSelectorModal.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID="ValueSelectorModal"
+                shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
             >
                 <HeaderWithBackButton
                     title={label}
                     onBackButtonPress={onClose}
                 />
-                <SelectionList
-                    sections={sections}
-                    onSelectRow={(item) => onItemSelected?.(item)}
-                    initiallyFocusedOptionKey={selectedItem?.value}
-                    shouldStopPropagation
+                <ValueSelectionList
+                    items={items}
+                    selectedItem={selectedItem}
+                    isVisible={isVisible}
+                    onItemSelected={onItemSelected}
                     shouldShowTooltips={shouldShowTooltips}
-                    ListItem={RadioListItem}
+                    disableKeyboardShortcuts={disableKeyboardShortcuts}
+                    alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-ValueSelectorModal.displayName = 'ValueSelectorModal';
 
 export default ValueSelectorModal;

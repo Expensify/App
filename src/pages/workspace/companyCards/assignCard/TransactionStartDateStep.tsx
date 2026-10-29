@@ -1,140 +1,171 @@
-import {format, subDays} from 'date-fns';
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
+import DatePicker from '@components/DatePicker';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
-import useSafePaddingBottomStyle from '@hooks/useSafePaddingBottomStyle';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as CompanyCards from '@userActions/CompanyCards';
+
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
+import Navigation from '@navigation/Navigation';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import TransactionStartDateSelectorModal from './TransactionStartDateSelectorModal';
+import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-function TransactionStartDateStep() {
+import {format} from 'date-fns';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+type TransactionStartDateStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE>;
+
+function TransactionStartDateStep({route}: TransactionStartDateStepProps) {
+    const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const safePaddingBottomStyle = useSafePaddingBottomStyle();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard, assignCardMeta] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const isEditing = assignCard?.isEditing;
-    const data = assignCard?.data;
-    const assigneeDisplayName = PersonalDetailsUtils.getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const cardToAssign = assignCard?.cardToAssign;
 
-    const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING);
-    const [isModalOpened, setIsModalOpened] = useState(false);
-    const [startDate, setStartDate] = useState(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+    const [localDateOption, setLocalDateOption] = useState<string>();
+    const [errorText, setErrorText] = useState('');
+    const [localStartDate, setLocalStartDate] = useState<string>();
+    const dateOptionSelected = localDateOption ?? cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+    const startDate = localStartDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            CompanyCards.setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+            setAssignCardStepAndData({
                 isEditing: false,
             });
-            return;
         }
-        CompanyCards.setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
-    };
-
-    const handleSelectDate = (date: string) => {
-        setStartDate(date);
+        Navigation.goBack();
     };
 
     const handleSelectDateOption = (dateOption: string) => {
-        setDateOptionSelected(dateOption);
+        setErrorText('');
+        setLocalDateOption(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
-            setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+            return;
         }
+        setLocalStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     };
 
     const submit = () => {
-        const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
+            setErrorText(translate('common.error.fieldRequired'));
+            return;
+        }
 
-        CompanyCards.setAssignCardStepAndData({
-            currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
-            data: {
+        setAssignCardStepAndData({
+            cardToAssign: {
                 dateOption: dateOptionSelected,
-                startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate,
+                startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? '' : startDate,
             },
             isEditing: false,
         });
+
+        Navigation.goBack();
     };
 
-    const dateOptions = useMemo(
-        () => [
-            {
-                value: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
-                text: translate('workspace.companyCards.fromTheBeginning'),
-                keyForList: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
-                isSelected: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
-            },
-            {
-                value: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
-                text: translate('workspace.companyCards.customStartDate'),
-                keyForList: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
-                isSelected: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
-            },
-        ],
-        [dateOptionSelected, translate],
-    );
+    const dateOptions = [
+        {
+            value: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+            text: translate('workspace.companyCards.fromTheBeginning'),
+            keyForList: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+            isSelected: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+        },
+        {
+            value: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
+            text: translate('workspace.companyCards.customStartDate'),
+            keyForList: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
+            isSelected: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
+        },
+    ];
+
+    const isLoading = isLoadingOnyxValue(assignCardMeta);
 
     return (
-        <InteractiveStepWrapper
-            wrapperID={TransactionStartDateStep.displayName}
-            handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={2}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
-            headerTitle={translate('workspace.companyCards.assignCard')}
-            headerSubtitle={assigneeDisplayName}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseTransactionStartDate')}</Text>
-            <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
-            <View style={styles.flex1}>
-                <SelectionList
-                    ListItem={RadioListItem}
-                    onSelectRow={({value}) => handleSelectDateOption(value)}
-                    sections={[{data: dateOptions}]}
-                    shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={dateOptionSelected}
-                    shouldUpdateFocusedIndex
-                    listFooterContent={
-                        dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
-                            <>
-                                <MenuItemWithTopDescription
-                                    description={translate('common.date')}
-                                    title={startDate}
-                                    shouldShowRightIcon
-                                    onPress={() => setIsModalOpened(true)}
-                                />
-                                <TransactionStartDateSelectorModal
-                                    isVisible={isModalOpened}
-                                    date={startDate}
-                                    handleSelectDate={handleSelectDate}
-                                    onClose={() => setIsModalOpened(false)}
-                                />
-                            </>
-                        ) : null
-                    }
-                />
-            </View>
-            <Button
-                success
-                large
-                pressOnEnter
-                text={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onPress={submit}
-                style={[styles.m5, safePaddingBottomStyle]}
-            />
-        </InteractiveStepWrapper>
+            <InteractiveStepWrapper
+                wrapperID="TransactionStartDateStep"
+                handleBackButtonPress={handleBackButtonPress}
+                headerTitle={translate('workspace.companyCards.assignCard')}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                {isLoading ? (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={styles.h100}
+                    />
+                ) : (
+                    <>
+                        <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
+                        <View style={styles.flex1}>
+                            <SelectionList
+                                ListItem={SingleSelectListItem}
+                                onSelectRow={({value}) => handleSelectDateOption(value)}
+                                data={dateOptions}
+                                shouldSingleExecuteRowSelect
+                                initiallyFocusedItemKey={dateOptionSelected}
+                                shouldUpdateFocusedIndex
+                                addBottomSafeAreaPadding
+                                footerContent={
+                                    <Button
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                        onPress={submit}
+                                    >
+                                        <Button.KeyboardShortcut />
+                                        <Button.Text>{translate(isEditing ? 'common.save' : 'common.next')}</Button.Text>
+                                    </Button>
+                                }
+                                listFooterContent={
+                                    dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (
+                                        <View style={[styles.ph5]}>
+                                            <DatePicker
+                                                inputID=""
+                                                value={startDate}
+                                                label={translate('iou.startDate')}
+                                                onInputChange={(value) => {
+                                                    if (!isRequiredFulfilled(value)) {
+                                                        setErrorText(translate('common.error.fieldRequired'));
+                                                    } else {
+                                                        setErrorText('');
+                                                    }
+                                                    setLocalStartDate(value);
+                                                }}
+                                                minDate={CONST.CALENDAR_PICKER.MIN_DATE}
+                                                errorText={errorText}
+                                            />
+                                        </View>
+                                    ) : null
+                                }
+                            />
+                        </View>
+                    </>
+                )}
+            </InteractiveStepWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
-
-TransactionStartDateStep.displayName = 'TransactionStartDateStep';
 
 export default TransactionStartDateStep;

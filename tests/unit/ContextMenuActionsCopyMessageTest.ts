@@ -1,0 +1,352 @@
+import type Clipboard from '@libs/Clipboard';
+import getClipboardText from '@libs/Clipboard/getClipboardText';
+import type {CanSetHtml} from '@libs/Clipboard/types';
+
+import type * as ContextMenuActionsModule from '@pages/inbox/report/ContextMenu/ContextMenuActions';
+
+import CONST from '@src/CONST';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
+
+import createMock from '../utils/createMock';
+import {formatPhoneNumber} from '../utils/TestHelper';
+
+jest.mock('expo-web-browser', () => ({
+    openAuthSessionAsync: jest.fn(),
+}));
+
+jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmojiReactions');
+jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
+
+const mockCanSetHtml = jest.fn<ReturnType<Extract<CanSetHtml, () => boolean>>, Parameters<typeof Clipboard.canSetHtml>>();
+const mockSetString = jest.fn<ReturnType<typeof Clipboard.setString>, Parameters<typeof Clipboard.setString>>();
+const mockSetHtml = jest.fn<ReturnType<typeof Clipboard.setHtml>, Parameters<typeof Clipboard.setHtml>>();
+
+jest.mock('@libs/Clipboard', () => ({
+    __esModule: true,
+    default: {
+        canSetHtml: mockCanSetHtml,
+        setString: mockSetString,
+        setHtml: mockSetHtml,
+    },
+}));
+
+jest.mock('@libs/Clipboard/getClipboardText', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+const mockGetClipboardText = jest.mocked(getClipboardText);
+
+const {default: ContextMenuActions} = jest.requireActual<typeof ContextMenuActionsModule>('@pages/inbox/report/ContextMenu/ContextMenuActions');
+
+const copyMessageAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE);
+if (!copyMessageAction || !('onPress' in copyMessageAction)) {
+    throw new Error('Copy message context menu action was not found');
+}
+type CopyMessagePayload = Parameters<typeof copyMessageAction.onPress>[1];
+
+const MENTIONED_REPORT_ID = '1';
+const REPORT_ID_TO_NAME = {[MENTIONED_REPORT_ID]: '#general'};
+
+const createPayload = (selection: string): CopyMessagePayload =>
+    createMock<CopyMessagePayload>({
+        reportAction: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{html: selection}],
+        },
+        selection,
+        reportIDToName: REPORT_ID_TO_NAME,
+        report: {},
+        originalReport: {},
+        getLocalDateFromDatetime: jest.fn(),
+        policyTags: {},
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Translation parameters are required by the production callback signature; this stub intentionally returns only the key.
+        translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => path,
+        formatPhoneNumber,
+        currentUserPersonalDetails: {
+            accountID: 1,
+            login: 'user@expensify.com',
+            email: 'user@expensify.com',
+        },
+    });
+
+const createReportActionPayload = (reportAction: CopyMessagePayload['reportAction']): CopyMessagePayload =>
+    createMock<CopyMessagePayload>({
+        reportAction,
+        selection: '',
+        reportIDToName: REPORT_ID_TO_NAME,
+        report: {},
+        originalReport: {},
+        getLocalDateFromDatetime: jest.fn(),
+        policyTags: {},
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Translation parameters are required by the production callback signature; this stub intentionally returns only the key.
+        translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => path,
+        currentUserPersonalDetails: {
+            accountID: 1,
+            login: 'user@expensify.com',
+            email: 'user@expensify.com',
+        },
+    });
+
+describe('ContextMenuActions copy message', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('uses plain text clipboard path when html clipboard is unavailable', () => {
+        const selection = '<a href="https://expensify.com">Expensify</a>';
+        mockCanSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('Expensify');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(false, createPayload(selection));
+
+        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME);
+        expect(mockSetString).toHaveBeenCalledWith('Expensify');
+        expect(mockSetHtml).not.toHaveBeenCalled();
+    });
+
+    it('uses html clipboard path when html clipboard is available', () => {
+        const selection = '<a href="https://expensify.com">Expensify</a>';
+        mockCanSetHtml.mockReturnValue(true);
+        mockGetClipboardText.mockReturnValue('Expensify');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(false, createPayload(selection));
+
+        expect(mockGetClipboardText).toHaveBeenCalledWith(selection, REPORT_ID_TO_NAME);
+        expect(mockSetHtml).toHaveBeenCalledWith(selection, 'Expensify');
+        expect(mockSetString).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE,
+            {ruleTitle: 'Receipts required', prompt: 'Flag any expense over $25 that is missing a receipt'},
+            'workspaceActions.agentRule.added',
+        ],
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE,
+            {ruleTitle: 'Receipts required', prompt: 'Reject any expense that includes alcohol'},
+            'workspaceActions.agentRule.updated',
+        ],
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE, {ruleTitle: 'Receipts required'}, 'workspaceActions.agentRule.deleted'],
+    ])('copies the localized message for a %s action', (actionName, originalMessage, expectedTranslationKey) => {
+        mockCanSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('mocked clipboard text');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName,
+                    message: [{html: ''}],
+                    originalMessage,
+                }),
+            ),
+        );
+
+        expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey, undefined);
+        expect(mockSetString).toHaveBeenCalledWith('mocked clipboard text');
+    });
+
+    it('copies the localized message for a category update action', () => {
+        mockCanSetHtml.mockReturnValue(false);
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                    message: [{html: ''}],
+                    originalMessage: {categoryName: 'Advertising', updatedField: 'areAttendeesRequired', oldValue: '', newValue: true},
+                }),
+            ),
+        );
+
+        expect(mockSetString).toHaveBeenCalledWith('workspaceActions.updateAreAttendeesRequired');
+    });
+
+    it('copies the localized message for an agent prompt update action', () => {
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            style: 'normal',
+                            text: "owner@expensify.com updated this agent's instructions.",
+                        },
+                    ],
+                    originalMessage: {
+                        previousPrompt: 'Review every expense',
+                        newPrompt: 'Review expenses over $100',
+                        updatedByAccountID: 1,
+                        updatedBy: 'owner@expensify.com',
+                    },
+                }),
+            ),
+        );
+
+        expect(mockSetString).toHaveBeenCalledWith('agentPromptUpdated');
+    });
+
+    it('copies the report action text when an agent prompt update has no original message', () => {
+        const actionText = "owner@expensify.com updated this agent's instructions.";
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                            style: 'normal',
+                            text: actionText,
+                        },
+                    ],
+                }),
+            ),
+        );
+
+        expect(mockSetString).toHaveBeenCalledWith(actionText);
+    });
+
+    it('copies the localized message for a member work arrangement update action', () => {
+        mockCanSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('updated work arrangement');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
+                    message: [{text: 'updated work arrangement', html: 'updated work arrangement'}],
+                    originalMessage: {name: 'Member One', newValue: true, oldValue: false},
+                }),
+            ),
+        );
+
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined);
+        expect(mockSetString).toHaveBeenCalledWith('updated work arrangement');
+    });
+
+    it('copies the localized message for a default work arrangement update action', () => {
+        // Given a default work arrangement change log, whose stored text is Auth's English message
+        mockCanSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('changed the default work arrangement');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        // When its message is copied
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_POLICY_WORK_ARRANGEMENT,
+                    message: [{text: 'stored message', html: 'stored message'}],
+                    originalMessage: {newValue: true, oldValue: false},
+                }),
+            ),
+        );
+
+        // Then the translated change log text is copied instead of the stored text
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.workArrangement.changed', undefined);
+        expect(mockSetString).toHaveBeenCalledWith('changed the default work arrangement');
+    });
+
+    it.each([
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION,
+            {officeID: 'OFFICE1', name: 'Headquarters', address: {addressStreet: '88 Kearny St', city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US'}},
+            'workspaceActions.officeLocation.added',
+        ],
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION,
+            {officeID: 'OFFICE1', name: 'HQ', updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.NAME, newValue: 'HQ', oldValue: 'Headquarters'},
+            'workspaceActions.officeLocation.renamed',
+        ],
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION, {officeID: 'OFFICE1', name: 'Headquarters'}, 'workspaceActions.officeLocation.removed'],
+        [
+            CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+            {accountID: 1, email: 'member@test.com', name: 'Member One', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+            'workspaceActions.officeLocation.changedMemberOfficeLocation',
+        ],
+    ] as const)('copies the localized message for a %s action', (actionName, originalMessage, translationKey) => {
+        // Given an office location change log, whose stored text is Auth's English message
+        mockCanSetHtml.mockReturnValue(false);
+        mockGetClipboardText.mockReturnValue('office change');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        // When its message is copied
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName,
+                    message: [{text: 'stored message', html: 'stored message'}],
+                    originalMessage,
+                }),
+            ),
+        );
+
+        // Then the translated change log text is copied instead of the stored text
+        expect(mockGetClipboardText).toHaveBeenCalledWith(translationKey, undefined);
+        expect(mockSetString).toHaveBeenCalledWith('office change');
+    });
+
+    it('copies the localized member work arrangement message as html when supported', () => {
+        // Given the clipboard supports HTML, when the member arrangement message is copied, then the shared rich clipboard path is used.
+        mockCanSetHtml.mockReturnValue(true);
+        mockGetClipboardText.mockReturnValue('updated work arrangement');
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload(
+                createMock<CopyMessagePayload['reportAction']>({
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT,
+                    message: [{text: 'updated work arrangement', html: 'updated work arrangement'}],
+                    originalMessage: {name: 'Member One', newValue: true, oldValue: false},
+                }),
+            ),
+        );
+
+        expect(mockGetClipboardText).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', undefined);
+        expect(mockSetHtml).toHaveBeenCalledWith('workspaceActions.updatedMemberWorkArrangement', 'updated work arrangement');
+        expect(mockSetString).not.toHaveBeenCalled();
+    });
+});

@@ -1,63 +1,95 @@
-import React, {useRef} from 'react';
-import type {ComponentType, ForwardedRef} from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+
+import useEnvironment from '@hooks/useEnvironment';
+import useLocalize from '@hooks/useLocalize';
+import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
+import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import NetSuiteTokenInputForm from './substeps/NetSuiteTokenInputForm';
-import NetSuiteTokenSetupContent from './substeps/NetSuiteTokenSetupContent';
 
-type SubStepWithPolicy = SubStepProps & {policyID: string};
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
 
-const staticContentSteps = Array<ComponentType<SubStepWithPolicy>>(4).fill(NetSuiteTokenSetupContent);
-const tokenInputSteps: Array<ComponentType<SubStepWithPolicy>> = [...staticContentSteps, NetSuiteTokenInputForm];
+import NetSuiteTokenInputForm from './subPages/NetSuiteTokenInputForm';
+import NetSuiteTokenSetupContent from './subPages/NetSuiteTokenSetupContent';
+
+const tokenPages = [
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.AUTHENTICATION, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.SOAP, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.ACCESS_TOKEN, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS, component: NetSuiteTokenInputForm},
+];
+
+const oauthPages = [
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.OAUTH, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.REST, component: NetSuiteTokenSetupContent},
+    {pageName: CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS, component: NetSuiteTokenInputForm},
+];
+
+type NetSuiteTokenInputRoute = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TOKEN_INPUT>;
 
 function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
-    const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
+    const {translate} = useLocalize();
+    const {isProduction} = useEnvironment();
+    const {params} = useRoute<NetSuiteTokenInputRoute>();
+    const {authType} = params;
+
+    const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    // Only dev and staging can switch back to the token-based (TBA/SOAP) flow via route param for testing.
+    const canSwitchToTokenAuthentication = !isProduction;
+    const isTokenAuthenticationSelected = canSwitchToTokenAuthentication && authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA;
+    const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+    const isOAuthFlow = !isTokenAuthenticationSelected;
+
+    // isMigration is true when set explicitly via route param (e.g. from a nudge button) or when the
+    // page is opened directly and there is an existing TBA connection (tokenID present).
+    const isMigrationFromParam = params.isMigration === 'true';
+    const isMigrationFromConnection = !!netSuiteConnection?.tokenID;
+    const isMigration = isMigrationFromParam || isMigrationFromConnection;
+    const pages = isOAuthFlow ? oauthPages : tokenPages;
+    const stepNames = isOAuthFlow ? CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST : CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST;
 
     const submit = () => {
-        Navigation.goBack();
+        Navigation.dismissModal();
     };
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        screenIndex,
-        moveTo,
-    } = useSubStep<SubStepWithPolicy>({bodyContent: tokenInputSteps, startFrom: 0, onFinished: submit});
+    const {CurrentPage, nextPage, prevPage, pageIndex, moveTo, currentPageName} = useSubPage<CustomSubPageTokenInputProps>({
+        pages,
+        onFinished: submit,
+        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(params.policyID, pageName, authType, isMigrationFromParam),
+    });
 
     const handleBackButtonPress = () => {
-        if (screenIndex === 0) {
+        if (pageIndex === 0) {
             Navigation.goBack();
             return;
         }
-        ref.current?.movePrevious();
-        prevScreen();
+        prevPage();
     };
 
-    const handleNextScreen = () => {
-        ref.current?.moveNext();
-        nextScreen();
-    };
-
-    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    const shouldPageBeBlocked = !isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]) && !hasAuthError && !isMigrationFromConnection;
 
     return (
         <ConnectionLayout
-            displayName={NetSuiteTokenInputPage.displayName}
+            displayName="NetSuiteTokenInputPage"
             headerTitle="workspace.netsuite.tokenInput.title"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyID={policyID}
@@ -66,30 +98,30 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={handleBackButtonPress}
-            shouldIncludeSafeAreaPaddingBottom
             shouldLoadForEmptyConnection={isEmptyObject(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE])}
             shouldBeBlocked={shouldPageBeBlocked}
+            shouldUseScrollView={CurrentPage !== NetSuiteTokenInputForm}
         >
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    ref={ref}
-                    startStepIndex={0}
-                    stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
+                <InteractiveStepSubPageHeader
+                    currentStepIndex={pageIndex}
+                    stepNames={stepNames}
+                    currentStepAccessibilityDescription={translate('workspace.netsuite.tokenInput.title')}
+                    onStepSelected={moveTo}
                 />
             </View>
-            <View style={[styles.flexGrow1, styles.mt3]}>
-                <SubStep
-                    isEditing={isEditing}
-                    onNext={handleNextScreen}
-                    onMove={moveTo}
-                    screenIndex={screenIndex}
-                    policyID={policyID}
-                />
-            </View>
+            <CurrentPage
+                isEditing={false}
+                onNext={nextPage}
+                onMove={moveTo}
+                currentPageName={currentPageName}
+                policyID={policyID}
+                isOAuthFlow={isOAuthFlow}
+                isMigration={isMigration}
+                shouldShowTokenAuthenticationLink={canSwitchToTokenAuthentication && isOAuthFlow}
+            />
         </ConnectionLayout>
     );
 }
-
-NetSuiteTokenInputPage.displayName = 'NetSuiteTokenInputPage';
 
 export default withPolicyConnections(NetSuiteTokenInputPage);

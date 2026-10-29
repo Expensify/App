@@ -1,0 +1,95 @@
+import {PressableWithFeedback} from '@components/Pressable';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import Navigation from '@libs/Navigation/Navigation';
+import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
+
+import navigationRef from '@navigation/navigationRef';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
+import getSearchTabRoute from './getSearchTabRoute';
+import NAVIGATION_TABS from './NAVIGATION_TABS';
+import TabBarItem from './TabBarItem';
+
+type SearchTabButtonProps = {
+    selectedTab: ValueOf<typeof NAVIGATION_TABS>;
+    isWideLayout: boolean;
+};
+
+function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
+    const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
+    const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
+
+    const navigateToSearch = () => {
+        if (selectedTab === NAVIGATION_TABS.SEARCH) {
+            return;
+        }
+        clearSelectedText();
+        interceptAnonymousUser(() => {
+            startNavigateToReportsTabSpans();
+
+            Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuery));
+        }, session);
+    };
+
+    if (isWideLayout) {
+        return (
+            <PressableWithFeedback
+                onPress={navigateToSearch}
+                role={CONST.ROLE.TAB}
+                accessibilityLabel={translate('common.spend')}
+                accessibilityState={searchAccessibilityState}
+                style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+            >
+                {({hovered}) => (
+                    <TabBarItem
+                        icon={expensifyIcons.ReceiptMultiple}
+                        label={translate('common.spend')}
+                        isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
+                        isHovered={hovered}
+                    />
+                )}
+            </PressableWithFeedback>
+        );
+    }
+
+    return (
+        <PressableWithFeedback
+            onPress={navigateToSearch}
+            role={CONST.ROLE.TAB}
+            accessibilityLabel={translate('common.spend')}
+            accessibilityState={searchAccessibilityState}
+            wrapperStyle={styles.navigationTabBarSlot}
+            style={styles.navigationTabBarItem}
+            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+        >
+            <TabBarItem
+                icon={expensifyIcons.ReceiptMultiple}
+                label={translate('common.spend')}
+                isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
+                numberOfLines={1}
+            />
+        </PressableWithFeedback>
+    );
+}
+
+export default SearchTabButton;

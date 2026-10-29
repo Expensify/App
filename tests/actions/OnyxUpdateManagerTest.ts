@@ -1,29 +1,33 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {AppActionsMock} from '@libs/actions/__mocks__/App';
-import * as AppImport from '@libs/actions/App';
 import applyOnyxUpdatesReliably from '@libs/actions/applyOnyxUpdatesReliably';
 import * as OnyxUpdateManagerExports from '@libs/actions/OnyxUpdateManager';
-import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
-import * as OnyxUpdateManagerUtilsImport from '@libs/actions/OnyxUpdateManager/utils';
+import type {AnyDeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
 import type {OnyxUpdateManagerUtilsMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@libs/actions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
-import * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
-import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import type * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
+import {isPaused as isSequentialQueuePaused, isRunning as isSequentialQueueRunning} from '@libs/Network/SequentialQueue';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import createOnyxMockUpdate from '../utils/createOnyxMockUpdate';
 
-jest.mock('@libs/actions/App');
-jest.mock('@libs/actions/OnyxUpdateManager/utils');
-jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates', () => {
-    const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
+import createMock from '../utils/createMock';
+import OnyxUpdateMockUtils from '../utils/OnyxUpdateMockUtils';
+
+jest.mock('@userActions/OnyxUpdates');
+jest.mock('@userActions/App');
+jest.mock('@userActions/OnyxUpdateManager/utils');
+jest.mock('@userActions/OnyxUpdateManager/utils/applyUpdates', () => {
+    const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@userActions/OnyxUpdateManager/utils/applyUpdates');
 
     return {
-        applyUpdates: jest.fn((updates: DeferredUpdatesDictionary) => ApplyUpdatesImplementation.applyUpdates(updates)),
+        applyUpdates: jest.fn((updates: AnyDeferredUpdatesDictionary) => ApplyUpdatesImplementation.applyUpdates(updates)),
     };
 });
 
@@ -33,13 +37,17 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     }),
 }));
 
-const App = AppImport as AppActionsMock;
-const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
-const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
+jest.mock('@src/libs/SearchUIUtils', () => ({
+    getSuggestedSearches: jest.fn().mockReturnValue({}),
+}));
 
 const TEST_USER_ACCOUNT_ID = 1;
 const REPORT_ID = 'testReport1';
 const ONYX_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const;
+
+const App = jest.requireMock<AppActionsMock<typeof ONYX_KEY>>('@userActions/App');
+const ApplyUpdates = jest.requireMock<ApplyUpdatesMock>('@userActions/OnyxUpdateManager/utils/applyUpdates');
+const OnyxUpdateManagerUtils = jest.requireMock<OnyxUpdateManagerUtilsMock>('@userActions/OnyxUpdateManager/utils');
 
 const exampleReportAction = {
     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -51,16 +59,16 @@ const exampleReportAction = {
     shouldShow: true,
 } satisfies Partial<OnyxTypes.ReportAction>;
 
-const initialData = {report1: exampleReportAction, report2: exampleReportAction, report3: exampleReportAction} as unknown as OnyxTypes.ReportActions;
+const initialData = createMock<OnyxTypes.ReportActions>({report1: exampleReportAction, report2: exampleReportAction, report3: exampleReportAction});
 
-const mockUpdate1 = createOnyxMockUpdate(1, [
+const mockUpdate1 = OnyxUpdateMockUtils.createUpdate(1, [
     {
         onyxMethod: OnyxUtils.METHOD.SET,
         key: ONYX_KEY,
         value: initialData,
     },
 ]);
-const mockUpdate2 = createOnyxMockUpdate(2, [
+const mockUpdate2 = OnyxUpdateMockUtils.createUpdate(2, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
         key: ONYX_KEY,
@@ -79,7 +87,7 @@ const report2PersonDiff = {
 const report3AvatarDiff: Partial<OnyxTypes.ReportAction> = {
     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/avatar_5.png',
 };
-const mockUpdate3 = createOnyxMockUpdate(3, [
+const mockUpdate3 = OnyxUpdateMockUtils.createUpdate(3, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
         key: ONYX_KEY,
@@ -89,7 +97,7 @@ const mockUpdate3 = createOnyxMockUpdate(3, [
         },
     },
 ]);
-const mockUpdate4 = createOnyxMockUpdate(4, [
+const mockUpdate4 = OnyxUpdateMockUtils.createUpdate(4, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
         key: ONYX_KEY,
@@ -106,7 +114,7 @@ const report4 = {
     ...exampleReportAction,
     automatic: true,
 } satisfies Partial<OnyxTypes.ReportAction>;
-const mockUpdate5 = createOnyxMockUpdate(5, [
+const mockUpdate5 = OnyxUpdateMockUtils.createUpdate(5, [
     {
         onyxMethod: OnyxUtils.METHOD.MERGE,
         key: ONYX_KEY,
@@ -135,7 +143,7 @@ describe('actions/OnyxUpdateManager', () => {
         await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 1);
         await Onyx.set(ONYX_KEY, initialData);
 
-        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = undefined;
+        OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = undefined;
         App.mockValues.missingOnyxUpdatesToBeApplied = undefined;
         OnyxUpdateManagerExports.resetDeferralLogicVariables();
     });
@@ -194,7 +202,7 @@ describe('actions/OnyxUpdateManager', () => {
             finishFirstCall = resolve;
         });
 
-        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = () => {
+        OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = () => {
             // After the first GetMissingOnyxUpdates call has been resolved,
             // we have to set the mocked results of for the second call.
             App.mockValues.missingOnyxUpdatesToBeApplied = [mockUpdate3, mockUpdate4];
@@ -245,23 +253,23 @@ describe('actions/OnyxUpdateManager', () => {
         applyOnyxUpdatesReliably(mockUpdate5);
 
         const assertAfterFirstGetMissingOnyxUpdates = () => {
-            // While the fetching of missing udpates and the validation and application of the deferred updaes is running,
+            // While the fetching of missing updates and the validation and application of the deferred updates is running,
             // the SequentialQueue should be paused.
-            expect(SequentialQueue.isPaused()).toBeTruthy();
+            expect(isSequentialQueuePaused()).toBeTruthy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(1);
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(1, 1, 2);
         };
 
         const assertAfterSecondGetMissingOnyxUpdates = () => {
             // The SequentialQueue should still be paused.
-            expect(SequentialQueue.isPaused()).toBeTruthy();
-            expect(SequentialQueue.isRunning()).toBeFalsy();
+            expect(isSequentialQueuePaused()).toBeTruthy();
+            expect(isSequentialQueueRunning()).toBeFalsy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
             expect(App.getMissingOnyxUpdates).toHaveBeenNthCalledWith(2, 3, 4);
         };
 
         let firstCallFinished = false;
-        OnyxUpdateManagerUtils.mockValues.onValidateAndApplyDeferredUpdates = () => {
+        OnyxUpdateManagerUtils.mockValues.beforeValidateAndApplyDeferredUpdates = () => {
             if (firstCallFinished) {
                 assertAfterSecondGetMissingOnyxUpdates();
                 return Promise.resolve();
@@ -279,7 +287,7 @@ describe('actions/OnyxUpdateManager', () => {
         return OnyxUpdateManagerExports.queryPromise.then(() => {
             // Once the OnyxUpdateManager has finished filling the gaps, the SequentialQueue should be unpaused again.
             // It must not necessarily be running, because it might not have been flushed yet.
-            expect(SequentialQueue.isPaused()).toBeFalsy();
+            expect(isSequentialQueuePaused()).toBeFalsy();
             expect(App.getMissingOnyxUpdates).toHaveBeenCalledTimes(2);
         });
     });

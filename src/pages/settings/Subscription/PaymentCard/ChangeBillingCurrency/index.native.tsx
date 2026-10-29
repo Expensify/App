@@ -1,11 +1,12 @@
-import React from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import React from 'react';
 
 function ChangeBillingCurrency() {
     return (
         <ScreenWrapper
-            testID={ChangeBillingCurrency.displayName}
+            testID="ChangeBillingCurrency"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -13,7 +14,5 @@ function ChangeBillingCurrency() {
         </ScreenWrapper>
     );
 }
-
-ChangeBillingCurrency.displayName = 'ChangeBillingCurrency';
 
 export default ChangeBillingCurrency;

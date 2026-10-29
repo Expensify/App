@@ -1,6 +1,8 @@
+import {usePopoverActions} from '@components/PopoverProvider';
+
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import {PopoverContext} from '@components/PopoverProvider';
+import {useEffect, useRef, useState} from 'react';
+
 import type UseDragAndDrop from './types';
 
 const COPY_DROP_EFFECT = 'copy';
@@ -13,85 +15,103 @@ const DROP_EVENT = 'drop';
 /**
  * @param dropZone – ref to the dropZone component
  */
-const useDragAndDrop: UseDragAndDrop = ({dropZone, onDrop = () => {}, shouldAllowDrop = true, isDisabled = false, shouldAcceptDrop = () => true}) => {
+const useDragAndDrop: UseDragAndDrop = ({
+    dropZone,
+    onDrop = () => {},
+    shouldAllowDrop = true,
+    isDisabled = false,
+    shouldAcceptDrop = () => true,
+    shouldHandleDragEvent = true,
+    shouldStopPropagation = true,
+}) => {
     const isFocused = useIsFocused();
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const {close: closePopover} = useContext(PopoverContext);
+    const {close: closePopover} = usePopoverActions();
 
-    const enterTarget = useRef<EventTarget | null>(null);
+    const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Reset drag state when the screen loses focus or becomes disabled
+    const isActive = isFocused && !isDisabled;
+    const [prevIsActive, setPrevIsActive] = useState(isActive);
+    if (isActive !== prevIsActive) {
+        setPrevIsActive(isActive);
+        if (!isActive) {
+            setIsDraggingOver(false);
+        }
+    }
 
     useEffect(() => {
         if (isFocused && !isDisabled) {
             return;
         }
-        setIsDraggingOver(false);
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+            debounceTimeoutRef.current = null;
+        }
     }, [isFocused, isDisabled]);
 
-    const handleDragEvent = useCallback(
-        (event: DragEvent) => {
-            const shouldAcceptThisDrop = shouldAllowDrop && shouldAcceptDrop(event);
+    const handleDragEvent = (event: DragEvent) => {
+        if (!shouldHandleDragEvent) {
+            return;
+        }
 
-            if (shouldAcceptThisDrop && event.type === DRAG_ENTER_EVENT) {
-                closePopover();
-            }
+        const shouldAcceptThisDrop = shouldAllowDrop && shouldAcceptDrop(event);
 
-            const effect = shouldAcceptThisDrop ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
+        if (shouldAcceptThisDrop && event.type === DRAG_ENTER_EVENT) {
+            closePopover();
+        }
 
-            if (event.dataTransfer) {
-                // eslint-disable-next-line no-param-reassign
-                event.dataTransfer.dropEffect = effect;
-                // eslint-disable-next-line no-param-reassign
-                event.dataTransfer.effectAllowed = effect;
-            }
-        },
-        [shouldAllowDrop, shouldAcceptDrop, closePopover],
-    );
+        const effect = shouldAcceptThisDrop ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
+
+        if (event.dataTransfer) {
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.dropEffect = effect;
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.effectAllowed = effect;
+        }
+    };
 
     /**
      * Handles all types of drag-N-drop events on the drop zone associated with composer
      */
-    const dropZoneDragHandler = useCallback(
-        (event: DragEvent) => {
-            if (!isFocused || isDisabled || !shouldAcceptDrop(event)) {
-                return;
-            }
+    const dropZoneDragHandler = (event: DragEvent) => {
+        if (!isFocused || isDisabled || !shouldAcceptDrop(event)) {
+            return;
+        }
 
-            event.preventDefault();
+        event.preventDefault();
+        if (shouldStopPropagation) {
             event.stopPropagation();
+        }
 
-            switch (event.type) {
-                case DRAG_OVER_EVENT:
-                    handleDragEvent(event);
-                    break;
-                case DRAG_ENTER_EVENT:
-                    handleDragEvent(event);
-                    enterTarget.current = event.target;
-                    if (isDraggingOver) {
-                        return;
-                    }
+        // Clear any existing debounce timeout
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+            debounceTimeoutRef.current = null;
+        }
+
+        switch (event.type) {
+            case DRAG_OVER_EVENT:
+            case DRAG_ENTER_EVENT:
+                handleDragEvent(event);
+                if (!isDraggingOver) {
                     setIsDraggingOver(true);
-                    break;
-                case DRAG_LEAVE_EVENT:
-                    if (!isDraggingOver) {
-                        return;
-                    }
-                    // This is necessary because dragging over children will cause dragleave to execute on the parent.
-                    if (enterTarget.current !== event.target) {
-                        return;
-                    }
-
+                }
+                break;
+            case DRAG_LEAVE_EVENT:
+                // Add small debounce to prevent rapid flickering
+                debounceTimeoutRef.current = setTimeout(() => {
                     setIsDraggingOver(false);
-                    break;
-                case DROP_EVENT:
-                    setIsDraggingOver(false);
-                    onDrop(event);
-                    break;
-                default:
-                    break;
-            }
-        },
-        [isFocused, isDisabled, shouldAcceptDrop, isDraggingOver, onDrop, handleDragEvent],
-    );
+                }, 50);
+                break;
+            case DROP_EVENT:
+                setIsDraggingOver(false);
+                onDrop(event);
+                break;
+            default:
+                break;
+        }
+    };
 
     useEffect(() => {
         if (!dropZone.current) {

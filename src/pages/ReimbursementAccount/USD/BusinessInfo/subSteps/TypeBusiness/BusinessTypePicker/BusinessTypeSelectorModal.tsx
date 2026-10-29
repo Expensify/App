@@ -1,0 +1,74 @@
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+
+import type {BusinessTypeItemType, IncorporationType} from './types';
+
+type BusinessTypeSelectorModalProps = {
+    isVisible: boolean;
+    currentBusinessType: string;
+    onBusinessTypeSelected: (value: BusinessTypeItemType) => void;
+
+    /** Function to call when the user closes the business type selector modal */
+    onClose: () => void;
+
+    label: string;
+};
+
+function BusinessTypeSelectorModal({isVisible, currentBusinessType, onBusinessTypeSelected, onClose, label}: BusinessTypeSelectorModalProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const incorporationTypes = Object.keys(CONST.INCORPORATION_TYPES).map((key) => ({
+        value: key,
+        text: translate(`businessInfoStep.incorporationType.${key as IncorporationType}`),
+        keyForList: key,
+        isSelected: key === currentBusinessType,
+    }));
+
+    return (
+        <Modal
+            type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
+            isVisible={isVisible}
+            onClose={onClose}
+            onBackdropPress={() => {
+                onClose();
+                Navigation.dismissModal();
+            }}
+        >
+            <ScreenWrapper
+                style={[styles.pb0]}
+                includePaddingTop={false}
+                includeSafeAreaPaddingBottom={false}
+                testID="BusinessTypeSelectorModal"
+            >
+                <HeaderWithBackButton
+                    title={label}
+                    shouldShowBackButton
+                    onBackButtonPress={onClose}
+                />
+                <SelectionList
+                    data={incorporationTypes}
+                    initiallyFocusedItemKey={currentBusinessType}
+                    onSelectRow={onBusinessTypeSelected}
+                    shouldSingleExecuteRowSelect
+                    shouldStopPropagation
+                    ListItem={SingleSelectListItem}
+                />
+            </ScreenWrapper>
+        </Modal>
+    );
+}
+
+export default BusinessTypeSelectorModal;

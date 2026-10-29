@@ -1,13 +1,16 @@
+import type CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
-import type CONST from '@src/CONST';
 
 type PickerOptions = {
     /** A callback that will be called with the selected attachments. */
     onPicked: (files: FileObject[]) => void;
     /** A callback that will be called without a selected attachment. */
     onCanceled?: () => void;
+    /** A callback that will be called when the modal was closed regardless of the picked/cancelled  */
+    onClosed?: () => void;
 };
 
 /**
@@ -55,6 +58,11 @@ type AttachmentPickerProps = {
 
     /** Whether to allow multiple files to be selected. */
     fileLimit?: number;
+
+    onOpenPicker?: () => void;
+
+    /** When true, skip the Camera/Gallery/Document modal and open the document picker directly (native only). */
+    shouldSkipAttachmentTypeModal?: boolean;
 };
 
 export default AttachmentPickerProps;

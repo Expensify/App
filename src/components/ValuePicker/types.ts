@@ -1,5 +1,10 @@
 import type {ListItem} from '@components/SelectionList/types';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {ComponentRef, ForwardedRef, ReactNode} from 'react';
+import type {StyleProp, TextStyle, View} from 'react-native';
+
 type ValuePickerListItem = ListItem & {
     value?: string;
 };
@@ -8,22 +13,26 @@ type ValuePickerItem = {
     label?: string;
     value?: string;
     description?: string;
+    isDisabled?: boolean | null;
+
+    /** Custom node rendered in place of the description (e.g. a description containing an inline link) */
+    alternateTextComponent?: ReactNode;
+
+    rightElement?: ReactNode;
+
+    /** Whether to hide the selection button (radio) entirely */
+    shouldHideSelectionButton?: boolean;
+
+    titleStyles?: StyleProp<TextStyle>;
 };
 
 type ValueSelectorModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
-    /** Items to pick from */
     items?: ValuePickerItem[];
-
-    /** The selected item */
     selectedItem?: ValuePickerItem;
-
-    /** Label for values */
     label?: string;
-
-    /** Function to call when the user selects a item */
     onItemSelected?: (item: ValuePickerListItem) => void;
 
     /** Function to call when the user closes the modal */
@@ -34,19 +43,34 @@ type ValueSelectorModalProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    shouldEnableKeyboardAvoidingView?: boolean;
+    addBottomSafeAreaPadding?: boolean;
+    disableKeyboardShortcuts?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateNumberOfSupportedLines?: number;
 };
 
-type ValuePickerProps = {
-    /** Item to display */
-    value?: string;
+type ValueSelectionListProps = Pick<
+    ValueSelectorModalProps,
+    'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips' | 'addBottomSafeAreaPadding' | 'disableKeyboardShortcuts' | 'alternateNumberOfSupportedLines'
+> & {
+    /** Whether the parent modal is visible */
+    isVisible?: boolean;
+};
 
-    /** Label of picker */
+type ValuePickerProps = ForwardedFSClassProps & {
+    value?: string;
     label?: string;
 
-    /** Items to pick from */
-    items?: ValuePickerItem[];
+    /** Title of the picker's modal, when it differs from the label */
+    modalHeaderTitle?: string;
 
-    /** A placeholder value to display */
+    /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+    shouldReadErrorWithLabel?: boolean;
+
+    items?: ValuePickerItem[];
     placeholder?: string;
 
     /** Form Error description */
@@ -55,11 +79,24 @@ type ValuePickerProps = {
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
 
+    /** Callback to call when the picker begins to open */
+    onOpen?: () => void;
+
     /** Text to display under the main menu item */
     furtherDetails?: string;
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    /** Whether to show the selector modal */
+    shouldShowModal?: boolean;
+
+    ref: ForwardedRef<ComponentRef<typeof View>>;
+    addBottomSafeAreaPadding?: boolean;
+    disableKeyboardShortcuts?: boolean;
+
+    /** Number of lines to show for alternate text */
+    alternateNumberOfSupportedLines?: number;
 };
 
-export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValuePickerListItem};
+export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

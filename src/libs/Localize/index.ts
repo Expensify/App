@@ -1,50 +1,25 @@
-import * as RNLocalize from 'react-native-localize';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
+
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
-import translations from '@src/languages/translations';
+import IntlStore from '@src/languages/IntlStore';
 import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import LocaleListener from './LocaleListener';
-import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
-// Current user mail is needed for handling missing translations
-let userEmail = '';
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        if (!val) {
-            return;
-        }
-        userEmail = val?.email ?? '';
-    },
-});
+import * as RNLocalize from 'react-native-localize';
 
-// Listener when an update in Onyx happens so we use the updated locale when translating/localizing items.
-LocaleListener.connect();
+// Note: these Intl instances are created lazily, per locale, rather than at the top level of the file. Two reasons:
+// Intl is polyfilled, so touching it upon import would run before the polyfill is installed and barf; and an Intl
+// instance resolves its locale at construction, so one built before that locale's polyfill data has loaded is stuck
+// formatting in English for the lifetime of the app. Going through IntlStore.getCurrentLocale() avoids that, because
+// IntlStore only sets the current locale once every loader for it (translations, date-fns, Intl data) has resolved.
+const createConjunctionListFormat = (locale: Locale): Intl.ListFormat => new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
+const memoizedCreateConjunctionListFormat = memoize(createConjunctionListFormat);
 
-// Note: This has to be initialized inside a function and not at the top level of the file, because Intl is polyfilled,
-// and if React Native executes this code upon import, then the polyfill will not be available yet and it will barf
-let CONJUNCTION_LIST_FORMATS_FOR_LOCALES: Record<string, Intl.ListFormat>;
-function init() {
-    CONJUNCTION_LIST_FORMATS_FOR_LOCALES = Object.values(CONST.LOCALES).reduce((memo: Record<string, Intl.ListFormat>, locale) => {
-        // This is not a supported locale, so we'll use ES_ES instead
-        if (locale === CONST.LOCALES.ES_ES_ONFIDO) {
-            // eslint-disable-next-line no-param-reassign
-            memo[locale] = new Intl.ListFormat(CONST.LOCALES.ES_ES, {style: 'long', type: 'conjunction'});
-            return memo;
-        }
-
-        // eslint-disable-next-line no-param-reassign
-        memo[locale] = new Intl.ListFormat(locale, {style: 'long', type: 'conjunction'});
-        return memo;
-    }, {});
-}
+const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
+const memoizedCreatePluralRules = memoize(createPluralRules);
 
 /**
  * Helper function to get the translated string for given
@@ -59,13 +34,8 @@ function init() {
  * phrase and stores the translated value in the cache and returns
  * the translated value.
  */
-function getTranslatedPhrase<TKey extends TranslationPaths>(
-    language: 'en' | 'es' | 'es-ES',
-    phraseKey: TKey,
-    fallbackLanguage: 'en' | 'es' | null,
-    ...parameters: TranslationParameters<TKey>
-): string | null {
-    const translatedPhrase = translations?.[language]?.[phraseKey];
+function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
+    const translatedPhrase = IntlStore.get(phraseKey, language);
 
     if (translatedPhrase) {
         if (typeof translatedPhrase === 'function') {
@@ -87,7 +57,7 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
                 throw new Error(`Invalid plural form for '${phraseKey}'`);
             }
 
-            const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
+            const pluralRule = memoizedCreatePluralRules(language).select(phraseObject.count);
 
             const pluralResult = translateResult[pluralRule];
             if (pluralResult) {
@@ -108,45 +78,30 @@ function getTranslatedPhrase<TKey extends TranslationPaths>(
         return translatedPhrase;
     }
 
-    if (!fallbackLanguage) {
-        return null;
-    }
-
-    // Phrase is not found in full locale, search it in fallback language e.g. es
-    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...parameters);
-
-    if (fallbackTranslatedPhrase) {
-        return fallbackTranslatedPhrase;
-    }
-
-    if (fallbackLanguage !== CONST.LOCALES.DEFAULT) {
-        Log.alert(`${phraseKey} was not found in the ${fallbackLanguage} locale`);
-    }
-
-    // Phrase is not translated, search it in default language (en)
-    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...parameters);
+    Log.alert(`${phraseKey} was not found in the ${language} locale`);
+    return null;
 }
 
 const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
     maxArgs: 2,
     equality: 'shallow',
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    skipCache: (params) => !isEmptyObject(params.at(3)),
+
+    skipCache: (params) => params.length > 2,
 });
 
 /**
  * Return translated string for given locale and phrase
  *
- * @param [desiredLanguage] eg 'en', 'es-ES'
+ * @param [locale] eg 'en', 'es'
  * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', path: TPath, ...parameters: TranslationParameters<TPath>): string {
-    // Search phrase in full locale e.g. es-ES
-    const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
-    // Phrase is not found in full locale, search it in fallback language e.g. es
-    const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
+function translate<TPath extends TranslationPaths>(locale: Locale | undefined, path: TPath, ...parameters: TranslationParameters<TPath>): string {
+    if (!locale) {
+        // If no language is provided, return the path as is
+        return Array.isArray(path) ? path.join('.') : path;
+    }
 
-    const translatedPhrase = memoizedGetTranslatedPhrase(language, path, languageAbbreviation, ...parameters);
+    const translatedPhrase = memoizedGetTranslatedPhrase(locale, path, ...parameters);
     if (translatedPhrase !== null && translatedPhrase !== undefined) {
         return translatedPhrase;
     }
@@ -155,28 +110,24 @@ function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' 
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
         const phraseString = Array.isArray(path) ? path.join('.') : path;
-        Log.alert(`${phraseString} was not found in the en locale`);
-        if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
-            return CONST.MISSING_TRANSLATION;
-        }
+        Log.alert(`${phraseString} was not found in the ${locale} locale`);
         return phraseString;
     }
-    throw new Error(`${path} was not found in the default language`);
+    throw new Error(`${path} was not found in the ${locale} locale`);
 }
 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
+ * @deprecated This function uses imperative Onyx data access patterns, similar to `Onyx.connect`. Use `useLocalize` hook instead for reactive data access in React components.
  */
+
 function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...parameters);
+    const currentLocale = IntlStore.getCurrentLocale();
+    return translate(currentLocale, phrase, ...parameters);
 }
 
 function getPreferredListFormat(): Intl.ListFormat {
-    if (!CONJUNCTION_LIST_FORMATS_FOR_LOCALES) {
-        init();
-    }
-
-    return CONJUNCTION_LIST_FORMATS_FOR_LOCALES[BaseLocaleListener.getPreferredLocale()];
+    return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT);
 }
 
 /**
@@ -219,7 +170,7 @@ function formatMessageElementList<E extends MessageElementBase>(elements: readon
  * Returns the user device's preferred language.
  */
 function getDevicePreferredLocale(): Locale {
-    return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
+    return RNLocalize.findBestLanguageTag(Object.values(CONST.LOCALES))?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
 export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};

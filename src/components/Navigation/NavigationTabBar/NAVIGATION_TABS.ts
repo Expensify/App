@@ -1,0 +1,10 @@
+const NAVIGATION_TABS = {
+    HOME: 'HOME',
+    INBOX: 'INBOX',
+    SEARCH: 'SEARCH',
+    INSIGHTS: 'INSIGHTS',
+    WORKSPACES: 'WORKSPACES',
+    SETTINGS: 'SETTINGS',
+} as const;
+
+export default NAVIGATION_TABS;

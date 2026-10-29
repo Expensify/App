@@ -1,107 +1,196 @@
-import {useFocusEffect} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect} from 'react';
-import {ActivityIndicator} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import * as Illustrations from '@components/Icon/Illustrations';
+import DecisionModal from '@components/DecisionModal';
+import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
+import type {WorkspaceCompanyCardsTableHandle} from '@components/Tables/WorkspaceCompanyCardsTable';
+
+import useAssignCard from '@hooks/useAssignCard';
+import useCompanyCards from '@hooks/useCompanyCards';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {getDomainOrWorkspaceAccountID} from '@libs/CardUtils';
+import Growl from '@libs/Growl';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {canMemberWrite, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
-import * as CompanyCards from '@userActions/CompanyCards';
+
+import {clearBulkUpdateTransactionStartDateSuccess, clearBulkUpdateTransactionStartDateUpdate, openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import WorkspaceCompanyCardPageEmptyState from './WorkspaceCompanyCardPageEmptyState';
-import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPendingPage';
-import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
-import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type WorkspaceCompanyCardPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 
-function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
-    const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const theme = useTheme();
+type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+
+function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const selectedFeed = CardUtils.getSelectedFeed(lastSelectedFeed, cardFeeds);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`);
+    const {translate} = useLocalize();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const companyCardsTableRef = useRef<WorkspaceCompanyCardsTableHandle>(null);
 
-    const companyCards = CardUtils.removeExpensifyCardFromCompanyCards(cardFeeds);
-    const selectedFeedData = selectedFeed && companyCards[selectedFeed];
-    const isNoFeed = isEmptyObject(companyCards) && !selectedFeedData;
-    const isPending = !!selectedFeedData?.pending;
-    const isFeedAdded = !isPending && !isNoFeed;
+    const policy = usePolicy(policyID);
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.companyCards');
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const fetchCompanyCards = useCallback(() => {
-        CompanyCards.openPolicyCompanyCardsPage(policyID, workspaceAccountID);
-    }, [policyID, workspaceAccountID]);
+    const companyCards = useCompanyCards({policyID});
+    const {
+        allCardFeeds,
+        feedName,
+        selectedFeed,
+        bankName,
+        isFeedPending,
+        isFeedAdded,
+        onyxMetadata: {cardListMetadata},
+    } = companyCards;
 
-    const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
-    const isLoading = !isOffline && (!cardFeeds || (cardFeeds.isLoading && !cardsList));
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
+    const [companyCardsLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE}${domainOrWorkspaceAccountID}`);
 
-    useFocusEffect(fetchCompanyCards);
+    const bulkTransactionStartDateUpdateID = companyCardsLoadingState?.bulkTransactionStartDateUpdateID;
+    const lastHandledBulkTransactionStartDateUpdateID = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        if (!!isLoading || !selectedFeed || isPending) {
+        if (!bulkTransactionStartDateUpdateID || lastHandledBulkTransactionStartDateUpdateID.current === bulkTransactionStartDateUpdateID) {
             return;
         }
 
-        CompanyCards.openPolicyCompanyCardsFeed(policyID, selectedFeed);
-    }, [selectedFeed, isLoading, policyID, isPending]);
+        lastHandledBulkTransactionStartDateUpdateID.current = bulkTransactionStartDateUpdateID;
+        clearBulkUpdateTransactionStartDateUpdate(domainOrWorkspaceAccountID);
+        companyCardsTableRef.current?.clearSelection();
+    }, [bulkTransactionStartDateUpdateID, domainOrWorkspaceAccountID]);
+
+    const bulkTransactionStartDateUpdateSuccessID = companyCardsLoadingState?.bulkTransactionStartDateUpdateSuccessID;
+    const lastHandledBulkTransactionStartDateUpdateSuccessID = useRef<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (!bulkTransactionStartDateUpdateSuccessID || lastHandledBulkTransactionStartDateUpdateSuccessID.current === bulkTransactionStartDateUpdateSuccessID) {
+            return;
+        }
+
+        lastHandledBulkTransactionStartDateUpdateSuccessID.current = bulkTransactionStartDateUpdateSuccessID;
+        clearBulkUpdateTransactionStartDateSuccess(domainOrWorkspaceAccountID);
+        Growl.success({bodyText: translate('workspace.companyCards.bulkStartDateUpdated'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
+    }, [bulkTransactionStartDateUpdateSuccessID, domainOrWorkspaceAccountID, translate]);
+
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+
+    const loadPolicyCompanyCardsPage = () => {
+        const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
+        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
+    };
+
+    const {isOffline} = useNetwork({
+        onReconnect: loadPolicyCompanyCardsPage,
+    });
+
+    // A freshly created workspace has no account ID until the back end returns one, so we can't treat the policy as loaded yet.
+    // Offline that response can never arrive, so we consider the policy loaded to avoid showing a spinner that would never resolve.
+    const isPolicyLoaded = !!policy && (policy.policyAccountID !== undefined || isOffline);
+
+    const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));
+
+    const hasFeedsLoaded = !!allCardFeeds && Object.keys(allCardFeeds).length > 0;
+
+    const isPageFetchPending = !hasFeedsLoaded;
+
+    const loadPolicyCompanyCardsPageEvent = useEffectEvent(() => {
+        if (isOffline || hasFeedsLoaded) {
+            return;
+        }
+
+        loadPolicyCompanyCardsPage();
+    });
+
+    useEffect(() => {
+        loadPolicyCompanyCardsPageEvent();
+    }, []);
+
+    const loadPolicyCompanyCardsFeed = () => {
+        if (isLoading || !bankName || isFeedPending || isOffline) {
+            return;
+        }
+
+        openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
+    };
+
+    useEffect(() => {
+        loadPolicyCompanyCardsFeed();
+    }, [loadPolicyCompanyCardsFeed]);
+
+    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
+    const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
+    const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+    const isSelectionModeEnabled = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+
+    const handleBackButtonPress = () => {
+        if (isMobileSelectionModeEnabled) {
+            companyCardsTableRef.current?.clearSelection();
+            turnOffMobileSelectionMode();
+            return;
+        }
+
+        Navigation.goBack();
+    };
 
     return (
         <AccessOrNotFoundWrapper
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
         >
-            {!!isLoading && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={styles.flex1}
-                    color={theme.spinner}
+            <WorkspacePageWithSections
+                headerText={translate(isSelectionModeEnabled ? 'common.selectMultiple' : 'workspace.common.companyCards')}
+                route={route}
+                policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+                onBackButtonPress={handleBackButtonPress}
+                shouldUseHeadlineHeader={!isSelectionModeEnabled}
+                shouldShowOfflineIndicatorInWideScreen
+                showLoadingAsFirstRender={false}
+                addBottomSafeAreaPadding
+            >
+                <WorkspaceCompanyCardsTable
+                    ref={companyCardsTableRef}
+                    policyID={policyID}
+                    isPolicyLoaded={isPolicyLoaded}
+                    isPageFetchPending={isPageFetchPending}
+                    domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+                    companyCards={companyCards}
+                    onAssignCard={assignCard}
+                    isAssigningCardDisabled={isAssigningCardDisabled || !canWriteCompanyCards}
+                    canWriteCompanyCards={canWriteCompanyCards}
+                    isSelectionModeEnabled={isSelectionModeEnabled}
+                    onReloadPage={loadPolicyCompanyCardsPage}
+                    onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
-            )}
-            {!isLoading && (
-                <WorkspacePageWithSections
-                    shouldUseScrollView={isNoFeed}
-                    icon={Illustrations.CompanyCard}
-                    headerText={translate('workspace.common.companyCards')}
-                    route={route}
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_COMPANY_CARDS}
-                    shouldShowOfflineIndicatorInWideScreen
-                    includeSafeAreaPaddingBottom
-                    showLoadingAsFirstRender={false}
-                >
-                    {(isFeedAdded || isPending) && !!selectedFeed && (
-                        <WorkspaceCompanyCardsListHeaderButtons
-                            policyID={policyID}
-                            selectedFeed={selectedFeed}
-                        />
-                    )}
-                    {isNoFeed && <WorkspaceCompanyCardPageEmptyState route={route} />}
-                    {isPending && <WorkspaceCompanyCardsFeedPendingPage />}
-                    {isFeedAdded && !isPending && (
-                        <WorkspaceCompanyCardsList
-                            cardsList={cardsList}
-                            policyID={policyID}
-                        />
-                    )}
-                </WorkspacePageWithSections>
-            )}
+            </WorkspacePageWithSections>
+
+            <DecisionModal
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.offlinePrompt')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={shouldShowOfflineModal}
+                onClose={() => setShouldShowOfflineModal(false)}
+            />
         </AccessOrNotFoundWrapper>
     );
 }
 
-WorkspaceCompanyCardPage.displayName = 'WorkspaceCompanyCardPage';
-
-export default WorkspaceCompanyCardPage;
+export default WorkspaceCompanyCardsPage;

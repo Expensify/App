@@ -1,12 +1,16 @@
-import React from 'react';
-import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import variables from '@styles/variables';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {SignInPageLayoutProps} from './types';
+
 import SignInHeroCopy from './SignInHeroCopy';
 import SignInHeroImage from './SignInHeroImage';
-import type {SignInPageLayoutProps} from './types';
 
 type SignInPageHeroProps = Pick<SignInPageLayoutProps, 'customHeadline' | 'customHeroBody'>;
 
@@ -35,7 +39,5 @@ function SignInPageHero({customHeadline, customHeroBody}: SignInPageHeroProps) {
         </View>
     );
 }
-
-SignInPageHero.displayName = 'SignInPageHero';
 
 export default SignInPageHero;

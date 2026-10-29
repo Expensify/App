@@ -1,6 +1,8 @@
-import type {ValueOf} from 'type-fest';
-import type {IOURequestType} from '@libs/actions/IOU';
+import type {IOURequestType} from '@src/CONST';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -42,7 +44,6 @@ const INPUT_IDS = {
     ORIGINAL_CURRENCY: 'originalCurrency',
     IS_LOADING: 'isLoading',
     SPLIT_SHARES: 'splitShares',
-    SPLIT_PAYER_ACCOUNT_I_DS: 'splitPayerAccountIDs',
     SHOULD_SHOW_ORIGINAL_AMOUNT: 'shouldShowOriginalAmount',
     ACTIONABLE_WHISPER_REPORT_ACTION_ID: 'actionableWhisperReportActionID',
     LINKED_TRACKED_EXPENSE_REPORT_ACTION: 'linkedTrackedExpenseReportAction',
@@ -96,7 +97,6 @@ type DebugTransactionForm = Form<
         [INPUT_IDS.ORIGINAL_CURRENCY]: string;
         [INPUT_IDS.IS_LOADING]: boolean;
         [INPUT_IDS.SPLIT_SHARES]: string;
-        [INPUT_IDS.SPLIT_PAYER_ACCOUNT_I_DS]: string;
         [INPUT_IDS.SHOULD_SHOW_ORIGINAL_AMOUNT]: boolean;
         [INPUT_IDS.ACTIONABLE_WHISPER_REPORT_ACTION_ID]: string;
         [INPUT_IDS.LINKED_TRACKED_EXPENSE_REPORT_ACTION]: string;

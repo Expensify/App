@@ -1,12 +1,19 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import type {ApiRequestCommandParameters} from '@libs/API/types';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
-import type {ConflictActionData} from '@src/types/onyx/Request';
+import type {AnyRequest, ConflictActionData} from '@src/types/onyx/Request';
 
-type RequestMatcher = (request: OnyxRequest) => boolean;
+import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
+type AnyRequestMatcher = (request: AnyRequest) => boolean;
 
 const addNewMessage = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_ATTACHMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 
@@ -19,8 +26,31 @@ const commentsToBeDeleted = new Set<string>([
     WRITE_COMMANDS.REMOVE_EMOJI_REACTION,
 ]);
 
+const enablePolicyFeatureCommand = [
+    WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
+    WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
+    WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
+    WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS,
+    WRITE_COMMANDS.ENABLE_POLICY_HR,
+    WRITE_COMMANDS.ENABLE_POLICY_RECRUITING,
+    WRITE_COMMANDS.ENABLE_POLICY_MCP,
+    WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS,
+    WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES,
+    WRITE_COMMANDS.ENABLE_POLICY_TAGS,
+    WRITE_COMMANDS.ENABLE_POLICY_TAXES,
+    WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS,
+    WRITE_COMMANDS.ENABLE_POLICY_INVOICE_FIELDS,
+    WRITE_COMMANDS.ENABLE_POLICY_WORKFLOWS,
+    WRITE_COMMANDS.SET_POLICY_RULES_ENABLED,
+    WRITE_COMMANDS.ENABLE_POLICY_INVOICING,
+    WRITE_COMMANDS.ENABLE_POLICY_TRAVEL,
+    WRITE_COMMANDS.ENABLE_POLICY_TIME_TRACKING,
+] as const;
+
+type EnablePolicyFeatureCommand = TupleToUnion<typeof enablePolicyFeatureCommand>;
+
 function createUpdateCommentMatcher(reportActionID: string) {
-    return function (request: OnyxRequest) {
+    return function (request: AnyRequest) {
         return request.command === WRITE_COMMANDS.UPDATE_COMMENT && request.data?.reportActionID === reportActionID;
     };
 }
@@ -32,7 +62,7 @@ function createUpdateCommentMatcher(reportActionID: string) {
  * - If no match is found, it suggests adding the request to the list, indicating a 'push' action.
  * - If a match is found, it suggests updating the existing entry, indicating a 'replace' action at the found index.
  */
-function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requestMatcher: RequestMatcher): ConflictActionData {
+function resolveDuplicationConflictAction(persistedRequests: AnyRequest[], requestMatcher: AnyRequestMatcher): ConflictActionData {
     const index = persistedRequests.findIndex(requestMatcher);
     if (index === -1) {
         return {
@@ -50,12 +80,46 @@ function resolveDuplicationConflictAction(persistedRequests: OnyxRequest[], requ
     };
 }
 
-function resolveOpenReportDuplicationConflictAction(persistedRequests: OnyxRequest[], parameters: OpenReportParams): ConflictActionData {
+/**
+ * Duplicate resolver for an incoming OpenApp. See the Conflict Resolution section of
+ * contributingGuides/SEQUENTIAL_QUEUE.md.
+ *
+ * OpenApp re-fetches the whole account, so one already in flight makes an incoming one redundant. The generic
+ * resolver cannot see that, because the in-flight request has already left the persisted queue.
+ */
+function resolveOpenAppDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, shouldDedupeWithInFlight: boolean): ConflictActionData {
+    if (shouldDedupeWithInFlight && ongoingRequest?.command === WRITE_COMMANDS.OPEN_APP) {
+        return {
+            conflictAction: {
+                type: 'noAction',
+            },
+        };
+    }
+
+    return resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP);
+}
+
+function resolveOpenReportDuplicationConflictAction<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: OpenReportParams): ConflictActionData {
     for (let index = 0; index < persistedRequests.length; index++) {
         const request = persistedRequests.at(index);
-        if (request && request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
+        if (request?.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.reportID === parameters.reportID && request.data?.emailList === parameters.emailList) {
             // If the previous request had guided setup data, we can safely ignore the new request
             if (request.data.guidedSetupData) {
+                return {
+                    conflictAction: {
+                        type: 'noAction',
+                    },
+                };
+            }
+
+            // The queued request carries the participants needed to create the optimistic chat on the
+            // server (e.g. from navigateToAndOpenReportWithAccountIDs). A follow-up OpenReport fired by
+            // ReportFetchHandler when the screen mounts has no participants. Replacing would drop the
+            // accountIDList, leaving the server with no way to resolve the optimistic reportID — Auth
+            // returns NIL reportSummary and PHP throws "Report not found" (da7984df).
+            const queuedHasParticipants = !!(request.data?.emailList || request.data?.accountIDList);
+            const newHasParticipants = !!(parameters.emailList || parameters.accountIDList);
+            if (queuedHasParticipants && !newHasParticipants) {
                 return {
                     conflictAction: {
                         type: 'noAction',
@@ -81,32 +145,104 @@ function resolveOpenReportDuplicationConflictAction(persistedRequests: OnyxReque
     };
 }
 
-function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], reportActionID: string, originalReportID: string): ConflictActionData {
+function isReconnectFamilyRequest(request: AnyRequest | null | undefined): request is AnyRequest {
+    return !!request && (request.command === WRITE_COMMANDS.OPEN_APP || request.command === WRITE_COMMANDS.RECONNECT_APP);
+}
+
+/**
+ * Read the `updateIDFrom` coverage marker off untyped reconnect params. Returns the number, or undefined
+ * when the param is missing or not a number.
+ */
+function readUpdateIDFrom(params: unknown): number | undefined {
+    if (typeof params === 'object' && params !== null && 'updateIDFrom' in params && typeof params.updateIDFrom === 'number') {
+        return params.updateIDFrom;
+    }
+    return undefined;
+}
+
+/**
+ * How far back a reconnect re-fetches: a lower number means more coverage. OpenApp and a full
+ * ReconnectApp re-fetch everything (0); an incremental ReconnectApp covers only from its
+ * `updateIDFrom` onward. Mirrors the `!updateIDFrom` "is full reconnect" notion in App.ts.
+ */
+function reconnectCoverageFrom(request: AnyRequest): number {
+    const updateIDFrom = request.data?.updateIDFrom;
+    return typeof updateIDFrom === 'number' ? updateIDFrom : 0;
+}
+
+function isFullDownloadRequest(request: AnyRequest): boolean {
+    return isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) === 0;
+}
+
+/**
+ * Coverage-based duplicate resolver for an incoming ReconnectApp. See the Conflict Resolution section of
+ * contributingGuides/SEQUENTIAL_QUEUE.md for how coverage and the ongoing-request check decide the outcome.
+ * Preserve it in the SequentialQueue refactor.
+ */
+function resolveReconnectDuplicationConflictAction(persistedRequests: AnyRequest[], ongoingRequest: AnyRequest | null, incomingRequest: AnyRequest): ConflictActionData {
+    const incomingCoverage = reconnectCoverageFrom(incomingRequest);
+    const isCovered = [ongoingRequest, ...persistedRequests].some((live) => isReconnectFamilyRequest(live) && reconnectCoverageFrom(live) <= incomingCoverage);
+
+    if (isCovered) {
+        return {
+            conflictAction: {
+                type: 'noAction',
+            },
+        };
+    }
+
+    // The incoming reconnect is wider than everything live, so drop the now-redundant narrower
+    // reconnects still waiting in the queue (never the in-flight one) to avoid an extra fetch.
+    const indicesToDelete = persistedRequests.reduce<number[]>((indices, request, index) => {
+        if (isReconnectFamilyRequest(request) && reconnectCoverageFrom(request) > incomingCoverage) {
+            indices.push(index);
+        }
+        return indices;
+    }, []);
+
+    if (indicesToDelete.length > 0) {
+        return {
+            conflictAction: {
+                type: 'delete',
+                indices: indicesToDelete,
+                pushNewRequest: true,
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'push',
+        },
+    };
+}
+
+function resolveCommentDeletionConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, reportActionID: string, originalReportID: string): ConflictActionData {
     const commentIndicesToDelete: number[] = [];
     const commentCouldBeThread: Record<string, number> = {};
     let addCommentFound = false;
-    persistedRequests.forEach((request, index) => {
+    for (const [index, request] of persistedRequests.entries()) {
         // If the request will open a Thread, we should not delete the comment and we should send all the requests
         if (request.command === WRITE_COMMANDS.OPEN_REPORT && request.data?.parentReportActionID === reportActionID && reportActionID in commentCouldBeThread) {
             const indexToRemove = commentCouldBeThread[reportActionID];
             commentIndicesToDelete.splice(indexToRemove, 1);
             // The new message performs some changes in Onyx, we want to keep those changes.
             addCommentFound = false;
-            return;
+            continue;
         }
 
         if (!commentsToBeDeleted.has(request.command) || request.data?.reportActionID !== reportActionID) {
-            return;
+            continue;
         }
 
         // If we find a new message, we probably want to remove it and not perform any request given that the server
         // doesn't know about it yet.
-        if (addNewMessage.has(request.command) && !request.isRollbacked) {
+        if (addNewMessage.has(request.command) && !request.isRollback) {
             addCommentFound = true;
             commentCouldBeThread[reportActionID] = commentIndicesToDelete.length;
         }
         commentIndicesToDelete.push(index);
-    });
+    }
 
     if (commentIndicesToDelete.length === 0) {
         return {
@@ -118,7 +254,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
 
     if (addCommentFound) {
         // The new message performs some changes in Onyx, so we need to rollback those changes.
-        const rollbackData: OnyxUpdate[] = [
+        const rollbackData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,
@@ -139,19 +275,83 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
     };
 }
 
-function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxRequest[], parameters: UpdateCommentParams, reportActionID: string, addCommentIndex: number): ConflictActionData {
+/**
+ * The server reads the stored file's extension from the name it is uploaded under, and a download can only put back
+ * an extension the stored copy already has. So dropping it in a rename would leave the file with none for good.
+ */
+function keepExtension(currentName: string, newName: string): string {
+    if (splitExtensionFromFileName(newName).fileExtension) {
+        return newName;
+    }
+    const currentExtension = splitExtensionFromFileName(currentName).fileExtension;
+    return currentExtension ? `${newName}.${currentExtension}` : newName;
+}
+
+/**
+ * The server builds the stored attachment from the uploaded file, so a rename only survives if the queued file
+ * carries the new name. `File.name` is readonly on web, hence the rebuild; native picker results are plain objects.
+ */
+function renameQueuedAttachment(file: unknown, name: string): unknown {
+    if (typeof File !== 'undefined' && file instanceof File) {
+        // The constructor copies only the standard fields, so `uri` and `source` are put back: the native payload
+        // reads them to find the file on disk, and a share lands here as a File rather than a plain object.
+        const renamed = keepExtension(file.name, name);
+        return Object.assign(new File([file], renamed, {type: file.type, lastModified: file.lastModified}), {uri: file.uri, source: file.source});
+    }
+    if (typeof file !== 'object' || file === null) {
+        return file;
+    }
+    const currentName = 'name' in file && typeof file.name === 'string' ? file.name : '';
+    return {...file, name: keepExtension(currentName, name)};
+}
+
+function resolveEditCommentWithNewAddCommentRequest<TKey extends OnyxKey>(
+    persistedRequests: Array<OnyxRequest<TKey>>,
+    parameters: UpdateCommentParams,
+    reportActionID: string,
+    addCommentIndex: number,
+    removedAttachmentIDs: string[] = [],
+    renamedAttachmentLabels: Partial<Record<string, string>> = {},
+): ConflictActionData {
     const indicesToDelete: number[] = [];
-    persistedRequests.forEach((request, index) => {
+    for (const [index, request] of persistedRequests.entries()) {
         if (request.command !== WRITE_COMMANDS.UPDATE_COMMENT || request.data?.reportActionID !== reportActionID) {
-            return;
+            continue;
         }
         indicesToDelete.push(index);
-    });
+    }
 
     const currentAddComment = persistedRequests.at(addCommentIndex);
     let nextAction = null;
     if (currentAddComment) {
         currentAddComment.data = {...currentAddComment.data, ...parameters};
+
+        // The queued request keeps its own files, so without dropping them the server would re-add attachments the edit removed.
+        if (removedAttachmentIDs.length > 0 || Object.keys(renamedAttachmentLabels).length > 0) {
+            const data = currentAddComment.data;
+            const fileKeys = ['file', ...Object.keys(data).filter((key) => CONST.ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX.test(key))];
+            const attachmentIDs = typeof data.attachmentIDs === 'string' ? data.attachmentIDs.split(',') : [data.attachmentID];
+            const keptAttachments = fileKeys
+                .map((key, index) => ({file: data[key], attachmentID: attachmentIDs.at(index)}))
+                .filter(({file, attachmentID}) => !!file && !(typeof attachmentID === 'string' && removedAttachmentIDs.includes(attachmentID)))
+                .map(({file, attachmentID}) => {
+                    const renamedLabel = typeof attachmentID === 'string' ? renamedAttachmentLabels[attachmentID] : undefined;
+                    return {file: renamedLabel ? renameQueuedAttachment(file, renamedLabel) : file, attachmentID};
+                });
+
+            for (const key of fileKeys) {
+                delete data[key];
+            }
+            for (const [index, {file}] of keptAttachments.entries()) {
+                data[index === 0 ? 'file' : `file_${index}`] = file;
+            }
+            data.attachmentID = keptAttachments.at(0)?.attachmentID;
+            data.attachmentIDs = keptAttachments.length > 1 ? keptAttachments.map(({attachmentID}) => attachmentID).join(',') : undefined;
+            if (keptAttachments.length === 0) {
+                currentAddComment.command = WRITE_COMMANDS.ADD_COMMENT;
+            }
+        }
+
         nextAction = {
             type: 'replace',
             index: addCommentIndex,
@@ -175,10 +375,77 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests: OnyxReque
     } as ConflictActionData;
 }
 
+function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
+    command: EnablePolicyFeatureCommand,
+    persistedRequests: Array<OnyxRequest<TKey>>,
+    parameters: ApiRequestCommandParameters[EnablePolicyFeatureCommand],
+): ConflictActionData {
+    const deleteRequestIndex = persistedRequests.findIndex(
+        (request) => request.command === command && request.data?.policyID === parameters.policyID && request.data?.enabled !== parameters.enabled,
+    );
+
+    if (deleteRequestIndex === -1) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'delete',
+            indices: [deleteRequestIndex],
+            pushNewRequest: false,
+        },
+    };
+}
+
+/**
+ * Removing the vacation delegate supersedes any change to it still waiting in the queue, e.g. a clear after date changed offline
+ * before the removal. Sending that change first would let its response bring the removed delegate back until the removal lands.
+ * Only the current user's own delegate is matched, so a domain admin's change for a member is left alone.
+ */
+function resolveVacationDelegateDeletionConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>): ConflictActionData {
+    const indicesToDelete = persistedRequests.reduce<number[]>((indices, request, index) => {
+        if (request.command === WRITE_COMMANDS.SET_VACATION_DELEGATE && !request.data?.domainAccountID) {
+            indices.push(index);
+        }
+        return indices;
+    }, []);
+
+    if (indicesToDelete.length === 0) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'delete',
+            indices: indicesToDelete,
+            pushNewRequest: true,
+        },
+    };
+}
+
 export {
     resolveDuplicationConflictAction,
+    resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
+    resolveReconnectDuplicationConflictAction,
+    readUpdateIDFrom,
+    reconnectCoverageFrom,
+    isFullDownloadRequest,
+    isReconnectFamilyRequest,
     resolveCommentDeletionConflicts,
     resolveEditCommentWithNewAddCommentRequest,
     createUpdateCommentMatcher,
+    resolveEnableFeatureConflicts,
+    enablePolicyFeatureCommand,
+    resolveVacationDelegateDeletionConflicts,
 };
+
+export type {EnablePolicyFeatureCommand, AnyRequestMatcher};

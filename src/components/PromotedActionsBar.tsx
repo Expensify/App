@@ -1,121 +1,147 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as HeaderUtils from '@libs/HeaderUtils';
-import * as Localize from '@libs/Localize';
-import getTopmostCentralPaneRoute from '@libs/Navigation/getTopmostCentralPaneRoute';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import type {RootStackParamList, State} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as ReportActions from '@userActions/Report';
-import * as Session from '@userActions/Session';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+
+import type {IntroSelected} from '@userActions/Report';
+import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs, togglePinnedState} from '@userActions/Report';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import type {ReportAction} from '@src/types/onyx';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
-import Button from './Button';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
-import * as Expensicons from './Icon/Expensicons';
+
+import Button from './Button';
 
 type PromotedAction = {
     key: string;
 } & ThreeDotsMenuItem;
 
-type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN | typeof CONST.PROMOTED_ACTIONS.JOIN;
+type BasePromotedActions = typeof CONST.PROMOTED_ACTIONS.PIN;
 
 type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => PromotedAction> & {
-    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport, backTo?: string) => PromotedAction;
+    [CONST.PROMOTED_ACTIONS.SHARE]: (report: OnyxReport) => PromotedAction;
 } & {
-    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string}) => PromotedAction;
-} & {
-    [CONST.PROMOTED_ACTIONS.HOLD]: (params: {
-        isTextHold: boolean;
-        reportAction: ReportAction | undefined;
+    [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {
         reportID?: string;
-        isDelegateAccessRestricted: boolean;
-        setIsNoDelegateAccessMenuVisible: (isVisible: boolean) => void;
-        currentSearchHash?: number;
+        accountID?: number;
+        login?: string;
+        currentUserAccountID: number;
+        introSelected: OnyxEntry<IntroSelected>;
+        personalDetails: OnyxEntry<PersonalDetailsList>;
+        isSelfTourViewed: boolean | undefined;
+        hasCompletedGuidedSetupFlow: boolean | undefined;
+        hasReportActions: boolean | undefined;
+        conciergeChat: OnyxEntry<OnyxReport>;
+        isSupportalSession: boolean;
     }) => PromotedAction;
+} & {
+    [CONST.PROMOTED_ACTIONS.JOIN]: (report: OnyxReport, currentUserAccountID: number) => PromotedAction;
+};
+
+type PromotedActionsBarProps = {
+    promotedActions: PromotedAction[];
+    containerStyle?: StyleProp<ViewStyle>;
 };
 
 const PromotedActions = {
     pin: (report) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
-        ...HeaderUtils.getPinMenuItem(report),
+        icon: 'Pin',
+        translationKey: report.isPinned ? 'common.unPin' : 'common.pin',
+        onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, !!report.isPinned)),
     }),
-    share: (report, backTo) => ({
+    share: () => ({
         key: CONST.PROMOTED_ACTIONS.SHARE,
-        ...HeaderUtils.getShareMenuItem(report, backTo),
+        icon: 'QrCode',
+        translationKey: 'common.share',
+        onSelected: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS_SHARE_CODE.path)),
     }),
-    join: (report) => ({
+    join: (report, currentUserAccountID) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
-        icon: Expensicons.ChatBubbles,
-        text: Localize.translateLocal('common.join'),
-        onSelected: Session.checkIfActionIsAllowed(() => {
+        icon: 'ChatBubbles',
+        translationKey: 'common.join',
+        onSelected: callFunctionIfActionIsAllowed(() => {
             Navigation.dismissModal();
-            ReportActions.joinRoom(report);
+            joinRoom(report, currentUserAccountID);
         }),
     }),
-    message: ({reportID, accountID, login}) => ({
+    message: ({
+        reportID,
+        accountID,
+        login,
+        personalDetails,
+        currentUserAccountID,
+        introSelected,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
+        hasReportActions,
+        conciergeChat,
+        isSupportalSession,
+    }) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
-        icon: Expensicons.CommentBubbles,
-        text: Localize.translateLocal('common.message'),
+        icon: 'CommentBubbles',
+        translationKey: 'common.message',
         onSelected: () => {
-            if (reportID) {
-                Navigation.dismissModal(reportID);
+            if (reportID && accountID === currentUserAccountID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                 return;
             }
 
-            // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                ReportActions.navigateToAndOpenReport([login]);
+                navigateToAndOpenReport({
+                    userLogins: [login],
+                    personalDetails,
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
+                    conciergeChat,
+                    isSupportalSession,
+                    shouldDismissModal: false,
+                    shouldRevalidateExistingChat: true,
+                    hasReportActions,
+                });
                 return;
             }
             if (accountID) {
-                ReportActions.navigateToAndOpenReportWithAccountIDs([accountID]);
-            }
-        },
-    }),
-    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
-        key: CONST.PROMOTED_ACTIONS.HOLD,
-        icon: Expensicons.Stopwatch,
-        text: Localize.translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
-        onSelected: () => {
-            if (isDelegateAccessRestricted) {
-                setIsNoDelegateAccessMenuVisible(true); // Show the menu
+                navigateToAndOpenReportWithAccountIDs(
+                    [accountID],
+                    currentUserAccountID,
+                    introSelected,
+                    isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
+                    personalDetails,
+                    conciergeChat,
+                    true,
+                    hasReportActions,
+                );
                 return;
             }
 
-            if (!isTextHold) {
-                Navigation.goBack();
+            if (reportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
             }
-            const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
-            const topmostCentralPaneRoute = getTopmostCentralPaneRoute(navigationRef.getRootState() as State<RootStackParamList>);
-
-            if (topmostCentralPaneRoute?.name !== SCREENS.SEARCH.CENTRAL_PANE && isTextHold) {
-                ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
-                return;
-            }
-
-            ReportUtils.changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute({reportID: targetedReportID}), currentSearchHash);
         },
     }),
 } satisfies PromotedActionsType;
-
-type PromotedActionsBarProps = {
-    /** The list of actions to show */
-    promotedActions: PromotedAction[];
-
-    /** The style of the container */
-    containerStyle?: StyleProp<ViewStyle>;
-};
-
 function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'CommentBubbles', 'Pin', 'QrCode']);
 
     if (promotedActions.length === 0) {
         return null;
@@ -123,24 +149,23 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
-            {promotedActions.map(({key, onSelected, ...props}) => (
+            {promotedActions.map(({key, onSelected, translationKey, icon}) => (
                 <View
                     style={[styles.flex1, styles.mw50]}
                     key={key}
                 >
-                    <Button
-                        onPress={onSelected}
-                        iconFill={theme.icon}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                    />
+                    <Button onPress={onSelected}>
+                        <Button.Icon
+                            src={typeof icon === 'string' ? icons[icon] : icon}
+                            fill={theme.icon}
+                        />
+                        <Button.Text>{translate(translationKey)}</Button.Text>
+                    </Button>
                 </View>
             ))}
         </View>
     );
 }
-
-PromotedActionsBar.displayName = 'PromotedActionsBar';
 
 export default PromotedActionsBar;
 

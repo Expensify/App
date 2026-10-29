@@ -1,224 +1,107 @@
-import {Str} from 'expensify-common';
-import React, {useRef, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
-import * as EmojiUtils from '@libs/EmojiUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import variables from '@styles/variables';
-import * as Modal from '@userActions/Modal';
+
+import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
-import Avatar from './Avatar';
-import ConfirmModal from './ConfirmModal';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import type {PopoverMenuItem} from './PopoverMenu';
-import PopoverMenu from './PopoverMenu';
-import {PressableWithFeedback} from './Pressable';
+
+import {accountIDSelector} from '@selectors/Session';
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
+import AccountSwitcherButton from './AccountSwitcherButton';
+import UserAvatar from './Avatar/UserAvatar';
 import Text from './Text';
 
-function AccountSwitcher() {
+type AccountSwitcherProps = {
+    /** Whether the screen is focused. Used to hide the product training tooltip */
+    isScreenFocused: boolean;
+
+    /** Whether to render the Switch button next to the account details. Wide layouts render it in the top bar instead. */
+    shouldShowSwitchButton?: boolean;
+};
+
+function AccountSwitcher({isScreenFocused, shouldShowSwitchButton = true}: AccountSwitcherProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const buttonRef = useRef<HTMLDivElement>(null);
-    const {windowHeight} = useWindowDimensions();
+    const {formatPhoneNumber} = useLocalize();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
 
-    const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
-    const delegators = account?.delegatedAccess?.delegators ?? [];
+    const displayName = currentUserPersonalDetails.displayName ?? '';
+    const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
 
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
-    const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const processedTextArray = EmojiUtils.splitTextWithEmojis(currentUserPersonalDetails?.displayName);
-
-    const createBaseMenuItem = (
-        personalDetails: PersonalDetails | undefined,
-        errors?: Errors,
-        additionalProps: Partial<Omit<PopoverMenuItem, 'icon' | 'iconType'>> = {},
-    ): PopoverMenuItem => {
-        const error = Object.values(errors ?? {}).at(0) ?? '';
-        return {
-            text: personalDetails?.displayName ?? personalDetails?.login ?? '',
-            description: Str.removeSMSDomain(personalDetails?.login ?? ''),
-            avatarID: personalDetails?.accountID ?? -1,
-            icon: personalDetails?.avatar ?? '',
-            iconType: CONST.ICON_TYPE_AVATAR,
-            outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
-            numberOfLinesDescription: 1,
-            errorText: error ?? '',
-            shouldShowRedDotIndicator: !!error,
-            errorTextStyle: styles.mt2,
-            ...additionalProps,
-        };
-    };
-
-    const menuItems = (): PopoverMenuItem[] => {
-        const currentUserMenuItem = createBaseMenuItem(currentUserPersonalDetails, undefined, {
-            shouldShowRightIcon: true,
-            iconRight: Expensicons.Checkmark,
-            success: true,
-            isSelected: true,
-        });
-
-        if (isActingAsDelegate) {
-            const delegateEmail = account?.delegatedAccess?.delegate ?? '';
-
-            // Avoid duplicating the current user in the list when switching accounts
-            if (delegateEmail === currentUserPersonalDetails.login) {
-                return [currentUserMenuItem];
-            }
-
-            const delegatePersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(delegateEmail);
-            const error = ErrorUtils.getLatestError(account?.delegatedAccess?.errorFields?.disconnect);
-
-            return [
-                createBaseMenuItem(delegatePersonalDetails, error, {
-                    onSelected: () => {
-                        if (isOffline) {
-                            Modal.close(() => setShouldShowOfflineModal(true));
-                            return;
-                        }
-                        disconnect();
-                    },
-                }),
-                currentUserMenuItem,
-            ];
-        }
-
-        const delegatorMenuItems: PopoverMenuItem[] = delegators
-            .filter(({email}) => email !== currentUserPersonalDetails.login)
-            .map(({email, role}) => {
-                const errorFields = account?.delegatedAccess?.errorFields ?? {};
-                const error = ErrorUtils.getLatestError(errorFields?.connect?.[email]);
-                const personalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-                return createBaseMenuItem(personalDetails, error, {
-                    badgeText: translate('delegate.role', {role}),
-                    onSelected: () => {
-                        if (isOffline) {
-                            Modal.close(() => setShouldShowOfflineModal(true));
-                            return;
-                        }
-                        connect(email);
-                    },
-                });
-            });
-
-        return [currentUserMenuItem, ...delegatorMenuItems];
-    };
+    // A landscape phone is still a narrow layout, but the tall stacked header would eat most of the screen height there.
+    const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
+    const displayNameStyle = shouldStackHeader ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textNormal, styles.flexShrink1, styles.lineHeightXLarge];
+    const avatarSize = shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
 
     return (
-        <>
-            <PressableWithFeedback
-                accessible
-                accessibilityLabel={translate('common.profile')}
-                onPress={() => {
-                    setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
-                }}
-                ref={buttonRef}
-                interactive={canSwitchAccounts}
-                pressDimmingValue={canSwitchAccounts ? undefined : 1}
-                wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+        <View
+            style={
+                shouldStackHeader ? [styles.alignItemsCenter, styles.gap4, styles.w100] : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flexGrow1, styles.flex1, styles.mnw0]
+            }
+        >
+            <View
+                style={
+                    shouldStackHeader
+                        ? [styles.alignItemsCenter, styles.gap3, styles.w100]
+                        : [styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.flex1, styles.flexShrink1, styles.mnw0, styles.justifyContentCenter]
+                }
             >
-                <View style={[styles.flexRow, styles.gap3]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.DEFAULT}
-                        avatarID={currentUserPersonalDetails?.accountID}
-                        source={currentUserPersonalDetails?.avatar}
-                        fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                    />
-                    <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
-                        <View style={[styles.flexRow, styles.gap1]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
-                            >
-                                {processedTextArray.length !== 0
-                                    ? EmojiUtils.getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji)
-                                    : currentUserPersonalDetails?.displayName}
-                            </Text>
-                            {!!canSwitchAccounts && (
-                                <View style={styles.justifyContentCenter}>
-                                    <Icon
-                                        fill={theme.icon}
-                                        src={Expensicons.CaretUpDown}
-                                        height={variables.iconSizeSmall}
-                                        width={variables.iconSizeSmall}
-                                    />
-                                </View>
-                            )}
-                        </View>
+                <UserAvatar
+                    size={avatarSize}
+                    accountID={currentUserPersonalDetails.accountID}
+                    source={currentUserPersonalDetails.avatar}
+                    fallbackIcon={currentUserPersonalDetails.fallbackIcon}
+                />
+                <View
+                    style={
+                        shouldStackHeader
+                            ? [styles.alignItemsCenter, styles.gap1, styles.w100]
+                            : [styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gapHalf]
+                    }
+                >
+                    {doesDisplayNameContainEmojis ? (
+                        <Text numberOfLines={1}>
+                            <TextWithEmojiFragment
+                                message={displayName}
+                                style={displayNameStyle}
+                            />
+                        </Text>
+                    ) : (
                         <Text
                             numberOfLines={1}
-                            style={[styles.colorMuted, styles.fontSizeLabel]}
+                            style={displayNameStyle}
                         >
-                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                            {formatPhoneNumber(displayName)}
                         </Text>
-                        {!!user?.isDebugModeEnabled && (
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
-                                numberOfLines={1}
-                            >
-                                AccountID: {session?.accountID}
-                            </Text>
-                        )}
-                    </View>
+                    )}
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.colorMuted, styles.fontSizeLabel, shouldStackHeader && styles.textAlignCenter]}
+                    >
+                        {Str.removeSMSDomain(currentUserPersonalDetails.login ?? '')}
+                    </Text>
+                    {!!isDebugModeEnabled && (
+                        <Text
+                            style={[styles.textLabelSupporting, styles.mt1, styles.w100, shouldStackHeader && styles.textAlignCenter]}
+                            numberOfLines={1}
+                        >
+                            AccountID: {accountID}
+                        </Text>
+                    )}
                 </View>
-            </PressableWithFeedback>
-            {!!canSwitchAccounts && (
-                <PopoverMenu
-                    isVisible={shouldShowDelegatorMenu}
-                    onClose={() => {
-                        setShouldShowDelegatorMenu(false);
-                        clearDelegatorErrors();
-                    }}
-                    anchorRef={buttonRef}
-                    anchorPosition={CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    menuItems={menuItems()}
-                    headerText={translate('delegate.switchAccount')}
-                    containerStyles={[{maxHeight: windowHeight / 2}, styles.pb0, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
-                    headerStyles={styles.pt0}
-                    innerContainerStyle={styles.pb0}
-                    scrollContainerStyle={styles.pb4}
-                    shouldUseScrollView
-                    shouldUpdateFocusedIndex={false}
-                />
-            )}
-            <ConfirmModal
-                title={translate('common.youAppearToBeOffline')}
-                isVisible={shouldShowOfflineModal}
-                onConfirm={() => setShouldShowOfflineModal(false)}
-                onCancel={() => setShouldShowOfflineModal(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('common.offlinePrompt')}
-                shouldShowCancelButton={false}
-            />
-        </>
+            </View>
+            {!!shouldShowSwitchButton && <AccountSwitcherButton isScreenFocused={isScreenFocused} />}
+        </View>
     );
 }
-
-AccountSwitcher.displayName = 'AccountSwitcher';
 
 export default AccountSwitcher;

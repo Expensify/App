@@ -1,13 +1,14 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef} from 'react';
-import type {View} from 'react-native';
-import MenuItem from './MenuItem';
+import React from 'react';
+
 import type {MenuItemProps} from './MenuItem';
 
-function MenuItemWithTopDescription(props: MenuItemProps, ref: ForwardedRef<View>) {
+import MenuItem from './MenuItem';
+
+/** @deprecated Use `MenuItemField` from `@components/MenuItem/presets/MenuItemField` for new usages. */
+function MenuItemWithTopDescription({ref, ...props}: MenuItemProps) {
     return (
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- The deprecated wrapper itself must render legacy MenuItem.
         <MenuItem
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
             shouldShowBasicTitle
@@ -16,6 +17,5 @@ function MenuItemWithTopDescription(props: MenuItemProps, ref: ForwardedRef<View
     );
 }
 
-MenuItemWithTopDescription.displayName = 'MenuItemWithTopDescription';
-
-export default forwardRef(MenuItemWithTopDescription);
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Exporting the deprecated component itself is not a usage.
+export default MenuItemWithTopDescription;

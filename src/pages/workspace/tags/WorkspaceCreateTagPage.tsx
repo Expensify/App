@@ -1,85 +1,126 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
-import {Keyboard} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import usePermissions from '@hooks/usePermissions';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
+
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getTagList, hasCustomCategories} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
+import {getTagNameError, getTagNameErrorMessage} from '@libs/TagUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Tag from '@userActions/Policy/Tag';
+
+import {createPolicyTag} from '@userActions/Policy/Tag';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-type CreateTagPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_CREATE>;
+import React from 'react';
+import {Keyboard} from 'react-native';
 
-function CreateTagPage({route}: CreateTagPageProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
+type WorkspaceCreateTagPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAG_CREATE>
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE>;
+
+function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
+    const {policyID} = route.params;
+    const policyData = usePolicyData(policyID);
+    const {tags: policyTagLists, categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {inputCallbackRef} = useAutoFocusInput();
-    const backTo = route.params.backTo;
-    const isQuickSettingsFlow = !!backTo;
+    const isDynamicFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_CREATE;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-            const tagName = PolicyUtils.escapeTagName(values.tagName.trim());
-            const {tags} = PolicyUtils.getTagList(policyTags, 0);
+    const policyHasCustomCategories = hasCustomCategories(policyCategories);
 
-            if (!ValidationUtils.isRequiredFulfilled(tagName)) {
-                errors.tagName = translate('workspace.tags.tagRequiredError');
-            } else if (tagName === '0') {
-                errors.tagName = translate('workspace.tags.invalidTagNameError');
-            } else if (tags?.[tagName]) {
-                errors.tagName = translate('workspace.tags.existingTagError');
-            } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                ErrorUtils.addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.TAG_NAME_LIMIT}));
-            }
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+        const {tags} = getTagList(policyTagLists, 0);
+        const error = getTagNameError(tags, values.tagName);
 
-            return errors;
-        },
-        [policyTags, translate],
-    );
+        if (error) {
+            errors.tagName = getTagNameErrorMessage(translate, error, values.tagName);
+        }
 
-    const createTag = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            Tag.createPolicyTag(route.params.policyID, values.tagName.trim());
-            Keyboard.dismiss();
-            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID, backTo) : undefined);
-        },
-        [route.params.policyID, isQuickSettingsFlow, backTo],
-    );
+        return errors;
+    };
+
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const {
+        taskReport: setupTagsTaskReport,
+        taskParentReport: setupTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupTagsHasOutstandingChildTask,
+        parentReportAction: setupTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS);
+
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const createTag = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        createPolicyTag({
+            isVendorMatchingBetaEnabled,
+            policyData,
+            tagName: StringUtils.sanitizeName(values.tagName),
+            setupTagsTaskReport,
+            setupTagsTaskParentReport,
+            isSetupTagsTaskParentReportArchived,
+            setupTagsHasOutstandingChildTask,
+            setupTagsParentReportAction,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            policyHasCustomCategories,
+            pendingRequiresTagRestore: policyData.policy?.pendingRequiresTagRestore === true,
+        });
+        Keyboard.dismiss();
+        Navigation.goBack(isDynamicFlow ? backPath : undefined);
+    };
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            policyID={route.params.policyID}
+            policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CreateTagPage.displayName}
+                testID="WorkspaceCreateTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.tags.addTag')}
-                    onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(route.params.policyID, backTo) : undefined)}
+                    onBackButtonPress={() => Navigation.goBack(isDynamicFlow ? backPath : undefined)}
                 />
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_TAG_FORM}
@@ -88,10 +129,12 @@ function CreateTagPage({route}: CreateTagPageProps) {
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     <InputWrapper
                         InputComponent={TextInput}
-                        maxLength={CONST.TAG_NAME_LIMIT}
                         label={translate('common.name')}
                         accessibilityLabel={translate('common.name')}
                         inputID={INPUT_IDS.TAG_NAME}
@@ -104,6 +147,4 @@ function CreateTagPage({route}: CreateTagPageProps) {
     );
 }
 
-CreateTagPage.displayName = 'CreateTagPage';
-
-export default CreateTagPage;
+export default WorkspaceCreateTagPage;

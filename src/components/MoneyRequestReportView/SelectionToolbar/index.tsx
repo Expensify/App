@@ -1,0 +1,364 @@
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
+import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
+import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
+import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import useDecisionModal from '@hooks/useDecisionModal';
+import useFilterSelectedTransactions from '@hooks/useFilterSelectedTransactions';
+import useHoldRejectEducationalModal from '@hooks/useHoldRejectEducationalModal';
+import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
+import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
+import useSelectionModeReportActions from '@hooks/useSelectionModeReportActions';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {dismissRejectUseExplanation} from '@libs/actions/IOU/RejectMoneyRequest';
+import {queueExportSearchWithTemplate} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isEveryReportTransactionSelected, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
+import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, isPending, isTransactionPendingDelete} from '@libs/TransactionUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
+
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
+
+import SelectAllCheckbox from './SelectAllCheckbox';
+import SelectionBulkActionBar from './SelectionBulkActionBar';
+import SelectionDropdown from './SelectionDropdown';
+
+type SelectionToolbarProps = {
+    reportID: string;
+
+    /** Filtered transactions for this report */
+    transactions: OnyxTypes.Transaction[];
+
+    /** Filtered report actions for this report */
+    reportActions: OnyxTypes.ReportAction[];
+};
+
+function SelectionToolbar({reportID, transactions, reportActions}: SelectionToolbarProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {isOffline} = useNetworkWithOfflineStatus();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayoutOnWideRHP();
+    const shouldShowBulkActionBar = useShouldShowReportBulkActionBar();
+    const route = useRoute<
+        | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
+    >();
+    // Deleting from a report opened out of a search has to update the search results behind it, which needs the hash of
+    // the search that is showing.
+    const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(reportID)}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(reportID)}`);
+
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+
+    const {selectedTransactionIDs} = useSearchSelectionContext();
+    const {setSelectedTransactions, clearSelectedTransactions} = useSearchSelectionActions();
+
+    useFilterSelectedTransactions(transactions, reportID);
+
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {showConfirmModal} = useConfirmModal();
+    const {showDecisionModal} = useDecisionModal();
+
+    const showOfflineModal = () => {
+        showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    const showDownloadErrorModal = () => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    const transactionsWithoutPendingDelete = transactions.filter((t) => !isTransactionPendingDelete(t));
+    // Select All skips rejected expenses as well as ones being deleted, since their checkboxes are disabled. The list header and group headers use the same filter.
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
+
+    const beginExportWithTemplate = (templateName: string, templateType: string, transactionIDList: string[], exportName: string) => {
+        if (isOffline) {
+            showOfflineModal();
+            return;
+        }
+
+        if (!report) {
+            return;
+        }
+
+        queueExportSearchWithTemplate(
+            {
+                templateName,
+                templateType,
+                jsonQuery: '{}',
+                reportIDList: [report.reportID],
+                transactionIDList,
+                policyID: policy?.id,
+                exportName,
+            },
+            true,
+        );
+
+        // Clear the selection now that the export has started; the app-level ExportDownloadStatusManager shows the modal.
+        clearSelectedTransactions(true);
+    };
+
+    const onDeleteSelected = (handleDeleteTransactions: () => void, handleDeleteTransactionsWithNavigation: (backToRoute?: Route) => void) => {
+        const singleSelectedTransaction = selectedTransactionIDs.length === 1 ? transactions.find((t) => t.transactionID === selectedTransactionIDs.at(0)) : undefined;
+        const selectedTransactions = transactions.filter((t) => selectedTransactionIDs.includes(t.transactionID));
+        const hasSomePending = selectedTransactionIDs.length > 1 && selectedTransactions.some((t) => isPending(t));
+        const deletePrompt = getDeleteConfirmationPrompt(translate, singleSelectedTransaction, selectedTransactionIDs.length, hasSomePending);
+        showConfirmModal({
+            title: getDeleteExpenseTitle(translate, singleSelectedTransaction, selectedTransactionIDs.length),
+            prompt: deletePrompt,
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldEnableNewFocusManagement: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+            const shouldNavigateBack = transactions.filter((trans) => trans.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length === selectedTransactionIDs.length;
+            if (shouldNavigateBack) {
+                const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
+                handleDeleteTransactionsWithNavigation(backToRoute);
+                return;
+            }
+            handleDeleteTransactions();
+        });
+    };
+
+    const {
+        options: originalSelectedTransactionsOptions,
+        isDuplicateOptionVisible,
+        setDuplicateHandler,
+        allTransactions: allTransactionsForDuplicate,
+        allReports: allReportsForDuplicate,
+    } = useSelectedTransactionsActions({
+        report,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: showDownloadErrorModal,
+        onExportOffline: showOfflineModal,
+        policy,
+        beginExportWithTemplate: (templateName, templateType, transactionIDList, exportName) => beginExportWithTemplate(templateName, templateType, transactionIDList, exportName),
+        onDeleteSelected,
+        isOnSearch: isReportInSearch,
+    });
+
+    const {
+        selectionModeReportLevelActions,
+        allExpensesSelected,
+        hasPayInSelectionMode,
+        onSelectionModePaymentSelect,
+        selectionModeKYCSuccess,
+        handleWorkspaceSelected,
+        primaryAction,
+        kycWallRef,
+        isHoldMenuVisible,
+        requestType,
+        paymentType,
+        selectedVBBAToPayFromHoldMenu,
+        handleHoldMenuClose,
+        handleHoldMenuConfirm,
+        hasOnlyHeldExpenses,
+        nonHeldAmount,
+        fullAmount,
+        hasValidNonHeldAmount,
+    } = useSelectionModeReportActions({
+        report,
+        chatReport,
+        policy,
+        reportActions,
+        reportNameValuePairs,
+        reportMetadata,
+        transactions: transactionsWithoutPendingDelete,
+        selectedTransactionIDs,
+    });
+
+    const dismissRejectModalAndOpenBulkReject = () => {
+        dismissRejectUseExplanation();
+        if (report?.reportID) {
+            Navigation.navigate(
+                ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({
+                    reportID: report.reportID,
+                }),
+            );
+        }
+    };
+
+    const {showHoldOrRejectEducationalModal} = useHoldRejectEducationalModal();
+
+    const selectedTransactionsOptions = (() => {
+        const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
+            if (option.value === CONST.REPORT.SECONDARY_ACTIONS.REJECT) {
+                return {
+                    ...option,
+                    onSelected: () => {
+                        if (isDelegateAccessRestricted) {
+                            showDelegateNoAccessModal();
+                            return;
+                        }
+
+                        if (dismissedRejectUseExplanation) {
+                            option.onSelected?.();
+                        } else {
+                            showHoldOrRejectEducationalModal().finally(dismissRejectModalAndOpenBulkReject);
+                        }
+                    },
+                };
+            }
+            return option;
+        });
+
+        if (allExpensesSelected && selectionModeReportLevelActions.length) {
+            return [...selectionModeReportLevelActions, ...mappedOptions];
+        }
+        return mappedOptions;
+    })();
+
+    const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
+
+    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
+    // Same check that decides whether Submit, Approve and Pay are offered, so the checkbox reads fully checked exactly when they are.
+    const isSelectAllChecked = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
+
+    return (
+        <>
+            {isDuplicateOptionVisible && (
+                <BulkDuplicateHandler
+                    selectedTransactionsKeys={selectedTransactionIDs}
+                    allTransactions={allTransactionsForDuplicate}
+                    allReports={allReportsForDuplicate}
+                    searchData={undefined}
+                    onHandlerReady={setDuplicateHandler}
+                    onAfterDuplicate={() => clearSelectedTransactions(true)}
+                />
+            )}
+            {shouldUseNarrowLayout && isMobileSelectionModeEnabled && (
+                <OfflineWithFeedback pendingAction={reportPendingAction}>
+                    <View
+                        style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
+                    >
+                        <ReportSubmitToPopoverAnchor reportID={reportID}>
+                            <SelectionDropdown
+                                hasPayInSelectionMode={hasPayInSelectionMode}
+                                chatReport={chatReport}
+                                report={report}
+                                onSelectionModePaymentSelect={onSelectionModePaymentSelect}
+                                selectionModeKYCSuccess={selectionModeKYCSuccess}
+                                onWorkspacePolicySelect={handleWorkspaceSelected}
+                                primaryAction={primaryAction}
+                                selectedTransactionsOptions={selectedTransactionsOptions}
+                                selectedTransactionIDs={selectedTransactionIDs}
+                                kycWallRef={kycWallRef}
+                                shouldPopoverUseScrollView={popoverUseScrollView}
+                            />
+                        </ReportSubmitToPopoverAnchor>
+
+                        <SelectAllCheckbox
+                            isSelectAllChecked={isSelectAllChecked}
+                            isIndeterminate={selectedTransactionIDs.length > 0 && !isSelectAllChecked}
+                            hasAnySelected={selectedTransactionIDs.length > 0}
+                            onSelectAll={() => setSelectedTransactions(selectableTransactions.map((t) => t.transactionID))}
+                            onClearAll={() => clearSelectedTransactions(true)}
+                        />
+                    </View>
+                </OfflineWithFeedback>
+            )}
+            {shouldShowBulkActionBar && (
+                <SelectionBulkActionBar
+                    chatReport={chatReport}
+                    report={report}
+                    selectedTransactionsOptions={selectedTransactionsOptions}
+                    selectedTransactionIDs={selectedTransactionIDs}
+                    onSelectionModePaymentSelect={onSelectionModePaymentSelect}
+                    selectionModeKYCSuccess={selectionModeKYCSuccess}
+                    onWorkspacePolicySelect={handleWorkspaceSelected}
+                    kycWallRef={kycWallRef}
+                    onClearSelection={() => clearSelectedTransactions(true)}
+                />
+            )}
+            {isHoldMenuVisible && requestType !== undefined && (
+                <ProcessMoneyReportHoldMenu
+                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                    fullAmount={fullAmount}
+                    onClose={handleHoldMenuClose}
+                    isVisible={isHoldMenuVisible}
+                    paymentType={paymentType}
+                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
+                    chatReport={chatReport}
+                    moneyRequestReport={report}
+                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                    onConfirm={handleHoldMenuConfirm}
+                    transactionCount={transactions.length}
+                />
+            )}
+        </>
+    );
+}
+
+function SelectionToolbarGate({reportID, transactions, reportActions}: SelectionToolbarProps) {
+    const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchSelectionContext();
+    const {clearSelectedTransactions, setCurrentSelectedTransactionReportID} = useSearchSelectionActions();
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+
+    useFocusEffect(() => {
+        if (reportID && currentSelectedTransactionReportID !== reportID && selectedTransactionIDs.length > 0) {
+            clearSelectedTransactions(true);
+        }
+
+        setCurrentSelectedTransactionReportID(reportID);
+    });
+
+    if (selectedTransactionIDs.length === 0 && !isMobileSelectionModeEnabled) {
+        return null;
+    }
+
+    return (
+        <SelectionToolbar
+            reportID={reportID}
+            transactions={transactions}
+            reportActions={reportActions}
+        />
+    );
+}
+
+export default SelectionToolbarGate;

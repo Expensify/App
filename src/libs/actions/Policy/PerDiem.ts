@@ -1,68 +1,62 @@
-import type {NullishDeep, OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
-import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import * as NumberUtils from '@libs/NumberUtils';
-import {navigateWhenEnableFeature} from '@libs/PolicyUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import enhanceParameters from '@libs/Network/enhanceParameters';
+import {generateHexadecimalValue} from '@libs/NumberUtils';
+import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report} from '@src/types/onyx';
-import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
+import type {QuickAction} from '@src/types/onyx';
+import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
+import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-const allPolicies: OnyxCollection<Policy> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (!key) {
-            return;
-        }
-        if (val === null || val === undefined) {
-            // If we are deleting a policy, we have to check every report linked to that policy
-            // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
-            // More info: https://github.com/Expensify/App/issues/14260
-            const policyID = key.replace(ONYXKEYS.COLLECTION.POLICY, '');
-            const policyReports = ReportUtils.getAllPolicyReports(policyID);
-            const cleanUpMergeQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT}${string}`, NullishDeep<Report>> = {};
-            const cleanUpSetQueries: Record<`${typeof ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${string}` | `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${string}`, null> = {};
-            policyReports.forEach((policyReport) => {
-                if (!policyReport) {
-                    return;
-                }
-                const {reportID} = policyReport;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] = null;
-                cleanUpSetQueries[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`] = null;
-            });
-            Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, cleanUpMergeQueries);
-            Onyx.multiSet(cleanUpSetQueries);
-            delete allPolicies[key];
-            return;
-        }
+import type {NullishDeep} from 'react-native-onyx';
 
-        allPolicies[key] = val;
-    },
-});
+import lodashDeepClone from 'lodash/cloneDeep';
+import Onyx from 'react-native-onyx';
+
+type SubRateData = {
+    pendingAction?: PendingAction;
+    destination: string;
+    subRateName: string;
+    rate: number;
+    currency: string;
+    rateID: string;
+    subRateID: string;
+};
 
 /**
  * Returns a client generated 13 character hexadecimal value for a custom unit ID
  */
 function generateCustomUnitID(): string {
-    return NumberUtils.generateHexadecimalValue(13);
+    return generateHexadecimalValue(13);
 }
 
-function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, disableRedirect?: boolean) {
+function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, shouldGoBack?: boolean, quickAction?: QuickAction) {
     const doesCustomUnitExists = !!customUnitID;
     const finalCustomUnitID = doesCustomUnitExists ? customUnitID : generateCustomUnitID();
     const optimisticCustomUnit = {
         name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
         customUnitID: finalCustomUnitID,
-        enabled: true,
+        enabled,
         defaultCategory: '',
         rates: {},
     };
-    const onyxData: OnyxData = {
+    const workspaceChatReportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID;
+
+    const shouldClearQuickAction = quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !enabled && workspaceChatReportID === quickAction?.chatReportID;
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -75,6 +69,15 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                     ...(doesCustomUnitExists ? {} : {customUnits: {[finalCustomUnitID]: optimisticCustomUnit}}),
                 },
             },
+            ...(shouldClearQuickAction
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                          value: null,
+                      },
+                  ]
+                : []),
         ],
         successData: [
             {
@@ -98,6 +101,15 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                     },
                 },
             },
+            ...(shouldClearQuickAction
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                          value: quickAction,
+                      },
+                  ]
+                : []),
         ],
     };
 
@@ -105,8 +117,8 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
 
     API.write(WRITE_COMMANDS.TOGGLE_POLICY_PER_DIEM, parameters, onyxData);
 
-    if (enabled && getIsNarrowLayout() && !disableRedirect) {
-        navigateWhenEnableFeature(policyID);
+    if (enabled && getIsNarrowLayout() && shouldGoBack) {
+        goBackWhenEnableFeature();
     }
 }
 
@@ -120,6 +132,51 @@ function openPolicyPerDiemPage(policyID?: string) {
     API.read(READ_COMMANDS.OPEN_POLICY_PER_DIEM_RATES_PAGE, params);
 }
 
+function getImportPerDiemRatesFinalModal(ratesLength: number): ImportFinalModal {
+    return {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importPerDiemRatesSuccessfulDescription',
+        promptKeyParams: {
+            count: ratesLength,
+        },
+    };
+}
+
+async function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[], rowsLength: number): Promise<ImportFinalModal> {
+    const importFinalModal = getImportPerDiemRatesFinalModal(rowsLength);
+
+    const parameters = {
+        policyID,
+        customUnitID,
+        customUnitRates: JSON.stringify(rates),
+    };
+
+    try {
+        // We need the server result immediately so the initiating page can show the final confirmation modal
+        // without storing transient modal state in Onyx.
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_PER_DIEM_RATES, parameters);
+        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
+    } catch {
+        return getImportFailedFinalModal();
+    }
+}
+
+function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_PER_DIEM_CSV, {
+        policyID,
+    });
+
+    const fileName = 'PerDiem.csv';
+
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(finalParameters)) {
+        formData.append(key, String(value));
+    }
+
+    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+}
+
 function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         customUnits: {
@@ -130,4 +187,262 @@ function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: stri
     });
 }
 
-export {enablePerDiem, openPolicyPerDiemPage, clearPolicyPerDiemRatesErrorFields};
+function clearPerDiemRateError(policyID: string, customUnitID: string, rateID: string, subRateID?: string) {
+    if (!policyID || !customUnitID || !rateID) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        customUnits: {
+            [customUnitID]: {
+                rates: {
+                    [rateID]: {
+                        errors: null,
+                        ...(subRateID ? {errorFields: {[subRateID]: null}} : {}),
+                    },
+                },
+            },
+        },
+    });
+}
+
+type DeletePerDiemCustomUnitOnyxType = Omit<CustomUnit, 'rates'> & {
+    rates: Record<string, NullishDeep<Rate> | null>;
+};
+
+function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]) {
+    const mappedDeletedSubRatesToRate = subRatesToBeDeleted.reduce(
+        (acc, subRate) => {
+            if (subRate.rateID in acc) {
+                acc[subRate.rateID].push(subRate);
+            } else {
+                acc[subRate.rateID] = [subRate];
+            }
+            return acc;
+        },
+        {} as Record<string, SubRateData[]>,
+    );
+
+    // Copy the custom unit and remove the sub rates that are to be deleted
+    const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
+    const customUnitOnyxUpdate: DeletePerDiemCustomUnitOnyxType = lodashDeepClone(customUnit);
+    for (const rateID in mappedDeletedSubRatesToRate) {
+        if (!(rateID in newCustomUnit.rates)) {
+            continue;
+        }
+        const subRates = mappedDeletedSubRatesToRate[rateID];
+        if (subRates.length === newCustomUnit.rates[rateID].subRates?.length) {
+            delete newCustomUnit.rates[rateID];
+            customUnitOnyxUpdate.rates[rateID] = null;
+        } else {
+            const newSubRates = newCustomUnit.rates[rateID].subRates?.filter((subRate) => !subRates.some((subRateToBeDeleted) => subRateToBeDeleted.subRateID === subRate.id));
+            newCustomUnit.rates[rateID].subRates = newSubRates;
+            customUnitOnyxUpdate.rates[rateID] = {...customUnitOnyxUpdate.rates[rateID], subRates: newSubRates};
+        }
+    }
+    return {newCustomUnit, customUnitOnyxUpdate};
+}
+
+function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | undefined, subRatesToBeDeleted: SubRateData[]) {
+    if (!policyID || isEmptyObject(customUnit) || !subRatesToBeDeleted.length) {
+        return;
+    }
+    const {newCustomUnit, customUnitOnyxUpdate} = prepareNewCustomUnit(customUnit, subRatesToBeDeleted);
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnit.customUnitID]: customUnitOnyxUpdate,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters = {
+        policyID,
+        customUnit: JSON.stringify(newCustomUnit),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
+}
+
+function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, currentRate: Rate, updatedRate: Rate, errorSubRateID?: string) {
+    const rateID = updatedRate.customUnitRateID;
+    const error = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            rates: {
+                                [rateID]: {
+                                    ...updatedRate,
+                                    errors: null,
+                                    errorFields: null,
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            rates: {
+                                [rateID]: {
+                                    errors: null,
+                                    errorFields: null,
+                                    pendingAction: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnitID]: {
+                            rates: {
+                                [rateID]: {
+                                    ...currentRate,
+                                    errors: errorSubRateID ? null : error,
+                                    errorFields: errorSubRateID ? {[errorSubRateID]: error} : null,
+                                    pendingAction: null,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        ],
+    };
+
+    const customUnitRate = lodashDeepClone(updatedRate);
+    delete customUnitRate.pendingAction;
+    delete customUnitRate.pendingFields;
+    delete customUnitRate.errors;
+    delete customUnitRate.errorFields;
+
+    const parameters = {
+        policyID,
+        customUnitID,
+        customUnitRate: JSON.stringify(customUnitRate),
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
+}
+
+function editPerDiemRateDestination(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newDestination: string) {
+    if (!policyID || !rateID || isEmptyObject(customUnit) || !newDestination) {
+        return;
+    }
+
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
+
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.name = newDestination;
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate);
+}
+
+function editPerDiemRateSubrate(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, newSubrate: string) {
+    if (!policyID || !rateID || isEmptyObject(customUnit) || !newSubrate) {
+        return;
+    }
+
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
+
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.subRates = updatedRate.subRates?.map((subRate) => {
+        if (subRate.id === subRateID) {
+            return {...subRate, name: newSubrate};
+        }
+        return subRate;
+    });
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate, subRateID);
+}
+
+function editPerDiemRateAmount(policyID: string, rateID: string, subRateID: string, customUnit: CustomUnit | undefined, newAmount: number) {
+    if (!policyID || !rateID || isEmptyObject(customUnit) || !newAmount) {
+        return;
+    }
+
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
+
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.subRates = updatedRate.subRates?.map((subRate) => {
+        if (subRate.id === subRateID) {
+            return {...subRate, rate: newAmount};
+        }
+        return subRate;
+    });
+
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate, subRateID);
+}
+
+function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newCurrency: string) {
+    if (!policyID || !rateID || isEmptyObject(customUnit) || !newCurrency) {
+        return;
+    }
+
+    const currentRate = customUnit.rates[rateID];
+    if (!currentRate) {
+        return;
+    }
+
+    const updatedRate = lodashDeepClone(currentRate);
+    updatedRate.currency = newCurrency;
+    updateWorkspacePerDiemRate(policyID, customUnit.customUnitID, currentRate, updatedRate);
+}
+
+function fetchPerDiemRates(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+    const parameters = {
+        policyID,
+    };
+    API.read(READ_COMMANDS.OPEN_DRAFT_PER_DIEM_EXPENSE, parameters);
+}
+
+export {
+    generateCustomUnitID,
+    enablePerDiem,
+    openPolicyPerDiemPage,
+    importPerDiemRates,
+    downloadPerDiemCSV,
+    clearPolicyPerDiemRatesErrorFields,
+    clearPerDiemRateError,
+    deleteWorkspacePerDiemRates,
+    editPerDiemRateDestination,
+    editPerDiemRateSubrate,
+    editPerDiemRateAmount,
+    editPerDiemRateCurrency,
+    fetchPerDiemRates,
+};

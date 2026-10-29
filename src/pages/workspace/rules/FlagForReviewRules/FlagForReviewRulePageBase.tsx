@@ -1,0 +1,340 @@
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import Header from '@components/Header';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+
+import useCategoryRuleCreateBackPath from '@hooks/useCategoryRuleCreateBackPath';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
+import Tab from '@libs/actions/Tab';
+import {clearDraftFlagForReviewRule, setDraftFlagForReviewRule} from '@libs/actions/User';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
+import {deleteFlagForReviewRule, getFlagForReviewFormFromCategory, getFlagForReviewRuleAmountError, hasExplicitFlagAmount, saveFlagForReviewRule} from '@libs/FlagForReviewRulesUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
+import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES, getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
+import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
+import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+type FlagForReviewRulePageBaseProps = {
+    policyID: string;
+    categoryName?: string;
+    /** Pre-scopes the category when creating a rule (e.g. from the category details RHP). */
+    initialCategoryName?: string;
+    /** When true, the category field is non-interactive (category-scoped create/edit). */
+    isCategoryLocked?: boolean;
+    /** When true, nested create pages use category dynamic routes (keeps Categories underlay). */
+    isCategoryScopedFlow?: boolean;
+    testID: string;
+};
+
+function getValidationError(form: FlagForReviewRuleForm | null | undefined, translate: ReturnType<typeof useLocalize>['translate']): string {
+    if (!form?.[INPUT_IDS.CATEGORY]) {
+        return translate('workspace.rules.flagForReviewRule.confirmErrorCategory');
+    }
+
+    return getFlagForReviewRuleAmountError(form[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) ?? '';
+}
+
+function FlagForReviewRulePageBase({
+    policyID,
+    categoryName,
+    initialCategoryName,
+    isCategoryLocked: isCategoryLockedProp,
+    isCategoryScopedFlow = false,
+    testID,
+}: FlagForReviewRulePageBaseProps) {
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const policyData = usePolicyData(policyID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+    const {policy} = policyData;
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
+    const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
+    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'CoinsButton']);
+    const isEditing = !!categoryName;
+    const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
+    const canEditCategory = canWriteRules && !isCategoryLocked;
+    const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
+    const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_NEW.path);
+    const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+
+    const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [shouldShowError, setShouldShowError] = useState(false);
+    const initializedDraftForRuleKeyRef = useRef<string | null>(null);
+    const hasDraft = !isEmptyObject(form);
+
+    const category = categoryName ? policyCategories?.[categoryName] : undefined;
+    const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
+    const categoryDisplayName = selectedCategoryName ? getDecodedCategoryName(selectedCategoryName) : undefined;
+
+    const draftMaxExpenseAmount = form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT];
+    const parsedMaxAmount = Number.parseFloat(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '');
+    const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), policyCurrency) : '';
+
+    useEffect(() => () => clearDraftFlagForReviewRule(), []);
+
+    useEffect(() => {
+        if (!isEditing) {
+            if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
+                initializedDraftForRuleKeyRef.current = ROUTES.NEW;
+                if (!hasDraft) {
+                    setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                }
+            }
+            return;
+        }
+
+        if (!category || !categoryName) {
+            return;
+        }
+
+        if (initializedDraftForRuleKeyRef.current === categoryName) {
+            return;
+        }
+
+        // A draft holding the category *and* an amount is either already seeded or the user's in-progress edit, so
+        // leave it alone. A draft with only the category came from the create flow's initial seed, which is what
+        // happens when this page opens before policyCategories has loaded: the rule is only recognized once the
+        // category arrives, and the amount still has to be seeded then.
+        if (selectedCategoryName === categoryName && draftMaxExpenseAmount !== undefined) {
+            initializedDraftForRuleKeyRef.current = categoryName;
+            return;
+        }
+
+        initializedDraftForRuleKeyRef.current = categoryName;
+        setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
+    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, hasDraft, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
+    const fetchPolicyData = () => {
+        if (!policy?.areCategoriesEnabled || policyCategories) {
+            return;
+        }
+        openPolicyCategoriesPage(policyID);
+    };
+
+    useNetwork({onReconnect: fetchPolicyData});
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchPolicyData();
+        }, [fetchPolicyData]),
+    );
+
+    const errorMessage = getValidationError(form, translate);
+
+    const handleSave = () => {
+        if (!form) {
+            return;
+        }
+
+        saveFlagForReviewRule(policyID, policyData.categories, form, isEditing ? categoryName : undefined, getReviewWorkspaceSettingsTaskCompletion());
+
+        // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
+        // case going back one step would land on the New rule hub instead of the category we came from.
+        if (!isEditing || !!initialCategoryName) {
+            const savedCategoryName = form[INPUT_IDS.CATEGORY] ?? initialCategoryName;
+            if (initialCategoryName && savedCategoryName) {
+                Navigation.goBack(categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, savedCategoryName));
+                return;
+            }
+
+            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.FLAG_FOR_REVIEW);
+            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
+            return;
+        }
+
+        Navigation.goBack();
+    };
+
+    const handleSubmit = () => {
+        if (!canWriteRules) {
+            return;
+        }
+
+        if (errorMessage) {
+            setShouldShowError(true);
+            return;
+        }
+
+        handleSave();
+    };
+
+    // The rule IS the category's flag amount, so there is only something to delete once one is set, and the category's
+    // own pending state is the rule's: while a delete is in flight, deleting again would fire the same write twice.
+    const isRuleBeingDeleted = category?.pendingFields?.maxExpenseAmount === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
+        canDelete: canWriteRules && isEditing && hasExplicitFlagAmount(category?.maxExpenseAmount) && !isRuleBeingDeleted,
+        onDelete: () => {
+            deleteFlagForReviewRule(policyID, categoryName ?? '', policyData.categories, getReviewWorkspaceSettingsTaskCompletion());
+            return true;
+        },
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DELETE,
+        // Category settings opens this rule itself, so going back a screen would land on the New rule hub the user
+        // never passed through. Same route the save path picks, for the same reason.
+        backTo: initialCategoryName ? (categorySettingsBackPath ?? getWorkspaceCategorySettingsRoute(policyID, initialCategoryName)) : undefined,
+    });
+
+    if (isEditing && categoryName && !category) {
+        return <NotFoundPage />;
+    }
+
+    if (!isEditing && !!policy && !canWriteRules) {
+        return <NotFoundPage />;
+    }
+
+    const footer = canWriteRules ? (
+        <FormAlertWithSubmitButton
+            buttonText={translate('workspace.rules.flagForReviewRule.saveRule')}
+            containerStyles={[styles.m4, styles.mb5, styles.mh5]}
+            isAlertVisible={shouldShowError && !!errorMessage}
+            message={errorMessage}
+            onSubmit={handleSubmit}
+            shouldShowLoadingImmediatelyOnPress={false}
+            enabledWhenOffline
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_SAVE}
+            buttonStyles={styles.flex1}
+            buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
+            shouldRenderFooterAboveSubmit
+            footerContent={
+                shouldShowDescribeRule && (
+                    <DescribeRuleButton
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DESCRIBE}
+                        onRuleGenerated={setDraftFlagForReviewRule}
+                        isCategoryEligible={(generatedCategory) => !hasExplicitFlagAmount(generatedCategory.maxExpenseAmount)}
+                    />
+                )
+            }
+        />
+    ) : null;
+
+    const categoryError = canEditCategory && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : '';
+    const amountError = canWriteRules && shouldShowError ? getFlagForReviewRuleAmountError(form?.[INPUT_IDS.MAX_EXPENSE_AMOUNT], translate) : '';
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
+        >
+            <ScreenWrapper
+                testID={testID}
+                offlineIndicatorStyle={styles.mtAuto}
+                includeSafeAreaPaddingBottom
+            >
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.flagForReviewRule.title')}>
+                    {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
+                </HeaderWithBackButtonAndTitle>
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    <View style={[styles.ph5, styles.pv3, styles.gap6]}>
+                        <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.flagForReviewRule.subtitle')}</Text>
+                        <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                    </View>
+                    <MenuItem.Root
+                        onPress={canEditCategory ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getFlagForReviewRuleCategoryRoute(policyID, categoryName))) : undefined}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_CATEGORY}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.IconNarrow src={icons.Folder} />
+                            </MenuItem.Leading>
+                            <MenuItemField.Content name={translate('common.category')}>
+                                {!!categoryDisplayName && <MenuItem.FieldValue>{categoryDisplayName}</MenuItem.FieldValue>}
+                            </MenuItemField.Content>
+                            {canEditCategory && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                        {!!categoryError && (
+                            <MenuItem.HelpText
+                                isError
+                                message={categoryError}
+                            />
+                        )}
+                    </MenuItem.Root>
+                    <MenuItem.Root
+                        onPress={
+                            canWriteRules
+                                ? callFunctionIfActionIsAllowed(() =>
+                                      Navigation.navigate(
+                                          isCategoryScopedFlow
+                                              ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path)
+                                              : getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked),
+                                      ),
+                                  )
+                                : undefined
+                        }
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_AMOUNT}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.IconNarrow src={icons.CoinsButton} />
+                            </MenuItem.Leading>
+                            <MenuItemField.Content name={translate('iou.amount')}>
+                                {!!maxAmountMenuTitle && <MenuItem.FieldValue>{translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle})}</MenuItem.FieldValue>}
+                            </MenuItemField.Content>
+                            {canWriteRules && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                        {!!amountError && (
+                            <MenuItem.HelpText
+                                isError
+                                message={amountError}
+                            />
+                        )}
+                    </MenuItem.Root>
+                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+                    <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.flagForReviewRule.thenDoTheFollowing')}</Text>
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.rules.flagForReviewRule.flagType')}
+                        title={translate('workspace.rules.flagForReviewRule.flagTypeWarning')}
+                        furtherDetails={translate('workspace.rules.flagForReviewRule.flagTypeWarningDescription')}
+                        interactive={false}
+                        shouldShowRightIcon={false}
+                    />
+                </ScrollView>
+                {footer}
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default FlagForReviewRulePageBase;

@@ -1,7 +1,9 @@
-import type {NullishDeep, OnyxValue} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {OnyxFormDraftKey, OnyxFormKey} from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {NullishDeep, OnyxValue} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 function setIsLoading(formID: OnyxFormKey, isLoading: boolean) {
     Onyx.merge(formID, {isLoading});
@@ -23,8 +25,8 @@ function clearErrorFields(formID: OnyxFormKey) {
     Onyx.merge(formID, {errorFields: null});
 }
 
-function setDraftValues(formID: OnyxFormKey, draftValues: NullishDeep<OnyxValue<OnyxFormDraftKey>>) {
-    Onyx.merge(`${formID}Draft`, draftValues ?? null);
+function setDraftValues(formID: OnyxFormKey, draftValues: NullishDeep<OnyxValue<OnyxFormDraftKey>>): Promise<void> {
+    return Onyx.merge(`${formID}Draft`, draftValues ?? null);
 }
 
 function clearDraftValues(formID: OnyxFormKey) {

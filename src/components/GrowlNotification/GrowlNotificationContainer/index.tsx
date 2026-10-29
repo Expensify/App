@@ -1,22 +1,29 @@
-import React from 'react';
-import {Animated} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import Animated, {useAnimatedStyle} from 'react-native-reanimated';
+
 import type GrowlNotificationContainerProps from './types';
 
-function GrowlNotificationContainer({children, translateY}: GrowlNotificationContainerProps) {
+function GrowlNotificationContainer({children, progress, inactiveY, useBottomPosition}: GrowlNotificationContainerProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // `progress` is a SharedValue read via .get() inside the worklet, so it's intentionally
+    // omitted from the deps array — only the plain JS value `inactiveY` needs to invalidate the style.
+    const animatedStyles = useAnimatedStyle(() => ({transform: [{translateY: inactiveY * (1 - progress.get())}]}), [inactiveY]);
+
+    if (useBottomPosition) {
+        return (
+            <Animated.View style={[styles.growlNotificationContainerBottomRight, shouldUseNarrowLayout && styles.pAbsolute, shouldUseNarrowLayout && styles.mwn, animatedStyles]}>
+                {children}
+            </Animated.View>
+        );
+    }
 
     return (
-        <Animated.View
-            style={[styles.growlNotificationContainer, styles.growlNotificationDesktopContainer, styles.growlNotificationTranslateY(translateY), shouldUseNarrowLayout && styles.mwn]}
-        >
-            {children}
-        </Animated.View>
+        <Animated.View style={[styles.growlNotificationContainer, styles.growlNotificationDesktopContainer, animatedStyles, shouldUseNarrowLayout && styles.mwn]}>{children}</Animated.View>
     );
 }
-
-GrowlNotificationContainer.displayName = 'GrowlNotificationContainer';
 
 export default GrowlNotificationContainer;

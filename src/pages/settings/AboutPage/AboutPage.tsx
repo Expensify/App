@@ -1,32 +1,49 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, StyleProp, ViewStyle} from 'react-native';
-import DeviceInfo from 'react-native-device-info';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import * as Environment from '@libs/Environment/Environment';
+
+import {isInternalTestBuild} from '@libs/Environment/Environment';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Link from '@userActions/Link';
-import * as Report from '@userActions/Report';
+
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
+import colors from '@styles/theme/colors';
+
+import {openExternalLink} from '@userActions/Link';
+import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {ComponentRef} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {View} from 'react-native';
+import DeviceInfo from 'react-native-device-info';
+
 import pkg from '../../../../package.json';
+import useAboutSectionIllustration from './useAboutSectionIllustration';
 
 function getFlavor(): string {
     const bundleId = DeviceInfo.getBundleId();
@@ -39,7 +56,7 @@ function getFlavor(): string {
     return '';
 }
 
-type MenuItem = {
+type MenuItem = WithSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     iconRight?: IconAsset;
@@ -49,66 +66,99 @@ type MenuItem = {
 };
 
 function AboutPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Link', 'Keyboard', 'Eye', 'MoneyBag', 'Bug']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const popoverAnchor = useRef<View | RNText | null>(null);
+    const popoverAnchor = useRef<ComponentRef<typeof View>>(null);
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('initialSettingsPage.about'));
+    const aboutIllustration = useAboutSectionIllustration();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const menuItems = useMemo(() => {
         const baseMenuItems: MenuItem[] = [
             {
                 translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
-                icon: Expensicons.Link,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)),
+                icon: icons.Link,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.APP_DOWNLOAD_LINKS,
+                action: waitForNavigate(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.APP_DOWNLOAD_LINKS.path))),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewKeyboardShortcuts',
-                icon: Expensicons.Keyboard,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS)),
+                icon: icons.Keyboard,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_KEYBOARD_SHORTCUTS,
+                action: waitForNavigate(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path))),
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
-                icon: Expensicons.Eye,
-                iconRight: Expensicons.NewWindow,
+                icon: icons.Eye,
+                iconRight: icons.NewWindow,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_THE_CODE,
                 action: () => {
-                    Link.openExternalLink(CONST.GITHUB_URL);
+                    openExternalLink(CONST.GITHUB_URL);
                     return Promise.resolve();
                 },
                 link: CONST.GITHUB_URL,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
-                icon: Expensicons.MoneyBag,
-                iconRight: Expensicons.NewWindow,
+                icon: icons.MoneyBag,
+                iconRight: icons.NewWindow,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.VIEW_OPEN_JOBS,
                 action: () => {
-                    Link.openExternalLink(CONST.UPWORK_URL);
+                    openExternalLink(CONST.UPWORK_URL);
                     return Promise.resolve();
                 },
                 link: CONST.UPWORK_URL,
             },
             {
                 translationKey: 'initialSettingsPage.aboutPage.reportABug',
-                icon: Expensicons.Bug,
-                action: waitForNavigate(Report.navigateToConciergeChat),
+                icon: icons.Bug,
+                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_ABOUT.REPORT_A_BUG,
+                action: waitForNavigate(() => {
+                    navigateToConciergeChat({
+                        conciergeReportID,
+                        introSelected,
+                        currentUserAccountID,
+                        isSelfTourViewed,
+                        hasCompletedGuidedSetupFlow,
+                        conciergePersonalDetails,
+                        shouldDismissModal: false,
+                    });
+                }),
             },
         ];
 
-        return baseMenuItems.map(({translationKey, icon, iconRight, action, link}: MenuItem) => ({
+        return baseMenuItems.map(({translationKey, icon, iconRight, action, link, sentryLabel}: MenuItem) => ({
             key: translationKey,
             title: translate(translationKey),
             icon,
             iconRight,
             onPress: action,
             shouldShowRightIcon: true,
+            shouldShowContextMenuHint: !!link,
             onSecondaryInteraction: link
-                ? (event: GestureResponderEvent | MouseEvent) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current)
+                ? (event: GestureResponderEvent | MouseEvent) =>
+                      showContextMenu({
+                          type: CONST.CONTEXT_MENU_TYPES.LINK,
+                          event,
+                          selection: link,
+                          contextMenuAnchor: popoverAnchor.current,
+                      })
                 : undefined,
             ref: popoverAnchor,
             shouldBlockSelection: !!link,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            sentryLabel,
         }));
-    }, [styles, translate, waitForNavigate]);
+    }, [icons, styles, translate, waitForNavigate, conciergeReportID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, currentUserAccountID, conciergePersonalDetails]);
 
     const overlayContent = useCallback(
         () => (
@@ -117,12 +167,12 @@ function AboutPage() {
                     selectable
                     style={[styles.textLabel, styles.textVersion, styles.alignSelfCenter]}
                 >
-                    v{Environment.isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
+                    v{isInternalTestBuild() ? `${pkg.version} PR:${CONST.PULL_REQUEST_NUMBER}${getFlavor()}` : `${pkg.version}${getFlavor()}`}
                 </Text>
             </View>
         ),
         // disabling this rule, as we want this to run only on the first render
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [],
     );
 
@@ -130,14 +180,15 @@ function AboutPage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={AboutPage.displayName}
+            testID="AboutPage"
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.about')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
-                icon={Illustrations.PalmTree}
+                shouldDisplayHelpButton
+                onBackButtonPress={Navigation.goBack}
+                shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -146,9 +197,11 @@ function AboutPage() {
                         subtitle={translate('initialSettingsPage.aboutPage.description')}
                         isCentralPane
                         subtitleMuted
-                        illustration={LottieAnimations.Coin}
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                        illustrationBackgroundColor={colors.yellow600}
                         titleStyles={styles.accountSettingsSectionTitle}
                         overlayContent={overlayContent}
+                        {...aboutIllustration}
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <MenuItemList
@@ -158,33 +211,12 @@ function AboutPage() {
                         </View>
                     </Section>
                 </View>
-                <View style={[styles.sidebarFooter, styles.mb5]}>
-                    <Text
-                        style={[styles.chatItemMessageHeaderTimestamp]}
-                        numberOfLines={1}
-                    >
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase1')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.TERMS_URL}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase2')}
-                        </TextLink>{' '}
-                        {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase3')}{' '}
-                        <TextLink
-                            style={[styles.textMicroSupporting, styles.link]}
-                            href={CONST.PRIVACY_URL}
-                        >
-                            {translate('initialSettingsPage.readTheTermsAndPrivacy.phrase4')}
-                        </TextLink>
-                        .
-                    </Text>
+                <View style={[styles.renderHTML, styles.ph5, styles.mb5]}>
+                    <RenderHTML html={`<muted-text-micro>${translate('initialSettingsPage.readTheTermsAndPrivacy')} ${translate('termsOfUse.license')}</muted-text-micro>`} />
                 </View>
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-AboutPage.displayName = 'AboutPage';
 
 export default AboutPage;

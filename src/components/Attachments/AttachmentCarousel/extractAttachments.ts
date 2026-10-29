@@ -1,14 +1,18 @@
-import {Parser as HtmlParser} from 'htmlparser2';
+import type {Attachment} from '@components/Attachments/types';
+
+import {getFileName, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import {getHtmlWithAttachmentID, getReportActionHtml, getReportActionMessage, getSortedReportActions, isMoneyRequestAction, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
+import CONST from '@src/CONST';
+import type {Report, ReportAction, ReportActions, VisibleReportActionsDerivedValue} from '@src/types/onyx';
+import type {Note} from '@src/types/onyx/Report';
+
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {Attachment} from '@components/Attachments/types';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import CONST from '@src/CONST';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
-import type {Note} from '@src/types/onyx/Report';
+
+import {Parser as HtmlParser} from 'htmlparser2';
 
 /**
  * Constructs the initial component state from report actions
@@ -20,19 +24,26 @@ function extractAttachments(
         accountID,
         parentReportAction,
         reportActions,
-        reportID,
-    }: {privateNotes?: Record<number, Note>; accountID?: number; parentReportAction?: OnyxEntry<ReportAction>; reportActions?: OnyxEntry<ReportActions>; reportID: string},
+        report,
+        isReportArchived,
+        visibleReportActionsData,
+    }: {
+        privateNotes?: Record<number, Note>;
+        accountID?: number;
+        parentReportAction?: OnyxEntry<ReportAction>;
+        reportActions?: OnyxEntry<ReportActions>;
+        report: OnyxEntry<Report>;
+        isReportArchived: boolean | undefined;
+        visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    },
 ) {
     const targetNote = privateNotes?.[Number(accountID)]?.note ?? '';
+    const description = report?.description ?? '';
     const attachments: Attachment[] = [];
-    const report = ReportUtils.getReport(reportID);
-    const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report);
-
-    // We handle duplicate image sources by considering the first instance as original. Selecting any duplicate
-    // and navigating back (<) shows the image preceding the first instance, not the selected duplicate's position.
-    const uniqueSourcesAndLinks = new Set();
-
+    const canUserPerformAction = canUserPerformWriteAction(report, isReportArchived);
     let currentLink = '';
+    // A video without data-name waits for its inner text, which server-rendered <video> tags use for the original file name
+    let videoAwaitingFileName: Attachment | undefined;
 
     const htmlParser = new HtmlParser({
         onopentag: (name, attribs) => {
@@ -41,36 +52,29 @@ function extractAttachments(
             }
             if (name === 'video') {
                 const source = tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]);
-                if (uniqueSourcesAndLinks.has(source)) {
-                    return;
-                }
 
-                uniqueSourcesAndLinks.add(source);
-                const fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
-                attachments.unshift({
+                const originalFileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE];
+                const videoAttachment: Attachment = {
+                    reportActionID: attribs['data-id'],
+                    attachmentID: attribs[CONST.ATTACHMENT_ID_ATTRIBUTE],
                     source: tryResolveUrlFromApiRoot(attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE]),
                     isAuthTokenRequired: !!attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE],
-                    file: {name: fileName},
+                    file: {name: originalFileName || getFileName(`${source}`)},
                     duration: Number(attribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]),
                     isReceipt: false,
-                    hasBeenFlagged: false,
-                });
+                    hasBeenFlagged: attribs['data-flagged'] === 'true',
+                };
+                attachments.unshift(videoAttachment);
+                videoAwaitingFileName = originalFileName ? undefined : videoAttachment;
                 return;
             }
 
             if (name === 'img' && attribs.src) {
-                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
+                const expensifySource = attribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(attribs.src) ? attribs.src : null);
                 const source = tryResolveUrlFromApiRoot(expensifySource || attribs.src);
                 const previewSource = tryResolveUrlFromApiRoot(attribs.src);
-                const sourceLinkKey = `${source}|${currentLink}`;
 
-                if (uniqueSourcesAndLinks.has(sourceLinkKey)) {
-                    return;
-                }
-
-                uniqueSourcesAndLinks.add(sourceLinkKey);
-
-                let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || FileUtils.getFileName(`${source}`);
+                let fileName = attribs[CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE] || getFileName(`${source}`);
 
                 const width = (attribs['data-expensify-width'] && parseInt(attribs['data-expensify-width'], 10)) || undefined;
                 const height = (attribs['data-expensify-height'] && parseInt(attribs['data-expensify-height'], 10)) || undefined;
@@ -78,7 +82,7 @@ function extractAttachments(
                 // Public image URLs might lack a file extension in the source URL, without an extension our
                 // AttachmentView fails to recognize them as images and renders fallback content instead.
                 // We apply this small hack to add an image extension and ensure AttachmentView renders the image.
-                const fileInfo = FileUtils.splitExtensionFromFileName(fileName);
+                const fileInfo = splitExtensionFromFileName(fileName);
                 if (!fileInfo.fileExtension) {
                     fileName = `${fileInfo.fileName || 'image'}.jpg`;
                 }
@@ -87,6 +91,7 @@ function extractAttachments(
                 // we ensure correct order of attachments even across actions with multiple attachments.
                 attachments.unshift({
                     reportActionID: attribs['data-id'],
+                    attachmentID: attribs[CONST.ATTACHMENT_ID_ATTRIBUTE],
                     source,
                     previewSource,
                     isAuthTokenRequired: !!expensifySource,
@@ -97,7 +102,22 @@ function extractAttachments(
                 });
             }
         },
+        ontext: (text) => {
+            const innerText = text.trim();
+            if (!videoAwaitingFileName || !innerText) {
+                return;
+            }
+
+            const videoIndex = attachments.indexOf(videoAwaitingFileName);
+            attachments[videoIndex] = {...videoAwaitingFileName, file: {...videoAwaitingFileName.file, name: innerText}};
+            videoAwaitingFileName = undefined;
+        },
         onclosetag: (name) => {
+            if (name === 'video') {
+                videoAwaitingFileName = undefined;
+                return;
+            }
+
             if (name !== 'a' || !currentLink) {
                 return;
             }
@@ -113,17 +133,30 @@ function extractAttachments(
         return attachments.reverse();
     }
 
-    const actions = [...(parentReportAction ? [parentReportAction] : []), ...ReportActionsUtils.getSortedReportActions(Object.values(reportActions ?? {}))];
-    actions.forEach((action, key) => {
-        if (!ReportActionsUtils.shouldReportActionBeVisible(action, key, canUserPerformWriteAction) || ReportActionsUtils.isMoneyRequestAction(action)) {
-            return;
+    if (type === CONST.ATTACHMENT_TYPE.ONBOARDING) {
+        htmlParser.write(description);
+        htmlParser.end();
+
+        return attachments.reverse();
+    }
+
+    const reportID = report?.reportID;
+    if (!reportID) {
+        return attachments.reverse();
+    }
+    const actions = [...(parentReportAction ? [parentReportAction] : []), ...getSortedReportActions(Object.values(reportActions ?? {}))];
+    for (const action of actions) {
+        if (!isReportActionVisible(action, reportID, canUserPerformAction, visibleReportActionsData) || isMoneyRequestAction(action)) {
+            continue;
         }
 
-        const decision = ReportActionsUtils.getReportActionMessage(action)?.moderationDecision?.decision;
+        const decision = getReportActionMessage(action)?.moderationDecision?.decision;
         const hasBeenFlagged = decision === CONST.MODERATION.MODERATOR_DECISION_PENDING_HIDE || decision === CONST.MODERATION.MODERATOR_DECISION_HIDDEN;
-        const html = ReportActionsUtils.getReportActionHtml(action).replace('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`);
-        htmlParser.write(html);
-    });
+        const html = getReportActionHtml(action)
+            .replaceAll('/>', `data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}"/>`)
+            .replaceAll('<video ', `<video data-flagged="${hasBeenFlagged}" data-id="${action.reportActionID}" `);
+        htmlParser.write(getHtmlWithAttachmentID(html, action.reportActionID));
+    }
     htmlParser.end();
 
     return attachments.reverse();

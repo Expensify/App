@@ -1,5 +1,7 @@
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import {manipulateAsync} from 'expo-image-manipulator';
-import type {FileObject} from '@components/AttachmentModal';
+
 import type ImageManipulatorConfig from './type';
 
 export default function getImageManipulator({fileUri, width, height, type, fileName}: ImageManipulatorConfig): Promise<FileObject> {

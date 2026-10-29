@@ -1,22 +1,32 @@
-import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as QuickbooksOnline from '@libs/actions/connections/QuickbooksOnline';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import React from 'react';
+import {View} from 'react-native';
+
 function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const policyID = policy?.id ?? '-1';
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -24,9 +34,10 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     return (
         <ConnectionLayout
             policyID={policyID}
-            displayName={QuickbooksChartOfAccountsPage.displayName}
+            displayName="QuickbooksChartOfAccountsPage"
             headerTitle="workspace.accounting.accounts"
             title="workspace.qbo.accountsDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.accountsDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}
@@ -42,12 +53,14 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                 disabled
                 showLockIcon
             />
-            <MenuItemWithTopDescription
-                interactive={false}
-                title={translate('workspace.common.categories')}
-                description={translate('workspace.common.displayedAs')}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt2]}
-            />
+            <View style={styles.mt2}>
+                <MenuItemSectionRoot>
+                    <MenuItemField.Row
+                        name={translate('workspace.common.displayedAs')}
+                        value={translate('workspace.common.categories')}
+                    />
+                </MenuItemSectionRoot>
+            </View>
             <Text style={styles.pv5}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}
@@ -63,7 +76,5 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksChartOfAccountsPage.displayName = 'QuickbooksChartOfAccountsPage';
 
 export default withPolicyConnections(QuickbooksChartOfAccountsPage);

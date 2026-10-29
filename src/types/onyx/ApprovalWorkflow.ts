@@ -1,17 +1,44 @@
-import type {ValueOf} from 'type-fest';
-import type {AvatarSource} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {OnyxValueWithOfflineFeedback, PendingFields} from './OnyxCommon';
+
+import type {ValueOf} from 'type-fest';
+
+import type {Errors, OnyxValueWithOfflineFeedback, PendingAction, PendingFields} from './OnyxCommon';
 
 /**
  * Approver in the approval workflow
  */
 type Approver = {
     /**
-     * Email of the approver
+     * Email of the approver. May be the empty string when this approver was seeded from an
+     * optimistic agent creation that has not yet received its server-assigned login. In that
+     * case `accountID` carries the identity and `pendingAction` is set so the row renders with
+     * opacity. Once `CREATE_AGENT` resolves we migrate this approver to the real email.
      */
     email: string;
+
+    /**
+     * Account ID of the approver. Tracked so we can identify the approver even when `email`
+     * is missing (optimistic agent creation flow). For approvers added from the workspace
+     * member picker this matches the personal detail's `accountID`.
+     */
+    accountID?: number;
+
+    /**
+     * Pending action that mirrors the underlying personal detail. When set (e.g. `ADD` while
+     * a new agent is being created), the approver row renders with reduced opacity to signal
+     * that the approver is still being confirmed by the server.
+     */
+    pendingAction?: PendingAction;
+
+    /**
+     * Transient errors attached to an optimistic agent approver. Surfaced on the workflows
+     * page so a failed `CREATE_AGENT` shows up as an RBR / dismissible message next to the
+     * pending approver row. Not persisted to the server — set in the page-level overlay only.
+     */
+    errors?: Errors;
 
     /**
      * Email of the user this user forwards all approved reports to
@@ -35,6 +62,33 @@ type Approver = {
      * example: A -> B -> C -> A (cycle)
      */
     isCircularReference?: boolean;
+
+    /**
+     * Is this approver no longer a workspace member. Members can still submit to them when they were removed without
+     * their submitters being reassigned, so the workflow is shown with an error until an admin fixes it.
+     */
+    isNotWorkspaceMember?: boolean;
+
+    /**
+     * Is this approver's `overLimitForwardsTo` no longer a workspace member. Reports over the approval limit still go
+     * to them, so the workflow is shown with an error until an admin picks a new additional approver.
+     */
+    isOverLimitForwardsToNotWorkspaceMember?: boolean;
+
+    /**
+     * If report total is above this limit, the report will be forwarded to 'overLimitForwardsTo' instead of 'forwardsTo'
+     */
+    approvalLimit?: number | null;
+
+    /**
+     * Email of the user this user forwards all approved reports to when report total is above 'approvalLimit'
+     */
+    overLimitForwardsTo?: string;
+
+    /**
+     * Display name of the user this user forwards all approved reports to when report total is above 'approvalLimit'
+     */
+    overLimitForwardsToDisplayName?: string;
 };
 
 /**
@@ -79,7 +133,7 @@ type ApprovalWorkflow = OnyxValueWithOfflineFeedback<{
     approvers: Approver[];
 
     /**
-     * Is this the default workflow for the policy (first approver of this workflow is the same as the policy's default approver)
+     * Is this the default workflow for the policy
      */
     isDefault: boolean;
 }>;
@@ -110,10 +164,38 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      */
     usedApproverEmails: string[];
 
-    /**
-     * Errors for the workflow
-     */
     errors?: Record<string, TranslationPaths>;
+
+    /**
+     * List of original approvers in the workflow
+     */
+    originalApprovers: Approver[];
+
+    /**
+     * List of original members in the workflow, used to work out which members were removed by an edit
+     */
+    originalMembers?: Member[];
+
+    /**
+     * The policy's default workflow, where members taken out of this workflow go back to
+     */
+    defaultApprovalWorkflow?: ApprovalWorkflow;
+
+    /**
+     * Email of the member whose workflow this edit session belongs to.
+     */
+    memberEmail?: string;
+
+    /**
+     * Whether the user is in the initial creation flow
+     */
+    isInitialFlow?: boolean;
+
+    /**
+     * Whether this edit session was opened from the "+N more" shortcut on the workflows page. No edit page is
+     * behind it, so the members page has to save the workflow itself.
+     */
+    isFastEdit?: boolean;
 };
 
 export default ApprovalWorkflow;

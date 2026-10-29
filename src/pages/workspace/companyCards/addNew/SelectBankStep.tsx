@@ -1,28 +1,41 @@
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
+import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import Navigation from '@navigation/Navigation';
+
+import {getActiveServer} from '@libs/ApiUtils';
+import {getBankCardDetailsImage, getCorrectStepForPlaidSelectedBank} from '@libs/CardUtils';
+
 import variables from '@styles/variables';
-import * as CompanyCards from '@userActions/CompanyCards';
+
+import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 function SelectBankStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
+    const companyCardBankIcons = useCompanyCardBankIcons();
+    const {isOffline} = useNetwork();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
+    const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
+    const bankSelected = addNewCard?.data?.selectedBank;
     const [hasError, setHasError] = useState(false);
     const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
 
@@ -30,11 +43,8 @@ function SelectBankStep() {
         if (!bankSelected) {
             setHasError(true);
         } else {
-            if (addNewCard?.data.selectedBank !== bankSelected) {
-                CompanyCards.clearAddNewCardFlow();
-            }
-            CompanyCards.setAddNewCompanyCardStepAndData({
-                step: CardUtils.getCorrectStepForSelectedBank(bankSelected),
+            setAddNewCompanyCardStepAndData({
+                step: getCorrectStepForPlaidSelectedBank(bankSelected),
                 data: {
                     selectedBank: bankSelected,
                     cardTitle: !isOtherBankSelected ? bankSelected : undefined,
@@ -45,33 +55,52 @@ function SelectBankStep() {
         }
     };
 
-    useEffect(() => {
-        setBankSelected(addNewCard?.data.selectedBank);
-    }, [addNewCard?.data.selectedBank]);
-
     const handleBackButtonPress = () => {
-        Navigation.goBack();
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE, data: {selectedBank: null}});
     };
 
-    const data = Object.values(CONST.COMPANY_CARDS.BANKS).map((bank) => ({
-        value: bank,
-        text: bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
-        keyForList: bank,
-        isSelected: bankSelected === bank,
-        leftElement: (
-            <Icon
-                src={CardUtils.getBankCardDetailsImage(bank)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
-            />
-        ),
-    }));
+    const data = Object.values(CONST.COMPANY_CARDS.BANKS)
+        .filter((bank) => {
+            if (bank === CONST.COMPANY_CARDS.BANKS.MOCK_BANK) {
+                return CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || activeServer !== CONST.SERVER.PRODUCTION;
+            }
+            if (bank === CONST.COMPANY_CARDS.BANKS.FILE_IMPORT) {
+                return false;
+            }
+            return true;
+        })
+        .map((bank) => {
+            const bankText = bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank;
+
+            return {
+                value: bank,
+                text: bankText,
+                keyForList: bank,
+                isSelected: bankSelected === bank,
+                leftElement: (
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mr3, styles.selectBankStepIconSize]}>
+                        <Icon
+                            src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
+                            height={variables.iconSizeExtraLarge}
+                            width={variables.iconSizeExtraLarge}
+                        />
+                    </View>
+                ),
+            };
+        });
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: submit,
+        isDisabled: isOffline,
+        style: !hasError && styles.mt5,
+    };
 
     return (
         <ScreenWrapper
-            testID={SelectBankStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+            testID="SelectBankStep"
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -79,27 +108,25 @@ function SelectBankStep() {
                 title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
-
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>
             <SelectionList
-                ListItem={RadioListItem}
+                data={data}
+                ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => {
-                    setBankSelected(value);
+                    setAddNewCompanyCardStepAndData({data: {selectedBank: value}});
                     setHasError(false);
                 }}
-                sections={[{data}]}
+                initiallyFocusedItemKey={bankSelected ?? undefined}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={addNewCard?.data.selectedBank}
                 shouldUpdateFocusedIndex
-                showConfirmButton
-                confirmButtonText={translate('common.next')}
-                onConfirm={submit}
+                addBottomSafeAreaPadding
             >
                 {hasError && (
-                    <View style={[styles.ph5, styles.mb3]}>
+                    <View style={[styles.ph3, styles.mb3]}>
                         <FormHelpMessage
                             isError={hasError}
-                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBankAccount')}
+                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}
                         />
                     </View>
                 )}
@@ -107,7 +134,5 @@ function SelectBankStep() {
         </ScreenWrapper>
     );
 }
-
-SelectBankStep.displayName = 'SelectBankStep';
 
 export default SelectBankStep;

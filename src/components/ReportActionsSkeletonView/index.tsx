@@ -1,18 +1,20 @@
+import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+
 import React from 'react';
 import {Dimensions, View} from 'react-native';
-import CONST from '@src/CONST';
+
 import SkeletonViewLines from './SkeletonViewLines';
 
 type ReportActionsSkeletonViewProps = {
-    /** Whether to animate the skeleton view */
     shouldAnimate?: boolean;
-
-    /** Number of possible visible content items */
     possibleVisibleContentItems?: number;
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0}: ReportActionsSkeletonViewProps) {
-    const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('window').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
+function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContentItems = 0, onLayout}: ReportActionsSkeletonViewProps) {
+    const contentItems = possibleVisibleContentItems || Math.ceil(Dimensions.get('screen').height / CONST.CHAT_SKELETON_VIEW.AVERAGE_ROW_HEIGHT);
     const skeletonViewLines: React.ReactNode[] = [];
     for (let index = 0; index < contentItems; index++) {
         const iconIndex = (index + 1) % 4;
@@ -45,8 +47,14 @@ function ReportActionsSkeletonView({shouldAnimate = true, possibleVisibleContent
                 );
         }
     }
-    return <View>{skeletonViewLines}</View>;
+    return (
+        <View
+            onLayout={onLayout}
+            testID="ReportActionsSkeletonView"
+        >
+            {skeletonViewLines}
+        </View>
+    );
 }
 
-ReportActionsSkeletonView.displayName = 'ReportActionsSkeletonView';
 export default ReportActionsSkeletonView;

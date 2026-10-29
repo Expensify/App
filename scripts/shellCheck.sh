@@ -12,6 +12,7 @@ declare -r DIRECTORIES_TO_IGNORE=(
   './vendor'
   './ios/Pods'
   './.husky'
+  './docs/vendor'
 )
 
 # This lists all shell scripts in this repo except those in directories we want to ignore

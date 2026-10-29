@@ -1,40 +1,73 @@
-// Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
-import {Str} from 'expensify-common';
-import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
-import * as AppUpdate from '@libs/actions/AppUpdate';
-import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
-import {getTextFromHtml} from '@libs/ReportActionsUtils';
+
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {translateLocal} from '@libs/Localize';
+import Log from '@libs/Log';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
+import NotificationPermission from '@libs/Notification/notificationPermission';
+import {format} from '@libs/NumberFormatUtils';
+import {getTextFromHtml} from '@libs/ReportActionMessageUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import type {Report, ReportAction} from '@src/types/onyx';
-import focusApp from './focusApp';
-import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
+import playSound, {SOUNDS} from '@libs/Sound';
+
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {CurrencyList, Report, ReportAction} from '@src/types/onyx';
+
+import type {ImageSourcePropType} from 'react-native';
+
+// Web implementation only. Do not import for direct use. Use LocalNotification.
+import {SafeString, Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
+import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
 
+// The browser-notification pipeline is driven by Pusher events outside React, so there is no component to inject the
+// currency formatter from CurrencyListContextProvider. Subscribe to the currency list here and mirror the provider's
+// implementation instead of relying on CurrencyUtils' module-scope fallback.
+let currencyList: CurrencyList = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.CURRENCY_LIST,
+    callback: (value) => {
+        currencyList = value ?? {};
+    },
+});
+const convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'] = (amountInCents, currencyCode) => {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    const decimals = currencyList?.[sanitizedCurrency]?.decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents ?? 0, decimals);
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: decimals,
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    });
+};
+
 /**
- * Checks if the user has granted permission to show browser notifications
+ * Checks if the user has granted permission to show browser notifications, prompting them
+ * if they have not yet decided.
  */
 function canUseBrowserNotifications(): Promise<boolean> {
-    return new Promise((resolve) => {
-        // They have no browser notifications so we can't use this feature
-        if (!window.Notification) {
-            resolve(false);
-            return;
+    return NotificationPermission.getStatus().then((status) => {
+        if (status === 'granted') {
+            return true;
         }
-
-        // Check if they previously granted or denied us access to send a notification
-        const permissionGranted = Notification.permission === 'granted';
-
-        if (permissionGranted || Notification.permission === 'denied') {
-            resolve(permissionGranted);
-            return;
+        if (status === 'denied') {
+            return false;
         }
-
-        // Check their global preferences for browser notifications and ask permission if they have none
-        Notification.requestPermission().then((status) => {
-            resolve(status === 'granted');
-        });
+        return NotificationPermission.request().then((requested) => requested === 'granted');
     });
 }
 
@@ -54,31 +87,50 @@ function push(
     silent = false,
     tag = '',
 ) {
-    canUseBrowserNotifications().then((canUseNotifications) => {
-        if (!canUseNotifications) {
-            return;
-        }
+    canUseBrowserNotifications()
+        .then((canUseNotifications) => {
+            if (!canUseNotifications) {
+                return;
+            }
 
-        // We cache these notifications so that we can clear them later
-        const notificationID = Str.guid();
-        notificationCache[notificationID] = new Notification(title, {
-            body,
-            icon: String(icon),
-            data,
-            silent,
-            tag,
+            // Some browsers (e.g. Samsung Internet, Chrome on Android) forbid constructing a Notification in the page
+            // context and throw a "TypeError: Illegal constructor". Guard the construction so an unsupported browser
+            // degrades to "no local notification" instead of surfacing an unhandled promise rejection.
+            let notification: Notification;
+            try {
+                notification = new Notification(title, {
+                    body,
+                    icon: SafeString(icon),
+                    data,
+                    silent: true,
+                    tag,
+                });
+            } catch (error) {
+                Log.hmmm('[BrowserNotifications] Failed to construct a Notification', {error});
+                return;
+            }
+
+            // We cache these notifications so that we can clear them later
+            const notificationID = Str.guid();
+            notificationCache[notificationID] = notification;
+            if (!silent) {
+                playSound(SOUNDS.RECEIVE);
+            }
+            notification.onclick = () => {
+                onClick();
+                window.parent.focus();
+                window.focus();
+                notification.close();
+            };
+            notification.onclose = () => {
+                delete notificationCache[notificationID];
+            };
+        })
+        .catch((error) => {
+            // Swallow any unexpected errors from the permission check or notification setup so they don't surface as
+            // unhandled promise rejections (the root cause of the reported crash).
+            Log.hmmm('[BrowserNotifications] Failed to push a local notification', {error});
         });
-        notificationCache[notificationID].onclick = () => {
-            onClick();
-            window.parent.focus();
-            window.focus();
-            focusApp();
-            notificationCache[notificationID].close();
-        };
-        notificationCache[notificationID].onclose = () => {
-            delete notificationCache[notificationID];
-        };
-    });
 }
 
 /**
@@ -91,15 +143,22 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushReportCommentNotification(
+        report: Report,
+        reportAction: ReportAction,
+        onClick: LocalNotificationClickHandler,
+        derivedReportName: string | undefined,
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+        usesIcon = false,
+    ) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
 
-        const isChatRoom = ReportUtils.isChatRoom(report);
+        const isRoomOrGroupChat = ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isGroupChat(report);
 
         const {person, message} = reportAction;
-        const plainTextPerson = person?.map((f) => f.text).join() ?? '';
+        const plainTextPerson = person?.map((f) => (Str.isSMSLogin(f.text ?? '') ? formatPhoneNumber(f.text ?? '') : (f.text ?? ''))).join() ?? '';
 
         // Specifically target the comment part of the message
         let plainTextMessage = '';
@@ -109,8 +168,8 @@ export default {
             plainTextMessage = message?.type === 'COMMENT' ? getTextFromHtml(message?.html) : '';
         }
 
-        if (isChatRoom) {
-            const roomName = ReportUtils.getReportName(report);
+        if (isRoomOrGroupChat) {
+            const roomName = getReportName(report, derivedReportName);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -122,12 +181,39 @@ export default {
             reportID: report.reportID,
         };
 
-        push(title, body, icon, data, onClick, true);
+        push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushModifiedExpenseNotification({
+        report,
+        reportAction,
+        movedFromReport,
+        movedToReport,
+        onClick,
+        usesIcon = false,
+        policyTags,
+        policy,
+        currentUserAccountID,
+        currentUserLogin,
+        derivedMovedFromReportName,
+        formatPhoneNumber,
+    }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction);
+        const bodyWithHTML = getForReportAction({
+            translate: translateLocal,
+            convertToDisplayString,
+            reportAction,
+            policy,
+            movedFromReport,
+            movedToReport,
+            policyTags,
+            currentUserAccountID,
+            currentUserLogin,
+            movedFromReportName: derivedMovedFromReportName,
+            formatPhoneNumber,
+        });
+        // Strip HTML tags for plain text notification body
+        const body = getTextFromHtml(bodyWithHTML);
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,
@@ -136,30 +222,16 @@ export default {
     },
 
     /**
-     * Create a notification to indicate that an update is available.
-     */
-    pushUpdateAvailableNotification() {
-        push(
-            'Update available',
-            'A new version of this app is available!',
-            '',
-            {},
-            () => {
-                AppUpdate.triggerUpdateAvailable();
-            },
-            false,
-            'UpdateAvailable',
-        );
-    },
-
-    /**
      * Clears all open notifications where shouldClearNotification returns true
      *
      * @param shouldClearNotification a function that receives notification.data and returns true/false if the notification should be cleared
      */
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
-        Object.values(notificationCache)
-            .filter((notification) => shouldClearNotification(notification.data as LocalNotificationData))
-            .forEach((notification) => notification.close());
+        for (const notification of Object.values(notificationCache)) {
+            if (!shouldClearNotification(notification.data as LocalNotificationData)) {
+                continue;
+            }
+            notification.close();
+        }
     },
 };

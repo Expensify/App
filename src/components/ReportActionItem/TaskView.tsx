@@ -1,199 +1,310 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {AttachmentContext} from '@components/AttachmentContext';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
+import RenderHTML from '@components/RenderHTML';
+import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import UserPill from '@components/UserPill';
+
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTaskCheckboxAccessibility from '@hooks/useTaskCheckboxAccessibility';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import convertToLTR from '@libs/convertToLTR';
+
 import getButtonState from '@libs/getButtonState';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TaskUtils from '@libs/TaskUtils';
-import * as Session from '@userActions/Session';
-import * as Task from '@userActions/Task';
+import Parser from '@libs/Parser';
+import {getDisplayNameForParticipant, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
+import {isActiveTaskEditRoute} from '@libs/TaskUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {canActionTask, canModifyTask, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {clearTaskErrors} from '@userActions/TaskDeletion';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {PersonalDetailsList, Report} from '@src/types/onyx';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Report, ReportAction} from '@src/types/onyx';
 
-type TaskViewOnyxProps = {
-    /** All of the personal details for everyone */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
+type TaskViewProps = {
+    report: OnyxEntry<Report>;
+    parentReport: OnyxEntry<Report>;
+    action: OnyxEntry<ReportAction>;
 };
 
-type TaskViewProps = TaskViewOnyxProps &
-    WithCurrentUserPersonalDetailsProps & {
-        /** The report currently being looked at */
-        report: Report;
-    };
-
-function TaskView({report, ...props}: TaskViewProps) {
+function TaskView({report, parentReport, action}: TaskViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+
     useEffect(() => {
-        Task.setTaskReport(report);
+        setTaskReport(report);
     }, [report]);
 
-    const taskTitle = convertToLTR(report.reportName ?? '');
-    const assigneeTooltipDetails = ReportUtils.getDisplayNamesWithTooltips(
-        OptionsListUtils.getPersonalDetailsForAccountIDs(report.managerID ? [report.managerID] : [], props.personalDetails),
-        false,
-    );
-    const isCompleted = ReportUtils.isCompletedTaskReport(report);
-    const isOpen = ReportUtils.isOpenTaskReport(report);
-    const canModifyTask = Task.canModifyTask(report, props.currentUserPersonalDetails.accountID);
-    const canActionTask = Task.canActionTask(report, props.currentUserPersonalDetails.accountID);
-    const disableState = !canModifyTask;
-    const isDisableInteractive = !canModifyTask || !isOpen;
-    const personalDetails = usePersonalDetails() || CONST.EMPTY_OBJECT;
-    const {translate} = useLocalize();
+    const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
+    const accountIDToName = useMentionedAccountIDToNameMap(taskTitleWithoutPre);
+    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre, {accountIDToName}), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
+    const taskTitlePlainText = Parser.htmlToText(taskTitleWithoutPre, {accountIDToName});
+    const isCompletedFromOnyx = isCompletedTaskReport(report);
+    const shouldDisableCompletedOnboardingTaskLink =
+        isCompletedFromOnyx && [introSelected?.addWorkEmail, introSelected?.validateEmail, introSelected?.joinWorkspace].includes(report?.reportID);
+
+    const {
+        isCompleted,
+        shouldSplitTaskAccessibilityTargets,
+        taskAccessibilityLabel,
+        taskCheckboxAccessibilityLabel,
+        taskCheckboxAccessibilityHint,
+        titlePressableAccessibilityHint,
+        updateTaskCheckboxStateForAccessibility,
+    } = useTaskCheckboxAccessibility(isCompletedFromOnyx, taskTitlePlainText);
+
+    const assigneePersonalDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
+    const assigneeDisplayName = report?.managerID ? getDisplayNameForParticipant({accountID: report.managerID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) : '';
+
+    const isOpen = isOpenTaskReport(report);
+
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
+    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const parentReportAction = useParentReportAction(report);
+    const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
+
+    const disableState = !isTaskModifiable;
+    const isDisableInteractive = disableState || !isOpen;
+    const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const contextMenuStateValue = {
+        anchor: null,
+        report,
+        action,
+        transactionThreadReport: undefined,
+        isDisabled: true,
+        shouldDisplayContextMenu: false,
+    };
+
+    const contextMenuActionsValue = {
+        checkIfContextMenuActive: () => {},
+        onShowContextMenu: (callback: () => void) => callback(),
+    };
+
+    const attachmentContextValue = {type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID};
 
     return (
-        <View>
-            <OfflineWithFeedback
-                shouldShowErrorMessages
-                errors={report.errorFields?.editTask ?? report.errorFields?.createTask}
-                onClose={() => Task.clearTaskErrors(report.reportID)}
-                errorRowStyles={styles.ph5}
-            >
-                <Hoverable>
-                    {(hovered) => (
-                        <PressableWithSecondaryInteraction
-                            onPress={Session.checkIfActionIsAllowed((e) => {
-                                if (isDisableInteractive) {
-                                    return;
-                                }
-                                if (e && e.type === 'click') {
-                                    (e.currentTarget as HTMLElement).blur();
-                                }
+        <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
+            <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
+                <AttachmentContext.Provider value={attachmentContextValue}>
+                    <OfflineWithFeedback
+                        shouldShowErrorMessages
+                        errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
+                        onClose={() =>
+                            clearTaskErrors(
+                                report,
+                                conciergeReportID,
+                                accountID,
+                                introSelected,
+                                isSelfTourViewed,
+                                report?.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined,
+                                currentUserPersonalDetails,
+                                (personalDetails ? Object.values(personalDetails).find((detail) => detail?.login === CONST.EMAIL.CONCIERGE) : undefined) ?? undefined,
+                            )
+                        }
+                        errorRowStyles={styles.ph5}
+                    >
+                        <Hoverable>
+                            {(hovered) => (
+                                <PressableWithSecondaryInteraction
+                                    accessible={shouldSplitTaskAccessibilityTargets ? false : undefined}
+                                    onPress={callFunctionIfActionIsAllowed((e) => {
+                                        if (isDisableInteractive) {
+                                            return;
+                                        }
+                                        if (e?.type === 'click') {
+                                            (e.currentTarget as HTMLElement).blur();
+                                        }
 
-                                Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()));
-                            })}
-                            style={({pressed}) => [
-                                styles.ph5,
-                                styles.pv2,
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, false, disableState, !isDisableInteractive), true),
-                                isDisableInteractive && !disableState && styles.cursorDefault,
-                            ]}
-                            disabled={disableState}
-                            accessibilityLabel={taskTitle || translate('task.task')}
-                        >
-                            {({pressed}) => (
-                                <OfflineWithFeedback pendingAction={report.pendingFields?.reportName}>
-                                    <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
-                                    <View style={[styles.flexRow, styles.flex1]}>
-                                        <Checkbox
-                                            onPress={Session.checkIfActionIsAllowed(() => {
-                                                // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                                                if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
-                                                    return;
-                                                }
-                                                if (isCompleted) {
-                                                    Task.reopenTask(report);
-                                                } else {
-                                                    Task.completeTask(report);
-                                                }
-                                            })}
-                                            isChecked={isCompleted}
-                                            style={styles.taskMenuItemCheckbox}
-                                            containerSize={24}
-                                            containerBorderRadius={8}
-                                            caretSize={16}
-                                            accessibilityLabel={taskTitle || translate('task.task')}
-                                            disabled={!canModifyTask || !canActionTask}
-                                        />
-                                        <View style={[styles.flexRow, styles.flex1]}>
-                                            <Text
-                                                numberOfLines={3}
-                                                style={styles.taskTitleMenuItem}
-                                            >
-                                                {taskTitle}
-                                            </Text>
-                                        </View>
-                                        {isOpen && (
-                                            <View style={styles.taskRightIconContainer}>
-                                                <Icon
-                                                    additionalStyles={[styles.alignItemsCenter]}
-                                                    src={Expensicons.ArrowRight}
-                                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false, disableState))}
-                                                />
+                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
+                                    })}
+                                    style={({pressed}) => [
+                                        styles.ph5,
+                                        styles.pv2,
+                                        StyleUtils.getButtonBackgroundColorStyle(
+                                            getButtonState({isActive: hovered, isPressed: pressed, isDisabled: disableState, isInteractive: !isDisableInteractive}),
+                                            true,
+                                        ),
+                                        isDisableInteractive && styles.cursorDefault,
+                                    ]}
+                                    accessibilityLabel={taskAccessibilityLabel}
+                                    disabled={isDisableInteractive}
+                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
+                                >
+                                    {() => {
+                                        const titleContent = (
+                                            <View style={[styles.flexRow, styles.flex1, styles.textAlignLeft]}>
+                                                <RenderHTML html={taskTitle} />
                                             </View>
-                                        )}
-                                    </View>
-                                </OfflineWithFeedback>
+                                        );
+
+                                        return (
+                                            <OfflineWithFeedback pendingAction={report?.pendingFields?.reportName}>
+                                                <View style={styles.flexRow}>
+                                                    <View style={styles.flex1}>
+                                                        <Text style={styles.taskTitleDescription}>{translate('task.title')}</Text>
+                                                        <View style={[styles.flexRow, styles.flex1]}>
+                                                            <Checkbox
+                                                                shouldSelectOnPressEnter
+                                                                onPress={callFunctionIfActionIsAllowed(() => {
+                                                                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                                                                    if (isActiveTaskEditRoute(report?.reportID)) {
+                                                                        return;
+                                                                    }
+                                                                    updateTaskCheckboxStateForAccessibility(isCompleted);
+                                                                    if (isCompleted) {
+                                                                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
+                                                                    } else {
+                                                                        completeTask(
+                                                                            report,
+                                                                            parentReport?.hasOutstandingChildTask ?? false,
+                                                                            hasOutstandingChildTask,
+                                                                            parentReportAction,
+                                                                            delegateEmail,
+                                                                        );
+                                                                    }
+                                                                })}
+                                                                isChecked={isCompleted}
+                                                                style={styles.taskMenuItemCheckbox}
+                                                                containerSize={24}
+                                                                containerBorderRadius={8}
+                                                                caretSize={16}
+                                                                accessibilityLabel={taskCheckboxAccessibilityLabel}
+                                                                accessibilityHint={taskCheckboxAccessibilityHint}
+                                                                disabled={!isTaskActionable}
+                                                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
+                                                            />
+                                                            {shouldSplitTaskAccessibilityTargets ? (
+                                                                <PressableWithoutFeedback
+                                                                    accessible
+                                                                    accessibilityRole={CONST.ROLE.BUTTON}
+                                                                    accessibilityLabel={taskAccessibilityLabel}
+                                                                    accessibilityHint={titlePressableAccessibilityHint}
+                                                                    accessibilityState={{disabled: isDisableInteractive}}
+                                                                    disabled={isDisableInteractive}
+                                                                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)))}
+                                                                    style={[styles.flexRow, styles.flex1]}
+                                                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
+                                                                >
+                                                                    {titleContent}
+                                                                </PressableWithoutFeedback>
+                                                            ) : (
+                                                                titleContent
+                                                            )}
+                                                        </View>
+                                                    </View>
+                                                    {!isDisableInteractive && (
+                                                        <View style={[styles.taskRightIconContainer, !hovered && styles.opacitySemiTransparent]}>
+                                                            <Icon
+                                                                src={icons.ArrowRight}
+                                                                fill={theme.icon}
+                                                            />
+                                                        </View>
+                                                    )}
+                                                </View>
+                                            </OfflineWithFeedback>
+                                        );
+                                    }}
+                                </PressableWithSecondaryInteraction>
                             )}
-                        </PressableWithSecondaryInteraction>
-                    )}
-                </Hoverable>
-                <OfflineWithFeedback pendingAction={report.pendingFields?.description}>
-                    <MenuItemWithTopDescription
-                        shouldRenderAsHTML
-                        description={translate('task.description')}
-                        title={report.description ?? ''}
-                        onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                        shouldShowRightIcon={isOpen}
-                        disabled={disableState}
-                        wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                        shouldGreyOutWhenDisabled={false}
-                        numberOfLinesTitle={0}
-                        interactive={!isDisableInteractive}
-                    />
-                </OfflineWithFeedback>
-                <OfflineWithFeedback pendingAction={report.pendingFields?.managerID}>
-                    {report.managerID ? (
-                        <MenuItem
-                            label={translate('task.assignee')}
-                            title={ReportUtils.getDisplayNameForParticipant(report.managerID)}
-                            icon={OptionsListUtils.getAvatarsForAccountIDs([report.managerID], personalDetails)}
-                            iconType={CONST.ICON_TYPE_AVATAR}
-                            avatarSize={CONST.AVATAR_SIZE.SMALLER}
-                            titleStyle={styles.assigneeTextStyle}
-                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                            shouldShowRightIcon={isOpen}
-                            disabled={disableState}
-                            wrapperStyle={[styles.pv2]}
-                            isSmallAvatarSubscriptMenu
-                            shouldGreyOutWhenDisabled={false}
-                            interactive={!isDisableInteractive}
-                            titleWithTooltips={assigneeTooltipDetails}
-                        />
-                    ) : (
-                        <MenuItemWithTopDescription
-                            description={translate('task.assignee')}
-                            onPress={() => Navigation.navigate(ROUTES.TASK_ASSIGNEE.getRoute(report.reportID, Navigation.getReportRHPActiveRoute()))}
-                            shouldShowRightIcon={isOpen}
-                            disabled={disableState}
-                            wrapperStyle={[styles.pv2]}
-                            shouldGreyOutWhenDisabled={false}
-                            interactive={!isDisableInteractive}
-                        />
-                    )}
-                </OfflineWithFeedback>
-            </OfflineWithFeedback>
-        </View>
+                        </Hoverable>
+                        <OfflineWithFeedback pendingAction={report?.pendingFields?.description}>
+                            <MenuItemWithTopDescription
+                                shouldRenderAsHTML
+                                description={translate('task.description')}
+                                title={shouldDisableCompletedOnboardingTaskLink ? Parser.htmlToText(report?.description ?? '') : (report?.description ?? '')}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
+                                shouldShowRightIcon={!isDisableInteractive}
+                                disabled={disableState}
+                                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                                shouldGreyOutWhenDisabled={false}
+                                numberOfLinesTitle={0}
+                                interactive={!isDisableInteractive}
+                                shouldUseDefaultCursorWhenDisabled
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_DESCRIPTION}
+                            />
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={report?.pendingFields?.managerID}>
+                            {report?.managerID ? (
+                                <MenuItem
+                                    label={translate('task.assignee')}
+                                    accessibilityLabel={`${translate('task.assignee')}, ${assigneeDisplayName}`}
+                                    titleComponent={
+                                        <UserPill
+                                            avatar={assigneePersonalDetails?.avatar}
+                                            displayName={assigneeDisplayName}
+                                            accountID={report.managerID}
+                                            email={assigneePersonalDetails?.login}
+                                            style={styles.userPillStandalone}
+                                        />
+                                    }
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
+                                    shouldShowRightIcon={!isDisableInteractive}
+                                    disabled={disableState}
+                                    wrapperStyle={[styles.pv2]}
+                                    shouldGreyOutWhenDisabled={false}
+                                    interactive={!isDisableInteractive}
+                                    shouldUseDefaultCursorWhenDisabled
+                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
+                                />
+                            ) : (
+                                <MenuItemWithTopDescription
+                                    description={translate('task.assignee')}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
+                                    shouldShowRightIcon={!isDisableInteractive}
+                                    disabled={disableState}
+                                    wrapperStyle={[styles.pv2]}
+                                    shouldGreyOutWhenDisabled={false}
+                                    interactive={!isDisableInteractive}
+                                    shouldUseDefaultCursorWhenDisabled
+                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
+                                />
+                            )}
+                        </OfflineWithFeedback>
+                    </OfflineWithFeedback>
+                </AttachmentContext.Provider>
+            </ShowContextMenuActionsContext.Provider>
+        </ShowContextMenuStateContext.Provider>
     );
 }
 
-TaskView.displayName = 'TaskView';
-
-const TaskViewWithOnyx = withOnyx<TaskViewProps, TaskViewOnyxProps>({
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    },
-})(TaskView);
-
-export default withCurrentUserPersonalDetails(TaskViewWithOnyx);
+export default TaskView;

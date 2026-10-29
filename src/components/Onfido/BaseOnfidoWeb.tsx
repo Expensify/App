@@ -1,30 +1,41 @@
-import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
-import React, {forwardRef, useEffect} from 'react';
-import type {ForwardedRef} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+
 import Log from '@libs/Log';
+import mergeRefs from '@libs/mergeRefs';
+
 import type {ThemeColors} from '@styles/theme/types';
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+import {EXTENDED_LOCALES} from '@src/CONST/LOCALES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {Onfido as OnfidoSDK} from 'onfido-sdk-ui';
+import React, {useEffect, useRef} from 'react';
+
 import './index.css';
-import type {OnfidoElement, OnfidoError, OnfidoProps} from './types';
+import type {OnfidoElement, OnfidoProps} from './types';
 
 type InitializeOnfidoProps = OnfidoProps &
     Pick<LocaleContextProps, 'translate' | 'preferredLocale'> & {
         theme: ThemeColors;
+        containerEl: HTMLDivElement | null;
     };
 
 type OnfidoEvent = Event & {
     detail?: Record<string, unknown>;
 };
 
-function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme}: InitializeOnfidoProps) {
-    OnfidoSDK.init({
+function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLocale, translate, theme, containerEl}: InitializeOnfidoProps) {
+    return OnfidoSDK.init({
         token: sdkToken,
+        // The SDK prefers containerEl over containerId. Passing this instance's element keeps the SDK from mounting into
+        // another #onfido-mount element that may still be in the DOM (e.g. on a screen lower in the navigation stack).
+        containerEl: containerEl ?? undefined,
         containerId: CONST.ONFIDO.CONTAINER_ID,
         customUI: {
             // Font styles are commented out until Onfido fixes it on their side, more info here - https://github.com/Expensify/App/issues/44570
@@ -50,9 +61,10 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             colorBorderButtonPrimary: theme.success,
             colorContentButtonSecondaryText: theme.text,
             colorBackgroundButtonSecondary: theme.border,
-            colorBackgroundButtonSecondaryHover: theme.icon,
-            colorBackgroundButtonSecondaryActive: theme.icon,
+            colorBackgroundButtonSecondaryHover: theme.hoverComponentBG,
+            colorBackgroundButtonSecondaryActive: theme.hoverComponentBG,
             colorBorderButtonSecondary: theme.border,
+            colorBorderButtonSecondaryHover: theme.transparent,
             colorBackgroundIcon: theme.transparent,
             colorContentLinkTextHover: theme.appBG,
             colorBorderLinkUnderline: theme.link,
@@ -65,6 +77,17 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             colorBackgroundDocTypeButtonHover: theme.successHover,
             colorBackgroundButtonIconHover: theme.transparent,
             colorBackgroundButtonIconActive: theme.transparent,
+            colorBorderButtonPrimaryFocus: theme.transparent,
+            colorBorderButtonPrimaryActive: theme.transparent,
+            colorBorderButtonSecondaryFocus: theme.transparent,
+            colorBorderButtonSecondaryActive: theme.transparent,
+            colorIcon: theme.icon,
+            colorContentButtonTertiaryText: theme.link,
+            colorBackgroundButtonTertiaryHover: theme.hoverComponentBG,
+            colorBorderButtonTertiaryFocus: theme.transparent,
+            colorInputOutline: theme.borderFocus,
+            colorBackgroundInput: theme.appBG,
+            colorBorderInput: theme.border,
         },
         steps: [
             {
@@ -94,7 +117,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
             }
             onSuccess(data);
         },
-        onError: (error: OnfidoError) => {
+        onError: (error) => {
             const errorType = error.type;
             const errorMessage: string = error.message ?? CONST.ERROR.UNKNOWN_ERROR;
             Log.hmmm('Onfido error', {errorType, errorMessage});
@@ -106,7 +129,7 @@ function initializeOnfido({sdkToken, onSuccess, onError, onUserExit, preferredLo
         },
         language: {
             // We need to use ES_ES as locale key because the key `ES` is not a valid config key for Onfido
-            locale: preferredLocale === CONST.LOCALES.ES ? CONST.LOCALES.ES_ES_ONFIDO : preferredLocale,
+            locale: preferredLocale === CONST.LOCALES.ES ? EXTENDED_LOCALES.ES_ES_ONFIDO : (preferredLocale ?? CONST.LOCALES.DEFAULT),
 
             // Provide a custom phrase for the back button so that the first letter is capitalized,
             // and translate the phrase while we're at it. See the issue and documentation for more context.
@@ -124,12 +147,13 @@ function logOnFidoEvent(event: OnfidoEvent) {
     Log.hmmm('Receiving Onfido analytic event', event.detail);
 }
 
-function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: ForwardedRef<OnfidoElement>) {
+function Onfido({sdkToken, onSuccess, onError, onUserExit, ref}: OnfidoProps) {
     const {preferredLocale, translate} = useLocalize();
     const theme = useTheme();
+    const containerRef = useRef<OnfidoElement>(null);
 
     useEffect(() => {
-        initializeOnfido({
+        const onfidoOut = initializeOnfido({
             sdkToken,
             onSuccess,
             onError,
@@ -137,22 +161,27 @@ function Onfido({sdkToken, onSuccess, onError, onUserExit}: OnfidoProps, ref: Fo
             preferredLocale,
             translate,
             theme,
+            containerEl: containerRef.current,
         });
 
         window.addEventListener('userAnalyticsEvent', logOnFidoEvent);
-        return () => window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
+        return () => {
+            window.removeEventListener('userAnalyticsEvent', logOnFidoEvent);
+            // Tear down the Onfido SDK so its modal is removed from the DOM when the component unmounts
+            // (e.g. when the RHP is closed before verification is completed). Otherwise the SDK's modal
+            // remains orphaned on screen. See https://github.com/Expensify/App/issues/98633
+            onfidoOut.tearDown();
+        };
         // Onfido should be initialized only once on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
         <div
             id={CONST.ONFIDO.CONTAINER_ID}
-            ref={ref}
+            ref={mergeRefs(ref, containerRef)}
         />
     );
 }
 
-Onfido.displayName = 'Onfido';
-
-export default forwardRef(Onfido);
+export default Onfido;

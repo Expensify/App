@@ -1,10 +1,20 @@
-import Onyx from 'react-native-onyx';
+// The type-only import is taken from the provider's types file (not @hooks/useCurrencyList) because that file has
+// no runtime dependencies, so this cannot create an import cycle back through CurrencyListContextProvider.
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
+
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import BaseLocaleListener from './Localize/LocaleListener/BaseLocaleListener';
-import * as NumberFormatUtils from './NumberFormatUtils';
+import type {CurrencyList, Locale} from '@src/types/onyx';
 
+import Onyx from 'react-native-onyx';
+
+import Log from './Log';
+import {format, formatToParts} from './NumberFormatUtils';
+
+// Temporary fallback for callers that have not been migrated to pass currencyList yet.
+// This will be removed in the final Onyx.connect migration for CurrencyUtils.
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
 
 Onyx.connect({
@@ -18,6 +28,50 @@ Onyx.connect({
     },
 });
 
+function getCurrencyList(currencies?: CurrencyList): CurrencyList {
+    return currencies ?? currencyList;
+}
+
+/**
+ * Returns true when the provided value is a syntactically valid ISO 4217 currency code
+ * (exactly 3 uppercase ASCII letters).
+ */
+function isValidCurrencyCode(currencyCode: unknown): currencyCode is string {
+    return typeof currencyCode === 'string' && /^[A-Z]{3}$/.test(currencyCode);
+}
+
+// Tracks invalid currency codes already warned about so the same bad value doesn't spam the log on every render.
+const warnedInvalidCurrencyCodes = new Set<string>();
+
+/**
+ * Test-only: clears the in-memory de-dup of malformed currency codes so tests asserting on `Log.warn`
+ * are not affected by warnings emitted by earlier tests. Production code should not call this.
+ */
+function resetInvalidCurrencyWarningsForTesting() {
+    warnedInvalidCurrencyCodes.clear();
+}
+
+/**
+ * Validates a currency code and returns it unchanged if it is a valid ISO 4217 code.
+ * Whitespace and case-only variations (e.g. " usd ") are normalized rather than discarded.
+ * Returns CONST.CURRENCY.USD and logs a warning at most once per unique malformed value, to prevent Intl.NumberFormat
+ * from throwing a RangeError. See https://github.com/Expensify/App/issues/91113
+ */
+function sanitizeCurrencyCode(currencyCode: unknown): string {
+    if (isValidCurrencyCode(currencyCode)) {
+        return currencyCode;
+    }
+    const normalized = typeof currencyCode === 'string' ? currencyCode.trim().toUpperCase() : '';
+    if (isValidCurrencyCode(normalized)) {
+        return normalized;
+    }
+    if (!warnedInvalidCurrencyCodes.has(normalized)) {
+        warnedInvalidCurrencyCodes.add(normalized);
+        Log.warn('CurrencyUtils: invalid currency code, defaulting to USD', {currencyCode});
+    }
+    return CONST.CURRENCY.USD;
+}
+
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
  * For currencies that have decimal places > 2, floor to 2 instead:
@@ -25,50 +79,36 @@ Onyx.connect({
  *
  * @param currency - IOU currency
  */
-function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
-    const decimals = currencyList?.[currency]?.decimals;
-    return decimals ?? 2;
-}
-
-/**
- * Returns the currency's minor unit quantity
- * e.g. Cent in USD
- *
- * @param currency - IOU currency
- */
-function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
-    return 10 ** getCurrencyDecimals(currency);
+function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
+    const decimals = getCurrencyList(currencies)?.[currency]?.decimals;
+    return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
 }
 
 /**
  * Get localized currency symbol for currency(ISO 4217) Code
  */
-function getLocalizedCurrencySymbol(currencyCode: string): string | undefined {
-    const parts = NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
+function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
+    const parts = formatToParts(locale, 0, {
         style: 'currency',
-        currency: currencyCode,
+        currency: sanitizeCurrencyCode(currencyCode),
     });
     return parts.find((part) => part.type === 'currency')?.value;
 }
 
 /**
- * Get the currency symbol for a currency(ISO 4217) Code
+ * Whether the localized currency format inserts a space between the symbol and the amount
+ * (for example "CZK 100.00"). Inline editors render the symbol separately, so they pad it
+ * to match the preview and the value does not jump when edit mode opens.
+ * See https://github.com/Expensify/App/pull/83127#issuecomment-4240055145
  */
-function getCurrencySymbol(currencyCode: string): string | undefined {
-    return currencyList?.[currencyCode]?.symbol;
-}
-
-/**
- * Whether the currency symbol is left-to-right.
- */
-function isCurrencySymbolLTR(currencyCode: string): boolean {
-    const parts = NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), 0, {
+function hasSpaceBetweenSymbolAndAmount(locale: Locale | undefined, currencyCode: string): boolean {
+    const sanitizedCurrency = sanitizeCurrencyCode(currencyCode);
+    return formatToParts(locale, 0, {
         style: 'currency',
-        currency: currencyCode,
-    });
-
-    // Currency is LTR when the first part is of currency type.
-    return parts.at(0)?.type === 'currency';
+        currency: sanitizedCurrency,
+        minimumFractionDigits: getCurrencyDecimals(sanitizedCurrency),
+        maximumFractionDigits: CONST.DEFAULT_CURRENCY_DECIMALS,
+    }).some((part) => part.type === 'literal' && part.value.trim() === '');
 }
 
 /**
@@ -84,11 +124,8 @@ function convertToBackendAmount(amountAsFloat: number): number {
 
 /**
  * Takes an amount in "cents" as an integer and converts it to a floating point amount used in the frontend.
- *
- * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string = CONST.CURRENCY.USD): number {
-    const decimals = getCurrencyDecimals(currency);
+function convertToFrontendAmountAsInteger(amountAsInt: number, decimals: number): number {
     return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
 }
 
@@ -97,40 +134,76 @@ function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string 
  *
  * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, currency: string = CONST.CURRENCY.USD, withDecimals = true): string {
+function convertToFrontendAmountAsString(amountAsInt: number | null | undefined, decimals: number): string {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    const decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
-    return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(decimals);
+    return (Math.trunc(amountAsInt) / 100.0).toFixed(decimals);
 }
 
 /**
- * Given an amount in the "cents", convert it to a string for display in the UI.
- * The backend always handle things in "cents" (subunit equal to 1/100)
- *
- * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
- * @param currency - IOU currency
+ * Same as convertToDisplayString but always formats with the `en` locale. Used for building optimistic
+ * report action messages, which are stored on the action in English regardless of the viewer's locale.
+ * Decimals are injected (from useCurrencyListActions().getCurrencyDecimals, or the standalone
+ * getCurrencyDecimals at non-React boundaries) so this function does not depend on this module's
+ * Onyx fallback.
  */
-function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    /**
-     * Fallback currency to USD if it empty string or undefined
-     */
-    let currencyWithFallback = currency;
-    if (!currency) {
-        currencyWithFallback = CONST.CURRENCY.USD;
-    }
-    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+function convertToDisplayStringEnLocale(amountInCents: number, currency: string | undefined, getCurrencyDecimalsImpl: CurrencyListActionsContextType['getCurrencyDecimals']): string {
+    const currencyWithFallback = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimalsImpl(currencyWithFallback);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+    return format(CONST.LOCALES.EN, convertedAmount, {
         style: 'currency',
         currency: currencyWithFallback,
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency),
+        minimumFractionDigits: decimals,
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
         maximumFractionDigits: 2,
     });
+}
+
+/**
+ * Given an amount in "cents", format it for the passed locale without the currency symbol. Decimals are
+ * injected so this function does not depend on this module's Onyx fallback.
+ */
+function convertToDisplayStringWithoutCurrencyForLocale(
+    locale: Locale | undefined,
+    amountInCents: number,
+    currency: string | undefined,
+    getCurrencyDecimalsImpl: CurrencyListActionsContextType['getCurrencyDecimals'],
+): string {
+    const sanitizedCurrency = sanitizeCurrencyCode(currency);
+    const decimals = getCurrencyDecimalsImpl(sanitizedCurrency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
+    return formatToParts(locale, convertedAmount, {
+        style: 'currency',
+        currency: sanitizedCurrency,
+
+        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
+        // See: https://github.com/Expensify/PHP-Libs/pull/834
+        minimumFractionDigits: decimals,
+        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
+        maximumFractionDigits: 2,
+    })
+        .filter((x) => x.type !== 'currency')
+        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
+        .map((x) => x.value)
+        .join('');
+}
+
+/**
+ * Same as convertToDisplayStringWithoutCurrency but always formats with the `en` locale, with decimals
+ * injected. Used alongside convertToDisplayStringEnLocale for stored values (e.g. formula-computed
+ * report titles) that must not depend on the viewer's locale or this module's Onyx fallback.
+ */
+function convertToDisplayStringWithoutCurrencyEnLocale(
+    amountInCents: number,
+    currency: string | undefined,
+    getCurrencyDecimalsImpl: CurrencyListActionsContextType['getCurrencyDecimals'],
+): string {
+    return convertToDisplayStringWithoutCurrencyForLocale(CONST.LOCALES.EN, amountInCents, currency, getCurrencyDecimalsImpl);
 }
 
 /**
@@ -141,11 +214,12 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
  * @param currency - IOU currency
  */
 function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    // We want to make sure that we are not showing any decimals in the short display string, so we pass 0 as the decimals parameter
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, 0);
 
-    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
+        currency: sanitizeCurrencyCode(currency),
 
         // There will be no decimals displayed (e.g. $9)
         minimumFractionDigits: 0,
@@ -161,54 +235,27 @@ function convertToShortDisplayString(amountInCents = 0, currency: string = CONST
  */
 function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRENCY.USD): string {
     const convertedAmount = amount / 100.0;
-    return NumberFormatUtils.format(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
+    return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
-        currency,
-        minimumFractionDigits: CONST.MAX_TAX_RATE_DECIMAL_PLACES,
+        currency: sanitizeCurrencyCode(currency),
+        minimumFractionDigits: CONST.MIN_TAX_RATE_DECIMAL_PLACES,
+        maximumFractionDigits: CONST.MAX_TAX_RATE_DECIMAL_PLACES,
     });
 }
 
-/**
- * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
- */
-function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD) {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    return NumberFormatUtils.formatToParts(BaseLocaleListener.getPreferredLocale(), convertedAmount, {
-        style: 'currency',
-        currency,
-
-        // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
-        // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency),
-        // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
-        maximumFractionDigits: 2,
-    })
-        .filter((x) => x.type !== 'currency')
-        .filter((x) => x.type !== 'literal' || x.value.trim().length !== 0)
-        .map((x) => x.value)
-        .join('');
-}
-
-/**
- * Checks if passed currency code is a valid currency based on currency list
- */
-function isValidCurrencyCode(currencyCode: string): boolean {
-    const currency = currencyList?.[currencyCode];
-    return !!currency;
-}
-
 export {
+    isValidCurrencyCode,
+    sanitizeCurrencyCode,
+    resetInvalidCurrencyWarningsForTesting,
     getCurrencyDecimals,
-    getCurrencyUnit,
     getLocalizedCurrencySymbol,
-    getCurrencySymbol,
-    isCurrencySymbolLTR,
+    hasSpaceBetweenSymbolAndAmount,
     convertToBackendAmount,
     convertToFrontendAmountAsInteger,
     convertToFrontendAmountAsString,
-    convertToDisplayString,
+    convertToDisplayStringEnLocale,
     convertAmountToDisplayString,
-    convertToDisplayStringWithoutCurrency,
-    isValidCurrencyCode,
+    convertToDisplayStringWithoutCurrencyEnLocale,
+    convertToDisplayStringWithoutCurrencyForLocale,
     convertToShortDisplayString,
 };

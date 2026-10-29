@@ -1,27 +1,18 @@
-import type {ImageContentFit, ImageStyle} from 'expo-image';
-import type {StyleProp, ViewStyle} from 'react-native';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {ImageContentFit, ImageStyle} from 'expo-image';
+import type {StyleProp, ViewStyle} from 'react-native';
+
 type ImageSVGProps = {
-    /** The asset to render. */
-    src: IconAsset;
-
-    /** The width of the image. */
+    src: IconAsset | undefined;
     width?: number | `${number}%` | 'auto';
-
-    /** The height of the image. */
     height?: number | `${number}%` | 'auto';
 
     /** The fill color for the image. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     fill?: string;
 
-    /** Is image hovered */
     hovered?: boolean;
-
-    /** Is image pressed */
     pressed?: boolean;
-
-    /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle & ImageStyle>;
 
     /** Determines how the image should be resized to fit its container */
@@ -32,6 +23,15 @@ type ImageSVGProps = {
 
     /** The preserveAspectRatio attribute indicates how an element with a viewBox providing a given aspect ratio must fit into a viewport with a different aspect ratio. */
     preserveAspectRatio?: string;
+
+    /** Whether the image should be hidden from screen readers */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'aria-hidden'?: boolean;
+
+    testID?: string;
+
+    /** Called when the image load either succeeds or fails */
+    onLoadEnd?: () => void;
 };
 
 export default ImageSVGProps;

@@ -1,151 +1,190 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
-import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
+import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+
 import useLocalize from '@hooks/useLocalize';
-import useSubStep from '@hooks/useSubStep';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FormActions from '@libs/actions/FormActions';
-import {requestValidateCodeAction} from '@libs/actions/User';
+
+import {clearDraftValues} from '@libs/actions/FormActions';
+import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
+import {isUkEuExpensifyCard} from '@libs/CardUtils';
+import {normalizeCountryCode} from '@libs/CountryUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetails from '@userActions/PersonalDetails';
+import {findPageIndex} from '@libs/SubPageUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
-import type {PrivatePersonalDetails} from '@src/types/onyx';
-import Address from './substeps/Address';
-import Confirmation from './substeps/Confirmation';
-import DateOfBirth from './substeps/DateOfBirth';
-import LegalName from './substeps/LegalName';
-import PhoneNumber from './substeps/PhoneNumber';
-import type {CustomSubStepProps} from './types';
-import {getInitialSubstep, getSubstepValues} from './utils';
+import type {CardList, PrivatePersonalDetails} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {CustomSubPageProps} from './types';
+
+import {usePINActions, usePINState} from './PINContext';
+import Address from './subPages/Address';
+import Confirmation from './subPages/Confirmation';
+import DateOfBirth from './subPages/DateOfBirth';
+import LegalName from './subPages/LegalName';
+import PhoneNumber from './subPages/PhoneNumber';
+import PINStep from './subPages/PIN';
+import {getInitialSubPage, getSubPageValues} from './utils';
 
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
     draftValues: OnyxEntry<PersonalDetailsForm>;
+    headerTitle?: string;
+
+    /** Completion handler */
+    onComplete: () => void;
+
+    /** Card ID for the card that the user is adding personal details to */
+    cardID: string;
+
+    /** Base path of the entry screen, used to build dynamic routes that keep the correct screen underneath the RHP */
+    basePath: string;
 };
 
-const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
+const baseFormPages = [
+    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME, component: LegalName},
+    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.DATE_OF_BIRTH, component: DateOfBirth},
+    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.ADDRESS, component: Address},
+    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
+];
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues}: MissingPersonalDetailsContentProps) {
+const PINPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN, component: PINStep};
+const confirmPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation};
+
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID, basePath}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const {executeScenario} = useMultifactorAuthentication();
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const primaryLogin = account?.primaryLogin ?? '';
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
+    const targetCardSelector = (cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined);
+    const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
+    const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
+    const shouldCollectPIN = !!cardID && isUkEuExpensifyCard(targetCard) && !isVirtualCard;
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const {PIN, isConfirmStep} = usePINState();
+    const {setIsConfirmStep} = usePINActions();
 
-    const ref: ForwardedRef<InteractiveStepSubHeaderHandle> = useRef(null);
+    // Build form pages dynamically based on whether this is a UK/EU card
+    const formPages = shouldCollectPIN ? [...baseFormPages, PINPage, confirmPage] : [...baseFormPages, confirmPage];
 
-    const values = useMemo(() => getSubstepValues(privatePersonalDetails, draftValues), [privatePersonalDetails, draftValues]);
+    const stepIndexList = shouldCollectPIN ? CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST;
 
-    const startFrom = useMemo(() => getInitialSubstep(values), [values]);
+    const values = normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
 
-    const handleFinishStep = useCallback(() => {
-        if (!values) {
-            return;
+    const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
+    const startFrom = findPageIndex<CustomSubPageProps>(formPages, initialPage);
+
+    const handleFinishStep = () => {
+        if (shouldCollectPIN) {
+            if (isOffline || !cardID) {
+                return;
+            }
+
+            if (!PIN) {
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN), basePath), {
+                    forceReplace: true,
+                });
+                return;
+            }
+
+            const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD, {
+                ...personalDetailsParams,
+                pin: PIN,
+                cardID,
+            });
+        } else if (isVirtualCard && isUkEuExpensifyCard(targetCard)) {
+            if (isOffline || !cardID) {
+                return;
+            }
+            const personalDetailsParams = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+            executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS, {
+                ...personalDetailsParams,
+                cardID,
+                isFromMissingDetailsFlow: true,
+            });
+        } else {
+            onComplete();
         }
-        setIsValidateCodeActionModalVisible(true);
-    }, [values]);
+    };
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        screenIndex,
-        moveTo,
-        goToTheLastStep,
-    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
+    const {CurrentPage, isEditing, currentPageName, pageIndex, prevPage, nextPage, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
+        pages: formPages,
+        startFrom,
+        onFinished: handleFinishStep,
+        buildRoute: (pageName, action) => createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, pageName, action), basePath),
+        shouldReplaceRoute: true,
+    });
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     const handleBackButtonPress = () => {
+        // If on PIN confirmation step, go back to PIN entry step
+        if (currentPageName === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN && isConfirmStep) {
+            setIsConfirmStep(false);
+            return;
+        }
+
         if (isEditing) {
-            goToTheLastStep();
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM), basePath), {
+                forceReplace: true,
+            });
             return;
         }
 
         // Clicking back on the first screen should dismiss the modal
-        if (screenIndex === CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME) {
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.goBack();
+        if (currentPageName === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME) {
+            clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+            Navigation.closeRHPFlow();
             return;
         }
-        ref.current?.movePrevious();
-        prevScreen();
+        prevPage();
     };
-
-    const handleValidateCodeEntered = useCallback(
-        (validateCode: string) => {
-            PersonalDetails.updatePersonalDetailsAndShipExpensifyCards(values, validateCode);
-            FormActions.clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-            Navigation.goBack();
-        },
-        [values],
-    );
-
-    const sendValidateCode = () => {
-        if (validateCodeAction?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
-    };
-
-    const handleNextScreen = useCallback(() => {
-        if (isEditing) {
-            goToTheLastStep();
-            return;
-        }
-        ref.current?.moveNext();
-        nextScreen();
-    }, [goToTheLastStep, isEditing, nextScreen]);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
-            testID={MissingPersonalDetailsContent.displayName}
+            testID="MissingPersonalDetailsContent"
         >
             <HeaderWithBackButton
-                title={translate('workspace.expensifyCard.addShippingDetails')}
+                title={headerTitle ?? translate(isVirtualCard ? 'workspace.expensifyCard.addPersonalDetails' : 'workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
-                <InteractiveStepSubHeader
-                    ref={ref}
-                    startStepIndex={startFrom}
-                    stepNames={CONST.MISSING_PERSONAL_DETAILS_INDEXES.INDEX_LIST}
+                <InteractiveStepSubPageHeader
+                    stepNames={stepIndexList}
+                    currentStepIndex={pageIndex}
+                    currentStepAccessibilityDescription={headerTitle ?? translate('workspace.expensifyCard.addShippingDetails')}
+                    onStepSelected={moveTo}
                 />
             </View>
-            <SubStep
+            <CurrentPage
                 isEditing={isEditing}
-                onNext={handleNextScreen}
+                onNext={nextPage}
                 onMove={moveTo}
-                screenIndex={screenIndex}
+                currentPageName={currentPageName}
                 personalDetailsValues={values}
-            />
-
-            <ValidateCodeActionModal
-                handleSubmitForm={handleValidateCodeEntered}
-                sendValidateCode={sendValidateCode}
-                clearError={() => {}}
-                onClose={() => setIsValidateCodeActionModalVisible(false)}
-                isVisible={isValidateCodeActionModalVisible}
-                title={translate('cardPage.validateCardTitle')}
-                descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
-                hasMagicCodeBeenSent={!!validateCodeAction?.validateCodeSent}
+                shouldCollectPIN={!!shouldCollectPIN}
             />
         </ScreenWrapper>
     );
 }
-
-MissingPersonalDetailsContent.displayName = 'MissingPersonalDetailsContent';
 
 export default MissingPersonalDetailsContent;

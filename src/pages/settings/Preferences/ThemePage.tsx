@@ -1,65 +1,114 @@
-import React from 'react';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
+import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import * as User from '@userActions/User';
+
+import {getBaseTheme, getContrastTheme, isHighContrastTheme} from '@styles/theme/utils';
+
+import {updateTheme as updateThemeUserAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PreferredTheme} from '@src/types/onyx';
 
-type ThemePageOnyxProps = {
-    /** The theme of the app */
-    preferredTheme: PreferredTheme;
+import type {ValueOf} from 'type-fest';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+type ThemeEntry = ListItem & {
+    value: ValueOf<typeof CONST.THEME>;
 };
 
-type ThemePageProps = ThemePageOnyxProps;
+const BASE_THEMES = [CONST.THEME.LIGHT, CONST.THEME.DARK, CONST.THEME.SYSTEM] as const;
 
-function ThemePage({preferredTheme}: ThemePageProps) {
+function ThemePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {DEFAULT, FALLBACK, ...themes} = CONST.THEME;
-    const localesToThemes = Object.values(themes).map((theme) => ({
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+
+    const currentTheme = preferredTheme ?? CONST.THEME.DEFAULT;
+
+    const [selectedBaseTheme, setSelectedBaseTheme] = useState<ValueOf<typeof CONST.THEME>>();
+    const [isHighContrast, setIsHighContrast] = useState<boolean>();
+    const currentBaseTheme = selectedBaseTheme ?? getBaseTheme(currentTheme);
+    const currentIsHighContrast = isHighContrast ?? isHighContrastTheme(currentTheme);
+    const themeToStore = currentIsHighContrast ? getContrastTheme(currentBaseTheme) : currentBaseTheme;
+
+    const localesToThemes = BASE_THEMES.map((theme) => ({
         value: theme,
         text: translate(`themePage.themes.${theme}.label`),
         keyForList: theme,
-        isSelected: (preferredTheme ?? CONST.THEME.DEFAULT) === theme,
+        isSelected: currentBaseTheme === theme,
     }));
+
+    const updateTheme = (selectedTheme: ThemeEntry) => {
+        setSelectedBaseTheme(selectedTheme.value);
+    };
+
+    const onToggleHighContrast = (enabled: boolean) => {
+        setIsHighContrast(enabled);
+    };
+
+    const saveTheme = () => {
+        updateThemeUserAction(themeToStore);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveTheme,
+        isDisabled: themeToStore === currentTheme,
+    };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={ThemePage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
+            testID="ThemePage"
         >
             <HeaderWithBackButton
                 title={translate('themePage.theme')}
-                shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
-                onCloseButtonPress={() => Navigation.dismissModal()}
             />
-
             <Text style={[styles.mh5, styles.mv4]}>{translate('themePage.chooseThemeBelowOrSync')}</Text>
-
-            <SelectionList
-                sections={[{data: localesToThemes}]}
-                ListItem={RadioListItem}
-                onSelectRow={(theme) => User.updateTheme(theme.value)}
-                shouldSingleExecuteRowSelect
-                initiallyFocusedOptionKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
-            />
+            <View style={styles.flex1}>
+                <SelectionList
+                    data={localesToThemes}
+                    ListItem={SingleSelectListItem}
+                    onSelectRow={updateTheme}
+                    shouldSingleExecuteRowSelect
+                    confirmButtonOptions={confirmButtonOptions}
+                    initiallyFocusedItemKey={localesToThemes.find((theme) => theme.isSelected)?.keyForList}
+                    addBottomSafeAreaPadding
+                    listFooterContent={
+                        <>
+                            <View style={[styles.mh5, styles.borderTop]} />
+                            <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                                <View style={styles.flex4}>
+                                    <Text>{translate('themePage.highContrastMode')}</Text>
+                                </View>
+                                <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                    <Switch
+                                        accessibilityLabel={translate('themePage.highContrastMode')}
+                                        isOn={currentIsHighContrast}
+                                        onToggle={onToggleHighContrast}
+                                    />
+                                </View>
+                            </View>
+                        </>
+                    }
+                />
+            </View>
         </ScreenWrapper>
     );
 }
 
-ThemePage.displayName = 'ThemePage';
-
-export default withOnyx<ThemePageProps, ThemePageOnyxProps>({
-    preferredTheme: {
-        key: ONYXKEYS.PREFERRED_THEME,
-    },
-})(ThemePage);
+export default ThemePage;

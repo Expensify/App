@@ -19,6 +19,25 @@ Any form input needs to be wrapped in [InputWrapper](https://github.com/Expensif
 />
 ```
 
+### Checkbox Inputs
+
+When using `CheckboxWithLabel` in a form, it should be wrapped with `InputWrapper` just like other form inputs. The `CheckboxWithLabel` component automatically handles controlled/uncontrolled behavior when used with `FormProvider`:
+
+- When used within a `FormProvider`, the `value` prop is automatically provided by `InputWrapper`, making the checkbox a controlled component
+- The checkbox will always synchronize with the form's state, ensuring the visual state matches the actual form value
+- This prevents issues where the checkbox state could diverge from the form state during validation or state updates
+
+```jsx
+<InputWrapper
+    InputComponent={CheckboxWithLabel}
+    inputID={INPUT_IDS.ACCEPT_TERMS}
+    label="I accept the Terms of Service"
+/>
+```
+
+> [!NOTE]
+> The `CheckboxWithLabel` component prioritizes the `value` prop (provided by `FormProvider`) over internal state when the `value` prop is defined. This ensures proper synchronization between the checkbox's visual state and the form's actual state, preventing scenarios where a checkbox might appear unchecked even though the form state indicates it should be checked.
+
 ### Labels, Placeholders, & Hints
 
 Labels are required for each input and should clearly mark the field. Optional text may appear below a field when a hint, suggestion, or context feels necessary. If validation fails on such a field, its error should clearly explain why without relying on the hint. Inline errors should always replace the microcopy hints. Placeholders should not be used as it’s customary for labels to appear inside form fields and animate them above the field when focused.
@@ -34,23 +53,6 @@ Labels and hints are enabled by passing the appropriate props to each input:
     hint="Hint text goes here"
 />
 ```
-
-### Character Limits
-
-If a field has a character limit, we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
-
-```jsx
-<InputWrapper
-    InputComponent={TextInput}
-    maxLength={20}
-/>
-```
-Note: We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
-The phone number can be formatted in different ways.
-
-- 2109400803
-- +12109400803
-- (210)-940-0803
 
 ### Native Keyboards
 
@@ -85,7 +87,7 @@ Browsers use the name prop to autofill information into the input. Here's a [ref
 
 ```jsx
 <InputWrapper
-    InputComponent={TextInput} 
+    InputComponent={TextInput}
     name="fname"
 />
 ```
@@ -135,7 +137,7 @@ Once a user has “touched” an input, i.e. blurred the input, we will also sta
 
 All form fields will additionally be validated when the form is submitted. Although we are validating on blur this additional step is necessary to cover edge cases where forms are auto-filled or when a form is submitted by pressing enter (i.e. there will be only a ‘submit’ event and no ‘blur’ event to hook into).
 
-The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`. 
+The Form component takes care of validation internally and the only requirement is that we pass a validate callback prop. The validate callback takes in the input values as argument and should return an object with shape `{[inputID]: errorMessage}`.
 
 Here's an example for a form that has two inputs, `routingNumber` and `accountNumber`:
 
@@ -175,6 +177,34 @@ function validate(values) {
 ```
 
 For a working example, check [Form story](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/stories/Form.stories.js#L63-L72)
+
+### Character Limits
+
+If a field has a character limit, we should give that field a max limit. This is done by passing the character limit validation in the validate function. Our general guidelines for character limits are 100 characters for titles/names and 500 characters for supporting/description messages. If a field has a specific need for a different limit, that is fine. Otherwise, please follow the guidelines for consistency.
+
+Here's an example for a form that has one input `name`, and has character limit of 100:
+
+```js
+function validate(values) {
+    const errors = {};
+    if (values.name.length > 100) {
+        ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', values.name.length, 100));
+    }
+    return errors;
+}
+```
+
+> [!NOTE]
+>  We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
+> The phone number can be formatted in different ways.
+> 
+> - 2109400803
+> - +12109400803
+> - (210)-940-0803
+
+> [!NOTE]
+>  If we want to count number of Unicode code points instead of the number of UTF-16 code units, we should use the spread syntax.
+> Example - `[...newCategoryName].length`
 
 ### Highlight Fields and Inline Errors
 
@@ -311,6 +341,8 @@ InputWrapper component will automatically provide the following props to any inp
 
 ## Dynamic Form Inputs
 
+For forms whose fields are described by data rather than JSX, use the schema-driven renderer in [DYNAMIC_FORMS.md](DYNAMIC_FORMS.md).
+
 It's possible to conditionally render inputs (or more complex components with multiple inputs) inside a form. For example, an IdentityForm might be nested as input for a Form component.
 In order for Form to track the nested values properly, each field must have a unique identifier. It's not safe to use an index because adding or removing fields from the child Form component will not update these internal keys. Therefore, we will need to define keys and dynamically access the correlating child form data for validation/submission.
 
@@ -318,16 +350,83 @@ To generate these unique keys, use `Str.guid()`.
 
 An example of this can be seen in the [ACHContractStep](https://github.com/Expensify/App/blob/f2973f88cfc0d36c0dbe285201d3ed5e12f29d87/src/pages/ReimbursementAccount/ACHContractStep.js), where each key is stored in an array in state, and IdentityForms are dynamically rendered based on which keys are present in the array.
 
-### Safe Area Padding
+### Keyboard Dismissal on Submit
 
-Any `FormProvider.js` that has a button will also add safe area padding by default. If the `<FormProvider>` is inside a `<ScreenWrapper>`, we will want to disable the default safe area padding applied there e.g.
+By default, `FormProvider` waits for the keyboard to fully dismiss before calling `onSubmit`. This is controlled by the `keyboardSubmitBehavior` prop (defaults to `'dismiss-then-submit'`).
+
+On some platforms, this default behavior causes visual glitches when the form's `onSubmit` triggers navigation (e.g. `Navigation.goBack()`), because `KeyboardAvoidingView` removes its keyboard offset before the screen finishes unmounting — making the submit button appear to float briefly.
+
+The prop accepts three values:
+
+| Value | Behavior | Best for |
+|---|---|---|
+| `'dismiss-then-submit'` | Waits for keyboard to fully dismiss, then calls `onSubmit` | Forms that stay on-screen after submission |
+| `'submit-and-dismiss'` | Calls `onSubmit` immediately via `dismissKeyboardAndExecute` | iOS native / web forms that navigate on submit |
+| `'submit-only'` | Calls `onSubmit` immediately, no keyboard dismissal | Android native forms that navigate on submit (navigation handles keyboard cleanup) |
+
+Since the correct value is platform-specific, use a platform-specific constant file to export the appropriate value:
+
+```
+myFeature/keyboardSubmitBehavior/
+├── index.ts           → 'submit-and-dismiss'  (web + iOS native)
+└── index.android.ts   → 'submit-only'          (Android native)
+```
 
 ```jsx
-<ScreenWrapper includeSafeAreaPaddingBottom={false}>
+import KEYBOARD_SUBMIT_BEHAVIOR from './keyboardSubmitBehavior';
+
+<FormProvider
+    formID="myForm"
+    onSubmit={onSubmit}
+    keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
+>
+    {/* form inputs */}
+</FormProvider>
+```
+
+> [!NOTE]
+> Only override `keyboardSubmitBehavior` on screens where `onSubmit` triggers navigation. For forms that stay on-screen after submission, keep the default (`'dismiss-then-submit'`) to avoid layout jumps.
+
+### Reacting to form value changes (`FormValueWatcher`)
+
+Sometimes a parent screen needs to react when a form value changes from outside the form — for example when an RHP picker writes to the Onyx draft via `setDraftValues` and the parent has to re-sync `FormProvider`'s internal state (clear `touched` flags, wipe local errors via `resetForm`, etc.).
+
+Instead of adding a `useEffect` inside the parent (which can't see `FormProvider`'s `inputValues` directly), use the `FormValueWatcher` primitive together with `FormProvider`'s children render prop. It's a render-null component that fires `onValuesChange(current, previous)` whenever the `values` reference changes, and short-circuits when the reference is identical (no spurious fires).
+
+```jsx
+<FormProvider formID={ONYXKEYS.FORMS.MY_FORM} ref={formRef} /* ... */>
+    {({inputValues}) => (
+        <>
+            <FormValueWatcher
+                values={inputValues}
+                onValuesChange={(current, previous) => {
+                    if (current.type === previous.type) {
+                        return;
+                    }
+                    formRef.current?.resetForm(current);
+                }}
+            />
+            {/* ...InputWrappers... */}
+        </>
+    )}
+</FormProvider>
+```
+
+Use it only when you genuinely need a cross-component reaction; for in-form logic, prefer `onValueChange` / `onInputChange` on the specific input.
+
+### Safe Area Padding
+
+Any `FormProvider.tsx` that has a button at the bottom. If the `<FormProvider>` is inside a `<ScreenWrapper>`, the bottom safe area inset is handled automatically (`includeSafeAreaPaddingBottom` needs to be set to `true`, but its the default).
+If you have custom requirements and can't use `<ScreenWrapper includeSafeAreaPaddingBottom={true}>`, you can use the `useSafeAreaPaddings()` hook:
+
+```jsx
+const { paddingTop, paddingBottom, safeAreaPaddingBottomStyle } = useSafeAreaPaddings();
+
+<View styles={[safeAreaPaddingBottomStyle, styles.pb5]}>
     <FormProvider>
         {...}
     </FormProvider>
-</ScreenWrapper>
+</View>
 ```
 
 ### Handling nested Pickers in Form
@@ -337,3 +436,7 @@ In case there's a nested Picker in Form, we should pass the props below to Form,
 #### Enable ScrollContext
 
 Pass the `scrollContextEnabled` prop to enable scrolling up when Picker is pressed, making sure the Picker is always in view and doesn't get covered by virtual keyboards for example.
+
+#### Enable Form to Scroll to the End
+
+Pass the `shouldScrollToEnd` prop to automatically scroll to the bottom when the form is opened. Ensure that the scrolling stops at the appropriate limit so that the button remains visible above the keypad.

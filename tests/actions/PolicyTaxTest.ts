@@ -1,18 +1,44 @@
-import Onyx from 'react-native-onyx';
-import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
+import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxCode, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, TaxRate} from '@src/types/onyx';
-import createRandomPolicy from '../utils/collections/policies';
-import * as TestHelper from '../utils/TestHelper';
+import type {ExpenseRule} from '@src/types/onyx/Policy';
+
+import Onyx from 'react-native-onyx';
+
 import type {MockFetch} from '../utils/TestHelper';
+
+import createRandomPolicy from '../utils/collections/policies';
+import getOnyxValue from '../utils/getOnyxValue';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
 describe('actions/PolicyTax', () => {
-    const fakePolicy: PolicyType = {...createRandomPolicy(0), taxRates: CONST.DEFAULT_TAX};
+    const fakePolicy: PolicyType = {
+        ...createRandomPolicy(0),
+        taxRates: CONST.DEFAULT_TAX,
+        customUnits: {
+            [CONST.CUSTOM_UNITS.NAME_DISTANCE]: {
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                customUnitID: 'id_CUSTOM_UNIT_1',
+                enabled: true,
+                rates: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    id_CUSTOM_UNIT_1: {
+                        name: 'Distance',
+                        customUnitRateID: 'id_CUSTOM_UNIT_1',
+                        enabled: true,
+                        currency: 'USD',
+                        rate: 67,
+                    },
+                },
+            },
+        },
+    };
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -21,8 +47,8 @@ describe('actions/PolicyTax', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear()
             .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy))
             .then(waitForBatchedUpdates);
@@ -32,14 +58,13 @@ describe('actions/PolicyTax', () => {
         it('Set policy`s custom tax name', () => {
             const customTaxName = 'Custom tag name';
             mockFetch?.pause?.();
-            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
+            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.name).toBe(customTaxName);
@@ -57,7 +82,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.pendingFields?.name).toBeFalsy();
@@ -73,14 +97,13 @@ describe('actions/PolicyTax', () => {
             const originalCustomTaxName = fakePolicy?.taxRates?.name;
 
             mockFetch?.pause?.();
-            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName);
+            Policy.setPolicyCustomTaxName(fakePolicy.id, customTaxName, originalCustomTaxName);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.name).toBe(customTaxName);
@@ -101,7 +124,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.name).toBe(originalCustomTaxName);
@@ -120,14 +142,13 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.defaultExternalID).toBe(taxCode);
@@ -145,7 +166,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.pendingFields?.defaultExternalID).toBeFalsy();
@@ -161,14 +181,13 @@ describe('actions/PolicyTax', () => {
             const originalDefaultExternalID = fakePolicy?.taxRates?.defaultExternalID;
 
             mockFetch?.pause?.();
-            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setWorkspaceCurrencyDefault(fakePolicy.id, taxCode, originalDefaultExternalID);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.defaultExternalID).toBe(taxCode);
@@ -189,7 +208,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.defaultExternalID).toBe(originalDefaultExternalID);
@@ -207,14 +225,13 @@ describe('actions/PolicyTax', () => {
             const taxCode = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode, undefined);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.foreignTaxDefault).toBe(taxCode);
@@ -232,7 +249,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     // Check if the policy pendingFields was cleared
@@ -249,14 +265,13 @@ describe('actions/PolicyTax', () => {
             const originalDefaultForeignCurrencyID = fakePolicy?.taxRates?.foreignTaxDefault;
 
             mockFetch?.pause?.();
-            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode);
+            Policy.setForeignCurrencyDefault(fakePolicy.id, taxCode, originalDefaultForeignCurrencyID);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.foreignTaxDefault).toBe(taxCode);
@@ -278,7 +293,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     // Check if the policy pendingFields was cleared
@@ -308,7 +322,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const createdTax = policy?.taxRates?.taxes?.[newTaxRate.code ?? ''];
@@ -328,7 +341,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const createdTax = policy?.taxRates?.taxes?.[newTaxRate.code ?? ''];
@@ -356,7 +368,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const createdTax = policy?.taxRates?.taxes?.[newTaxRate.code ?? ''];
@@ -379,7 +390,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const createdTax = policy?.taxRates?.taxes?.[newTaxRate.code ?? ''];
@@ -395,14 +405,13 @@ describe('actions/PolicyTax', () => {
         it('Disable policy`s taxes', () => {
             const disableTaxID = 'id_TAX_RATE_1';
             mockFetch?.pause?.();
-            setPolicyTaxesEnabled(fakePolicy.id, [disableTaxID], false);
+            setPolicyTaxesEnabled(fakePolicy, [disableTaxID], false);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const disabledTax = policy?.taxRates?.taxes?.[disableTaxID];
@@ -422,7 +431,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const disabledTax = policy?.taxRates?.taxes?.[disableTaxID];
@@ -438,7 +446,7 @@ describe('actions/PolicyTax', () => {
         it('Disable policy`s taxes but API returns an error, then enable policy`s taxes again', () => {
             const disableTaxID = 'id_TAX_RATE_1';
             mockFetch?.pause?.();
-            setPolicyTaxesEnabled(fakePolicy.id, [disableTaxID], false);
+            setPolicyTaxesEnabled(fakePolicy, [disableTaxID], false);
             const originalTaxes = {...fakePolicy?.taxRates?.taxes};
             return waitForBatchedUpdates()
                 .then(
@@ -446,7 +454,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const disabledTax = policy?.taxRates?.taxes?.[disableTaxID];
@@ -469,7 +476,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const disabledTax = policy?.taxRates?.taxes?.[disableTaxID];
@@ -489,14 +495,14 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
             const newTaxName = 'Tax rate 1 updated';
             mockFetch?.pause?.();
-            renamePolicyTax(fakePolicy.id, taxID, newTaxName);
+            // @ts-expect-error - we can send undefined tax rate here for testing
+            renamePolicyTax(fakePolicy.id, taxID, newTaxName, fakePolicy?.taxRates?.taxes[taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -516,7 +522,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -534,14 +539,14 @@ describe('actions/PolicyTax', () => {
             const newTaxName = 'Tax rate 1 updated';
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
             mockFetch?.pause?.();
-            renamePolicyTax(fakePolicy.id, taxID, newTaxName);
+            // @ts-expect-error - we can send undefined tax rate here for testing
+            renamePolicyTax(fakePolicy.id, taxID, newTaxName, fakePolicy?.taxRates?.taxes[taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -564,7 +569,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -584,14 +588,14 @@ describe('actions/PolicyTax', () => {
             const newTaxValue = 10;
             const stringTaxValue = `${newTaxValue}%`;
             mockFetch?.pause?.();
-            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue);
+            // @ts-expect-error - we can send undefined tax rate here for testing
+            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue, fakePolicy?.taxRates?.taxes[taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -611,7 +615,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -630,14 +633,14 @@ describe('actions/PolicyTax', () => {
             const originalTaxRate = {...fakePolicy?.taxRates?.taxes[taxID]};
             const stringTaxValue = `${newTaxValue}%`;
             mockFetch?.pause?.();
-            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue);
+            // @ts-expect-error - we can send undefined tax rate here for testing
+            updatePolicyTaxValue(fakePolicy.id, taxID, newTaxValue, fakePolicy?.taxRates?.taxes[taxID]);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -660,7 +663,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -680,14 +682,13 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy.id, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -708,7 +709,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -726,18 +726,21 @@ describe('actions/PolicyTax', () => {
             const taxID = 'id_TAX_RATE_1';
             const firstTaxID = 'id_TAX_EXEMPT';
 
+            const fakePolicyWithForeignTaxDefault: PolicyType = {
+                ...fakePolicy,
+                taxRates: {
+                    ...CONST.DEFAULT_TAX,
+                    foreignTaxDefault: 'id_TAX_RATE_1',
+                },
+            };
             mockFetch?.pause?.();
-            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {taxRates: {foreignTaxDefault: 'id_TAX_RATE_1'}})
-                .then(() => {
-                    deletePolicyTaxes(fakePolicy.id, [taxID]);
-                    return waitForBatchedUpdates();
-                })
+            deletePolicyTaxes(fakePolicyWithForeignTaxDefault, [taxID], TestHelper.localeCompare);
+            return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicyWithForeignTaxDefault.id}`,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -757,8 +760,7 @@ describe('actions/PolicyTax', () => {
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
-                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicyWithForeignTaxDefault.id}`,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -772,19 +774,18 @@ describe('actions/PolicyTax', () => {
                 );
         });
 
-        it('Delete tax that is not foreignTaxDefault but API return an error, then recover the delated tax', () => {
+        it('Delete tax that is not foreignTaxDefault but API return an error, then recover the deleted tax', () => {
             const foreignTaxDefault = fakePolicy?.taxRates?.foreignTaxDefault;
             const taxID = 'id_TAX_RATE_1';
 
             mockFetch?.pause?.();
-            deletePolicyTaxes(fakePolicy.id, [taxID]);
+            deletePolicyTaxes(fakePolicy, [taxID], TestHelper.localeCompare);
             return waitForBatchedUpdates()
                 .then(
                     () =>
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -808,7 +809,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -821,6 +821,105 @@ describe('actions/PolicyTax', () => {
                             });
                         }),
                 );
+        });
+    });
+    describe('SetPolicyTaxCode', () => {
+        const oldTaxCode = 'id_TAX_RATE_1';
+        const newTaxCode = 'id_TAX_RATE_2';
+        const oldTaxRateName = fakePolicy?.taxRates?.taxes[oldTaxCode]?.name;
+
+        // Release any request a test left paused, so it doesn't hold up the queue for the next test
+        afterEach(() => (mockFetch?.resume?.() as Promise<unknown>).then(waitForBatchedUpdates));
+
+        it('Set policy`s tax code', () => {
+            mockFetch?.pause?.();
+            const distanceRateCustomUnit = fakePolicy?.customUnits?.[CONST.CUSTOM_UNITS.NAME_DISTANCE];
+
+            setPolicyTaxCode(
+                fakePolicy.id,
+                oldTaxCode,
+                newTaxCode,
+                // @ts-expect-error - we can send undefined tax rate here for testing
+                fakePolicy?.taxRates?.taxes[oldTaxCode],
+                fakePolicy?.taxRates?.foreignTaxDefault,
+                fakePolicy?.taxRates?.defaultExternalID,
+                distanceRateCustomUnit,
+            );
+
+            return waitForBatchedUpdates().then(
+                () =>
+                    new Promise<void>((resolve) => {
+                        const connection = Onyx.connect({
+                            key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                            callback: (policy) => {
+                                Onyx.disconnect(connection);
+                                const taxRates = policy?.taxRates;
+                                const updatedTaxRate = taxRates?.taxes?.[newTaxCode];
+
+                                // We expected to have a new tax rate with the new tax code
+                                expect(updatedTaxRate).toBeDefined();
+                                expect(updatedTaxRate?.previousTaxCode).toBe(oldTaxCode);
+                                // The old code is appended to the rename history so expenses still referencing it resolve to this rate
+                                expect(updatedTaxRate?.previousTaxCodes).toEqual([oldTaxCode]);
+                                expect(updatedTaxRate?.name).toBe(oldTaxRateName);
+                                resolve();
+                            },
+                        });
+                    }),
+            );
+        });
+
+        describe('expense rules', () => {
+            const buildRule = (categoryName: string, taxID: string): ExpenseRule => ({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                tax: {field_id_TAX: {externalID: taxID}},
+                applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
+            });
+            const expenseRules = [buildRule('Travel', oldTaxCode), buildRule('Meals', 'id_TAX_EXEMPT')];
+
+            const renameTaxCode = () =>
+                setPolicyTaxCode(
+                    fakePolicy.id,
+                    oldTaxCode,
+                    newTaxCode,
+                    // @ts-expect-error - we can send undefined tax rate here for testing
+                    fakePolicy?.taxRates?.taxes[oldTaxCode],
+                    fakePolicy?.taxRates?.foreignTaxDefault,
+                    fakePolicy?.taxRates?.defaultExternalID,
+                    undefined,
+                    expenseRules,
+                );
+
+            beforeEach(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {rules: {expenseRules}}).then(waitForBatchedUpdates));
+
+            it('moves the rules that referenced the old tax code onto the new one', async () => {
+                // Given a category tax default rule on the old code and another on a different code, with the request held so only optimistic data applies
+                mockFetch?.pause?.();
+
+                // When the tax code is renamed
+                renameTaxCode();
+                await waitForBatchedUpdates();
+
+                // Then only the rule on the old code points at the new code, mirroring the back end, so its tax rate still resolves
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+                expect(policy?.rules?.expenseRules).toEqual([buildRule('Travel', newTaxCode), buildRule('Meals', 'id_TAX_EXEMPT')]);
+            });
+
+            it('restores the rules when the request fails', async () => {
+                // Given a tax code rename that has moved the rules onto the new code optimistically
+                mockFetch?.pause?.();
+                renameTaxCode();
+                await waitForBatchedUpdates();
+
+                // When the server rejects the rename
+                mockFetch?.fail?.();
+                await mockFetch?.resume?.();
+                await waitForBatchedUpdates();
+
+                // Then the rules point at the old code again, matching the tax rate that the failure data restores
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+                expect(policy?.rules?.expenseRules).toEqual(expenseRules);
+            });
         });
     });
 });

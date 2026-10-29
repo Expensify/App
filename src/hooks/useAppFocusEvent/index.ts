@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+
 import type {UseAppFocusEvent, UseAppFocusEventCallback} from './types';
 
 /**

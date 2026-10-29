@@ -1,144 +1,493 @@
-import type {RouteProp} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import type {ListRenderItemInfo} from 'react-native';
-import {FlatList, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import CardFeedIcon from '@components/CardFeedIcon';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {InlineEditSaveResult} from '@components/EditableCell';
+import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {PressableWithFeedback} from '@components/Pressable';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+import type {WorkspaceExpensifyCardTableRowData} from '@components/Tables/WorkspaceExpensifyCardsTable';
+import WorkspaceExpensifyCardsTable from '@components/Tables/WorkspaceExpensifyCardsTable';
+import Text from '@components/Text';
+
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
+import {
+    canUpdateExpensifyCardLimitTypeInline,
+    getExpensifyCardLimitInlineEditError,
+    getExpensifyCardLimitInlineUpdate,
+    renameExpensifyCardInline,
+    updateExpensifyCardLimitInline,
+    updateExpensifyCardLimitTypeInline,
+} from '@libs/actions/Policy/InlineEdit';
+import {
+    getCardsByCardholderName,
+    getCardSettings,
+    getDefaultExpensifyCardLimitType,
+    getExpensifyCardLimitChangeWarningKey,
+    getExpensifyCardLimitTypeChangeWarningKey,
+    getExpensifyCardNewAvailableSpend,
+    isCurrencySupportedForECards,
+    shouldConfirmExpensifyCardLimitTypeChange,
+} from '@libs/CardUtils';
+import {getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getConnectedIntegration, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
+
 import Navigation from '@navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@navigation/types';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+
+import {getCardExportAccountTitle, getPolicyCardExportSettings} from '@pages/workspace/companyCards/utils';
+
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {CardLimitType} from '@src/types/onyx/Card';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import EmptyCardView from './EmptyCardView';
-import WorkspaceCardListHeader from './WorkspaceCardListHeader';
-import WorkspaceCardListRow from './WorkspaceCardListRow';
 
 type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
-    route: RouteProp<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
+    route: PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>;
 
-    /** List of Expensify cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
+    fundID: number;
 };
 
-function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCardListPageProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {translate} = useLocalize();
+function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Export', 'Gear', 'Plus']);
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const {showConfirmModal} = useConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useAllPersonalDetails();
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [domains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
+    const settings = getCardSettings(cardSettings);
+    const {allFeeds: allAdminExpensifyCardFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
+    const shouldShowSelector = allAdminExpensifyCardFeeds.length >= 1;
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
+    // The waitlist is for the workspace account and must not block an already-provisioned domain feed.
+    const isBankAccountVerified = !cardOnWaitlist || (!!policy?.policyAccountID && fundID !== policy.policyAccountID);
+    const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
+    const {windowHeight} = useWindowDimensions();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
+    // Only the page header stays fixed above the card list; the header buttons scroll away with the table rows.
+    const headerHeight = useEmptyViewHeaderHeight(false, isBankAccountVerified);
+    const [footerHeight, setFooterHeight] = useState(0);
+    const cardFeedIcon = (
+        <CardFeedIcon
+            isExpensifyCardFeed
+            iconProps={{
+                height: variables.cardIconHeight,
+                width: variables.cardIconWidth,
+                additionalStyles: styles.cardIcon,
+            }}
+        />
+    );
 
-    const isBankAccountVerified = !cardOnWaitlist;
+    // Mirrors the Accounting section's own eligibility check on the card details page, so the column follows the same
+    // rules as that section rather than introducing a second set of them.
+    const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((integration) => integration === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES) ?? syncingAccountingIntegration;
+    const cardExportSettings = getPolicyCardExportSettings(connectedIntegration, policyID, translate, policy);
+    const shouldShowExportAccountColumn = !!cardExportSettings?.shouldShowMenuItem;
 
-    const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
+    const settlementCurrency = useCurrencyForExpensifyCard({policyID, fundID});
+    const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
+    const shouldShowEuUkDisclaimer = isCurrencySupportedForECards(settlementCurrency);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const policyMembersAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails));
+    const allCards = getCardsByCardholderName(cardsList, policyMembersAccountIDs);
 
-    const sortedCards = useMemo(() => CardUtils.sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
+    // Row click handlers close over the card from that render. Read the live list from a ref so
+    // no-op/confirm checks use the same card persist will use, and so confirm still persists
+    // current spend and rollback values if Onyx refreshes while the modal is open.
+    const cardsListRef = useRef(cardsList);
+    useEffect(() => {
+        cardsListRef.current = cardsList;
+    }, [cardsList]);
 
-    const issueCard = () => {
-        const activeRoute = Navigation.getActiveRoute();
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, activeRoute));
+    const isCardListEmpty = allCards.length === 0;
+    const [selectedCardKeys, setSelectedCardKeys] = useState<string[]>([]);
+    const selectableCardKeySet = new Set(allCards.map((card) => String(card.cardID)));
+    const validatedSelectedCardKeys = selectedCardKeys.filter((key) => selectableCardKeySet.has(key));
+    const selectedCardIDs = validatedSelectedCardKeys.map((key) => Number(key));
+    const isSelectionModeActive = selectedCardKeys.length > 0 || isMobileSelectionModeEnabled;
+
+    const clearTableSelection = () => {
+        setSelectedCardKeys((prevSelectedCardKeys) => (prevSelectedCardKeys.length > 0 ? [] : prevSelectedCardKeys));
     };
 
-    const getHeaderButtons = () => (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-            <Button
-                success
-                onPress={issueCard}
-                icon={Expensicons.Plus}
-                text={translate('workspace.expensifyCard.issueCard')}
-                style={shouldUseNarrowLayout && styles.flex1}
-            />
-            <Button
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID))}
-                icon={Expensicons.Gear}
-                text={translate('common.settings')}
-                style={shouldUseNarrowLayout && styles.flex1}
-            />
-        </View>
-    );
+    useCleanupSelectedOptions(clearTableSelection);
 
-    const renderItem = useCallback(
-        ({item, index}: ListRenderItemInfo<Card>) => (
-            <OfflineWithFeedback
-                key={`${item.nameValuePairs?.cardTitle}_${index}`}
-                pendingAction={item.pendingAction}
-                errorRowStyles={styles.ph5}
-                errors={item.errors}
-                onClose={() => PaymentMethods.clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
-            >
-                <PressableWithFeedback
-                    role={CONST.ROLE.BUTTON}
-                    style={[styles.mh5, styles.br3, styles.mb3, styles.highlightBG]}
-                    accessibilityLabel="row"
-                    hoverStyle={[styles.hoveredComponentBG]}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
-                >
-                    <WorkspaceCardListRow
-                        lastFourPAN={item.lastFourPAN ?? ''}
-                        cardholder={personalDetails?.[item.accountID ?? '-1']}
-                        limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
-                        name={item.nameValuePairs?.cardTitle ?? ''}
-                        currency={policyCurrency}
-                        isVirtual={!!item.nameValuePairs?.isVirtual}
+    const changeCardLimitType = (card: Card, newLimitType: CardLimitType) => {
+        const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
+        if (!canUpdateExpensifyCardLimitTypeInline(latestCard, newLimitType, defaultLimitType)) {
+            return;
+        }
+
+        const persistLimitType = () => updateExpensifyCardLimitTypeInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? latestCard, newLimitType, defaultLimitType);
+
+        if (!shouldConfirmExpensifyCardLimitTypeChange(latestCard, newLimitType, defaultLimitType)) {
+            persistLimitType();
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('workspace.expensifyCard.changeCardLimitType'),
+            prompt: translate(
+                getExpensifyCardLimitTypeChangeWarningKey(latestCard.nameValuePairs?.limitType ?? defaultLimitType),
+                convertToDisplayString(latestCard.nameValuePairs?.unapprovedExpenseLimit, settlementCurrency),
+            ),
+            confirmText: translate('workspace.expensifyCard.changeLimitType'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldEnableNewFocusManagement: true,
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            persistLimitType();
+        });
+    };
+
+    const changeCardLimit = (card: Card, newLimit: string): InlineEditSaveResult => {
+        const latestCard = cardsListRef.current?.[String(card.cardID)] ?? card;
+        const limitError = getExpensifyCardLimitInlineEditError(translate, newLimit);
+        if (limitError) {
+            showInlineEditError(limitError);
+            return true;
+        }
+
+        const nextLimit = getExpensifyCardLimitInlineUpdate(latestCard, newLimit);
+        if (nextLimit === undefined) {
+            return true;
+        }
+
+        const persistLimit = () => updateExpensifyCardLimitInline(fundID, cardsListRef.current?.[String(card.cardID)] ?? latestCard, newLimit);
+
+        if (getExpensifyCardNewAvailableSpend(latestCard, nextLimit) > 0) {
+            persistLimit();
+            return true;
+        }
+
+        // Keep the typed amount in the field while the modal is open. It is written only after confirm.
+        return showConfirmModal({
+            title: translate('workspace.expensifyCard.changeCardLimit'),
+            prompt: translate(getExpensifyCardLimitChangeWarningKey(latestCard.nameValuePairs?.limitType ?? defaultLimitType), convertToDisplayString(nextLimit, settlementCurrency)),
+            confirmText: translate('workspace.expensifyCard.changeLimit'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldEnableNewFocusManagement: true,
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return false;
+            }
+            persistLimit();
+            return true;
+        });
+    };
+
+    const cardRows: WorkspaceExpensifyCardTableRowData[] = allCards.map((card) => {
+        const frozenByDisplayName = card.nameValuePairs?.frozen?.byAccountID
+            ? temporaryGetDisplayNameOrDefault({
+                  passedPersonalDetails: personalDetails?.[card.nameValuePairs.frozen.byAccountID],
+                  defaultValue: '',
+                  shouldFallbackToHidden: false,
+                  translate,
+                  formatPhoneNumber,
+              }) || undefined
+            : undefined;
+        const canEditCard = canWriteExpensifyCard && card.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isSelectionModeActive;
+
+        return {
+            keyForList: String(card.cardID),
+            cardID: card.cardID,
+            card,
+            lastFourPAN: card.lastFourPAN ?? '',
+            name: card.nameValuePairs?.cardTitle ?? '',
+            cardholder: personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID],
+            limit: card.nameValuePairs?.unapprovedExpenseLimit ?? 0,
+            remainingLimit: card.availableSpend ?? 0,
+            currency: settlementCurrency,
+            isVirtual: !!card.nameValuePairs?.isVirtual,
+            limitType: card.nameValuePairs?.limitType,
+            exportAccountTitle: shouldShowExportAccountColumn ? getCardExportAccountTitle(cardExportSettings, card) : undefined,
+            frozenByDisplayName,
+            frozenByAccountID: card.nameValuePairs?.frozen?.byAccountID,
+            frozenDate: card.nameValuePairs?.frozen?.date,
+            errors: card.errors,
+            pendingAction: card.pendingAction,
+            canEditName: canEditCard,
+            canEditLimitType: canEditCard,
+            canEditLimit: canEditCard,
+            action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString()))),
+            onRenameName: (newName: string) => showInlineEditError(renameExpensifyCardInline(translate, fundID, card.cardID, newName, card.nameValuePairs?.cardTitle ?? '')),
+            onChangeLimitType: (newLimitType: CardLimitType) => changeCardLimitType(card, newLimitType),
+            onChangeLimit: (newLimit: string) => changeCardLimit(card, newLimit),
+            onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
+        };
+    });
+
+    const bulkExportOptions: Array<DropdownOption<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>> = [
+        {
+            icon: icons.Export,
+            text: translate('workspace.expensifyCard.exportAsCSV'),
+            value: CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV,
+            onSelected: () => {
+                const selectedCards = cardRows.filter((row) => validatedSelectedCardKeys.includes(row.keyForList)).map((row) => row.card);
+                exportExpensifyCardListToCSV({
+                    policyID,
+                    cards: selectedCards,
+                    personalDetailsList: personalDetails,
+                    settlementCurrency,
+                    defaultLimitType,
+                    translate,
+                    formatPhoneNumber,
+                });
+            },
+        },
+    ];
+
+    const handleIssueCardPress = () => {
+        if (!canWriteExpensifyCard) {
+            showReadOnlyModal();
+            return;
+        }
+        clearIssueNewCardFormData();
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+    };
+    const secondaryActions = canWriteExpensifyCard
+        ? [
+              {
+                  icon: icons.Gear,
+                  text: translate('common.settings'),
+                  onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID)),
+                  value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+              },
+          ]
+        : [];
+    const getHeaderButtons = () => {
+        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldDisplayButtonsInSeparateLine && styles.mb3];
+
+        const shouldShowBulkSelectionDropdown = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedCardIDs.length > 0;
+
+        if (shouldShowBulkSelectionDropdown) {
+            return (
+                <View style={headerButtonsRowStyle}>
+                    <ButtonWithDropdownMenu<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={() => {}}
+                        customText={translate('workspace.common.selected', {
+                            count: selectedCardIDs.length,
+                        })}
+                        options={bulkExportOptions}
+                        isSplitButton={false}
+                        shouldAlwaysShowDropdownMenu
+                        isDisabled={!selectedCardIDs.length}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.BULK_ACTIONS_DROPDOWN}
+                        wrapperStyle={[!isInLandscapeMode && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.flexShrink1]}
                     />
-                </PressableWithFeedback>
-            </OfflineWithFeedback>
-        ),
-        [personalDetails, policyCurrency, policyID, workspaceAccountID, styles],
+                </View>
+            );
+        }
+
+        return (
+            <View style={headerButtonsRowStyle}>
+                {!isCardListEmpty && (
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={handleIssueCardPress}
+                        style={shouldDisplayButtonsInSeparateLine && styles.flex1}
+                        innerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+                        hoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>{translate('workspace.expensifyCard.issueCard')}</Button.Text>
+                    </Button>
+                )}
+                {secondaryActions.length > 0 && (
+                    <ButtonWithDropdownMenu
+                        onPress={() => {}}
+                        customText={translate('common.more')}
+                        options={secondaryActions}
+                        isSplitButton={false}
+                        shouldUseOptionIcon
+                        wrapperStyle={isCardListEmpty && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
+                    />
+                )}
+            </View>
+        );
+    };
+
+    const handleBackButtonPress = () => {
+        if (isMobileSelectionModeEnabled) {
+            clearTableSelection();
+            turnOffMobileSelectionMode();
+            return true;
+        }
+
+        Navigation.goBack();
+        return true;
+    };
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const shouldShowHeaderButtons = (shouldUseNarrowLayout && isMobileSelectionModeEnabled) || selectedCardIDs.length > 0 || canWriteExpensifyCard || !isCardListEmpty;
+
+    useAndroidBackButtonHandler(handleBackButtonPress);
+
+    const disclaimerFooter = (
+        <Text
+            style={[styles.textMicroSupporting, styles.p5, footerHeight === 0 && {opacity: 0}]}
+            onLayout={(event) => setFooterHeight(event.nativeEvent.layout.height)}
+        >
+            {translate(shouldShowEuUkDisclaimer ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
+        </Text>
     );
 
-    const renderListHeader = useCallback(() => <WorkspaceCardListHeader policyID={policyID} />, [policyID]);
+    // Page controls rendered between the page header and the card list. They stay fixed above the
+    // empty-card view, but scroll away with the rows when the table is shown.
+    let pageHeaderContent: React.ReactElement | undefined;
+    if (!shouldShowSelector && shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons) {
+        pageHeaderContent = <View style={styles.ph5}>{getHeaderButtons()}</View>;
+    } else if (shouldShowSelector) {
+        pageHeaderContent = (
+            <View
+                style={[
+                    styles.w100,
+                    styles.ph5,
+                    styles.pb3,
+                    styles.gap3,
+                    (!shouldChangeLayout || isInLandscapeMode) && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
+                ]}
+            >
+                <FeedSelector
+                    wrapperStyle={isInLandscapeMode ? styles.flex1 : undefined}
+                    onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
+                    CardFeedIcon={cardFeedIcon}
+                    feedName={translate('workspace.common.expensifyCard')}
+                    supportingText={getExpensifyCardFeedDescription(cardSettings, allPolicies, domains, fundID, cardList)}
+                />
+                {isBankAccountVerified && (canWriteExpensifyCard || secondaryActions.length > 0 || !isCardListEmpty) && getHeaderButtons()}
+            </View>
+        );
+    }
 
     return (
         <ScreenWrapper
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             shouldEnableMaxHeight
-            testID={WorkspaceExpensifyCardListPage.displayName}
+            testID="WorkspaceExpensifyCardListPage"
         >
             <HeaderWithBackButton
-                icon={Illustrations.HandCard}
-                title={translate('workspace.common.expensifyCard')}
+                shouldUseHeadlineHeader={!selectionModeHeader}
+                title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}
-                onBackButtonPress={() => Navigation.goBack()}
+                shouldDisplayHelpButton
+                onBackButtonPress={handleBackButtonPress}
             >
-                {!shouldUseNarrowLayout && isBankAccountVerified && getHeaderButtons()}
+                {!shouldShowSelector && !shouldDisplayButtonsInSeparateLine && isBankAccountVerified && shouldShowHeaderButtons && getHeaderButtons()}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && isBankAccountVerified && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-            {isEmptyObject(cardsList) ? (
-                <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
+            {isCardListEmpty ? (
+                <>
+                    {pageHeaderContent}
+                    <EmptyCardView
+                        isBankAccountVerified={isBankAccountVerified}
+                        policyID={policyID}
+                        buttons={[
+                            {
+                                buttonText: translate('workspace.expensifyCard.issueCard'),
+                                buttonAction: handleIssueCardPress,
+                                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                                innerStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
+                                hoverStyles: !canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined,
+                            },
+                        ]}
+                    />
+                </>
             ) : (
-                <FlatList
-                    data={sortedCards}
-                    renderItem={renderItem}
-                    ListHeaderComponent={renderListHeader}
-                />
+                <View style={styles.flex1}>
+                    <WorkspaceExpensifyCardsTable
+                        policyID={policyID}
+                        policy={policy}
+                        headerComponent={pageHeaderContent}
+                        cards={cardRows}
+                        selectionEnabled={cardRows.length > 0}
+                        selectedKeys={validatedSelectedCardKeys}
+                        onRowSelectionChange={setSelectedCardKeys}
+                        cardSettings={cardSettings}
+                        cardSettingsBase={settings}
+                        shouldShowExportAccountColumn={shouldShowExportAccountColumn}
+                        personalDetails={personalDetails}
+                        listFooterComponent={disclaimerFooter}
+                        listFooterComponentStyle={[styles.flexGrow1, styles.justifyContentEnd]}
+                        listContentContainerStyle={[styles.flexGrow1, {minHeight: windowHeight - headerHeight + footerHeight}]}
+                    />
+                </View>
             )}
         </ScreenWrapper>
     );
 }
-
-WorkspaceExpensifyCardListPage.displayName = 'WorkspaceExpensifyCardListPage';
 
 export default WorkspaceExpensifyCardListPage;

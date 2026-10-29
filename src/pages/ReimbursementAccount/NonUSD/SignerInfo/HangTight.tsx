@@ -1,58 +1,102 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
+import {loadIllustration} from '@components/Icon/IllustrationLoader';
+import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function HangTight({tempSubmit}: {tempSubmit: () => void}) {
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
+import {clearReimbursementAccountSendReminderForCorpaySignerInformation, sendReminderForCorpaySignerInformation} from '@userActions/BankAccounts';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
+type HangTightProps = {
+    policyID: string | undefined;
+    bankAccountID: number;
+};
+
+function HangTight({policyID, bankAccountID}: HangTightProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
+    const icons = useMemoizedLazyExpensifyIcons(['Bell']);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const signerEmail = reimbursementAccount?.achData?.corpay?.signerEmail;
+    const secondSignerEmail = reimbursementAccount?.achData?.corpay?.secondSignerEmail;
+    const error = getLatestErrorMessage(reimbursementAccount);
+    const {asset: Pillow} = useMemoizedLazyAsset(() => loadIllustration('Pillow' as IllustrationName));
 
     const handleSendReminder = () => {
-        // TODO remove that
-        tempSubmit();
+        if (!signerEmail || !policyID) {
+            return;
+        }
+
+        sendReminderForCorpaySignerInformation({policyID, bankAccountID, signerEmail, secondSignerEmail});
     };
 
+    useEffect(() => {
+        if (reimbursementAccount?.errors || reimbursementAccount?.isSendingReminderForCorpaySignerInformation || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess) {
+            clearReimbursementAccountSendReminderForCorpaySignerInformation();
+        }
+
+        return () => {
+            clearReimbursementAccountSendReminderForCorpaySignerInformation();
+        };
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isSendingReminderForCorpaySignerInformation, reimbursementAccount?.isSuccess]);
+
     return (
-        <SafeAreaConsumer>
-            {({safeAreaPaddingBottomStyle}) => (
-                <ScrollView
-                    style={styles.pt0}
-                    contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}
+        <ScrollView
+            style={styles.pt0}
+            contentContainerStyle={[styles.flexGrow1, {paddingBottom: safeAreaInsetPaddingBottom + styles.pb5.paddingBottom}]}
+        >
+            <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <View style={styles.mb5}>
+                    <Icon
+                        width={144}
+                        height={132}
+                        src={Pillow}
+                    />
+                </View>
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3, styles.mt5]}>{translate('signerInfoStep.hangTight')}</Text>
+                <Text style={[styles.textAlignCenter, styles.mutedTextLabel, styles.mh5]}>{translate('signerInfoStep.weAreWaiting')}</Text>
+            </View>
+            <View style={[styles.ph5, styles.flexGrow1, styles.justifyContentEnd]}>
+                {!!error && error.length > 0 && (
+                    <DotIndicatorMessage
+                        textStyles={[styles.formError]}
+                        type="error"
+                        messages={{error}}
+                    />
+                )}
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    style={[styles.w100]}
+                    onPress={handleSendReminder}
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    isLoading={reimbursementAccount?.isSendingReminderForCorpaySignerInformation}
                 >
-                    <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                        <View style={styles.mb5}>
-                            <Icon
-                                width={144}
-                                height={132}
-                                src={Illustrations.Pillow}
-                            />
-                        </View>
-                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3, styles.mt5]}>{translate('signerInfoStep.hangTight')}</Text>
-                        <Text style={[styles.mutedTextLabel, styles.mh5]}>{translate('signerInfoStep.weAreWaiting')}</Text>
-                    </View>
-                    <View style={[styles.ph5, styles.pb5, styles.flexGrow1, styles.justifyContentEnd]}>
-                        <Button
-                            success
-                            style={[styles.w100]}
-                            onPress={handleSendReminder}
-                            large
-                            icon={Expensicons.Bell}
-                            text={translate('signerInfoStep.sendReminder')}
-                        />
-                    </View>
-                </ScrollView>
-            )}
-        </SafeAreaConsumer>
+                    {!reimbursementAccount?.isSendingReminderForCorpaySignerInformation && <Button.Icon src={icons.Bell} />}
+                    <Button.Text>{translate('signerInfoStep.sendReminder')}</Button.Text>
+                </Button>
+            </View>
+        </ScrollView>
     );
 }
-
-HangTight.displayName = 'HangTight';
 
 export default HangTight;

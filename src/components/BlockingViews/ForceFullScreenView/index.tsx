@@ -1,10 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
+import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingViewContextProvider';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import type ForceFullScreenViewProps from './types';
 
 function ForceFullScreenView({children, shouldForceFullScreen = false}: ForceFullScreenViewProps) {
+    const route = useRoute();
     const styles = useThemeStyles();
+    const {addRouteKey, removeRouteKey} = useFullScreenBlockingViewActions();
+    const isFocused = useIsFocused();
+
+    useEffect(() => {
+        if (!shouldForceFullScreen || !isFocused) {
+            return;
+        }
+
+        addRouteKey(route.key);
+
+        return () => removeRouteKey(route.key);
+    }, [addRouteKey, removeRouteKey, route.key, shouldForceFullScreen, isFocused]);
 
     if (shouldForceFullScreen) {
         return <View style={styles.forcedBlockingViewContainer}>{children}</View>;
@@ -12,7 +30,5 @@ function ForceFullScreenView({children, shouldForceFullScreen = false}: ForceFul
 
     return children;
 }
-
-ForceFullScreenView.displayName = 'ForceFullScreenView';
 
 export default ForceFullScreenView;

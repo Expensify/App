@@ -1,16 +1,35 @@
-import React, {useState} from 'react';
 import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getButtonState from '@libs/getButtonState';
+import Log from '@libs/Log';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import React, {useState} from 'react';
+
+const CATEGORY_TRANSLATION_KEYS: ReadonlyMap<string, TranslationPaths> = new Map<string, TranslationPaths>([
+    ['frequentlyUsed', 'emojiPicker.headers.frequentlyUsed'],
+    ['smileysAndEmotion', 'emojiPicker.headers.smileysAndEmotion'],
+    ['animalsAndNature', 'emojiPicker.headers.animalsAndNature'],
+    ['foodAndDrink', 'emojiPicker.headers.foodAndDrink'],
+    ['travelAndPlaces', 'emojiPicker.headers.travelAndPlaces'],
+    ['activities', 'emojiPicker.headers.activities'],
+    ['objects', 'emojiPicker.headers.objects'],
+    ['symbols', 'emojiPicker.headers.symbols'],
+    ['flags', 'emojiPicker.headers.flags'],
+]);
+const FALLBACK_CATEGORY_TRANSLATION_KEY: TranslationPaths = 'emojiPicker.headers.frequentlyUsed';
 
 type CategoryShortcutButtonProps = {
     /** The emoji code of the category header */
@@ -21,18 +40,26 @@ type CategoryShortcutButtonProps = {
 
     /** The function to call when an emoji is selected */
     onPress: () => void;
+
+    /** Whether this category is currently selected */
+    isSelected?: boolean;
 };
 
-function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonProps) {
+function CategoryShortcutButton({code, icon, onPress, isSelected = false}: CategoryShortcutButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [isHighlighted, setIsHighlighted] = useState(false);
+    const translationKey = CATEGORY_TRANSLATION_KEYS.get(code);
+    if (!translationKey) {
+        Log.alert(`No emoji category translation mapped for code: ${code}`);
+    }
+    const label = translate(translationKey ?? FALLBACK_CATEGORY_TRANSLATION_KEY);
 
     return (
         <Tooltip
-            text={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+            text={label}
             shiftVertical={-4}
         >
             <PressableWithoutFeedback
@@ -40,9 +67,15 @@ function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonPro
                 onPress={onPress}
                 onHoverIn={() => setIsHighlighted(true)}
                 onHoverOut={() => setIsHighlighted(false)}
-                style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
-                accessibilityLabel={`emojiPicker.headers.${code}`}
+                style={({pressed}) => [
+                    StyleUtils.getButtonBackgroundColorStyle(getButtonState({isPressed: pressed})),
+                    styles.categoryShortcutButton,
+                    isHighlighted && styles.emojiItemHighlighted,
+                ]}
+                accessibilityLabel={label}
+                accessibilityState={isSelected ? {selected: true} : undefined}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.CATEGORY_SHORTCUT}
             >
                 <Icon
                     fill={theme.icon}
@@ -56,4 +89,5 @@ function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonPro
 }
 
 CategoryShortcutButton.displayName = 'CategoryShortcutButton';
-export default React.memo(CategoryShortcutButton);
+
+export default CategoryShortcutButton;

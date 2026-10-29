@@ -1,19 +1,76 @@
+import IntlStore from '@src/languages/IntlStore';
+
 import Onyx from 'react-native-onyx';
+
 import CONST from '../../src/CONST';
 import * as Localize from '../../src/libs/Localize';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type EnvironmentConfig = {
+    isProduction: boolean;
+    isStaging: boolean;
+};
+
+jest.mock('@src/libs/Log');
+
+function mockEnvironmentConfig(config: EnvironmentConfig): () => void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const CONFIG = require('@src/CONFIG');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const originalConfig = {...CONFIG.default};
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    CONFIG.default.IS_IN_PRODUCTION = config.isProduction;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    CONFIG.default.IS_IN_STAGING = config.isStaging;
+
+    // Return cleanup function
+    return () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        Object.assign(CONFIG.default, originalConfig);
+    };
+}
+
+async function testMissingTranslationBehavior(environmentConfig: EnvironmentConfig, expectedResult: string): Promise<void> {
+    const cleanup = mockEnvironmentConfig(environmentConfig);
+
+    try {
+        // @ts-expect-error This scenario intentionally exercises runtime handling of a key absent from TranslationPaths.
+        const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key');
+        expect(result).toBe(expectedResult);
+    } finally {
+        cleanup();
+    }
+}
+
 describe('localize', () => {
     beforeAll(() => {
         Onyx.init({
-            keys: {NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE},
-            initialKeyStates: {[ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.DEFAULT},
+            keys: {
+                NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE,
+                ARE_TRANSLATIONS_LOADING: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+                SESSION: ONYXKEYS.SESSION,
+            },
         });
         return waitForBatchedUpdates();
     });
 
     afterEach(() => Onyx.clear());
+
+    it.each([
+        [1, 'pokaż 1 aktualizację'],
+        [2, 'pokaż 2 aktualizacje'],
+        [12, 'pokaż 12 aktualizacji'],
+        [22, 'pokaż 22 aktualizacje'],
+    ])('uses Polish plural categories for %s collapsed updates', async (count, expected) => {
+        // Given the Polish locale loaded through the real localization store
+        await IntlStore.load(CONST.LOCALES.PL);
+        // When the summary is translated, its plural handler receives a numeric count
+        const message = Localize.translate(CONST.LOCALES.PL, 'report.collapsedSystemMessages', {count});
+        // Then few and many forms are selected without a handwritten modulo expression
+        expect(message).toBe(expected);
+    });
 
     describe('formatList', () => {
         test.each([
@@ -52,9 +109,25 @@ describe('localize', () => {
                     [CONST.LOCALES.ES]: 'rory, vit e ionatan',
                 },
             ],
-        ])('formatList(%s)', (input, {[CONST.LOCALES.DEFAULT]: expectedOutput, [CONST.LOCALES.ES]: expectedOutputES}) => {
+        ])('formatList(%s)', async (input, {[CONST.LOCALES.DEFAULT]: expectedOutput, [CONST.LOCALES.ES]: expectedOutputES}) => {
+            await IntlStore.load(CONST.LOCALES.EN);
             expect(Localize.formatList(input)).toBe(expectedOutput);
-            return Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES).then(() => expect(Localize.formatList(input)).toBe(expectedOutputES));
+            await IntlStore.load(CONST.LOCALES.ES);
+            expect(Localize.formatList(input)).toBe(expectedOutputES);
+        });
+    });
+
+    describe('translate method - missing translation behavior', () => {
+        beforeEach(async () => {
+            await IntlStore.load(CONST.LOCALES.EN);
+        });
+
+        test.each([
+            // [description, environment, expectedResult]
+            ['should return key string for missing key when user is in production environment', {isProduction: true, isStaging: false}, 'missing.translation.key'],
+            ['should return key string for missing key when user is in staging environment', {isProduction: false, isStaging: true}, 'missing.translation.key'],
+        ])('%s', async (description, environmentConfig, expectedResult) => {
+            await testMissingTranslationBehavior(environmentConfig, expectedResult);
         });
     });
 });

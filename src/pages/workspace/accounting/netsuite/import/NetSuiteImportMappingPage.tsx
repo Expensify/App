@@ -1,24 +1,30 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import RenderHTML from '@components/RenderHTML';
-import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteImportMapping} from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ImportFieldsKeys = TupleToUnion<typeof CONST.NETSUITE_CONFIG.IMPORT_FIELDS>;
 
@@ -41,7 +47,7 @@ function NetSuiteImportMappingPage({
         params: {importField},
     },
 }: NetSuiteImportMappingPageProps) {
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -50,24 +56,18 @@ function NetSuiteImportMappingPage({
 
     const importValue = importMappings?.[importField] ?? CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
 
-    const listFooterContent = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.mt3, styles.mb4]}>
-                <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, {importField})}</Text>
-            </View>
-        ),
-        [importField, importValue, styles.mb4, styles.mt3, styles.ph5, translate],
+    const listFooterContent = (
+        <View style={[styles.ph5, styles.mt3, styles.mb4]}>
+            <Text>{translate(`workspace.netsuite.import.importTypes.${importValue}.footerContent`, importField)}</Text>
+        </View>
     );
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.pb5]}>
-                <View style={[styles.flexRow]}>
-                    <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</comment>`} />
-                </View>
+    const listHeaderComponent = (
+        <View style={[styles.ph5, styles.pb5]}>
+            <View style={[styles.flexRow]}>
+                <RenderHTML html={`<comment>${Parser.replace(translate(`workspace.netsuite.import.importFields.${importField}.subtitle` as TranslationPaths))}</comment>`} />
             </View>
-        ),
-        [styles.ph5, styles.pb5, styles.flexRow, translate, importField],
+        </View>
     );
 
     const inputOptions = [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT, CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG, CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD];
@@ -82,25 +82,21 @@ function NetSuiteImportMappingPage({
 
     const titleKey = `workspace.netsuite.import.importFields.${importField}.title` as TranslationPaths;
 
-    const updateImportMapping = useCallback(
-        ({value}: ImportListItem) => {
-            if (value !== importValue) {
-                updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
-            }
+    const updateImportMapping = ({value}: ImportListItem) => {
+        if (value !== importValue) {
+            updateNetSuiteImportMapping(policyID, importField as keyof typeof importMappings, value, importValue);
+        }
 
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID));
-        },
-        [importField, importValue, policyID],
-    );
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteImportMappingPage.displayName}
-            sections={[{data: inputSectionData}]}
-            listItem={RadioListItem}
+            displayName="NetSuiteImportMappingPage"
+            data={inputSectionData}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onSelectRow={(selection: SelectorType) => updateImportMapping(selection as ImportListItem)}
             initiallyFocusedOptionKey={inputSectionData.find((inputOption) => inputOption.isSelected)?.keyForList}
@@ -109,13 +105,11 @@ function NetSuiteImportMappingPage({
             title={titleKey}
             listFooterContent={listFooterContent}
             pendingAction={settingsPendingAction([importField], netsuiteConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, importField)}
+            errors={getLatestErrorField(netsuiteConfig ?? {}, importField)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, importField)}
+            onClose={() => clearNetSuiteErrorField(policyID, importField)}
         />
     );
 }
-
-NetSuiteImportMappingPage.displayName = 'NetSuiteImportMappingPage';
 
 export default withPolicyConnections(NetSuiteImportMappingPage);

@@ -1,342 +1,297 @@
-import debounce from 'lodash/debounce';
-import React, {useCallback, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {RefObject} from 'react';
-import {Dimensions, View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import ConfirmModal from '@components/ConfirmModal';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
-import MenuItem from '@components/MenuItem';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
-import {usePersonalDetails} from '@components/OnyxProvider';
-import Popover from '@components/Popover';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {clearDelegateErrorsByField, removeDelegate} from '@libs/actions/Delegate';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import getClickedTargetLocation from '@libs/getClickedTargetLocation';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+
+import {deleteAgent} from '@libs/actions/Agent';
+import {DISCONNECT_RESULT, disconnect, openSecuritySettingsPage} from '@libs/actions/Delegate';
+import {clearDraftValues} from '@libs/actions/FormActions';
+import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import variables from '@styles/variables';
-import * as Modal from '@userActions/Modal';
+import {hasDeviceManagementError} from '@libs/UserUtils';
+
+import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Delegate} from '@src/types/onyx/Account';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
+import useSecuritySettingsSectionIllustration from './useSecuritySettingsSectionIllustration';
+
+type BaseMenuItemType = WithSentryLabel & {
+    translationKey: TranslationPaths;
+    icon: IconAsset;
+    iconRight?: IconAsset;
+    action: () => Promise<void> | void;
+    link?: string;
+    wrapperStyle?: StyleProp<ViewStyle>;
+    brickRoadIndicator?: MenuItemProps['brickRoadIndicator'];
+};
 
 function SecuritySettingsPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ClosedSign', 'Fingerprint', 'Monitor', 'Shield', 'UserLock']);
+    const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {windowWidth} = useWindowDimensions();
-    const personalDetails = usePersonalDetails();
-
+    useDocumentTitle(translate('initialSettingsPage.security'));
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const delegateButtonRef = useRef<HTMLDivElement | null>(null);
+    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {isOffline} = useNetwork();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const privateSubscription = usePrivateSubscription();
+    const {getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
+    const {showConfirmModal} = useConfirmModal();
+    const showRuleBotGuardModal = useRuleBotGuardModal();
 
-    const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
-    const [shouldShowRemoveDelegateModal, setShouldShowRemoveDelegateModal] = useState(false);
-    const [selectedDelegate, setSelectedDelegate] = useState<Delegate | undefined>();
-    const errorFields = account?.delegatedAccess?.errorFields ?? {};
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
+    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const isAgentAccount = useIsAgentAccount();
 
-    const [anchorPosition, setAnchorPosition] = useState({
-        anchorPositionHorizontal: 0,
-        anchorPositionVertical: 0,
-        anchorPositionTop: 0,
-        anchorPositionRight: 0,
-    });
+    // "Copiloting into an agent" means we're acting as a delegate for an agent account. In this mode the
+    // account being managed is the agent itself, so device management and merge accounts don't apply, and
+    // "close account" should delete the agent and end the copilot session instead of closing a real account.
+    const isCopilotingIntoAgent = isAgentAccount === true && isActingAsDelegate;
 
-    const setMenuPosition = useCallback(() => {
-        if (!delegateButtonRef.current) {
-            return;
-        }
+    const hasEverRegisteredForMultifactorAuthentication = account?.multifactorAuthenticationPublicKeyIDs !== CONST.MULTIFACTOR_AUTHENTICATION.PUBLIC_KEYS_AUTHENTICATION_NEVER_REGISTERED;
 
-        const position = getClickedTargetLocation(delegateButtonRef.current);
+    useEffect(() => {
+        openSecuritySettingsPage();
+    }, []);
 
-        setAnchorPosition({
-            anchorPositionTop: position.top + position.height - variables.bankAccountActionPopoverTopSpacing,
-            // We want the position to be 23px to the right of the left border
-            anchorPositionRight: windowWidth - position.right + variables.bankAccountActionPopoverRightSpacing,
-            anchorPositionHorizontal: position.x + variables.addBankAccountLeftSpacing,
-            anchorPositionVertical: position.y,
+    const baseMenuItems: BaseMenuItemType[] = [];
+
+    // Agent accounts can't have two-factor/multifactor authentication, so hide those options for them.
+    if (isAgentAccount === false) {
+        baseMenuItems.push({
+            translationKey: 'twoFactorAuth.headerTitle',
+            icon: icons.Shield,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.TWO_FACTOR_AUTH,
+            action: () => {
+                if (isActingAsDelegate) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                    return;
+                }
+                Navigation.navigate(getTwoFactorAuthRoute());
+            },
         });
-    }, [windowWidth]);
-    const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
-
-    const delegates = account?.delegatedAccess?.delegates ?? [];
-    const delegators = account?.delegatedAccess?.delegators ?? [];
-
-    const hasDelegates = delegates.length > 0;
-    const hasDelegators = delegators.length > 0;
-
-    const showPopoverMenu = (nativeEvent: GestureResponderEvent | KeyboardEvent, delegate: Delegate) => {
-        delegateButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
-        setMenuPosition();
-        setShouldShowDelegatePopoverMenu(true);
-        setSelectedDelegate(delegate);
-    };
-
-    useLayoutEffect(() => {
-        const popoverPositionListener = Dimensions.addEventListener('change', () => {
-            debounce(setMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME)();
+    }
+    if (isAgentAccount === false && hasEverRegisteredForMultifactorAuthentication) {
+        baseMenuItems.push({
+            translationKey: 'multifactorAuthentication.revoke.title',
+            icon: icons.Fingerprint,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.REVOKE_MFA,
+            action: () => {
+                Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
+            },
         });
+    }
 
-        return () => {
-            if (!popoverPositionListener) {
+    // Merging accounts doesn't apply to agent accounts, so hide it when copiloting into an agent.
+    if (!isCopilotingIntoAgent) {
+        baseMenuItems.push({
+            translationKey: 'mergeAccountsPage.mergeAccount',
+            icon: icons.ArrowCollapse,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS,
+            action: () => {
+                if (isAccountLocked) {
+                    showLockedAccountModal();
+                    return;
+                }
+                if (privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.INVOICING) {
+                    Navigation.navigate(
+                        ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(currentUserPersonalDetails.login ?? '', CONST.MERGE_ACCOUNT_RESULTS.ERR_INVOICING, ROUTES.SETTINGS_SECURITY),
+                    );
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route);
+            },
+        });
+    }
+    if (isAccountLocked) {
+        baseMenuItems.push({
+            translationKey: 'lockAccountPage.unlockAccount',
+            icon: icons.UserLock,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
+        });
+    } else {
+        baseMenuItems.push({
+            translationKey: 'lockAccountPage.reportSuspiciousActivity',
+            icon: icons.UserLock,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.LOCK_UNLOCK_ACCOUNT,
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
+        });
+    }
+
+    // Device management applies to a real user's own logged-in devices, not to an agent, so hide it when copiloting into an agent.
+    if (!isCopilotingIntoAgent) {
+        const deviceManagementBrickRoadIndicator = hasDeviceManagementErrorValue ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+        baseMenuItems.push({
+            translationKey: 'deviceManagementPage.title',
+            icon: icons.Monitor,
+            brickRoadIndicator: deviceManagementBrickRoadIndicator,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DEVICE_MANAGEMENT,
+            action: () => Navigation.navigate(ROUTES.SETTINGS_DEVICE_MANAGEMENT),
+        });
+    }
+    baseMenuItems.push({
+        translationKey: 'closeAccountPage.closeAccount',
+        icon: icons.ClosedSign,
+        sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
+        action: async () => {
+            // Copiloting into an agent is also a delegate session and must fall through to the
+            // agent-delete flow below, so only plain delegates are blocked here.
+            if (isActingAsDelegate && !isCopilotingIntoAgent) {
+                showDelegateNoAccessModal();
                 return;
             }
-            popoverPositionListener.remove();
-        };
-    }, [setMenuPosition]);
+            if (isAccountLocked) {
+                showLockedAccountModal();
+                return;
+            }
+            // When copiloting into an agent, "close account" deletes the agent and ends the copilot session
+            // instead of running the usual close-account flow (which targets a real user's account).
+            if (isCopilotingIntoAgent) {
+                // Ending the copilot session is a network side-effect request (DisconnectAsDelegate) that isn't
+                // persisted to the SequentialQueue, so it can't be queued and retried while offline. Require a
+                // connection before starting the flow instead of letting it stall.
+                if (isOffline) {
+                    showConfirmModal({
+                        title: translate('common.youAppearToBeOffline'),
+                        prompt: translate('common.thisFeatureRequiresInternet'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
+                    return;
+                }
+                const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(session?.accountID, allPolicies);
+                if (ruleBotEnforcedPolicy) {
+                    showRuleBotGuardModal('deleteAgent', ruleBotEnforcedPolicy.id);
+                    return;
+                }
+                const result = await showConfirmModal({
+                    title: translate('editAgentPage.deleteAgentTitle'),
+                    prompt: translate('editAgentPage.deleteAgentMessage'),
+                    confirmText: translate('common.delete'),
+                    cancelText: translate('common.cancel'),
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                });
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                // The DeleteAgent command must be issued by the agent's owner, but while copiloting the session is
+                // authenticated as the agent itself. So capture the agent's identity, end the copilot session
+                // (which restores the owner's session and auth token), and only then delete the agent as the
+                // owner. Skip the delete unless the owner was restored with fresh tokens.
+                const agentAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                const agentLogin = currentUserPersonalDetails.login;
+                const disconnectResult = await disconnect({
+                    stashedCredentials,
+                    stashedSession,
+                });
+                if (disconnectResult !== DISCONNECT_RESULT.RESTORED) {
+                    return;
+                }
+                deleteAgent(agentAccountID, agentLogin, allPolicies, false);
+                return;
+            }
+            clearDraftValues(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
+            Navigation.navigate(ROUTES.SETTINGS_CLOSE);
+        },
+    });
+    const securityMenuItems = baseMenuItems.map((item) => ({
+        key: item.translationKey,
+        title: translate(item.translationKey),
+        icon: item.icon,
+        onPress: item.action,
+        shouldShowRightIcon: true,
+        link: '',
+        wrapperStyle: [styles.sectionMenuItemTopDescription],
+        sentryLabel: item.sentryLabel,
+        brickRoadIndicator: item.brickRoadIndicator,
+    }));
 
-    const securityMenuItems = useMemo(() => {
-        const baseMenuItems = [
-            {
-                translationKey: 'twoFactorAuth.headerTitle',
-                icon: Expensicons.Shield,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA.getRoute())),
-            },
-            {
-                translationKey: 'closeAccountPage.closeAccount',
-                icon: Expensicons.ClosedSign,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
-            },
-        ];
-
-        return baseMenuItems.map((item) => ({
-            key: item.translationKey,
-            title: translate(item.translationKey as TranslationPaths),
-            icon: item.icon,
-            onPress: item.action,
-            shouldShowRightIcon: true,
-            link: '',
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-        }));
-    }, [translate, waitForNavigate, styles]);
-
-    const delegateMenuItems: MenuItemProps[] = useMemo(
-        () =>
-            delegates
-                .filter((d) => !d.optimisticAccountID)
-                .map(({email, role, pendingAction, pendingFields}) => {
-                    const personalDetail = getPersonalDetailByEmail(email);
-                    const addDelegateErrors = errorFields?.addDelegate?.[email];
-                    const error = ErrorUtils.getLatestError(addDelegateErrors);
-
-                    const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
-                        if (isEmptyObject(pendingAction)) {
-                            showPopoverMenu(e, {email, role});
-                            return;
-                        }
-                        if (!role) {
-                            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(email));
-                            return;
-                        }
-                        if (pendingFields?.role && !pendingFields?.email) {
-                            Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(email, role));
-                            return;
-                        }
-
-                        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_CONFIRM.getRoute(email, role, true));
-                    };
-
-                    const formattedEmail = formatPhoneNumber(email);
-                    return {
-                        title: personalDetail?.displayName ?? formattedEmail,
-                        description: personalDetail?.displayName ? formattedEmail : '',
-                        badgeText: translate('delegate.role', {role}),
-                        avatarID: personalDetail?.accountID ?? -1,
-                        icon: personalDetail?.avatar ?? FallbackAvatar,
-                        iconType: CONST.ICON_TYPE_AVATAR,
-                        numberOfLinesDescription: 1,
-                        wrapperStyle: [styles.sectionMenuItemTopDescription],
-                        iconRight: Expensicons.ThreeDots,
-                        shouldShowRightIcon: true,
-                        pendingAction,
-                        shouldForceOpacity: !!pendingAction,
-                        onPendingActionDismiss: () => clearDelegateErrorsByField(email, 'addDelegate'),
-                        error,
-                        onPress,
-                    };
-                }),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [delegates, translate, styles, personalDetails, errorFields],
-    );
-
-    const delegatorMenuItems: MenuItemProps[] = useMemo(
-        () =>
-            delegators.map(({email, role}) => {
-                const personalDetail = getPersonalDetailByEmail(email);
-                const formattedEmail = formatPhoneNumber(email);
-
-                return {
-                    title: personalDetail?.displayName ?? formattedEmail,
-                    description: personalDetail?.displayName ? formattedEmail : '',
-                    badgeText: translate('delegate.role', {role}),
-                    avatarID: personalDetail?.accountID ?? -1,
-                    icon: personalDetail?.avatar ?? FallbackAvatar,
-                    iconType: CONST.ICON_TYPE_AVATAR,
-                    numberOfLinesDescription: 1,
-                    wrapperStyle: [styles.sectionMenuItemTopDescription],
-                    interactive: false,
-                };
-            }),
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [delegators, styles, translate, personalDetails],
-    );
+    if (isAgentAccount === undefined) {
+        return null;
+    }
 
     return (
         <ScreenWrapper
-            testID={SecuritySettingsPage.displayName}
+            testID="SecuritySettingsPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
         >
-            {({safeAreaPaddingBottomStyle}) => (
-                <>
-                    <HeaderWithBackButton
-                        title={translate('initialSettingsPage.security')}
-                        shouldShowBackButton={shouldUseNarrowLayout}
-                        onBackButtonPress={() => Navigation.goBack()}
-                        icon={Illustrations.LockClosed}
-                        shouldDisplaySearchRouter
-                    />
-                    <ScrollView contentContainerStyle={styles.pt3}>
-                        <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                            <Section
-                                title={translate('securityPage.title')}
-                                subtitle={translate('securityPage.subtitle')}
-                                isCentralPane
-                                subtitleMuted
-                                illustration={LottieAnimations.Safe}
-                                titleStyles={styles.accountSettingsSectionTitle}
-                                childrenStyles={styles.pt5}
-                            >
-                                <MenuItemList
-                                    menuItems={securityMenuItems}
-                                    shouldUseSingleExecution
-                                />
-                            </Section>
-                            <View style={safeAreaPaddingBottomStyle}>
-                                <Section
-                                    title={translate('delegate.copilotDelegatedAccess')}
-                                    renderSubtitle={() => (
-                                        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mt2]}>
-                                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('delegate.copilotDelegatedAccessDescription')} </Text>
-                                            <TextLink
-                                                style={[styles.link]}
-                                                href={CONST.COPILOT_HELP_URL}
-                                            >
-                                                {translate('common.learnMore')}
-                                            </TextLink>
-                                        </Text>
-                                    )}
-                                    isCentralPane
-                                    subtitleMuted
-                                    titleStyles={styles.accountSettingsSectionTitle}
-                                    childrenStyles={styles.pt5}
-                                >
-                                    {hasDelegates && (
-                                        <>
-                                            <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.membersCanAccessYourAccount')}</Text>
-                                            <MenuItemList menuItems={delegateMenuItems} />
-                                        </>
-                                    )}
-                                    {!isActingAsDelegate && (
-                                        <MenuItem
-                                            title={translate('delegate.addCopilot')}
-                                            icon={Expensicons.UserPlus}
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE)}
-                                            shouldShowRightIcon
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mb6]}
-                                        />
-                                    )}
-                                    {hasDelegators && (
-                                        <>
-                                            <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>
-                                            <MenuItemList menuItems={delegatorMenuItems} />
-                                        </>
-                                    )}
-                                </Section>
-                            </View>
-                            <Popover
-                                isVisible={shouldShowDelegatePopoverMenu}
-                                anchorRef={delegateButtonRef as RefObject<View>}
-                                anchorPosition={{
-                                    top: anchorPosition.anchorPositionTop,
-                                    right: anchorPosition.anchorPositionRight,
-                                }}
-                                onClose={() => {
-                                    setShouldShowDelegatePopoverMenu(false);
-                                }}
-                            >
-                                <View style={[styles.mv5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}>
-                                    <MenuItem
-                                        title={translate('delegate.changeAccessLevel')}
-                                        icon={Expensicons.Pencil}
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
-                                            setShouldShowDelegatePopoverMenu(false);
-                                            setSelectedDelegate(undefined);
-                                        }}
-                                        wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                                    />
-                                    <MenuItem
-                                        title={translate('delegate.removeCopilot')}
-                                        icon={Expensicons.Trashcan}
-                                        onPress={() =>
-                                            Modal.close(() => {
-                                                setShouldShowDelegatePopoverMenu(false);
-                                                setShouldShowRemoveDelegateModal(true);
-                                            })
-                                        }
-                                        wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
-                                    />
-                                </View>
-                            </Popover>
-                            <ConfirmModal
-                                isVisible={shouldShowRemoveDelegateModal}
-                                title={translate('delegate.removeCopilot')}
-                                prompt={translate('delegate.removeCopilotConfirmation')}
-                                danger
-                                onConfirm={() => {
-                                    removeDelegate(selectedDelegate?.email ?? '');
-                                    setShouldShowRemoveDelegateModal(false);
-                                    setSelectedDelegate(undefined);
-                                }}
-                                onCancel={() => {
-                                    setShouldShowRemoveDelegateModal(false);
-                                    setSelectedDelegate(undefined);
-                                }}
-                                confirmText={translate('delegate.removeCopilot')}
-                                cancelText={translate('common.cancel')}
-                                shouldShowCancelButton
-                            />
-                        </View>
-                    </ScrollView>
-                </>
-            )}
+            <HeaderWithBackButton
+                title={translate('initialSettingsPage.security')}
+                shouldShowBackButton={shouldUseNarrowLayout}
+                onBackButtonPress={Navigation.goBack}
+                shouldUseHeadlineHeader
+                shouldDisplaySearchRouter
+                shouldDisplayHelpButton
+            />
+            <ScrollView contentContainerStyle={styles.pt3}>
+                <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                    <Section
+                        title={translate('securityPage.title')}
+                        subtitle={translate('securityPage.subtitle')}
+                        isCentralPane
+                        subtitleMuted
+                        illustrationContainerStyle={styles.cardSectionIllustrationContainer}
+                        illustrationBackgroundColor={colors.ice500}
+                        titleStyles={styles.accountSettingsSectionTitle}
+                        childrenStyles={styles.pt5}
+                        {...securitySettingsIllustration}
+                    >
+                        <MenuItemList
+                            menuItems={securityMenuItems}
+                            shouldUseSingleExecution
+                        />
+                    </Section>
+                </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
-
-SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
 export default SecuritySettingsPage;

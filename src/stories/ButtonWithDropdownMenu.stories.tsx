@@ -1,8 +1,13 @@
-import type {StoryFn} from '@storybook/react';
-import React from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuProps} from '@components/ButtonWithDropdownMenu/types';
-import * as Expensicons from '@components/Icon/Expensicons';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
+import CONST from '@src/CONST';
+
+import type {StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
 
 type ButtonWithDropdownMenuStory = StoryFn<typeof ButtonWithDropdownMenu>;
 
@@ -17,8 +22,20 @@ const story = {
 };
 
 function Template(props: ButtonWithDropdownMenuProps<unknown>) {
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    return <ButtonWithDropdownMenu {...props} />;
+    const icons = useMemoizedLazyExpensifyIcons(['Wallet']);
+
+    const options = [
+        {value: 'One', text: 'One', icon: icons.Wallet},
+        {value: 'Two', text: 'Two', icon: icons.Wallet},
+    ];
+
+    return (
+        <ButtonWithDropdownMenu
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            {...props}
+            options={options}
+        />
+    );
 }
 
 // Arguments can be passed to the component by binding
@@ -30,10 +47,6 @@ Default.args = {
         alert(`Button ${item as string} is pressed.`);
     },
     pressOnEnter: true,
-    options: [
-        {value: 'One', text: 'One', icon: Expensicons.Wallet},
-        {value: 'Two', text: 'Two', icon: Expensicons.Wallet},
-    ],
 };
 
 export default story;

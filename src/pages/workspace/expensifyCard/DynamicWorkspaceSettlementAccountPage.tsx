@@ -1,0 +1,194 @@
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import RenderHTML from '@components/RenderHTML';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SettlementAccountSelector, {BankAccountListItemLeftElement} from '@components/SettlementAccountSelector';
+import type {BankAccountListItem} from '@components/SettlementAccountSelector';
+import Text from '@components/Text';
+
+import useDefaultFundID from '@hooks/useDefaultFundID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useEnvironment from '@hooks/useEnvironment';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
+import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getRouteParamForConnection} from '@libs/AccountingUtils';
+import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
+import {getLastFourDigits} from '@libs/BankAccountUtils';
+import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
+import Log from '@libs/Log';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+import {appendParam} from '@libs/Url';
+
+import Navigation from '@navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@navigation/types';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
+import {updateSettlementAccount as updateSettlementAccountCard} from '@userActions/Card';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+
+import {useNavigationState} from '@react-navigation/native';
+import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
+type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
+
+/**
+ * Settlement account selection page for Expensify Card.
+ * Uses the SettlementAccountSelector component for the selection UI.
+ */
+function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {environmentURL} = useEnvironment();
+    const policyID = route.params?.policyID;
+    const fundIDFromRoute = Number(route.params?.fundID);
+    const defaultFundIDFromCardPages = useDefaultFundID(policyID);
+    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
+    const isFundIDFromRouteValid = !!fundIDFromRoute && !Number.isNaN(fundIDFromRoute) && allFeeds.some((entry) => entry.fundID === fundIDFromRoute);
+    const defaultFundID = isFundIDFromRouteValid ? fundIDFromRoute : defaultFundIDFromCardPages;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path);
+    const isOpenedFromReconciliationAccount = useNavigationState((state) => state.routes.at(state.index - 1)?.name === SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS);
+
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const programKey = getCardProgramKey(cardSettings);
+    const settings = getCardSettings(cardSettings, programKey);
+    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`, {
+        selector: isExpensifyCardContinuousReconciliationEnabledSelector,
+    });
+    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
+
+    const paymentBankAccountID = settings?.paymentBankAccountID;
+    const paymentBankAccountNumberFromCardSettings = settings?.paymentBankAccountNumber;
+    const paymentBankAccountAddressName = settings?.paymentBankAccountAddressName;
+    const paymentBankAccountNumber = bankAccountsList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumberFromCardSettings ?? '';
+
+    const getEligibleBankAccounts = () => {
+        if (isUkEuCurrencySupported) {
+            return getEligibleBankAccountsForUkEuCard(bankAccountsList, supportedCountriesByCurrency, policy?.outputCurrency);
+        }
+        return getEligibleBankAccountsForCard(bankAccountsList);
+    };
+    const eligibleBankAccounts = getEligibleBankAccounts();
+
+    const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
+    const hasActiveAccountingConnection = !!(policy?.connections && Object.keys(policy.connections).length > 0);
+
+    const fetchPolicyAccountingData = () => {
+        if (!policyID) {
+            return;
+        }
+        openPolicyAccountingPage(policyID);
+    };
+
+    useEffect(() => {
+        if (!cardSettings || !hasActiveAccountingConnection || continuousReconciliation !== undefined || reconciliationConnection !== undefined) {
+            return;
+        }
+        fetchPolicyAccountingData();
+    }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
+
+    const eligibleBankAccountsOptions: BankAccountListItem[] = eligibleBankAccounts.map((bankAccount) => {
+        const bankName = bankAccount.accountData?.addressName ?? '';
+        const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
+        const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
+
+        return {
+            value: bankAccountID,
+            text: bankAccount.title,
+            leftElement: <BankAccountListItemLeftElement bankName={bankName} />,
+            alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
+            keyForList: bankAccountID?.toString() ?? '',
+            isSelected: bankAccountID === paymentBankAccountID,
+        };
+    });
+
+    const fallbackBankAccountOption: BankAccountListItem = {
+        value: paymentBankAccountID,
+        text: paymentBankAccountAddressName ?? '',
+        leftElement: <BankAccountListItemLeftElement bankName={paymentBankAccountAddressName ?? ''} />,
+        alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
+        keyForList: paymentBankAccountID?.toString() ?? '',
+        isSelected: true,
+    };
+
+    const listOptions: BankAccountListItem[] = eligibleBankAccountsOptions.length > 0 ? eligibleBankAccountsOptions : [fallbackBankAccountOption];
+
+    const handleSelectAccount = (value: number) => {
+        if (!programKey) {
+            Log.alert('[WorkspaceSettlementAccountPage] handleSelectAccount called without a detected card program key');
+            return;
+        }
+        // Only Travel Billing sets this root pending field, its error must survive for its rollback
+        const isTravelSettlementAccountPending = !!cardSettings?.pendingFields?.paymentBankAccountID;
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID, isTravelSettlementAccountPending);
+        Navigation.goBack();
+    };
+
+    const getCustomListHeaderContent = () => {
+        const connectionParam = reconciliationConnection ? getRouteParamForConnection(reconciliationConnection) : undefined;
+
+        return (
+            <>
+                <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
+                {!!continuousReconciliation && !!connectionParam && hasActiveAccountingConnection && (
+                    <View style={[styles.renderHTML, styles.mh5, styles.mb6]}>
+                        <RenderHTML
+                            html={translate(
+                                'workspace.expensifyCard.settlementAccountInfo',
+                                `${environmentURL}/${appendParam(`${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`, 'fundID', defaultFundID.toString())}`,
+                                `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
+                            )}
+                            onLinkPress={isOpenedFromReconciliationAccount ? () => Navigation.goBack(backPath) : undefined}
+                        />
+                    </View>
+                )}
+            </>
+        );
+    };
+
+    return (
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <ScreenWrapper
+                testID="WorkspaceSettlementAccountPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
+            >
+                <HeaderWithBackButton
+                    title={translate('workspace.expensifyCard.settlementAccount')}
+                    onBackButtonPress={() => {
+                        Navigation.goBack(backPath);
+                    }}
+                />
+                <SettlementAccountSelector
+                    listOptions={listOptions}
+                    onSelectAccount={handleSelectAccount}
+                    customHeaderContent={getCustomListHeaderContent()}
+                    initiallyFocusedItemKey={paymentBankAccountID?.toString()}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default DynamicWorkspaceSettlementAccountPage;
+export type {WorkspaceSettlementAccountPageProps};

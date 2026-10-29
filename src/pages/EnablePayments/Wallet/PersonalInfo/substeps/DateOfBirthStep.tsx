@@ -1,0 +1,46 @@
+import CommonDateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
+
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import useWalletAdditionalDetailsStepFormSubmit from '@hooks/useWalletAdditionalDetailsStepFormSubmit';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
+
+import React from 'react';
+
+const PERSONAL_INFO_DOB_KEY = INPUT_IDS.PERSONAL_INFO_STEP.DOB;
+const STEP_FIELDS = [PERSONAL_INFO_DOB_KEY];
+
+function DateOfBirthStep({onNext, onMove, isEditing}: SubPageProps) {
+    const {translate} = useLocalize();
+
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const dobDefaultValue = walletAdditionalDetails?.[PERSONAL_INFO_DOB_KEY] ?? walletAdditionalDetails?.[PERSONAL_INFO_DOB_KEY] ?? '';
+
+    const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
+        fieldIds: STEP_FIELDS,
+        onNext,
+        shouldSaveDraft: isEditing,
+    });
+
+    return (
+        <CommonDateOfBirthStep<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>
+            isEditing={isEditing}
+            onNext={onNext}
+            onMove={onMove}
+            formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
+            formTitle={translate('personalInfoStep.whatsYourDOB')}
+            onSubmit={handleSubmit}
+            stepFields={STEP_FIELDS}
+            dobInputID={PERSONAL_INFO_DOB_KEY}
+            dobDefaultValue={dobDefaultValue}
+            shouldShowPatriotActLink
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+        />
+    );
+}
+
+export default DateOfBirthStep;

@@ -1,39 +1,52 @@
-import {useNavigation} from '@react-navigation/native';
-import type {StackNavigationProp} from '@react-navigation/stack';
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {useEffect, useState} from 'react';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
-import type {RootStackParamList} from '@libs/Navigation/types';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
+
+import type {ComponentType} from 'react';
+
+import {useNavigation} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
 
 type WithNavigationTransitionEndProps = {didScreenTransitionEnd: boolean};
 
-export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): React.ComponentType<TProps & RefAttributes<TRef>> {
-    function WithNavigationTransitionEnd(props: TProps, ref: ForwardedRef<TRef>) {
-        const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
-        const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+type WithNavigationTransitionEndImplProps<TProps> = {
+    WrappedComponent: ComponentType<TProps>;
+} & TProps;
 
-        useEffect(() => {
-            const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
-                setDidScreenTransitionEnd(true);
-            });
+function WithNavigationTransitionEndImpl<TProps>({WrappedComponent, ...props}: WithNavigationTransitionEndImplProps<TProps>) {
+    const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
 
-            return unsubscribeTransitionEnd;
-            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        }, []);
+    useEffect(() => {
+        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', () => {
+            setDidScreenTransitionEnd(true);
+        });
 
+        return unsubscribeTransitionEnd;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return (
+        <WrappedComponent
+            {...(props as unknown as TProps)}
+            didScreenTransitionEnd={didScreenTransitionEnd}
+        />
+    );
+}
+
+export default function <TProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<TProps> {
+    function WithNavigationTransitionEnd(props: TProps) {
         return (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
+            <WithNavigationTransitionEndImpl
+                WrappedComponent={WrappedComponent}
                 {...props}
-                didScreenTransitionEnd={didScreenTransitionEnd}
-                ref={ref}
             />
         );
     }
 
     WithNavigationTransitionEnd.displayName = `WithNavigationTransitionEnd(${getComponentDisplayName(WrappedComponent)})`;
 
-    return React.forwardRef(WithNavigationTransitionEnd);
+    return WithNavigationTransitionEnd;
 }
 
 export type {WithNavigationTransitionEndProps};

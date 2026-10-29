@@ -1,11 +1,15 @@
-import React from 'react';
-import type {ReactNode} from 'react';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import HeaderPageLayout from './HeaderPageLayout';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+
 import type {HeaderPageLayoutProps} from './HeaderPageLayout';
-import Lottie from './Lottie';
 import type DotLottieAnimation from './LottieAnimations/types';
+
+import HeaderPageLayout from './HeaderPageLayout';
+import Lottie from './Lottie';
 
 type IllustratedHeaderPageLayoutProps = HeaderPageLayoutProps & {
     /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
@@ -43,14 +47,11 @@ function IllustratedHeaderPageLayout({backgroundColor, children, illustration, t
             }
             testID={testID}
             headerContainerStyles={[styles.justifyContentCenter, styles.w100, shouldLimitHeight && styles.centralPaneAnimation]}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
             {children}
         </HeaderPageLayout>
     );
 }
-
-IllustratedHeaderPageLayout.displayName = 'IllustratedHeaderPageLayout';
 
 export default IllustratedHeaderPageLayout;

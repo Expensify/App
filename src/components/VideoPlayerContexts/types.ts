@@ -1,49 +1,67 @@
-import type {MutableRefObject} from 'react';
-import type {View} from 'react-native';
+import type CONST from '@src/CONST';
+
+import type {VideoPlayer} from 'expo-video';
 import type {SharedValue} from 'react-native-reanimated';
 import type {TupleToUnion} from 'type-fest';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
-import type CONST from '@src/CONST';
-import type {ResponsiveLayoutProperties} from './FullScreenContext';
 
-type PlaybackContext = {
-    updateCurrentlyPlayingURL: (url: string | null) => void;
-    currentlyPlayingURL: string | null;
-    currentlyPlayingURLReportID: string | undefined;
-    originalParent: View | HTMLDivElement | null;
-    sharedElement: View | HTMLDivElement | null;
-    videoResumeTryNumberRef: MutableRefObject<number>;
-    currentVideoPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
-    shareVideoPlayerElements: (ref: VideoWithOnFullScreenUpdate | null, parent: View | HTMLDivElement | null, child: View | HTMLDivElement | null, isUploading: boolean) => void;
-    playVideo: () => void;
-    pauseVideo: () => void;
-    checkVideoPlaying: (statusCallback: StatusCallback) => void;
-    setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
-};
-
-type VolumeContext = {
-    updateVolume: (newVolume: number) => void;
+type VolumeStateContextType = {
+    /**
+     * The current volume value.
+     */
     volume: SharedValue<number>;
+
+    /**
+     * The last non-zero volume value before mute.
+     * This value is restored after unmuting.
+     */
+    lastNonZeroVolume: SharedValue<number>;
 };
 
-type VideoPopoverMenuContext = {
-    menuItems: PopoverMenuItem[];
-    videoPopoverMenuPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
+type VolumeActionsContextType = {
+    /**
+     * Updates the current volume.
+     * @param newVolume The new volume value to set.
+     */
+    updateVolume: (newVolume: number) => void;
+
+    /**
+     * Toggles the mute state.
+     */
+    toggleMute: () => void;
+};
+
+type VideoPopoverMenuStateContextType = {
+    /** Currently-selected playback speed (drives the radio indicator in the speeds submenu). */
     currentPlaybackSpeed: PlaybackSpeed;
+
+    /** True when the source is a local URI; the download row is hidden. */
+    isLocalFile: boolean;
+};
+
+type VideoPopoverMenuActionsContextType = {
+    /**
+     * Updates the video player reference used by the popover menu.
+     * @param ref The video player ref.
+     */
+    updateVideoPopoverMenuPlayerRef: (videoPlayer: VideoPlayer | null) => void;
+
+    /**
+     * Updates the playback speed inside VideoPopoverMenuContext.
+     * @param speed The new playback speed value.
+     */
     updatePlaybackSpeed: (speed: PlaybackSpeed) => void;
-    setCurrentPlaybackSpeed: (speed: PlaybackSpeed) => void;
-};
 
-type FullScreenContext = {
-    isFullScreenRef: MutableRefObject<boolean>;
-    lockedWindowDimensionsRef: MutableRefObject<ResponsiveLayoutProperties | null>;
-    lockWindowDimensions: (newResponsiveLayoutResult: ResponsiveLayoutProperties) => void;
-    unlockWindowDimensions: () => void;
-};
+    /**
+     * Updates the video source URL inside VideoPopoverMenuContext.
+     * @param source The new source URL.
+     * @param fileName The original file name of the source, used to name the downloaded file.
+     */
+    updateSource: (source: string, fileName?: string) => void;
 
-type StatusCallback = (isPlaying: boolean) => void;
+    /** Triggers the download flow for the current source. */
+    downloadAttachment: () => void;
+};
 
 type PlaybackSpeed = TupleToUnion<typeof CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS>;
 
-export type {PlaybackContext, VolumeContext, VideoPopoverMenuContext, FullScreenContext, StatusCallback, PlaybackSpeed};
+export type {VolumeStateContextType, VolumeActionsContextType, VideoPopoverMenuStateContextType, VideoPopoverMenuActionsContextType, PlaybackSpeed};

@@ -1,21 +1,39 @@
-import React, {Fragment, useCallback, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText} from 'react-native';
-import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
-import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
+
+import {formatReportLastMessageText} from '@libs/ReportUtils';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+
+import type {ComponentRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText} from 'react-native';
+
+import React, {Fragment, useCallback, useRef} from 'react';
+import {View} from 'react-native';
+
 import type DisplayNamesProps from './types';
 
-type HTMLElementWithText = HTMLElement & RNText;
+import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
 
-function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWithTooltips, textStyles = [], numberOfLines = 1, renderAdditionalText}: DisplayNamesProps) {
+type HTMLElementWithText = HTMLElement & ComponentRef<typeof RNText>;
+
+function DisplayNamesWithToolTip({
+    shouldUseFullTitle,
+    fullTitle,
+    displayNamesWithTooltips,
+    shouldAddEllipsis = false,
+    textStyles = [],
+    numberOfLines = 1,
+    renderAdditionalText,
+    forwardedFSClass,
+    accessibilityLabel,
+    isSelectable = false,
+}: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
     const childRefs = useRef<HTMLElementWithText[]>([]);
-    // eslint-disable-next-line react-compiler/react-compiler
     const isEllipsisActive = !!containerRef.current?.offsetWidth && !!containerRef.current?.scrollWidth && containerRef.current.offsetWidth < containerRef.current.scrollWidth;
 
     /**
@@ -51,13 +69,17 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
+            accessibilityLabel={accessibilityLabel}
             style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
-            testID={DisplayNamesWithToolTip.displayName}
+            testID="DisplayNamesWithToolTip"
+            fsClass={forwardedFSClass}
+            selectable={isSelectable}
+            dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
         >
             {shouldUseFullTitle
-                ? ReportUtils.formatReportLastMessageText(fullTitle)
+                ? formatReportLastMessageText(fullTitle)
                 : displayNamesWithTooltips?.map(({displayName, accountID, avatar, login}, index) => (
                       // eslint-disable-next-line react/no-array-index-key
                       <Fragment key={index}>
@@ -70,8 +92,11 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
                               avatar={avatar}
                               textStyles={textStyles}
                               childRefs={childRefs}
+                              forwardedFSClass={forwardedFSClass}
+                              isSelectable={isSelectable}
                           />
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
+                          {shouldAddEllipsis && index === displayNamesWithTooltips.length - 1 && <Text style={textStyles}>...</Text>}
                       </Fragment>
                   ))}
             {renderAdditionalText?.()}
@@ -86,7 +111,5 @@ function DisplayNamesWithToolTip({shouldUseFullTitle, fullTitle, displayNamesWit
         </Text>
     );
 }
-
-DisplayNamesWithToolTip.displayName = 'DisplayNamesWithTooltip';
 
 export default DisplayNamesWithToolTip;

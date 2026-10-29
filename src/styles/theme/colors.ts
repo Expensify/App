@@ -1,10 +1,10 @@
-import type {Color} from './types';
-
 /**
  * DO NOT import colors.js into files. Use the theme switching hooks and HOCs instead.
  * For functional components, you can use the `useTheme` and `useThemeStyles` hooks
  * For class components, you can use the `withTheme` and `withThemeStyles` HOCs
  */
+type Color = string;
+
 const colors: Record<string, Color> = {
     // Brand Colors
     black: '#000000',
@@ -88,7 +88,7 @@ const colors: Record<string, Color> = {
     pink800: '#49225B',
 
     ice100: '#DFFDFE',
-    ice200: '#CCF7FF',
+    ice200: '#CCF6FF',
     ice300: '#A5FBFF',
     ice400: '#50EEF6',
     ice500: '#4ED7DE',
@@ -98,3 +98,4 @@ const colors: Record<string, Color> = {
 };
 
 export default colors;
+export type {Color};

@@ -1,28 +1,35 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import {Str} from 'expensify-common';
-import React from 'react';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Url from '@libs/Url';
-import * as ValidationUtils from '@libs/ValidationUtils';
+
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {extractUrlDomain} from '@libs/Url';
+import {getFieldRequiredErrors, isPublicDomain, isValidWebsite} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Policy from '@userActions/Policy/Policy';
+
+import {updateInvoiceCompanyWebsite} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInvoicesCompanyWebsiteForm';
 
-type WorkspaceInvoicingDetailsWebsiteProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE>;
+import {Str} from 'expensify-common';
+import React from 'react';
+
+type WorkspaceInvoicingDetailsWebsiteProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE>;
 
 function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebsiteProps) {
     const {policyID} = route.params;
@@ -32,28 +39,27 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values[INPUT_IDS.COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        Policy.updateInvoiceCompanyWebsite(policyID, companyWebsite);
+        updateInvoiceCompanyWebsite(policyID, companyWebsite, policy?.invoice?.companyWebsite);
         Navigation.goBack();
     };
 
     const validate = (
         values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM>,
     ): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVOICES_COMPANY_WEBSITE_FORM> => {
-        const errors = ValidationUtils.getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_WEBSITE]);
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_WEBSITE], translate);
 
         if (values.companyWebsite) {
             const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-            if (!ValidationUtils.isValidWebsite(companyWebsite)) {
+            if (!isValidWebsite(companyWebsite)) {
                 errors.companyWebsite = translate('bankAccount.error.website');
             } else {
-                const domain = Url.extractUrlDomain(companyWebsite);
+                const domain = extractUrlDomain(companyWebsite);
 
                 if (!domain || !Str.isValidDomainName(domain)) {
                     errors.companyWebsite = translate('iou.invalidDomainError');
-                } else if (ValidationUtils.isPublicDomain(domain)) {
+                } else if (isPublicDomain(domain)) {
                     errors.companyWebsite = translate('iou.publicDomainError');
                 }
             }
@@ -69,9 +75,10 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
             featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceInvoicingDetailsWebsite.displayName}
+                testID="WorkspaceInvoicingDetailsWebsite"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton title={translate('workspace.invoices.companyWebsite')} />
                 <FormProvider
@@ -81,6 +88,8 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}
@@ -97,7 +106,5 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceInvoicingDetailsWebsite.displayName = 'WorkspaceInvoicingDetailsWebsite';
 
 export default WorkspaceInvoicingDetailsWebsite;

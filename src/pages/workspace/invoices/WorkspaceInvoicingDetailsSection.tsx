@@ -1,32 +1,39 @@
-import React, {useMemo} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Section from '@components/Section';
+
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@navigation/Navigation';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import React from 'react';
+
 type WorkspaceInvoicingDetailsSectionProps = {
-    /** The current policy ID */
     policyID: string;
+
+    /** Whether the current user can edit miscellaneous settings. */
+    canWriteMoreFeatures: boolean;
 };
 
-function WorkspaceInvoicingDetailsSection({policyID}: WorkspaceInvoicingDetailsSectionProps) {
+function WorkspaceInvoicingDetailsSection({policyID, canWriteMoreFeatures}: WorkspaceInvoicingDetailsSectionProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal, cardPaddingTop} = useLayoutSpacing();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const horizontalPadding = useMemo(() => (shouldUseNarrowLayout ? styles.ph5 : styles.ph8), [shouldUseNarrowLayout, styles]);
+    const horizontalPadding = cardPaddingHorizontal;
 
     return (
         <Section
             title={translate('workspace.invoices.invoicingDetails')}
             subtitle={translate('workspace.invoices.invoicingDetailsDescription')}
-            containerStyles={[styles.ph0, shouldUseNarrowLayout ? styles.pt5 : styles.pt8]}
+            containerStyles={[styles.ph0, cardPaddingTop]}
             subtitleStyles={horizontalPadding}
             titleStyles={[styles.accountSettingsSectionTitle, horizontalPadding]}
             childrenStyles={styles.pt5}
@@ -34,24 +41,26 @@ function WorkspaceInvoicingDetailsSection({policyID}: WorkspaceInvoicingDetailsS
         >
             <MenuItemWithTopDescription
                 key={translate('workspace.invoices.companyName')}
-                shouldShowRightIcon
+                shouldShowRightIcon={canWriteMoreFeatures}
                 title={policy?.invoice?.companyName}
                 description={translate('workspace.invoices.companyName')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_NAME}
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_NAME.getRoute(policyID))}
+                interactive={canWriteMoreFeatures}
                 style={horizontalPadding}
             />
             <MenuItemWithTopDescription
                 key={translate('workspace.invoices.companyWebsite')}
-                shouldShowRightIcon
+                shouldShowRightIcon={canWriteMoreFeatures}
                 title={policy?.invoice?.companyWebsite}
                 description={translate('workspace.invoices.companyWebsite')}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.INVOICES.COMPANY_WEBSITE}
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICES_COMPANY_WEBSITE.getRoute(policyID))}
+                interactive={canWriteMoreFeatures}
                 style={horizontalPadding}
             />
         </Section>
     );
 }
-
-WorkspaceInvoicingDetailsSection.displayName = 'WorkspaceInvoicingDetailsSection';
 
 export default WorkspaceInvoicingDetailsSection;

@@ -1,18 +1,24 @@
-import React, {useMemo} from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as Browser from '@libs/Browser';
+
+import {isSafari} from '@libs/Browser';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {ReactNode} from 'react';
+import type {ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type HeaderWithBackButtonProps from './HeaderWithBackButton/types';
+
 import FixedFooter from './FixedFooter';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import type HeaderWithBackButtonProps from './HeaderWithBackButton/types';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 
@@ -33,17 +39,14 @@ type HeaderPageLayoutProps = ChildrenProps &
         /** Style to apply to the header image container */
         headerContainerStyles?: StyleProp<ViewStyle>;
 
-        /** Style to apply to the ScrollView container */
         scrollViewContainerStyles?: StyleProp<ViewStyle>;
-
-        /** Style to apply to the children container */
         childrenContainerStyles?: StyleProp<ViewStyle>;
 
         /** Style to apply to the whole section container */
         style?: StyleProp<ViewStyle>;
 
-        /** Whether or not to show the offline indicator */
         shouldShowOfflineIndicatorInWideScreen?: boolean;
+        keyboardShouldPersistTaps?: ScrollViewProps['keyboardShouldPersistTaps'];
     };
 function HeaderPageLayout({
     backgroundColor,
@@ -56,6 +59,7 @@ function HeaderPageLayout({
     headerContent,
     shouldShowOfflineIndicatorInWideScreen = false,
     testID,
+    keyboardShouldPersistTaps,
     ...rest
 }: HeaderPageLayoutProps) {
     const theme = useTheme();
@@ -65,13 +69,11 @@ function HeaderPageLayout({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const appBGColor = StyleUtils.getBackgroundColorStyle(theme.appBG);
-    const {titleColor, iconFill} = useMemo(() => {
-        const isColorfulBackground = (backgroundColor ?? theme.appBG) !== theme.appBG && (backgroundColor ?? theme.highlightBG) !== theme.highlightBG;
-        return {
-            titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
-            iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
-        };
-    }, [backgroundColor, theme.appBG, theme.highlightBG, theme.iconColorfulBackground, theme.textColorfulBackground]);
+    const isColorfulBackground = (backgroundColor ?? theme.appBG) !== theme.appBG && (backgroundColor ?? theme.highlightBG) !== theme.highlightBG;
+    const {titleColor, iconFill} = {
+        titleColor: isColorfulBackground ? theme.textColorfulBackground : undefined,
+        iconFill: isColorfulBackground ? theme.iconColorfulBackground : undefined,
+    };
 
     return (
         <ScreenWrapper
@@ -81,25 +83,28 @@ function HeaderPageLayout({
             offlineIndicatorStyle={[appBGColor]}
             testID={testID}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
+            shouldEnableMaxHeight
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <>
                     <HeaderWithBackButton
-                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...rest}
                         titleColor={titleColor}
                         iconFill={iconFill}
                     />
                     <View style={[styles.flex1, appBGColor, !isOffline && footer ? safeAreaPaddingBottomStyle : {}]}>
-                        {/** Safari on ios/mac has a bug where overscrolling the page scrollview shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
-                        {Browser.isSafari() && (
+                        {/** Safari on ios/mac has a bug where over scrolling the page ScrollView shows green background color. This is a workaround to fix that. https://github.com/Expensify/App/issues/23422 */}
+                        {isSafari() && (
                             <View style={styles.dualColorOverscrollSpacer}>
                                 <View style={[styles.flex1, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG)]} />
                                 <View style={[shouldUseNarrowLayout ? styles.flex1 : styles.flex3, appBGColor]} />
                             </View>
                         )}
-                        <ScrollView contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}>
-                            {!Browser.isSafari() && <View style={styles.overscrollSpacer(backgroundColor ?? theme.appBG, windowHeight)} />}
+                        <ScrollView
+                            contentContainerStyle={[safeAreaPaddingBottomStyle, style, scrollViewContainerStyles]}
+                            keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+                        >
+                            {!isSafari() && <View style={[styles.overscrollSpacerPosition, styles.w100, styles.overscrollSpacer(backgroundColor ?? theme.appBG, windowHeight)]} />}
                             <View style={[styles.alignItemsCenter, styles.justifyContentEnd, StyleUtils.getBackgroundColorStyle(backgroundColor ?? theme.appBG), headerContainerStyles]}>
                                 {headerContent}
                             </View>
@@ -112,8 +117,6 @@ function HeaderPageLayout({
         </ScreenWrapper>
     );
 }
-
-HeaderPageLayout.displayName = 'HeaderPageLayout';
 
 export type {HeaderPageLayoutProps};
 export default HeaderPageLayout;

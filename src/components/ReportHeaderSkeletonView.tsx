@@ -1,15 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
-import {Circle, Rect} from 'react-native-svg';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import SkeletonViewContentLoader from './SkeletonViewContentLoader';
+import ReportHeaderTitleSkeleton from './ReportHeaderTitleSkeleton';
 
 type ReportHeaderSkeletonViewProps = {
     shouldAnimate?: boolean;
@@ -21,12 +23,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const smallScreenHeight = styles.appContentHeader.height;
-    const height = !shouldUseNarrowLayout ? styles.headerBarDesktopHeight.height : smallScreenHeight;
-    const radius = 20;
-    const circleY = height / 2;
-    const circleTopY = circleY - radius;
-    const circleBottomY = circleY + radius;
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
 
     return (
         <View style={[styles.appContentHeader, shouldUseNarrowLayout && styles.pl2, styles.h100]}>
@@ -37,43 +34,18 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.back')}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT_HEADER_SKELETON.GO_BACK}
                     >
                         <Icon
                             fill={theme.icon}
-                            src={Expensicons.BackArrow}
+                            src={icons.BackArrow}
                         />
                     </PressableWithFeedback>
                 )}
-                <SkeletonViewContentLoader
-                    animate={shouldAnimate}
-                    width={styles.w100.width}
-                    height={height}
-                    backgroundColor={theme.skeletonLHNIn}
-                    foregroundColor={theme.skeletonLHNOut}
-                >
-                    <Circle
-                        cx="20"
-                        cy={height / 2}
-                        r={radius}
-                    />
-                    <Rect
-                        x="55"
-                        y={circleTopY + 8}
-                        width="30%"
-                        height="8"
-                    />
-                    <Rect
-                        x="55"
-                        y={circleBottomY - 12}
-                        width="40%"
-                        height="8"
-                    />
-                </SkeletonViewContentLoader>
+                <ReportHeaderTitleSkeleton shouldAnimate={shouldAnimate} />
             </View>
         </View>
     );
 }
-
-ReportHeaderSkeletonView.displayName = 'ReportHeaderSkeletonView';
 
 export default ReportHeaderSkeletonView;

@@ -1,124 +1,88 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
-import useBeforeRemove from '@hooks/useBeforeRemove';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
+import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {requestValidateCodeAction} from '@libs/actions/User';
-import * as ErrorUtils from '@libs/ErrorUtils';
+
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import * as Card from '@userActions/Card';
+
+import {clearReportVirtualCardFraudForm} from '@userActions/Card';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ReportVirtualCardFraudPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD>;
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
-function ReportVirtualCardFraudPage({
-    route: {
-        params: {cardID = ''},
-    },
-}: ReportVirtualCardFraudPageProps) {
+type ReportVirtualCardFraudPageProps =
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD>
+    | PlatformStackScreenProps<DomainCardNavigatorParamList, typeof SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD>;
+
+function ReportVirtualCardFraudPage({route}: ReportVirtualCardFraudPageProps) {
+    const {cardID = ''} = route.params;
+    const isDomainCardRoute = route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_REPORT_FRAUD;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.path, !isDomainCardRoute);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const cardList = useNonPersonalCardList();
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
-    const primaryLogin = account?.primaryLogin ?? '';
-    const loginData = loginList?.[primaryLogin];
 
     const virtualCard = cardList?.[cardID];
-    const virtualCardError = ErrorUtils.getLatestErrorMessage(virtualCard);
-    const validateError = ErrorUtils.getLatestErrorMessageField(virtualCard);
-
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-
-    const prevIsLoading = usePrevious(formData?.isLoading);
-
-    useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
+    const virtualCardError = getLatestErrorMessage(virtualCard);
 
     useEffect(() => {
-        if (!prevIsLoading || formData?.isLoading) {
-            return;
-        }
-        if (!isEmptyObject(virtualCard?.errors)) {
-            return;
-        }
+        clearReportVirtualCardFraudForm();
+    }, []);
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID));
-    }, [cardID, formData?.isLoading, prevIsLoading, virtualCard?.errors]);
-
-    const handleValidateCodeEntered = useCallback(
-        (validateCode: string) => {
-            if (!virtualCard) {
-                return;
-            }
-            Card.reportVirtualExpensifyCardFraud(virtualCard, validateCode);
-        },
-        [virtualCard],
-    );
-
-    const sendValidateCode = () => {
-        if (loginData?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
+    const handleSubmit = () => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_VERIFY_ACCOUNT.path));
     };
 
-    const handleSubmit = useCallback(() => {
-        setIsValidateCodeActionModalVisible(true);
-    }, [setIsValidateCodeActionModalVisible]);
-
-    if (isEmptyObject(virtualCard)) {
+    if (isEmptyObject(virtualCard) && !formData?.cardID) {
         return <NotFoundPage />;
     }
 
     return (
-        <ScreenWrapper testID={ReportVirtualCardFraudPage.displayName}>
-            <HeaderWithBackButton
-                title={translate('reportFraudPage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID))}
-            />
-            <View style={[styles.flex1, styles.justifyContentBetween]}>
-                <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
-                <FormAlertWithSubmitButton
-                    isAlertVisible={!!virtualCardError}
-                    onSubmit={handleSubmit}
-                    message={virtualCardError}
-                    isLoading={formData?.isLoading}
-                    buttonText={translate('reportFraudPage.deactivateCard')}
-                    containerStyles={[styles.m5]}
-                />
-                <ValidateCodeActionModal
-                    handleSubmitForm={handleValidateCodeEntered}
-                    sendValidateCode={sendValidateCode}
-                    validateError={validateError}
-                    clearError={() => {
-                        Card.clearCardListErrors(virtualCard.cardID);
+        <ScreenWrapper testID="ReportVirtualCardFraudPage">
+            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                <HeaderWithBackButton
+                    title={translate('reportFraudPage.title')}
+                    onBackButtonPress={() => {
+                        if (isDomainCardRoute) {
+                            Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID));
+                            return;
+                        }
+                        Navigation.goBack(backPath);
                     }}
-                    onClose={() => setIsValidateCodeActionModalVisible(false)}
-                    isVisible={isValidateCodeActionModalVisible}
-                    title={translate('cardPage.validateCardTitle')}
-                    descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
-                    hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                 />
-            </View>
+                <View style={[styles.flex1, styles.justifyContentBetween]}>
+                    <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>
+                    <FormAlertWithSubmitButton
+                        isAlertVisible={!!virtualCardError}
+                        onSubmit={handleSubmit}
+                        message={virtualCardError}
+                        buttonText={translate('reportFraudPage.deactivateCard')}
+                        containerStyles={[styles.m5]}
+                    />
+                </View>
+            </DelegateNoAccessWrapper>
         </ScreenWrapper>
     );
 }
-
-ReportVirtualCardFraudPage.displayName = 'ReportVirtualCardFraudPage';
 
 export default ReportVirtualCardFraudPage;

@@ -1,81 +1,182 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import OfflineIndicator from '@components/OfflineIndicator';
+import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useActiveWorkspace from '@hooks/useActiveWorkspace';
+
+import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
+import useOnboardingMessages from '@hooks/useOnboardingMessages';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
+
+import {addErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
+import {getEmailDomain} from '@libs/LoginUtils';
+import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as PersonalDetails from '@userActions/PersonalDetails';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
+import {getJoinWorkspaceMessage, isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {hasURL} from '@libs/Url';
+import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
+import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
+
+import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
+import {setDisplayName, updateDisplayName} from '@userActions/PersonalDetails';
+import {completeOnboarding as completeOnboardingReport} from '@userActions/Report';
+import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import type {BaseOnboardingPersonalDetailsProps} from './types';
 
 function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNativeStyles, route}: BaseOnboardingPersonalDetailsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
+    const [onboardingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const delegateAccountID = useDelegateAccountID();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
+    const {onboardingMessages, joinWorkspaceMessages} = useOnboardingMessages();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
+    const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
+    const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
 
+    // When we merge public email with work email, we now want to navigate to the
+    // concierge chat report of the new work email and not the last accessed report.
+    const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldValidateOnChange, setShouldValidateOnChange] = useState(false);
-    const {isOffline} = useNetwork();
-    const {canUseDefaultRooms} = usePermissions();
-    const {activeWorkspaceID} = useActiveWorkspace();
+    const [isLoading, setIsLoading] = useState(false);
+    const {isBetaEnabled} = usePermissions();
+
+    const isPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && !!account?.hasAccessibleDomainPolicies;
+    const isValidated = isCurrentUserValidated(loginList, currentUserPersonalDetails.email);
+    const workEmail = session?.email ?? '';
+
+    const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
+    const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
     useEffect(() => {
-        Welcome.setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
     }, []);
 
-    const completeEngagement = useCallback(
-        (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
-            const firstName = values.firstName.trim();
-            const lastName = values.lastName.trim();
+    const completeOnboarding = async (firstName: string, lastName: string) => {
+        if (!onboardingPurposeSelected || isLoading) {
+            return;
+        }
 
-            PersonalDetails.setDisplayName(firstName, lastName);
-
-            if (!onboardingPurposeSelected) {
-                return;
-            }
-
-            Report.completeOnboarding(
-                onboardingPurposeSelected,
-                CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+        setIsLoading(true);
+        try {
+            const joinWorkspaceMessage = getJoinWorkspaceMessage({joinWorkspaceMessages, onboardingPolicyID, onboardingPolicy, workEmail, isValidated});
+            await completeOnboardingReport({
+                engagementChoice: onboardingPurposeSelected,
+                onboardingMessage: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE ? joinWorkspaceMessage : onboardingMessages[onboardingPurposeSelected],
                 firstName,
                 lastName,
-                onboardingAdminsChatReportID ?? undefined,
-                onboardingPolicyID,
+                adminsChatReportID: onboardingAdminsChatReportID,
+                ...(onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE ? {} : {onboardingPolicyID}),
+                introSelected,
+                isSelfTourViewed,
+                conciergeChat,
+                companyDomain: getEmailDomain(workEmail),
+                workEmail,
+                currentUserAccountID,
+                delegateAccountID,
+            });
+
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
+
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeChatReportID,
+                reportNameValuePairs,
+                isAnonymousUser,
+                onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE && !onboardingPolicy ? undefined : onboardingPolicyID,
+                mergedAccountConciergeReportID,
+                false,
             );
+            setIsLoading(false);
+        } catch (error) {
+            Log.warn('[BaseOnboardingPersonalDetails] Error completing onboarding', {error});
+            setIsLoading(false);
+        }
+    };
 
-            Welcome.setOnboardingAdminsChatReportID();
-            Welcome.setOnboardingPolicyID();
+    const handleSubmit = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
+        if (isLoading) {
+            return;
+        }
 
-            navigateAfterOnboarding(isSmallScreenWidth, shouldUseNarrowLayout, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, route.params?.backTo);
-        },
-        [onboardingPurposeSelected, onboardingAdminsChatReportID, onboardingPolicyID, route.params?.backTo, activeWorkspaceID, canUseDefaultRooms, isSmallScreenWidth, shouldUseNarrowLayout],
-    );
+        const firstName = values.firstName.trim();
+        const lastName = values.lastName.trim();
+
+        setDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
+        clearPersonalDetailsDraft();
+        setPersonalDetails(firstName, lastName);
+
+        if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER) {
+            if (isPrivateDomainAndHasAccessiblePolicies && isValidated) {
+                Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo));
+                return;
+            }
+            setIsLoading(true);
+            updateDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
+            autoCreateSubmitWorkspace(firstName, lastName).finally(() => {
+                setIsLoading(false);
+            });
+            return;
+        }
+
+        if (isPrivateDomainAndHasAccessiblePolicies && (!onboardingPurposeSelected || isVsb || isSmb)) {
+            const nextRoute = isValidated ? ROUTES.ONBOARDING_WORKSPACES : ROUTES.ONBOARDING_PRIVATE_DOMAIN;
+            Navigation.navigate(nextRoute.getRoute(route.params?.backTo));
+            return;
+        }
+
+        if (isTrackOnboardingChoice(onboardingPurposeSelected)) {
+            setIsLoading(true);
+            updateDisplayName(firstName, lastName, formatPhoneNumber, currentUserPersonalDetails);
+            autoCreateTrackWorkspace(firstName, lastName, onboardingPurposeSelected).finally(() => {
+                setIsLoading(false);
+            });
+            return;
+        }
+
+        completeOnboarding(firstName, lastName);
+    };
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
         if (!shouldValidateOnChange) {
@@ -85,26 +186,30 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         const errors = {};
 
         // First we validate the first name field
-        if (values.firstName.replace(CONST.REGEX.ANY_SPACE, '').length === 0) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('onboarding.error.requiredFirstName'));
+        if (values.firstName.replaceAll(CONST.REGEX.ANY_SPACE, '').length === 0) {
+            addErrorMessage(errors, 'firstName', translate('onboarding.error.requiredFirstName'));
         }
-        if (!ValidationUtils.isValidDisplayName(values.firstName)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
+        if (hasURL(values.firstName)) {
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.cannotContainSpecialCharacters'));
+        } else if (!isValidDisplayName(values.firstName)) {
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
         }
-        if (ValidationUtils.doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
+        if (doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
         }
 
         // Then we validate the last name field
-        if (!ValidationUtils.isValidDisplayName(values.lastName)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
+        if (hasURL(values.lastName)) {
+            addErrorMessage(errors, 'lastName', translate('personalDetails.error.cannotContainSpecialCharacters'));
+        } else if (!isValidDisplayName(values.lastName)) {
+            addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
         }
-        if (ValidationUtils.doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
-            ErrorUtils.addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
+        if (doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
+            addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
         }
 
         return errors;
@@ -113,22 +218,39 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            shouldShowOfflineIndicator={false}
-            includeSafeAreaPaddingBottom={isOffline}
+            includeSafeAreaPaddingBottom
             testID="BaseOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton
-                shouldShowBackButton
-                progressBarPercentage={75}
-                onBackButtonPress={Navigation.goBack}
+            <OnboardingHeader
+                shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
+                onBackButtonPress={() => {
+                    // Based on the `handleSubmit` function to reverse where to return
+                    if (isPrivateDomainAndHasAccessiblePolicies) {
+                        Navigation.goBack();
+                        return;
+                    }
+
+                    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                        Navigation.goBack(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
+                        return;
+                    }
+
+                    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+                        Navigation.goBack();
+                        return;
+                    }
+
+                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                }}
             />
             <FormProvider
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}
                 validate={validate}
-                onSubmit={completeEngagement}
+                onSubmit={handleSubmit}
                 submitButtonText={translate('common.continue')}
+                isLoading={isLoading}
                 enabledWhenOffline
                 submitFlexEnabled
                 shouldValidateOnBlur={false}
@@ -136,7 +258,12 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 shouldTrimValues={false}
             >
                 <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
-                    <Text style={styles.textHeadlineH1}>{translate('onboarding.whatsYourName')}</Text>
+                    <Text
+                        style={styles.textHeadlineH1}
+                        accessibilityRole={CONST.ROLE.HEADER}
+                    >
+                        {translate('onboarding.whatsYourName')}
+                    </Text>
                 </View>
                 <View style={styles.mb4}>
                     <InputWrapper
@@ -147,10 +274,11 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         label={translate('common.firstName')}
                         aria-label={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={currentUserPersonalDetails?.firstName}
+                        defaultValue={onboardingPersonalDetailsForm?.firstName ?? currentUserPersonalDetails?.firstName ?? ''}
+                        {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         spellCheck={false}
+                        autoComplete="given-name"
                     />
                 </View>
                 <View>
@@ -161,18 +289,16 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         label={translate('common.lastName')}
                         aria-label={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={currentUserPersonalDetails?.lastName}
+                        defaultValue={onboardingPersonalDetailsForm?.lastName ?? currentUserPersonalDetails?.lastName ?? ''}
+                        {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
                         spellCheck={false}
+                        autoComplete="family-name"
                     />
                 </View>
             </FormProvider>
-            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingPersonalDetails.displayName = 'BaseOnboardingPersonalDetails';
 
 export default withCurrentUserPersonalDetails(BaseOnboardingPersonalDetails);

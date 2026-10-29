@@ -1,7 +1,11 @@
-import React, {useRef} from 'react';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
-import GenericPressable from './GenericPressable';
+
+import React, {useRef} from 'react';
+
 import type PressableProps from './GenericPressable/types';
+
+import GenericPressable from './GenericPressable';
 
 /**
  * This component prevents the tapped element from capturing focus.
@@ -11,7 +15,7 @@ import type PressableProps from './GenericPressable/types';
  * https://github.com/Expensify/App/issues/6806
  */
 function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: PressableProps) {
-    const ref = useRef<View>(null);
+    const ref = useRef<ComponentRef<typeof View>>(null);
 
     const pressAndBlur = () => {
         ref?.current?.blur();
@@ -23,14 +27,11 @@ function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: Pressa
             onPress={pressAndBlur}
             onLongPress={onLongPress}
             ref={ref}
-            // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
         >
             {children}
         </GenericPressable>
     );
 }
-
-PressableWithoutFocus.displayName = 'PressableWithoutFocus';
 
 export default PressableWithoutFocus;

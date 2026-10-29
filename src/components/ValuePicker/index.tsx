@@ -1,20 +1,41 @@
-import React, {forwardRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import useStyleUtils from '@hooks/useStyleUtils';
+
 import Navigation from '@libs/Navigation/Navigation';
-import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import type {ValuePickerItem, ValuePickerProps} from './types';
+
+import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 
-function ValuePicker({value, label, items, placeholder = '', errorText = '', onInputChange, furtherDetails, shouldShowTooltips = true}: ValuePickerProps, forwardedRef: ForwardedRef<View>) {
-    const StyleUtils = useStyleUtils();
+function ValuePicker({
+    value,
+    label,
+    modalHeaderTitle,
+    shouldReadErrorWithLabel,
+    items,
+    placeholder = '',
+    errorText = '',
+    onInputChange,
+    onOpen,
+    furtherDetails,
+    shouldShowTooltips = true,
+    shouldShowModal = true,
+    ref,
+    forwardedFSClass,
+    addBottomSafeAreaPadding = true,
+    disableKeyboardShortcuts = false,
+    alternateNumberOfSupportedLines,
+}: ValuePickerProps) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
+        onOpen?.();
     };
 
     const hidePickerModal = () => {
@@ -28,37 +49,51 @@ function ValuePicker({value, label, items, placeholder = '', errorText = '', onI
         hidePickerModal();
     };
 
-    const descStyle = !value || value.length === 0 ? StyleUtils.getFontSizeStyle(variables.fontSizeLabel) : null;
     const selectedItem = items?.find((item) => item.value === value);
 
     return (
         <View>
-            <MenuItemWithTopDescription
-                ref={forwardedRef}
-                shouldShowRightIcon
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                title={selectedItem?.label || placeholder || ''}
-                descriptionTextStyle={descStyle}
-                description={label}
-                onPress={showPickerModal}
-                furtherDetails={furtherDetails}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-            />
-            <ValueSelectorModal
-                isVisible={isPickerVisible}
-                label={label}
-                selectedItem={selectedItem}
-                items={items}
-                onClose={hidePickerModal}
-                onItemSelected={updateInput}
-                shouldShowTooltips={shouldShowTooltips}
-                onBackdropPress={Navigation.dismissModal}
-            />
+            {shouldShowModal ? (
+                <>
+                    <MenuItemWithTopDescription
+                        ref={ref}
+                        shouldShowRightIcon
+                        title={selectedItem?.label || placeholder || ''}
+                        description={label}
+                        onPress={showPickerModal}
+                        furtherDetails={furtherDetails}
+                        brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={errorText}
+                        shouldReadErrorWithLabel={shouldReadErrorWithLabel}
+                        forwardedFSClass={forwardedFSClass}
+                    />
+                    <ValueSelectorModal
+                        isVisible={isPickerVisible}
+                        label={modalHeaderTitle ?? label}
+                        selectedItem={selectedItem}
+                        items={items}
+                        onClose={hidePickerModal}
+                        onItemSelected={updateInput}
+                        shouldShowTooltips={shouldShowTooltips}
+                        onBackdropPress={Navigation.dismissModal}
+                        shouldEnableKeyboardAvoidingView={false}
+                        addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                        alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
+                    />
+                </>
+            ) : (
+                <ValueSelectionList
+                    items={items}
+                    selectedItem={selectedItem}
+                    onItemSelected={updateInput}
+                    shouldShowTooltips={shouldShowTooltips}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+                    disableKeyboardShortcuts={disableKeyboardShortcuts}
+                    alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
+                />
+            )}
         </View>
     );
 }
 
-ValuePicker.displayName = 'ValuePicker';
-
-export default forwardRef(ValuePicker);
+export default ValuePicker;

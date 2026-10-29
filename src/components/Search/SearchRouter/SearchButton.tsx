@@ -1,50 +1,72 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Performance from '@libs/Performance';
-import * as Session from '@userActions/Session';
-import Timing from '@userActions/Timing';
+
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import {startSpan} from '@libs/telemetry/activeSpans';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
-import {useSearchRouterContext} from './SearchRouterContext';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+
+import {useSearchRouterActions} from './SearchRouterContext';
+import startSearchPageVisibleSpan from './startSearchPageVisibleSpan';
 
 type SearchButtonProps = {
     style?: StyleProp<ViewStyle>;
+    shouldUseAutoHitSlop?: boolean;
 };
 
-function SearchButton({style}: SearchButtonProps) {
+function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {openSearchRouter} = useSearchRouterContext();
+    const {openSearchRouter} = useSearchRouterActions();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
+
+    const onPress = () => {
+        callFunctionIfActionIsAllowed(() => {
+            startSpan(CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER, {
+                name: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                op: CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_TRIGGER]: 'button',
+                },
+            });
+
+            startSearchPageVisibleSpan();
+
+            openSearchRouter(undefined, isSearchTopmostFullScreenRoute());
+        })();
+    };
 
     return (
         <Tooltip text={translate('common.search')}>
             <PressableWithoutFeedback
-                nativeID="searchButton"
+                testID="searchButton"
                 accessibilityLabel={translate('common.search')}
+                role={CONST.ROLE.BUTTON}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
-                onPress={Session.checkIfActionIsAllowed(() => {
-                    Timing.start(CONST.TIMING.OPEN_SEARCH);
-                    Performance.markStart(CONST.TIMING.OPEN_SEARCH);
-
-                    openSearchRouter();
-                })}
+                shouldUseAutoHitSlop={shouldUseAutoHitSlop}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SEARCH_BUTTON}
+                onPress={onPress}
             >
                 <Icon
-                    src={Expensicons.MagnifyingGlass}
+                    src={expensifyIcons.MagnifyingGlass}
                     fill={theme.icon}
                 />
             </PressableWithoutFeedback>
         </Tooltip>
     );
 }
-
-SearchButton.displayName = 'SearchButton';
 
 export default SearchButton;

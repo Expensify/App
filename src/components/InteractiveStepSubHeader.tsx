@@ -1,40 +1,49 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useImperativeHandle, useState} from 'react';
-import type {ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import colors from '@styles/theme/colors';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import Text from './Text';
+
+import type {ForwardedRef} from 'react';
+import type {ViewStyle} from 'react-native';
+
+import React, {useImperativeHandle, useState} from 'react';
+import {View} from 'react-native';
+
+import InteractiveStepButton from './InteractiveStepButton';
 
 type InteractiveStepSubHeaderProps = {
     /** List of the Route Name to navigate when the step is selected */
     stepNames: readonly string[];
 
-    /** Function to call when a step is selected */
     onStepSelected?: (stepName: string) => void;
-
-    /** The index of the step to start with */
     startStepIndex?: number;
+
+    /** Description of the current step, appended to its accessibility label */
+    currentStepAccessibilityDescription: string;
+
+    /** Whether screen readers hear that a step before the current one is completed */
+    shouldAnnounceCompletedSteps?: boolean;
+
+    ref?: ForwardedRef<InteractiveStepSubHeaderHandle>;
 };
 
 type InteractiveStepSubHeaderHandle = {
-    /** Move to the next step */
     moveNext: () => void;
-
-    /** Move to the previous step */
     movePrevious: () => void;
+    moveTo: (step: number) => void;
 };
 
 const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
-function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected}: InteractiveStepSubHeaderProps, ref: ForwardedRef<InteractiveStepSubHeaderHandle>) {
+function InteractiveStepSubHeader({
+    stepNames,
+    startStepIndex = 0,
+    currentStepAccessibilityDescription,
+    shouldAnnounceCompletedSteps = false,
+    onStepSelected,
+    ref,
+}: InteractiveStepSubHeaderProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
     if (stepNames.length < MIN_AMOUNT_OF_STEPS) {
@@ -51,6 +60,9 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
             movePrevious: () => {
                 setCurrentStep((actualStep) => actualStep - 1);
             },
+            moveTo: (step: number) => {
+                setCurrentStep(step);
+            },
         }),
         [],
     );
@@ -64,6 +76,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                 const isLockedStep = currentStep < index;
                 const isLockedLine = currentStep < index + 1;
                 const hasUnion = index < amountOfUnions;
+                const isCurrentStep = currentStep === index;
 
                 const moveToStep = () => {
                     if (isLockedStep || !onStepSelected) {
@@ -81,30 +94,19 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                         style={[styles.interactiveStepHeaderStepContainer, hasUnion && styles.flex1]}
                         key={stepName}
                     >
-                        <PressableWithFeedback
-                            style={[
-                                styles.interactiveStepHeaderStepButton,
-                                isLockedStep && styles.interactiveStepHeaderLockedStepButton,
-                                isCompletedStep && styles.interactiveStepHeaderCompletedStepButton,
-                                !onStepSelected && styles.cursorDefault,
-                            ]}
-                            disabled={isLockedStep || !onStepSelected}
-                            onPress={moveToStep}
-                            accessible
-                            accessibilityLabel={stepName[index]}
-                            role={CONST.ROLE.BUTTON}
-                        >
-                            {isCompletedStep ? (
-                                <Icon
-                                    src={Expensicons.Checkmark}
-                                    width={variables.iconSizeNormal}
-                                    height={variables.iconSizeNormal}
-                                    fill={colors.white}
-                                />
-                            ) : (
-                                <Text style={[styles.interactiveStepHeaderStepText, isLockedStep && styles.textSupporting]}>{index + 1}</Text>
-                            )}
-                        </PressableWithFeedback>
+                        <InteractiveStepButton
+                            stepNumber={index + 1}
+                            stepLabel={
+                                isCompletedStep && shouldAnnounceCompletedSteps
+                                    ? translate('completedStep', translate('stepCounter', index + 1, stepNames.length))
+                                    : translate('stepCounter', index + 1, stepNames.length)
+                            }
+                            currentStepDescription={isCurrentStep ? currentStepAccessibilityDescription : undefined}
+                            isCurrentStep={isCurrentStep}
+                            isLockedStep={isLockedStep}
+                            isCompletedStep={isCompletedStep}
+                            onPress={onStepSelected ? moveToStep : undefined}
+                        />
                         {hasUnion ? <View style={[styles.interactiveStepHeaderStepLine, isLockedLine && styles.interactiveStepHeaderLockedStepLine]} /> : null}
                     </View>
                 );
@@ -113,8 +115,6 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
     );
 }
 
-InteractiveStepSubHeader.displayName = 'InteractiveStepSubHeader';
-
 export type {InteractiveStepSubHeaderProps, InteractiveStepSubHeaderHandle};
 
-export default forwardRef(InteractiveStepSubHeader);
+export default InteractiveStepSubHeader;

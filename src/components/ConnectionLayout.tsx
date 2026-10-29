@@ -1,15 +1,22 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
+
 import type {AccessVariant} from '@pages/workspace/AccessOrNotFoundWrapper';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ConnectionName, PolicyFeatureName} from '@src/types/onyx/Policy';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+import {View} from 'react-native';
+
 import HeaderWithBackButton from './HeaderWithBackButton';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
@@ -22,7 +29,6 @@ type ConnectionLayoutProps = {
     /** Header title to be translated for the connection component */
     headerTitle?: TranslationPaths;
 
-    /** The subtitle to show in the header */
     headerSubtitle?: string;
 
     /** React nodes that will be shown */
@@ -31,8 +37,7 @@ type ConnectionLayoutProps = {
     /** Title to be translated for the connection component */
     title?: TranslationPaths;
 
-    /** The current policyID */
-    policyID: string;
+    policyID?: string;
 
     /** Defines which types of access should be verified */
     accessVariants?: AccessVariant[];
@@ -40,16 +45,11 @@ type ConnectionLayoutProps = {
     /** The current feature name that the user tries to get access to */
     featureName?: PolicyFeatureName;
 
-    /** The content container style of Scrollview */
+    /** The content container style of ScrollView */
     contentContainerStyle?: StyleProp<ViewStyle> | undefined;
 
-    /** Style of the title text */
     titleStyle?: StyleProp<TextStyle> | undefined;
-
-    /** Whether to include safe area padding bottom or not */
     shouldIncludeSafeAreaPaddingBottom?: boolean;
-
-    /** Whether to use ScrollView or not */
     shouldUseScrollView?: boolean;
 
     /** Used for dynamic header title translation with parameters */
@@ -58,17 +58,15 @@ type ConnectionLayoutProps = {
     /** Used for dynamic title translation with parameters */
     titleAlreadyTranslated?: string;
 
-    /** Name of the current connection */
     connectionName: ConnectionName;
-
-    /** Whether the screen should load for an empty connection */
     shouldLoadForEmptyConnection?: boolean;
-
-    /** Handler for back button press */
     onBackButtonPress?: () => void;
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
+
+    /** Whether or not to block user from accessing the page regardless of the connection state */
+    shouldBeForceBlocked?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -103,37 +101,35 @@ function ConnectionLayout({
     shouldLoadForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
+    shouldBeForceBlocked = false,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
-    const policy = PolicyUtils.getPolicy(policyID);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
-    const renderSelectionContent = useMemo(
-        () => (
-            <ConnectionLayoutContent
-                title={title}
-                titleStyle={titleStyle}
-                titleAlreadyTranslated={titleAlreadyTranslated}
-            >
-                {children}
-            </ConnectionLayoutContent>
-        ),
-        [title, titleStyle, children, titleAlreadyTranslated],
-    );
-
     const shouldBlockByConnection = shouldLoadForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
+
+    const selectionContent = (
+        <ConnectionLayoutContent
+            title={title}
+            titleStyle={titleStyle}
+            titleAlreadyTranslated={titleAlreadyTranslated}
+        >
+            {children}
+        </ConnectionLayoutContent>
+    );
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
+            shouldBeBlocked={(!!shouldBeBlocked && shouldBlockByConnection) || shouldBeForceBlocked}
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
-                shouldEnableMaxHeight
                 testID={displayName}
             >
                 <HeaderWithBackButton
@@ -142,14 +138,18 @@ function ConnectionLayout({
                     onBackButtonPress={onBackButtonPress}
                 />
                 {shouldUseScrollView ? (
-                    <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
+                    <ScrollView
+                        contentContainerStyle={contentContainerStyle}
+                        addBottomSafeAreaPadding
+                    >
+                        {selectionContent}
+                    </ScrollView>
                 ) : (
-                    <View style={contentContainerStyle}>{renderSelectionContent}</View>
+                    <View style={contentContainerStyle}>{selectionContent}</View>
                 )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
 
-ConnectionLayout.displayName = 'ConnectionLayout';
 export default ConnectionLayout;

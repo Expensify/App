@@ -1,15 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setContainsHeader} from '@libs/actions/ImportSpreadsheet';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ColumnRole} from './ImportColumn';
+
 import Button from './Button';
 import FixedFooter from './FixedFooter';
-import type {ColumnRole} from './ImportColumn';
 import ImportColumn from './ImportColumn';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScrollView from './ScrollView';
@@ -18,29 +24,45 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type ImportSpreadsheetColumnsProps = {
-    // An array of arrays containing strings, representing the spreadsheet data.
     spreadsheetColumns: string[][];
-
-    // An array of strings representing the names of the columns.
     columnNames: string[];
-
-    // An array of column roles to define the role of each column.
-    columnRoles: ColumnRole[];
-
-    // A function to perform the import operation.
-    importFunction: () => void;
-
-    // An optional Errors object containing any errors that may have occurred.
+    columnRoles?: ColumnRole[];
+    importFunction: () => void | Promise<void>;
     errors?: Errors | null;
-
-    // An optional boolean indicating whether the import button is in a loading state.
     isButtonLoading?: boolean;
 
-    // Link to learn more about the file preparation for import.
+    /** Link to learn more about the file preparation for import */
     learnMoreLink?: string;
+
+    shouldShowColumnHeader?: boolean;
+    shouldShowDropdownMenu?: boolean;
+
+    /**
+     * Whether each column may auto-detect its role from its header. Flows that compute the whole mapping in one
+     * coordinated pass (e.g. company cards) set this to false to avoid duplicate pre-selections.
+     */
+    shouldAutoDetectColumns?: boolean;
+
+    customHeaderText?: string;
+
+    /** An optional boolean indicating whether the import button should be disabled while offline. Defaults to true. */
+    shouldDisableButtonWhenOffline?: boolean;
 };
 
-function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles, errors, importFunction, isButtonLoading, learnMoreLink}: ImportSpreadsheetColumnsProps) {
+function ImportSpreadsheetColumns({
+    spreadsheetColumns,
+    columnNames,
+    columnRoles,
+    errors,
+    importFunction,
+    isButtonLoading,
+    learnMoreLink,
+    shouldShowColumnHeader = true,
+    shouldShowDropdownMenu = true,
+    shouldAutoDetectColumns = true,
+    customHeaderText,
+    shouldDisableButtonWhenOffline = true,
+}: ImportSpreadsheetColumnsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -52,21 +74,30 @@ function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles,
             <ScrollView>
                 <View style={styles.mh5}>
                     <Text>
-                        {translate('spreadsheet.importDescription')}
-                        <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>
+                        {customHeaderText ?? (
+                            <>
+                                {translate('spreadsheet.importDescription')}
+                                <TextLink href={learnMoreLink ?? ''}>{` ${translate('common.learnMore')}`}</TextLink>.
+                            </>
+                        )}
                     </Text>
-
-                    <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text>{translate('spreadsheet.fileContainsHeader')}</Text>
-
-                        <Switch
-                            accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
-                            isOn={containsHeader}
-                            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                            onToggle={setContainsHeader}
-                        />
-                    </View>
-
+                    {shouldShowColumnHeader && (
+                        <View style={[styles.mt7, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                            <Text
+                                style={[styles.flex1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('spreadsheet.fileContainsHeader')}
+                            </Text>
+                            <Switch
+                                accessibilityLabel={translate('spreadsheet.fileContainsHeader')}
+                                isOn={containsHeader}
+                                // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                                onToggle={setContainsHeader}
+                            />
+                        </View>
+                    )}
                     {spreadsheetColumns.map((column, index) => {
                         return (
                             <ImportColumn
@@ -75,32 +106,33 @@ function ImportSpreadsheetColumns({spreadsheetColumns, columnNames, columnRoles,
                                 columnName={columnNames.at(index) ?? ''}
                                 columnRoles={columnRoles}
                                 columnIndex={index}
+                                shouldShowDropdownMenu={shouldShowDropdownMenu}
+                                shouldAutoDetectColumn={shouldAutoDetectColumns}
                             />
                         );
                     })}
                 </View>
             </ScrollView>
-            <FixedFooter>
+            <FixedFooter addBottomSafeAreaPadding>
                 <OfflineWithFeedback
                     shouldDisplayErrorAbove
                     errors={errors}
                     errorRowStyles={styles.mv2}
-                    canDismissError={false}
                 >
                     <Button
-                        text={translate('common.import')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={importFunction}
                         isLoading={isButtonLoading}
-                        isDisabled={isOffline}
-                        success
-                        large
-                    />
+                        isDisabled={shouldDisableButtonWhenOffline && isOffline}
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('common.import')}</Button.Text>
+                    </Button>
                 </OfflineWithFeedback>
             </FixedFooter>
         </>
     );
 }
-
-ImportSpreadsheetColumns.displayName = 'ImportSpreadsheetColumns';
 
 export default ImportSpreadsheetColumns;

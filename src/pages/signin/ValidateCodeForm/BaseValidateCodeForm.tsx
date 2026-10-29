@@ -1,41 +1,55 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import SafariFormWrapper from '@components/Form/SafariFormWrapper';
 import FormHelpMessage from '@components/FormHelpMessage';
-import type {MagicCodeInputHandle} from '@components/MagicCodeInput';
-import MagicCodeInput from '@components/MagicCodeInput';
+import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
+import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
+import type {ValidateCodeInputHandle} from '@components/ValidateCodeInput';
+import ValidateCodeInput from '@components/ValidateCodeInput';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@libs/ValidationUtils';
+
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
-import * as SessionActions from '@userActions/Session';
-import * as User from '@userActions/User';
+
+import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
+import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useIsFocused} from '@react-navigation/native';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type ValidateCodeFormProps from './types';
 
 type BaseValidateCodeFormProps = WithToggleVisibilityViewProps &
     ValidateCodeFormProps & {
         /** Specifies autocomplete hints for the system, so it can provide autofill */
-        autoComplete: 'sms-otp' | 'one-time-code';
+        autoComplete: typeof CONST.AUTO_COMPLETE_VARIANTS.SMS_OTP | typeof CONST.AUTO_COMPLETE_VARIANTS.ONE_TIME_CODE;
     };
 
 type BaseValidateCodeFormRef = {
@@ -46,28 +60,31 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
-function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
+function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible, ref}: BaseValidateCodeFormProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
     const [formError, setFormError] = useState<FormError>({});
     const [validateCode, setValidateCode] = useState(credentials?.validateCode ?? '');
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
-    const [timeRemaining, setTimeRemaining] = useState(CONST.REQUEST_CODE_DELAY as number);
     const [recoveryCode, setRecoveryCode] = useState('');
     const [needToClearError, setNeedToClearError] = useState<boolean>(!!account?.errors);
+    const [isCountdownRunning, setIsCountdownRunning] = useState(true);
+    const StyleUtils = useStyleUtils();
+    const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exclamation']);
 
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
 
-    const inputValidateCodeRef = useRef<MagicCodeInputHandle>();
-    const input2FARef = useRef<MagicCodeInputHandle>();
-    const timerRef = useRef<NodeJS.Timeout>();
+    const inputValidateCodeRef = useRef<ValidateCodeInputHandle | undefined>(undefined);
+    const input2FARef = useRef<ValidateCodeInputHandle | undefined>(undefined);
+    const countdownRef = useRef<ValidateCodeCountdownHandle | null>(null);
 
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;
@@ -85,7 +102,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         if (!inputValidateCodeRef.current || !canFocusInputOnScreenFocus() || !isVisible || !isFocused) {
             return;
         }
-        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
+        setIsCountdownRunning(true);
+        countdownRef.current?.resetCountdown();
         inputValidateCodeRef.current.focus();
     }, [isVisible, isFocused]);
 
@@ -108,25 +126,14 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             return;
         }
         inputValidateCodeRef.current.clear();
-    }, [validateCode]);
+    }, [validateCode.length]);
 
     useEffect(() => {
         if (!input2FARef.current || twoFactorAuthCode.length > 0) {
             return;
         }
         input2FARef.current.clear();
-    }, [twoFactorAuthCode]);
-
-    useEffect(() => {
-        if (timeRemaining > 0) {
-            timerRef.current = setTimeout(() => {
-                setTimeRemaining(timeRemaining - 1);
-            }, 1000);
-        }
-        return () => {
-            clearTimeout(timerRef.current);
-        };
-    }, [timeRemaining]);
+    }, [twoFactorAuthCode.length]);
 
     /**
      * Handle text input and clear formError upon text change
@@ -145,7 +152,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         setFormError((prevError) => ({...prevError, [key]: undefined}));
 
         if (account?.errors) {
-            SessionActions.clearAccountMessages();
+            clearAccountMessages();
         }
     };
 
@@ -153,32 +160,33 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      * Trigger the reset validate code flow and ensure the 2FA input field is reset to avoid it being permanently hidden
      */
     const resendValidateCode = () => {
-        User.resendValidateCode(credentials?.login ?? '');
+        userActionsResendValidateCode({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SIGN_IN}, credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
-        setTimeRemaining(CONST.REQUEST_CODE_DELAY);
+        countdownRef.current?.resetCountdown();
+        setIsCountdownRunning(true);
     };
 
     /**
      * Clear local sign in states
      */
-    const clearLocalSignInData = useCallback(() => {
+    const clearLocalSignInData = () => {
         setTwoFactorAuthCode('');
         setFormError({});
         setValidateCode('');
         setIsUsingRecoveryCode(false);
         setRecoveryCode('');
-    }, [setIsUsingRecoveryCode]);
+    };
 
     /**
      * Clears local and Onyx sign in states
      */
-    const clearSignInData = useCallback(() => {
+    const clearSignInData = () => {
         clearLocalSignInData();
-        SessionActions.clearSignInData();
-    }, [clearLocalSignInData]);
+        sessionActionsClearSignInData();
+    };
 
-    useImperativeHandle(forwardedRef, () => ({
+    useImperativeHandle(ref, () => ({
         clearSignInData,
     }));
 
@@ -188,7 +196,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         }
 
         if (account?.errors) {
-            SessionActions.clearAccountMessages();
+            clearAccountMessages();
             return;
         }
         setNeedToClearError(false);
@@ -206,9 +214,17 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         setFormError((prevError) => ({...prevError, recoveryCode: undefined, twoFactorAuthCode: undefined}));
 
         if (account?.errors) {
-            SessionActions.clearAccountMessages();
+            clearAccountMessages();
         }
     };
+
+    useEffect(() => {
+        if (!isCountdownRunning) {
+            return;
+        }
+
+        countdownRef.current?.resetCountdown();
+    }, [isCountdownRunning]);
 
     useEffect(() => {
         if (!isLoadingResendValidationForm) {
@@ -216,8 +232,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         }
         clearLocalSignInData();
         // `clearLocalSignInData` is not required as a dependency, and adding it
-        // overcomplicates things requiring clearLocalSignInData function to use useCallback
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        // over complicates things requiring clearLocalSignInData function to use useCallback
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingResendValidationForm]);
 
     useEffect(() => {
@@ -231,15 +247,15 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = useCallback(() => {
+    const validateAndSubmitForm = () => {
         if (account?.isLoading) {
             return;
         }
         if (account?.errors) {
-            SessionActions.clearAccountMessages();
+            clearAccountMessages();
         }
         const requiresTwoFactorAuth = account?.requiresTwoFactorAuth;
-        if (requiresTwoFactorAuth) {
+        if (requiresTwoFactorAuth && !!credentials?.validateCode) {
             if (input2FARef.current) {
                 input2FARef.current.blur();
             }
@@ -251,7 +267,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     setFormError({twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'});
                     return;
                 }
-                if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
+                if (!isValidTwoFactorCode(twoFactorAuthCode)) {
                     setFormError({twoFactorAuthCode: 'passwordForm.error.incorrect2fa'});
                     return;
                 }
@@ -260,7 +276,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     setFormError({recoveryCode: 'recoveryCodeForm.error.pleaseFillRecoveryCode'});
                     return;
                 }
-                if (!ValidationUtils.isValidRecoveryCode(recoveryCode)) {
+                if (!isValidRecoveryCode(recoveryCode)) {
                     setFormError({recoveryCode: 'recoveryCodeForm.error.incorrectRecoveryCode'});
                     return;
                 }
@@ -270,11 +286,11 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 inputValidateCodeRef.current.blur();
             }
             if (!validateCode.trim()) {
-                setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
+                setFormError({validateCode: 'validateCodeForm.error.pleaseFillSecurityCode'});
                 return;
             }
-            if (!ValidationUtils.isValidValidateCode(validateCode)) {
-                setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
+            if (!isValidValidateCode(validateCode)) {
+                setFormError({validateCode: 'validateCodeForm.error.incorrectSecurityCode'});
                 return;
             }
         }
@@ -284,20 +300,23 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
 
         const accountID = credentials?.accountID;
         if (accountID) {
-            SessionActions.signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
+            signInWithValidateCode(accountID, validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.validateCode, credentials?.authToken);
         } else {
-            SessionActions.signIn(validateCode, recoveryCodeOr2faCode);
+            signIn(validateCode, preferredLocale, recoveryCodeOr2faCode, credentials?.login, credentials?.validateCode, credentials?.authToken);
         }
-    }, [account, credentials, twoFactorAuthCode, validateCode, isUsingRecoveryCode, recoveryCode]);
+    };
+
+    const handleCountdownFinish = () => {
+        setIsCountdownRunning(false);
+    };
 
     return (
         <SafariFormWrapper>
-            {/* At this point, if we know the account requires 2FA we already successfully authenticated */}
-            {account?.requiresTwoFactorAuth ? (
+            {/* At this point, show 2FA only after the user has submitted a validateCode and account requires 2FA */}
+            {account?.requiresTwoFactorAuth && !!credentials?.validateCode ? (
                 <View style={[styles.mv3]}>
                     {isUsingRecoveryCode ? (
                         <TextInput
-                            shouldDelayFocus
                             accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
                             value={recoveryCode}
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
@@ -309,14 +328,13 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             autoFocus
                         />
                     ) : (
-                        <MagicCodeInput
-                            shouldDelayFocus
+                        <ValidateCodeInput
                             autoComplete={autoComplete}
-                            ref={(magicCodeInput) => {
-                                if (!magicCodeInput) {
+                            ref={(validateCodeInput) => {
+                                if (!validateCodeInput) {
                                     return;
                                 }
-                                input2FARef.current = magicCodeInput;
+                                input2FARef.current = validateCodeInput;
                             }}
                             name="twoFactorAuthCode"
                             value={twoFactorAuthCode}
@@ -329,7 +347,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             key="twoFactorAuthCode"
                         />
                     )}
-                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
+                    {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                     <PressableWithFeedback
                         key={isUsingRecoveryCode.toString()}
                         style={[styles.mt2]}
@@ -338,19 +356,20 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         disabled={isValidateCodeFormSubmitting}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}
+                        sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.SWITCH_BETWEEN_METHODS}
                     >
                         <Text style={[styles.link]}>{isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}</Text>
                     </PressableWithFeedback>
                 </View>
             ) : (
                 <View style={[styles.mv3]}>
-                    <MagicCodeInput
+                    <ValidateCodeInput
                         autoComplete={autoComplete}
-                        ref={(magicCodeInput) => {
-                            if (!magicCodeInput) {
+                        ref={(validateCodeInput) => {
+                            if (!validateCodeInput) {
                                 return;
                             }
-                            inputValidateCodeRef.current = magicCodeInput;
+                            inputValidateCodeRef.current = validateCodeInput;
                         }}
                         name="validateCode"
                         value={validateCode}
@@ -362,13 +381,15 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         key="validateCode"
                         testID="validateCode"
                     />
-                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
+                    {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                     <View style={[styles.alignItemsStart]}>
-                        {timeRemaining > 0 && !isOffline ? (
-                            <Text style={[styles.mt2]}>
-                                {translate('validateCodeForm.requestNewCode')}
-                                <Text style={[styles.textBlue]}>00:{String(timeRemaining).padStart(2, '0')}</Text>
-                            </Text>
+                        {isCountdownRunning && !isOffline ? (
+                            <View style={[styles.mt2, styles.flexRow, styles.renderHTML]}>
+                                <ValidateCodeCountdown
+                                    ref={countdownRef}
+                                    onCountdownFinish={handleCountdownFinish}
+                                />
+                            </View>
                         ) : (
                             <PressableWithFeedback
                                 style={[styles.mt2]}
@@ -377,26 +398,40 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                                 hoverDimmingValue={1}
                                 pressDimmingValue={0.2}
                                 role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                                accessibilityLabel={translate('validateCodeForm.securityCodeNotReceived')}
+                                sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.RESEND_CODE}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>
-                                    {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate('validateCodeForm.magicCodeNotReceived')}
+                                    {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate('validateCodeForm.securityCodeNotReceived')}
                                 </Text>
                             </PressableWithFeedback>
                         )}
                     </View>
+                    <View style={[styles.mt5, styles.flexRow, styles.alignItemsCenter]}>
+                        <View style={[styles.mr3]}>
+                            <Icon
+                                src={expensifyIcons.Exclamation}
+                                fill={theme.icon}
+                                size={CONST.ICON_SIZE.MEDIUM}
+                            />
+                        </View>
+                        <View style={styles.flex1}>
+                            <RenderHTML html={translate('validateCodeForm.avoidScamsMessage')} />
+                        </View>
+                    </View>
                 </View>
             )}
             <View>
-                <Button
-                    isDisabled={isOffline}
-                    success
-                    large
+                <ButtonDisabledWhenOffline
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.mv3]}
-                    text={translate('common.signIn')}
                     isLoading={isValidateCodeFormSubmitting}
                     onPress={validateAndSubmitForm}
-                />
+                    sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.SIGN_IN_BUTTON}
+                >
+                    <Button.Text>{translate('common.signIn')}</Button.Text>
+                </ButtonDisabledWhenOffline>
                 <ChangeExpensifyLoginLink onPress={clearSignInData} />
             </View>
             <View style={[styles.mt5, styles.signInPageWelcomeTextContainer]}>
@@ -406,8 +441,8 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     );
 }
 
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
+BaseValidateCodeForm.displayName = 'SignInBaseValidateCodeForm';
 
-export default withToggleVisibilityView(forwardRef(BaseValidateCodeForm));
+export default withToggleVisibilityView(BaseValidateCodeForm);
 
 export type {BaseValidateCodeFormRef};

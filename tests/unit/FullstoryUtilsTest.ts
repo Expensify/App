@@ -1,0 +1,147 @@
+/* eslint-disable @typescript-eslint/naming-convention -- Test assertions use FullStory's external snake_case keys. */
+import CONST from '@src/CONST';
+import {buildFullstoryUserVars, buildPageViewedEvent, getOnboardingStep} from '@src/libs/Fullstory/utils';
+import ROUTES from '@src/ROUTES';
+
+import createRandomPolicy from '../utils/collections/policies';
+
+describe('FullstoryUtils', () => {
+    it('builds expected FullStory user vars from onboarding and workspace context', () => {
+        const freeTrialEndDate = new Date('2099-05-31T23:59:59Z');
+
+        const policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test Workspace'),
+            role: CONST.POLICY.ROLE.ADMIN,
+            pendingAction: undefined,
+            employeeList: {
+                1: {email: 'a@test.com'},
+                2: {email: 'b@test.com'},
+            },
+        };
+
+        const userVars = buildFullstoryUserVars({
+            account: {isFromPublicDomain: true},
+            activePolicy: policy,
+            introSelected: {
+                choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                companySize: '1-10',
+            },
+            onboarding: {
+                hasCompletedGuidedSetupFlow: false,
+                signupQualifier: CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB,
+            },
+            onboardingCompanySize: '1-10',
+            onboardingLastVisitedPath: '/onboarding/workspace',
+            onboardingPurposeSelected: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+            policies: {
+                [`policy_${policy.id}`]: policy,
+            },
+            session: {email: 'test@test.com'},
+            userMetadata: {
+                freeTrialEndDate: '2099-05-31 23:59:59',
+                paidMember: true,
+            },
+        });
+
+        expect(userVars).toMatchObject({
+            user_type_path: 'team_1_10_public',
+            account_type: 'business',
+            user_status: 'new',
+            has_completed_onboarding: false,
+            onb_step: 'registration',
+            user_role: 'admin',
+            workspace_state: 'has_workspaces',
+            workspace_count: 1,
+            workspace_member_count: 2,
+            free_trial_end_date: freeTrialEndDate,
+            free_trial_status: 'active',
+            plan_type: 'collect',
+            paid_member: true,
+        });
+        expect(userVars.days_till_trial_end).toBeGreaterThan(0);
+        expect(userVars.free_trial_end_date?.toISOString()).toBe('2099-05-31T23:59:59.000Z');
+    });
+
+    it('builds page viewed event metadata', () => {
+        expect(buildPageViewedEvent('OnboardingWorkspaces', ROUTES.ONBOARDING_WORKSPACES.route, ROUTES.HOME)).toEqual({
+            screen_name: 'OnboardingWorkspaces',
+            entry_point: ROUTES.HOME,
+            onb_step: 'registration',
+        });
+    });
+
+    it('returns completed onboarding step when flow is finished', () => {
+        expect(getOnboardingStep('/settings/workspaces', true)).toBe('completed');
+    });
+
+    it('does not treat unrelated paths containing onboarding as registration', () => {
+        expect(getOnboardingStep('/settings/onboarding-foo')).toBeUndefined();
+    });
+
+    it('prefers active policies when deriving the user role', () => {
+        const role = buildFullstoryUserVars({
+            account: {isFromPublicDomain: true},
+            activePolicy: undefined,
+            introSelected: undefined,
+            onboarding: undefined,
+            onboardingCompanySize: undefined,
+            onboardingLastVisitedPath: undefined,
+            onboardingPurposeSelected: undefined,
+            policies: {
+                policy_1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Inactive Workspace'),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            },
+            session: {email: 'test@test.com'},
+            userMetadata: {},
+        });
+
+        expect(role.user_role).toBe('member');
+    });
+
+    it('reports Guest as the lowest workspace role', () => {
+        const guestPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.GUEST};
+        const auditorPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.AUDITOR};
+        const memberPolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER};
+        const commonInput = {
+            account: {isFromPublicDomain: true},
+            activePolicy: guestPolicy,
+            introSelected: undefined,
+            onboarding: undefined,
+            onboardingCompanySize: undefined,
+            onboardingLastVisitedPath: undefined,
+            onboardingPurposeSelected: undefined,
+            session: {email: 'test@test.com'},
+            userMetadata: {},
+        };
+
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_1: guestPolicy}}).user_role).toBe('guest');
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_1: guestPolicy, policy_2: auditorPolicy}}).user_role).toBe('auditor');
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_1: guestPolicy, policy_3: memberPolicy}}).user_role).toBe('member');
+    });
+
+    it('ranks scoped admin roles above auditor and member', () => {
+        const paymentsAdminPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.PAYMENTS_ADMIN};
+        const cardAdminPolicy = {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.CARD_ADMIN};
+        const peopleAdminPolicy = {...createRandomPolicy(3, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.PEOPLE_ADMIN};
+        const auditorPolicy = {...createRandomPolicy(4, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.AUDITOR};
+        const memberPolicy = {...createRandomPolicy(5, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.USER};
+        const commonInput = {
+            account: {isFromPublicDomain: true},
+            activePolicy: memberPolicy,
+            introSelected: undefined,
+            onboarding: undefined,
+            onboardingCompanySize: undefined,
+            onboardingLastVisitedPath: undefined,
+            onboardingPurposeSelected: undefined,
+            session: {email: 'test@test.com'},
+            userMetadata: {},
+        };
+
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_5: memberPolicy, policy_4: auditorPolicy, policy_3: peopleAdminPolicy}}).user_role).toBe('peopleAdmin');
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_5: memberPolicy, policy_2: cardAdminPolicy, policy_3: peopleAdminPolicy}}).user_role).toBe('cardAdmin');
+        expect(buildFullstoryUserVars({...commonInput, policies: {policy_5: memberPolicy, policy_1: paymentsAdminPolicy, policy_2: cardAdminPolicy}}).user_role).toBe('paymentsAdmin');
+    });
+});

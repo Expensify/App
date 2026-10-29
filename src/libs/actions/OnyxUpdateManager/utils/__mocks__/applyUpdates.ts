@@ -1,33 +1,42 @@
-import Onyx from 'react-native-onyx';
-import type {DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnyDeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
+
+import * as OnyxUpdates from '@userActions/OnyxUpdates';
+
 import createProxyForObject from '@src/utils/createProxyForObject';
 
-let lastUpdateIDAppliedToClient = 0;
-Onyx.connect({
-    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback: (value) => (lastUpdateIDAppliedToClient = value ?? 0),
-});
+jest.mock('@userActions/OnyxUpdates');
 
 type ApplyUpdatesMockValues = {
-    onApplyUpdates: ((updates: DeferredUpdatesDictionary) => Promise<void>) | undefined;
+    beforeApplyUpdates: ((updates: AnyDeferredUpdatesDictionary) => Promise<void>) | undefined;
 };
 
 type ApplyUpdatesMock = {
-    applyUpdates: jest.Mock<Promise<[]>, [updates: DeferredUpdatesDictionary]>;
+    applyUpdates: jest.Mock<Promise<[]>, [updates: AnyDeferredUpdatesDictionary]>;
     mockValues: ApplyUpdatesMockValues;
 };
 
 const mockValues: ApplyUpdatesMockValues = {
-    onApplyUpdates: undefined,
+    beforeApplyUpdates: undefined,
 };
 const mockValuesProxy = createProxyForObject(mockValues);
 
-const applyUpdates = jest.fn((updates: DeferredUpdatesDictionary) => {
-    const lastUpdateIdFromUpdates = Math.max(...Object.keys(updates).map(Number));
-    return (mockValuesProxy.onApplyUpdates === undefined ? Promise.resolve() : mockValuesProxy.onApplyUpdates(updates)).then(() =>
-        Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, Math.max(lastUpdateIDAppliedToClient, lastUpdateIdFromUpdates)),
-    );
+const applyUpdates = jest.fn((updates: AnyDeferredUpdatesDictionary) => {
+    const createChain = () => {
+        let chain = Promise.resolve();
+        for (const update of Object.values(updates)) {
+            chain = chain.then(() => {
+                return OnyxUpdates.apply(update).then(() => undefined);
+            });
+        }
+
+        return chain;
+    };
+
+    if (mockValuesProxy.beforeApplyUpdates === undefined) {
+        return createChain();
+    }
+
+    return mockValuesProxy.beforeApplyUpdates(updates).then(() => createChain());
 });
 
 export {applyUpdates, mockValuesProxy as mockValues};

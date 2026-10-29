@@ -1,73 +1,83 @@
-import Onyx from 'react-native-onyx';
 import type * as AppImport from '@libs/actions/App';
-import type * as ApplyUpdatesImport from '@libs/actions/OnyxUpdateManager/utils/applyUpdates';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+
+import * as OnyxUpdates from '@userActions/OnyxUpdates';
+
+import type {OnyxUpdatesFromServer, Response as OnyxResponse} from '@src/types/onyx';
 import createProxyForObject from '@src/utils/createProxyForObject';
 
-const AppImplementation = jest.requireActual<typeof AppImport>('@libs/actions/App');
-const {
-    setLocale,
-    setLocaleAndNavigate,
-    setSidebarLoaded,
-    setUpPoliciesAndNavigate,
-    redirectThirdPartyDesktopSignIn,
-    openApp,
-    reconnectApp,
-    confirmReadyToOpenApp,
-    handleRestrictedEvent,
-    beginDeepLinkRedirect,
-    beginDeepLinkRedirectAfterTransition,
-    finalReconnectAppAfterActivatingReliableUpdates,
-    savePolicyDraftByNewWorkspace,
-    createWorkspaceWithPolicyDraftAndNavigateToIt,
-    updateLastVisitedPath,
-    KEYS_TO_PRESERVE,
-} = AppImplementation;
+import type {OnyxKey} from 'react-native-onyx';
 
-type AppMockValues = {
-    missingOnyxUpdatesToBeApplied: OnyxUpdatesFromServer[] | undefined;
+jest.mock('@libs/actions/OnyxUpdates');
+jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
+
+const AppImplementation = jest.requireActual<typeof AppImport>('@libs/actions/App');
+const {setLocale, setSidebarLoaded, openApp, handleRestrictedEvent, finalReconnectAppAfterActivatingReliableUpdates, updateLastVisitedPath, KEYS_TO_PRESERVE} = AppImplementation;
+
+type AppMockValues<TKey extends OnyxKey = never> = {
+    missingOnyxUpdatesToBeApplied: Array<OnyxUpdatesFromServer<TKey>> | undefined;
+    missingOnyxUpdatesResponse: OnyxResponse<never> | undefined;
 };
 
-type AppActionsMock = typeof AppImport & {
-    getMissingOnyxUpdates: jest.Mock<Promise<Response[] | void[]>>;
-    mockValues: AppMockValues;
+type AppActionsMock<TKey extends OnyxKey = never> = typeof AppImport & {
+    getMissingOnyxUpdates: jest.Mock<Promise<OnyxResponse<never> | undefined | void>, [updateIDFrom?: number, updateIDTo?: number | string]>;
+    reconnectApp: jest.Mock<void, [number?]>;
+    reconnectAppWithSideEffects: jest.Mock<Promise<void>, [number?]>;
+    mockValues: AppMockValues<TKey>;
 };
 
 const mockValues: AppMockValues = {
     missingOnyxUpdatesToBeApplied: undefined,
+    missingOnyxUpdatesResponse: undefined,
 };
 const mockValuesProxy = createProxyForObject(mockValues);
 
-const ApplyUpdatesImplementation = jest.requireActual<typeof ApplyUpdatesImport>('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
-const getMissingOnyxUpdates = jest.fn((_fromID: number, toID: number) => {
-    if (mockValuesProxy.missingOnyxUpdatesToBeApplied === undefined) {
-        return Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, toID);
+const reconnectApp = jest.fn();
+const reconnectAppWithSideEffects = jest.fn(() => Promise.resolve());
+
+const getMissingOnyxUpdates = jest.fn((updateIDFrom: number, updateIDTo: number) => {
+    // When a response is set, the server answers without serving the requested range: nothing is applied.
+    if (mockValuesProxy.missingOnyxUpdatesResponse !== undefined) {
+        return Promise.resolve(mockValuesProxy.missingOnyxUpdatesResponse);
     }
 
-    return ApplyUpdatesImplementation.applyUpdates(mockValuesProxy.missingOnyxUpdatesToBeApplied);
+    const updates = mockValuesProxy.missingOnyxUpdatesToBeApplied ?? [];
+    if (updates.length === 0) {
+        for (let i = updateIDFrom + 1; i <= updateIDTo; i++) {
+            updates.push({
+                lastUpdateID: i,
+                previousUpdateID: i - 1,
+            } as OnyxUpdatesFromServer<never>);
+        }
+    }
+
+    let chain = Promise.resolve();
+    for (const update of updates) {
+        chain = chain.then(() => {
+            if (!OnyxUpdates.doesClientNeedToBeUpdated({previousUpdateID: Number(update.previousUpdateID)})) {
+                return OnyxUpdates.apply(update).then(() => undefined);
+            }
+
+            OnyxUpdates.saveUpdateInformation(update);
+            return Promise.resolve();
+        });
+    }
+
+    return chain;
 });
 
 export {
     // Mocks
     getMissingOnyxUpdates,
+    reconnectApp,
+    reconnectAppWithSideEffects,
     mockValuesProxy as mockValues,
 
     // Actual App implementation
     setLocale,
-    setLocaleAndNavigate,
     setSidebarLoaded,
-    setUpPoliciesAndNavigate,
-    redirectThirdPartyDesktopSignIn,
     openApp,
-    reconnectApp,
-    confirmReadyToOpenApp,
     handleRestrictedEvent,
-    beginDeepLinkRedirect,
-    beginDeepLinkRedirectAfterTransition,
     finalReconnectAppAfterActivatingReliableUpdates,
-    savePolicyDraftByNewWorkspace,
-    createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     KEYS_TO_PRESERVE,
 };

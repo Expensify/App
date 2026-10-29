@@ -1,10 +1,10 @@
 /** Model of frequently used emoji */
 type FrequentlyUsedEmoji = {
-    /** The emoji code */
     code: string;
-
-    /** The name of the emoji */
     name: string;
+
+    /** Canonical Unicode hexcode when populated from hydrated picker emoji data */
+    hexcode?: string;
 
     /** The number of times the emoji has been used */
     count: number;
@@ -15,7 +15,6 @@ type FrequentlyUsedEmoji = {
     /** The emoji skin tone type */
     types?: readonly string[];
 
-    /** The emoji keywords */
     keywords?: string[];
 };
 

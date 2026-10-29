@@ -13,30 +13,30 @@ type PluralForm = {
 };
 
 /**
- * Retrieves the first argument of a function
+ * Translation value can be a string or a function that returns a string.
+ *
+ * When the English entry returns a `PluralForm`, every other locale must return one too. Returning a
+ * plain string there type-checks but silently disables pluralization: `getTranslatedPhrase` returns
+ * the string before it ever selects a plural category, so that locale renders one fixed form for
+ * every count. The `[Return] extends [PluralForm]` wrapper keeps the check non-distributive, so an
+ * English entry that returns `string | PluralForm` stays permissive.
+ *
+ * The reverse is deliberately allowed: a locale may return a `PluralForm` where English returns a
+ * plain string, since a language can need plural forms that English does not.
  */
-type FirstArgument<TFunction> = TFunction extends (arg: infer A, ...args: any[]) => any ? A : never;
-
-/**
- * Translation value can be a string or a function that returns a string
- */
-type TranslationLeafValue<TStringOrFunction> = TStringOrFunction extends string
-    ? string
-    : (
-          arg: FirstArgument<TStringOrFunction> extends Record<string, unknown> | undefined ? FirstArgument<TStringOrFunction> : Record<string, unknown>,
-          ...noOtherArguments: unknown[]
-      ) => string | PluralForm;
+type TranslationLeafValue<TStringOrFunction> = TStringOrFunction extends (...args: infer Args) => infer Return
+    ? (...args: Args) => [Return] extends [PluralForm] ? PluralForm : string | PluralForm
+    : string;
 
 /**
  * Translation object is a recursive object that can contain other objects or string/function values
  */
 type TranslationDeepObject<TTranslations = any> = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Path in keyof TTranslations]: TTranslations[Path] extends string | ((...args: any[]) => any)
         ? TranslationLeafValue<TTranslations[Path]>
         : TTranslations[Path] extends number | boolean | null | undefined | unknown[]
-        ? string
-        : TranslationDeepObject<TTranslations[Path]>;
+          ? string
+          : TranslationDeepObject<TTranslations[Path]>;
 };
 
 /**
@@ -47,12 +47,12 @@ type TranslationDeepObject<TTranslations = any> = {
  * Output: "common.yes" | "common.no"
  */
 type FlattenObject<TObject, TPrefix extends string = ''> = {
-    [TKey in keyof TObject]: TObject[TKey] extends (arg: any) => any
+    [TKey in keyof TObject]: TObject[TKey] extends (...args: any[]) => any
         ? `${TPrefix}${TKey & string}`
-        : // eslint-disable-next-line @typescript-eslint/ban-types
-        TObject[TKey] extends object
-        ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
-        : `${TPrefix}${TKey & string}`;
+        : // eslint-disable-next-line @typescript-eslint/no-restricted-types
+          TObject[TKey] extends object
+          ? FlattenObject<TObject[TKey], `${TPrefix}${TKey & string}.`>
+          : `${TPrefix}${TKey & string}`;
 }[keyof TObject];
 
 /**
@@ -61,10 +61,10 @@ type FlattenObject<TObject, TPrefix extends string = ''> = {
 type TranslationValue<TObject, TKey extends string> = TKey extends keyof TObject
     ? TObject[TKey]
     : TKey extends `${infer TPathKey}.${infer TRest}`
-    ? TPathKey extends keyof TObject
-        ? TranslationValue<TObject[TPathKey], TRest>
-        : never
-    : never;
+      ? TPathKey extends keyof TObject
+          ? TranslationValue<TObject[TPathKey], TRest>
+          : never
+      : never;
 
 /**
  * English is the default translation, other languages will be type-safe based on this
@@ -88,10 +88,12 @@ type FlatTranslationsObject = {
  */
 type TranslationParameters<TKey extends TranslationPaths> = FlatTranslationsObject[TKey] extends (...args: infer Args) => infer Return
     ? Return extends PluralForm
-        ? Args[0] extends undefined
+        ? Args extends []
             ? [PluralParams]
-            : [Args[0] & PluralParams]
+            : Args extends [infer First, ...infer Rest]
+              ? [First & PluralParams, ...Rest]
+              : never
         : Args
     : never[];
 
-export type {DefaultTranslation, TranslationDeepObject, TranslationPaths, PluralForm, TranslationValue, FlatTranslationsObject, TranslationParameters};
+export type {TranslationDeepObject, TranslationPaths, PluralForm, FlatTranslationsObject, TranslationParameters};

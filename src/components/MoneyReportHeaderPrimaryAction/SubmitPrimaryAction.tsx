@@ -1,0 +1,292 @@
+import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
+import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
+import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+
+import {search} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
+import {isSubmitViaPDFAction} from '@libs/ReportPrimaryActionUtils';
+import {
+    hasViolations as hasViolationsReportUtils,
+    shouldBlockSubmitDueToDeletedWorkspace,
+    shouldBlockSubmitDueToPreventSelfApproval,
+    shouldBlockSubmitDueToStrictPolicyRules,
+    shouldShowMarkAsDone,
+} from '@libs/ReportUtils';
+import {hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+
+import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {loginSelector} from '@src/selectors/PersonalDetails';
+
+import type {ValueOf} from 'type-fest';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {getArchiveReason} from '@selectors/Report';
+import React from 'react';
+
+const ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
+type SubmitPrimaryActionProps = {
+    reportID: string | undefined;
+    /** Disables the Submit button, e.g. while expenses are selected */
+    isDisabled?: boolean;
+};
+
+type SubmissionMethod = ValueOf<typeof CONST.REPORT.SUBMISSION_METHOD>;
+
+function SubmitPrimaryAction({reportID, isDisabled}: SubmitPrimaryActionProps) {
+    const {startSubmittingAnimation} = usePaymentAnimationsContext();
+
+    return (
+        <ReportSubmitToPopoverAnchor
+            reportID={reportID}
+            onSubmitSuccess={startSubmittingAnimation}
+            anchorAlignment={ANCHOR_ALIGNMENT}
+        >
+            <SubmitPrimaryActionContent
+                reportID={reportID}
+                isDisabled={isDisabled}
+            />
+        </ReportSubmitToPopoverAnchor>
+    );
+}
+
+function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionProps) {
+    const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
+    const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {isOffline} = useNetwork();
+    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
+    const openReportSubmitToPopover = useOpenReportSubmitToPopover();
+    const {openPDFDownload, showOfflineModal} = useMoneyReportHeaderModals();
+
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
+    const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`, {selector: getArchiveReason});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const delegateAccountID = useDelegateAccountID();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [preferredSubmissionMethod] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const transactions = Object.values(reportTransactions);
+    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
+    const isDEWSubmission = hasDynamicExternalWorkflow(policy);
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
+        policy,
+        report: moneyRequestReport,
+        isTrackIntentUser,
+        rules,
+    });
+
+    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
+        reportID: moneyRequestReport?.reportID,
+        report: moneyRequestReport,
+        policy,
+        shouldShowMarkAsDoneCopy,
+    });
+
+    const {showConfirmModal} = useConfirmModal();
+
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules);
+    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
+        moneyRequestReport?.reportID,
+        violations,
+        areStrictPolicyRulesEnabled,
+        accountID,
+        email ?? '',
+        transactions,
+    );
+    const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+    const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
+
+    // Submit via PDF is offered for any draft report the current user submits on a Submit workspace. The PDF flow
+    // submits the report to the submitter, which is what makes the backend generate it.
+    const canSubmitViaPDF = !!moneyRequestReport && isSubmitViaPDFAction(moneyRequestReport, accountID, policy);
+
+    const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
+    const {currentSearchResults} = useSearchResultsContext();
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
+
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'Document']);
+
+    const handleSubmit = (shouldExportToPDF = false) => {
+        if (!moneyRequestReport || shouldBlockSubmit) {
+            return;
+        }
+
+        // The PDF is rendered server-side, so Submit via PDF can't work offline. Show the offline modal instead of
+        // opening a PDF modal that would spin indefinitely (mirrors the Download PDF action's offline handling).
+        if (shouldExportToPDF && isOffline) {
+            showOfflineModal();
+            return;
+        }
+
+        if (hasOnlyPendingCardTransactions(transactions)) {
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
+            return;
+        }
+
+        if (!shouldExportToPDF && isSubmitPolicy(policy) && reportID) {
+            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
+                openReportSubmitToPopover({shouldResolveAcknowledgedViolations});
+            });
+            return;
+        }
+
+        confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
+            submitReport({
+                getCurrencyDecimals,
+                expenseReport: moneyRequestReport,
+                expenseReportTransactions: transactions,
+                policy,
+                rules,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                shouldResolveAcknowledgedViolations,
+                // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
+                // billing-restriction guard), so a restricted account that bails out early doesn't leave the modal stuck.
+                onSubmitted: () => {
+                    startSubmittingAnimation();
+                    if (shouldExportToPDF) {
+                        // If the user cancels while the PDF is still generating, discard the submission (retract it back
+                        // to draft) so they can resubmit — matching the pre-submit-via-PDF behavior.
+                        openPDFDownload().then((result) => {
+                            if (result?.action !== ModalActions.CLOSE) {
+                                return;
+                            }
+
+                            // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
+                            // back to the Submit button instead of finishing the animation on a report that is open again.
+                            stopAnimation();
+                            retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser, rules);
+                        });
+                    }
+                },
+                ownerBillingGracePeriodEnd,
+                delegateEmail,
+                delegateAccountID,
+                shouldExportToPDF,
+                submitterLogin,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
+                // Submit via PDF submits the report to the submitter (self); the backend keys off this to generate the PDF.
+                managerEmail: shouldExportToPDF ? email : undefined,
+                isTrackIntentUser,
+            });
+            if (currentSearchQueryJSON && !isOffline) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isLoading: !!currentSearchResults?.search?.isLoading,
+                    shouldReturnTripRooms,
+                });
+            }
+        });
+    };
+
+    // While the submit animation is running, fall through to AnimatedSubmitButton so it can play the animation and call
+    // stopAnimation; the dropdown has no animation lifecycle and would otherwise leave the header stuck on Submit.
+    if (canSubmitViaPDF && !isSubmittingAnimationRunning) {
+        const submitOptions: Array<DropdownOption<SubmissionMethod>> = [
+            {
+                value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT,
+                text: translate('common.submit'),
+                icon: expensifyIcons.Send,
+                onSelected: () => {
+                    setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT);
+                    handleSubmit();
+                },
+            },
+            {
+                value: CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF,
+                text: translate('common.submitViaPDF'),
+                icon: expensifyIcons.Document,
+                onSelected: () => {
+                    setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF);
+                    handleSubmit(true);
+                },
+            },
+        ];
+        const defaultSelectedIndex = preferredSubmissionMethod === CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF ? 1 : 0;
+
+        return (
+            <ButtonWithDropdownMenu<SubmissionMethod>
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                isDisabled={shouldBlockSubmit || isDisabled}
+                options={submitOptions}
+                defaultSelectedIndex={defaultSelectedIndex}
+                onPress={(event, value) => {
+                    setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, value);
+                    handleSubmit(value === CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF);
+                }}
+            />
+        );
+    }
+
+    return (
+        <AnimatedSubmitButton
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            text={shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
+            onPress={() => handleSubmit()}
+            isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+            onAnimationFinish={stopAnimation}
+            isDisabled={shouldBlockSubmit || isDisabled}
+            isDEWSubmission={isDEWSubmission}
+            reportID={reportID}
+        />
+    );
+}
+
+export default SubmitPrimaryAction;

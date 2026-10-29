@@ -1,27 +1,35 @@
 package com.expensify.chat
 
-import expo.modules.ReactActivityDelegateWrapper
-
+import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.content.res.Resources
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import com.expensify.chat.bootsplash.BootSplash
+import com.expensify.chat.bootsplash.PrivacyCover
+import com.expensify.chat.intenthandler.IntentHandlerFactory
 import com.expensify.reactnativekeycommand.KeyCommandModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
-
-import com.oblador.performance.RNPerformance
+import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {
+    companion object {
+        private const val APP_START_TIME_PREFERENCES = "AppStartTime"
+    }
+
     /**
      * Returns the name of the main component registered from JavaScript. This is used to schedule
      * rendering of the component.
      */
     override fun getMainComponentName() = "NewExpensify"
+
+    var wasAppRelaunchedFromIcon: Boolean = false
 
     /**
      * Returns the instance of the [ReactActivityDelegate]. Here we use a util class [ ] which allows you to easily enable Fabric and Concurrent React
@@ -34,11 +42,12 @@ class MainActivity : ReactActivity() {
     ))
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        getSharedPreferences(APP_START_TIME_PREFERENCES, MODE_PRIVATE)
+            .edit()
+            .putLong(APP_START_TIME_PREFERENCES, System.currentTimeMillis())
+            .apply()
         BootSplash.init(this)
         super.onCreate(null)
-        if (resources.getBoolean(R.bool.portrait_only)) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
 
         // Sets translucent status bar. This code is based on what the react-native StatusBar
         // module does, but we need to do it here to avoid the splash screen jumping on app start.
@@ -51,6 +60,32 @@ class MainActivity : ReactActivity() {
                 defaultInsets.systemWindowInsetRight,
                 defaultInsets.systemWindowInsetBottom
             )
+        }
+
+        if (intent != null) {
+            handleIntent(intent)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+
+        if (intent.hasCategory(Intent.CATEGORY_LAUNCHER)
+              && intent.getAction() != null
+              && intent.getAction().equals(Intent.ACTION_MAIN)) {
+             wasAppRelaunchedFromIcon = true
+        }
+
+        setIntent(intent) // Must store the new intent unless getIntent() will return the old one
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        try {
+            val intenthandler = IntentHandlerFactory.getIntentHandler(this, intent.type, intent.toString())
+            intenthandler?.handle(intent)
+        } catch (exception: Exception) {
+            Log.e("handleIntentException", exception.toString())
         }
     }
 
@@ -87,6 +122,67 @@ class MainActivity : ReactActivity() {
 
     override fun onStart() {
         super.onStart()
-        RNPerformance.getInstance().mark("appCreationEnd", false);
+    }
+
+    // It lets us tell "leaving the app" from "internal window", i.e. a window we own that
+    // takes focus on top of this activity (Dialog, PopupWindow, IME) while we stay top resumed.
+    private var isTopResumed = true
+
+    // It lets us tell "leaving the app" from "another activity we opened ourselves" (e.g. Plaid)
+    private var startedActivityOurselves = false
+
+    // Deprecated to steer callers to registerForActivityResult. Overriding it is safe: startActivity() and registerForActivityResult still go through it
+    @Deprecated("Deprecated in Java")
+    override fun startActivityForResult(intent: Intent, requestCode: Int, options: Bundle?) {
+        startedActivityOurselves = true
+        try {
+            super.startActivityForResult(intent, requestCode, options)
+        } catch (e: RuntimeException) {
+            startedActivityOurselves = false
+            throw e
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            startedActivityOurselves = false
+            hidePrivacyDialog()
+        } else if (!isTopResumed) {
+            showPrivacyDialog()
+        }
+    }
+
+    override fun onTopResumedActivityChanged(isTopResumedActivity: Boolean) {
+        super.onTopResumedActivityChanged(isTopResumedActivity)
+        isTopResumed = isTopResumedActivity
+        if (isTopResumedActivity) {
+            startedActivityOurselves = false
+            hidePrivacyDialog()
+        } else if (!hasWindowFocus()) {
+            // Backgrounding with an in-app dialog open: this callback is the only "leaving the app" signal.
+            showPrivacyDialog()
+        }
+    }
+
+    override fun onApplyThemeResource(theme: Resources.Theme, resid: Int, first: Boolean) {
+        super.onApplyThemeResource(theme, resid, first)
+        PrivacyCover.applyTaskDescription(this)
+    }
+
+    override fun onDestroy() {
+        hidePrivacyDialog()
+        super.onDestroy()
+    }
+
+    private fun showPrivacyDialog() {
+        if (startedActivityOurselves) {
+            return
+        }
+        PrivacyCover.show(this)
+    }
+
+    private fun hidePrivacyDialog() {
+        PrivacyCover.hide()
     }
 }

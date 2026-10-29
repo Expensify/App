@@ -1,8 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 
+import type {ValueOf} from 'type-fest';
+
 type ReportExportParams = {
-    reportIDList: string;
+    reportIDList: string | string[];
     connectionName: ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME>;
     type: 'MANUAL';
     /**

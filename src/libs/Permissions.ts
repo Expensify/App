@@ -1,42 +1,25 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type Beta from '@src/types/onyx/Beta';
-import * as SessionUtils from './SessionUtils';
+import type BetaConfiguration from '@src/types/onyx/BetaConfiguration';
+import type BetaOverrides from '@src/types/onyx/BetaOverrides';
 
-const isAccountIDEven = (accountID: number) => accountID % 2 === 0;
+import type {OnyxEntry} from 'react-native-onyx';
 
+import type Environment from './Environment/getEnvironment/types';
+
+/**
+ * Overrides are a test tool, so they never apply in production.
+ * Android staging and TestFlight are compiled as production, so only the resolved environment tells a real production
+ * build apart from those. It is passed in because it arrives after startup.
+ */
+function canApplyBetaOverrides(environment: Environment): boolean {
+    return !(CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.PRODUCTION && environment === CONST.ENVIRONMENT.PRODUCTION);
+}
+
+// eslint-disable-next-line rulesdir/no-beta-handler
 function canUseAllBetas(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.ALL);
-}
-
-function canUseDefaultRooms(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
-}
-
-function canUseDupeDetection(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.DUPE_DETECTION) || canUseAllBetas(betas);
-}
-
-function canUseSpotnanaTravel(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.SPOTNANA_TRAVEL) || canUseAllBetas(betas);
-}
-
-function canUseNetSuiteUSATax(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NETSUITE_USA_TAX) || canUseAllBetas(betas);
-}
-
-function canUseCategoryAndTagApprovers(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.CATEGORY_AND_TAG_APPROVERS) || canUseAllBetas(betas);
-}
-
-function canUseCombinedTrackSubmit(): boolean {
-    // We don't need to show this to all betas since this will be used for developing a feature for A/B testing.
-    const session = SessionUtils.getSession();
-    return isAccountIDEven(session?.accountID ?? -1);
-}
-
-function canUsePerDiem(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.PER_DIEM) || canUseAllBetas(betas);
 }
 
 /**
@@ -46,13 +29,49 @@ function canUseLinkPreviews(): boolean {
     return false;
 }
 
+/** The configuration, the overrides and the environment are required so that no call site can skip them by accident. */
+function isBetaEnabled(beta: Beta, betas: OnyxEntry<Beta[]>, betaConfiguration: OnyxEntry<BetaConfiguration>, betaOverrides: OnyxEntry<BetaOverrides>, environment: Environment): boolean {
+    if (canApplyBetaOverrides(environment)) {
+        const override = betaOverrides?.[beta];
+        if (override !== undefined) {
+            return override;
+        }
+    }
+
+    const hasAllBetasEnabled = canUseAllBetas(betas);
+    const isFeatureEnabled = !!betas?.includes(beta);
+
+    // Explicit only betas and exclusion betas are not enabled only by the 'all' beta. Explicit only betas must be set explicitly to enable the feature.
+    // Exclusion betas are designed to disable features, so being on the 'all' beta should not disable these features as that contradicts its purpose.
+    if (((betaConfiguration?.explicitOnly?.includes(beta) ?? false) || (betaConfiguration?.exclusion?.includes(beta) ?? false)) && hasAllBetasEnabled && !isFeatureEnabled) {
+        return false;
+    }
+
+    return isFeatureEnabled || hasAllBetasEnabled;
+}
+
+/**
+ * Track flows ("Share with my accountant", "Categorize it") are hardcoded off.
+ * TODO: Remove this gate and its call sites once the new track flows feature is complete.
+ * See: https://github.com/Expensify/Expensify/issues/504214
+ */
+function canUseTrackFlows(): boolean {
+    return false;
+}
+
+/**
+ * Private notes are temporarily disabled.
+ */
+function canUsePrivateNotes(): boolean {
+    return false;
+}
+
+// usePermissions calls every member of this object with no arguments, so only no-argument checks belong here
 export default {
-    canUseDefaultRooms,
     canUseLinkPreviews,
-    canUseDupeDetection,
-    canUseSpotnanaTravel,
-    canUseNetSuiteUSATax,
-    canUseCombinedTrackSubmit,
-    canUseCategoryAndTagApprovers,
-    canUsePerDiem,
+    canUseTrackFlows,
+    canUsePrivateNotes,
+    isBetaEnabled,
 };
+
+export {canApplyBetaOverrides};

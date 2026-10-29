@@ -1,410 +1,195 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
-import {NativeModules, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
+import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
-import ConfirmModal from '@components/ConfirmModal';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {InitialURLContext} from '@components/InitialURLContextProvider';
-import MenuItem from '@components/MenuItem';
-import {PressableWithFeedback} from '@components/Pressable';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import useActiveCentralPaneRoute from '@hooks/useActiveCentralPaneRoute';
+
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useIsSettingsDrawnOverTabs from '@hooks/useIsSettingsDrawnOverTabs';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSingleExecution from '@hooks/useSingleExecution';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWaitForNavigation from '@hooks/useWaitForNavigation';
-import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+
+import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SubscriptionUtils from '@libs/SubscriptionUtils';
-import * as UserUtils from '@libs/UserUtils';
-import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
-import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import variables from '@styles/variables';
-import * as App from '@userActions/App';
-import * as Link from '@userActions/Link';
-import * as PaymentMethods from '@userActions/PaymentMethods';
-import * as Session from '@userActions/Session';
-import * as Wallet from '@userActions/Wallet';
+import type {TabNavigatorParamList} from '@libs/Navigation/types';
+
+import {openInitialSettingsPage} from '@userActions/Wallet';
+
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
+import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {NativeBottomTabNavigationProp} from '@react-navigation/bottom-tabs/unstable';
+import type {ComponentRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView, ScrollViewProps, StyleProp, ViewStyle} from 'react-native';
+
+import {CommonActions, findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@react-navigation/native';
+import {canSwitchAccountsSelector} from '@selectors/Account';
+import React, {useContext, useEffect, useLayoutEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+import type {MenuSection} from './useInitialSettingsPageMenuData';
+
+import SettingsMenuItem from './SettingsMenuItem';
+import useInitialSettingsPageMenuData from './useInitialSettingsPageMenuData';
 
 type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
 
-type MenuData = {
-    translationKey: TranslationPaths;
-    icon: IconAsset;
-    routeName?: Route;
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
-    action?: () => void;
-    link?: string | (() => Promise<string>);
-    iconType?: typeof CONST.ICON_TYPE_ICON | typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
-    iconStyles?: StyleProp<ViewStyle>;
-    fallbackIcon?: IconAsset;
-    shouldStackHorizontally?: boolean;
-    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
-    floatRightAvatars?: TIcon[];
-    title?: string;
-    shouldShowRightIcon?: boolean;
-    iconRight?: IconAsset;
-    badgeText?: string;
-    badgeStyle?: ViewStyle;
-};
-
-type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
-
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
-
-    const network = useNetwork();
-    const theme = useTheme();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const [canSwitchAccounts = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: canSwitchAccountsSelector});
+    // The header scrolls away with the content on mobile web in landscape, where vertical space is scarce.
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.SETTINGS);
+    const tabRootScrollProps = useTabRootScrollProps(styles.w100);
     const {isExecuting, singleExecution} = useSingleExecution();
-    const waitForNavigate = useWaitForNavigation();
-    const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
-    const activeCentralPaneRoute = useActiveCentralPaneRoute();
-    const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
-    const {setInitialURL} = useContext(InitialURLContext);
+    const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
+    const navigation = useNavigation();
+    const isDrawnOverTabs = useIsSettingsDrawnOverTabs();
 
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const subscriptionPlan = useSubscriptionPlan();
-
-    const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
-
-    const freeTrialText = SubscriptionUtils.getFreeTrialText(policies);
-    const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
-
-    useEffect(() => {
-        Wallet.openInitialSettingsPage();
-        App.confirmReadyToOpenApp();
-    }, []);
-
-    const toggleSignoutConfirmModal = (value: boolean) => {
-        setShouldShowSignoutConfirmModal(value);
-    };
-
-    const signOut = useCallback(
-        (shouldForceSignout = false) => {
-            if (!network.isOffline || shouldForceSignout) {
-                Session.signOutAndRedirectToSignIn();
-                return;
-            }
-
-            // When offline, warn the user that any actions they took while offline will be lost if they sign out
-            toggleSignoutConfirmModal(true);
-        },
-        [network.isOffline],
-    );
-
-    /**
-     * Retuns a list of menu items data for account section
-     * @returns object with translationKey, style and items for the account section
-     */
-    const accountMenuItemsData: Menu = useMemo(() => {
-        const profileBrickRoadIndicator = UserUtils.getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails);
-        const paymentCardList = fundList;
-        const defaultMenu: Menu = {
-            sectionStyle: styles.accountSettingsSectionContainer,
-            sectionTranslationKey: 'initialSettingsPage.account',
-            items: [
-                {
-                    translationKey: 'common.profile',
-                    icon: Expensicons.Profile,
-                    routeName: ROUTES.SETTINGS_PROFILE,
-                    brickRoadIndicator: profileBrickRoadIndicator,
-                },
-                {
-                    translationKey: 'common.wallet',
-                    icon: Expensicons.Wallet,
-                    routeName: ROUTES.SETTINGS_WALLET,
-                    brickRoadIndicator:
-                        PaymentMethods.hasPaymentMethodError(bankAccountList, paymentCardList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors)
-                            ? 'error'
-                            : undefined,
-                },
-                {
-                    translationKey: 'common.preferences',
-                    icon: Expensicons.Gear,
-                    routeName: ROUTES.SETTINGS_PREFERENCES,
-                },
-                {
-                    translationKey: 'initialSettingsPage.security',
-                    icon: Expensicons.Lock,
-                    routeName: ROUTES.SETTINGS_SECURITY,
-                },
-            ],
-        };
-
-        return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, privatePersonalDetails]);
-
-    /**
-     * Retuns a list of menu items data for workspace section
-     * @returns object with translationKey, style and items for the workspace section
-     */
-    const workspaceMenuItemsData: Menu = useMemo(() => {
-        const items: MenuData[] = [
-            {
-                translationKey: 'common.workspaces',
-                icon: Expensicons.Building,
-                routeName: ROUTES.SETTINGS_WORKSPACES,
-                brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            },
-            {
-                translationKey: 'allSettingsScreen.domains',
-                icon: Expensicons.Globe,
-                action: () => {
-                    Link.openOldDotLink(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL);
-                },
-                shouldShowRightIcon: true,
-                iconRight: Expensicons.NewWindow,
-                link: () => Link.buildOldDotURL(CONST.OLDDOT_URLS.ADMIN_DOMAINS_URL),
-            },
-        ];
-
-        if (subscriptionPlan) {
-            items.splice(1, 0, {
-                translationKey: 'allSettingsScreen.subscription',
-                icon: Expensicons.CreditCard,
-                routeName: ROUTES.SETTINGS_SUBSCRIPTION,
-                brickRoadIndicator: !!privateSubscription?.errors || SubscriptionUtils.hasSubscriptionRedDotError() ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                badgeText: freeTrialText,
-                badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
-            });
+    // The tab navigator keeps the full tab history, so going back returns to the tab the user opened Account from.
+    // With nothing behind it, as after a deep link or a relaunch, the tab history is reset to Home alone so that going
+    // back does not reopen Account. The tab router drops REPLACE, so `navigate(HOME, {forceReplace: true})` can't do it.
+    const goBackFromAccount = () => {
+        if (navigation.canGoBack()) {
+            navigation.goBack();
+            return;
         }
 
-        return {
-            sectionStyle: styles.workspaceSettingsSectionContainer,
-            sectionTranslationKey: 'common.workspaces',
-            items,
-        };
-    }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan]);
+        const tabNavigation = navigation.getParent<NativeBottomTabNavigationProp<TabNavigatorParamList>>();
+        const tabState = tabNavigation?.getState();
+        const homeRoute = tabState?.routes.find((tabRoute) => tabRoute.name === SCREENS.HOME);
+        if (!tabNavigation || !tabState || !homeRoute) {
+            Navigation.navigate(ROUTES.HOME);
+            return;
+        }
 
-    /**
-     * Retuns a list of menu items data for general section
-     * @returns object with translationKey, style and items for the general section
-     */
-    const generalMenuItemsData: Menu = useMemo(() => {
-        const signOutTranslationKey = Session.isSupportAuthToken() && Session.hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
-        return {
-            sectionStyle: {
-                ...styles.pt4,
-            },
-            sectionTranslationKey: 'initialSettingsPage.general',
-            items: [
-                {
-                    translationKey: 'initialSettingsPage.help',
-                    icon: Expensicons.QuestionMark,
-                    action: () => {
-                        Link.openExternalLink(CONST.NEWHELP_URL);
-                    },
-                    iconRight: Expensicons.NewWindow,
-                    shouldShowRightIcon: true,
-                    link: CONST.NEWHELP_URL,
-                },
-                {
-                    translationKey: 'exitSurvey.goToExpensifyClassic',
-                    icon: Expensicons.ExpensifyLogoNew,
-                    ...(NativeModules.HybridAppModule
-                        ? {
-                              action: () => {
-                                  NativeModules.HybridAppModule.closeReactNativeApp(false, true);
-                                  setInitialURL(undefined);
-                              },
-                          }
-                        : {
-                              action() {
-                                  resetExitSurveyForm(() => {
-                                      if (shouldOpenBookACall) {
-                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
-                                          return;
-                                      }
-                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
-                                  });
-                              },
-                          }),
-                },
-                {
-                    translationKey: 'initialSettingsPage.about',
-                    icon: Expensicons.Info,
-                    routeName: ROUTES.SETTINGS_ABOUT,
-                },
-                {
-                    translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                    icon: Expensicons.Lightbulb,
-                    routeName: ROUTES.SETTINGS_TROUBLESHOOT,
-                },
-                {
-                    translationKey: 'sidebarScreen.saveTheWorld',
-                    icon: Expensicons.Heart,
-                    routeName: ROUTES.SETTINGS_SAVE_THE_WORLD,
-                },
-                {
-                    translationKey: signOutTranslationKey,
-                    icon: Expensicons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
-                },
-            ],
-        };
-    }, [styles.pt4, signOut, setInitialURL, shouldOpenBookACall]);
+        tabNavigation.dispatch(CommonActions.reset({...tabState, index: tabState.routes.indexOf(homeRoute), history: [{type: 'route', key: homeRoute.key}]}));
+    };
 
-    /**
-     * Retuns JSX.Element with menu items
-     * @param menuItemsData list with menu items data
-     * @returns the menu items for passed data
-     */
-    const getMenuItemsSection = useCallback(
-        (menuItemsData: Menu) => {
-            /**
-             * @param isPaymentItem whether the item being rendered is the payments menu item
-             * @returns the user's wallet balance
-             */
-            const getWalletBalance = (isPaymentItem: boolean): string | undefined => (isPaymentItem ? CurrencyUtils.convertToDisplayString(userWallet?.currentBalance) : undefined);
+    useAndroidBackButtonHandler(() => {
+        if (!isDrawnOverTabs) {
+            return false;
+        }
 
-            const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
-                if (typeof link === 'function') {
-                    link?.()?.then((url) => ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, url, popoverAnchor.current));
-                } else if (link) {
-                    ReportActionContextMenu.showContextMenu(CONST.CONTEXT_MENU_TYPES.LINK, event, link, popoverAnchor.current);
-                }
-            };
+        goBackFromAccount();
+        return true;
+    });
 
-            return (
-                <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
-                    <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
-                    {menuItemsData.items.map((item) => {
-                        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                        const isPaymentItem = item.translationKey === 'common.wallet';
+    const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
+    const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
+    const {accountMenuItemsData, generalMenuItemsData} = useInitialSettingsPageMenuData(currentUserPersonalDetails);
 
-                        return (
-                            <MenuItem
-                                key={keyTitle}
-                                wrapperStyle={styles.sectionMenuItem}
-                                title={keyTitle}
-                                icon={item.icon}
-                                iconType={item.iconType}
-                                disabled={isExecuting}
-                                onPress={singleExecution(() => {
-                                    if (item.action) {
-                                        item.action();
-                                    } else {
-                                        waitForNavigate(() => {
-                                            Navigation.navigate(item.routeName);
-                                        })();
-                                    }
-                                })}
-                                iconStyles={item.iconStyles}
-                                badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}
-                                badgeStyle={item.badgeStyle}
-                                fallbackIcon={item.fallbackIcon}
-                                brickRoadIndicator={item.brickRoadIndicator}
-                                floatRightAvatars={item.floatRightAvatars}
-                                shouldStackHorizontally={item.shouldStackHorizontally}
-                                floatRightAvatarSize={item.avatarSize}
-                                ref={popoverAnchor}
-                                shouldBlockSelection={!!item.link}
-                                onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
-                                focused={
-                                    !!activeCentralPaneRoute &&
-                                    !!item.routeName &&
-                                    !!(activeCentralPaneRoute.name.toLowerCase().replaceAll('_', '') === item.routeName.toLowerCase().replaceAll('/', ''))
-                                }
-                                iconRight={item.iconRight}
-                                shouldShowRightIcon={item.shouldShowRightIcon}
-                                shouldIconUseAutoWidthStyle
-                            />
-                        );
-                    })}
-                </View>
-            );
-        },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, userWallet?.currentBalance, isExecuting, singleExecution, activeCentralPaneRoute, waitForNavigate],
-    );
+    const hasAccountBeenSwitched = currentUserPersonalDetails.accountID !== previousUserPersonalDetails.accountID;
 
-    const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
-    const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
-    const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
+    useEffect(() => {
+        if (!hasAccountBeenSwitched) {
+            return;
+        }
+
+        Navigation.clearPreloadedRoutes();
+    }, [hasAccountBeenSwitched]);
+
+    const hasAccountBeenShown = useHasTabBeenShown(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+
+    useEffect(() => {
+        if (!hasAccountBeenShown) {
+            return;
+        }
+
+        openInitialSettingsPage();
+    }, [hasAccountBeenShown]);
+
+    const getMenuItemsSection = (menuItemsData: MenuSection, sectionStyle: StyleProp<ViewStyle>) => {
+        return (
+            <View style={[sectionStyle, styles.pb4, styles.mh3]}>
+                <Text
+                    style={styles.sectionTitle}
+                    accessibilityRole={CONST.ROLE.HEADER}
+                >
+                    {translate(menuItemsData.sectionTranslationKey)}
+                </Text>
+                {menuItemsData.items.map((item) => {
+                    const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                    const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
+
+                    return (
+                        <SettingsMenuItem
+                            key={keyTitle}
+                            item={item}
+                            keyTitle={keyTitle}
+                            isFocused={isFocused}
+                            isExecuting={isExecuting}
+                            isScreenFocused={isScreenFocused}
+                            onPress={singleExecution(item.action)}
+                            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
+                        />
+                    );
+                })}
+            </View>
+        );
+    };
+
+    const accountMenuItems = getMenuItemsSection(accountMenuItemsData, styles.accountSettingsSectionContainer);
+    const generalMenuItems = getMenuItemsSection(generalMenuItemsData, styles.pt4);
+
+    const isPersonalDetailsEmpty = isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined;
+
+    // Must match the same condition in AccountSwitcher, or the skeleton and the loaded header lay out differently.
+    const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
 
     const headerContent = (
-        <View style={[styles.ph5, styles.pv5]}>
-            {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
+        <View style={[styles.ph5, styles.pv4]}>
+            {isPersonalDetailsEmpty ? (
+                <AccountSwitcherSkeletonView
+                    avatarSize={shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT}
+                    shouldStackHeader={shouldStackHeader}
+                    shouldShowSwitchButton={canSwitchAccounts}
+                />
             ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
-                    <AccountSwitcher />
-                    <Tooltip text={translate('statusPage.status')}>
-                        <PressableWithFeedback
-                            accessibilityLabel={translate('statusPage.status')}
-                            accessibilityRole="button"
-                            accessible
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
-                        >
-                            <View style={styles.primaryMediumIcon}>
-                                {emojiCode ? (
-                                    <Text style={styles.primaryMediumText}>{emojiCode}</Text>
-                                ) : (
-                                    <Icon
-                                        src={Expensicons.Emoji}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
-                                        fill={theme.icon}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
-                    </Tooltip>
-                </View>
+                <AccountSwitcher
+                    isScreenFocused={isScreenFocused}
+                    shouldShowSwitchButton={shouldUseNarrowLayout}
+                />
             )}
         </View>
     );
 
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const route = useRoute();
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const triggerScrollEvent = useScrollEventEmitter();
 
-    const onScroll = useCallback<NonNullable<ScrollViewProps['onScroll']>>(
-        (e) => {
-            // If the layout measurement is 0, it means the flashlist is not displayed but the onScroll may be triggered with offset value 0.
-            // We should ignore this case.
-            if (e.nativeEvent.layoutMeasurement.height === 0) {
-                return;
-            }
-            saveScrollOffset(route, e.nativeEvent.contentOffset.y);
-        },
-        [route, saveScrollOffset],
-    );
+    const onScroll: NonNullable<ScrollViewProps['onScroll']> = (e) => {
+        // If the layout measurement is 0, it means the flash list is not displayed but the onScroll may be triggered with offset value 0.
+        // We should ignore this case.
+        if (e.nativeEvent.layoutMeasurement.height === 0) {
+            return;
+        }
+        saveScrollOffset(route, e.nativeEvent.contentOffset.y);
+        triggerScrollEvent();
+    };
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
@@ -414,39 +199,42 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         scrollViewRef.current.scrollTo({y: scrollOffset, animated: false});
     }, [getScrollOffset, route]);
 
+    const topBar = (
+        <TopBarWithLoadingBar
+            breadcrumbLabel={translate('initialSettingsPage.account')}
+            shouldDisplaySearch={shouldUseNarrowLayout}
+            shouldDisplayHelpButton={shouldUseNarrowLayout}
+        >
+            {!shouldUseNarrowLayout && !isPersonalDetailsEmpty && (
+                /* The top bar row ends 12px from the screen edge, so add 8px to sit the button 20px in. */
+                <View style={styles.mr2}>
+                    <AccountSwitcherButton isScreenFocused={isScreenFocused} />
+                </View>
+            )}
+        </TopBarWithLoadingBar>
+    );
+
     return (
         <ScreenWrapper
-            style={[styles.w100, styles.pb0]}
-            includePaddingTop={false}
-            includeSafeAreaPaddingBottom={false}
-            testID={InitialSettingsPage.displayName}
+            includeSafeAreaPaddingBottom
+            testID="InitialSettingsPage"
+            shouldEnableKeyboardAvoidingView={false}
+            {...tabRootScreenWrapperProps}
         >
-            {headerContent}
+            {!shouldScrollMainHeader && topBar}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
-                scrollEventThrottle={16}
-                contentContainerStyle={[styles.w100]}
-                showsVerticalScrollIndicator={false}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                {...tabRootScrollProps}
             >
+                {shouldScrollMainHeader && topBar}
+                {headerContent}
                 {accountMenuItems}
-                {workspaceMenuItems}
                 {generalMenuItems}
-                <ConfirmModal
-                    danger
-                    title={translate('common.areYouSure')}
-                    prompt={translate('initialSettingsPage.signOutConfirmationText')}
-                    confirmText={translate('initialSettingsPage.signOut')}
-                    cancelText={translate('common.cancel')}
-                    isVisible={shouldShowSignoutConfirmModal}
-                    onConfirm={() => signOut(true)}
-                    onCancel={() => toggleSignoutConfirmModal(false)}
-                />
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default withCurrentUserPersonalDetails(InitialSettingsPage);

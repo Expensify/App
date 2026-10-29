@@ -23,167 +23,152 @@ on:
         value: ${{ jobs.createNewVersion.outputs.NEW_VERSION }}
 
     secrets:
-      LARGE_SECRET_PASSPHRASE:
-        description: Passphrase used to decrypt GPG key
-        required: true
       SLACK_WEBHOOK:
         description: Webhook used to comment in slack
         required: true
       OS_BOTIFY_COMMIT_TOKEN:
         description: OSBotify personal access token, used to workaround committing to protected branch
         required: true
+      OP_SERVICE_ACCOUNT_TOKEN:
+        description: 1Password service account token
+        required: true
+      OS_BOTIFY_APP_ID:
+        description: App ID for OSBotify GitHub App
+        required: true
+      OS_BOTIFY_PRIVATE_KEY:
+        description: Private key for OSBotify GitHub App
+        required: true
+
+concurrency:
+  group: createNewVersion
+  cancel-in-progress: false
+  queue: max
 
 jobs:
-  validateActor:
-    runs-on: ubuntu-latest
-    outputs:
-      HAS_WRITE_ACCESS: ${{ contains(fromJSON('["write", "admin"]'), steps.getUserPermissions.outputs.PERMISSION) }}
-    steps:
-      - name: Get user permissions
-        id: getUserPermissions
-        run: echo "PERMISSION=$(gh api /repos/${{ github.repository }}/collaborators/${{ github.actor }}/permission | jq -r '.permission')" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
   createNewVersion:
-    runs-on: macos-latest
-    needs: validateActor
-    if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
-
+    runs-on: blacksmith-6vcpu-macos-latest
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
-
     steps:
-      - name: Run turnstyle
-        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
       - name: Check out
-        uses: actions/checkout@v4
+        # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: main
+          submodules: true
           # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify
           # This is a workaround to allow pushes to a protected branch
           token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
+      - name: Validate actor
+        uses: ./.github/actions/composite/validateActor
+        with:
+          OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
+
       - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotify
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         id: setupGitForOSBotify
         with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SETUP_AS_APP: false
 
-      - name: Generate version
+      - name: Generate new E/App version (including Mobile-Expensify version bump)
         id: bumpVersion
         uses: ./.github/actions/javascript/bumpVersion
         with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
           SEMVER_LEVEL: ${{ inputs.SEMVER_LEVEL }}
 
-      - name: Commit new version
+      - name: Commit new Mobile-Expensify version
+        working-directory: Mobile-Expensify
+        run: |
+          # First commit the version changes on detached HEAD
+          git add \
+            ./Android/AndroidManifest.xml \
+            ./app/config/config.json \
+            ./iOS/Expensify/Expensify-Info.plist\
+            ./iOS/SmartScanExtension/Info.plist \
+            ./iOS/NotificationServiceExtension/Info.plist
+          git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+
+          # Store the commit hash before checkout to ensure we cherry-pick the right commit
+          DETACHED_COMMIT=$(git rev-parse HEAD)
+
+          # Cherry-pick the version bump commit onto main, to safely handle case where new commits exist on main
+          git checkout main && git pull origin main
+          git cherry-pick "$DETACHED_COMMIT"
+          if ! git push origin main; then
+            echo "Race condition! Mobile-Expensify main was updated while this workflow was running, so push failed. Fetching remote, rebasing, and retrying push once."
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "::error:: Rebase failed while retrying Mobile-Expensify push"
+              exit 1
+            fi
+            if ! git push origin main; then
+              echo "::error:: Mobile-Expensify change failed to push after rebase"
+              exit 1
+            fi
+          fi
+
+      - name: Commit new E/App version
         run: |
           git add \
             ./package.json \
             ./package-lock.json \
             ./android/app/build.gradle \
             ./ios/NewExpensify/Info.plist \
-            ./ios/NewExpensifyTests/Info.plist \
-            ./ios/NotificationServiceExtension/Info.plist
+            ./ios/NotificationServiceExtension/Info.plist \
+            ./ios/ShareViewController/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
-      - name: Update main branch
-        run: git push origin main
-
-      - name: Announce failed workflow in Slack
-        if: ${{ failure() }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-
-  createNewHybridVersion:
-    runs-on: macos-latest
-    needs: [validateActor, createNewVersion]
-    if: ${{ fromJSON(needs.validateActor.outputs.HAS_WRITE_ACCESS) }}
-    defaults:
-      run:
-        working-directory: Mobile-Expensify
-    steps:
-      - name: Run turnstyle
-        uses: softprops/turnstyle@49108bdfa571e62371bd2c3094893c547ab3fc03
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Check out `App` repo
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          # The OS_BOTIFY_COMMIT_TOKEN is a personal access token tied to osbotify
-          # This is a workaround to allow pushes to a protected branch
-          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
-      - name: Check out `Mobile-Expensify` repo
-        uses: actions/checkout@v4
-        with:
-          repository: 'Expensify/Mobile-Expensify'
-          submodules: true
-          path: 'Mobile-Expensify'
-          token: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
-
-      - name: Update submodule
+      - name: Update Mobile-Expensify submodule in E/App
         run: |
-          cd react-native
-          git submodule update --init
+          git add Mobile-Expensify
+          git commit -m "Update Mobile-Expensify submodule version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
 
-      - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotify
-        id: setupGitForOSBotify
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          MAX_RETRIES=5
+          RETRY_DELAY=2
 
-      - name: Generate HybridApp version
+          for i in $(seq 1 $MAX_RETRIES); do
+            if git push origin main; then
+              echo "::notice::Successfully pushed E/App changes on attempt $i"
+              exit 0
+            fi
+
+            echo "::warning::Push attempt $i failed, retrying in ${RETRY_DELAY}s..."
+            sleep $RETRY_DELAY
+            RETRY_DELAY=$((RETRY_DELAY * 2))
+
+            if ! git fetch origin main; then
+              echo "::error::Unable to fetch main on attempt $i"
+              continue
+            fi
+
+            if ! git rebase origin/main; then
+              echo "::warning::Rebase failed on attempt $i, aborting and retrying..."
+              git rebase --abort || true
+              continue
+            fi
+          done
+
+          echo "::error::E/App push failed after $MAX_RETRIES attempts"
+          echo "::error::CRITICAL: Mobile-Expensify has version ${{ steps.bumpVersion.outputs.NEW_VERSION }} but E/App does not!"
+          echo "::error::Manual intervention required - run the syncVersions workflow to fix"
+          exit 1
+
+      - name: Verify version sync
         run: |
-          # Generate all flavors of the version
-          SHORT_APP_VERSION=$(echo "$NEW_VERSION" | awk -F'-' '{print $1}')
-          BUILD_NUMBER=$(echo "$NEW_VERSION" | awk -F'-' '{print $2}')
-          FULL_APP_VERSION="$SHORT_APP_VERSION.$BUILD_NUMBER"
-          ANDROID_VERSION_CODE=$(echo "$FULL_APP_VERSION" | ruby -e "puts '05%02d%02d%02d%02d' % STDIN.read.split('.')")
-          
-          # File paths to update
-          ANDROID_MANIFEST_FILE="Android/AndroidManifest.xml"
-          IOS_INFO_PLIST_FILE="iOS/Expensify/Expensify-Info.plist"
-          IOS_SHARE_EXTENSION_PLIST_FILE="iOS/SmartScanExtension/Info.plist"
-          JS_CONFIG_FILE="app/config/config.json" 
-          
-          # Update Android HybridApp Version
-          sed -i .bak -E  "s/versionName=\"([0-9\.]*)\"/versionName=\"$FULL_APP_VERSION\"/" $ANDROID_MANIFEST_FILE
-          sed -i .bak -E "s/versionCode=\"([0-9]*)\"/versionCode=\"$ANDROID_VERSION_CODE\"/" $ANDROID_MANIFEST_FILE
-          
-          # Update iOS HybridApp Version
-          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_APP_VERSION" $IOS_INFO_PLIST_FILE
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_INFO_PLIST_FILE
-          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $SHORT_APP_VERSION" $IOS_SHARE_EXTENSION_PLIST_FILE
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $FULL_APP_VERSION" $IOS_SHARE_EXTENSION_PLIST_FILE
-          
-          # Update JS HybridApp Version
-          sed -i .bak -E  "s/\"version\": \"([0-9\.]*)\"/\"version\": \"$FULL_APP_VERSION\"/" $JS_CONFIG_FILE
-        env:
-          NEW_VERSION: ${{ needs.createNewVersion.outputs.NEW_VERSION }}
+          APP_VERSION=$(jq -r .version package.json)
+          ME_VERSION=$(jq -r .meta.version Mobile-Expensify/app/config/config.json)
 
-      - name: Commit new version
-        run: |
-          git add \
-            ./Android/AndroidManifest.xml \
-            ./app/config/config.json \
-            ./iOS/Expensify/Expensify-Info.plist\
-            ./iOS/SmartScanExtension/Info.plist
-          git commit -m "Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-
-      - name: Update main branch
-        run: git push origin main
+          if [ "$APP_VERSION" != "$ME_VERSION" ]; then
+            echo "::error::Version mismatch detected after push!"
+            echo "::error::E/App version: $APP_VERSION"
+            echo "::error::Mobile-Expensify version: $ME_VERSION"
+            echo "::error::Run the syncVersions workflow to fix this"
+            exit 1
+          fi
+          echo "::notice::Versions verified: $APP_VERSION"
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}

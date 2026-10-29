@@ -1,16 +1,23 @@
-import React from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
+
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {updateXeroImportCustomers} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -21,7 +28,7 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroCustomerConfigurationPage.displayName}
+            displayName="XeroCustomerConfigurationPage"
             headerTitle="workspace.xero.customers"
             title="workspace.xero.customersDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -33,13 +40,14 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.customers')}
+                accordionStyle={styles.overflowHidden}
                 subMenuItems={
-                    <MenuItemWithTopDescription
-                        interactive={false}
-                        title={translate('workspace.common.tags')}
-                        description={translate('workspace.common.displayedAs')}
-                        wrapperStyle={styles.sectionMenuItemTopDescription}
-                    />
+                    <MenuItemSectionRoot>
+                        <MenuItemField.Row
+                            name={translate('workspace.common.displayedAs')}
+                            value={translate('workspace.common.tags')}
+                        />
+                    </MenuItemSectionRoot>
                 }
                 isActive={isSwitchOn}
                 onToggle={() => updateXeroImportCustomers(policyID, !xeroConfig?.importCustomers, xeroConfig?.importCustomers)}
@@ -50,7 +58,5 @@ function XeroCustomerConfigurationPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-XeroCustomerConfigurationPage.displayName = 'XeroCustomerConfigurationPage';
 
 export default withPolicyConnections(XeroCustomerConfigurationPage);

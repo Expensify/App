@@ -1,0 +1,144 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import useIsConciergeInboxDM from '@hooks/useIsConciergeInboxDM';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+
+import {setIsComposerFullSize} from '@libs/actions/Report';
+import FS from '@libs/Fullstory';
+import {
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    chatIncludesChronos,
+    chatIncludesConcierge,
+    isMoneyRequestReport,
+    isReportTransactionThread,
+} from '@libs/ReportUtils';
+
+import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
+import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {MeasureInWindowOnSuccessCallback} from 'react-native';
+
+import React, {useState} from 'react';
+
+import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import ComposerWithSuggestions from './ComposerWithSuggestions';
+import useAttachmentPicker from './useAttachmentPicker';
+import useComposerSubmit from './useComposerSubmit';
+import useShouldSkipComposerAutoFocus from './useShouldSkipComposerAutoFocus';
+
+const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
+
+const ASK_CONCIERGE_PLACEHOLDER_KEYS = [
+    'common.concierge.composerPlaceholders.spendLastMonth',
+    'common.concierge.composerPlaceholders.topExpenses',
+    'common.concierge.composerPlaceholders.spendDrivers',
+    'common.concierge.composerPlaceholders.travelSpendChange',
+    'common.concierge.composerPlaceholders.topSpender',
+    'common.concierge.composerPlaceholders.missingCategory',
+    'common.concierge.composerPlaceholders.awaitingApproval',
+    'common.concierge.composerPlaceholders.notReimbursed',
+    'common.concierge.composerPlaceholders.unsubmitted',
+    'common.concierge.composerPlaceholders.leftToPay',
+    'common.concierge.composerPlaceholders.createExpense',
+    'common.concierge.composerPlaceholders.combineExpenses',
+    'common.concierge.composerPlaceholders.exportPdf',
+    'common.concierge.composerPlaceholders.exportCsv',
+    'reportActionCompose.askConciergeForHelp',
+] as const;
+
+function getRandomPlaceholder(translate: LocalizedTranslate): string {
+    const randomIndex = Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length);
+    return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
+}
+
+function ComposerInput() {
+    const {reportID} = useComposerState();
+    const {translate, preferredLocale} = useLocalize();
+    const {isMenuVisible} = useComposerState();
+    const {isBlockedFromConcierge, debouncedCommentMaxLengthValidation} = useComposerSendState();
+    const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
+    const {containerRef, suggestionsRef, isNextModalWillOpenRef} = useComposerMeta();
+    const {isEditingInComposer, didResetComposerHeightWhileEditing} = useComposerEditState();
+    const isSubmittingEdit = isEditingInComposer || didResetComposerHeightWhileEditing;
+
+    const {submitDraftAndClearComposer, validateAndSubmitDraft} = useComposerSubmit(reportID);
+    const {pickAttachments, PDFValidationComponent} = useAttachmentPicker(reportID);
+
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+    const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+    const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
+
+    const onValueChange = (v: string) => {
+        if (v.length === 0 && isComposerFullSize) {
+            setIsComposerFullSize(reportID, false);
+        }
+        debouncedCommentMaxLengthValidation?.(v);
+    };
+
+    const measureContainer = (callback: MeasureInWindowOnSuccessCallback) => {
+        containerRef.current?.measureInWindow(callback);
+    };
+
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
+    const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
+    const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
+
+    const includesConcierge = chatIncludesConcierge({participants: report?.participants});
+    const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
+    const isExpenseRelatedReport = isReportTransactionThread(report) || isMoneyRequestReport(report);
+    const isEnglishLocale = (preferredLocale ?? CONST.LOCALES.DEFAULT) === CONST.LOCALES.EN;
+    const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
+
+    let inputPlaceholder = translate('reportActionCompose.writeSomething');
+    if (includesConcierge && userBlockedFromConcierge) {
+        inputPlaceholder = translate('reportActionCompose.blockedFromConcierge');
+    } else if (isConciergeInboxDM) {
+        inputPlaceholder = translate(askConciergePlaceholderKey);
+    } else if (isExpenseRelatedReport && canUserPerformWriteAction && isEnglishLocale) {
+        inputPlaceholder = getRandomPlaceholder(translate);
+    }
+    const fsClass = report ? FS.getChatFSClass(report) : undefined;
+
+    return (
+        <>
+            <ComposerWithSuggestions
+                ref={setComposerRef}
+                suggestionsRef={suggestionsRef}
+                isNextModalWillOpenRef={isNextModalWillOpenRef}
+                reportID={reportID}
+                policyID={report?.policyID}
+                includeChronos={chatIncludesChronos(report)}
+                isGroupPolicyReport={isGroupPolicyReport}
+                shouldSkipAutoFocus={shouldSkipAutoFocus}
+                isMenuVisible={isMenuVisible}
+                inputPlaceholder={inputPlaceholder}
+                isComposerFullSize={isComposerFullSize}
+                setIsFullComposerAvailable={setIsFullComposerAvailable}
+                onPasteFile={(files) => {
+                    if (isSubmittingEdit) {
+                        return;
+                    }
+                    pickAttachments({files});
+                }}
+                onClear={validateAndSubmitDraft}
+                disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
+                onEnterKeyPress={submitDraftAndClearComposer}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                measureParentContainer={measureContainer}
+                onValueChange={onValueChange}
+                forwardedFSClass={fsClass}
+            />
+            {PDFValidationComponent}
+        </>
+    );
+}
+
+export default ComposerInput;

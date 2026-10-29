@@ -1,13 +1,14 @@
+import type {StyleProp, TextStyle} from 'react-native';
+
 /**
  * TextBlock component splits a given text into individual words and displays
  * each word within a Text component.
  */
-import React, {memo, useMemo} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import React from 'react';
+
 import Text from './Text';
 
 type TextBlockProps = {
-    /** The color of the text */
     color?: string;
 
     /** Styles to apply to each text word */
@@ -18,7 +19,7 @@ type TextBlockProps = {
 };
 
 function TextBlock({color, textStyles, text}: TextBlockProps) {
-    const words = useMemo(() => text.match(/(\S+\s*)/g) ?? [], [text]);
+    const words = text.match(/(\S+\s*)/g) ?? [];
 
     return (
         <>
@@ -26,6 +27,7 @@ function TextBlock({color, textStyles, text}: TextBlockProps) {
                 <Text
                     color={color}
                     style={textStyles}
+                    key={word}
                 >
                     {word}
                 </Text>
@@ -34,6 +36,4 @@ function TextBlock({color, textStyles, text}: TextBlockProps) {
     );
 }
 
-TextBlock.displayName = 'TextBlock';
-
-export default memo(TextBlock);
+export default TextBlock;

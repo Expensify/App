@@ -12,12 +12,12 @@ function register(timerID: NodeJS.Timeout): NodeJS.Timeout {
  * Clears all timers that we have registered. Use for long running tasks that may begin once logged out.
  */
 function clearAll(): void {
-    timers.forEach((timer) => {
+    for (const timer of timers) {
         // We don't know whether it's a setTimeout or a setInterval, but it doesn't really matter. If the id doesn't
         // exist nothing bad happens.
         clearTimeout(timer);
         clearInterval(timer);
-    });
+    }
 }
 
 export default {

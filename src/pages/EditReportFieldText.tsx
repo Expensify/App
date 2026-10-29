@@ -1,14 +1,22 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {hasCircularReferences} from '@libs/Formula';
+import type {FieldList} from '@libs/Formula';
+import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
 
 type EditReportFieldTextPageProps = {
     /** Value of the policy report field */
@@ -25,32 +33,57 @@ type EditReportFieldTextPageProps = {
 
     /** Callback to fire when the Save button is pressed  */
     onSubmit: (form: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => void;
+
+    /** Policy field list for circular reference detection */
+    fieldList?: FieldList;
+
+    /** Flag to indicate if the input should be disabled */
+    disabled?: boolean;
 };
 
-function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey}: EditReportFieldTextPageProps) {
+function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, fieldKey, fieldList, disabled = false}: EditReportFieldTextPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
+    const reportFieldName = Str.UCFirst(fieldName);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
-            if (isRequired && values[fieldKey].trim() === '') {
-                errors[fieldKey] = translate('common.error.fieldRequired');
-            }
-            return errors;
-        },
-        [fieldKey, isRequired, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
+        // Validate the same value we submit: handleSubmit squashes line breaks to spaces before saving, so
+        // normalize here too. Otherwise a formula like `{field:Client\nName}` would be validated as a reference
+        // to `Client\nName` but saved as `{field:Client Name}`, letting a circular reference slip past this check.
+        const inputValue = StringUtils.lineBreaksToSpaces(values[fieldKey]).trim();
+
+        if (isRequired && inputValue === '') {
+            errors[fieldKey] = translate('common.error.fieldRequired');
+        }
+
+        if (hasCircularReferences(inputValue, fieldName, fieldList)) {
+            errors[fieldKey] = translate('workspace.reportFields.circularReferenceError');
+        }
+
+        return errors;
+    };
+
+    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+        // The input can grow to multiple lines while editing, but report titles and text fields are single-line
+        // values. Squash any line breaks the user entered down to a single line before saving.
+        onSubmit({
+            ...values,
+            [fieldKey]: StringUtils.lineBreaksToSpaces(values[fieldKey]),
+        });
+    };
 
     return (
         <FormProvider
             style={[styles.flexGrow1, styles.ph5]}
             formID={ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM}
-            onSubmit={onSubmit}
+            onSubmit={handleSubmit}
             validate={validate}
             submitButtonText={translate('common.save')}
+            isSubmitButtonVisible={!disabled}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
         >
             <View style={styles.mb4}>
                 <InputWrapper
@@ -58,16 +91,16 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                     inputID={fieldKey}
                     name={fieldKey}
                     defaultValue={fieldValue}
-                    label={fieldName}
-                    accessibilityLabel={fieldName}
+                    label={reportFieldName}
+                    accessibilityLabel={reportFieldName}
                     role={CONST.ROLE.PRESENTATION}
+                    autoGrowSingleLine
                     ref={inputCallbackRef}
+                    disabled={disabled}
                 />
             </View>
         </FormProvider>
     );
 }
-
-EditReportFieldTextPage.displayName = 'EditReportFieldTextPage';
 
 export default EditReportFieldTextPage;

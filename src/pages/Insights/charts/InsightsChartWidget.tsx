@@ -1,0 +1,192 @@
+import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
+import ChartEmptyState from '@components/Search/ChartEmptyState';
+import ChartErrorState from '@components/Search/ChartErrorState';
+import ChartOfflineState from '@components/Search/ChartOfflineState';
+import applyRunningTotal from '@components/Search/runningTotal';
+import SearchChartView from '@components/Search/SearchChartView';
+import type {SearchQueryJSON} from '@components/Search/types';
+import WidgetContainer from '@components/WidgetContainer';
+import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import localFileDownload from '@libs/localFileDownload';
+import Navigation from '@libs/Navigation/Navigation';
+import {INSIGHTS_CHART_STATE} from '@libs/resolveInsightsChartData';
+import {getDateFilterRange} from '@libs/SearchQueryUtils';
+
+import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
+import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
+import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
+import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
+import useInsightsChartData from '@pages/Insights/useInsightsChartData';
+
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import InsightsDataTable from './InsightsDataTable';
+
+type InsightsChartWidgetProps = {
+    chart: InsightsChartSpec;
+
+    /** The chart's own query, with the page's filters applied */
+    queryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** The snapshot stored under the chart's own query */
+    snapshot: OnyxEntry<SearchResults>;
+
+    /** The chart's query for the previous period */
+    previousPeriodQueryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** The snapshot stored under the chart's query for the previous period */
+    previousPeriodSnapshot: OnyxEntry<SearchResults>;
+
+    /** Average group total the backend returned for the chart, drawn in the Average compare mode */
+    averageTotal: number | undefined;
+
+    /** Whether GetInsights answered the dashboard's query */
+    isDashboardLoaded: boolean | undefined;
+
+    /** Page-level filters every chart on the dashboard is narrowed by */
+    filters: InsightsFilters;
+
+    /** Called by the retry button to request the dashboard again */
+    onRetry: () => void;
+
+    /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
+    onGroupByChange?: (update: Partial<InsightsFilters>) => void;
+};
+
+function InsightsChartWidget({
+    chart,
+    queryJSON,
+    snapshot,
+    previousPeriodQueryJSON,
+    previousPeriodSnapshot,
+    averageTotal,
+    isDashboardLoaded,
+    filters,
+    onRetry,
+    onGroupByChange,
+}: InsightsChartWidgetProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
+    const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
+    const {getCurrencyDecimals} = useCurrencyListActions();
+
+    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}, filters);
+    const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
+    const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
+    const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
+    const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
+
+    const groupByOptions = getInsightsGroupByOptions(filters.date);
+    const canRunningTotal = isRunningTotalAvailable(filters.date);
+    const shouldShowRunningTotal = filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && canRunningTotal && view === CONST.SEARCH.VIEW.LINE;
+
+    const downloadCSV = () => {
+        if (!queryJSON || state !== INSIGHTS_CHART_STATE.READY) {
+            return;
+        }
+
+        // Running total shows cumulative values, so the export accumulates the same way the chart does.
+        const csvData = shouldShowRunningTotal ? applyRunningTotal({data, groupBy}).data : data;
+        const content = buildInsightsChartCSV({data: csvData, groupBy, dateRange: getDateFilterRange(queryJSON), currency: filters.groupCurrency, getCurrencyDecimals, translate});
+        localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
+    };
+
+    const groupByControl =
+        onGroupByChange && (groupByOptions.length > 1 || canRunningTotal) ? (
+            <InsightsGroupByDropdown
+                groupBy={filters.groupBy}
+                options={groupByOptions}
+                onChange={onGroupByChange}
+            />
+        ) : null;
+
+    const headerMenu =
+        !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
+            <WidgetHeaderMenu
+                size={CONST.BUTTON_SIZE.SMALL}
+                testID={`insightsChartMenu-${chart.graphKey}`}
+                sentryLabel="InsightsChartMenu"
+                menuItems={[
+                    {
+                        text: translate('insightsPage.viewOnSpend'),
+                        icon: icons.Expand,
+                        onSelected: () => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)})),
+                        shouldCallAfterModalHide: true,
+                    },
+                    ...(state === INSIGHTS_CHART_STATE.READY
+                        ? [
+                              {
+                                  text: translate('spreadsheet.downloadCSV'),
+                                  icon: icons.Table,
+                                  onSelected: downloadCSV,
+                                  shouldCallAfterModalHide: true,
+                              },
+                          ]
+                        : []),
+                ]}
+            />
+        ) : null;
+
+    return (
+        <WidgetContainer
+            title={translate(chart.titleKey)}
+            titleRightContent={
+                !!groupByControl || !!headerMenu ? (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
+                        {groupByControl}
+                        {headerMenu}
+                    </View>
+                ) : null
+            }
+        >
+            {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
+            {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
+            {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
+            {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
+                <View style={cardPaddingBottom}>
+                    <SearchChartView
+                        queryJSON={queryJSON}
+                        view={view}
+                        groupBy={groupBy}
+                        data={data}
+                        isLoading={isLoading}
+                        comparison={comparison}
+                        shouldShowRunningTotal={shouldShowRunningTotal}
+                        chartContainerStyle={cardPaddingHorizontal}
+                        shouldShowSinglePointAsBar
+                        shouldShowGroupLabels={false}
+                        renderDetails={
+                            shouldShowTable
+                                ? ({rows}) => (
+                                      <InsightsDataTable
+                                          rows={rows}
+                                          isLoading={isLoading}
+                                      />
+                                  )
+                                : undefined
+                        }
+                    />
+                </View>
+            )}
+        </WidgetContainer>
+    );
+}
+
+export default InsightsChartWidget;

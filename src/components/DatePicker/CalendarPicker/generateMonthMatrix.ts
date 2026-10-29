@@ -1,5 +1,6 @@
-import {addDays, format, getDay, getDaysInMonth, startOfMonth} from 'date-fns';
 import DateUtils from '@libs/DateUtils';
+
+import {addDays, format, getDay, getDaysInMonth, startOfMonth} from 'date-fns';
 
 /**
  * Generates a matrix representation of a month's calendar given the year and month.

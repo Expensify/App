@@ -1,200 +1,460 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
-import lodashSortBy from 'lodash/sortBy';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
-import DecisionModal from '@components/DecisionModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
-import LottieAnimations from '@components/LottieAnimations';
+import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
-import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
-import SelectionListWithModal from '@components/SelectionListWithModal';
-import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
+import type {WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
+import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
-import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
+
+import useAlertModals from '@hooks/useAlertModals';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePolicy from '@hooks/usePolicy';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import usePolicyData from '@hooks/usePolicyData';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
+import useSearchBackPress from '@hooks/useSearchBackPress';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isConnectionInProgress} from '@libs/actions/connections';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
+
+import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import localeCompare from '@libs/LocaleCompare';
+import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
+import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {FullScreenNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {hasEnabledOptions, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
+import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import showInlineEditError from '@libs/showInlineEditError';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Modal from '@userActions/Modal';
-import {deleteWorkspaceCategories, setWorkspaceCategoryEnabled} from '@userActions/Policy/Category';
-import * as Category from '@userActions/Policy/Category';
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
+
+import {close} from '@userActions/Modal';
+import {
+    clearCategoryErrors,
+    deleteWorkspaceCategories,
+    downloadCategoriesCSV,
+    openPolicyCategoriesPage,
+    setPolicyAutoCategorizeNewExpenses,
+    setPolicyShowCategoryGLCodes,
+    setWorkspaceCategoryEnabled,
+} from '@userActions/Policy/Category';
+import {clearPolicyErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import type {PolicyCategory} from '@src/types/onyx';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {PolicyCategories} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-type PolicyOption = ListItem & {
-    /** Category name is used as a key for the selectedCategories state */
-    keyForList: string;
-};
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
-type WorkspaceCategoriesPageProps = StackScreenProps<FullScreenNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>;
+type WorkspaceCategoriesPageProps =
+    | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>
+    | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT>;
 
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const {windowWidth} = useWindowDimensions();
+    const {pageGutter} = useLayoutSpacing();
     const styles = useThemeStyles();
-    const theme = useTheme();
-    const {translate} = useLocalize();
-    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
-    const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
-    const isFocused = useIsFocused();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
+    const {showConfirmModal} = useConfirmModal();
+    const {showDownloadErrorModal} = useAlertModals();
     const {environmentURL} = useEnvironment();
-    const policyId = route.params.policyID ?? '-1';
-    const backTo = route.params?.backTo;
-    const policy = usePolicy(policyId);
-    const {selectionMode} = useMobileSelectionMode();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
+    const {backTo, policyID: policyId} = route.params;
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const policyData = usePolicyData(policyId);
+    const {policy, categories: policyCategories} = policyData;
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.categories');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const hasSyncError = PolicyUtils.shouldShowSyncError(policy, isSyncInProgress);
-    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
-    const currentConnectionName = PolicyUtils.getCurrentConnectionName(policy);
-    const isQuickSettingsFlow = !!backTo;
+    const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
+    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
+    const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
+    const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
-    const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
+    const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
+    const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
+    const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
 
-    const fetchCategories = useCallback(() => {
-        Category.openPolicyCategoriesPage(policyId);
-    }, [policyId]);
+    const {
+        taskReport: setupCategoryTaskReport,
+        taskParentReport: setupCategoryTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
+        parentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
+
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyId}`);
+
+    const policyHasTags = hasTags(policyTags);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+
+    const fetchCategories = () => {
+        openPolicyCategoriesPage(policyId);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchCategories});
 
-    useFocusEffect(
-        useCallback(() => {
-            fetchCategories();
-        }, [fetchCategories]),
-    );
-
     useEffect(() => {
-        if (isFocused) {
-            return;
-        }
-        setSelectedCategories({});
-    }, [isFocused]);
-
-    const categoryList = useMemo<PolicyOption[]>(
-        () =>
-            (lodashSortBy(Object.values(policyCategories ?? {}), 'name', localeCompare) as PolicyCategory[]).map((value) => {
-                const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-                return {
-                    text: value.name,
-                    keyForList: value.name,
-                    isSelected: !!selectedCategories[value.name] && canSelectMultiple,
-                    isDisabled,
-                    pendingAction: value.pendingAction,
-                    errors: value.errors ?? undefined,
-                    rightElement: <ListItemRightCaretWithLabel labelText={value.enabled ? translate('workspace.common.enabled') : translate('workspace.common.disabled')} />,
-                };
-            }),
-        [policyCategories, selectedCategories, canSelectMultiple, translate],
-    );
-
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
-
-    const toggleCategory = useCallback((category: PolicyOption) => {
-        setSelectedCategories((prev) => {
-            if (prev[category.keyForList]) {
-                const {[category.keyForList]: omittedCategory, ...newCategories} = prev;
-                return newCategories;
-            }
-            return {...prev, [category.keyForList]: true};
-        });
+        fetchCategories();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const toggleAllCategories = () => {
-        const availableCategories = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const isAllSelected = availableCategories.length === Object.keys(selectedCategories).length;
-        setSelectedCategories(isAllSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
+    const clearTableSelection = () => {
+        setSelectedCategoryKeys((prevSelectedCategoryKeys) => (prevSelectedCategoryKeys.length > 0 ? [] : prevSelectedCategoryKeys));
     };
 
-    const getCustomListHeader = () => {
-        return (
-            <CustomListHeader
-                canSelectMultiple={canSelectMultiple}
-                leftHeaderText={translate('common.name')}
-                rightHeaderText={translate('statusPage.status')}
-            />
-        );
+    useCleanupSelectedOptions(clearTableSelection);
+
+    useEffect(() => {
+        if (selectedCategoryKeys.length === 0 || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedCategoryKeys((prevSelectedCategories) => {
+            const newSelectedCategories = [];
+
+            for (const categoryName of prevSelectedCategories) {
+                const categoryExists = policyCategories?.[categoryName];
+                if (!categoryExists) {
+                    const renamedCategory = Object.entries(policyCategories ?? {}).find(([, category]) => category.previousCategoryName === categoryName);
+                    if (renamedCategory) {
+                        newSelectedCategories.push(renamedCategory[0]);
+                        continue;
+                    }
+                }
+
+                if (categoryExists && categoryExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedCategories.push(categoryName);
+                }
+            }
+
+            return newSelectedCategories;
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [policyCategories]);
+
+    useSearchBackPress({
+        onClearSelection: clearTableSelection,
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const showCannotDeleteOrDisableLastCategoryModal = () => {
+        showConfirmModal({
+            title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
+            prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
     };
 
-    const navigateToCategorySettings = (category: PolicyOption) => {
-        Navigation.navigate(
-            isQuickSettingsFlow
-                ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList, backTo)
-                : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyId, category.keyForList),
-        );
+    const updateWorkspaceCategoryEnabled = (value: boolean, categoryName: string) => {
+        if (!canWriteCategories) {
+            showReadOnlyModal();
+            return;
+        }
+        setWorkspaceCategoryEnabled({
+            isVendorMatchingBetaEnabled,
+            policyData,
+            categoriesToUpdate: {[categoryName]: {name: categoryName, enabled: value}},
+            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
+            parentReportAction,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            policyHasTags,
+            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
+        });
     };
 
-    const navigateToCategoriesSettings = () => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_SETTINGS.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_SETTINGS.getRoute(policyId));
+    const navigateToCategory = (category: PolicyCategories[string]) => {
+        const path = isQuickSettingsFlow
+            ? buildDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(category.name))
+            : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(category.name));
+
+        Navigation.navigate(path);
     };
+
+    const handleCategoryToggle = (enabled: boolean, category: PolicyCategories[string]) => {
+        if (!canWriteCategories) {
+            showReadOnlyModal();
+            return;
+        }
+
+        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [category])) {
+            showCannotDeleteOrDisableLastCategoryModal();
+            return;
+        }
+
+        updateWorkspaceCategoryEnabled(enabled, category.name);
+    };
+
+    const categories = Object.values(policyCategories ?? {});
+
+    const approverEmails: Record<string, string> = {};
+    for (const category of categories) {
+        const approverEmail = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category.name)?.approver;
+        if (approverEmail) {
+            approverEmails[category.name] = approverEmail;
+        }
+    }
+    const categoryApproverEmails = approverEmails;
+
+    const shouldShowGLCodeColumn = Object.values(policyCategories ?? {}).some((category) => !!category['GL Code']) && isControlPolicyWithWideLayout;
+    const shouldShowApproverColumn = isControlPolicyWithWideLayout && arePolicyRulesEnabled(policy, policyCategories) && Object.keys(categoryApproverEmails).length > 0;
+
+    const isSelectionModeActive = selectedCategoryKeys.length > 0 || isMobileSelectionModeEnabled;
+
+    const categoryRows: WorkspaceCategoryTableRowData[] = categories.reduce<WorkspaceCategoryTableRowData[]>((acc, value) => {
+        const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+        if (!isOffline && isDisabled) {
+            return acc;
+        }
+
+        const approverEmail = shouldShowApproverColumn ? categoryApproverEmails[value.name] : undefined;
+        const approverPersonalDetail = employeePersonalDetails[approverEmail ?? ''];
+        const {avatar: approverAvatar, displayName = approverEmail, accountID: approverAccountID} = approverPersonalDetail ?? {};
+        const approverDisplayName = displayName ? formatPhoneNumber(displayName) : '';
+
+        acc.push({
+            keyForList: value.name,
+            name: getDecodedCategoryName(value.name),
+            glCode: value['GL Code'],
+            disabled: isDisabled,
+            approverAvatar,
+            approverAccountID,
+            approverDisplayName,
+            enabled: value.enabled,
+            errors: value.errors ?? undefined,
+            pendingAction: value.pendingAction,
+            isLocked: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value]) || !canWriteCategories || isDisabled,
+            canEditName: canWriteCategories && !isDisabled && !isSelectionModeActive,
+            action: () => navigateToCategory(value),
+            onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
+            onRenameName: (newName: string) =>
+                showInlineEditError(renameCategoryInline(translate, policyData, value.name, newName, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion())),
+            dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
+        });
+
+        return acc;
+    }, []);
 
     const navigateToCreateCategoryPage = () => {
-        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
+        Navigation.navigate(buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
     };
-
-    const dismissError = (item: PolicyOption) => {
-        Category.clearCategoryErrors(policyId, item.keyForList);
-    };
-
-    const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
 
     const handleDeleteCategories = () => {
-        setSelectedCategories({});
-        deleteWorkspaceCategories(policyId, selectedCategoriesArray);
-        setDeleteCategoriesConfirmModalVisible(false);
+        if (selectedCategoryKeys.length > 0) {
+            deleteWorkspaceCategories(
+                policyData,
+                selectedCategoryKeys,
+                isSetupCategoryTaskParentReportArchived,
+                setupCategoryTaskReport,
+                setupCategoryTaskParentReport,
+                currentUserPersonalDetails.accountID,
+                hasOutstandingChildTask,
+                parentReportAction,
+                isVendorMatchingBetaEnabled,
+                getReviewWorkspaceSettingsTaskCompletion(),
+            );
+        }
+
+        clearTableSelection();
     };
 
+    const hasVisibleCategories = categoryRows.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const hasEnabledCategories = hasEnabledOptions(policyCategories);
+
+    const policyHasAccountingConnections = hasAccountingConnections(policy);
+
+    const showOfflineModal = () => {
+        close(() => {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+        });
+    };
+
+    const navigateToImportSpreadsheet = () => {
+        if (isOffline) {
+            showOfflineModal();
+            return;
+        }
+        Navigation.navigate(
+            isQuickSettingsFlow
+                ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
+                : buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path),
+        );
+    };
+
+    const menuItems = [];
+    // The former Settings page's toggles are surfaced directly in this menu. Selecting a toggle row (click or Enter)
+    // flips it; the Switch is a display-only indicator and the menu stays open on select.
+    if (canWriteCategories) {
+        menuItems.push({
+            text: translate('workspace.categories.autoCategorizeNewExpenses'),
+            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            shouldCloseModalOnSelect: false,
+            onSelected: () => setPolicyAutoCategorizeNewExpenses(policyId, !(policy?.autoCategorizeNewExpenses ?? true)),
+            numberOfLinesTitle: 0,
+            shouldIgnoreCompactStyle: true,
+            innerContainerStyle: styles.alignItemsCenter,
+            titleStyle: [styles.textLabel, styles.fontWeightNormal],
+            pendingAction: policy?.pendingFields?.autoCategorizeNewExpenses,
+            errors: policy?.errorFields?.autoCategorizeNewExpenses,
+            onCloseError: () => clearPolicyErrorField(policyId, 'autoCategorizeNewExpenses'),
+            switchProps: {
+                isOn: policy?.autoCategorizeNewExpenses ?? true,
+                accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
+                onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value),
+                disabled: !policy?.areCategoriesEnabled || !hasEnabledCategories,
+            },
+        });
+    }
+    if (canWriteCategories && !!policy?.glCodes) {
+        menuItems.push({
+            text: translate('workspace.categories.showCategoryGLCodes'),
+            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+            shouldCloseModalOnSelect: false,
+            onSelected: () => setPolicyShowCategoryGLCodes(policyId, !(policy?.showCategoryGLCodes ?? false)),
+            numberOfLinesTitle: 0,
+            shouldIgnoreCompactStyle: true,
+            innerContainerStyle: styles.alignItemsCenter,
+            titleStyle: [styles.textLabel, styles.fontWeightNormal],
+            pendingAction: policy?.pendingFields?.showCategoryGLCodes,
+            errors: policy?.errorFields?.showCategoryGLCodes,
+            onCloseError: () => clearPolicyErrorField(policyId, 'showCategoryGLCodes'),
+            switchProps: {
+                isOn: policy?.showCategoryGLCodes ?? false,
+                accessibilityLabel: translate('workspace.categories.showCategoryGLCodes'),
+                onToggle: (value: boolean) => setPolicyShowCategoryGLCodes(policyId, value),
+                disabled: !policy?.areCategoriesEnabled,
+            },
+        });
+    }
+    if (canWriteCategories && !policyHasAccountingConnections) {
+        menuItems.push({
+            icon: icons.Table,
+            text: translate('spreadsheet.importSpreadsheet'),
+            onSelected: navigateToImportSpreadsheet,
+            value: CONST.POLICY.SECONDARY_ACTIONS.IMPORT_SPREADSHEET,
+            // Group the toggle rows apart from the spreadsheet actions.
+            addSeparatorBefore: true,
+        });
+    }
+    if (hasVisibleCategories) {
+        menuItems.push({
+            icon: icons.Download,
+            text: translate('spreadsheet.downloadCSV'),
+            onSelected: () => {
+                if (isOffline) {
+                    showOfflineModal();
+                    return;
+                }
+                close(() => {
+                    downloadCategoriesCSV(policyId, showDownloadErrorModal, translate);
+                });
+            },
+            value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
+        });
+    }
+    const secondaryActions = menuItems;
+
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+
     const getHeaderButtons = () => {
+        if (!canWriteCategories && secondaryActions.length === 0) {
+            return null;
+        }
+
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const selectedCategoriesObject = selectedCategoryKeys.map((key) => policyCategories?.[key]);
 
-        if (shouldUseNarrowLayout ? canSelectMultiple : selectedCategoriesArray.length > 0) {
+        if (canWriteCategories && (isSmallScreenWidth ? canSelectMultiple : selectedCategoryKeys.length > 0)) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
-                    icon: Expensicons.Trashcan,
-                    text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                    icon: icons.Trashcan,
+                    text: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
+                    shouldSkipFocusRestore: true,
+                    onSelected: async () => {
+                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
+                            showCannotDeleteOrDisableLastCategoryModal();
+                            return;
+                        }
+
+                        const {action} = await showConfirmModal({
+                            title: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                            prompt: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt'),
+                            confirmText: translate('common.delete'),
+                            cancelText: translate('common.cancel'),
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                        });
+                        if (action === ModalActions.CONFIRM) {
+                            handleDeleteCategories();
+                        }
+                    },
                 });
             }
 
-            const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
+            const enabledCategories = selectedCategoryKeys.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
             if (enabledCategories.length > 0) {
-                const categoriesToDisable = selectedCategoriesArray
+                const categoriesToDisable = selectedCategoryKeys
                     .filter((categoryName) => policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
@@ -203,21 +463,42 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         };
                         return acc;
                     }, {});
-
                 options.push({
-                    icon: Expensicons.Close,
+                    icon: icons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                    shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject),
                     onSelected: () => {
-                        setSelectedCategories({});
-                        setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
+                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
+                            showCannotDeleteOrDisableLastCategoryModal();
+                            return;
+                        }
+                        clearTableSelection();
+                        setWorkspaceCategoryEnabled({
+                            isVendorMatchingBetaEnabled,
+                            policyData,
+                            categoriesToUpdate: categoriesToDisable,
+                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+                            setupCategoryTaskReport,
+                            setupCategoryTaskParentReport,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            hasOutstandingChildTask,
+                            parentReportAction,
+                            setupCategoriesAndTagsTaskReport,
+                            setupCategoriesAndTagsTaskParentReport,
+                            isSetupCategoriesAndTagsTaskParentReportArchived,
+                            setupCategoriesAndTagsHasOutstandingChildTask,
+                            setupCategoriesAndTagsParentReportAction,
+                            policyHasTags,
+                            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
+                        });
                     },
                 });
             }
 
-            const disabledCategories = selectedCategoriesArray.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
+            const disabledCategories = selectedCategoryKeys.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
             if (disabledCategories.length > 0) {
-                const categoriesToEnable = selectedCategoriesArray
+                const categoriesToEnable = selectedCategoryKeys
                     .filter((categoryName) => !policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
@@ -227,225 +508,187 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return acc;
                     }, {});
                 options.push({
-                    icon: Expensicons.Checkmark,
+                    icon: icons.Checkmark,
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
-                        setSelectedCategories({});
-                        setWorkspaceCategoryEnabled(policyId, categoriesToEnable);
+                        clearTableSelection();
+                        setWorkspaceCategoryEnabled({
+                            isVendorMatchingBetaEnabled,
+                            policyData,
+                            categoriesToUpdate: categoriesToEnable,
+                            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+                            setupCategoryTaskReport,
+                            setupCategoryTaskParentReport,
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            hasOutstandingChildTask,
+                            parentReportAction,
+                            setupCategoriesAndTagsTaskReport,
+                            setupCategoriesAndTagsTaskParentReport,
+                            isSetupCategoriesAndTagsTaskParentReportArchived,
+                            setupCategoriesAndTagsHasOutstandingChildTask,
+                            setupCategoriesAndTagsParentReportAction,
+                            policyHasTags,
+                            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
+                        });
                     },
                 });
             }
 
             return (
                 <ButtonWithDropdownMenu
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedCategoriesArray.length})}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    customText={translate('workspace.common.selected', {count: selectedCategoryKeys.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    isDisabled={!selectedCategoriesArray.length}
+                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    isDisabled={!selectedCategoryKeys.length}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
+                    testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
                 />
             );
         }
-
+        const shouldShowAddCategory = canWriteCategories && !policyHasAccountingConnections && hasVisibleCategories;
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-                {!PolicyUtils.hasAccountingConnections(policy) && (
+            <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+                {shouldShowAddCategory && (
                     <Button
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={navigateToCreateCategoryPage}
-                        icon={Expensicons.Plus}
-                        text={translate('workspace.categories.addCategory')}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ADD_BUTTON}
+                        style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>{translate('workspace.categories.addCategory')}</Button.Text>
+                    </Button>
+                )}
+                {secondaryActions.length > 0 && (
+                    <ButtonWithDropdownMenu
+                        onPress={() => {}}
+                        shouldAlwaysShowDropdownMenu
+                        customText={translate('common.more')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.MORE_DROPDOWN}
+                        options={secondaryActions}
+                        isSplitButton={false}
+                        wrapperStyle={shouldShowAddCategory || !shouldDisplayButtonsInSeparateLine ? styles.flexGrow0 : styles.flexGrow1}
                     />
                 )}
-                <Button
-                    onPress={navigateToCategoriesSettings}
-                    icon={Expensicons.Gear}
-                    text={translate('common.settings')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
-                />
             </View>
         );
     };
 
     const isLoading = !isOffline && policyCategories === undefined;
 
-    useEffect(() => {
-        if (selectionMode?.isEnabled) {
-            return;
-        }
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
-        setSelectedCategories({});
-    }, [setSelectedCategories, selectionMode?.isEnabled]);
-
-    const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-
-    const getHeaderText = () => (
+    const headerContent = (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {!hasSyncError && isConnectedToAccounting ? (
-                <Text>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.categories.importedFromAccountingSoftware')} `}</Text>
-                    <TextLink
-                        style={[styles.textNormal, styles.link]}
-                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`}
-                    >
-                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                    </TextLink>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
-                </Text>
+            {!hasSyncError && isConnectionVerified && currentConnectionName ? (
+                <ImportedFromAccountingSoftware
+                    policyID={policyId}
+                    currentConnectionName={currentConnectionName}
+                    connectedIntegration={connectedIntegration}
+                    translatedText={translate('workspace.categories.importedFromAccountingSoftware')}
+                />
             ) : (
                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.categories.subtitle')}</Text>
             )}
         </View>
     );
 
-    const threeDotsMenuItems = useMemo(() => {
-        const menuItems = [];
-        if (!PolicyUtils.hasAccountingConnections(policy)) {
-            menuItems.push({
-                icon: Expensicons.Table,
-                text: translate('spreadsheet.importSpreadsheet'),
-                onSelected: () => {
-                    if (isOffline) {
-                        Modal.close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId));
-                },
-            });
-        }
-        if (hasVisibleCategories) {
-            menuItems.push({
-                icon: Expensicons.Download,
-                text: translate('spreadsheet.downloadCSV'),
-                onSelected: () => {
-                    if (isOffline) {
-                        Modal.close(() => setIsOfflineModalVisible(true));
-                        return;
-                    }
-                    Modal.close(() => {
-                        Category.downloadCategoriesCSV(policyId, () => {
-                            setIsDownloadFailureModalVisible(true);
-                        });
-                    });
-                },
-            });
-        }
+    const subtitleText = !policyHasAccountingConnections ? (
+        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{translate('workspace.categories.emptyCategories.subtitle')}</Text>
+    ) : (
+        <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
+            <RenderHTML
+                html={translate('workspace.categories.emptyCategories.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyId)}`, canWriteCategories)}
+            />
+        </View>
+    );
 
-        return menuItems;
-    }, [policyId, translate, isOffline, hasVisibleCategories, policy, isQuickSettingsFlow, backTo]);
-
-    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
+    const emptyStateButtons: EmptyStateButton[] | undefined = !policyHasAccountingConnections
+        ? [
+              {
+                  icon: icons.Table,
+                  buttonText: translate('common.import'),
+                  buttonAction: navigateToImportSpreadsheet,
+              },
+              {
+                  icon: icons.Plus,
+                  buttonText: translate('workspace.categories.addCategory'),
+                  buttonAction: navigateToCreateCategoryPage,
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+              },
+          ]
+        : undefined;
 
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyId}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.CATEGORIES}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceCategoriesPage.displayName}
+                testID="WorkspaceCategoriesPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.categories')}
-                    icon={!selectionModeHeader ? Illustrations.FolderOpen : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldDisplayHelpButton
                     onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
-                            setSelectedCategories({});
+                        if (isMobileSelectionModeEnabled) {
+                            clearTableSelection();
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack(backTo);
+
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                            return;
+                        }
+
+                        Navigation.goBack();
                     }}
-                    shouldShowThreeDotsButton
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
                 >
-                    {!shouldUseNarrowLayout && getHeaderButtons()}
+                    {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
                 </HeaderWithBackButton>
-                <ConfirmModal
-                    isVisible={deleteCategoriesConfirmModalVisible}
-                    onConfirm={handleDeleteCategories}
-                    onCancel={() => setDeleteCategoriesConfirmModalVisible(false)}
-                    title={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
-                    prompt={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {(!shouldUseNarrowLayout || !hasVisibleCategories || isLoading) && getHeaderText()}
+                {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
+
+                {(!hasVisibleCategories || isLoading) && headerContent}
+
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={theme.spinner}
                     />
                 )}
 
-                {!hasVisibleCategories && !isLoading && (
-                    <EmptyStateComponent
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                        headerMedia={LottieAnimations.GenericEmptyState}
-                        title={translate('workspace.categories.emptyCategories.title')}
-                        subtitle={translate('workspace.categories.emptyCategories.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                        headerContentStyles={styles.emptyStateFolderWebStyles}
+                {!isLoading && (
+                    <WorkspaceCategoriesTable
+                        categories={categoryRows}
+                        selectionEnabled={canWriteCategories}
+                        selectedKeys={selectedCategoryKeys}
+                        emptyStateSubtitleText={subtitleText}
+                        emptyStateButtons={emptyStateButtons}
+                        shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                        shouldShowApproverColumn={shouldShowApproverColumn}
+                        onRowSelectionChange={setSelectedCategoryKeys}
+                        headerComponent={hasVisibleCategories ? headerContent : undefined}
                     />
                 )}
-                {hasVisibleCategories && !isLoading && (
-                    <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress
-                        onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                        sections={[{data: categoryList, isDisabled: false}]}
-                        onCheckboxPress={toggleCategory}
-                        onSelectRow={navigateToCategorySettings}
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        onSelectAll={toggleAllCategories}
-                        ListItem={TableListItem}
-                        onDismissError={dismissError}
-                        customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
-                        showScrollIndicator={false}
-                    />
-                )}
-
-                <ConfirmModal
-                    isVisible={isOfflineModalVisible}
-                    onConfirm={() => setIsOfflineModalVisible(false)}
-                    title={translate('common.youAppearToBeOffline')}
-                    prompt={translate('common.thisFeatureRequiresInternet')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <DecisionModal
-                    title={translate('common.downloadFailedTitle')}
-                    prompt={translate('common.downloadFailedDescription')}
-                    isSmallScreenWidth={isSmallScreenWidth}
-                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                    secondOptionText={translate('common.buttonConfirm')}
-                    isVisible={isDownloadFailureModalVisible}
-                    onClose={() => setIsDownloadFailureModalVisible(false)}
-                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCategoriesPage.displayName = 'WorkspaceCategoriesPage';
 
 export default WorkspaceCategoriesPage;

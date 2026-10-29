@@ -1,35 +1,41 @@
-import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
+
 import searchOptions from '@libs/searchOptions';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 
+import React from 'react';
+
 type PushRowModalProps = {
-    /** Whether the modal is visible */
     isVisible: boolean;
 
-    /** The currently selected option */
-    selectedOption: string;
+    /** Keys of the checked rows. A single selection has at most one. */
+    selectedOptions: string[];
 
-    /** Function to call when the user selects an option */
+    /** Rows toggle instead of closing the modal, and a Save button calls onConfirm */
+    canSelectMultiple?: boolean;
+
     onOptionChange: (option: string) => void;
+
+    /** Called by the Save button when `canSelectMultiple` */
+    onConfirm?: () => void;
 
     /** Function to call when the user closes the modal */
     onClose: () => void;
 
-    /** The list of items to render */
     optionsList: Record<string, string>;
-
-    /** The title of the modal */
     headerTitle: string;
-
-    /** The title of the search input */
     searchInputTitle?: string;
 };
 
@@ -40,68 +46,78 @@ type ListItemType = {
     isSelected: boolean;
 };
 
-function PushRowModal({isVisible, selectedOption, onOptionChange, onClose, optionsList, headerTitle, searchInputTitle}: PushRowModalProps) {
+function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, onOptionChange, onConfirm, onClose, optionsList, headerTitle, searchInputTitle}: PushRowModalProps) {
     const {translate} = useLocalize();
 
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const initialSelectedValues = useInitialSelection(selectedOptions, {isVisible});
 
-    const options = useMemo(
-        () =>
-            Object.entries(optionsList).map(([key, value]) => ({
-                value: key,
-                text: value,
-                keyForList: key,
-                isSelected: key === selectedOption,
-                searchValue: StringUtils.sanitizeString(value),
-            })),
-        [optionsList, selectedOption],
-    );
+    const options = Object.entries(optionsList).map(([key, value]) => ({
+        value: key,
+        text: value,
+        keyForList: key,
+        isSelected: selectedOptions.includes(key),
+        searchValue: StringUtils.sanitizeString(value),
+    }));
+
+    const orderedOptions = moveInitialSelectionToTop(options, initialSelectedValues);
 
     const handleSelectRow = (option: ListItemType) => {
         onOptionChange(option.value);
-        onClose();
+        if (!canSelectMultiple) {
+            onClose();
+        }
     };
 
-    const searchResults = searchOptions(debouncedSearchValue, options);
-    const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
+    const handleClose = () => {
+        onClose();
+        setSearchValue('');
+    };
+
+    const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? options : orderedOptions);
+
+    const textInputOptions = {
+        headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+        label: searchInputTitle,
+        value: searchValue,
+        onChangeText: setSearchValue,
+    };
 
     return (
         <Modal
-            onClose={onClose}
+            onClose={handleClose}
             isVisible={isVisible}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
-            onModalHide={onClose}
+            onModalHide={handleClose}
             shouldUseCustomBackdrop
-            useNativeDriver
+            shouldHandleNavigationBack
         >
             <ScreenWrapper
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={PushRowModal.displayName}
+                testID="PushRowModal"
             >
                 <HeaderWithBackButton
                     title={headerTitle}
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    headerMessage={headerMessage}
-                    textInputLabel={searchInputTitle}
-                    textInputValue={searchValue}
-                    onChangeText={setSearchValue}
+                    data={searchResults}
+                    canSelectMultiple={canSelectMultiple}
+                    ListItem={canSelectMultiple ? MultiSelectListItem : SingleSelectListItem}
                     onSelectRow={handleSelectRow}
-                    sections={[{data: searchResults}]}
-                    initiallyFocusedOptionKey={selectedOption}
-                    showScrollIndicator
+                    onSelectionButtonPress={canSelectMultiple ? handleSelectRow : undefined}
+                    confirmButtonOptions={canSelectMultiple ? {showButton: true, text: translate('common.save'), onConfirm} : undefined}
+                    textInputOptions={textInputOptions}
+                    searchValueForFocusSync={debouncedSearchValue}
+                    initiallyFocusedItemKey={initialSelectedValues.at(0)}
+                    disableMaintainingScrollPosition
                     shouldShowTooltips={false}
-                    ListItem={RadioListItem}
+                    showScrollIndicator
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-PushRowModal.displayName = 'PushRowModal';
-
-export type {ListItemType};
 
 export default PushRowModal;

@@ -1,0 +1,449 @@
+import MenuItem from '@components/MenuItem';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import type {ListItem} from '@components/SelectionList/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import useOutstandingReports, {shouldListAllPolicies} from '@hooks/useOutstandingReports';
+import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useReportTransactions from '@hooks/useReportTransactions';
+
+import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
+import Navigation from '@libs/Navigation/Navigation';
+import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect, useRef} from 'react';
+
+import StepScreenWrapper from './StepScreenWrapper';
+
+type TransactionGroupListItem = ListItem & {
+    /** reportID of the report */
+    value: string;
+};
+
+type Props = {
+    backTo: Route | undefined;
+    transactionIDs?: string[];
+    isManualDistanceRequest: boolean;
+    isOdometerDistanceRequest: boolean;
+    isDistanceRequest: boolean;
+    selectedReportID?: string;
+    selectedPolicyID?: string;
+    transactionPolicyID?: string;
+    targetOwnerAccountID?: number;
+    selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
+    removeFromReport?: () => void;
+    isEditing?: boolean;
+    isUnreported?: boolean;
+    shouldShowNotFoundPage?: boolean;
+    createReport?: () => void;
+    isPerDiemRequest: boolean;
+    isTimeRequest?: boolean;
+    isUnreportedManagedCardTransaction?: boolean;
+    /** Whether the expenses being moved belong to more than one submitter */
+    hasMultipleSubmitters?: boolean;
+    /** Whether every expense being moved sits on a card this user can resolve, which "Auto report" requires */
+    areAllManagedCardsResolvable?: boolean;
+    /** Lets the backend pick a destination report per expense. Required to offer the action to multiple submitters */
+    autoReport?: () => void;
+};
+
+function IOURequestEditReportCommon({
+    backTo,
+    transactionIDs,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
+    isDistanceRequest,
+    selectReport,
+    selectedReportID,
+    selectedPolicyID,
+    targetOwnerAccountID,
+    transactionPolicyID,
+    removeFromReport,
+    isEditing = false,
+    isUnreported,
+    shouldShowNotFoundPage: shouldShowNotFoundPageFromProps,
+    createReport,
+    isPerDiemRequest,
+    isTimeRequest = false,
+    isUnreportedManagedCardTransaction = false,
+    hasMultipleSubmitters = false,
+    areAllManagedCardsResolvable = false,
+    autoReport,
+}: Props) {
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document', 'DocumentMagicWand']);
+    const {inputCallbackRef} = useAutoFocusInput();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const personalDetails = usePersonalDetails();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
+    let resolvedReportOwnerAccountID;
+    if (targetOwnerAccountID !== undefined) {
+        resolvedReportOwnerAccountID = targetOwnerAccountID;
+    } else if (selectedReport?.ownerAccountID !== undefined) {
+        resolvedReportOwnerAccountID = selectedReport.ownerAccountID;
+    } else {
+        resolvedReportOwnerAccountID = currentUserPersonalDetails.accountID;
+    }
+    const reportPolicy = usePolicy(selectedReport?.policyID);
+    // Use the caller-provided transactionPolicyID so that the "Create report" button shows the correct workspace.
+    // Each caller is responsible for passing the appropriate policyID (e.g., selectedReport?.policyID ?? transactionPolicyID).
+    // When no transactionPolicyID is provided (e.g., from IOURequestEditReport), the hook falls back to the user's default workspace.
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, transactionPolicyID, isUnreportedManagedCardTransaction);
+
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [hasMoreOutstandingReports] = useOnyx(ONYXKEYS.HAS_MORE_OUTSTANDING_REPORTS_RESULTS);
+    const [isLoadingOutstandingReports] = useOnyx(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS);
+
+    const outstandingReportsPolicyID = shouldListAllPolicies(selectedPolicyID, personalPolicyID, selectedReport) ? undefined : selectedPolicyID;
+    const outstandingReportsOffset = useRef(0);
+    const loadOutstandingReports = () => {
+        // The list is empty when the expenses have several submitters, so there is nothing to load for it
+        if (hasMultipleSubmitters) {
+            return;
+        }
+        outstandingReportsOffset.current = 0;
+        fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, 0);
+    };
+
+    useEffect(() => {
+        loadOutstandingReports();
+    }, [loadOutstandingReports]);
+
+    const {showConfirmModal} = useConfirmModal();
+    const {isOffline} = useNetwork({onReconnect: loadOutstandingReports});
+
+    const loadMoreOutstandingReports = () => {
+        if (!hasMoreOutstandingReports || isLoadingOutstandingReports || isOffline) {
+            return;
+        }
+        outstandingReportsOffset.current += CONST.OUTSTANDING_REPORTS_PAGE_SIZE;
+        fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
+    };
+    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isDistanceRequest,
+    });
+
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const isSelectedReportUnreported = !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+    const isOwner = resolvedReportOwnerAccountID === currentUserPersonalDetails.accountID || isSelectedReportUnreported;
+    const isAdmin = isPolicyAdmin(reportPolicy);
+    const isReportIOU = selectedReport ? isIOUReport(selectedReport) : false;
+
+    const reportTransactions = useReportTransactions(selectedReportID);
+    const isCardTransaction =
+        !(!transactionIDs || !selectedReport) &&
+        reportTransactions
+            .filter((reportTransaction) => transactionIDs.includes(reportTransaction.transactionID))
+            .some((reportTransaction) => reportTransaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT);
+
+    const shouldShowRemoveFromReport =
+        !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport && !isSelfDM(selectedReport)) &&
+        isEditing &&
+        isOwner &&
+        !isReportIOU &&
+        !isCardTransaction;
+
+    const outstandingReports = useOutstandingReports(selectedReportID, selectedPolicyID, resolvedReportOwnerAccountID, isEditing);
+
+    const reportOwnerLogin = personalDetails?.[resolvedReportOwnerAccountID]?.login;
+    // Outstanding reports belong to one owner, so listing them would offer their reports for everyone else's expenses.
+    const reportOptions: TransactionGroupListItem[] =
+        outstandingReports.length === 0 || hasMultipleSubmitters
+            ? []
+            : outstandingReports
+                  .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
+                  .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
+                  .filter((report): report is NonNullable<typeof report> => report !== undefined)
+                  .filter((report) => {
+                      const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                      if (!canCreateExpensesOnPolicy(policy, reportOwnerLogin)) {
+                          return false;
+                      }
+                      if (isTimeRequest && !isTimeTrackingEnabled(policy)) {
+                          return false;
+                      }
+                      if (isPerDiemRequest && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
+                          return false;
+                      }
+                      if (canAddTransaction(report, rules, undefined, true)) {
+                          return true;
+                      }
+                      const isReportPolicyAdmin = isPolicyAdmin(policy);
+                      const isReportManager = report.managerID === currentUserPersonalDetails.accountID;
+                      return isReportPolicyAdmin || isReportManager;
+                  })
+                  .map((report) => {
+                      const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+                      return {
+                          brickRoadIndicator: null,
+                          alternateText: policy?.name,
+                          text: report.reportName,
+                          value: report.reportID,
+                          keyForList: report.reportID,
+                          isSelected: report.reportID === selectedReportID,
+                          policyID: report.policyID,
+                          reportID: report.reportID,
+                          icons: getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate),
+                      };
+                  });
+
+    const navigateBack = () => {
+        Navigation.goBack(backTo);
+    };
+
+    const checkIfPerDiemTransactionsCanBeMoved = (selectedReportPolicyID: string | undefined) => {
+        const transactionDetails = transactionIDs?.map((transactionID) => {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            return {
+                transaction,
+                isPerDiem: transaction ? isPerDiemRequestUtil(transaction) : false,
+                customUnitID: transaction?.comment?.customUnit?.customUnitID,
+            };
+        });
+
+        const destinationPolicy = selectedReportPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReportPolicyID}`] : undefined;
+
+        if (!isPerDiemEnabled(destinationPolicy) || !destinationPolicy?.customUnits || isEmptyObject(destinationPolicy.customUnits)) {
+            return false;
+        }
+
+        const invalidPerDiemTransaction = transactionDetails?.find((detail) => {
+            if (!detail.isPerDiem) {
+                return false;
+            }
+            const customUnitID = detail.customUnitID;
+            return !customUnitID || !destinationPolicy?.customUnits?.[customUnitID];
+        });
+
+        return !invalidPerDiemTransaction;
+    };
+
+    const validatePerDiemMove = (policyID: string | undefined): boolean => {
+        if (transactionIDs?.length === 0) {
+            return false;
+        }
+        if (isPerDiemRequest) {
+            if (checkIfPerDiemTransactionsCanBeMoved(policyID)) {
+                return true;
+            }
+            showConfirmModal({
+                title: translate('iou.moveExpenses'),
+                prompt: translate('iou.moveExpensesError'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return false;
+        }
+        return true;
+    };
+
+    const handleSelectReport = (item: TransactionGroupListItem) => {
+        if (item.value === selectedReportID) {
+            navigateBack();
+            return;
+        }
+        if (blockDistanceRequestIfNeeded(item.policyID)) {
+            return;
+        }
+        const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
+        if (
+            item?.policyID &&
+            itemPolicy &&
+            shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
+        ) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
+            return;
+        }
+
+        // Reports can only hold up to CONST.REPORT.MAX_TRANSACTIONS transactions. The backend rejects a move that would push
+        // the destination past the limit, so prevent it up front with an explanatory warning instead of failing silently.
+        // Only count expenses that will actually be added to the destination: the move action skips transactions that are
+        // already in the destination report (see changeTransactionsReport in Transaction.ts), so a bulk selection that
+        // includes expenses already in that report must not inflate the projected count (e.g. moving 5 new expenses into a
+        // report that already holds 490 lands at 495, even if 15 of the selected expenses are already there).
+        const destinationReport = outstandingReports.find((report) => report?.reportID === item.value);
+        const numberOfTransactionsToMove =
+            transactionIDs?.filter((transactionID) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID !== item.value).length ?? 1;
+        if ((destinationReport?.transactionCount ?? 0) + numberOfTransactionsToMove > CONST.REPORT.MAX_TRANSACTIONS) {
+            showConfirmModal({
+                title: translate('iou.moveExpenses'),
+                prompt: translate('iou.moveExpensesMaxTransactionsError'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+
+        if (!validatePerDiemMove(item.policyID)) {
+            return;
+        }
+
+        selectReport(item);
+    };
+
+    const handleCreateReport = () => {
+        if (blockDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
+            return;
+        }
+        if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
+            return;
+        }
+        createReport?.();
+    };
+
+    const headerMessage = searchValue && !reportOptions.length ? translate('common.noResultsFound') : '';
+
+    const policyForMovingExpensesName = policyForMovingExpenses?.name;
+    // A report per submitter would need one API call each, so "Auto report" serves them alone in a single call.
+    const createReportOption =
+        !createReport || hasMultipleSubmitters || (isEditing && !isOwner && !isAdmin) ? undefined : (
+            <MenuItem.Root onPress={handleCreateReport}>
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <MenuItem.Icon src={icons.Document} />
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{translate('report.newReport.createReport')}</MenuItem.Title>
+                        {!!policyForMovingExpensesName && <MenuItem.Description>{policyForMovingExpensesName}</MenuItem.Description>}
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
+        );
+
+    // The destinations are chosen server-side, so there is nothing to apply optimistically and nothing to show for a
+    // queued request. Blocking offline keeps the screen open and says why, rather than silently discarding the action.
+    const handleAutoReport = () => {
+        if (isOffline) {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.offlinePrompt'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+        autoReport?.();
+    };
+
+    let autoReportOption;
+    if (!autoReport || !hasMultipleSubmitters) {
+        autoReportOption = undefined;
+    } else // A card this user cannot resolve, because it is missing or on a feed they do not administer, fails the
+    // whole move.
+    if (!areAllManagedCardsResolvable) {
+        autoReportOption = undefined;
+    } else // These expenses are only valid on some workspaces, and the guards that decide which — per diem rates, the
+    // map/GPS rules on manual and odometer distance — need a destination the backend has not picked yet. Callers
+    // are expected to withhold the whole flow for such a selection; this keeps the row honest if one does not.
+    if (isPerDiemRequest || isManualDistanceRequest || isOdometerDistanceRequest) {
+        autoReportOption = undefined;
+    } else {
+        autoReportOption = (
+            <MenuItem
+                onPress={handleAutoReport}
+                title={translate('iou.autoReport')}
+                description={translate('iou.autoReportDescription')}
+                icon={icons.DocumentMagicWand}
+            />
+        );
+    }
+
+    const listHeaderContent = createReportOption ?? autoReportOption;
+
+    let shouldShowNotFoundPage;
+    if (listHeaderContent) {
+        shouldShowNotFoundPage = false;
+    } else if (outstandingReports.length === 0 || shouldShowNotFoundPageFromProps) {
+        shouldShowNotFoundPage = true;
+    } else if (!selectedReport) {
+        shouldShowNotFoundPage = false;
+    } else {
+        const isOpen = isOpenReport(selectedReport);
+        const isSubmitter = isReportOwner(selectedReport);
+        // If the report is Open, then only submitters, admins can move expenses
+        shouldShowNotFoundPage = isOpen && !isAdmin && !isSubmitter;
+    }
+
+    return (
+        <StepScreenWrapper
+            headerTitle={translate('common.report')}
+            onBackButtonPress={navigateBack}
+            shouldShowWrapper
+            testID="IOURequestEditReportCommon"
+            includeSafeAreaPaddingBottom
+            shouldShowNotFoundPage={shouldShowNotFoundPage}
+        >
+            <SelectionList
+                data={reportOptions}
+                onSelectRow={handleSelectReport}
+                titleNumberOfLines={2}
+                shouldShowTextInput={!hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                textInputOptions={{
+                    value: searchValue,
+                    label: translate('common.search'),
+                    headerMessage,
+                    onChangeText: setSearchValue,
+                    disableAutoFocus: true,
+                    ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
+                }}
+                shouldSingleExecuteRowSelect
+                initiallyFocusedItemKey={selectedReportID}
+                shouldScrollToFocusedIndexOnMount={!listHeaderContent}
+                ListItem={InviteMemberListItem}
+                customListHeaderContent={listHeaderContent}
+                listFooterContent={
+                    shouldShowRemoveFromReport ? (
+                        <MenuItem.Root onPress={removeFromReport}>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <MenuItem.Icon src={icons.Close} />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
+                                    <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    ) : undefined
+                }
+                listEmptyContent={listHeaderContent}
+                onEndReached={loadMoreOutstandingReports}
+                onEndReachedThreshold={0.75}
+            />
+        </StepScreenWrapper>
+    );
+}
+
+export default IOURequestEditReportCommon;

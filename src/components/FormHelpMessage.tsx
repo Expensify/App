@@ -1,12 +1,21 @@
-import isEmpty from 'lodash/isEmpty';
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getPlatform from '@libs/getPlatform';
 import Parser from '@libs/Parser';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, TextStyle, ViewProps, ViewStyle} from 'react-native';
+
+import isEmpty from 'lodash/isEmpty';
+import React, {useContext} from 'react';
+import {View} from 'react-native';
+
+import FormContext from './Form/FormContext';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -23,50 +32,163 @@ type FormHelpMessageProps = {
     /** Container style props */
     style?: StyleProp<ViewStyle>;
 
+    /** Message text style props */
+    messageStyle?: StyleProp<TextStyle>;
+
+    /** Data attributes applied to the message container. */
+    dataSet?: ViewProps['dataSet'];
+
     /** Whether to show dot indicator */
     shouldShowRedDotIndicator?: boolean;
 
     /** Whether should render error text as HTML or as Text */
     shouldRenderMessageAsHTML?: boolean;
+
+    /** Whether to show information icon */
+    isInfo?: boolean;
+
+    /** Native ID for accessibility association (aria-describedby) */
+    nativeID?: string;
+
+    /** Whether this message should be re-announced on repeated form submissions.
+     *  All error messages announce on first appearance. This prop controls whether
+     *  the message also re-announces when the form is re-submitted with the same errors. */
+    shouldReannounceOnSubmit?: boolean;
 };
 
-function FormHelpMessage({message = '', children, isError = true, style, shouldShowRedDotIndicator = true, shouldRenderMessageAsHTML = false}: FormHelpMessageProps) {
+function FormHelpMessage({
+    message = '',
+    children,
+    isError = true,
+    style,
+    messageStyle,
+    dataSet,
+    shouldShowRedDotIndicator = true,
+    shouldRenderMessageAsHTML = false,
+    isInfo = false,
+    nativeID,
+    shouldReannounceOnSubmit = false,
+}: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
+    const {getErrorAnnouncementKey} = useContext(FormContext);
+    const errorAnnouncementKey = getErrorAnnouncementKey();
 
-    const HTMLMessage = useMemo(() => {
-        if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
-            return '';
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const shouldAnnounceError = isError && typeof message === 'string' && !!message && !shouldRenderMessageAsHTML && children == null;
+    const shouldUseSeparateWebLiveAnnouncement = isWeb && !!nativeID && shouldAnnounceError;
+    const visibleMessageRole = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : CONST.ROLE.ALERT;
+    const visibleMessageLiveRegion = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : 'assertive';
+
+    let errorAnnouncementText;
+    if (!isError || typeof message !== 'string') {
+        errorAnnouncementText = '';
+    } else {
+        const trimmedMessage = message.trim();
+        if (!trimmedMessage) {
+            errorAnnouncementText = '';
+        } else {
+            errorAnnouncementText = shouldRenderMessageAsHTML ? Parser.htmlToText(trimmedMessage) : trimmedMessage;
         }
+    }
 
-        const replacedText = Parser.replace(message, {shouldEscapeText: false});
+    const hasError = errorAnnouncementText.length > 0;
 
+    useAccessibilityAnnouncement(message, shouldAnnounceError);
+
+    // Re-announce on native via AccessibilityInfo when form is re-submitted
+    useAccessibilityAnnouncement(errorAnnouncementText, hasError && shouldReannounceOnSubmit && errorAnnouncementKey > 0, {
+        shouldAnnounceOnNative: true,
+        announcementKey: errorAnnouncementKey,
+    });
+
+    let HTMLMessage;
+    if (typeof message !== 'string' || !shouldRenderMessageAsHTML) {
+        HTMLMessage = '';
+    } else {
+        // Messages that are already HTML (for example a saved category description hint) must not be parsed again,
+        // or ExpensiMark re-wraps their mentions and the mention renders blank.
+        const replacedText = Parser.isHTML(message)
+            ? message
+            : Parser.replace(message, {
+                  shouldEscapeText: false,
+              });
         if (isError) {
-            return `<alert-text>${replacedText}</alert-text>`;
+            HTMLMessage = `<alert-text>${replacedText}</alert-text>`;
+        } else {
+            HTMLMessage = `<muted-text-label>${replacedText}</muted-text-label>`;
         }
+    }
 
-        return `<muted-text-label>${replacedText}</muted-text-label>`;
-    }, [isError, message, shouldRenderMessageAsHTML]);
+    const errorIconLabel = isError && shouldShowRedDotIndicator ? CONST.ACCESSIBILITY_LABELS.ERROR : undefined;
 
     if (isEmpty(message) && isEmpty(children)) {
         return null;
     }
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}>
+        <View
+            style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.mb1, style]}
+            dataSet={dataSet}
+        >
             {isError && shouldShowRedDotIndicator && (
+                <View
+                    accessible
+                    role={CONST.ROLE.IMG}
+                    accessibilityLabel={errorIconLabel}
+                >
+                    <Icon
+                        src={icons.DotIndicator}
+                        fill={theme.danger}
+                    />
+                </View>
+            )}
+            {isInfo && (
                 <Icon
-                    src={Expensicons.DotIndicator}
-                    fill={theme.danger}
+                    src={icons.Exclamation}
+                    fill={theme.icon}
+                    size={CONST.ICON_SIZE.SMALL}
+                    additionalStyles={[styles.mr1]}
                 />
             )}
             <View style={[styles.flex1, isError && shouldShowRedDotIndicator ? styles.ml2 : {}]}>
-                {children ?? (shouldRenderMessageAsHTML ? <RenderHTML html={HTMLMessage} /> : <Text style={[isError ? styles.formError : styles.formHelp, styles.mb0]}>{message}</Text>)}
+                {children ??
+                    (shouldRenderMessageAsHTML ? (
+                        <RenderHTML html={HTMLMessage} />
+                    ) : (
+                        <Text
+                            style={[isError ? styles.formError : styles.formHelp, styles.mb0, messageStyle]}
+                            nativeID={nativeID}
+                            role={visibleMessageRole}
+                            accessibilityRole={!isWeb && shouldAnnounceError ? CONST.ROLE.ALERT : undefined}
+                            accessibilityLiveRegion={visibleMessageLiveRegion}
+                        >
+                            {message}
+                        </Text>
+                    ))}
+                {shouldUseSeparateWebLiveAnnouncement && (
+                    <Text
+                        style={styles.hiddenElementOutsideOfWindow}
+                        role={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="assertive"
+                    >
+                        {message}
+                    </Text>
+                )}
+                {isWeb && shouldReannounceOnSubmit && hasError && errorAnnouncementKey > 0 && (
+                    <Text
+                        key={`reannounce-${errorAnnouncementKey}`}
+                        style={styles.hiddenElementOutsideOfWindow}
+                        role={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="assertive"
+                    >
+                        {errorAnnouncementText}
+                    </Text>
+                )}
             </View>
         </View>
     );
 }
-
-FormHelpMessage.displayName = 'FormHelpMessage';
 
 export default FormHelpMessage;

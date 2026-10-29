@@ -1,28 +1,29 @@
-name: Prepare production deploy
+name: Finish release cycle
 
 on:
   issues:
     types: [closed]
 
-# The updateProduction and createNewStagingDeployCash jobs are executed when a StagingDeployCash is closed.
+# The updateProduction and createNewDeployChecklist jobs are executed when a deploy checklist is closed.
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
     outputs:
-      isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
+      isValid: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) && (contains(github.event.issue.labels.*.name, 'ForceProductionDeploy') || fromJSON(steps.verifyStagingBuilds.outputs.ALL_NATIVE_BUILDS_SUCCEEDED || 'false')) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           ref: main
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
+        uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
         id: setupGitForOSBotify
         with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
+          OP_VAULT: ${{ vars.OP_VAULT }}
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
           OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
 
@@ -62,7 +63,24 @@ jobs:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
-            This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval.
+            This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval. (The emoji needs to be the *last* comment before closing)
+            Reopening!
+
+      - name: Check that the staging builds succeeded on all native platforms
+        if: ${{ fromJSON(steps.isDeployer.outputs.IS_DEPLOYER) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS || 'false') && !contains(github.event.issue.labels.*.name, 'ForceProductionDeploy') }}
+        id: verifyStagingBuilds
+        uses: ./.github/actions/javascript/verifyStagingBuildsSucceeded
+        with:
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+
+      - name: Reopen and comment on issue (staging builds failed)
+        if: ${{ steps.verifyStagingBuilds.conclusion == 'success' && !fromJSON(steps.verifyStagingBuilds.outputs.ALL_NATIVE_BUILDS_SUCCEEDED || 'false') }}
+        uses: ./.github/actions/javascript/reopenIssueWithComment
+        with:
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT: |
+            ${{ steps.verifyStagingBuilds.outputs.REASON }}
             Reopening!
 
       - name: Announce failed workflow in Slack
@@ -73,42 +91,35 @@ jobs:
 
   # Update the production branch to trigger the production deploy.
   updateProduction:
-    runs-on: ubuntu-latest
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
+    cache-mode: read
+    uses: ./.github/workflows/updateProtectedBranch.yml
+    secrets: inherit
+    with:
+      TARGET_BRANCH: production
+
+  # Remove DeployBlockerCash label from issues that had it since we just deployed production
+  cleanupDeployBlockers:
+    needs: updateProduction
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: staging
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Setup git for OSBotify
-        id: setupGitForOSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-
-      - name: Update production branch
-        run: |
-          # Re-create the production branch from staging
-          git switch -c production
-
-          # Force-update the remote production branch.
-          git push --force origin production
-
-      - name: Announce failed workflow in Slack
-        if: ${{ failure() }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      - run: |
+          gh issue list \
+            --repo 'Expensify/App' \
+            --state all \
+            --label DeployBlockerCash \
+            --json number \
+            --jq '.[].number' \
+            | xargs -L1 -I {} --max-procs=4 gh issue edit {} --repo 'Expensify/App' --remove-label DeployBlockerCash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
   # Create a new patch version to prep for next release cycle
   createNewPatchVersion:
     needs: validate
     if: ${{ fromJSON(needs.validate.outputs.isValid) }}
+    cache-mode: read
     uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
     with:
@@ -116,32 +127,9 @@ jobs:
 
   # Update the staging branch to trigger a staging deploy
   updateStaging:
-    runs-on: ubuntu-latest
-    needs: [updateProduction, createNewPatchVersion]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Setup git for OSBotify
-        uses: ./.github/actions/composite/setupGitForOSBotifyApp
-        with:
-          GPG_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-          OS_BOTIFY_APP_ID: ${{ secrets.OS_BOTIFY_APP_ID }}
-          OS_BOTIFY_PRIVATE_KEY: ${{ secrets.OS_BOTIFY_PRIVATE_KEY }}
-
-      - name: Update staging branch to trigger staging deploy
-        run: |
-          # Re-create the staging branch from main
-          git switch -c staging
-
-          # Force-update the remote staging branch
-          git push --force origin staging
-
-      - name: Announce failed workflow in Slack
-        if: ${{ failure() }}
-        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
-        with:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+    needs: [cleanupDeployBlockers, createNewPatchVersion]
+    cache-mode: read
+    uses: ./.github/workflows/updateProtectedBranch.yml
+    secrets: inherit
+    with:
+      TARGET_BRANCH: staging

@@ -1,12 +1,19 @@
-import {Portal} from '@gorhom/portal';
-import React, {useMemo, useRef, useState} from 'react';
-import {Animated, InteractionManager, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {View as RNView} from 'react-native';
+import AnimatedPressableWithoutFeedback from '@components/AnimatedPressableWithoutFeedback';
 import TransparentOverlay from '@components/AutoCompleteSuggestions/AutoCompleteSuggestionsPortal/TransparentOverlay/TransparentOverlay';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
+
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {LayoutChangeEvent, View as RNView} from 'react-native';
+
+import {Portal} from '@gorhom/portal';
+import React, {useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+
 import type {BaseGenericTooltipProps} from './types';
 
 // Props will change frequently.
@@ -35,100 +42,136 @@ function BaseGenericTooltip({
     wrapperStyle = {},
     shouldUseOverlay = false,
     onHideTooltip = () => {},
+    shouldTeleportPortalToModalLayer = false,
+    isEducationTooltip = false,
+    onTooltipPress = () => {},
+    computeHorizontalShiftForNative = false,
 }: BaseGenericTooltipProps) {
     // The width of tooltip's inner content. Has to be undefined in the beginning
     // as a width of 0 will cause the content to be rendered of a width of 0,
     // which prevents us from measuring it correctly.
-    const [contentMeasuredWidth, setContentMeasuredWidth] = useState<number>();
+    const [contentMeasuredWidthState, setContentMeasuredWidth] = useState<number>();
+    const contentMeasuredWidthAnimated = useSharedValue<number>(0);
 
     // The height of tooltip's wrapper.
-    const [wrapperMeasuredHeight, setWrapperMeasuredHeight] = useState<number>();
-    const rootWrapper = useRef<RNView>(null);
+    const [wrapperMeasuredHeightState, setWrapperMeasuredHeight] = useState<number>();
+    const wrapperMeasuredHeightAnimated = useSharedValue<number>(0);
+    const rootWrapper = useRef<ComponentRef<typeof RNView>>(null);
 
     const StyleUtils = useStyleUtils();
-
-    const {animationStyle, rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
+    const {rootWrapperStyle, textStyle, pointerWrapperStyle, pointerStyle} = useMemo(
         () =>
             StyleUtils.getTooltipStyles({
-                // eslint-disable-next-line react-compiler/react-compiler
                 tooltip: rootWrapper.current,
-                currentSize: animation,
                 windowWidth,
                 xOffset,
                 yOffset,
                 tooltipTargetWidth: targetWidth,
                 tooltipTargetHeight: targetHeight,
                 maxWidth,
-                tooltipContentWidth: contentMeasuredWidth,
-                tooltipWrapperHeight: wrapperMeasuredHeight,
+                tooltipContentWidth: contentMeasuredWidthState,
+                tooltipWrapperHeight: wrapperMeasuredHeightState,
                 manualShiftHorizontal: shiftHorizontal,
                 manualShiftVertical: shiftVertical,
                 shouldForceRenderingBelow,
                 anchorAlignment,
                 wrapperStyle,
                 shouldAddHorizontalPadding: false,
+                isEducationTooltip,
+                computeHorizontalShiftForNative,
             }),
         [
             StyleUtils,
-            animation,
             windowWidth,
             xOffset,
             yOffset,
             targetWidth,
             targetHeight,
             maxWidth,
-            contentMeasuredWidth,
-            wrapperMeasuredHeight,
+            contentMeasuredWidthState,
+            wrapperMeasuredHeightState,
             shiftHorizontal,
             shiftVertical,
             shouldForceRenderingBelow,
             anchorAlignment,
             wrapperStyle,
+            isEducationTooltip,
+            computeHorizontalShiftForNative,
         ],
     );
 
+    const animationStyle = useAnimatedStyle(() => {
+        return StyleUtils.getTooltipAnimatedStyles({
+            tooltipContentWidth: contentMeasuredWidthAnimated.get(),
+            tooltipWrapperHeight: wrapperMeasuredHeightAnimated.get(),
+            currentSize: animation,
+        });
+    });
+
     let content;
     if (renderTooltipContent) {
-        content = <View>{renderTooltipContent()}</View>;
+        content = <View fsClass={CONST.FULLSTORY.CLASS.UNMASK}>{renderTooltipContent()}</View>;
     } else {
         content = (
             <Text
                 numberOfLines={numberOfLines}
                 style={textStyle}
+                fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
                 <Text style={textStyle}>{text}</Text>
             </Text>
         );
     }
 
+    const onWrapperLayout = (e: LayoutChangeEvent) => {
+        const {height, width} = e.nativeEvent.layout;
+        if (height === wrapperMeasuredHeightAnimated.get()) {
+            return;
+        }
+        // To avoid unnecessary re-renders of the content container when passing state values to useAnimatedStyle,
+        // we use SharedValue for managing content and wrapper measurements.
+        contentMeasuredWidthAnimated.set(width);
+        wrapperMeasuredHeightAnimated.set(height);
+
+        setContentMeasuredWidth(width);
+        setWrapperMeasuredHeight(height);
+    };
+
+    // Rendered as two concrete branches rather than a single dynamic component. A union component
+    // (AnimatedPressableWithoutFeedback | Animated.View) overflows tsc's union limit (TS2590) at the
+    // style prop with reanimated's enlarged AnimatedStyle types.
+    const wrapperChildren = (
+        <>
+            {content}
+            <View style={pointerWrapperStyle}>
+                <View style={pointerStyle} />
+            </View>
+        </>
+    );
+
     return (
-        <Portal hostName={!shouldUseOverlay ? 'modal' : undefined}>
+        <Portal hostName={shouldTeleportPortalToModalLayer ? 'modal' : undefined}>
             {shouldUseOverlay && <TransparentOverlay onPress={onHideTooltip} />}
-            <Animated.View
-                ref={rootWrapper}
-                style={[rootWrapperStyle, animationStyle]}
-                onLayout={(e) => {
-                    const {height} = e.nativeEvent.layout;
-                    if (height === wrapperMeasuredHeight) {
-                        return;
-                    }
-                    setWrapperMeasuredHeight(height);
-                    // When tooltip is used inside an animated view (e.g. popover), we need to wait for the animation to finish before measuring content.
-                    const target = e.target;
-                    setTimeout(() => {
-                        InteractionManager.runAfterInteractions(() => {
-                            target.measure((x, y, width) => {
-                                setContentMeasuredWidth(width);
-                            });
-                        });
-                    }, CONST.ANIMATED_TRANSITION);
-                }}
-            >
-                {content}
-                <View style={pointerWrapperStyle}>
-                    <View style={pointerStyle} />
-                </View>
-            </Animated.View>
+            {isEducationTooltip ? (
+                <AnimatedPressableWithoutFeedback
+                    style={[rootWrapperStyle, animationStyle]}
+                    ref={rootWrapper}
+                    onPress={onTooltipPress}
+                    role={CONST.ROLE.TOOLTIP}
+                    accessibilityLabel={CONST.ROLE.TOOLTIP}
+                    onLayout={onWrapperLayout}
+                >
+                    {wrapperChildren}
+                </AnimatedPressableWithoutFeedback>
+            ) : (
+                <Animated.View
+                    style={[rootWrapperStyle, animationStyle]}
+                    ref={rootWrapper}
+                    onLayout={onWrapperLayout}
+                >
+                    {wrapperChildren}
+                </Animated.View>
+            )}
         </Portal>
     );
 }

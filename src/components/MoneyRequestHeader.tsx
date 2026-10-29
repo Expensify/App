@@ -1,87 +1,122 @@
-import {useRoute} from '@react-navigation/native';
-import type {ReactNode} from 'react';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import useTransactionViolations from '@hooks/useTransactionViolations';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
+import {isOneTransactionReport, isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
+import {
+    hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
+    isBrokenConnectionViolation,
+    isDuplicate as isDuplicateTransactionUtils,
+    isOnHold as isOnHoldTransactionUtils,
+    isPending,
+    isScanning,
+    shouldSuppressBrokenConnectionStatus,
+    shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
+} from '@libs/TransactionUtils';
+
 import variables from '@styles/variables';
-import * as IOU from '@userActions/IOU';
-import * as TransactionActions from '@userActions/Transaction';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ReactNode} from 'react';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
+
+import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
+
 import BrokenConnectionDescription from './BrokenConnectionDescription';
-import Button from './Button';
+import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
+import MoneyRequestHeaderActions from './MoneyRequestHeaderActions';
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
-import ProcessMoneyRequestHoldMenu from './ProcessMoneyRequestHoldMenu';
+import MoneyRequestReportTransactionsNavigation from './MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
+import {useWideRHPState} from './WideRHPContextProvider';
 
 type MoneyRequestHeaderProps = {
-    /** The report currently being looked at */
-    report: OnyxEntry<Report>;
-
-    /** The policy which the report is tied to */
-    policy: OnyxEntry<Policy>;
-
-    /** The report action the transaction is tied to from the parent report */
-    parentReportAction: OnyxEntry<ReportAction>;
+    reportID: string | undefined;
 
     /** Method to trigger when pressing close button of the header */
-    onBackButtonPress: () => void;
+    onBackButtonPress: (prioritizeBackTo?: boolean, options?: {afterTransition?: () => void}) => void;
 };
 
-function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPress}: MoneyRequestHeaderProps) {
+function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRequestHeaderProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
+    const [ownerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(report?.policyID)}`);
+    const parentReportAction = useParentReportAction(report);
+
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const route = useRoute();
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID ?? '-1'}`);
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const route = useRoute<
+        | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+        | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT>
+    >();
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.TRANSACTION}${
-            ReportActionsUtils.isMoneyRequestAction(parentReportAction) ? ReportActionsUtils.getOriginalMessage(parentReportAction)?.IOUTransactionID ?? -1 : -1
+            isMoneyRequestAction(parentReportAction) ? (getOriginalMessage(parentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID
         }`,
+        {},
     );
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true});
-    const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
+    const transactionViolations = useTransactionViolations(transaction?.transactionID, false);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [shouldShowHoldMenu, setShouldShowHoldMenu] = useState(false);
-    const isOnHold = TransactionUtils.isOnHold(transaction);
-    const isDuplicate = TransactionUtils.isDuplicate(transaction?.transactionID ?? '');
+    const {email, accountID} = useCurrentUserPersonalDetails();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'Hourglass', 'Stopwatch']);
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'ReceiptScan']);
+    const {wideRHPRouteKeys} = useWideRHPState();
+
+    const isOnHold = isOnHoldTransactionUtils(transaction);
+    const isParentReportSettled = isSettledReportUtils(parentReport);
+    const isDuplicate = !isParentReportSettled && isDuplicateTransactionUtils(transaction, email ?? '', accountID, report, ownerLogin, policy, transactionViolations);
+    const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
+
     const reportID = report?.reportID;
-
-    const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
-    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
-
-    const hasAllPendingRTERViolations = TransactionUtils.allHavePendingRTERViolation([transaction?.transactionID ?? '-1']);
-
-    const shouldShowBrokenConnectionViolation = TransactionUtils.shouldShowBrokenConnectionViolation(transaction?.transactionID ?? '-1', parentReport, policy);
-
-    const shouldShowMarkAsCashButton =
-        hasAllPendingRTERViolations || (shouldShowBrokenConnectionViolation && (!PolicyUtils.isPolicyAdmin(policy) || ReportUtils.isCurrentUserSubmitter(parentReport?.reportID ?? '')));
-
-    const markAsCash = useCallback(() => {
-        TransactionActions.markAsCash(transaction?.transactionID ?? '-1', reportID ?? '');
-    }, [reportID, transaction?.transactionID]);
-
-    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
+    const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const isFromReviewDuplicates = !!route.params.backTo && /\/duplicates\/review\/[^/]+$/.test(route.params.backTo.replaceAll(/\?.*/g, ''));
+    // `transaction` is resolved through this thread's parent report action, which isn't necessarily loaded yet on
+    // a cold open (e.g. opening an expense from the Spend page right after clearing the cache). The route carries
+    // the expense the screen was opened for, so fall back to it rather than hiding the carousel until data lands.
+    const anchorTransactionIDFromRoute = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route.params.anchorTransactionID : undefined;
+    // A one-expense report *is* that expense's view (Spend opens it directly and the carousel lives in its header),
+    // so its transaction thread is a step deeper than the carousel, e.g. a thread started from the report's "paid" action.
+    // Paging from there would swap the thread for an unrelated expense, so hide the carousel there. Carousel flows that
+    // open the thread itself (Home "Recently added", "Review N flagged expenses", duplicate review) anchor the route to the
+    // expense and are kept on the thread by OneTransactionThreadRedirectHandler, so they keep their arrows.
+    const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP) && (!!anchorTransactionIDFromRoute || !isOneTransactionReport(parentReport));
+    const carouselTransactionID = transaction?.transactionID ?? anchorTransactionIDFromRoute;
+    const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine() && (wideRHPRouteKeys.length === 0 || isSmallScreenWidth);
+    // Only the carousel counter reads this, and MoneyReportHeader counts tablet-portrait as cramped for the same
+    // counter. The two have to agree: derived from different breakpoints, the counter was hidden on a report and
+    // shown on its own expense thread at one window size, popping into existence as the user stepped inward.
+    const shouldDisplayNarrowVersion = shouldDisplayButtonsInSeparateLine || (isMediumScreenWidth && !isInLandscapeMode);
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
         <Icon
@@ -94,138 +129,108 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
         if (isOnHold) {
-            return {icon: getStatusIcon(Expensicons.Stopwatch), description: isDuplicate ? translate('iou.expenseDuplicate') : translate('iou.expenseOnHold')};
+            return {icon: getStatusIcon(expensifyIcons.Stopwatch), description: translate('iou.expenseOnHold')};
+        }
+        if (isMarkAsResolvedAction(parentReport, transactionViolations, policy)) {
+            return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.reject.rejectedStatus')};
         }
 
-        if (TransactionUtils.isExpensifyCardTransaction(transaction) && TransactionUtils.isPending(transaction)) {
-            return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+        if (isDuplicate) {
+            return {icon: getStatusIcon(expensifyIcons.Flag), description: translate('iou.expenseDuplicate')};
         }
-        if (shouldShowBrokenConnectionViolation) {
+
+        if (isPending(transaction) && (parentReport?.transactionCount ?? 0) <= 1) {
+            return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+        }
+        if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
+            const brokenConnectionViolations = transactionViolations.filter(isBrokenConnectionViolation);
+
+            // Suppress the status only when every broken connection is on a personal card the current user holds.
+            // A company card missing from their cardList must still surface to admins and approvers.
+            if (shouldSuppressBrokenConnectionStatus(brokenConnectionViolations, cardList)) {
+                return undefined;
+            }
             return {
-                icon: getStatusIcon(Expensicons.Hourglass),
+                icon: getStatusIcon(expensifyIcons.Hourglass),
                 description: (
                     <BrokenConnectionDescription
-                        transactionID={transaction?.transactionID ?? '-1'}
-                        report={report}
+                        transactionID={transaction?.transactionID}
+                        report={parentReport}
                         policy={policy}
                     />
                 ),
             };
         }
-        if (TransactionUtils.hasPendingRTERViolation(TransactionUtils.getTransactionViolations(transaction?.transactionID ?? '-1', transactionViolations))) {
-            return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
+        if (hasPendingRTERViolation) {
+            return {icon: getStatusIcon(expensifyIcons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
-        if (isScanning) {
-            return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+        if (isScanning(transaction)) {
+            return {icon: getStatusIcon(icons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
 
     const statusBarProps = getStatusBarProps();
 
-    useEffect(() => {
-        if (isLoadingHoldUseExplained) {
-            return;
-        }
-        setShouldShowHoldMenu(isOnHold && !dismissedHoldUseExplanation);
-    }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
-
-    useEffect(() => {
-        if (!shouldShowHoldMenu) {
-            return;
-        }
-
-        if (isSmallScreenWidth) {
-            if (Navigation.getActiveRoute().slice(1) === ROUTES.PROCESS_MONEY_REQUEST_HOLD.route) {
-                Navigation.goBack();
-            }
-        } else {
-            Navigation.navigate(ROUTES.PROCESS_MONEY_REQUEST_HOLD.getRoute(Navigation.getReportRHPActiveRoute()));
-        }
-    }, [isSmallScreenWidth, shouldShowHoldMenu]);
-
-    const handleHoldRequestClose = () => {
-        IOU.dismissHoldUseExplanation();
-    };
-
     return (
-        <>
-            <View style={[styles.pl0]}>
-                <HeaderWithBackButton
-                    shouldShowBorderBottom={!statusBarProps && !isOnHold}
-                    shouldShowReportAvatarWithDisplay
-                    shouldEnableDetailPageNavigation
-                    shouldShowPinButton={false}
-                    report={{
-                        ...report,
-                        reportID: reportID ?? '',
-                        ownerAccountID: parentReport?.ownerAccountID,
-                    }}
-                    policy={policy}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+        <View style={[styles.pl0, styles.borderBottom]}>
+            <HeaderWithBackButton
+                shouldShowBorderBottom={false}
+                shouldShowReportAvatarWithDisplay
+                shouldShowPinButton={false}
+                report={
+                    reportID
+                        ? {
+                              ...report,
+                              reportID,
+                              ownerAccountID: parentReport?.ownerAccountID,
+                          }
+                        : undefined
+                }
+                shouldShowBackButton={shouldUseNarrowLayout}
+                shouldDisplaySearchRouter={!isReportInRHP}
+                shouldDisplayHelpButton={!isReportInRHP}
+                onBackButtonPress={() => onBackButtonPress(isFromReviewDuplicates)}
+                shouldEnableDetailPageNavigation
+                openParentReportInCurrentTab={shouldOpenParentReportInCurrentTab}
+            >
+                {!shouldDisplayButtonsInSeparateLine && !statusBarProps && (
+                    <MoneyRequestHeaderActions
+                        reportID={reportID}
+                        onBackButtonPress={onBackButtonPress}
+                    />
+                )}
+                {shouldDisplayTransactionNavigation && !!carouselTransactionID && (
+                    <MoneyRequestReportTransactionsNavigation
+                        currentTransactionID={carouselTransactionID}
+                        shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
+                    />
+                )}
+            </HeaderWithBackButton>
+            {shouldDisplayButtonsInSeparateLine && (
+                <MoneyRequestHeaderActions
+                    reportID={reportID}
                     onBackButtonPress={onBackButtonPress}
-                >
-                    {shouldShowMarkAsCashButton && !shouldUseNarrowLayout && (
-                        <Button
-                            success
-                            text={translate('iou.markAsCash')}
-                            style={[styles.p0]}
-                            onPress={markAsCash}
-                        />
-                    )}
-                    {isDuplicate && !shouldUseNarrowLayout && (
-                        <Button
-                            success
-                            text={translate('iou.reviewDuplicates')}
-                            style={[styles.p0, styles.ml2]}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
-                            }}
-                        />
-                    )}
-                </HeaderWithBackButton>
-                {shouldShowMarkAsCashButton && shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <Button
-                            success
-                            text={translate('iou.markAsCash')}
-                            style={[styles.w100, styles.pr0]}
-                            onPress={markAsCash}
-                        />
-                    </View>
-                )}
-                {isDuplicate && shouldUseNarrowLayout && (
-                    <View style={[styles.ph5, styles.pb3]}>
-                        <Button
-                            success
-                            text={translate('iou.reviewDuplicates')}
-                            style={[styles.w100, styles.pr0]}
-                            onPress={() => {
-                                Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(reportID ?? '', Navigation.getReportRHPActiveRoute()));
-                            }}
-                        />
-                    </View>
-                )}
-                {!!statusBarProps && (
-                    <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
+                />
+            )}
+            {!!statusBarProps && (
+                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
                         <MoneyRequestHeaderStatusBar
                             icon={statusBarProps.icon}
                             description={statusBarProps.description}
                         />
                     </View>
-                )}
-            </View>
-            {isSmallScreenWidth && shouldShowHoldMenu && (
-                <ProcessMoneyRequestHoldMenu
-                    onClose={handleHoldRequestClose}
-                    onConfirm={handleHoldRequestClose}
-                    isVisible={shouldShowHoldMenu}
-                />
+                    {!shouldDisplayButtonsInSeparateLine && (
+                        <MoneyRequestHeaderActions
+                            reportID={reportID}
+                            onBackButtonPress={onBackButtonPress}
+                        />
+                    )}
+                </View>
             )}
-        </>
+            <HeaderLoadingBar />
+        </View>
     );
 }
-
-MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 
 export default MoneyRequestHeader;

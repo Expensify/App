@@ -1,45 +1,61 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+
+import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getReimbursementChoice, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as PolicyActions from '@userActions/Policy/Policy';
+
+import {setPolicyAutoReimbursementLimit} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesAutoPayReportsUnderModalForm';
 
-type RulesAutoPayReportsUnderPageProps = StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER>;
+import React from 'react';
+import {View} from 'react-native';
+
+type RulesAutoPayReportsUnderPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AUTO_PAY_REPORTS_UNDER>;
 
 function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps) {
-    const policyID = route?.params?.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
 
-    const currencySymbol = CurrencyUtils.getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD);
-    const autoPayApprovedReportsUnavailable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-    const defaultValue = CurrencyUtils.convertToFrontendAmountAsString(policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_DEFAULT_LIMIT_CENTS, policy?.outputCurrency);
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
+    const currencySymbol = getCurrencySymbol(currency);
+    const autoPayApprovedReportsUnavailable = getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    const isWorkflowsEnabled = isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED);
+    const defaultValue = convertToFrontendAmountAsString(
+        policy?.autoReimbursement?.limit ?? CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_DEFAULT_CENTS,
+        getCurrencyDecimals(policy?.outputCurrency),
+    );
 
     const validateLimit = ({maxExpenseAutoPayAmount}: FormOnyxValues<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM> = {};
-        if (CurrencyUtils.convertToBackendAmount(parseFloat(maxExpenseAutoPayAmount)) > CONST.POLICY.AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS) {
-            errors[INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT] = translate('workspace.rules.expenseReportRules.autoPayApprovedReportsLimitError', {currency: currencySymbol});
+        if (convertToBackendAmount(parseFloat(maxExpenseAutoPayAmount)) > CONST.POLICY.AUTO_REIMBURSEMENT_MAX_LIMIT_CENTS) {
+            errors[INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT] = translate('workspace.rules.expenseReportRules.autoPayApprovedReportsLimitError', currencySymbol);
         }
         return errors;
     };
@@ -47,36 +63,42 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
-            shouldBeBlocked={!policy?.shouldShowAutoReimbursementLimitOption || autoPayApprovedReportsUnavailable}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={isWorkflowsEnabled && (!policy?.shouldShowAutoReimbursementLimitOption || autoPayApprovedReportsUnavailable)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesAutoPayReportsUnderPage.displayName}
+                testID="RulesAutoPayReportsUnderPage"
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.expenseReportRules.autoPayReportsUnderTitle')} />
                 <FormProvider
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM}
                     validate={validateLimit}
                     onSubmit={({maxExpenseAutoPayAmount}) => {
-                        PolicyActions.setPolicyAutoReimbursementLimit(policyID, maxExpenseAutoPayAmount);
+                        setPolicyAutoReimbursementLimit(
+                            policyID,
+                            maxExpenseAutoPayAmount,
+                            policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit,
+                            getReviewWorkspaceSettingsTaskCompletion(),
+                        );
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.MAX_EXPENSE_AUTO_PAY_AMOUNT}
-                            currency={currencySymbol}
+                            currency={currency}
                             defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}
@@ -89,7 +111,5 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesAutoPayReportsUnderPage.displayName = 'RulesAutoPayReportsUnderPage';
 
 export default RulesAutoPayReportsUnderPage;

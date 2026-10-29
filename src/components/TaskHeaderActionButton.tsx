@@ -1,62 +1,70 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useParentReport from '@hooks/useParentReport';
+import useParentReportAction from '@hooks/useParentReportAction';
+import useReportIsArchived from '@hooks/useReportIsArchived';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
+import {isActiveTaskEditRoute} from '@libs/TaskUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as TaskUtils from '@libs/TaskUtils';
-import * as Session from '@userActions/Session';
-import * as Task from '@userActions/Task';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+
 import Button from './Button';
 
-type TaskHeaderActionButtonOnyxProps = {
-    /** Current user session */
-    session: OnyxEntry<OnyxTypes.Session>;
+type TaskHeaderActionButtonProps = {
+    reportID: string;
 };
 
-type TaskHeaderActionButtonProps = TaskHeaderActionButtonOnyxProps & {
-    /** The report currently being looked at */
-    report: OnyxTypes.Report;
-};
-
-function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) {
+function TaskHeaderActionButton({reportID}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReport = useParentReport(reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
+    const parentReportAction = useParentReportAction(report);
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const isTaskActionable = canActionTask(report, parentReportAction, currentUserPersonalDetails?.accountID, parentReport, isParentReportArchived);
 
-    if (!ReportUtils.canWriteInReport(report)) {
+    if (!report || !canWriteInReport(report)) {
         return null;
     }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
-                success
-                isDisabled={!Task.canModifyTask(report, session?.accountID ?? -1) || !Task.canActionTask(report, session?.accountID ?? -1)}
-                text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={Session.checkIfActionIsAllowed(() => {
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                isDisabled={!isTaskActionable}
+                onPress={callFunctionIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                    if (TaskUtils.isActiveTaskEditRoute(report.reportID)) {
+                    if (isActiveTaskEditRoute(reportID)) {
                         return;
                     }
-                    if (ReportUtils.isCompletedTaskReport(report)) {
-                        Task.reopenTask(report);
+                    if (isCompletedTaskReport(report)) {
+                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
                     } else {
-                        Task.completeTask(report);
+                        completeTask(report, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail);
                     }
                 })}
                 style={styles.flex1}
-            />
+                sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
+            >
+                <Button.Text>{translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}</Button.Text>
+            </Button>
         </View>
     );
 }
 
-TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
-
-export default withOnyx<TaskHeaderActionButtonProps, TaskHeaderActionButtonOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(TaskHeaderActionButton);
+export default TaskHeaderActionButton;

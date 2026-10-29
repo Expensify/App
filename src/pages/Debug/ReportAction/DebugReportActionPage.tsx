@@ -1,29 +1,39 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import React from 'react';
-import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import TabSelector from '@components/TabSelector/TabSelector';
+
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DebugUtils from '@libs/DebugUtils';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {DebugTabNavigatorRoutes} from '@libs/Navigation/DebugTabNavigator';
+import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
-import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
+
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
+
 import Debug from '@userActions/Debug';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import DebugReportActionPreview from './DebugReportActionPreview';
 
-type DebugReportActionPageProps = StackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION>;
+type DebugReportActionPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT_ACTION>;
 
 function DebugReportActionPage({
     route: {
@@ -32,18 +42,65 @@ function DebugReportActionPage({
 }: DebugReportActionPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
     const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-        canEvict: false,
-        selector: (reportActions) => reportActions?.[reportActionID],
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => withDEWRoutedActionsObject(reportActions)?.[reportActionID],
     });
-    const transactionID = ReportActionsUtils.getLinkedTransactionID(reportAction);
+    const transactionID = getLinkedTransactionID(reportAction);
+
+    const detailsTab = (
+        <DebugDetails
+            formType={CONST.DEBUG.FORMS.REPORT_ACTION}
+            data={reportAction}
+            onSave={(data) => {
+                Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
+            }}
+            onDelete={() => {
+                Navigation.goBack(undefined, {
+                    // We need to wait for navigation animations to finish before deleting an action,
+                    // otherwise the user will see a not found page briefly.
+                    afterTransition: () => {
+                        Debug.mergeDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
+                    },
+                });
+            }}
+            validate={DebugUtils.validateReportActionDraftProperty}
+        >
+            {!!transactionID && (
+                <View style={[styles.mh5, styles.mb5]}>
+                    <Button
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
+                        }}
+                    >
+                        <Button.Text>{translate('debug.viewTransaction')}</Button.Text>
+                    </Button>
+                </View>
+            )}
+        </DebugDetails>
+    );
+
+    const jsonTab = <DebugJSON data={reportAction ?? {}} />;
+
+    const reportActionPreviewTab = (
+        <DebugReportActionPreview
+            reportAction={reportAction}
+            reportID={reportID}
+        />
+    );
+
+    const routes: DebugTabNavigatorRoutes = [
+        {name: CONST.DEBUG.DETAILS, content: detailsTab},
+        {name: CONST.DEBUG.JSON, content: jsonTab},
+        {name: CONST.DEBUG.REPORT_ACTION_PREVIEW, content: reportActionPreviewTab},
+    ];
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
-            shouldEnableMinHeight={DeviceCapabilities.canUseTouchScreen()}
-            testID={DebugReportActionPage.displayName}
+            shouldEnableMinHeight={canUseTouchScreen()}
+            testID="DebugReportActionPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -51,46 +108,14 @@ function DebugReportActionPage({
                         title={`${translate('debug.debug')} - ${translate('debug.reportAction')}`}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    <OnyxTabNavigator
+                    <DebugTabNavigator
                         id={CONST.TAB.DEBUG_TAB_ID}
-                        tabBar={TabSelector}
-                    >
-                        <TopTab.Screen name={CONST.DEBUG.DETAILS}>
-                            {() => (
-                                <DebugDetails
-                                    formType={CONST.DEBUG.FORMS.REPORT_ACTION}
-                                    data={reportAction}
-                                    onSave={(data) => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: data});
-                                    }}
-                                    onDelete={() => {
-                                        Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[reportActionID]: null});
-                                        Navigation.goBack();
-                                    }}
-                                    validate={DebugUtils.validateReportActionDraftProperty}
-                                >
-                                    {!!transactionID && (
-                                        <View style={[styles.mh5, styles.mb5]}>
-                                            <Button
-                                                text={translate('debug.viewTransaction')}
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.DEBUG_TRANSACTION.getRoute(transactionID));
-                                                }}
-                                            />
-                                        </View>
-                                    )}
-                                </DebugDetails>
-                            )}
-                        </TopTab.Screen>
-                        <TopTab.Screen name={CONST.DEBUG.JSON}>{() => <DebugJSON data={reportAction ?? {}} />}</TopTab.Screen>
-                        <TopTab.Screen name={CONST.DEBUG.REPORT_ACTION_PREVIEW}>{() => <DebugReportActionPreview reportAction={reportAction} />}</TopTab.Screen>
-                    </OnyxTabNavigator>
+                        routes={routes}
+                    />
                 </View>
             )}
         </ScreenWrapper>
     );
 }
-
-DebugReportActionPage.displayName = 'DebugReportActionPage';
 
 export default DebugReportActionPage;

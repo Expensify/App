@@ -1,13 +1,16 @@
+import LoadingIndicator from '@components/LoadingIndicator';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Pdf from 'react-native-pdf';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import useThemeStyles from '@hooks/useThemeStyles';
-import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import PDFThumbnailError from './PDFThumbnailError';
+
 import type PDFThumbnailProps from './types';
 
-function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
+import PDFThumbnailError from './PDFThumbnailError';
+
+function PDFThumbnail({previewSourceURL, style, enabled = true, fitPolicy = 0, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
     const sizeStyles = [styles.w100, styles.h100];
     const [failedToLoad, setFailedToLoad] = useState(false);
@@ -17,11 +20,11 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
             <View style={[sizeStyles, !failedToLoad && styles.alignItemsCenter, styles.justifyContentCenter]}>
                 {enabled && !failedToLoad && (
                     <Pdf
-                        fitPolicy={0}
+                        fitPolicy={fitPolicy}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => <FullScreenLoadingIndicator />}
-                        source={{uri: isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}}
+                        renderActivityIndicator={() => <LoadingIndicator />}
                         singlePage
+                        source={{uri: previewSourceURL}}
                         style={sizeStyles}
                         onError={(error) => {
                             if ('message' in error && typeof error.message === 'string' && error.message.match(/password/i) && onPassword) {
@@ -33,11 +36,11 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                             }
                             setFailedToLoad(true);
                         }}
-                        onLoadComplete={() => {
+                        onLoadComplete={(numberOfPages) => {
                             if (!onLoadSuccess) {
                                 return;
                             }
-                            onLoadSuccess();
+                            onLoadSuccess(numberOfPages);
                         }}
                     />
                 )}
@@ -48,4 +51,5 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
 }
 
 PDFThumbnail.displayName = 'PDFThumbnail';
-export default React.memo(PDFThumbnail);
+
+export default PDFThumbnail;

@@ -1,19 +1,24 @@
-import React from 'react';
-import type {ReactNode} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ScreenWrapperChildrenProps} from '@components/ScreenWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+
 import callOrReturn from '@src/types/utils/callOrReturn';
+
+import type {ReactNode} from 'react';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type StepScreenWrapperProps = {
     /** The title to show in the header (should be translated already) */
     headerTitle: string;
 
-    /** A function triggered when the back button is pressed */
     onBackButtonPress: () => void;
 
     /** A function triggered when the entry transition is ended. Useful for auto-focusing elements. */
@@ -22,20 +27,24 @@ type StepScreenWrapperProps = {
     /** Whether or not the wrapper should be shown (sometimes screens can be embedded inside another screen that already is using a wrapper) */
     shouldShowWrapper: boolean;
 
-    /** Whether or not to display not found page */
     shouldShowNotFoundPage?: boolean;
-
-    /** Whether to show offline indicator */
     shouldShowOfflineIndicator?: boolean;
 
     /** An ID used for unit testing */
     testID: string;
 
-    /** Whether or not to include safe area padding */
     includeSafeAreaPaddingBottom?: boolean;
 
     /** Returns a function as a child to pass insets to or a node to render without insets */
-    children: ReactNode | React.FC<ScreenWrapperChildrenProps>;
+    children: ReactNode | ((props: ScreenWrapperChildrenProps) => ReactNode);
+
+    shouldEnableKeyboardAvoidingView?: boolean;
+
+    /** Menu items to display in the header three-dots / action button */
+    threeDotsMenuItems?: PopoverMenuItem[];
+
+    /** When true and there is a single menu item, renders it as a direct icon button instead of a three-dots menu */
+    shouldMinimizeMenuButton?: boolean;
 };
 
 function StepScreenWrapper({
@@ -48,6 +57,9 @@ function StepScreenWrapper({
     shouldShowNotFoundPage,
     includeSafeAreaPaddingBottom,
     shouldShowOfflineIndicator = true,
+    shouldEnableKeyboardAvoidingView = true,
+    threeDotsMenuItems,
+    shouldMinimizeMenuButton,
 }: StepScreenWrapperProps) {
     const styles = useThemeStyles();
 
@@ -60,8 +72,9 @@ function StepScreenWrapper({
             includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
             onEntryTransitionEnd={onEntryTransitionEnd}
             testID={testID}
-            shouldEnableMaxHeight={DeviceCapabilities.canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen()}
             shouldShowOfflineIndicator={shouldShowOfflineIndicator}
+            shouldEnableKeyboardAvoidingView={shouldEnableKeyboardAvoidingView}
         >
             {({insets, safeAreaPaddingBottomStyle, didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
@@ -69,6 +82,9 @@ function StepScreenWrapper({
                         <HeaderWithBackButton
                             title={headerTitle}
                             onBackButtonPress={onBackButtonPress}
+                            shouldShowThreeDotsButton={!!threeDotsMenuItems?.length}
+                            threeDotsMenuItems={threeDotsMenuItems}
+                            shouldMinimizeMenuButton={shouldMinimizeMenuButton}
                         />
                         {
                             // If props.children is a function, call it to provide the insets to the children
