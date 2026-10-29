@@ -1808,6 +1808,55 @@ describe('startSplitBill', () => {
         expect(splitChatReport?.reportID).toBe(optimisticSplitChatReportID);
     });
 
+    it('sends the entered amount, merchant and date with StartSplitBill and shows them on the optimistic split', async () => {
+        // Given a scan split whose amount, merchant and date the user typed in on the confirmation page
+        const participants: IOUParticipant[] = [{accountID: 987330, login: 'entered-fields@test.com'}];
+        const optimisticSplitChatReportID = 'optimistic-entered-fields-chat';
+        const writeWhenReadySpy = jest.spyOn(APIlib, 'writeWhenReady');
+
+        // When the split is started with those values
+        startSplitBill({
+            isFirstSplitInBatch: true,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            participants,
+            currentUserLogin: currentUserPersonalDetails.login ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            comment: '',
+            receipt: {source: 'file://receipt.jpg'},
+            category: undefined,
+            tag: undefined,
+            currency: CONST.CURRENCY.EUR,
+            amount: 3000,
+            merchant: 'Bakery',
+            created: '2026-09-01',
+            taxCode: '',
+            taxAmount: 0,
+            optimisticSplitChatReportID,
+            policyRecentlyUsedTags: undefined,
+            quickAction: {},
+            policyRecentlyUsedCurrencies: [],
+            participantsPolicyTags: {},
+            delegateAccountID: undefined,
+            formatPhoneNumber,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the values go out with StartSplitBill itself rather than through a CompleteSplitBill afterwards
+        const startSplitBillCall = writeWhenReadySpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.START_SPLIT_BILL);
+        const hasCompleteSplitBillCall = writeWhenReadySpy.mock.calls.some(([command]) => command === WRITE_COMMANDS.COMPLETE_SPLIT_BILL);
+        writeWhenReadySpy.mockRestore();
+        expect(startSplitBillCall?.[1]).toEqual(expect.objectContaining({amount: 3000, currency: CONST.CURRENCY.EUR, merchant: 'Bakery', created: '2026-09-01'}));
+        expect(hasCompleteSplitBillCall).toBe(false);
+
+        // And the optimistic split carries them too, with the receipt kept as an attachment instead of shown as scanning
+        const transactionID = (startSplitBillCall?.[1] as {transactionID?: string} | undefined)?.transactionID;
+        const splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+        expect(splitTransaction?.amount).toBe(3000);
+        expect(splitTransaction?.merchant).toBe('Bakery');
+        expect(splitTransaction?.created).toBe('2026-09-01');
+        expect(splitTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
+    });
+
     it('builds the group split chat under the UI-provided optimisticSplitChatReportID for multiple participants', async () => {
         const participants: IOUParticipant[] = [
             {accountID: 987322, login: 'brand-new-group-1@test.com'},

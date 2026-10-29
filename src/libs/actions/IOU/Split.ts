@@ -211,6 +211,12 @@ type StartSplitBilActionParams = {
     category: string | undefined;
     tag: string | undefined;
     currency: string;
+
+    /** The amount, merchant and date the user typed in on the Scan confirmation. Left undefined, SmartScan reads them from the receipt. */
+    amount?: number;
+    merchant?: string;
+    created?: string;
+
     taxCode: string;
     taxAmount: number;
     taxValue?: string;
@@ -227,20 +233,6 @@ type StartSplitBilActionParams = {
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-};
-
-type StartedSplitBill = {
-    /** The group chat or workspace chat the split action was added to */
-    chatReportID: string;
-
-    /** The optimistic split action, needed to complete the split with CompleteSplitBill */
-    reportAction: OnyxTypes.ReportAction;
-
-    /** The optimistic split transaction, carrying the `splits` sent to StartSplitBill */
-    transaction: OnyxTypes.Transaction;
-
-    /** Settles once StartSplitBill is queued, so a CompleteSplitBill for this split can only be queued behind it */
-    writePromise: Promise<unknown>;
 };
 
 type CompleteSplitBillActionParams = {
@@ -538,6 +530,9 @@ function startSplitBill({
     category = '',
     tag = '',
     currency,
+    amount,
+    merchant,
+    created,
     taxCode = '',
     taxAmount = 0,
     taxValue,
@@ -553,7 +548,7 @@ function startSplitBill({
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
-}: StartSplitBilActionParams): StartedSplitBill {
+}: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(
@@ -566,16 +561,20 @@ function startSplitBill({
     );
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
     const parsedComment = getParsedComment(comment);
+    // An entered amount means the user filled the details in themselves, so, like a non-split scan, the optimistic split shows them instead of a scanning receipt.
+    const hasEnteredDetails = amount !== undefined;
 
     // ReportID is -2 (aka "deleted") on the group transaction
     const splitTransaction = buildOptimisticTransaction({
         transactionParams: {
-            amount: 0,
+            amount: amount ?? 0,
             currency,
             reportID: CONST.REPORT.SPLIT_REPORT_ID,
             comment: parsedComment,
-            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            merchant: merchant ?? CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            created,
             receipt,
+            receiptState: hasEnteredDetails ? CONST.IOU.RECEIPT_STATE.OPEN : undefined,
             category,
             tag,
             taxCode,
@@ -594,8 +593,8 @@ function startSplitBill({
     const splitChatCreatedReportAction = buildOptimisticCreatedReportAction({emailCreatingAction: currentUserEmailForIOUSplit});
     const splitIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        amount: 0,
-        currency: CONST.CURRENCY.USD,
+        amount: amount ?? 0,
+        currency: hasEnteredDetails ? currency : CONST.CURRENCY.USD,
         comment: parsedComment,
         participants,
         transactionID: splitTransaction.transactionID,
@@ -746,6 +745,9 @@ function startSplitBill({
         category,
         tag,
         currency,
+        amount,
+        merchant,
+        created,
         taxCode,
         taxAmount,
         taxValue,
@@ -896,6 +898,9 @@ function startSplitBill({
         category,
         tag,
         currency,
+        amount,
+        merchant,
+        created,
         isFromGroupDM: !existingSplitChatReport,
         billable,
         reimbursable,
@@ -909,20 +914,13 @@ function startSplitBill({
         playSound(SOUNDS.DONE);
     }
 
-    const writePromise = API.writeWhenReady(
+    API.writeWhenReady(
         WRITE_COMMANDS.START_SPLIT_BILL,
         parameters,
         {optimisticData, successData, failureData},
         resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
         {onWriteStarted: () => notifyNewAction(splitChatReport.reportID, undefined, true)},
     );
-
-    return {
-        chatReportID: splitChatReport.reportID,
-        reportAction: splitIOUReportAction as OnyxTypes.ReportAction,
-        transaction: {...splitTransaction, comment: {...splitTransaction.comment, splits}},
-        writePromise,
-    };
 }
 
 /** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.

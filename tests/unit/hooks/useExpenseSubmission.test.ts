@@ -36,7 +36,6 @@ const mockSendInvoiceAction = jest.fn();
 const mockSplitBillAction = jest.fn();
 const mockSplitBillAndOpenReportAction = jest.fn();
 const mockStartSplitBillAction = jest.fn();
-const mockCompleteSplitBillAction = jest.fn();
 const mockResolveOptimisticSplitChatReportID = jest.fn();
 const mockDismissModalAndOpenReportInInboxTab = jest.fn();
 const mockMarkPendingSearchWrite = jest.fn();
@@ -60,7 +59,6 @@ jest.mock('@userActions/IOU/Split', () => ({
     splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
     resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
     startSplitBill: (...args: unknown[]) => mockStartSplitBillAction(...args),
-    completeSplitBill: (...args: unknown[]) => mockCompleteSplitBillAction(...args),
 }));
 
 jest.mock('@userActions/IOU/SendInvoice', () => ({
@@ -1169,17 +1167,9 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
         });
 
-        it('completes the scan split with the amount, merchant and date the user typed in once the split has been started', async () => {
+        it('sends the amount, merchant and date the user typed in with StartSplitBill', async () => {
             // Given a split scan whose amount, merchant and date were all entered on the confirmation page
             mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
-            const startedSplitReportAction = buildReportAction({reportActionID: 'split-action-1'});
-            const startedSplitTransaction = buildTransaction({transactionID: 'split-transaction-1', amount: 0});
-            mockStartSplitBillAction.mockReturnValue({
-                chatReportID: 'optimistic-scan-chat',
-                reportAction: startedSplitReportAction,
-                transaction: startedSplitTransaction,
-                writePromise: Promise.resolve(),
-            });
             const splitTransaction = buildTransaction({
                 amount: 3000,
                 merchant: 'Bakery',
@@ -1211,20 +1201,57 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // Then StartSplitBill takes no amount/merchant/date, so the entered values are sent through CompleteSplitBill on the started split
+            // Then the entered values go out with StartSplitBill itself, so the split is created with them in a single request
             expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
-            expect(mockCompleteSplitBillAction).toHaveBeenCalledTimes(1);
-            expect(mockCompleteSplitBillAction).toHaveBeenCalledWith(
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    chatReportID: 'optimistic-scan-chat',
-                    reportAction: startedSplitReportAction,
-                    updatedTransaction: expect.objectContaining({
-                        transactionID: 'split-transaction-1',
-                        modifiedAmount: 3000,
-                        modifiedCurrency: 'USD',
-                        modifiedMerchant: 'Bakery',
-                        modifiedCreated: '2026-09-01',
+                    amount: 3000,
+                    currency: 'USD',
+                    merchant: 'Bakery',
+                    created: '2026-09-01',
+                }),
+            );
+        });
+
+        it('sends the entered amount and date without a merchant in a 1:1 DM, where the merchant is optional', async () => {
+            // Given a split scan outside a workspace chat where only the amount and date were entered
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction({
+                amount: 3000,
+                created: '2026-09-01',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'file://receipt.jpg'},
+                isAmountSet: true,
+                isCreatedSet: true,
+            });
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                        canEnterScanFieldsManually: true,
+                        isPolicyExpenseChat: false,
                     }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the split is submitted
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the confirmation page let it through as complete, so the amount and date are sent and the merchant is left to the server
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    amount: 3000,
+                    merchant: undefined,
+                    created: '2026-09-01',
                 }),
             );
         });
@@ -1232,12 +1259,6 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
         it('leaves the scan split to SmartScan when the user did not type the details in', async () => {
             // Given a split scan where the manual fields are offered but none of them were filled in
             mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
-            mockStartSplitBillAction.mockReturnValue({
-                chatReportID: 'optimistic-scan-chat',
-                reportAction: buildReportAction(),
-                transaction: buildTransaction({amount: 0}),
-                writePromise: Promise.resolve(),
-            });
             const splitTransaction = buildTransaction({amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, receipt: {source: 'file://receipt.jpg'}});
             const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
 
@@ -1260,9 +1281,15 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // Then only StartSplitBill is written, so SmartScan fills the details in as before
+            // Then StartSplitBill goes out without an amount, merchant or date, so SmartScan fills them in as before
             expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
-            expect(mockCompleteSplitBillAction).not.toHaveBeenCalled();
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    amount: undefined,
+                    merchant: undefined,
+                    created: undefined,
+                }),
+            );
         });
 
         it('falls through to the manual split when a leftover receipt matches no transaction being submitted', async () => {

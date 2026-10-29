@@ -10,7 +10,7 @@ import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {hasAllManuallyEnteredScanFields, isScanRequest as isScanRequestTransactionUtils} from '@libs/TransactionUtils';
 
-import {completeSplitBill, resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
+import {resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import type {ParticipantsPolicyTags, PersonalDetailsList, QuickAction, Report, Rule, TransactionViolation} from '@src/types/onyx';
@@ -37,6 +37,9 @@ type UseSplitSubmissionParams = TransactionTaxValues & {
     /** Whether this surface offers manual entry of the amount / merchant / date. False for test receipts and moved tracked expenses. */
     canEnterScanFieldsManually: boolean;
 
+    /** Only a workspace chat requires a merchant, so outside of one the amount and date alone count as filled in */
+    isPolicyExpenseChat: boolean;
+
     report: OnyxEntry<Report>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
@@ -62,6 +65,7 @@ function useSplitSubmission({
     transactions,
     receiptFiles,
     canEnterScanFieldsManually,
+    isPolicyExpenseChat,
     report,
     personalDetails,
     currentUserPersonalDetails,
@@ -117,11 +121,10 @@ function useSplitSubmission({
                 for (const [index, item] of scannedItems.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
                     const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
-                    // StartSplitBill takes no amount/merchant/date, so a split whose details were all typed in is
-                    // completed with them right away, the same way the split's owner would from its details page.
-                    const shouldCompleteWithEnteredFields = canEnterScanFieldsManually && hasAllManuallyEnteredScanFields(item);
+                    // The amount, merchant and date are all-or-nothing, so they are only sent once all of them were typed in.
+                    const hasEnteredDetails = canEnterScanFieldsManually && hasAllManuallyEnteredScanFields(item, isPolicyExpenseChat);
 
-                    const startedSplit = startSplitBill({
+                    startSplitBill({
                         getCurrencyDecimals,
                         writeBarrier,
                         participants: selectedParticipants,
@@ -135,11 +138,13 @@ function useSplitSubmission({
                         category: item.category,
                         tag: item.tag,
                         currency: item.currency,
+                        amount: hasEnteredDetails ? item.amount : undefined,
+                        merchant: hasEnteredDetails && item.isMerchantSet ? item.merchant : undefined,
+                        created: hasEnteredDetails ? item.created : undefined,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         taxValue: transactionTaxValue,
-                        // completeSplitBill plays its own sound, so don't play it twice for the same split.
-                        shouldPlaySound: index === scannedItems.length - 1 && !shouldCompleteWithEnteredFields,
+                        shouldPlaySound: index === scannedItems.length - 1,
                         optimisticSplitChatReportID,
                         isFirstSplitInBatch: !(index > 0 && optimisticSplitChatReportID),
                         policyRecentlyUsedCategories,
@@ -150,36 +155,6 @@ function useSplitSubmission({
                         delegateAccountID,
                         formatPhoneNumber,
                     });
-
-                    if (shouldCompleteWithEnteredFields) {
-                        // StartSplitBill may be deferred behind the navigation barrier, so only queue CompleteSplitBill
-                        // once it has been written, otherwise the server would get the completion for a split it doesn't have yet.
-                        startedSplit.writePromise.then(() =>
-                            completeSplitBill({
-                                isVendorMatchingBetaEnabled,
-                                getCurrencyDecimals,
-                                chatReportID: startedSplit.chatReportID,
-                                reportAction: startedSplit.reportAction,
-                                updatedTransaction: {
-                                    ...startedSplit.transaction,
-                                    modifiedAmount: item.amount,
-                                    modifiedCurrency: item.currency,
-                                    modifiedMerchant: item.merchant,
-                                    modifiedCreated: item.created,
-                                },
-                                sessionAccountID: currentUserPersonalDetails.accountID,
-                                isASAPSubmitBetaEnabled,
-                                quickAction,
-                                transactionViolations: transactionViolationsRef.current,
-                                personalDetails,
-                                delegateAccountID,
-                                isTrackIntentUser,
-                                sessionEmail: currentUserLogin,
-                                formatPhoneNumber,
-                                rules,
-                            }),
-                        );
-                    }
                 }
                 if (shouldHandleNavigation) {
                     dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);

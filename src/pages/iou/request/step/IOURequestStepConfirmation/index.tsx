@@ -270,8 +270,7 @@ function IOURequestStepConfirmationContent({
     // confirmation reveals those fields behind "Show more" as well. This only applies to a scan being created: a
     // tracked expense being moved already carries real values, and its emptiness
     // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Test receipts
-    // are excluded too, since their values are fixed. A split scan takes the entered values through CompleteSplitBill
-    // right after StartSplitBill, see useExpenseSubmission.
+    // are excluded too, since their values are fixed. A split scan sends the entered values with StartSplitBill.
     const canEnterScanFieldsManually =
         requestType === CONST.IOU.REQUEST_TYPE.SCAN && !isMovingTransactionFromTrackExpense && !transaction?.receipt?.isTestReceipt && !transaction?.receipt?.isTestDriveReceipt;
 
