@@ -4,7 +4,6 @@ import useGroupedItems from '@components/Search/hooks/useGroupedItems';
 import type {GroupedItem} from '@components/Search/types';
 
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 
 import {INSIGHTS_CHART_STATE, resolveInsightsChartData} from '@libs/resolveInsightsChartData';
@@ -38,12 +37,11 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
     const {queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded} = dashboardChart;
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
 
     const sortedData = useGroupedItems(snapshot, queryJSON);
     const current = resolveInsightsChartData({snapshot, queryJSON, sortedData, isOffline});
 
-    const compare = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE) ? filters.compare : undefined;
+    const compare = filters.compare;
     const isPreviousPeriod = compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD;
     // Keeps every compared group, so each plotted group finds its own and not only the top ones.
     const comparedSortedData = useGroupedItems(isPreviousPeriod ? previousPeriodSnapshot : undefined, queryJSON && {...queryJSON, limit: undefined});
