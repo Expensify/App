@@ -466,7 +466,6 @@ function MoneyRequestReportPreview({
             lastTransactionViolations={lastTransactionViolations}
             renderTransactionItem={renderItem}
             onOrderedTransactionsChange={handleOrderedTransactionsChange}
-            onCancelPendingPress={cancelPendingPress}
             onCarouselLayout={onCarouselLayout}
             onWrapperLayout={onWrapperLayout}
             currentWidth={widths.currentWidth}
