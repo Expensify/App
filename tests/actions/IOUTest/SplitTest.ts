@@ -1849,7 +1849,8 @@ describe('startSplitBill', () => {
         expect(hasCompleteSplitBillCall).toBe(false);
 
         // And the optimistic split carries them too, with the receipt kept as an attachment instead of shown as scanning
-        const transactionID = (startSplitBillCall?.[1] as {transactionID?: string} | undefined)?.transactionID;
+        const startSplitBillParams: unknown = startSplitBillCall?.[1];
+        const transactionID = isObject(startSplitBillParams) && typeof startSplitBillParams.transactionID === 'string' ? startSplitBillParams.transactionID : undefined;
         const splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
         expect(splitTransaction?.amount).toBe(3000);
         expect(splitTransaction?.merchant).toBe('Bakery');
