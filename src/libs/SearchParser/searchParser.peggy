@@ -301,6 +301,8 @@ key "key"
       / exporter
       / expenseType
       / receiptType
+      / travelType
+      / travelPlatform
       / transactionStatus
       / withdrawalType
       / withdrawalStatus

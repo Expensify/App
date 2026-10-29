@@ -43,6 +43,8 @@ import type {
     IsFilterValues,
     MerchantMatchType,
     ReceiptTypeValue,
+    TravelPlatformValue,
+    TravelTypeValue,
     TransactionStatusValue,
     SearchAdvancedFiltersKey,
     SearchNegatableFilterKeys,
@@ -186,6 +188,8 @@ function buildMerchantFilterQuery(
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
 const VALID_TRANSACTION_STATUSES = new Set<string>(Object.values(CONST.SEARCH.TRANSACTION_STATUS));
+const VALID_TRAVEL_TYPES = new Set<string>(Object.values(CONST.SEARCH.TRAVEL_TYPE));
+const VALID_TRAVEL_PLATFORMS = new Set<string>(Object.values(CONST.SEARCH.TRAVEL_PLATFORM));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
 const VALID_IS_TYPES = new Set(Object.values(CONST.SEARCH.IS_VALUES));
 const VALID_WITHDRAWAL_TYPES = new Set(Object.values(CONST.SEARCH.WITHDRAWAL_TYPE));
@@ -1531,6 +1535,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.TAX_RATE ||
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
+                    filterKey === FILTER_KEYS.TRAVEL_TYPE ||
+                    filterKey === FILTER_KEYS.TRAVEL_PLATFORM ||
                     filterKey === FILTER_KEYS.TAG ||
                     filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
@@ -1919,6 +1925,12 @@ function buildFilterFormValuesFromQuery(
             } else {
                 filtersForm[FILTER_KEYS.RECEIPT_TYPE] = receiptTypeValues;
             }
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE) {
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((travelType): travelType is TravelTypeValue => VALID_TRAVEL_TYPES.has(travelType));
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM) {
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((travelPlatform): travelPlatform is TravelPlatformValue => VALID_TRAVEL_PLATFORMS.has(travelPlatform));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.find((transactionStatus): transactionStatus is TransactionStatusValue =>
