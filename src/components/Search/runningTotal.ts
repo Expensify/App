@@ -1,6 +1,7 @@
 import type {ChartComparison} from './buildChartSeries';
 import type {GroupedItem, SearchGroupBy} from './types';
 
+import {isChartAverage} from './buildChartSeries';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {isTimeGroupBy} from './comparisonBuckets';
 
@@ -75,7 +76,7 @@ function applyRunningTotal({data, comparison, groupBy}: RunningTotalParams): Run
     const runningData = accumulate(data, getDateRange);
 
     // Only another period accumulates alongside the current one.
-    if (!comparison || !('data' in comparison) || !comparison.periods) {
+    if (!comparison || isChartAverage(comparison) || !comparison.periods) {
         return {data: runningData, comparison};
     }
 
