@@ -12,7 +12,6 @@ import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -175,6 +174,8 @@ const getMockBankAccountData = (name: string, status: IndicatorStatus | undefine
             return {state: CONST.BANK_ACCOUNT.STATE.LOCKED};
         case CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT:
             return {state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED};
+        default:
+            break;
     }
     if (name === brokenPlaidConnectionTestCase.name) {
         return {additionalData: {verifications: {externalApiResponses: {plaidAssets: {needsFixing: true}}}}};
