@@ -84,12 +84,14 @@ function processHTTPRequest<TKey extends OnyxKey>(
     method: RequestType = 'get',
     body: FormData | null = null,
     abortSignal: AbortSignal | undefined = undefined,
+    shouldSkipPrefetch = false,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
     const command = url.match(APICommandRegex)?.[1];
 
-    const {prefetchKey, prefetchHeaders} = preparePrefetchRequest(command);
+    const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
+    let isPrefetchedResponse = false;
 
     const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
@@ -125,6 +127,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
+                isPrefetchedResponse = response.headers.get('nitroPrefetched') === 'true';
             }
 
             // We are calculating the skew to minimize the delay when posting the messages
@@ -240,6 +243,13 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alert('Too many auth writes', message);
             }
             if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
+                // A prefetched response can come from a body saved by the previous build, so it carries that build's appversion.
+                // https://github.com/Expensify/App/pull/103842 leaves appversion out of saved bodies, but bodies saved by older builds still have it.
+                // Retry without the prefetchKey, because nitro-fetch can serve the same cached response again for a few seconds.
+                if (isPrefetchedResponse) {
+                    return processHTTPRequest<TKey>(url, method, body, abortSignal, true);
+                }
+
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
                 alertUser();
             }

@@ -20,7 +20,6 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {getQBORefreshTokenExpiryDate, getQBORefreshTokenExpiryStatus} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -35,6 +34,7 @@ import {
     hasAccountingConnections,
     hasSupportedOnlyOnOldDotIntegration,
     settingsPendingAction,
+    shouldShowQBOReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 
@@ -64,8 +64,8 @@ type UseConnectedAccountingIntegrationOptions = {
     /** Style applied to the settings rows, which the Accounting page lays out as cards */
     menuItemWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Runs once the user confirms disconnecting, before the connection is removed */
-    onDisconnectConfirmed?: () => void;
+    /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
+    onDisconnectConfirmed?: (disconnect: () => void) => void;
 };
 
 /**
@@ -105,6 +105,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         'DualEntrySquare',
         'CampfireSquare',
         'BusinessCentralSquare',
+        'ZohoBooksSquare',
     ]);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
@@ -133,9 +134,17 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
+    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
+            return canUseZohoBooksIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+            return canUseDigitsIntegration;
         }
         return true;
     });
@@ -217,7 +226,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                   {
                       icon: icons.Sync,
                       text: translate('workspace.accounting.syncNow'),
-                      onSelected: () => syncConnection(policy, connectedIntegration),
+                      onSelected: () => syncConnection(policy, connectedIntegration, connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD),
                       disabled: isOffline,
                   },
               ]
@@ -236,8 +245,12 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                     if (action !== ModalActions.CONFIRM || !connectedIntegration || !policyID) {
                         return;
                     }
-                    onDisconnectConfirmed?.();
-                    removePolicyConnection(policy, connectedIntegration);
+                    const disconnect = () => removePolicyConnection(policy, connectedIntegration);
+                    if (onDisconnectConfirmed) {
+                        onDisconnectConfirmed(disconnect);
+                        return;
+                    }
+                    disconnect();
                 });
             },
             shouldCallAfterModalHide: true,
@@ -258,6 +271,8 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         const dualEntryCompanyList = policy?.connections?.dualEntry?.data?.companies;
         const campfireSubsidiaryList = policy?.connections?.campfire?.data?.subsidiaries;
         const businessCentralCompanyList = policy?.connections?.businessCentral?.data?.companies;
+        const zohoBooksOrganizationList = policy?.connections?.zohoBooks?.data?.organizations;
+        const currentZohoBooksOrganization = zohoBooksOrganizationList?.find((organization) => organization.id === policy?.connections?.zohoBooks?.config?.subsidiaryID);
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = getCertiniaSelectedCompanyID(certiniaConfig);
@@ -435,6 +450,30 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                                   ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
+            case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+                return !zohoBooksOrganizationList?.length
+                    ? {}
+                    : {
+                          description: translate('workspace.zohoBooks.organization'),
+                          iconRight: icons.ArrowRight,
+                          title: currentZohoBooksOrganization?.name ?? '',
+                          wrapperStyle: menuItemWrapperStyle,
+                          titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting && zohoBooksOrganizationList.length > 1,
+                          shouldShowDescriptionOnTop: true,
+                          interactive: canWriteAccounting && zohoBooksOrganizationList.length > 1,
+                          // Multi-location organizations are not supported yet, so explain why the connection doesn't work.
+                          errorText: currentZohoBooksOrganization?.isMultiLocation ? translate('workspace.zohoBooks.multiLocationNotSupported') : undefined,
+                          pendingAction: policy?.connections?.zohoBooks?.config?.pendingFields?.subsidiaryID,
+                          brickRoadIndicator:
+                              !!policy?.connections?.zohoBooks?.config?.errorFields?.subsidiaryID || !!currentZohoBooksOrganization?.isMultiLocation
+                                  ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                  : undefined,
+                          onPress:
+                              policyID && canWriteAccounting && zohoBooksOrganizationList.length > 1
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_ORGANIZATION_SELECTOR.getRoute(policyID))
+                                  : undefined,
+                      };
 
             default:
                 return undefined;
@@ -465,7 +504,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        const configurationOptions = canWriteAccounting
+        // Zoho Books import, export, and advanced screens are added in a later release, so hide their entry points until then.
+        const shouldShowConfigurationOptions = canWriteAccounting && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+        const configurationOptions = shouldShowConfigurationOptions
             ? [
                   {
                       icon: icons.Pencil,

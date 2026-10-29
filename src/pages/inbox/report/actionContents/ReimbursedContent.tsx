@@ -1,13 +1,19 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
-import {getReimbursedMessage} from '@libs/ReportActionsUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getReimbursedMessage, hasReasoning} from '@libs/ReportActionsUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 
-import type {ReportAction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {loginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
@@ -15,15 +21,32 @@ import React from 'react';
 type ReimbursedContentProps = {
     action: ReportAction;
     reportOwnerAccountID: number | undefined;
+
+    /** Original report from which the given reportAction is first created */
+    originalReport: OnyxEntry<Report>;
 };
 
-function ReimbursedContent({action, reportOwnerAccountID}: ReimbursedContentProps) {
+function ReimbursedContent({action, reportOwnerAccountID, originalReport}: ReimbursedContentProps) {
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [submitterLogin] = usePersonalDetail(reportOwnerAccountID, loginSelector);
     const [actorLogin] = usePersonalDetail(action.actorAccountID, loginSelector);
+    const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const message = getReimbursedMessage(translate, dateFnsLocale, action, reportOwnerAccountID, submitterLogin, actorLogin, convertToDisplayString, currentUserAccountID);
+
+    // getReimbursedMessage can fall back to '' when there's no paymentMethod/creditBankAccountLast4 to build a
+    // message from. Guard against that so an empty message never renders as a bare ". Explain".
+    if (hasReasoning(action) && message) {
+        return (
+            <ReportActionItemMessageWithExplain
+                message={message.replace(/\.\s*$/, '')}
+                action={action}
+                childReport={childReport}
+                originalReport={originalReport}
+            />
+        );
+    }
 
     return <ReportActionItemBasicMessage message={message} />;
 }

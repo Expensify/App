@@ -118,6 +118,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     participantsPolicyTags: ParticipantsPolicyTags;
     rules: OnyxCollection<Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    moneyRequestReportTransactions: Transaction[];
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: ReusableDistanceRoute[];
@@ -227,6 +228,7 @@ function handleMoneyRequestStepDistanceNavigation({
     isOffline = false,
     rules,
     isVendorMatchingBetaEnabled,
+    moneyRequestReportTransactions,
     reusableDistanceRoutes,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
@@ -398,6 +400,7 @@ function handleMoneyRequestStepDistanceNavigation({
                     const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
                         isVendorMatchingBetaEnabled,
                         report,
+                        moneyRequestReportTransactions,
                         participants,
                         currentUserLogin: currentUserLogin ?? '',
                         currentUserAccountID,
