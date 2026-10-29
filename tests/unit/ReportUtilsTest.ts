@@ -23,12 +23,13 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getOriginalMessage, getReportAction, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, getSortedReportActions, getSystemMessageDisplayState, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
 // Testing only so it's okay to import computeReportName
 // eslint-disable-next-line no-restricted-imports
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
+    applyLabelToUploadingAttachmentHtml,
     areAllRequestsBeingSmartScanned,
     buildEditedCommentWithAttachment,
     buildOptimisticAnnounceChat,
@@ -104,6 +105,7 @@ import {
     getDefaultGroupAvatar,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
+    getDisplayedReportID,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getEffectiveReportErrors,
@@ -159,6 +161,7 @@ import {
     getTitleFieldWithFallback,
     getTransactionDetails,
     getTransactionReportName,
+    getUploadingAttachmentLabelFromDraft,
     getTransactionSortValue,
     getTransactionsWithReceipts,
     getUnheldReimbursableTotal,
@@ -210,7 +213,7 @@ import {
     isSortableColumnName,
     isThreadMemberProtectedByParentReport,
     isUnread,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentIDsRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseMovedTransactionReportIDs,
     parseReportRouteParams,
@@ -219,7 +222,10 @@ import {
     pushTransactionViolationsOnyxData,
     reasonForReportToBeInOptionList,
     replaceLocalAttachmentReferences,
+    restoreAttachmentAnchorAttributes,
+    restoreAttachmentAnchorLabels,
     requiresAttentionFromCurrentUser,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
@@ -261,6 +267,7 @@ import type {
     PolicyEmployeeList,
     PolicyTag,
     PolicyTagLists,
+    PolicyVendors,
     Report,
     ReportAction,
     ReportActions,
@@ -4005,13 +4012,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -4030,7 +4037,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -4058,14 +4065,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -4078,7 +4085,7 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toEqual({});
         });
 
@@ -4105,13 +4112,13 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, formatPhoneNumber, 'Concierge');
+                    const actual = getParentNavigationSubtitle(childReport, undefined, undefined, conciergeReportID, translateLocal, formatPhoneNumber, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toHaveProperty('reportName');
         });
 
@@ -4123,8 +4130,80 @@ describe('ReportUtils', () => {
             const expenseReport = {reportID: '780051', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: hiddenOwnerAccountID};
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, undefined, translateWithHiddenMarker, formatPhoneNumber, undefined);
             expect(actual.reportName).toContain('HiddenMarker');
+        });
+
+        /**
+         * The invoice receiver's policy must come from the caller rather than the module-level `allPolicies`
+         * Onyx cache that ReportUtils used to read. For a business receiver the payer name is just that
+         * policy's name, so these tests pin the payer to whatever the caller hands in and prove the cache
+         * is never consulted, whatever it happens to hold.
+         * See https://github.com/Expensify/App/issues/66415.
+         */
+        describe('reads the invoice receiver policy from the caller, not the Onyx cache', () => {
+            const RECEIVER_POLICY_ID = 'invoice-receiver-policy';
+            const invoiceRoomID = '990001';
+            const invoiceReportID = '990002';
+
+            const invoiceRoom: Report = {
+                reportID: invoiceRoomID,
+                reportName: 'Invoice Room',
+                policyName: 'Sender Workspace',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: RECEIVER_POLICY_ID},
+            };
+
+            const invoiceReport: Report = {
+                reportID: invoiceReportID,
+                parentReportID: invoiceRoomID,
+                parentReportActionID: '1',
+                reportName: 'Invoice',
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            beforeEach(async () => {
+                // The cached policy carries a name that must never reach the subtitle.
+                await Promise.all([
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom),
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport),
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`, createMock<Policy>({id: RECEIVER_POLICY_ID, name: 'Cached Receiver Name'})),
+                ]);
+                return waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Promise.all([
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, null),
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, null),
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`, null),
+                ]);
+                return waitForBatchedUpdates();
+            });
+
+            it('renders the payer name from the passed receiver policy, not the cached one', () => {
+                // Given an invoice whose business receiver resolves to a policy that is also sitting in the Onyx cache
+                const passedReceiverPolicy = createMock<Policy>({id: RECEIVER_POLICY_ID, name: 'Passed Receiver Name'});
+
+                // When the caller passes the receiver policy it actually holds
+                const actual = getParentNavigationSubtitle(invoiceReport, undefined, passedReceiverPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
+
+                // Then the subtitle names the passed workspace, proving the payer is read off the argument and
+                // not off the policy that `RECEIVER_POLICY_ID` resolves to in Onyx
+                expect(actual.reportName?.replaceAll('\u00A0', ' ')).toBe('Sender Workspace & Passed Receiver Name');
+            });
+
+            it('never falls back to the cached policy when the caller has no receiver policy', () => {
+                // Given the same invoice, but a caller that has not loaded the receiver policy yet
+                // When the subtitle is built with no receiver policy
+                const actual = getParentNavigationSubtitle(invoiceReport, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+
+                // Then the cached name never reaches the subtitle. Without a receiver policy `getInvoicePayerName`
+                // falls back to the invoice room's own `policyName`, exactly as it did before this refactor, so the
+                // assertion states that intent rather than pinning the full string and breaking if the fallback improves.
+                const reportName = actual.reportName?.replaceAll('\u00A0', ' ');
+                expect(reportName).not.toContain('Cached Receiver Name');
+                expect(reportName).toContain('Sender Workspace');
+            });
         });
     });
 
@@ -6852,6 +6931,35 @@ describe('ReportUtils', () => {
                 expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction], currentUserAccountID, undefined, THREADING_OTHER_MEMBER_EMAIL, undefined, undefined)).toBe(false);
             });
 
+            it('should decide from the passed report actions whether the report was forwarded since its last submit', async () => {
+                // Given a submitted report whose owner submits to the approver holding it, and a history that so far holds one submit
+                await setUpApprovalChain();
+                const report = buildSubmittedReport();
+                const transaction = {...createRandomTransaction(911), reportID: report.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(report.reportID, transaction.transactionID, currentUserAccountID);
+                const submittedAction: ReportAction = {...createRandomReportAction(912), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'};
+                const forwardedAction: ReportAction = {...createRandomReportAction(913), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'};
+
+                // When the passed actions hold only that submit, the submitter can still delete because the report awaits its first level
+                expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction, submittedAction], currentUserAccountID, undefined, THREADING_OWNER_EMAIL, undefined, undefined)).toBe(
+                    true,
+                );
+
+                // Then a forward after that submit, read from the same passed actions, blocks the delete
+                expect(
+                    canDeleteMoneyRequestReport(
+                        report,
+                        [transaction],
+                        [iouAction, submittedAction, forwardedAction],
+                        currentUserAccountID,
+                        undefined,
+                        THREADING_OWNER_EMAIL,
+                        undefined,
+                        undefined,
+                    ),
+                ).toBe(false);
+            });
+
             it('should resolve the report owner from the personalDetails canDeleteReportAction is given', async () => {
                 // Given the same submitted report, reachable by reportID, and its report preview action
                 await setUpApprovalChain();
@@ -7932,12 +8040,32 @@ describe('ReportUtils', () => {
     describe('replaceLocalAttachmentReferences', () => {
         const reportActionID = '6076606438659303644';
         const syncedImageHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" />`;
-        const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" />`;
+        const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" data-attachment-id="1" />`;
 
         it('drops the local reference while the upload is still pending, since the queued send re-attaches the file', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
             expect(replaceLocalAttachmentReferences(draft, uploadingImageHtml, reportActionID)).toBe('Hello edited');
+        });
+
+        it('still recognizes the local reference when the file name carries brackets', () => {
+            // Given a draft that renamed the still-uploading file to a name ExpensiMark accepts as a link label
+            const draft = 'Hello edited\n\n[report [Q1].csv](blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            // When the draft is saved while the upload is still pending
+            // Then the local reference is recognized and dropped, rather than saved as a blob link no one else can open
+            expect(replaceLocalAttachmentReferences(draft, uploadingImageHtml, reportActionID)).toBe('Hello edited');
+        });
+
+        it('carries a bracketed name over to the synced attachment', () => {
+            // Given the same rename, saved once the upload has synced
+            const draft = 'Hello edited\n\n[report [Q1].csv](blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            // When the local reference is swapped for the synced one
+            // Then the new name is the one that travels, not the name the file was uploaded under
+            expect(replaceLocalAttachmentReferences(draft, syncedImageHtml, reportActionID)).toBe(
+                `Hello edited\n\n![report [Q1].csv](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)`,
+            );
         });
 
         it('leaves a draft with no local reference untouched while pending', () => {
@@ -7960,6 +8088,82 @@ describe('ReportUtils', () => {
             );
         });
 
+        describe('several synced attachments', () => {
+            const firstSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const secondSource = 'blob:https://dev.new.expensify.com:8082/uuid-2';
+            const syncedTwoImagesHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" data-attachment-id="11" /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg" alt="receipt.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/def.jpg" data-attachment-id="12" />`;
+            const attachmentIDByLocalSource = {[firstSource]: '11', [secondSource]: '12'};
+
+            it('keeps every attachment the draft kept', () => {
+                // Given a message with two images that synced after the user started editing
+                const draft = `Hello edited\n\n!(${firstSource})\n\n!(${secondSource})`;
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedTwoImagesHtml, reportActionID, attachmentIDByLocalSource);
+
+                // Then both images stay in the message
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+                );
+            });
+
+            it('matches by position when the synced attachments have no attachment ID', () => {
+                // Given synced images without an attachment ID
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = `Hello edited\n\n!(${firstSource})\n\n!(${secondSource})`;
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, attachmentIDByLocalSource);
+
+                // Then both images stay in the message
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+                );
+            });
+
+            it('keeps the image the user kept when they deleted the other one', () => {
+                // Given the user deleted the first image while both were uploading
+                const draft = `Hello edited\n\n!(${secondSource})`;
+
+                // When the edit is saved after the upload synced
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedTwoImagesHtml, reportActionID, attachmentIDByLocalSource);
+
+                // Then the second image stays, not the first
+                expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
+            });
+
+            it('keeps the image the user kept by its file name after the app restarted', () => {
+                // Given the user deleted the first image, and the app restarted so it no longer knows which upload is which
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = 'Hello edited\n\n!(file:///var/mobile/Documents/receipt.jpg)';
+
+                // When the edit is saved after the upload synced
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, {});
+
+                // Then the second image stays, matched by its file name
+                expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
+            });
+
+            it('matches same-named images to different synced attachments', () => {
+                // Given three synced images with the same file name, and a draft that kept two of them after the app restarted
+                const syncedSameNameHtml = ['a', 'b', 'c']
+                    .map(
+                        (name) =>
+                            `<img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_${name}.png" alt="image.png" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/${name}.png" />`,
+                    )
+                    .join('');
+                const draft = 'Hello edited\n\n![image.png](file:///var/mobile/Documents/image.png)\n\n![image.png](file:///var/mobile/Documents/image.png)';
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, `Hello<br /><br />${syncedSameNameHtml}`, reportActionID, {});
+
+                // Then each kept image gets its own synced attachment instead of both getting the first one
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_a.png)\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_b.png)`,
+                );
+            });
+        });
+
         it('swaps a document reference for the synced attachment link', () => {
             const syncedDocHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
             const draft = 'Hello edited\n\n[file.doc](blob:https://dev.new.expensify.com:8082/uuid-1)';
@@ -7967,6 +8171,18 @@ describe('ReportUtils', () => {
             expect(replaceLocalAttachmentReferences(draft, syncedDocHtml, reportActionID)).toBe(
                 `Hello edited\n\n[file.doc](https://www.expensify.com/chat-attachments/${reportActionID}/file.doc)`,
             );
+        });
+
+        it('keeps a name the author gave the attachment while it was still uploading', () => {
+            // Given an attachment that has synced, and a draft written while it uploaded that renamed it
+            const syncedDocHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
+            const draft = 'Hello edited\n\n[124.csv](blob:https://dev.new.expensify.com:8082/uuid-1)';
+
+            // When the local reference is swapped for the synced one
+            const replaced = replaceLocalAttachmentReferences(draft, syncedDocHtml, reportActionID);
+
+            // Then the synced URL is used but the name the author typed is kept, instead of the uploaded name
+            expect(replaced).toBe(`Hello edited\n\n[124.csv](https://www.expensify.com/chat-attachments/${reportActionID}/file.doc)`);
         });
 
         it('does not re-add an attachment the user intentionally removed from the draft', () => {
@@ -7982,17 +8198,17 @@ describe('ReportUtils', () => {
         });
 
         it('reports the uploading attachment as removed once the draft drops its local reference', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', uploadingImageHtml)).toBe(true);
+            expect(getUploadingAttachmentIDsRemovedFromDraft('Hello edited', uploadingImageHtml)).toEqual(['1']);
         });
 
         it('does not report a removal while the draft still references the uploading attachment', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
-            expect(isUploadingAttachmentRemovedFromDraft(draft, uploadingImageHtml)).toBe(false);
+            expect(getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImageHtml)).toEqual([]);
         });
 
         it('does not report a removal when the attachment already synced', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', syncedImageHtml)).toBe(false);
+            expect(getUploadingAttachmentIDsRemovedFromDraft('Hello edited', syncedImageHtml)).toEqual([]);
         });
 
         it('returns the uploading attachment tag so the optimistic message can keep showing it', () => {
@@ -8002,8 +8218,58 @@ describe('ReportUtils', () => {
             expect(tag?.startsWith('<img')).toBe(true);
         });
 
+        describe('several uploading attachments', () => {
+            const firstSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const secondSource = 'blob:https://dev.new.expensify.com:8082/uuid-2';
+            const uploadingImagesHtml = `Hello<br /><br /><img src="${firstSource}" data-optimistic-src="${firstSource}" data-attachment-id="11" /><br /><img src="${secondSource}" data-optimistic-src="${secondSource}" data-attachment-id="12" />`;
+
+            it('reports only the attachments the draft dropped', () => {
+                // Given a draft that keeps the second image but not the first
+                const draft = `Hello edited\n\n!(${secondSource})`;
+
+                // When the removed uploads are looked up
+                const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImagesHtml);
+
+                // Then only the first image counts as removed
+                expect(removedAttachmentIDs).toEqual(['11']);
+            });
+
+            it('keeps showing every attachment the edit kept', () => {
+                // Given a message with two uploading images
+
+                // When the first image is removed
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml, ['11']);
+
+                // Then only the second image is re-appended to the edited message
+                expect(html).toContain(secondSource);
+                expect(html).not.toContain(firstSource);
+            });
+
+            it('re-appends all the attachments when none were removed', () => {
+                // Given a message with two uploading images
+
+                // When the edit keeps both images
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml);
+
+                // Then both images are re-appended to the edited message
+                expect(html).toContain(firstSource);
+                expect(html).toContain(secondSource);
+            });
+        });
+
         it('returns nothing to re-append once the attachment has synced', () => {
             expect(getUploadingAttachmentHtmlFromComment(syncedImageHtml)).toBeUndefined();
+        });
+
+        it('returns nothing to re-append for a synced file attachment, so an edit replayed after the upload cannot park itself again', () => {
+            // Given a comment whose file attachment has already synced
+            const syncedFileHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
+
+            // When the uploading attachment tag is read from it
+            const uploadingTag = getUploadingAttachmentHtmlFromComment(syncedFileHtml);
+
+            // Then there is none, so a replayed edit is sent as a normal edit instead of being deferred again
+            expect(uploadingTag).toBeUndefined();
         });
 
         describe('buildEditedCommentWithAttachment', () => {
@@ -8038,7 +8304,99 @@ describe('ReportUtils', () => {
                 const secondEditDraft = Parser.htmlToMarkdown(storedAfterFirstEdit).trim();
 
                 expect(secondEditDraft).toContain(videoSource);
-                expect(isUploadingAttachmentRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toBe(false);
+                expect(getUploadingAttachmentIDsRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toEqual([]);
+            });
+        });
+
+        describe('keeping a renamed attachment label', () => {
+            const localSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const uploadingFileHtml = `Hello<br /><br /><a href="${localSource}" data-optimistic-src="${localSource}" data-expensify-source="${localSource}" data-name="data.csv">data.csv</a>`;
+
+            it('reads the label the draft gives the attachment', () => {
+                // Given a draft that references the uploading file under a new label
+                const draft = `Hello\n\n[renamed.csv](${localSource})`;
+
+                // When the label is read for that file
+                const label = getUploadingAttachmentLabelFromDraft(draft, localSource);
+
+                // Then it is the label the author typed
+                expect(label).toBe('renamed.csv');
+            });
+
+            it('reads a label whose file name carries brackets', () => {
+                // Given a draft that renamed the uploading file to a name holding brackets
+                const draft = `Hello\n\n[report [Q1].csv](${localSource})`;
+
+                // When the label is read for that file
+                // Then the whole name comes back, the way ExpensiMark reads a link label
+                expect(getUploadingAttachmentLabelFromDraft(draft, localSource)).toBe('report [Q1].csv');
+            });
+
+            it('reads no label from an image reference written without one', () => {
+                // Given a draft that references the uploading image with no label, the way the parser writes it
+                const draft = `Hello\n\n!(${localSource})`;
+
+                // When the label is read for that file
+                const label = getUploadingAttachmentLabelFromDraft(draft, localSource);
+
+                // Then there is none, so the image keeps its own name
+                expect(label).toBeUndefined();
+            });
+
+            it('carries the renamed label into the re-appended file attachment', () => {
+                // Given the tag of a file that is still uploading
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+
+                // When the draft label is applied to it
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, 'renamed.csv');
+
+                // Then the anchor shows the new name, which is what the file card renders
+                expect(labelled).toContain('>renamed.csv</a>');
+            });
+
+            it('carries the renamed label into the re-appended image attachment', () => {
+                // Given the tag of an image that is still uploading
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingImageHtml) ?? '';
+
+                // When the draft label is applied to it
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, 'renamed.png');
+
+                // Then the new name lands in the alt text, since an image has no anchor text to carry it
+                expect(labelled).toContain('alt="renamed.png"');
+            });
+
+            it('keeps the original label when the draft did not rename the attachment', () => {
+                // Given the tag of a file that is still uploading
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+
+                // When the edit carries no new label
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, undefined);
+
+                // Then the tag is returned as it was
+                expect(labelled).toBe(tag);
+            });
+
+            it('treats a label holding a replacement token as literal text', () => {
+                // Given a rename whose label reads as a String.replace token
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+
+                // When it is applied to the uploading tag
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, 'a$&b.csv');
+
+                // Then the anchor holds the label itself, and the token did not pull the matched text in after it
+                expect(labelled).toContain('>a$&amp;b.csv</a>');
+                expect(labelled.match(/<\/a>/g)).toHaveLength(1);
+            });
+
+            it('encodes a label that would otherwise read as markup', () => {
+                // Given a rename whose label carries angle brackets
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingFileHtml) ?? '';
+
+                // When it is applied to the uploading tag
+                const labelled = applyLabelToUploadingAttachmentHtml(tag, '<b>x</b>.csv');
+
+                // Then it lands as text rather than as a nested element
+                expect(labelled).toContain('&lt;b&gt;x&lt;/b&gt;.csv');
             });
         });
 
@@ -8048,6 +8406,174 @@ describe('ReportUtils', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
             expect(replaceLocalAttachmentReferences(draft, otherActionHtml, reportActionID)).toBe(draft);
+        });
+    });
+
+    describe('restoreAttachmentAnchorLabels', () => {
+        const url = 'https://www.expensify.com/chat-attachments/123/w_abc.csv';
+        // The URL names the action the file was uploaded to, so this comment's own attachment is the one under 123.
+        const reportActionID = '123';
+
+        it('puts the literal file name back when the parser read its underscores as emphasis', () => {
+            // Given an edit whose label was parsed into emphasis tags
+            const draft = `[_n_d_m_t__ch____ng_.csv](${url})`;
+            const parsed = `<a href="${url}" target="_blank" rel="noreferrer noopener"><em>n_d_m_t</em><em>ch</em>__<em>ng</em>.csv</a>`;
+
+            // When the labels are restored from the draft
+            const restored = restoreAttachmentAnchorLabels(parsed, draft, reportActionID);
+
+            // Then the anchor carries the plain label again
+            expect(restored).toBe(`<a href="${url}" target="_blank" rel="noreferrer noopener">_n_d_m_t__ch____ng_.csv</a>`);
+        });
+
+        it('encodes the restored label and leaves anchors that parsed cleanly alone', () => {
+            // Given one mangled label with a character that needs encoding and one plain anchor
+            const draft = `[a<b_x_y.csv](${url})\n\n[plain.csv](https://www.expensify.com/chat-attachments/456/w_def.csv)`;
+            const parsed = `<a href="${url}">a&lt;b<em>x</em>y.csv</a><br /><br /><a href="https://www.expensify.com/chat-attachments/456/w_def.csv">plain.csv</a>`;
+
+            // When the labels are restored
+            const restored = restoreAttachmentAnchorLabels(parsed, draft, reportActionID);
+
+            // Then only the mangled anchor changes, and its label is HTML-encoded
+            expect(restored).toBe(`<a href="${url}">a&lt;b_x_y.csv</a><br /><br /><a href="https://www.expensify.com/chat-attachments/456/w_def.csv">plain.csv</a>`);
+        });
+        it('leaves an anchor alone when it holds an image or other markup, and ignores image references in the draft', () => {
+            // Given a linked image and an anchor holding an emoji, both parsed from a draft with underscores
+            const draft = `[![shot_1_](${url})](${url})\n\n[report_1_.csv](https://www.expensify.com/chat-attachments/456/w_def.csv)`;
+            const parsed = `<a href="${url}"><img src="${url}" alt="shot_1_" /></a><br /><br /><a href="https://www.expensify.com/chat-attachments/456/w_def.csv">report<em>1</em>.csv<emoji>😀</emoji></a>`;
+
+            // When the labels are restored
+            // Then neither anchor is rewritten
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(parsed);
+        });
+
+        it('restores each reference to the same attachment with its own label, in order', () => {
+            // Given a draft that links one attachment twice under two labels
+            const draft = `[first_a_.csv](${url}) and [second_b_.csv](${url})`;
+            const parsed = `<a href="${url}">first<em>a</em>.csv</a> and <a href="${url}">second<em>b</em>.csv</a>`;
+
+            // When the labels are restored
+            // Then each anchor gets the label from its own position in the draft
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(`<a href="${url}">first_a_.csv</a> and <a href="${url}">second_b_.csv</a>`);
+        });
+
+        it('puts back a bracketed file name the parser read as emphasis', () => {
+            // Given a file whose name holds both brackets and underscores
+            const draft = `[report [Q_1].csv](${url})`;
+            const parsed = `<a href="${url}" ${CONST.ATTACHMENT_ID_ATTRIBUTE}="55">report [Q<em>1].csv</em></a>`;
+
+            // When the labels are restored
+            // Then the card shows the name as typed
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(`<a href="${url}" ${CONST.ATTACHMENT_ID_ATTRIBUTE}="55">report [Q_1].csv</a>`);
+        });
+
+        it.each([
+            ['bold', '*Download*', '<strong>Download</strong>'],
+            ['italic', '_Download_', '<em>Download</em>'],
+        ])("leaves %s alone on a link to another message's attachment", (_emphasis, markdown, markup) => {
+            // Given a comment that links an earlier message's attachment under a bold or italic label
+            const otherActionURL = 'https://www.expensify.com/chat-attachments/789/w_ghi.csv';
+            const draft = `After [${markdown}](${otherActionURL})`;
+            const parsed = `After <a href="${otherActionURL}" target="_blank" rel="noreferrer noopener">${markup}</a>`;
+
+            // When the labels are restored
+            // Then the emphasis stands, because an ordinary link renders its label as markdown rather than as a file name
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(parsed);
+        });
+
+        it('still takes the label literally when the anchor is a file card', () => {
+            // Given a file anchor that kept its attachment attributes through the edit
+            const otherActionURL = 'https://www.expensify.com/chat-attachments/789/w_ghi.csv';
+            const draft = `[*Download*](${otherActionURL})`;
+            const parsed = `<a href="${otherActionURL}" ${CONST.ATTACHMENT_ID_ATTRIBUTE}="5401601885718501686"><strong>Download</strong></a>`;
+
+            // When the labels are restored
+            // Then the card shows the name as typed, since a card has no markdown to render
+            expect(restoreAttachmentAnchorLabels(parsed, draft, reportActionID)).toBe(`<a href="${otherActionURL}" ${CONST.ATTACHMENT_ID_ATTRIBUTE}="5401601885718501686">*Download*</a>`);
+        });
+    });
+
+    describe('restoreAttachmentAnchorAttributes', () => {
+        it('does not carry an attachment ID over to a link on another host', () => {
+            // Given a stored link off our attachment host that kept an attachment ID, and an edit that keeps the link
+            const foreignURL = 'https://example.com/chat-attachments/1/invoice.csv';
+            const original = `See <a href="${foreignURL}" data-attachment-id="1" target="_blank" rel="noreferrer noopener">invoice.csv</a>`;
+            const edited = `Seen <a href="${foreignURL}" target="_blank" rel="noreferrer noopener">invoice.csv</a>`;
+
+            // When the attributes are restored
+            // Then the edit goes out as a plain link, so the next render has no ID to draw a card from
+            expect(restoreAttachmentAnchorAttributes(edited, original)).toBe(edited);
+        });
+
+        const docUrl = 'https://www.expensify.com/chat-attachments/123/file.doc';
+        const originalDocHtml = `Hello<br /><br /><a href="${docUrl}" data-expensify-source="${docUrl}" data-name="file.doc">file.doc</a>`;
+        const roundTrippedHtml = `Hello edited<br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
+
+        it('re-applies the attachment attributes an edit dropped from a doc anchor', () => {
+            // Given an edited comment whose file anchor came back from the parser as an ordinary link
+            // When the attributes are restored from the original comment
+            const restored = restoreAttachmentAnchorAttributes(roundTrippedHtml, originalDocHtml);
+
+            // Then the anchor is an attachment again, and the edited text is kept
+            expect(restored).toContain(`data-expensify-source="${docUrl}"`);
+            expect(restored).toContain('data-name="file.doc"');
+            expect(restored).toContain('Hello edited');
+        });
+
+        it('leaves an anchor that still carries its attachment attributes untouched', () => {
+            // Given an anchor that kept its attachment attributes through the edit
+            // When the attributes are restored
+            const restored = restoreAttachmentAnchorAttributes(originalDocHtml, originalDocHtml);
+
+            // Then nothing is added twice
+            expect(restored).toBe(originalDocHtml);
+        });
+
+        it('never turns an ordinary link into an attachment', () => {
+            // Given an edit that replaced the file with an ordinary link to another page
+            const ordinaryLinkHtml = 'Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a>';
+
+            // When the attributes are restored from the original comment
+            const restored = restoreAttachmentAnchorAttributes(ordinaryLinkHtml, originalDocHtml);
+
+            // Then the link stays plain, because its href matches no original attachment
+            expect(restored).toBe(ordinaryLinkHtml);
+        });
+
+        it('leaves the html alone when the original comment had no attachment', () => {
+            // Given an original comment with only an ordinary link, and its edit
+            const plainOriginal = 'Hello<br /><br /><a href="https://example.com/page">example</a>';
+            const edited = 'Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a>';
+
+            // When the attributes are restored
+            const restored = restoreAttachmentAnchorAttributes(edited, plainOriginal);
+
+            // Then the edit is returned as it was
+            expect(restored).toBe(edited);
+        });
+
+        it('recognizes the attachment on a second edit, when only the attachment ID is left', () => {
+            // Given a comment the server already stripped down to the attachment id, and a second edit of it
+            const afterServerRoundTrip = `Hello edited<br /><br /><a href="${docUrl}" data-attachment-id="98765" target="_blank" rel="noreferrer noopener">file.doc</a>`;
+            const secondEdit = `Hello edited twice<br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
+
+            // When the attributes are restored from the stripped comment
+            const restored = restoreAttachmentAnchorAttributes(secondEdit, afterServerRoundTrip);
+
+            // Then the attachment id is carried over, so the second edit still renders a file card
+            expect(restored).toContain('data-attachment-id="98765"');
+        });
+
+        it('only restores the anchor whose href matches, leaving other links plain', () => {
+            // Given an edit holding both an ordinary link and the file anchor
+            const mixedHtml = `Hello edited<br /><br /><a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a><br /><br /><a href="${docUrl}" target="_blank" rel="noreferrer noopener">file.doc</a>`;
+
+            // When the attributes are restored from the original comment
+            const restored = restoreAttachmentAnchorAttributes(mixedHtml, originalDocHtml);
+
+            // Then only the file anchor gets them back
+            expect(restored).toContain(`<a href="${docUrl}" target="_blank" rel="noreferrer noopener" data-expensify-source="${docUrl}" data-name="file.doc">`);
+            expect(restored).toContain('<a href="https://example.com/page" target="_blank" rel="noreferrer noopener">example</a>');
         });
     });
 
@@ -8968,7 +9494,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, ['4']);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: ['4']});
 
             expect(icons.at(0)?.name).toEqual('One, Three, Two');
         });
@@ -8982,7 +9508,7 @@ describe('ReportUtils', () => {
             });
 
             // When the caller builds the icons without passing the pending delete members
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
 
             // Then the pending member is still listed: getGroupChatName no longer falls back to reading Onyx itself
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
@@ -8992,10 +9518,111 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, []);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: []});
 
             expect(icons.at(0)?.source).toEqual(getDefaultGroupAvatar(groupChatReport.reportID));
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
+        });
+    });
+
+    describe('getIcons for a thread', () => {
+        afterEach(() => Onyx.clear());
+
+        const parentReportID = '9301';
+        const parentReportActionID = '9302';
+        const passedActorAccountID = 3;
+        const onyxActorAccountID = 4;
+
+        const buildIOUAction = (actorAccountID: number): ReportAction => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: parentReportActionID,
+            actorAccountID,
+            created: '2025-01-20 12:30:03.784',
+            message: [{type: 'COMMENT', html: 'expense', text: 'expense'}],
+            originalMessage: {
+                IOUReportID: parentReportID,
+                IOUTransactionID: '9303',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 1000,
+                currency: 'USD',
+            },
+        });
+
+        const buildCommentAction = (actorAccountID: number): ReportAction => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            reportActionID: parentReportActionID,
+            actorAccountID,
+            created: '2025-01-20 12:30:03.784',
+            message: [{type: 'COMMENT', html: '<p>hi</p>', text: 'hi'}],
+        });
+
+        const expenseRequest: Report = {
+            reportID: '9304',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID,
+            parentReportActionID,
+        };
+
+        const chatThread: Report = {
+            reportID: '9305',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID,
+            parentReportActionID,
+        };
+
+        it('should build the expense request member avatar from the parent report action passed by the caller', async () => {
+            // Given an expense request whose parent action in Onyx (still read by the expense request check) was posted by one user,
+            // while the caller resolved that same action as posted by another user
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildIOUAction(onyxActorAccountID)});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built with the caller's parent report action
+            const icons = getIcons({
+                report: expenseRequest,
+                formatPhoneNumber,
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildIOUAction(passedActorAccountID),
+            });
+
+            // Then the member avatar belongs to the actor of the passed action, so the module-level cache was not read for it
+            expect(icons.at(0)?.id).toBe(passedActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Three');
+        });
+
+        it('should build the chat thread avatar from the parent report action passed by the caller', async () => {
+            // Given a chat thread whose parent chat is in Onyx but whose parent actions are not loaded there
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built with the caller's parent report action
+            const icons = getIcons({
+                report: chatThread,
+                formatPhoneNumber,
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildCommentAction(passedActorAccountID),
+            });
+
+            // Then the avatar belongs to the actor of the passed action
+            expect(icons).toHaveLength(1);
+            expect(icons.at(0)?.id).toBe(passedActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Three');
+        });
+
+        it('should fall back to the parent report action in Onyx when the caller does not pass one', async () => {
+            // Given a chat thread whose parent action is only available in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildCommentAction(onyxActorAccountID)});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built without a parent report action
+            const icons = getIcons({report: chatThread, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
+
+            // Then the avatar still resolves from Onyx until every caller passes the action
+            expect(icons.at(0)?.id).toBe(onyxActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Four');
         });
     });
 
@@ -12408,6 +13035,58 @@ describe('ReportUtils', () => {
             // employee, which would fall through to the policy default approver and wrongly report false
             expect(result).toBe(true);
         });
+
+        describe('reportActions', () => {
+            const submittedAction: ReportAction = {...createRandomReportAction(901), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'};
+            const forwardedAction: ReportAction = {...createRandomReportAction(902), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'};
+            const forwardedActions = {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction};
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${buildProcessingReport().reportID}` as const;
+
+            afterEach(async () => {
+                await Onyx.merge(reportActionsKey, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('should not be awaiting first level approval when the passed reportActions show a forward after the last submit', async () => {
+                // Given a report that the approval chain alone would place with its first approver
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+
+                // When the caller passes actions showing the report was forwarded after its last submit
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, forwardedActions);
+
+                // Then the report is past its first level
+                expect(result).toBe(false);
+            });
+
+            it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+                // Given Onyx says the report was forwarded after its last submit
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+                await Onyx.merge(reportActionsKey, forwardedActions);
+                await waitForBatchedUpdates();
+
+                // When the caller passes only the submit, as an array
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, [submittedAction]);
+
+                // Then the passed actions win, so the report is still awaiting its first level
+                expect(result).toBe(true);
+            });
+
+            it('should fall back to the report actions stored in Onyx when reportActions is not passed', async () => {
+                // Given Onyx says the report was forwarded after its last submit
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+                await Onyx.merge(reportActionsKey, forwardedActions);
+                await waitForBatchedUpdates();
+
+                // When a caller that has not been migrated yet omits reportActions
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL);
+
+                // Then the transitional fallback still sees the forward
+                expect(result).toBe(false);
+            });
+        });
     });
 
     describe('isReportOutstanding', () => {
@@ -15325,6 +16004,165 @@ describe('ReportUtils', () => {
                 }),
             );
         });
+
+        it('pushes inactiveVendor error when a vendor is disabled', () => {
+            const fakePolicyID = '0';
+            const fakeVendorID = 'vendor1';
+            const fakePolicy: Policy = createMock<Policy>({
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {
+                            vendors: [{id: fakeVendorID, name: 'Vendor 1', currency: 'USD'}],
+                        },
+                    },
+                },
+            });
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                comment: {
+                    vendor: {
+                        externalID: fakeVendorID,
+                        wasManuallySet: true,
+                    },
+                },
+            };
+
+            const initialPolicyVendors: PolicyVendors = {
+                [fakeVendorID]: {
+                    externalID: fakeVendorID,
+                    name: 'Vendor 1',
+                    enabled: true,
+                },
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: {},
+                tags: {},
+                vendors: initialPolicyVendors,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, true, {}, {}, {}, undefined, {[fakeVendorID]: {enabled: false}});
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: [
+                    {
+                        name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            });
+        });
+
+        it('clears inactiveVendor error when a disabled vendor is re-enabled', () => {
+            const fakePolicyID = '0';
+            const fakeVendorID = 'vendor1';
+            const fakePolicy: Policy = createMock<Policy>({
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {
+                            vendors: [{id: fakeVendorID, name: 'Vendor 1', currency: 'USD'}],
+                        },
+                    },
+                },
+            });
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                comment: {
+                    vendor: {
+                        externalID: fakeVendorID,
+                        wasManuallySet: true,
+                    },
+                },
+            };
+
+            const initialPolicyVendors: PolicyVendors = {
+                [fakeVendorID]: {
+                    externalID: fakeVendorID,
+                    name: 'Vendor 1',
+                    enabled: false,
+                },
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: {},
+                tags: {},
+                vendors: initialPolicyVendors,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`]: [
+                                {
+                                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                                    showInReview: true,
+                                },
+                                {
+                                    name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                                    showInReview: true,
+                                },
+                            ],
+                        },
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, true, {}, {}, {}, undefined, {[fakeVendorID]: {enabled: true}});
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: [
+                    {
+                        name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            });
+        });
     });
 
     describe('pushTransactionAutoSelectionsOnyxData', () => {
@@ -16355,6 +17193,24 @@ describe('ReportUtils', () => {
 
             // Then account 3 (passed explicitly) cannot request money on it
             expect(canRequestMoney(iouReport, undefined, [1, 2], undefined, 3)).toBe(false);
+        });
+
+        it('should return false for a workspace chat when the current user is approve-only on that workspace', () => {
+            const policyID = 'approveOnlyPolicyID';
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                isOwnPolicyExpenseChat: true,
+            };
+            const approveOnlyPolicy = createMock<Policy>({
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            });
+
+            expect(canRequestMoney(report, approveOnlyPolicy, [1], undefined)).toBe(false);
         });
     });
 
@@ -18307,6 +19163,56 @@ describe('ReportUtils', () => {
             const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '', transactions);
 
             expect(result).toBe(true);
+        });
+    });
+
+    describe('shouldBlockSubmitDueToDeletedWorkspace', () => {
+        it('should return true when the workspace chat was archived because its workspace was deleted', () => {
+            // Given a workspace chat archived with the POLICY_DELETED reason, which deleting a workspace leaves behind
+            // without setting archivedDate on the policy
+            const isChatReportArchived = true;
+            const chatArchiveReason = CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+
+            // Then Submit is blocked, because the backend rejects submissions to a deleted workspace
+            expect(result).toBe(true);
+        });
+
+        it('should return false when the workspace chat was archived because the submitter was removed from the workspace', () => {
+            // Given a workspace chat archived because the submitter was removed, while the workspace itself still exists
+            const isChatReportArchived = true;
+            const chatArchiveReason = CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+
+            // Then Submit stays available, so a removed member's outstanding reports can still move through the workflow
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the workspace chat is not archived', () => {
+            // Given an active workspace chat, even with a stale POLICY_DELETED close reason (e.g. a restored workspace)
+            const isChatReportArchived = false;
+            const chatArchiveReason = CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+
+            // Then Submit stays available, because only a chat that is currently archived signals a deleted workspace
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the archive reason is unknown', () => {
+            // Given an archived workspace chat whose close action isn't loaded, so its reason can't be read
+            const isChatReportArchived = true;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, undefined);
+
+            // Then Submit stays available, because archived chats are only blocked when the workspace was deleted
+            expect(result).toBe(false);
         });
     });
 
@@ -21622,12 +22528,11 @@ describe('ReportUtils', () => {
             const report = undefined;
 
             // Given a report action with childReportName and childMoneyRequestCount === 0
-            const reportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
+            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportName: 'Expense Report 2025-01-15',
                 childMoneyRequestCount: 0,
-            };
+            });
 
             // When we call getReportPreviewReportActionMessage
             const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
@@ -21641,13 +22546,12 @@ describe('ReportUtils', () => {
             const report = undefined;
 
             // Given a report action with childReportName but childMoneyRequestCount > 0
-            const reportAction: ReportAction = {
-                ...LHNTestUtils.getFakeReportAction(),
+            const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                 childReportName: 'Expense Report 2025-01-15',
                 childMoneyRequestCount: 3,
                 message: [{html: 'payer owes $100', type: 'COMMENT', text: 'payer owes $100'}],
-            };
+            });
 
             // When we call getReportPreviewReportActionMessage
             const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
@@ -21672,11 +22576,52 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage passing the policy explicitly
-            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy});
+            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy}, formatPhoneNumber);
 
             // Then the group-policy "approved" branch is taken based on the passed policy alone
             expect(result).toContain('approved');
             expect(result).toContain(groupPolicy.name);
+        });
+        it('should use the passed linkedTransaction (not module-level allTransactions) for the merchant', async () => {
+            // Given an IOU report whose latest expense has a stale copy in Onyx
+            const transactionID = 'linkedTransaction1';
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.IOU,
+                currency: CONST.CURRENCY.USD,
+            };
+            const iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: 'linkedTransactionAction1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {IOUTransactionID: transactionID, amount: 1000, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            });
+            const staleTransaction = {...createRandomTransaction(1), transactionID, merchant: 'Stale merchant', modifiedMerchant: '', amount: 1000, currency: CONST.CURRENCY.USD};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, staleTransaction);
+            await waitForBatchedUpdates();
+            const params = {reportOrID: iouReport, iouReportAction: iouAction, shouldConsiderScanningReceiptOrPendingRoute: true, policy: undefined};
+
+            // When we pass a fresher transaction for the action
+            const result = getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
+                {...params, linkedTransaction: {...staleTransaction, merchant: 'Fresh merchant'}},
+                formatPhoneNumber,
+            );
+
+            // Then the preview uses the passed transaction
+            expect(result).toContain('Fresh merchant');
+
+            // When the passed transaction belongs to another action, the module-level copy is still used
+            const mismatchedResult = getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
+                {...params, linkedTransaction: {...staleTransaction, transactionID: 'otherTransaction', merchant: 'Other merchant'}},
+                formatPhoneNumber,
+            );
+            expect(mismatchedResult).toContain('Stale merchant');
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
         });
         it('getReportPreviewMessageForCopy should return the expense report name', async () => {
             const report = LHNTestUtils.getFakeReport();
@@ -21775,14 +22720,23 @@ describe('ReportUtils', () => {
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
                 // Given a pay action that carries the masked accountNumber of the bank account actually used
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
                 const actionWithAccountNumber: ReportAction = {
                     ...payReportAction,
                     originalMessage: {...payOriginalMessage, accountNumber: 'XXXXXX4321'},
                 };
 
-                const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber},
-                    getCurrencyDecimalsLocal,
+                // When the localized preview is built, since it is the only variant that receives IOU actions
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: settledReport,
+                        iouReportAction: actionWithAccountNumber,
+                        originalReportAction: actionWithAccountNumber,
+                        policy: settledPolicy,
+                    },
+                    formatPhoneNumber,
                 );
 
                 // Then the preview shows the last 4 digits of that account, not the policy default
@@ -21790,11 +22744,23 @@ describe('ReportUtils', () => {
             });
 
             it('falls back to the policy default bank account when the action has no accountNumber', () => {
-                const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction},
-                    getCurrencyDecimalsLocal,
+                // Given a pay action without an accountNumber
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+
+                // When the localized preview is built
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: settledReport,
+                        iouReportAction: payReportAction,
+                        originalReportAction: payReportAction,
+                        policy: settledPolicy,
+                    },
+                    formatPhoneNumber,
                 );
 
+                // Then the policy default account is used
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
             });
 
@@ -21814,23 +22780,16 @@ describe('ReportUtils', () => {
                     // Then it uses workspace payment wording and the selected account’s digits.
                     const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                        reportOrID: settledReport,
-                        iouReportAction: actionNamingAccount,
-                        originalReportAction: actionNamingAccount,
-                        policy: settledPolicy,
-                    });
-
-                    expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
-                });
-
-                it('keeps the bank account wording in the stored report action message', () => {
-                    // Given a workspace payment that names the admin’s selected bank account.
-                    // When the stored English report action message is generated.
-                    // Then it retains workspace payment wording rather than invoice wording.
-                    const result = getReportPreviewReportActionMessage(
-                        {reportOrID: settledReport, iouReportAction: actionNamingAccount, originalReportAction: actionNamingAccount, policy: settledPolicy},
-                        getCurrencyDecimalsLocal,
+                    const result = getReportPreviewMessage(
+                        englishTranslate,
+                        convertToDisplayString,
+                        {
+                            reportOrID: settledReport,
+                            iouReportAction: actionNamingAccount,
+                            originalReportAction: actionNamingAccount,
+                            policy: settledPolicy,
+                        },
+                        formatPhoneNumber,
                     );
 
                     expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
@@ -21843,18 +22802,49 @@ describe('ReportUtils', () => {
                     const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
                     const params = {reportOrID: settledReport, iouReportAction: actionNamingAccountID, originalReportAction: actionNamingAccountID, policy: settledPolicy, bankAccountList};
 
-                    // Then both previews name that account, matching PaymentContent, rather than the workspace default
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
-                    expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
+                    // Then the preview names that account, matching PaymentContent, rather than the workspace default
+                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber)).toBe(
+                        translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'),
+                    );
                 });
             });
 
-            it('matches the localized getReportPreviewMessage output when translated to English', () => {
+            it('matches the localized getReportPreviewMessage output when translated to English for a report preview action', () => {
+                // Given a settled report whose preview action message says it was paid with Expensify
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, policy: settledPolicy};
+                const reportPreviewAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
+                    ...LHNTestUtils.getFakeReportAction(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    originalMessage: {linkedReportID: settledReport.reportID},
+                    message: [{html: 'paid with Expensify', text: 'paid with Expensify', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+                });
+                const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
 
-                // The hardcoded English copy must not drift from the localized function
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                // When both variants build the message
+                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
+
+                // Then the hardcoded English copy must not drift from the localized function
+                expect(storedMessage).toContain('paid with wallet');
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber));
+            });
+
+            it('falls back to the marked as paid wording for a report preview action without a payment hint', () => {
+                // Given a settled report whose preview action carries no payment information
+                const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+                const reportPreviewAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>({
+                    ...LHNTestUtils.getFakeReportAction(),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    originalMessage: {linkedReportID: settledReport.reportID},
+                    message: [{html: '', text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
+                });
+                const params = {reportOrID: settledReport, iouReportAction: reportPreviewAction, originalReportAction: reportPreviewAction, policy: settledPolicy};
+
+                // When both variants build the message
+                const storedMessage = getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal);
+
+                // Then the stored message is the plain "marked as paid" wording and matches the localized variant
+                expect(storedMessage).toContain('marked as paid');
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber));
             });
 
             describe('cross-border payment', () => {
@@ -21867,7 +22857,7 @@ describe('ReportUtils', () => {
 
                 it('names the credited amount, falling back to the policy default for the debited account', () => {
                     // Given a converted payment that recorded the employee's account but not the account it was paid from
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams);
+                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams, formatPhoneNumber);
 
                     // Then the debited account comes from the policy default, the same fallback the non-converted wording uses
                     expect(result).toBe(
@@ -21879,26 +22869,24 @@ describe('ReportUtils', () => {
                     );
                 });
 
-                it('stores the same wording on the report action as the localized preview shows', () => {
-                    // The hardcoded English copy must not drift from the localized function
-                    expect(getReportPreviewReportActionMessage(crossBorderParams, getCurrencyDecimalsLocal)).toBe(
-                        getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams),
-                    );
-                });
-
                 it('still names the report total in the parent chat preview', () => {
                     // Given the parent chat preview, which summarizes the report rather than describing the payment
                     const params = {...crossBorderParams, isPreviewMessageForParentChatReport: true};
-                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                        reportOrID: settledReport,
-                        iouReportAction: payReportAction,
-                        originalReportAction: payReportAction,
-                        policy: settledPolicy,
-                        isPreviewMessageForParentChatReport: true,
-                    });
+                    const paymentWithoutConversion = getReportPreviewMessage(
+                        englishTranslate,
+                        convertToDisplayString,
+                        {
+                            reportOrID: settledReport,
+                            iouReportAction: payReportAction,
+                            originalReportAction: payReportAction,
+                            policy: settledPolicy,
+                            isPreviewMessageForParentChatReport: true,
+                        },
+                        formatPhoneNumber,
+                    );
 
                     // Then the credited amount does not replace the report total, which is what the report is denominated in
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(paymentWithoutConversion);
+                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber)).toBe(paymentWithoutConversion);
                 });
             });
         });
@@ -21925,9 +22913,13 @@ describe('ReportUtils', () => {
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
 
                 // The localized preview differs between English and Spanish...
-                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params)).not.toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params, formatPhoneNumber)).not.toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
+                );
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
+                );
             });
 
             it('routes the participant display name through the injected translate function', async () => {
@@ -21951,7 +22943,7 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined});
+                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined}, formatPhoneNumber);
 
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
@@ -21974,7 +22966,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
                 expect(result).toContain('owes');
             });
 
@@ -22024,7 +23016,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
                 expect(result).toContain('spent');
             });
         });
@@ -24997,6 +25989,152 @@ describe('ReportUtils', () => {
 
             // Then there is no IOU action to match the thread against
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getDisplayedReportID', () => {
+        const parentReport = createMock<Report>({reportID: 'displayed-parent', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'displayed-chat'});
+        const threadReport = createMock<Report>({reportID: 'displayed-thread', parentReportID: parentReport.reportID, parentReportActionID: '1'});
+        const reportWithoutParent = createMock<Report>({reportID: 'displayed-no-parent', type: CONST.REPORT.TYPE.CHAT});
+        const iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'USD 1.00 expense', text: 'USD 1.00 expense'}],
+            originalMessage: {IOUTransactionID: 'displayed-txn-1', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: CONST.CURRENCY.USD},
+        });
+        const secondIOUAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: 'displayed-other-thread',
+            message: [{type: 'COMMENT', html: 'USD 2.00 expense', text: 'USD 2.00 expense'}],
+            originalMessage: {IOUTransactionID: 'displayed-txn-2', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 200, currency: CONST.CURRENCY.USD},
+        });
+        // Same ID as the thread's parentReportActionID, but a send-money action, which getDisplayedReportID must never treat as a one-transaction thread
+        const sentMoneyAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'sent USD 1.00', text: 'sent USD 1.00'}],
+            originalMessage: {
+                IOUTransactionID: 'displayed-txn-1',
+                IOUReportID: parentReport.reportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: ''},
+            },
+        });
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const;
+
+        beforeEach(async () => {
+            // getDisplayedReportID reads the thread and its parent from the reports stored in Onyx
+            await Onyx.multiSet(toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [parentReport, threadReport, reportWithoutParent], (report) => report.reportID));
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.merge(parentReportActionsKey, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportWithoutParent.reportID}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('should return the report ID when the report has no parent', () => {
+            // Given a report that is not a thread, even though a matching IOU action is passed
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When resolving the displayed report
+            const result = getDisplayedReportID(reportWithoutParent.reportID, false, parentReportActions);
+
+            // Then the report itself is displayed because there is no parent to switch to
+            expect(result).toBe(reportWithoutParent.reportID);
+        });
+
+        it('should return the parent report ID when the passed parent report actions hold a single IOU action pointing to the thread', () => {
+            // Given the parent's actions contain exactly one IOU action whose child is the thread
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When resolving the displayed report with those actions passed as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, parentReportActions);
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [iouAction]);
+
+            // Then the one-transaction parent is displayed instead of the thread
+            expect(resultForObject).toBe(parentReport.reportID);
+            expect(resultForArray).toBe(parentReport.reportID);
+        });
+
+        it('should return the thread ID when the passed parent report actions hold more than one IOU action', () => {
+            // Given the parent holds two expenses
+            const parentReportActions = {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction};
+
+            // When resolving the displayed report for one of their threads
+            const result = getDisplayedReportID(threadReport.reportID, false, parentReportActions);
+
+            // Then the thread stays displayed because the parent is not a one-transaction report
+            expect(result).toBe(threadReport.reportID);
+        });
+
+        it('should read the passed parent report actions rather than the actions stored in Onyx', async () => {
+            // Given Onyx says the parent holds two expenses
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes only the single IOU action
+            const result = getDisplayedReportID(threadReport.reportID, false, {[iouAction.reportActionID]: iouAction});
+
+            // Then the passed actions win and the parent is displayed
+            expect(result).toBe(parentReport.reportID);
+        });
+
+        it('should fall back to the actions stored in Onyx when parentReportActions is not passed', async () => {
+            // Given Onyx holds a single IOU action for the parent
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction});
+            await waitForBatchedUpdates();
+
+            // When a caller that has not been migrated yet omits parentReportActions
+            const result = getDisplayedReportID(threadReport.reportID, false);
+
+            // Then the transitional fallback still resolves the parent from Onyx
+            expect(result).toBe(parentReport.reportID);
+        });
+
+        it('should return the thread ID when parentReportActions is not passed and Onyx has no actions for the parent', () => {
+            // Given nothing is stored for the parent and the caller passes no actions
+            // When resolving the displayed report
+            const result = getDisplayedReportID(threadReport.reportID, false);
+
+            // Then there is no IOU action to match, so the thread stays displayed
+            expect(result).toBe(threadReport.reportID);
+        });
+
+        it('should resolve the thread parent action from the passed parent report actions rather than from Onyx', async () => {
+            // Given Onyx stores a send-money action under the thread's parentReportActionID, which would keep the thread displayed
+            await Onyx.merge(parentReportActionsKey, {[sentMoneyAction.reportActionID]: sentMoneyAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes a plain expense action under that same ID, as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, {[iouAction.reportActionID]: iouAction});
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [iouAction]);
+
+            // Then the passed action is the one checked, so the parent is displayed
+            expect(resultForObject).toBe(parentReport.reportID);
+            expect(resultForArray).toBe(parentReport.reportID);
+        });
+
+        it('should keep the thread displayed when the passed parent report actions hold a send-money action for the thread', async () => {
+            // Given Onyx stores a plain expense action under the thread's parentReportActionID, which would switch to the parent
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes a send-money action under that same ID, as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, {[sentMoneyAction.reportActionID]: sentMoneyAction});
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [sentMoneyAction]);
+
+            // Then the passed send-money action is the one checked, so the thread stays displayed
+            expect(resultForObject).toBe(threadReport.reportID);
+            expect(resultForArray).toBe(threadReport.reportID);
         });
     });
 
@@ -28738,6 +29876,91 @@ describe('buildOptimisticModifiedExpenseReportAction sets delegateAccountID', ()
 
         // Then the builder leaves the action unattributed instead of reading the signed-in copilot
         expect(reportAction.delegateAccountID).toBeUndefined();
+    });
+});
+
+describe.each([false, true])('buildOptimisticModifiedExpenseReportAction clock skew, newest first: %s', (isNewestFirst) => {
+    afterEach(async () => {
+        jest.useRealTimers();
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 0});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}clock-stale-report-test`, null);
+        await waitForBatchedUpdates();
+    });
+
+    it.each([
+        ['known', 4000, '2026-10-13T11:44:27.127Z', '2026-10-13 11:44:31.127'],
+        ['underestimated', 4050, '2026-10-13T11:44:23.077Z', '2026-10-13 11:44:27.304'],
+        ['unknown', 0, '2026-10-13T11:44:27.127Z', '2026-10-13 11:44:27.304'],
+    ] as const)('keeps a confirmed group collapsed with %s skew while the edit is pending', async (_skewCase, timeSkew, deviceTime, expectedCreated) => {
+        // Given two confirmed edits and a device clock whose skew is known, underestimated, or not yet measured
+        await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew});
+        await waitForBatchedUpdates();
+        jest.useFakeTimers({now: new Date(deviceTime)});
+        const pending = buildOptimisticModifiedExpenseReportAction({reportID: 'clock-test', lastVisibleActionCreated: '2026-10-13 11:44:27.303'}, undefined, {}, false, undefined, undefined);
+        const confirmed = [
+            {...pending, reportActionID: 'first', created: '2026-10-13 11:44:23.393', pendingAction: null},
+            {...pending, reportActionID: 'second', created: '2026-10-13 11:44:27.303', pendingAction: null},
+        ];
+
+        // When the real builder creates the pending edit and the list constructs its display state
+        const pendingDisplay = getSystemMessageDisplayState(getSortedReportActions([...confirmed, pending], isNewestFirst), new Set());
+
+        // Then the existing pair stays collapsed and the pending edit remains visible on its own
+        expect(pending.created).toBe(expectedCreated);
+        expect(pending.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        expect(pendingDisplay.displayReportActions).toHaveLength(2);
+        expect(pendingDisplay.displayReportActions).toContain(pending);
+        expect([...pendingDisplay.runsByAnchorReportActionID.values()].map((run) => run.reportActionIDs)).toEqual([['first', 'second']]);
+
+        // When the server confirms the edit, the group grows without losing an explicit expansion
+        const acknowledged = {...pending, pendingAction: null};
+        const sorted = getSortedReportActions([...confirmed, acknowledged], isNewestFirst);
+        expect(getSystemMessageDisplayState(sorted, new Set()).displayReportActions).toHaveLength(1);
+        expect(getSystemMessageDisplayState(sorted, new Set(['first'])).displayReportActions).toHaveLength(3);
+    });
+
+    it.each([0, 1250])('uses the loaded expense edits when the report timestamp is stale and measured skew is %sms', async (timeSkew) => {
+        // Given a stale report timestamp and two newer confirmed edits while the device clock falls between those edits
+        const thread = {
+            reportID: 'clock-stale-report-test',
+            lastVisibleActionCreated: '2026-10-14 12:23:42.090',
+        };
+        await Onyx.merge(ONYXKEYS.SESSION, {
+            email: currentUserEmail,
+            accountID: currentUserAccountID,
+        });
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew});
+        await waitForBatchedUpdates();
+        const action = buildOptimisticModifiedExpenseReportAction(thread, undefined, {}, false, undefined, undefined);
+        const confirmed = [
+            {
+                ...action,
+                reportActionID: 'first',
+                created: '2026-10-14 12:24:01.635',
+                pendingAction: null,
+            },
+            {
+                ...action,
+                reportActionID: 'second',
+                created: '2026-10-14 12:24:07.130',
+                pendingAction: null,
+            },
+        ];
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, Object.fromEntries(confirmed.map((reportAction) => [reportAction.reportActionID, reportAction])));
+        await waitForBatchedUpdates();
+        jest.useFakeTimers({now: new Date('2026-10-14T12:24:03.421Z')});
+
+        // When a real optimistic edit is built from the same stale report metadata
+        const pending = buildOptimisticModifiedExpenseReportAction(thread, undefined, {}, false, undefined, undefined);
+        const pendingDisplay = getSystemMessageDisplayState(getSortedReportActions([...confirmed, pending], isNewestFirst), new Set());
+
+        // Then the edit sorts after the confirmed pair, which stays collapsed until the server confirms the new row
+        expect(pending.created).toBe('2026-10-14 12:24:07.131');
+        expect(pendingDisplay.displayReportActions).toHaveLength(2);
+        expect(pendingDisplay.displayReportActions).toContain(pending);
+        expect([...pendingDisplay.runsByAnchorReportActionID.values()].map((run) => run.reportActionIDs)).toEqual([['first', 'second']]);
+        expect(getSystemMessageDisplayState(getSortedReportActions([...confirmed, {...pending, pendingAction: null}], isNewestFirst), new Set()).displayReportActions).toHaveLength(1);
     });
 });
 

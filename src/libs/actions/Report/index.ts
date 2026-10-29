@@ -2,6 +2,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+import {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
@@ -71,6 +72,7 @@ import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import {getMicroSecondOnyxErrorWithTranslationKey, getMicroSecondTranslationErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
+import {trackFullstoryEvent} from '@libs/Fullstory/utils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import Log from '@libs/Log';
@@ -176,10 +178,13 @@ import {
     isReportManuallyReimbursed,
     isReportNotFound,
     isSelfDM,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentIDsRemovedFromDraft,
+    getUploadingAttachmentLabelsRenamedInDraft,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
     replaceLocalAttachmentReferences,
+    restoreAttachmentAnchorAttributes,
+    restoreAttachmentAnchorLabels,
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -259,6 +264,7 @@ import type {
     TransactionViolations,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
+import type {DeferredAttachmentEdit} from '@src/types/onyx/DeferredAttachmentEdits';
 import type {Decision} from '@src/types/onyx/OriginalMessage';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/PersonalDetails';
@@ -281,6 +287,7 @@ import isEmpty from 'lodash/isEmpty';
 import {DeviceEventEmitter, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {clearDeferredAttachmentEdit, deferAttachmentEdit, startDeferredAttachmentEditReplays} from './DeferredAttachmentEdits';
 import deleteReport from './DeleteReport';
 import {notifyNewAction} from './reportActionSubscribers';
 
@@ -395,6 +402,8 @@ type OpenReportActionParams = {
     /** The Concierge chat report used to build the guided setup onboarding data */
     conciergeChat: OnyxEntry<Report>;
 
+    /** The report policy's last full policy snapshot, so the server can leave out the members, tags and categories the client already has */
+    fullPolicySnapshot?: {policyID: string; lastModified: number};
     /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
@@ -432,6 +441,7 @@ type AddActionsParams = {
     currentUserAccountID: number;
     text?: string;
     file?: FileObject;
+    additionalFiles?: FileObject[];
     isInSidePanel?: boolean;
     sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
@@ -605,6 +615,9 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
     callback: (value) => (allAttachments = value),
 });
+
+// Lets an edit saved after the upload finishes find which synced attachment each local URI in the draft became.
+const attachmentIDByLocalSource: Partial<Record<string, string>> = {};
 
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
@@ -881,6 +894,7 @@ function addActions({
     currentUserAccountID,
     text = '',
     file,
+    additionalFiles = [],
     isInSidePanel = false,
     sidePanelContext,
     pregeneratedResponseParams,
@@ -916,6 +930,7 @@ function addActions({
     let commandName: typeof WRITE_COMMANDS.ADD_COMMENT | typeof WRITE_COMMANDS.ADD_ATTACHMENT | typeof WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT = WRITE_COMMANDS.ADD_COMMENT;
 
     const attachmentID = rand64();
+    const additionalAttachments = additionalFiles.map((additionalFile) => ({file: additionalFile, attachmentID: rand64()}));
     if (text && !file) {
         const reportComment = buildOptimisticAddCommentReportAction({
             text,
@@ -938,12 +953,18 @@ function addActions({
             file,
             reportID,
             attachmentID,
+            additionalAttachments,
             delegateAccountIDParam: delegateAccountID,
             anchorCreatedToServer: isConciergeChat,
             lastActionCreated,
         });
         attachmentAction = attachment.reportAction;
-        cacheAttachment({attachmentID, uri: file.uri ?? '', mimeType: file.type});
+        for (const sentAttachment of [{file, attachmentID}, ...additionalAttachments]) {
+            cacheAttachment({attachmentID: sentAttachment.attachmentID, uri: sentAttachment.file.uri ?? '', mimeType: sentAttachment.file.type});
+            if (sentAttachment.file.uri) {
+                attachmentIDByLocalSource[sentAttachment.file.uri] = sentAttachment.attachmentID;
+            }
+        }
     }
 
     if (text && file) {
@@ -1036,8 +1057,21 @@ function addActions({
         parameters.isOldDotConciergeChat = true;
     }
 
+    // FullStory can't capture keyboard events, so emit a custom event to track every Concierge message, including Enter-key sends
+    if (isConciergeChat) {
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys.
+        trackFullstoryEvent(CONST.FULLSTORY.EVENT.CONCIERGE_MESSAGE_SENT, {has_attachment: !!file});
+    }
+
     if (file) {
         parameters.attachmentID = attachmentID;
+    }
+
+    if (file && additionalAttachments.length > 0) {
+        for (const [index, additionalAttachment] of additionalAttachments.entries()) {
+            parameters[`file_${index + 1}`] = additionalAttachment.file;
+        }
+        parameters.attachmentIDs = [attachmentID, ...additionalAttachments.map((additionalAttachment) => additionalAttachment.attachmentID)].join(',');
     }
 
     if (isInSidePanel && (isConciergeChat || isAdminRoom(reportForAction))) {
@@ -1316,8 +1350,8 @@ function addAttachmentWithComment({
         playSound(SOUNDS.DONE);
     };
 
-    // Single attachment
-    if (!Array.isArray(attachments)) {
+    if (!Array.isArray(attachments) || conciergeThreadReportID) {
+        const [file, ...additionalFiles] = Array.isArray(attachments) ? attachments : [attachments];
         addActions({
             report,
             notifyReportID,
@@ -1325,7 +1359,8 @@ function addAttachmentWithComment({
             timezoneParam: timezone,
             currentUserAccountID,
             text,
-            file: attachments,
+            file,
+            additionalFiles,
             isInSidePanel,
             delegateAccountID,
             sidePanelContext,
@@ -1349,10 +1384,6 @@ function addAttachmentWithComment({
         isInSidePanel,
         delegateAccountID,
         conciergeReportID,
-
-        // Several attachments post one message each, so they stay in the DM instead of opening a thread.
-        conciergeThreadReportID: attachments.length === 1 ? conciergeThreadReportID : undefined,
-        shouldNavigateToConciergeThread,
     });
 
     // Remaining: attachment-only actions (no text duplication)
@@ -1724,6 +1755,7 @@ function openReport(params: OpenReportActionParams) {
         shouldMarkAsRead = true,
         shouldKeepManualUnreadMarker = false,
         conciergeChat,
+        fullPolicySnapshot,
         delegateAccountID,
     } = params;
     if (!reportID) {
@@ -1864,6 +1896,8 @@ function openReport(params: OpenReportActionParams) {
         includePartiallySetupBankAccounts: true,
         useLastUnreadReportAction: shouldMarkAsRead ? true : undefined,
         includeLockedBankAccounts: true,
+        fullPolicySnapshotPolicyID: fullPolicySnapshot?.policyID,
+        fullPolicySnapshotLastModified: fullPolicySnapshot?.lastModified,
     };
 
     if (optimisticSelfDMReport) {
@@ -2470,6 +2504,8 @@ type CreateTransactionThreadReportParams = {
 
     conciergeChat: OnyxEntry<Report>;
 
+    /** The lastModified of the expense report policy's cached full policy snapshot, so the server can leave out the collections the client already has */
+    fullPolicySnapshotLastModified?: number;
     /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
@@ -2488,6 +2524,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         conciergeChat,
+        fullPolicySnapshotLastModified,
         delegateAccountID,
     } = params;
 
@@ -2557,6 +2594,8 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions: false,
+        fullPolicySnapshot:
+            !selfDMReportID && reportToUse.policyID && fullPolicySnapshotLastModified ? {policyID: reportToUse.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         delegateAccountID,
     });
     return optimisticTransactionThread;
@@ -3498,6 +3537,7 @@ function deleteReportComment({
     if (!reportActionID || !originalReportID || !reportID) {
         return;
     }
+    clearDeferredAttachmentEdit(reportActionID);
     const reportActionMessage = ReportActionsUtils.getReportActionMessage(reportAction);
     const reportCommentText = reportActionMessage?.html ?? '';
 
@@ -3771,6 +3811,31 @@ function handleUserDeletedLinksInHtml(
     return removeLinksFromHtml(htmlForNewComment, removedLinks);
 }
 
+startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
+    // The report cache can still be empty right after a cold start; a later update re-fires this callback.
+    const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${deferredEdit.reportID}`];
+    if (!originalReport) {
+        return false;
+    }
+    const {textForNewComment, isOriginalReportArchived, currentUserLogin, currentUserAccountID, videoAttributeCache, reportIDToName} = deferredEdit;
+
+    // Off the current stack so the replay does not re-enter Onyx from inside its own subscriber.
+    Promise.resolve().then(() =>
+        editReportComment(
+            originalReport,
+            syncedAction,
+            textForNewComment,
+            isOriginalReportArchived,
+            currentUserLogin,
+            getAllPersonalDetails(),
+            currentUserAccountID,
+            videoAttributeCache,
+            reportIDToName,
+        ),
+    );
+    return true;
+});
+
 /** Saves a new message for a comment. Marks the comment as edited, which will be reflected in the UI. */
 function editReportComment(
     originalReport: OnyxEntry<Report>,
@@ -3795,14 +3860,21 @@ function editReportComment(
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
     const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '', {reportIDToName}).trim();
-    const shouldRemoveQueuedAttachment = isUploadingAttachmentRemovedFromDraft(textForNewComment, originalCommentHTML);
-    const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID);
+    const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(textForNewComment, originalCommentHTML);
+    const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID, attachmentIDByLocalSource);
 
     // Skip the Edit if draft is not changed
     if (originalCommentMarkdown === draftForNewComment) {
         return;
     }
-    const htmlForNewComment = handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache);
+    const htmlForNewComment = restoreAttachmentAnchorLabels(
+        restoreAttachmentAnchorAttributes(
+            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache),
+            originalCommentHTML,
+        ),
+        draftForNewComment,
+        originalReportAction.reportActionID,
+    );
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 
@@ -3824,7 +3896,8 @@ function editReportComment(
     const originalMessage = ReportActionsUtils.getReportActionMessage(originalReportAction);
 
     // Optimistic message only: the sent copy is stripped, so without this the attachment vanishes until upload lands.
-    const uploadingAttachmentHtml = shouldRemoveQueuedAttachment ? undefined : getUploadingAttachmentHtmlFromComment(originalCommentHTML);
+    const renamedAttachmentLabels = getUploadingAttachmentLabelsRenamedInDraft(textForNewComment, originalCommentHTML);
+    const uploadingAttachmentHtml = getUploadingAttachmentHtmlFromComment(originalCommentHTML, removedAttachmentIDs, renamedAttachmentLabels);
     const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
     const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
 
@@ -3919,6 +3992,27 @@ function editReportComment(
         reportActionID,
     };
 
+    // A newer edit supersedes one still waiting on its upload, otherwise the old one replays over it.
+    clearDeferredAttachmentEdit(reportActionID);
+
+    // Nothing is left in the queue to re-attach the file, so this edit would carry the text alone. The upload is
+    // already in flight, so the edit is parked until the attachment syncs and replayed against the stored copy.
+    const hasQueuedAttachmentRequest = getAll().some((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
+    if (uploadingAttachmentHtml && !hasQueuedAttachmentRequest) {
+        Onyx.update(optimisticData);
+        const deferredEdit: DeferredAttachmentEdit = {
+            reportID: originalReportID,
+            textForNewComment,
+            currentUserLogin,
+            currentUserAccountID,
+            isOriginalReportArchived,
+            videoAttributeCache,
+            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
+        };
+        deferAttachmentEdit(reportActionID, deferredEdit);
+        return;
+    }
+
     API.write(
         WRITE_COMMANDS.UPDATE_COMMENT,
         parameters,
@@ -3927,7 +4021,7 @@ function editReportComment(
             checkAndFixConflictingRequest: (persistedRequests) => {
                 const addCommentIndex = persistedRequests.findIndex((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
                 if (addCommentIndex > -1) {
-                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, shouldRemoveQueuedAttachment);
+                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, removedAttachmentIDs, renamedAttachmentLabels);
                 }
                 return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },
@@ -5524,7 +5618,7 @@ function showReportActionNotification(
         LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber);
     }
 
-    notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID);
+    notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID, 'realtime');
 }
 
 /** Clear the errors associated with the IOUs of a given report. */

@@ -9,9 +9,9 @@ on:
         type: string
         required: false
         default: ''
-      # Pull Request URL from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified, the commit pinned by the App submodule is used.
+      # Mobile-Expensify is resolved in this order: MOBILE_EXPENSIFY_PULL_REQUEST_URL, then MOBILE_EXPENSIFY_MAIN, then a MOBILE-EXPENSIFY entry in App's PR description (Mobile-Expensify main if that PR is already merged), then the commit pinned by the App submodule.
       MOBILE_EXPENSIFY_PULL_REQUEST_URL:
-        description: The Expensify/Mobile-Expensify pull request URL. Defaults to the pinned submodule commit. Overrides MOBILE-EXPENSIFY set in App's PR description.
+        description: The Expensify/Mobile-Expensify pull request URL. Defaults to the pinned submodule commit. Overrides MOBILE-EXPENSIFY set in App's PR description. Cannot be combined with MOBILE_EXPENSIFY_MAIN.
         type: string
         required: false
         default: ''
@@ -37,7 +37,7 @@ on:
         type: boolean
         default: false
       MOBILE_EXPENSIFY_MAIN:
-        description: Build against the tip of Mobile-Expensify main instead of the commit pinned by the submodule.
+        description: Build against the tip of Mobile-Expensify main instead of the commit pinned by the submodule. Overrides MOBILE-EXPENSIFY set in App's PR description. Cannot be combined with MOBILE_EXPENSIFY_PULL_REQUEST_URL.
         type: boolean
         default: false
 
@@ -58,6 +58,7 @@ jobs:
     with:
       APP_PULL_REQUEST_URL: ${{ inputs.APP_PULL_REQUEST_URL }}
       MOBILE_EXPENSIFY_PULL_REQUEST_URL: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL }}
+      MOBILE_EXPENSIFY_MAIN: ${{ inputs.MOBILE_EXPENSIFY_MAIN }}
     secrets:
       OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
@@ -70,7 +71,7 @@ jobs:
       # Fall back to App main when nothing is resolved (test builds default to the latest NewDot).
       APP_REF: ${{ needs.resolveRefs.outputs.APP_REF || 'main' }}
       APP_PR_NUMBER: ${{ needs.resolveRefs.outputs.APP_PR_NUMBER }}
-      # Empty means the pinned submodule commit, so the fingerprint matches the builds `testBuildOnPush.yml` seeds the cache from.
+      # resolveRefs returns an empty ref when MOBILE_EXPENSIFY_MAIN is set, so `main` is used then. Empty means the pinned submodule commit, so the fingerprint matches the builds `testBuildOnPush.yml` seeds the cache from.
       MOBILE_EXPENSIFY_REF: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF || (inputs.MOBILE_EXPENSIFY_MAIN && 'main' || '') }}
       MOBILE_EXPENSIFY_PR: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_PR }}
       BUILD_WEB: ${{ inputs.WEB && 'true' || 'false' }}

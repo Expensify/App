@@ -18,7 +18,7 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} fro
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -115,23 +115,20 @@ function VideoPlayerControls({
         setShouldShowTime(event.nativeEvent.layout.width > CONST.VIDEO_PLAYER.HIDE_TIME_TEXT_WIDTH);
     };
 
-    const enterFullScreenMode = useCallback(() => {
+    const enterFullScreenMode = () => {
         updateCurrentURLAndReportID(url, report, reportID);
         videoViewRef.current?.enterFullscreen();
-    }, [report, reportID, updateCurrentURLAndReportID, url, videoViewRef]);
+    };
 
-    const seekPosition = useCallback(
-        (newPosition: number) => {
-            if (!videoPlayerRef.current) {
-                return;
-            }
-            // eslint-disable-next-line no-param-reassign
-            videoPlayerRef.current.currentTime = newPosition;
-        },
-        [videoPlayerRef],
-    );
+    const seekPosition = (newPosition: number) => {
+        if (!videoPlayerRef.current) {
+            return;
+        }
+        // eslint-disable-next-line no-param-reassign
+        videoPlayerRef.current.currentTime = newPosition;
+    };
 
-    const durationFormatted = useMemo(() => convertSecondsToTime(duration), [duration]);
+    const durationFormatted = convertSecondsToTime(duration);
 
     return (
         <Animated.View
