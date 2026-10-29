@@ -1,9 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
-import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
-import hasProvidedAnswer from '@components/DynamicForm/utils/hasProvidedAnswer';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
@@ -37,11 +35,7 @@ function getTextInputMode(field: DynamicFormTextField): InputModeOptions | undef
     return field.regex && DIGITS_ONLY_REGEX.test(field.regex) ? CONST.INPUT_MODE.NUMERIC : undefined;
 }
 
-function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, translate: LocalizedTranslate, values: DynamicFormValues | undefined): string | undefined {
-    // A resumed sensitive field, such as an SSN, opens blank because the server never sends it back, so the hint says it is saved and leaving it blank keeps it
-    if (values && hasProvidedAnswer(field, values)) {
-        return translate('dynamicForm.onFileHint');
-    }
+function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, translate: LocalizedTranslate): string | undefined {
     const description = getLocalizedText(translate, field.descriptionKey, field.description);
     if (description || !field.example) {
         return description;
@@ -51,7 +45,7 @@ function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, trans
 
 function renderTextInput(
     field: DynamicFormTextField | DynamicFormNumberField,
-    {translate, values}: DynamicFieldContext,
+    {translate}: DynamicFieldContext,
     inputProps: DynamicFieldInputProps<string>,
     inputMode: InputModeOptions | undefined,
     isMultiline = false,
@@ -64,7 +58,7 @@ function renderTextInput(
                 InputComponent={TextInput}
                 {...inputProps}
                 label={getInputLabel(field, translate)}
-                hint={getTextHint(field, translate, values)}
+                hint={getTextHint(field, translate)}
                 maxLength={field.maxLength}
                 inputMode={inputMode}
                 multiline={isMultiline}
