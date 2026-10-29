@@ -81,8 +81,6 @@ export {
     hasExplicitFlagAmount,
     isWaiveReceiptThreshold,
     hasExplicitReceiptThreshold,
-    hasCategoryReceiptOverride,
-    isRequireFieldsFieldPendingDelete,
     isDescriptionRequiredForCategory,
     isAttendeesRequiredForCategory,
     isReceiptRequireOverrideForCategory,
