@@ -40,8 +40,12 @@ function renderHandle() {
     // jsdom has no pointer capture.
     handleElement.setPointerCapture = jest.fn();
 
+    // The test renderer leaves refs empty, so the line's ref gets a real element to take the snapped width the handle sets on the DOM.
+    const lineElement = document.createElement('div');
+
     const scopeRef = {current: scopeElement};
-    const screen = render(<RHPResizeHandle scopeRef={scopeRef} />);
+    // Only the line holds a ref among the divs, so handing this element to every div reaches just the line.
+    const screen = render(<RHPResizeHandle scopeRef={scopeRef} />, {createNodeMock: (element) => (element.type === 'div' ? lineElement : null)});
 
     const getHandle = () => {
         // The first div is the handle; the indicator line is a second one, rendered while hovered or dragging.
@@ -67,7 +71,10 @@ function renderHandle() {
         return lineStyle && typeof lineStyle === 'object' && 'width' in lineStyle ? lineStyle.width : undefined;
     };
 
-    return {...screen, firePointer, readLineWidth, readLiveWidth, rerenderHandle};
+    /** Reads the width set on the line's DOM node mid-drag, which overrides the one React renders. */
+    const readPaintedLineWidth = () => lineElement.style.width;
+
+    return {...screen, firePointer, readLineWidth, readPaintedLineWidth, readLiveWidth, rerenderHandle};
 }
 
 describe('RHPResizeHandle', () => {
@@ -183,6 +190,24 @@ describe('RHPResizeHandle', () => {
         // Then the saved width is dropped, so getting back to the default doesn't take pixel-perfect aim and follows the default if it changes
         expect(resetSingleRHPWidth).toHaveBeenCalledTimes(1);
         expect(setSingleRHPWidth).not.toHaveBeenCalled();
+    });
+
+    it('thickens the line while a drag is held on the default width', () => {
+        // Given a single RHP saved at 400px, its edge pressed
+        const {firePointer, readPaintedLineWidth} = renderHandle();
+        firePointer('pointerDown', 1000);
+
+        // When its edge is dragged to within 20px of the 440px default
+        firePointer('pointerMove', 970);
+
+        // Then the line thickens, so the snap onto the default is visible before release
+        expect(readPaintedLineWidth()).toBe(`${CONST.RHP_RESIZE.SNAPPED_INDICATOR_WIDTH}px`);
+
+        // When it is dragged past the snap threshold
+        firePointer('pointerMove', 930);
+
+        // Then the line goes back to the pressed width, since the cards follow the pointer again
+        expect(readPaintedLineWidth()).toBe(`${CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH}px`);
     });
 
     it('lets go of the default width once a drag passes the snap threshold', () => {
