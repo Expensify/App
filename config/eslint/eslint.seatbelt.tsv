@@ -1038,7 +1038,6 @@
 "../../src/pages/inbox/report/ReportActionCompose/useComposerFocus.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/useReceiptDrop.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/pages/inbox/report/ReportActionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/inbox/report/ReportActionItem.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/refs"	5
@@ -1936,7 +1935,6 @@
 "../../src/selectors/AdvancedSearchFiltersForm.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/setup/moduleInitPolyfill.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/telemetry/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/AddressSearch.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/ButtonWithDropdownMenu.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
