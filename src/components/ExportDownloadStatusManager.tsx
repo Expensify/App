@@ -16,14 +16,14 @@ import ExportDownloadStatusModal from './ExportDownloadStatusModal';
  * the file when it is ready, and still surfaces it after a reload. There is no per-screen modal to coordinate with.
  */
 function ExportDownloadStatusManager() {
-    const [exportDownloads, exportDownloadsMetadata] = useOnyx(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD);
+    const [exportDownloads] = useOnyx(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD);
     const [openExportID, setOpenExportID] = useState<string | undefined>();
 
     // Record keys that already existed when this tab loaded. A reload re-reads the collection and re-seeds this,
     // which is how an in-flight export resurfaces after a reload. A record that appears later because another
     // tab started an export is not in here, so it does not pop the modal open in this tab until it reloads.
     const [recordKeysAtLoad, setRecordKeysAtLoad] = useState<Set<string> | undefined>(undefined);
-    if (recordKeysAtLoad === undefined && exportDownloadsMetadata.status === 'loaded') {
+    if (recordKeysAtLoad === undefined) {
         setRecordKeysAtLoad(new Set(Object.keys(exportDownloads ?? {})));
     }
 

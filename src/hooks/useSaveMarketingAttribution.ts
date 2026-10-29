@@ -2,7 +2,6 @@ import {captureMarketingAttributionFromURL, saveMarketingAttribution} from '@lib
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasNonAnonymousSessionSelector} from '@src/selectors/Session';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useEffect, useRef, useState} from 'react';
 
@@ -16,17 +15,16 @@ import useOnyx from './useOnyx';
  */
 function useSaveMarketingAttribution() {
     const [capturedAttribution] = useState(captureMarketingAttributionFromURL);
-    const [hasNonAnonymousSession, sessionMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: hasNonAnonymousSessionSelector});
-    const isSessionLoading = isLoadingOnyxValue(sessionMetadata);
+    const [hasNonAnonymousSession] = useOnyx(ONYXKEYS.SESSION, {selector: hasNonAnonymousSessionSelector});
     const hasHandledAttribution = useRef(false);
 
     useEffect(() => {
-        if (isSessionLoading || hasHandledAttribution.current) {
+        if (hasHandledAttribution.current) {
             return;
         }
         hasHandledAttribution.current = true;
         saveMarketingAttribution(capturedAttribution, !!hasNonAnonymousSession);
-    }, [isSessionLoading, hasNonAnonymousSession, capturedAttribution]);
+    }, [hasNonAnonymousSession, capturedAttribution]);
 }
 
 export default useSaveMarketingAttribution;

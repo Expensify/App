@@ -217,8 +217,6 @@ function Search({
     // attendee tracking on the moving policy toggles. Rows derive their own display gate independently.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
-    const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-
     const isSnapshotPending = isSearchPending(searchResults);
 
     // gate on state: loading so it self-clears — Onyx resolves loading on every response
@@ -284,9 +282,6 @@ function Search({
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
     const isSearchResultsEmptyRef = useRef(isSearchResultsEmpty);
     isSearchResultsEmptyRef.current = isSearchResultsEmpty;
-
-    // When grouping by card, we need cardFeeds to display feed names
-    const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
 
     useEffect(() => {
         if (prevValidGroupBy === validGroupBy) {
@@ -426,7 +421,7 @@ function Search({
     // that component state would have lost. `null` means the code for these errors has not been stored yet.
     const responseStatusCode = searchResults?.search?.responseJsonCode ?? null;
     const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
-    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
+    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors);
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
     const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
 
@@ -443,12 +438,11 @@ function Search({
         Log.info('[Search] Showing skeleton', false, {
             isOffline,
             isDataLoaded,
-            isCardFeedsLoading,
             isSearchLoading: !!searchResults?.search?.isLoading,
             hasErrors,
             shouldUseLiveData,
         });
-    }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
+    }, [hasErrors, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
