@@ -3,11 +3,13 @@ import {renderHook} from '@testing-library/react-native';
 import useOnyx from '@hooks/useOnyx';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPendingDeletePolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -36,7 +38,7 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 const mockUseOnyx = jest.mocked(useOnyx);
 
-jest.mock('@libs/interceptAnonymousUser', () => (cb: () => void) => cb());
+jest.mock('@libs/interceptAnonymousUser', () => jest.fn((cb: () => void) => cb()));
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getRootState: jest.fn(() => ({routes: []})),
@@ -368,5 +370,24 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
         result.current();
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
+    });
+
+    it('passes the session from Onyx to the Workspaces navigation', () => {
+        // Given an anonymous session in Onyx, which decides whether the user is redirected to sign in
+        const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.SESSION) {
+                return [session, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+        mockedGetRootState.mockReturnValue(buildStateWithUserOnDifferentTab([]));
+
+        // When the user navigates to the Workspaces tab
+        const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
+        result.current();
+
+        // Then the session is forwarded to interceptAnonymousUser
+        expect(interceptAnonymousUser).toHaveBeenCalledWith(expect.any(Function), session);
     });
 });
