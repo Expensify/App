@@ -2,6 +2,7 @@ import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingView
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import ROUTE_TO_NAVIGATION_TAB from '@components/Navigation/NavigationTabBar/ROUTE_TO_NAVIGATION_TAB';
+import {SetNavigatorTabBarVisibleContext} from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,7 +17,7 @@ import SCREENS from '@src/SCREENS';
 
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useState} from 'react';
 import {View} from 'react-native';
 
 /**
@@ -34,7 +35,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
     const isAtRoot = isTabRouteAtRoot(activeRoute);
     // --- Narrow-only animation logic (hooks must run unconditionally per Rules of Hooks) ---
-    // Screens also render the tab bar via bottomContent for swipe-back animations.
+    // Tab root screens draw their own copy of the tab bar while this one is hidden.
     // Delay showing this navigator's tab bar only when navigating back from a deeper screen
     // (where the tab bar was hidden). Keep it visible during tab switches so it doesn't flash.
     // Guard with shouldUseNarrowLayout so prevShouldHide stays false in wide layout,
@@ -62,6 +63,13 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     }, [selectedTab]);
 
     const isHidden = shouldHide || (shouldApplyDelay && animationDoneKey !== stateKey);
+
+    const setIsNavigatorTabBarVisible = useContext(SetNavigatorTabBarVisibleContext);
+    // isHidden depends on this bar's own animation state, so the tab root's copy, which renders in a sibling subtree,
+    // can only learn it through context. A layout effect swaps the two bars before paint, so they never show together.
+    useLayoutEffect(() => {
+        setIsNavigatorTabBarVisible(!isHidden);
+    }, [isHidden, setIsNavigatorTabBarVisible]);
 
     if (shouldUseNarrowLayout) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
