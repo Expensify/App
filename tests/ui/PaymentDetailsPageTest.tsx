@@ -97,7 +97,6 @@ describe('PaymentDetailsPage Activity list', () => {
     beforeEach(async () => {
         Onyx.init({keys: ONYXKEYS});
         await Onyx.clear();
-        await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.PAYMENT_HISTORY]);
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, Object.fromEntries([BOB, TODD, ...OTHER_MEMBERS].map((member) => [member.accountID, member])));
         await waitForBatchedUpdatesWithAct();
     });
