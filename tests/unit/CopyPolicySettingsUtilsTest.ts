@@ -73,6 +73,31 @@ describe('CopyPolicySettingsUtils', () => {
             expect(getConnectionCompanyID(policy, CONST.POLICY.CONNECTIONS.NAME.QBD)).toBe('QBD-1');
         });
 
+        it('returns the synced company ID for Digits', () => {
+            // Given a Digits connection whose credentials hold a per-sign-in key, while the sync stored the company it reached
+            const policy = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.DIGITS, {
+                config: {credentials: {companyID: 'sign-in-key'}},
+                data: {company: {id: 'DIGITS-1', name: 'Merlin Technologies Inc.', currency: 'USD'}},
+            });
+
+            // When the company ID is read for the copy and bulk export checks
+            const companyID = getConnectionCompanyID(policy, CONST.POLICY.CONNECTIONS.NAME.DIGITS);
+
+            // Then it is the synced company, so two sign-ins to one Digits company count as the same company
+            expect(companyID).toBe('DIGITS-1');
+        });
+
+        it('returns undefined for Digits before the company has synced', () => {
+            // Given a Digits connection that authorized but has not completed its first sync
+            const policy = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.DIGITS, {config: {isConfigured: false}});
+
+            // When the company ID is read
+            const companyID = getConnectionCompanyID(policy, CONST.POLICY.CONNECTIONS.NAME.DIGITS);
+
+            // Then there is no company to match on yet
+            expect(companyID).toBeUndefined();
+        });
+
         it('returns undefined when the connection field is missing', () => {
             const policy = makePolicyWithConnection(CONST.POLICY.CONNECTIONS.NAME.QBO, {config: {}});
             expect(getConnectionCompanyID(policy, CONST.POLICY.CONNECTIONS.NAME.QBO)).toBeUndefined();

@@ -4,7 +4,7 @@ import usePreferredPolicy from '@hooks/usePreferredPolicy';
 
 import CONST from '@src/CONST';
 
-import {useCallback, useEffect, useMemo} from 'react';
+import {useEffect} from 'react';
 
 import type {UseParticipantSectionParams} from './types';
 
@@ -44,12 +44,12 @@ function useParticipantSection({
     const selectedParticipants = selectedParticipantsProp.filter((participant) => participant.selected);
     const payeePersonalDetails = payeePersonalDetailsProp ?? currentUserPersonalDetails;
 
-    const participantRowErrors = useMemo(() => {
-        if (formError !== 'iou.error.noParticipantSelected' && formError !== 'violations.missingAttendees') {
-            return undefined;
-        }
-        return {participants: translate(formError)};
-    }, [formError, translate]);
+    const participantRowErrors =
+        formError !== 'iou.error.noParticipantSelected' && formError !== 'violations.missingAttendees'
+            ? undefined
+            : {
+                  participants: translate(formError),
+              };
 
     useEffect(() => {
         if (selectedParticipants.length === 0) {
@@ -58,9 +58,9 @@ function useParticipantSection({
         clearFormErrors(['iou.error.noParticipantSelected']);
     }, [selectedParticipants.length, clearFormErrors]);
 
-    const dismissParticipantRowError = useCallback(() => {
+    const dismissParticipantRowError = () => {
         clearFormErrors(['iou.error.noParticipantSelected', 'violations.missingAttendees']);
-    }, [clearFormErrors]);
+    };
 
     const {splitParticipants, getSplitSectionHeader} = useSplitParticipants({
         isTypeSplit,

@@ -65,8 +65,10 @@ import type {
     SetWorkspaceAutoReportingFrequencyParams,
     SetGlobalReimbursementFXPreferenceParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
+    UpdatePolicyTimezoneParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
+    ToggleCollectDepositAccountsParams,
     TogglePolicyReceiptPartnersParams,
     TogglePolicyUberAutoInvitePageParams,
     TogglePolicyUberAutoRemovePageParams,
@@ -1010,13 +1012,59 @@ function setWorkspaceCurrencyConversionFeesPreference(policyID: string, shouldPr
     API.write(WRITE_COMMANDS.SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceAutoReportingMonthlyOffset(
+/**
+ * Turn collecting employee deposit account details on or off. Like Classic, this only flips the flag and leaves the
+ * workspace's reimbursement countries untouched.
+ */
+function toggleCollectDepositAccounts(policyID: string, enabled: boolean, currentIsCollectDepositAccountsEnabled: Policy['isCollectDepositAccountsEnabled']) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: enabled,
+                pendingFields: {isCollectDepositAccountsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {isCollectDepositAccountsEnabled: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: currentIsCollectDepositAccountsEnabled ?? null,
+                pendingFields: {isCollectDepositAccountsEnabled: null},
+                errorFields: {isCollectDepositAccountsEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {isCollectDepositAccountsEnabled: null},
+            },
+        },
+    ];
+
+    const params: ToggleCollectDepositAccountsParams = {policyID, enabled};
+    API.write(WRITE_COMMANDS.TOGGLE_COLLECT_DEPOSIT_ACCOUNTS, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspaceAutoReportingOffset(
     policyID: string,
-    autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>,
+    autoReportingOffset: AutoReportingOffset,
     currentAutoReportingOffset: AutoReportingOffset | undefined,
     reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+    autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset,
+    currentAutoReportingOffsetSecondSemiMonthly?: AutoReportingOffset,
 ) {
-    const value = JSON.stringify({autoReportingOffset});
+    const hasSecondOffset = autoReportingOffsetSecondSemiMonthly !== undefined;
+    const value = JSON.stringify({autoReportingOffset, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly})});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -1024,7 +1072,11 @@ function setWorkspaceAutoReportingMonthlyOffset(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReportingOffset,
-                pendingFields: {autoReportingOffset: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly}),
+                pendingFields: {
+                    autoReportingOffset: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
             },
         },
     ];
@@ -1035,8 +1087,9 @@ function setWorkspaceAutoReportingMonthlyOffset(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReportingOffset: currentAutoReportingOffset ?? null,
-                pendingFields: {autoReportingOffset: null},
-                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
+                ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: currentAutoReportingOffsetSecondSemiMonthly ?? null}),
+                pendingFields: {autoReportingOffset: null, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: null})},
+                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
             },
         },
     ];
@@ -1046,7 +1099,7 @@ function setWorkspaceAutoReportingMonthlyOffset(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {autoReportingOffset: null},
+                pendingFields: {autoReportingOffset: null, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: null})},
             },
         },
     ];
@@ -1057,6 +1110,46 @@ function setWorkspaceAutoReportingMonthlyOffset(
         params,
         withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData),
     );
+}
+
+function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZone: Policy['timeZone']) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                timeZone,
+                pendingFields: {timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {timeZone: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                timeZone: currentTimeZone ?? null,
+                pendingFields: {timeZone: null},
+                errorFields: {timeZone: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.timezoneErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {timeZone: null},
+            },
+        },
+    ];
+
+    const params: UpdatePolicyTimezoneParams = {policyID, policyTimezone: timeZone};
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE, params, {optimisticData, successData, failureData});
 }
 
 function setWorkspaceApprovalMode(
@@ -5160,6 +5253,12 @@ function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName
     if (!policy?.id || PolicyUtils.isPolicyFeatureEnabled(policy, featureName)) {
         return;
     }
+    // A workspace that is still being created has no connections to fetch. Without this, the open Connections page
+    // would be replaced by a loader while the fetch waits behind the create request. It's set first so the page never
+    // sees the feature on without it.
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
+    }
     ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
 }
 
@@ -8236,7 +8335,9 @@ export {
     setWorkspaceAutoHarvesting,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceCurrencyConversionFeesPreference,
-    setWorkspaceAutoReportingMonthlyOffset,
+    setWorkspaceAutoReportingOffset,
+    setWorkspaceTimezone,
+    toggleCollectDepositAccounts,
     updateWorkspaceDescription,
     updateWorkspaceClientID,
     setWorkspacePayer,

@@ -101,7 +101,10 @@ function AmountField({
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
 
-    const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
+    // A receipt that is still scanning and whose fields the user can't enter inline (for example, a tracked scan moved
+    // to someone) shows the read-only row, so it reads "Scanning…" instead of the receipt's placeholder zero amount.
+    const isScanningReceipt = !!transactionSlice?.isScanning && !canEnterScanFieldsManually;
+    const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest || isScanningReceipt;
     // The read-only row only opens the amount page for a form whose amount the user could have typed in the first
     // place. A distance or time amount is computed from the fields below it, so its row has nothing to open and is
     // not offered as a control at all: no caret, no hover, no press.
