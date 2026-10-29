@@ -887,6 +887,8 @@ describe('actions/Policy', () => {
         });
 
         it('duplicate workspace with distance rates gives every rate a new ID and sends the map to the server', async () => {
+            // Given source rates whose IDs must be replaced by the Auth copy flow.
+            const apiWriteSpy = jest.spyOn(APIModule, 'write');
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
 
             const sourceDistanceUnitID = 'srcDistUnit';
@@ -926,6 +928,7 @@ describe('actions/Policy', () => {
             // Pause the API call so successData (which clears the optimistic source rate IDs) does not
             // run yet — this lets us inspect the optimistic state the user sees offline.
             mockFetch.pause();
+            // When duplication queues the request, it must use the command that accepts Auth part names.
             const params = Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
@@ -939,6 +942,12 @@ describe('actions/Policy', () => {
                 });
             });
 
+            // Then the request uses the new endpoint and the same rate IDs as the optimistic policy.
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                'DuplicatePolicyWithSettings',
+                expect.objectContaining({parts: JSON.stringify(['distanceRates']), optimisticRateIDs: params.optimisticRateIDs}),
+                expect.any(Object),
+            );
             expect(duplicatePolicy?.areDistanceRatesEnabled).toBe(true);
             const distanceUnit = Object.values(duplicatePolicy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
             if (!distanceUnit) {
@@ -960,6 +969,7 @@ describe('actions/Policy', () => {
             // the server's rate set, which uses the IDs sent in optimisticRateIDs.
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
+            apiWriteSpy.mockRestore();
         });
 
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {

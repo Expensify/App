@@ -299,7 +299,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             return;
         }
 
-        const newItems = newItem === 'codingRules' && hasRulesItem ? [newItem, 'rules'] : [newItem];
+        const newItems: Part[] = newItem === 'codingRules' && hasRulesItem ? [newItem, 'rules'] : [newItem];
         setSelectedItems(Array.from(new Set([...selectedItems, ...newItems])));
     };
 

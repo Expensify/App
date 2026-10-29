@@ -3,6 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 
+import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
 import {toIndexMap} from '@libs/RuleUtils';
 
 import WorkspaceDuplicateSelectFeaturesForm from '@pages/workspace/duplicate/WorkspaceDuplicateSelectFeaturesForm';
@@ -130,7 +131,7 @@ function pressContinue() {
     });
 }
 
-function getSentParts(): Record<string, boolean> | undefined {
+function getSentParts(): Part[] | undefined {
     return jest.mocked(duplicateWorkspace).mock.calls.at(0)?.[1].parts;
 }
 
@@ -163,7 +164,8 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
 
         // Then Merchant rules is deselected too, because merchant rules live under Rules and can't be copied without it
         expect(getRow('codingRules')?.isSelected).toBe(false);
-        expect(getSentParts()).toMatchObject({expenses: false, codingRules: false});
+        expect(getSentParts()).not.toContain('rules');
+        expect(getSentParts()).not.toContain('codingRules');
     });
 
     it('selects Rules when Merchant rules is selected while Rules is deselected', async () => {
@@ -178,7 +180,7 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         // Then Rules is selected too, so the merchant rules are copied along with the Rules feature they belong to
         expect(getRow('rules')?.isSelected).toBe(true);
         expect(getRow('codingRules')?.isSelected).toBe(true);
-        expect(getSentParts()).toMatchObject({expenses: true, codingRules: true});
+        expect(getSentParts()).toEqual(expect.arrayContaining(['rules', 'codingRules']));
     });
 
     it('keeps Rules selected when only Merchant rules is deselected', async () => {
@@ -191,7 +193,8 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
 
         // Then the workspace-level rules are still copied without the merchant rules, because Rules doesn't depend on Merchant rules
         expect(getRow('rules')?.isSelected).toBe(true);
-        expect(getSentParts()).toMatchObject({expenses: true, codingRules: false});
+        expect(getSentParts()).toContain('rules');
+        expect(getSentParts()).not.toContain('codingRules');
     });
 
     it('copies merchant rules on their own when the source has no workspace-level rules', async () => {
@@ -204,6 +207,7 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         pressContinue();
 
         // Then the merchant rules are still copied, because there is no Rules row they could depend on
-        expect(getSentParts()).toMatchObject({expenses: false, codingRules: true});
+        expect(getSentParts()).not.toContain('rules');
+        expect(getSentParts()).toContain('codingRules');
     });
 });

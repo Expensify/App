@@ -3924,7 +3924,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
 function duplicateWorkspace(policy: Policy, options: DuplicatePolicyDataOptions): DuplicateWorkspaceParams {
     const {optimisticData, failureData, successData, params} = buildDuplicatePolicyData(policy, options);
 
-    API.write(WRITE_COMMANDS.DUPLICATE_POLICY, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DUPLICATE_POLICY_WITH_SETTINGS, params, {optimisticData, successData, failureData});
 
     return params;
 }
