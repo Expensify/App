@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -178,20 +177,56 @@ function reportActionErrorFieldsSelector(reportAction: OnyxEntry<ReportAction>):
     );
 }
 
-function reportActionsErrorFieldsSelector(reportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportActions> {
-    return mapOnyxCollectionItems(reportActions, (actions) => {
-        if (!actions) {
-            return actions;
+function projectReportActionsErrorFields(actions: ReportActions): ReportActions {
+    const projectedActions: ReportActions = {};
+    for (const [reportActionID, reportAction] of Object.entries(actions)) {
+        const projectedAction = reportActionErrorFieldsSelector(reportAction);
+        if (projectedAction) {
+            projectedActions[reportActionID] = projectedAction;
         }
-        const projectedActions: ReportActions = {};
-        for (const [reportActionID, reportAction] of Object.entries(actions)) {
-            const projectedAction = reportActionErrorFieldsSelector(reportAction);
-            if (projectedAction) {
-                projectedActions[reportActionID] = projectedAction;
+    }
+    return projectedActions;
+}
+
+/**
+ * Creates a selector returning the report actions `clearAllRelatedReportActionErrors` walks, narrowed to the fields it
+ * reads: the actions of every report in `reportIDs` (the report whose error is dismissed, its ancestors and the original
+ * report holding the dismissed action), plus the threads below `childRootReportID` that hang off actions with errors.
+ * The walk returns early from an action without errors, so following only errored actions downward is exact.
+ * Only those keys are looked up, so a write to an unrelated report action neither maps the whole collection nor pays
+ * a deep comparison over it.
+ */
+function relatedReportActionsErrorFieldsSelector(reportIDs: Array<string | undefined>, childRootReportID: string | undefined) {
+    return function selectRelatedReportActionsErrorFields(reportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportActions> {
+        const result: OnyxCollection<ReportActions> = {};
+        const visitedReportIDs = new Set<string>();
+        const collect = (reportID: string | undefined, shouldFollowErroredThreads: boolean) => {
+            // The visited set also terminates the walk when thread links form a cycle
+            if (!reportID || visitedReportIDs.has(reportID)) {
+                return;
             }
+            visitedReportIDs.add(reportID);
+            const actions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            if (!actions) {
+                return;
+            }
+            result[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = projectReportActionsErrorFields(actions);
+            if (!shouldFollowErroredThreads) {
+                return;
+            }
+            for (const action of Object.values(actions)) {
+                if (action.childReportID && Object.keys(action.errors ?? {}).length > 0) {
+                    collect(action.childReportID, true);
+                }
+            }
+        };
+        // The child root is usually also one of `reportIDs`, so descend from it before the plain lookups mark it visited
+        collect(childRootReportID, true);
+        for (const reportID of reportIDs) {
+            collect(reportID, false);
         }
-        return projectedActions;
-    });
+        return result;
+    };
 }
 
 /** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
@@ -237,7 +272,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
-    reportActionsErrorFieldsSelector,
+    relatedReportActionsErrorFieldsSelector,
     forwardedSinceLastSubmitReportIDsSelector,
     transactionThreadReportIDSelector,
     getParentReportActionWithoutThreadRepliesSelector,

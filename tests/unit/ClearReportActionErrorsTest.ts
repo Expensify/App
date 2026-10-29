@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
 
-import {reportActionsErrorFieldsSelector} from '@selectors/ReportAction';
+import {relatedReportActionsErrorFieldsSelector} from '@selectors/ReportAction';
 import Onyx from 'react-native-onyx';
 
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
@@ -675,10 +675,11 @@ describe('ClearReportActionErrors', () => {
             expect(parentReportActions?.[SIBLING_REPORT_ACTION_ID]).toBeUndefined();
         });
 
-        it('should clear errors when the reportActions data is narrowed by reportActionsErrorFieldsSelector', async () => {
+        it('should clear errors when the reportActions data is narrowed by relatedReportActionsErrorFieldsSelector', async () => {
             // Given the same hierarchy as the recursion test, but with the reportActions parameter passed
-            // through the selector components use to narrow each action to the fields the error clearing
-            // reads. This fails if the selector ever drops a field the walk or its helpers start consuming.
+            // through the selector components use to scope the data to the hierarchy and narrow each action to
+            // the fields the error clearing reads. This fails if the selector ever drops a report the walk looks
+            // up or a field the walk or its helpers start consuming.
             const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 errors: {sharedError: 'Error message'},
             });
@@ -717,7 +718,10 @@ describe('ClearReportActionErrors', () => {
                 reports: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {parentReportID: PARENT_REPORT_ID, parentReportActionID: PARENT_REPORT_ACTION_ID},
                 },
-                reportActions: reportActionsErrorFieldsSelector({
+                reportActions: relatedReportActionsErrorFieldsSelector(
+                    [REPORT_ID, PARENT_REPORT_ID],
+                    reportAction.childReportID,
+                )({
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`]: {
                         [REPORT_ACTION_ID]: reportAction,
                     },

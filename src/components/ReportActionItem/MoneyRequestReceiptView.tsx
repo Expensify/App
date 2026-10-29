@@ -28,6 +28,7 @@ import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
+import useRelatedReportActionsErrorFields from '@hooks/useRelatedReportActionsErrorFields';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -98,7 +99,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {reportActionsErrorFieldsSelector, transactionThreadReportIDSelector} from '@selectors/ReportAction';
+import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
@@ -160,7 +161,6 @@ function MoneyRequestReceiptView({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
-    const [reportActionsErrorFields] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector: reportActionsErrorFieldsSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -175,6 +175,7 @@ function MoneyRequestReceiptView({
 
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const reportsParentHierarchy = useReportsParentHierarchy(report?.reportID);
+    const relatedReportActions = useRelatedReportActionsErrorFields(reportsParentHierarchy, originalReportID, parentReportAction?.childReportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
@@ -590,7 +591,7 @@ function MoneyRequestReceiptView({
                 originalReportID,
                 isOffline,
                 reports: reportsParentHierarchy,
-                reportActions: reportActionsErrorFields,
+                reportActions: relatedReportActions,
             });
             return;
         }
@@ -605,7 +606,7 @@ function MoneyRequestReceiptView({
                 originalReportID,
                 isOffline,
                 reports: reportsParentHierarchy,
-                reportActions: reportActionsErrorFields,
+                reportActions: relatedReportActions,
             });
         }
         if (!isEmptyObject(reportCreationError)) {
