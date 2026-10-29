@@ -11,10 +11,12 @@ type DuplicateWorkspaceParams = {
     expenseChatReportID: string;
     adminsCreatedReportActionID: string;
     expenseCreatedReportActionID: string;
-    announceChatReportActionID: string;
+    announceCreatedReportActionID: string;
     perDiemCustomUnitID: string;
     distanceCustomUnitID: string;
-    optimisticRateIDs: string;
+    optimisticRateIDs?: string;
+    currency: string;
+    hasAcceptedTravelTerms: boolean;
     file?: FileObject;
 };
 

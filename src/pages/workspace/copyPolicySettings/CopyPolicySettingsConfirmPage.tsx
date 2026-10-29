@@ -1,8 +1,8 @@
 import Button from '@components/Button';
-import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import PolicyCopyTravelTerms from '@components/PolicyCopyTravelTerms';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -155,18 +155,10 @@ function CopyPolicySettingsConfirmPage() {
                     addBottomSafeAreaPadding
                 >
                     {requiresTravelTermsConsent && (
-                        <>
-                            <View style={[styles.renderHTML, styles.flexRow, styles.mb3]}>
-                                <RenderHTML html={translate('travel.termsAndConditions.subtitle')} />
-                            </View>
-                            <CheckboxWithLabel
-                                style={[styles.mb3]}
-                                accessibilityLabel={translate('travel.termsAndConditions.label')}
-                                isChecked={hasAcceptedTravelTerms}
-                                onInputChange={() => setHasAcceptedTravelTerms((prev) => !prev)}
-                                label={translate('travel.termsAndConditions.label')}
-                            />
-                        </>
+                        <PolicyCopyTravelTerms
+                            isChecked={hasAcceptedTravelTerms}
+                            onToggle={() => setHasAcceptedTravelTerms((prev) => !prev)}
+                        />
                     )}
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}

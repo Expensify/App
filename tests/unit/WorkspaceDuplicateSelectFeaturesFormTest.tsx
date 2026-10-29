@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
@@ -27,6 +27,7 @@ const TARGET_POLICY_ID = '2';
 
 type CapturedSelectionListProps = {
     data: ListItem[];
+    footerContent?: React.JSX.Element;
     onSelectRow: (item: ListItem) => void;
     confirmButtonOptions: ConfirmButtonOptions<ListItem>;
 };
@@ -37,9 +38,11 @@ jest.mock('@components/SelectionList', () => ({
     __esModule: true,
     default: (props: CapturedSelectionListProps) => {
         mockSelectionListProps = props;
-        return null;
+        return props.footerContent ?? null;
     },
 }));
+
+jest.mock('@components/RenderHTML', () => ({__esModule: true, default: () => null}));
 
 jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -63,16 +66,10 @@ jest.mock('@hooks/useConfirmModal', () => ({
 }));
 
 // The form fires openDuplicatePolicyPage on mount and duplicateWorkspace on Continue. Both are stubbed so the test can read the parts the form sends.
-jest.mock('@userActions/Policy/Policy', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@userActions/Policy/Policy');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...actual,
-        openDuplicatePolicyPage: jest.fn(),
-        duplicateWorkspace: jest.fn(),
-    };
-});
+jest.mock('@userActions/Policy/Policy', () => ({
+    openDuplicatePolicyPage: jest.fn(),
+    duplicateWorkspace: jest.fn(),
+}));
 
 const MERCHANT_RULE: Rule = {
     scope: CONST.RULES.SCOPE.POLICY,
@@ -94,8 +91,8 @@ function createSourcePolicy(hasWorkspaceRules: boolean): Policy {
     };
 }
 
-async function renderForm(hasWorkspaceRules: boolean) {
-    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, createSourcePolicy(hasWorkspaceRules));
+async function renderForm(hasWorkspaceRules: boolean, overrides: Partial<Policy> = {}) {
+    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {...createSourcePolicy(hasWorkspaceRules), ...overrides});
     await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}merchantRule`, MERCHANT_RULE);
     await Onyx.set(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED, true);
     await Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {name: 'Duplicate', policyID: TARGET_POLICY_ID});
@@ -152,7 +149,7 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         jest.clearAllMocks();
     });
 
-    it('deselects Merchant rules when Rules is deselected, so neither is copied', async () => {
+    it('keeps Merchant rules selected independently when Rules is deselected', async () => {
         // Given a source with workspace-level rules and a merchant rule, where every row starts selected
         await renderForm(true);
         expect(getRow('rules')?.isSelected).toBe(true);
@@ -162,25 +159,26 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         await pressRow('rules');
         pressContinue();
 
-        // Then Merchant rules is deselected too, because merchant rules live under Rules and can't be copied without it
-        expect(getRow('codingRules')?.isSelected).toBe(false);
+        // Copying merchant rules does not require copying the workspace's other rules.
+        expect(getRow('codingRules')?.isSelected).toBe(true);
         expect(getSentParts()).not.toContain('rules');
-        expect(getSentParts()).not.toContain('codingRules');
+        expect(getSentParts()).toContain('codingRules');
     });
 
-    it('selects Rules when Merchant rules is selected while Rules is deselected', async () => {
+    it('selects Merchant rules without selecting Rules', async () => {
         // Given Rules and Merchant rules were both deselected
         await renderForm(true);
         await pressRow('rules');
+        await pressRow('codingRules');
 
         // When the admin selects Merchant rules and continues
         await pressRow('codingRules');
         pressContinue();
 
-        // Then Rules is selected too, so the merchant rules are copied along with the Rules feature they belong to
-        expect(getRow('rules')?.isSelected).toBe(true);
+        expect(getRow('rules')?.isSelected).toBe(false);
         expect(getRow('codingRules')?.isSelected).toBe(true);
-        expect(getSentParts()).toEqual(expect.arrayContaining(['rules', 'codingRules']));
+        expect(getSentParts()).toContain('codingRules');
+        expect(getSentParts()).not.toContain('rules');
     });
 
     it('keeps Rules selected when only Merchant rules is deselected', async () => {
@@ -209,5 +207,48 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         // Then the merchant rules are still copied, because there is no Rules row they could depend on
         expect(getSentParts()).not.toContain('rules');
         expect(getSentParts()).toContain('codingRules');
+    });
+    it('includes Time tracking and Receipt partners from the shared copy settings list', async () => {
+        await renderForm(false, {units: {time: {enabled: true, rate: 75}}, receiptPartners: {enabled: true}});
+        expect(getRow('timeTracking')?.isSelected).toBe(true);
+        expect(getRow('receiptPartners')?.isSelected).toBe(true);
+        pressContinue();
+        expect(getSentParts()).toEqual(expect.arrayContaining(['timeTracking', 'receiptPartners']));
+    });
+
+    it('requires Currency with Workflows when reimbursement currencies differ', async () => {
+        await renderForm(false, {outputCurrency: 'EUR', achAccount: {bankAccountID: 123}, areWorkflowsEnabled: true, approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC});
+        expect(getRow('workflows')?.isSelected).toBe(true);
+        expect(getRow('currency')?.isSelected).toBe(true);
+        expect(getRow('currency')?.isDisabled).toBe(true);
+        await pressRow('currency');
+        pressContinue();
+        expect(getSentParts()).toEqual(expect.arrayContaining(['workflows', 'currency']));
+    });
+
+    it('excludes Travel when Overview is deselected and the new policy would have no address', async () => {
+        await renderForm(false, {isTravelEnabled: true, address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'}});
+        expect(getRow('travel')?.isSelected).toBe(true);
+        await pressRow('overview');
+        expect(getRow('travel')?.isSelected).toBe(false);
+        expect(getRow('travel')?.isDisabled).toBe(true);
+        pressContinue();
+        expect(getSentParts()).not.toContain('travel');
+    });
+
+    it('requires Travel consent and sends it only after the checkbox is accepted', async () => {
+        await renderForm(false, {
+            isTravelEnabled: true,
+            travelSettings: {spotnanaCompanyID: 'source-company'},
+            address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
+        });
+        expect(mockSelectionListProps?.confirmButtonOptions.isDisabled).toBe(true);
+        pressContinue();
+        expect(duplicateWorkspace).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByRole('checkbox', {checked: false}));
+        await waitForBatchedUpdates();
+        expect(mockSelectionListProps?.confirmButtonOptions.isDisabled).toBe(false);
+        pressContinue();
+        expect(jest.mocked(duplicateWorkspace).mock.calls.at(0)?.[1].hasAcceptedTravelTerms).toBe(true);
     });
 });

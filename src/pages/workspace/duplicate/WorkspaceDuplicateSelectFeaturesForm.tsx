@@ -1,6 +1,8 @@
+import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
+import PolicyCopyTravelTerms from '@components/PolicyCopyTravelTerms';
 import {PressableWithFeedback} from '@components/Pressable';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
@@ -11,33 +13,23 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
-import useRulesPrefetch from '@hooks/useRulesPrefetch';
+import usePolicyCopySettingsSelection from '@hooks/usePolicyCopySettingsSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getExpenseDefaultRuleCount} from '@libs/ExpenseDefaultRuleUtils';
+import {isSourceProvisionedForTravel} from '@libs/CopyPolicySettingsUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
-import {formatAddressToString} from '@libs/ReportActionsUtils';
-import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import type {Part} from '@userActions/Policy/CopyPolicySettings';
-import {duplicateWorkspace as duplicateWorkspaceAction, openDuplicatePolicyPage} from '@userActions/Policy/Policy';
+import {duplicateWorkspace as duplicateWorkspaceAction} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Rate} from '@src/types/onyx/Policy';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-
-import {getAllValidConnectedIntegration, getWorkflowRules, getWorkspaceRules} from './utils';
 
 type WorkspaceDuplicateFormProps = {
     policyID?: string;
@@ -47,186 +39,29 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
-    const isCollect = isCollectPolicy(policy);
     const {showConfirmModal} = useConfirmModal();
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    useRulesPrefetch();
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const taxesLength = Object.values(policy?.taxRates?.taxes ?? {}).filter((tax) => tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const categoriesCount = Object.values(policyCategories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
-    const codingRulesCount = getExpenseDefaultRuleCount(allRules, policy?.id);
-    const [selectedItems, setSelectedItems] = useState<Part[]>([]);
-    const policyFields = Object.values(getReportFieldsByPolicyID(policy) ?? {}).filter((field) => field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportFields = policyFields.filter((field) => field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE).length;
-    const invoiceFields = policyFields.filter((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE).length;
-    const customUnits = getPerDiemCustomUnit(policy);
-    const customUnitRates: Record<string, Rate> = customUnits?.rates ?? {};
-    const allRates = Object.values(customUnitRates)?.filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length ?? 0;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
-    const totalMembersSelector = createFilteredMemberCountSelector(policy?.employeeList, policy?.owner, currentUserPersonalDetails.login, employeePersonalDetails);
-    const [totalMembers = 0] = useAllPersonalDetails(totalMembersSelector);
-    // The invoicing company details are provisioned per workspace, so they aren't copied over to the duplicate and shouldn't be advertised here.
-    const invoiceConfigurationTextSelector = createInvoiceConfigurationTextSelector(translate, '');
-    const [invoiceConfigurationText = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
-        selector: invoiceConfigurationTextSelector,
-    });
-    const invoiceDetails = [invoiceConfigurationText, invoiceFields ? `${invoiceFields} ${translate('workspace.common.invoiceFields').toLowerCase()}` : ''].filter(Boolean).join(', ');
-
-    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
-    const connectedIntegration = getAllValidConnectedIntegration(policy, accountingIntegrations);
-
-    const customUnit = getDistanceRateCustomUnit(policy);
-    const ratesCount = Object.values(customUnit?.rates ?? {}).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
-
-    const totalTags = !policyTags
-        ? 0
-        : Object.values(policyTags).reduce(
-              (sum, tagGroup) => sum + Object.values(tagGroup.tags ?? {}).filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length,
-              0,
-          );
-
-    const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
-
-    const items = (() => {
-        const rules = getWorkspaceRules(policy, translate);
-        const workflows = getWorkflowRules(policy, translate);
-
-        const result: Array<{translation: string; value: Part; alternateText?: string} | undefined> = [
-            {
-                translation: translate('workspace.common.profile'),
-                value: 'overview',
-                alternateText: formattedAddress,
-            },
-            {
-                translation: translate('common.currency'),
-                value: 'currency',
-                alternateText: policy?.outputCurrency,
-            },
-            totalMembers > 1
-                ? {
-                      translation: translate('workspace.common.members'),
-                      value: 'members',
-                      alternateText: totalMembers ? `${totalMembers} ${translate('workspace.common.members').toLowerCase()}` : undefined,
-                  }
-                : undefined,
-            reportFields > 0
-                ? {
-                      translation: translate('workspace.common.reports'),
-                      value: 'reports',
-                      alternateText: reportFields ? `${reportFields} ${translate('workspace.common.reportFields').toLowerCase()}` : undefined,
-                  }
-                : undefined,
-            connectedIntegration && connectedIntegration?.length > 0
-                ? {
-                      translation: translate('workspace.common.accounting'),
-                      value: 'accounting',
-                      alternateText: connectedIntegration.map((connectionName) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]).join(', '),
-                  }
-                : undefined,
-            totalTags > 0
-                ? {
-                      translation: translate('workspace.common.tags'),
-                      value: 'tags',
-                      alternateText: totalTags ? `${totalTags} ${translate('workspace.common.tags').toLowerCase()}` : undefined,
-                  }
-                : undefined,
-            categoriesCount > 0
-                ? {
-                      translation: translate('workspace.common.categories'),
-                      value: 'categories',
-                      alternateText: categoriesCount ? `${categoriesCount} ${translate('workspace.duplicateWorkspace.categories').toLowerCase()}` : undefined,
-                  }
-                : undefined,
-            taxesLength > 0
-                ? {
-                      translation: translate('workspace.common.taxes'),
-                      value: 'taxes',
-                      alternateText: taxesLength ? `${taxesLength} ${translate('workspace.common.taxes').toLowerCase()}` : undefined,
-                  }
-                : undefined,
-            workflows && workflows?.length > 0
-                ? {
-                      translation: translate('workspace.common.workflows'),
-                      value: 'workflows',
-                      alternateText: workflows?.join(', '),
-                  }
-                : undefined,
-            rules && rules.length > 0 && !isCollect
-                ? {
-                      translation: translate('workspace.common.rules'),
-                      value: 'rules',
-                      alternateText: rules.length
-                          ? `${rules.length} ${translate('workspace.common.workspace').toLowerCase()} ${translate('workspace.common.rules').toLowerCase()}: ${rules.join(', ')}`
-                          : undefined,
-                  }
-                : undefined,
-            codingRulesCount > 0 && !isCollect
-                ? {
-                      translation: translate('workspace.duplicateWorkspace.merchantRules'),
-                      value: 'codingRules',
-                      alternateText: translate('workspace.duplicateWorkspace.merchantRulesCount', {count: codingRulesCount}),
-                  }
-                : undefined,
-            ratesCount > 0 && policy?.areDistanceRatesEnabled
-                ? {
-                      translation: translate('workspace.common.distanceRates'),
-                      value: 'distanceRates',
-                      alternateText: ratesCount ? `${ratesCount} ${translate('iou.rates').toLowerCase()}` : undefined,
-                  }
-                : undefined,
-            allRates > 0
-                ? {
-                      translation: translate('workspace.common.perDiem'),
-                      value: 'perDiem',
-                      alternateText: allRates ? `${allRates} ${translate('workspace.common.perDiem').toLowerCase()}` : undefined,
-                  }
-                : undefined,
-
-            policy?.areInvoicesEnabled
-                ? {
-                      translation: translate('workspace.common.invoices'),
-                      value: 'invoices',
-                      alternateText: invoiceDetails || undefined,
-                  }
-                : undefined,
-            policy?.isTravelEnabled
-                ? {
-                      translation: translate('workspace.common.travel'),
-                      value: 'travel',
-                  }
-                : undefined,
-        ];
-
-        return result.filter((item): item is NonNullable<typeof item> => !!item);
-    })();
-
-    // Merchant rules live under Rules, so they are copied only along with it. The Rules row is hidden when the source has no workspace-level rules, and merchant rules can then be copied on their own.
-    const hasRulesItem = items.some((item) => item.value === 'rules');
-    const effectiveSelectedItems = hasRulesItem && !selectedItems.includes('rules') ? selectedItems.filter((value) => value !== 'codingRules') : selectedItems;
-
-    const featuresToCopy: ListItem[] = items.map((option) => {
-        const alternateText = option?.alternateText ? option.alternateText.trim().replaceAll(/,$/g, '') : undefined;
-        return {
-            text: option.translation,
-            keyForList: option.value,
-            isSelected: effectiveSelectedItems.includes(option.value),
-            alternateText,
-        };
-    });
-
-    const fetchWorkspaceRelatedData = () => {
-        if (!policyID) {
-            return;
-        }
-        openDuplicatePolicyPage(policyID);
-    };
+    const localCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
+    const targetPolicies = policy ? [{...policy, outputCurrency: localCurrency, address: undefined, achAccount: undefined, connections: undefined}] : [];
+    const {
+        listItems: featuresToCopy,
+        effectiveSelectedFeatures: effectiveSelectedItems,
+        selectableFeatures,
+        toggleFeature: updateSelectedItems,
+        toggleAll: toggleAllItems,
+        policyCategories,
+        policyTags,
+        memberCount: totalMembers,
+        sourceEmployeePersonalDetails: employeePersonalDetails,
+    } = usePolicyCopySettingsSelection(policy, targetPolicies, undefined, true);
+    const requiresTravelTermsConsent = effectiveSelectedItems.includes('travel') && isSourceProvisionedForTravel(policy);
+    const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
 
     const confirmDuplicate = () => {
-        if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID) {
+        if (!policy || !duplicateWorkspace?.name || !duplicateWorkspace?.policyID || (requiresTravelTermsConsent && !hasAcceptedTravelTerms)) {
             return;
         }
 
@@ -237,11 +72,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             policyID: policy.id,
             targetPolicyID: duplicateWorkspace.policyID,
             welcomeNote: `${translate('workspace.duplicateWorkspace.welcomeNote')} ${duplicateWorkspace.name}`,
-            policyCategories: effectiveSelectedItems.includes('categories') ? policyCategories : undefined,
+            policyCategories,
+            policyTags,
+            hasAcceptedTravelTerms,
             personalDetailsByLogins: employeePersonalDetails,
             parts: effectiveSelectedItems,
             file: duplicatedWorkspaceAvatar,
-            localCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
+            localCurrency,
             rules: allRules,
         });
         Navigation.closeRHPFlow();
@@ -249,7 +86,21 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
 
     const duplicateWorkspaceName = duplicateWorkspace?.name;
     const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
-    const onConfirmSelectList = () => {
+    const confirmSelectedFeatures = () => {
+        if (effectiveSelectedItems.includes('workflows') && !effectiveSelectedItems.includes('members') && totalMembers > 1) {
+            showConfirmModal({
+                title: translate('common.headsUp'),
+                prompt: translate('workspace.copyPolicySettings.confirmWorkflows.description'),
+                confirmText: translate('workspace.copyPolicySettings.confirmWorkflows.continue'),
+                cancelText: translate('common.cancel'),
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                confirmDuplicate();
+            });
+            return;
+        }
         if (!totalMembers || totalMembers < 2 || !effectiveSelectedItems.includes('members')) {
             confirmDuplicate();
             return;
@@ -279,30 +130,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         });
     };
 
-    const toggleAllItems = () => {
-        if (effectiveSelectedItems.length === items.length) {
-            setSelectedItems([]);
-        } else {
-            setSelectedItems(items.map((i) => i.value));
-        }
-    };
-
-    const updateSelectedItems = (listItem: ListItem) => {
-        if (listItem.isSelected) {
-            const deselectedItems = listItem.keyForList === 'rules' ? ['rules', 'codingRules'] : [listItem.keyForList];
-            setSelectedItems(selectedItems.filter((i) => !deselectedItems.includes(i)));
-            return;
-        }
-
-        const newItem = items.find((i) => i.value === listItem.keyForList)?.value;
-        if (!newItem) {
-            return;
-        }
-
-        const newItems: Part[] = newItem === 'codingRules' && hasRulesItem ? [newItem, 'rules'] : [newItem];
-        setSelectedItems(Array.from(new Set([...selectedItems, ...newItems])));
-    };
-
     // When the component mounts, if there is a new avatar, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the avatar file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the duplication process.
@@ -322,25 +149,13 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         );
     }, [duplicateWorkspace?.fileURI, policyID]);
 
-    useEffect(() => {
-        if (!items.length) {
-            return;
-        }
-        setSelectedItems(items.map((i) => i.value));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [items.length]);
-
-    useEffect(() => {
-        fetchWorkspaceRelatedData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const isSelectAllChecked = effectiveSelectedItems.length > 0 && effectiveSelectedItems.length === items.length;
+    const isSelectAllChecked = selectableFeatures.length > 0 && selectableFeatures.every((part) => effectiveSelectedItems.includes(part));
 
     const confirmButtonOptions: ConfirmButtonOptions<ListItem> = {
         showButton: true,
         text: translate('common.continue'),
-        onConfirm: onConfirmSelectList,
+        onConfirm: confirmSelectedFeatures,
+        isDisabled: requiresTravelTermsConsent && !hasAcceptedTravelTerms,
     };
 
     return (
@@ -351,7 +166,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
             />
             <>
                 <View style={[styles.ph5, styles.pv3]}>
-                    <Text style={[styles.textHeadline]}>{translate('workspace.duplicateWorkspace.selectFeatures')}</Text>
+                    <Text style={[styles.textHeadline]}>{translate('workspace.copyPolicySettings.selectSettings.title')}</Text>
                     <Text style={[styles.textSupporting]}>{translate('workspace.duplicateWorkspace.whichFeatures')}</Text>
                 </View>
                 <View style={[styles.flex1]}>
@@ -359,9 +174,9 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={effectiveSelectedItems.length > 0 && effectiveSelectedItems.length !== items.length}
+                            isIndeterminate={effectiveSelectedItems.length > 0 && !isSelectAllChecked}
                             onPress={toggleAllItems}
-                            disabled={items.length === 0}
+                            disabled={selectableFeatures.length === 0}
                             shouldSelectOnPressEnter
                         />
                         <PressableWithFeedback
@@ -385,6 +200,25 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                         alternateNumberOfSupportedLines={2}
                         addBottomSafeAreaPadding
                         confirmButtonOptions={confirmButtonOptions}
+                        footerContent={
+                            requiresTravelTermsConsent ? (
+                                <>
+                                    <PolicyCopyTravelTerms
+                                        isChecked={hasAcceptedTravelTerms}
+                                        onToggle={() => setHasAcceptedTravelTerms((prev) => !prev)}
+                                    />
+                                    <Button
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                        onPress={confirmSelectedFeatures}
+                                        isDisabled={!hasAcceptedTravelTerms}
+                                    >
+                                        <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                                        <Button.Text>{translate('common.continue')}</Button.Text>
+                                    </Button>
+                                </>
+                            ) : undefined
+                        }
                     />
                 </View>
             </>

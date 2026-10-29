@@ -38,10 +38,10 @@ const PARTS_TO_POLICY_FIELDS = {
     overview: ['address', 'description'],
     currency: ['outputCurrency'],
     members: ['employeeList'],
-    reports: ['fieldList', 'areReportFieldsEnabled'],
+    reports: ['fieldList', 'areReportFieldsEnabled', 'exportLayouts'],
     accounting: ['connections', 'areConnectionsEnabled'],
-    categories: ['areCategoriesEnabled', 'requiresCategory'],
-    tags: ['areTagsEnabled'],
+    categories: ['areCategoriesEnabled', 'requiresCategory', 'autoCategorizeNewExpenses', 'mccGroup', 'showCategoryGLCodes'],
+    tags: ['areTagsEnabled', 'requiresTag'],
     taxes: ['tax', 'taxRates'],
     // achAccount is intentionally excluded — the backend remaps bankAccountID per-caller
     // (see Auth PR #21638). We rely on the server push for that field.
@@ -52,6 +52,8 @@ const PARTS_TO_POLICY_FIELDS = {
         'autoReportingOffset',
         'autoReportingOffsetSecondSemiMonthly',
         'harvesting',
+        'timeZone',
+        'globalReimbursementFXPreferCompany',
         'approvalMode',
         'autoApproval',
         'reimbursementChoice',
@@ -75,11 +77,12 @@ const PARTS_TO_POLICY_FIELDS = {
         'shouldShowAutoApprovalOptions',
         'shouldShowAutoReimbursementLimitOption',
         'customRules',
+        'isReceiptVisibilityPublic',
     ],
     // Merchant rules are copied into the `rules_` collection rather than onto the policy, so this part patches
     // no policy field. It stays listed because the map has to cover every part.
     codingRules: [],
-    distanceRates: ['areDistanceRatesEnabled', 'customUnits'],
+    distanceRates: ['areDistanceRatesEnabled', 'customUnits', 'commuterExclusions', 'requireMapOrGPS', 'shouldAutoUpdateGovernmentDistanceRates', 'autoUpdateGovernmentRateCountry'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
     // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
@@ -240,15 +243,14 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
  * as provisioned.
  */
 function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
-    const sourceAutoAddTripName = sourcePolicy.travelSettings?.autoAddTripName;
-    if (sourceAutoAddTripName === undefined) {
+    if (!sourcePolicy.isTravelEnabled) {
         return undefined;
     }
 
     // A target that is not yet provisioned has no travelSettings, so the spread yields just
     // {autoAddTripName}. The Spotnana identity fields are optional (populated by the backend at
     // provision time), so leaving them out here keeps the target from looking provisioned.
-    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourceAutoAddTripName}};
+    return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourcePolicy.travelSettings?.autoAddTripName ?? true}};
 }
 
 /**
@@ -320,6 +322,10 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
 
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
+            if (field === 'invoice') {
+                patch.invoice = targetPolicy.invoice || sourcePolicy.invoice ? {...targetPolicy.invoice, markUp: sourcePolicy.invoice?.markUp} : undefined;
+                continue;
+            }
             if (field === 'customUnits') {
                 continue;
             }
@@ -329,6 +335,10 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
             // The PARTS_TO_POLICY_FIELDS values are typed as keyof Policy, so this assignment is safe.
             (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
         }
+    }
+
+    if (parts.includes('workflows') && parts.includes('members')) {
+        patch.approver = sourcePolicy.approver;
     }
 
     if (shouldCopyReportFields || shouldCopyInvoiceFields) {
@@ -381,6 +391,7 @@ function buildCopyPolicySettingsData(
     allPolicyTags: OnyxCollection<PolicyTagLists>,
     allRules: OnyxCollection<Rule>,
     isOffline = false,
+    isNewPolicy = false,
 ): {
     optimisticData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
     successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
@@ -430,7 +441,7 @@ function buildCopyPolicySettingsData(
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
         const policyFieldPatch = buildPolicyFieldPatch(sourcePolicy, targetPolicy, parts);
-        const customUnitsPatch = buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
+        const customUnitsPatch = isNewPolicy ? undefined : buildCustomUnitsPatch(sourcePolicy, targetPolicy, isDistanceSelected, isPerDiemSelected);
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
         const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
         const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
@@ -539,6 +550,10 @@ function buildCopyPolicySettingsData(
                 value: previousTags,
             });
         }
+    }
+
+    if (isNewPolicy) {
+        return {optimisticData, successData, failureData};
     }
 
     // Surface an RBR on the source policy row so the admin knows the bulk copy failed

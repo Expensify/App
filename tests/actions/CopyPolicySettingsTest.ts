@@ -206,6 +206,31 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.pendingFields).toEqual(expect.objectContaining(Object.fromEntries(expectedFields.map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]))));
             });
 
+            it('copies only invoice markup and preserves the target invoicing identity', () => {
+                const sourcePolicy = makeSourcePolicy({invoice: {markUp: 25, companyName: 'Source', bankAccount: {stripeConnectAccountID: 'source-stripe'}}});
+                const targetPolicy = makeTargetPolicy({invoice: {markUp: 5, companyName: 'Target', bankAccount: {stripeConnectAccountID: 'target-stripe'}}});
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['invoices'], {}, {}, {});
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toEqual({...targetPolicy.invoice, markUp: 25});
+            });
+
+            it('keeps bulk-copy progress untouched when copying into a new policy', () => {
+                const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(
+                    makeSourcePolicy(),
+                    [makeTargetPolicy()],
+                    ['timeTracking', 'receiptPartners'],
+                    {},
+                    {},
+                    {},
+                    false,
+                    true,
+                );
+                for (const update of [...optimisticData, ...successData, ...failureData]) {
+                    expect(update.key).not.toBe(ONYXKEYS.COPY_POLICY_SETTINGS);
+                    expect(update.key).not.toBe(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);
+                    expect(update.key).not.toBe(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`);
+                }
+            });
+
             it('retains target values for unrelated fields', () => {
                 const sourcePolicy = makeSourcePolicy();
                 const targetPolicy = makeTargetPolicy();
@@ -295,7 +320,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.travelSettings?.hasAcceptedTerms).toBe(false);
             });
 
-            it('leaves target travelSettings untouched when the source has no autoAddTripName preference', () => {
+            it('uses the default autoAddTripName preference when the source has none', () => {
                 const sourcePolicy = makeSourcePolicy({
                     travelSettings: {
                         spotnanaCompanyID: 'SOURCE_COMPANY',
@@ -314,7 +339,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {}, {});
                 const policy = getOptimisticPolicy(optimisticData);
 
-                expect(policy?.travelSettings).toEqual(targetTravelSettings);
+                expect(policy?.travelSettings).toEqual({...targetTravelSettings, autoAddTripName: true});
             });
 
             it('copies autoAddTripName to a not-yet-provisioned target without fabricating identity fields', () => {

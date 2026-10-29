@@ -396,6 +396,9 @@ describe('actions/Policy', () => {
             const fakePolicy = {
                 ...createRandomPolicy(10, CONST.POLICY.TYPE.PERSONAL),
                 employeeList: {},
+                areWorkflowsEnabled: true,
+                areDistanceRatesEnabled: true,
+                arePerDiemRatesEnabled: true,
                 areInvoicesEnabled: true,
                 invoice: {
                     companyName: 'Source company',
@@ -444,18 +447,19 @@ describe('actions/Policy', () => {
             expect(policy?.id).toBe(policyID);
             expect(policy?.name).toBe(POLICY_NAME);
             expect(policy?.type).toBe(fakePolicy.type);
-            expect(policy?.role).toBe(fakePolicy.role);
-            expect(policy?.owner).toBe(fakePolicy.owner);
+            expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(policy?.owner).toBe(ESH_EMAIL);
             expect(policy?.areWorkflowsEnabled).toBe(true);
             expect(policy?.areDistanceRatesEnabled).toBe(true);
             expect(policy?.areInvoicesEnabled).toBe(true);
             // The invoicing details are provisioned per workspace, so they must not be copied from the source policy
-            expect(policy?.invoice).toBeUndefined();
+            expect(policy?.invoice?.companyName).toBeUndefined();
+            expect(policy?.invoice?.bankAccount).toBeUndefined();
             expect(policy?.arePerDiemRatesEnabled).toBe(true);
             expect(policy?.approvalMode).toBe(fakePolicy.approvalMode);
             expect(policy?.approver).toBe(fakePolicy.approver);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policy?.employeeList).toEqual(fakePolicy.employeeList);
+            expect(policy?.employeeList).toEqual(expect.objectContaining({[ESH_EMAIL]: expect.objectContaining({role: CONST.POLICY.ROLE.ADMIN})}));
             expect(policy?.mccGroup).toBe(fakePolicy.mccGroup);
             expect(policy?.requiresCategory).toBe(fakePolicy.requiresCategory);
 
@@ -585,7 +589,14 @@ describe('actions/Policy', () => {
 
         it('duplicate workspace disabled options', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            const fakePolicy = createRandomPolicy(12, CONST.POLICY.TYPE.TEAM);
+            const fakePolicy = {
+                ...createRandomPolicy(12, CONST.POLICY.TYPE.TEAM),
+                customRules: 'Source rules',
+                autoApproval: {limit: 12345},
+                achAccount: {bankAccountID: 123},
+                receiptPartners: {enabled: true},
+                units: {time: {enabled: true, rate: 90}},
+            };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
@@ -621,6 +632,11 @@ describe('actions/Policy', () => {
             expect(policy?.areDistanceRatesEnabled).toBe(false);
             expect(policy?.areInvoicesEnabled).toBe(false);
             expect(policy?.arePerDiemRatesEnabled).toBe(false);
+            expect(policy?.customRules).toBeUndefined();
+            expect(policy?.autoApproval).toBeUndefined();
+            expect(policy?.achAccount).toBeUndefined();
+            expect(policy?.receiptPartners).toBeUndefined();
+            expect(policy?.units?.time).toEqual({enabled: false, rate: 50});
         });
 
         it('duplicate workspace with overview, travel, and codingRules options', async () => {
@@ -630,6 +646,11 @@ describe('actions/Policy', () => {
                 outputCurrency: 'EUR',
                 address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
                 isTravelEnabled: true,
+                travelSettings: {spotnanaCompanyID: 'source-company', hasAcceptedTerms: true, autoAddTripName: false},
+                units: {time: {enabled: true, rate: 75}},
+                receiptPartners: {enabled: true, uber: {enabled: true, organizationID: 'source-org', organizationName: 'Source org'}},
+                areInvoicesEnabled: true,
+                invoice: {markUp: 20, companyName: 'Source company', bankAccount: {stripeConnectAccountID: 'source-stripe'}},
                 tax: {trackingEnabled: true},
             };
             const sourceRule: Rule = {
@@ -654,13 +675,15 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: ['taxes', 'overview', 'currency', 'travel', 'codingRules'] satisfies Part[],
+                parts: ['taxes', 'overview', 'currency', 'travel', 'codingRules', 'timeTracking', 'receiptPartners', 'invoices'] satisfies Part[],
                 localCurrency: 'USD',
                 rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
                 personalDetailsByLogins: {},
             };
 
-            Policy.duplicateWorkspace(fakePolicy, options);
+            const params = Policy.duplicateWorkspace(fakePolicy, {...options, hasAcceptedTravelTerms: true});
+            expect(params.hasAcceptedTravelTerms).toBe(true);
+            expect(params.currency).toBe('USD');
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -677,6 +700,10 @@ describe('actions/Policy', () => {
             expect(policy?.address).toEqual(fakePolicy.address);
             expect(policy?.isTravelEnabled).toBe(true);
             expect(policy?.tax).toEqual(fakePolicy.tax);
+            expect(policy?.travelSettings).toEqual({autoAddTripName: false});
+            expect(policy?.units?.time).toEqual({enabled: true, rate: 75});
+            expect(policy?.receiptPartners?.uber?.organizationID).toBe('source-org');
+            expect(policy?.invoice).toEqual({markUp: 20});
 
             // Merchant rules are copied into the rules collection as new rules scoped to the duplicate,
             // rather than onto the duplicated policy object.
@@ -775,7 +802,8 @@ describe('actions/Policy', () => {
                 personalDetailsByLogins,
             };
 
-            Policy.duplicateWorkspace(fakePolicy, options);
+            mockFetch.pause();
+            const params = Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
             const allReports: OnyxCollection<Report> = await new Promise((resolve) => {
@@ -791,9 +819,21 @@ describe('actions/Policy', () => {
             // With 3 employees copied to the duplicate policy, the optimistic #announce room should be created
             const announceChat = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
             expect(announceChat).toBeTruthy();
+            const announceActions = await new Promise<Record<string, ReportAction> | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.announceChatReportID}`,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+            expect(announceActions?.[params.announceCreatedReportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
             expect(announceChat?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
             // Participants of the optimistic announce room should include every duplicated employee
             expect(Object.keys(announceChat?.participants ?? {}).length).toBe(3);
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
         });
 
         it('duplicate workspace with a file uses its uri and name on the policy avatar', async () => {
@@ -896,6 +936,7 @@ describe('actions/Policy', () => {
             const sourceExtraRateID = 'srcExtraRate';
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(19, CONST.POLICY.TYPE.TEAM),
+                areDistanceRatesEnabled: true,
                 customUnits: {
                     [sourceDistanceUnitID]: {
                         customUnitID: sourceDistanceUnitID,
