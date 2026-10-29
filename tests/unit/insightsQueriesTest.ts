@@ -97,7 +97,6 @@ describe('insightsQueries', () => {
                     violationsOverTime: {
                         snapshotHash: request?.headlineChart.queryJSON?.hash,
                         previousPeriodSnapshotHash: request?.headlineChart.previousPeriodQueryJSON?.hash,
-                        averageSnapshotHash: expect.any(Number),
                     },
                 },
                 numberOfPeriods: 1,
