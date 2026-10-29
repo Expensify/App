@@ -1,6 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 
 import TextInputLabel from '@components/TextInput/TextInputLabel';
+import LabelScaleSettleListener from '@components/TextInput/TextInputLabel/LabelScaleSettleListener';
 import type TextInputLabelProps from '@components/TextInput/TextInputLabel/types';
 
 import {useSharedValue} from 'react-native-reanimated';
@@ -47,5 +48,42 @@ describe('TextInputLabel', () => {
         // Verify that numberOfLines and ellipsizeMode are undefined
         expect(labelElement.props).not.toHaveProperty('numberOfLines');
         expect(labelElement.props).not.toHaveProperty('ellipsizeMode');
+    });
+});
+
+describe('TextInputLabel (web)', () => {
+    // Jest resolves the native label by default, but truncation is only measured on web
+    const WebTextInputLabel = jest.requireActual<{default: typeof TextInputLabel}>('../../../src/components/TextInput/TextInputLabel/index.tsx').default;
+
+    const labelTranslateY = useSharedValue(0);
+    const labelScale = useSharedValue(1);
+
+    it('should only measure truncation when onTruncationChange is passed', () => {
+        // Given a label without a truncation callback, which is how most text inputs render it
+        render(
+            <WebTextInputLabel
+                label="Label without callback"
+                labelTranslateY={labelTranslateY}
+                labelScale={labelScale}
+            />,
+        );
+
+        // Then it neither measures itself on layout nor listens to the label scale animation
+        expect(screen.getByText('Label without callback', {includeHiddenElements: true}).props.onLayout).toBeUndefined();
+        expect(screen.UNSAFE_queryByType(LabelScaleSettleListener)).toBeNull();
+
+        // Given a label that reports truncation, like a report field name
+        render(
+            <WebTextInputLabel
+                label="Label with callback"
+                labelTranslateY={labelTranslateY}
+                labelScale={labelScale}
+                onTruncationChange={jest.fn()}
+            />,
+        );
+
+        // Then it measures itself on layout and again once the label scale animation settles
+        expect(screen.getByText('Label with callback', {includeHiddenElements: true}).props.onLayout).toEqual(expect.any(Function));
+        expect(screen.UNSAFE_queryByType(LabelScaleSettleListener)).not.toBeNull();
     });
 });
