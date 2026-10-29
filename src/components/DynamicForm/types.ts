@@ -44,6 +44,7 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     /**
      * Receives a page and its draft answers when the user leaves it with Next, for flows that save each page.
      * The page's sensitive answers come apart from the others, so the screen can send them on a request that is not written to disk.
+     * Sensitive answers inside list entries, such as a director's SSN, are not passed, since they stay in memory only.
      */
     onPageSubmit?: (page: DynamicFormPage, answers: DynamicFormValues, sensitiveAnswers: DynamicFormValues) => void;
 
