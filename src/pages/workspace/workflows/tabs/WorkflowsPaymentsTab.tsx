@@ -317,6 +317,8 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     policyID,
                     currentAchAccount: policy?.achAccount,
                     currentReimbursementChoice: policy?.reimbursementChoice,
+                    currentIsCollectDepositAccountsEnabled: policy?.isCollectDepositAccountsEnabled,
+                    currentReimbursementCountries: policy?.reimbursement?.countries,
                     reimbursementChoice: newReimbursementChoice,
                     reimburserEmail: newReimburserEmail ?? '',
                     bankAccountID: policy?.achAccount?.bankAccountID,
