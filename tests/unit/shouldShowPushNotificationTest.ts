@@ -57,6 +57,7 @@ describe('shouldShowPushNotification', () => {
 
     it('leaves the expense thread out when single-expense reports use the table view', async () => {
         // Given single-expense reports use the table view, which doesn't show the expense thread's comments
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
         await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
         await waitForBatchedUpdates();
 
@@ -74,6 +75,7 @@ describe('shouldShowPushNotification', () => {
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: ''}, amount: 100, currency: CONST.CURRENCY.USD},
         });
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
         await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[sentMoneyAction.reportActionID]: sentMoneyAction});
         await waitForBatchedUpdates();
@@ -82,6 +84,18 @@ describe('shouldShowPushNotification', () => {
         shouldShowPushNotification(buildPushPayload());
 
         // Then the thread still counts as part of the open report, as it does in the expense view
+        expect(shouldShowReportActionNotification).toHaveBeenCalledWith(TRANSACTION_THREAD_REPORT_ID, TRANSACTION_THREAD_REPORT_ID, expect.any(Number), null, true);
+    });
+
+    it('keeps the expense thread when the table view is saved but the beta is off', async () => {
+        // Given the table view was saved earlier, but the user no longer has the singleExpenseTableView beta, so the report renders in the expense view
+        await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
+        await waitForBatchedUpdates();
+
+        // When a push notification arrives for a comment on that expense thread
+        shouldShowPushNotification(buildPushPayload());
+
+        // Then the thread still counts as part of the open report, matching what the user sees
         expect(shouldShowReportActionNotification).toHaveBeenCalledWith(TRANSACTION_THREAD_REPORT_ID, TRANSACTION_THREAD_REPORT_ID, expect.any(Number), null, true);
     });
 });

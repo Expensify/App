@@ -1,13 +1,16 @@
+import getEnvironment from '@libs/Environment/getEnvironment';
+import type Environment from '@libs/Environment/getEnvironment/types';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
+import Permissions from '@libs/Permissions';
 import * as ReportActionUtils from '@libs/ReportActionsUtils';
 
 import * as Report from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report as ReportType, ReportActions} from '@src/types/onyx';
+import type {Beta, BetaConfiguration, BetaOverrides, Report as ReportType, ReportActions} from '@src/types/onyx';
 
 import type {PushPayload} from '@ua/react-native-airship';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -47,6 +50,31 @@ Onyx.connectWithoutView({
     callback: (value) => (singleExpenseReportView = value),
 });
 
+// The table view is behind the singleExpenseTableView beta, so these mirror what usePermissions reads to check it.
+let betas: OnyxEntry<Beta[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (betas = value),
+});
+
+let betaConfiguration: OnyxEntry<BetaConfiguration>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETA_CONFIGURATION,
+    callback: (value) => (betaConfiguration = value),
+});
+
+let betaOverrides: OnyxEntry<BetaOverrides>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETA_OVERRIDES,
+    callback: (value) => (betaOverrides = value),
+});
+
+// Until the environment resolves, treat it as production so beta overrides don't apply.
+let environment: Environment = CONST.ENVIRONMENT.PRODUCTION;
+getEnvironment().then((value) => {
+    environment = value;
+});
+
 /**
  * Returns whether the given Airship notification should be shown depending on the current state of the app
  */
@@ -69,7 +97,10 @@ export default function shouldShowPushNotification(pushPayload: PushPayload): bo
         const topmostReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${topmostReportID}`];
         // The table view doesn't show the expense thread's actions, so a comment there should still notify while the report is open. A "Pay someone" report always uses the expense view.
         const isSentMoneyReport = Object.values(topmostReportActions ?? {}).some(ReportActionUtils.isSentMoneyReportAction);
-        const shouldUseTableViewForSingleExpense = singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE && !isSentMoneyReport;
+        const shouldUseTableViewForSingleExpense =
+            Permissions.isBetaEnabled(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW, betas, betaConfiguration, betaOverrides, environment) &&
+            singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE &&
+            !isSentMoneyReport;
         const topmostOneTransactionThreadReportID = shouldUseTableViewForSingleExpense
             ? undefined
             : ReportActionUtils.getOneTransactionThreadReportID(topmostReport, topmostChatReport, topmostReportActions, getIsOffline());
