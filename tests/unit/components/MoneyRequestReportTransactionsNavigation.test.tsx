@@ -445,6 +445,8 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             mockState.transactionIDsList = [PREV_ID, CURRENT_ID];
             renderNavigation();
 
+            // When the registered shortcuts are inspected before any key is pressed, since the bug is about what's registered at the edge
+
             // Then both shortcuts stay active and keep preventing the default, so an arrow press with nowhere to go
             // doesn't fall through to the browser and scroll the report table behind the expense
             expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(true);
