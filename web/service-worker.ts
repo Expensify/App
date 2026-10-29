@@ -21,9 +21,11 @@ const navigationStrategy = new NetworkOnly({
     networkTimeoutSeconds: NAVIGATION_TIMEOUT_SECONDS,
     plugins: [
         {
-            // Workbox ignores fetchOptions for navigation requests, so set the HTTP cache policy on the request itself.
-            requestWillFetch: async ({request}) => new Request(request, {cache: 'no-cache'}),
             fetchDidSucceed: async ({response}) => {
+                // Navigation redirects are followed by the browser, not validated as HTML by the worker.
+                if (response.type === 'opaqueredirect') {
+                    return response;
+                }
                 if (!response.ok || !response.headers.get('content-type')?.includes('text/html')) {
                     throw new Error('Navigation did not return a successful HTML response');
                 }
