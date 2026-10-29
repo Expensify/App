@@ -3,6 +3,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {close} from '@libs/actions/Modal';
 import {getFooterConvertedAmounts, search} from '@libs/actions/Search';
@@ -164,6 +165,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const {currentSearchResults, currentSearchTransactionsByReportID, shouldUseLiveData} = useSearchResultsContext();
     const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {isOffline} = useNetwork();
     const activePolicy = useActivePolicy();
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -656,6 +658,7 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
                         shouldCalculateTotals: true,
                         isLoading: false,
                         shouldShowLoading: false,
+                        shouldReturnTripRooms,
                     }),
                 ).finally(() => setIsAwaitingBreakdownTotal(false));
             }
@@ -671,8 +674,16 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
         if (!isSnapshotTotalForOtherBreakdown || hasPartialSelection || isAwaitingBreakdownTotal || !currentSearchQueryJSON) {
             return;
         }
-        search({queryJSON: currentSearchQueryJSON, searchKey: currentSearchKey, offset: metadata?.offset ?? 0, shouldCalculateTotals: true, isLoading: false, shouldShowLoading: false});
-    }, [currentSearchKey, currentSearchQueryJSON, hasPartialSelection, isAwaitingBreakdownTotal, isSnapshotTotalForOtherBreakdown, metadata?.offset]);
+        search({
+            queryJSON: currentSearchQueryJSON,
+            searchKey: currentSearchKey,
+            offset: metadata?.offset ?? 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+            shouldShowLoading: false,
+            shouldReturnTripRooms,
+        });
+    }, [currentSearchKey, currentSearchQueryJSON, hasPartialSelection, isAwaitingBreakdownTotal, isSnapshotTotalForOtherBreakdown, metadata?.offset, shouldReturnTripRooms]);
 
     const handleFooterCountChange = (nextCountType: SearchFooterCount) => {
         applyFooterSelection({footerCount: nextCountType});

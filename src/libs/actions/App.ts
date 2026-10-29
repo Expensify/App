@@ -699,10 +699,10 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
 }
 
 /**
- * Clears the Corpay pay modal signal for the current session.
+ * Clears the enable global reimbursements modal signal for the current session.
  */
-function clearCorpayPayModal() {
-    Onyx.set(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL, null);
+function clearEnableGlobalReimbursementsModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, null);
 }
 
 export {
@@ -723,7 +723,7 @@ export {
     clearOnyxAndResetApp,
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
-    clearCorpayPayModal,
+    clearEnableGlobalReimbursementsModal,
     setPreservedUserSession,
     getNonOptimisticPolicyIDs,
     setPreservedAccount,

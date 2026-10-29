@@ -55,7 +55,6 @@ import type CopyPolicySettings from './CopyPolicySettings';
 import type CopyPolicySettingsNVP from './CopyPolicySettingsNVP';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
 import type {CorpayOnboardingFields} from './CorpayOnboardingFields';
-import type CorpayPayModal from './CorpayPayModal';
 import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
@@ -106,6 +105,7 @@ import type {
     DynamicFormTextField,
 } from './DynamicFormField';
 import type EarlyRenewalOfferEligibility from './EarlyRenewalOfferEligibility';
+import type EnableGlobalReimbursementsModal from './EnableGlobalReimbursementsModal';
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
@@ -513,7 +513,7 @@ export type {
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
-    CorpayPayModal,
+    EnableGlobalReimbursementsModal,
     SidePanel,
     SidePanelContext,
     LastPaymentMethodType,
