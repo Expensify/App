@@ -8,6 +8,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -46,6 +47,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
 
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
@@ -117,7 +119,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
 
     if (!isSmallScreenWidth) {
         // The preset list scrolls under the same cap as the other filter dropdowns. The calendars are taller than that cap, so they keep the window-based one and stay fully visible.
-        const popoverMaxHeightStyle = selectedDateModifier ? {maxHeight: maxPopupHeight} : styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode);
+        const popoverMaxHeightStyle = selectedDateModifier ? StyleUtils.getMaximumHeight(maxPopupHeight) : styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode);
 
         return (
             <View style={[styles.pv4, styles.gap2, popoverMaxHeightStyle, style]}>
