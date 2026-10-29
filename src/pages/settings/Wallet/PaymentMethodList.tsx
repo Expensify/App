@@ -236,7 +236,6 @@ function PaymentMethodList({
         isPendingDelete = false,
         onPlaidPress?: () => void,
         onFixPress?: () => void,
-        accountName?: string,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
@@ -244,7 +243,6 @@ function PaymentMethodList({
         tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,
-        actionAccessibilityLabel: status.actionKey && accountName ? `${translate(status.actionKey)}, ${accountName}` : undefined,
         // An account queued for deletion is struck through, so its action is disabled rather than hidden.
         isActionDisabled: isPendingDelete,
         onActionPress: () => {
@@ -671,7 +669,6 @@ function PaymentMethodList({
                           paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                           onPlaidPress,
                           onFixPress,
-                          rowTitle,
                       )
                     : undefined,
             };
