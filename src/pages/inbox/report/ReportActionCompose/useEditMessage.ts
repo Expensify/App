@@ -27,7 +27,7 @@ type UseEditMessageProps = {
     shouldScrollToLastMessage?: boolean;
     scrollToLastMessage?: () => void;
     debouncedCommentMaxLengthValidation: DebouncedFuncLeading<(value: string) => boolean>;
-    composerRef: React.RefObject<ComposerRef | null>;
+    composerRef: React.RefObject<Pick<ComposerRef, 'blur' | 'focus'> | null>;
 };
 
 /**
@@ -62,17 +62,16 @@ function useEditMessage({
 
         clearAllReportActionDrafts();
 
-        // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (!shouldScrollToLastMessage) {
             return;
         }
 
+        // Let the list-specific callback handle scrolling after the editor closes.
         if (scrollToLastMessage) {
             scrollToLastMessage();
             return;
         }
-
-        reportScrollManager.scrollToIndex(0);
+        reportScrollManager.scrollToBottom();
     }
 
     /**

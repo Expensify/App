@@ -114,7 +114,7 @@ function ConnectionsMergePageBaseContent({policyID, category, cards}: Connection
                     card={connectedCard}
                     policy={policy}
                     handleConnect={() => handleReconnect(connectedCard)}
-                    onDisconnect={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
+                    onDisconnect={(disconnect) => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: disconnect})}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}
                     canWriteMoreFeatures={canWriteMoreFeatures}
                     showReadOnlyModal={showReadOnlyModal}
@@ -152,10 +152,7 @@ function ConnectionsMergePageBase({policyID, category, cards, shouldBeBlocked}: 
             fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             {isFetchingConnections ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    style={styles.flex1}
-                />
+                <FullScreenLoadingIndicator style={styles.flex1} />
             ) : (
                 <ConnectionsMergePageBaseContent
                     policyID={policyID}
