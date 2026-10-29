@@ -1926,6 +1926,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 });
+
                 if (methodID && bankAccountToSetUp) {
                     const skippedReports = reportsNeedingGlobalReimbursementsByBankAccount.get(methodID) ?? {bankAccount: bankAccountToSetUp, reportNames: new Map<string, string>()};
                     // Keyed by reportID because selecting several expenses of one report yields one item per expense
