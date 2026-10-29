@@ -541,7 +541,7 @@ describe('actions/Policy', () => {
 
             policy = await new Promise((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.POLICY,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
                         Onyx.disconnect(connection);
                         resolve(workspace);
