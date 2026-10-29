@@ -38,6 +38,9 @@ jest.mock('@hooks/useViewportOffsetTop', () => jest.fn(() => mockViewportOffsetT
 let mockKeyboardHeight = 0;
 jest.mock('@hooks/useKeyboardState', () => jest.fn(() => ({isKeyboardActive: mockKeyboardHeight > 0, keyboardActiveHeight: mockKeyboardHeight})));
 
+let mockIsTablet = false;
+jest.mock('@libs/isTablet', () => jest.fn(() => mockIsTablet));
+
 // The home indicator area the sheet pads itself above, and no top inset.
 const SAFE_AREA_PADDING_BOTTOM = 34;
 jest.mock('@hooks/useSafeAreaPaddings', () => jest.fn(() => ({paddingTop: 0, paddingBottom: SAFE_AREA_PADDING_BOTTOM})));
@@ -88,6 +91,7 @@ describe('TaxPickerModal', () => {
         mockIsSmallScreenWidth = true;
         mockIsInLandscapeMode = false;
         mockKeyboardHeight = 0;
+        mockIsTablet = false;
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await waitForBatchedUpdates();
     });
@@ -226,6 +230,60 @@ describe('TaxPickerModal', () => {
 
         // Then the sheet is two rows tall plus the bottom safe area, leaving no empty space below the rates
         expect(mockPopoverProps?.popoverDimensions?.height).toBe(getSelectionListPopoverContentHeight({optionCount: 2, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM);
+    });
+
+    describe('with eleven rates, one short of the search threshold', () => {
+        beforeEach(async () => {
+            const taxes = Object.fromEntries(Array.from({length: 11}, (_, index) => [`id_TAX_RATE_${index}`, {name: `Tax ${index}`, value: `${index}%`}]));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {taxRates: {taxes}});
+            await waitForBatchedUpdates();
+        });
+
+        it('lets the sheet grow with the list up to the window on a phone', () => {
+            // Given a phone, where eleven rows plus the bottom safe area are taller than the wide-layout dropdown cap
+            expect(getSelectionListPopoverContentHeight({optionCount: 11, isSearchable: false})).toBeGreaterThan(CONST.POPOVER_DROPDOWN_MAX_HEIGHT);
+
+            // When the expense form's tax rate list opens
+            render(
+                <TaxPickerModal
+                    isVisible
+                    onClose={jest.fn()}
+                    policyID={POLICY_ID}
+                    anchorPosition={{horizontal: 0, vertical: 0}}
+                    shouldFitContentHeight
+                />,
+            );
+
+            // Then the sheet is as tall as the window allows, the same as the list with a search input, instead of stopping at the
+            // five rows of the dropdown cap and leaving the rest to scroll
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(mockWindowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO - BOTTOM_SHEET_TOP_PADDING);
+        });
+
+        it('keeps the dropdown cap on a tablet', () => {
+            // Given a tablet, whose window is tall enough for the dropdown cap to look right
+            mockIsTablet = true;
+            const dropdownCapHeight = getBottomSheetHeight({
+                preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+                windowHeight: mockWindowHeight,
+                keyboardHeight: 0,
+                topSafeAreaInset: 0,
+                minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}),
+            });
+
+            // When the expense form's tax rate list opens
+            render(
+                <TaxPickerModal
+                    isVisible
+                    onClose={jest.fn()}
+                    policyID={POLICY_ID}
+                    anchorPosition={{horizontal: 0, vertical: 0}}
+                    shouldFitContentHeight
+                />,
+            );
+
+            // Then the sheet stops at the dropdown cap rather than taking most of the screen
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(dropdownCapHeight);
+        });
     });
 
     it('keeps the sheet above an open keyboard', () => {

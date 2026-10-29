@@ -70,14 +70,19 @@ function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth,
     const shouldKeepTopEdge = shouldPadForKeyboard && !isInLandscapeMode;
     const minSheetHeight = getSelectionListPopoverContentHeight({optionCount: 1, isSearchable});
     const keptTopEdgeSheetHeight = windowHeight - Dimensions.get('screen').height * (1 - CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO) - BOTTOM_SHEET_TOP_PADDING;
+    // On a phone a sheet that fits its content grows with its rows up to the window, the same height the list with a search
+    // input opens at, rather than stopping at the dropdown cap sized for a pop-over on a wide layout: 11 options would
+    // otherwise get a five-row sheet and 12 the whole screen. A tablet's window is tall enough for that cap to look right.
+    const shouldGrowToWindow = shouldFitContentHeight && !isTablet();
     const bottomSheetHeight = shouldKeepTopEdge
         ? Math.max(minSheetHeight, keptTopEdgeSheetHeight)
         : getBottomSheetHeight({
-              preferredHeight: popoverHeight,
+              preferredHeight: shouldGrowToWindow ? estimatedContentHeight + bottomSafeAreaPadding : popoverHeight,
               windowHeight,
               keyboardHeight: isKeyboardActive && !shouldPadForKeyboard ? keyboardActiveHeight : 0,
               topSafeAreaInset: safeAreaTop,
               minHeight: minSheetHeight,
+              maxHeight: shouldGrowToWindow ? windowHeight : undefined,
               shouldFillWindow,
           });
     // A short list gets a sheet only as tall as its rows, still within the room the window and keyboard leave.
