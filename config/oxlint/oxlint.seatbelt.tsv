@@ -1262,7 +1262,6 @@
 "../../src/pages/inbox/report/ReportActionCompose/useReceiptDrop.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/pages/inbox/report/ReportActionItem.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/inbox/report/ReportActionItem.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/refs"	5
@@ -2447,7 +2446,7 @@
 "../../tests/unit/ApiUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/unit/APIWriteWhenReadyTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../tests/unit/backgroundLocationTrackingTaskTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../tests/unit/BankAccountUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	13
+"../../tests/unit/BankAccountUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	15
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"no-restricted-imports"	1
