@@ -3539,6 +3539,7 @@ function buildOptimisticDuplicatePolicy(
         areTagsEnabled: false,
         areDistanceRatesEnabled: false,
         areWorkflowsEnabled: false,
+        isCollectDepositAccountsEnabled: false,
         areReportFieldsEnabled: false,
         areInvoiceFieldsEnabled: false,
         areConnectionsEnabled: false,

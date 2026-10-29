@@ -1,3 +1,4 @@
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
@@ -35,6 +36,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {createExpenseDefaultRuleCountSelector} from '@selectors/Rule';
 import {useEffect, useState} from 'react';
 
+import useConfirmModal from './useConfirmModal';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -55,6 +57,7 @@ type FeatureListItem = ListItem & {
 function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, targetPolicies: Array<Policy | undefined>, initialParts?: readonly Part[], isNewPolicy = false) {
     const sourcePolicyID = sourcePolicy?.id;
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
     const [codingRulesCount = 0] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: createExpenseDefaultRuleCountSelector(sourcePolicyID)});
@@ -256,17 +259,41 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
 
     const selectableFeatures: Part[] = availableFeatureRows.filter((row) => !isFeatureDisabled(row.part)).map((row) => row.part);
 
+    const isMembersPart = (part: Part) => part === CONST.POLICY.POLICY_FEATURE.MEMBERS;
+
+    const confirmCopyMembers = () => {
+        const targetNames = targetPolicies.map((policy) => policy?.name).filter((name): name is string => !!name);
+        const prompt = translate('workspace.copyPolicySettings.confirmMembers.prompt', {count: targetPolicies.length, targetWorkspaceName: targetNames.at(0) ?? ''});
+
+        return showConfirmModal({
+            id: 'copyPolicySettingsConfirmMembers',
+            title: translate('workspace.copyPolicySettings.confirmMembers.title'),
+            prompt,
+            confirmText: translate('common.confirm'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+        }).then((result) => result.action === ModalActions.CONFIRM);
+    };
+
     const toggleFeature = (item: FeatureListItem) => {
         const part = item.keyForList;
         if (isFeatureDisabled(part)) {
             return;
         }
-        setSelectedFeatures((prev) => {
-            const current = prev ?? resolvedSelectedFeatures;
-            if (current.includes(part)) {
-                return current.filter((selectedPart) => selectedPart !== part);
+        const isSelected = (selectedFeatures ?? resolvedSelectedFeatures).includes(part);
+        // Copying members replaces the target workspace's existing members, so confirm before selecting it.
+        if (isNewPolicy || isSelected || !isMembersPart(part)) {
+            setSelectedFeatures((prev) => {
+                const current = prev ?? resolvedSelectedFeatures;
+                return isSelected ? current.filter((selectedPart) => selectedPart !== part) : [...current, part];
+            });
+            return;
+        }
+        confirmCopyMembers().then((isConfirmed) => {
+            if (!isConfirmed) {
+                return;
             }
-            return [...current, part];
+            setSelectedFeatures((prev) => [...(prev ?? resolvedSelectedFeatures), part]);
         });
     };
 
@@ -276,7 +303,16 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
             setSelectedFeatures([]);
             return;
         }
-        setSelectedFeatures(Array.from(new Set([...selectedAvailableFeatures, ...selectableFeatures])));
+        const nextSelection = Array.from(new Set([...selectedAvailableFeatures, ...selectableFeatures]));
+        // Copying members replaces the target workspace's existing members, so confirm when Select all adds it.
+        const isAddingMembers = !isNewPolicy && selectableFeatures.some(isMembersPart) && !selectedAvailableFeatures.some(isMembersPart);
+        if (!isAddingMembers) {
+            setSelectedFeatures(nextSelection);
+            return;
+        }
+        confirmCopyMembers().then((isConfirmed) => {
+            setSelectedFeatures(isConfirmed ? nextSelection : nextSelection.filter((part) => !isMembersPart(part)));
+        });
     };
 
     return {

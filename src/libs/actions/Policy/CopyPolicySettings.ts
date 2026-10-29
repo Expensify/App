@@ -46,6 +46,7 @@ const PARTS_TO_POLICY_FIELDS = {
     // (see Auth PR #21638). We rely on the server push for that field.
     workflows: [
         'areWorkflowsEnabled',
+        'isCollectDepositAccountsEnabled',
         'autoReportingFrequency',
         'autoReporting',
         'autoReportingOffset',
