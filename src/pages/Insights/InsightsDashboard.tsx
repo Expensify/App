@@ -28,8 +28,10 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
@@ -199,6 +201,11 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     );
 }
 
+/** Checks whether any stored response said the account has expenses. */
+function hasStoredResponseWithExpenses(dashboards: OnyxCollection<InsightsDashboardRecord>): boolean {
+    return Object.values(dashboards ?? {}).some((dashboard) => dashboard?.hasResults === true);
+}
+
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -241,6 +248,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isCompareEnabled, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
+    const [isKnownToHaveExpenses = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: hasStoredResponseWithExpenses});
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
@@ -257,7 +265,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
     }));
     const [headlineChart, ...supportingCharts] = charts;
-    const state = getDashboardState(dashboard, isOffline, charts);
+    const state = getDashboardState(dashboard, isOffline, charts, isKnownToHaveExpenses);
 
     const tabSelector =
         accessibleDashboards.length > 1 ? (
