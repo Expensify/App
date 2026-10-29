@@ -51,14 +51,19 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     accountID: session?.accountID,
 });
 
+const NO_TYPE_MENU_SECTIONS: ReturnType<typeof createTypeMenuSections> = [];
+
 /**
  * Get a list of all search groupings, along with their search items.
  *
  * `isScreenFocused` gates the reports-awaiting-approval watch so an off-screen consumer stops recomputing it. It
  * defaults to `true` (always watch) for consumers rendered outside a navigator or where focus can't be tracked
  * reliably, so this hook never depends on a navigation context itself.
+ *
+ * `shouldBuildSections` set to false skips building the sections (canned queries are parsed per item) and returns an
+ * empty list, for consumers that only show them conditionally.
  */
-const useSearchTypeMenuSections = (isScreenFocused = true) => {
+const useSearchTypeMenuSections = (isScreenFocused = true, shouldBuildSections = true) => {
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
@@ -76,7 +81,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
 
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
     // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
-    const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused);
+    const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused && shouldBuildSections);
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -104,27 +109,29 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         openCreateReportConfirmation();
     }, [pendingReportCreation, openCreateReportConfirmation]);
 
-    const typeMenuSections = createTypeMenuSections({
-        currentUserEmail: currentUserLoginAndAccountID?.email,
-        currentUserAccountID: currentUserLoginAndAccountID?.accountID,
-        cardFeedsByPolicy,
-        defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
-        policies: allPolicies,
-        savedSearches,
-        isOffline,
-        defaultExpensifyCard,
-        activeExpensifyCardFeedID,
-        draftTransactionIDs,
-        isTrackIntentUser: isTrackIntentUser ?? false,
-        hasReportAwaitingApproval,
-        policyCategories: allPolicyCategories,
-    });
+    const typeMenuSections = !shouldBuildSections
+        ? NO_TYPE_MENU_SECTIONS
+        : createTypeMenuSections({
+              currentUserEmail: currentUserLoginAndAccountID?.email,
+              currentUserAccountID: currentUserLoginAndAccountID?.accountID,
+              cardFeedsByPolicy,
+              defaultCardFeed: defaultCardFeed ?? defaultExpensifyCard,
+              policies: allPolicies,
+              savedSearches,
+              isOffline,
+              defaultExpensifyCard,
+              activeExpensifyCardFeedID,
+              draftTransactionIDs,
+              isTrackIntentUser: isTrackIntentUser ?? false,
+              hasReportAwaitingApproval,
+              policyCategories: allPolicyCategories,
+          });
 
     return typeMenuSections;
 };
 
-const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true) => {
-    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused);
+const useSearchTypeMenuSectionsForNavigation = (isScreenFocused = true, shouldBuildSections = true) => {
+    const typeMenuSections = useSearchTypeMenuSections(isScreenFocused, shouldBuildSections);
     const {isBetaEnabled} = usePermissions();
 
     let sections = typeMenuSections;
