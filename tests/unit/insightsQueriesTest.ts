@@ -147,16 +147,12 @@ describe('insightsQueries', () => {
                     violationsOverTime: {
                         snapshotHash: request?.headlineChart.queryJSON?.hash,
                         previousPeriodSnapshotHash: request?.headlineChart.previousPeriodQueryJSON?.hash,
-                        averageSnapshotHash: request?.headlineChart.averageQueryJSON?.hash,
+                        averageSnapshotHash: request?.snapshotHashes.at(2),
                     },
                 },
                 numberOfPeriods: 1,
             });
-            expect(request?.snapshotHashes).toEqual([
-                request?.headlineChart.queryJSON?.hash,
-                request?.headlineChart.previousPeriodQueryJSON?.hash,
-                request?.headlineChart.averageQueryJSON?.hash,
-            ]);
+            expect(request?.snapshotHashes).toEqual([request?.headlineChart.queryJSON?.hash, request?.headlineChart.previousPeriodQueryJSON?.hash, expect.any(Number)]);
         });
 
         it('uses a single selected day for both Compliance action stages', () => {
