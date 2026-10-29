@@ -1,17 +1,14 @@
 import type {SearchSortBy, SortOrder} from '@components/Search/types';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
-import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 
 import {resolveTransactionCardFields} from '@libs/CardUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionSortValue, isSortableColumnName} from '@libs/ReportUtils';
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
-import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,39 +18,12 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
     shouldBeHighlighted?: boolean;
 };
-
-const EMPTY_VIOLATIONS: OnyxTypes.TransactionViolations = [];
-
-/**
- * Looks up violations from the bulk collection and filters them via `getVisibleTransactionViolations`.
- * Returns the stable EMPTY_VIOLATIONS reference for the common no-violations case so the row's prop
- * identity stays stable across FlashList recycles.
- */
-function filterTransactionViolations(
-    transaction: TransactionWithOptionalHighlight,
-    allViolations: Record<string, OnyxTypes.TransactionViolations | undefined> | undefined,
-    email: string,
-    accountID: number,
-    report: OnyxTypes.Report,
-    ownerLogin: string | undefined,
-    policy: OnyxTypes.Policy | undefined,
-): OnyxTypes.TransactionViolations {
-    if (!allViolations) {
-        return EMPTY_VIOLATIONS;
-    }
-    const raw = allViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
-    if (!raw?.length) {
-        return EMPTY_VIOLATIONS;
-    }
-    const filtered = getVisibleTransactionViolations(transaction, raw, email, accountID, report, ownerLogin, policy);
-    return filtered.length === 0 ? EMPTY_VIOLATIONS : filtered;
-}
 
 type SortConfig = {
     sortBy: SortableColumnName;
@@ -105,13 +75,13 @@ type UseMoneyRequestReportSortedTransactionsResult = {
     /** transactionID → transaction-thread report ID, so each row can pass it to the RBR */
     transactionThreadReportIDByTransactionID: Map<string, string>;
 
-    /** transactionID → visible violations, with a stable empty reference for the no-violations case */
-    violationsByTransactionID: Map<string, OnyxTypes.TransactionViolations>;
+    /** Login of the report owner, which rows use to filter the violations the current user can see */
+    ownerLogin: string | undefined;
 };
 
 /**
  * Owns the transaction table's sort state and derives the sorted/resolved transaction arrays plus the
- * per-transaction lookup maps (thread report IDs, violations) the rows consume.
+ * per-transaction thread report IDs the rows consume.
  *
  * This chain lives in its own hook (rather than inline in the component) so React Compiler can memoize it:
  * in the component body the Map/Set building interleaves with other hook calls, which puts the intermediate
@@ -127,11 +97,8 @@ function useMoneyRequestReportSortedTransactions({
     policyTagLists,
 }: UseMoneyRequestReportSortedTransactionsParams): UseMoneyRequestReportSortedTransactionsResult {
     const {translate, localeCompare} = useLocalize();
-    const currentUserDetails = useCurrentUserPersonalDetails();
-    // The selector factory must be reference-stable across renders, otherwise useOnyx re-subscribes on every render.
-    const ownerLoginSelector = useMemo(() => personalDetailsLoginSelector(report?.ownerAccountID), [report?.ownerAccountID]);
+    const ownerLoginSelector = personalDetailsLoginSelector(report?.ownerAccountID);
     const [ownerLogin] = useAllPersonalDetails(ownerLoginSelector);
-    const [reportTransactionViolations] = useReportTransactionViolations(transactions);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [sortConfig, setSortConfig] = useState<SortConfig>({
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -177,13 +144,6 @@ function useMoneyRequestReportSortedTransactions({
 
     const highlightedTransactionIDs = new Set(newTransactions.map(({transactionID}) => transactionID));
 
-    const violationsByTransactionID = new Map<string, OnyxTypes.TransactionViolations>();
-    const email = currentUserDetails.email ?? '';
-    const accountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
-    for (const transaction of resolvedTransactions) {
-        violationsByTransactionID.set(transaction.transactionID, filterTransactionViolations(transaction, reportTransactionViolations, email, accountID, report, ownerLogin, policy));
-    }
-
     return {
         sortBy,
         sortOrder,
@@ -192,10 +152,9 @@ function useMoneyRequestReportSortedTransactions({
         resolvedTransactions,
         highlightedTransactionIDs,
         transactionThreadReportIDByTransactionID,
-        violationsByTransactionID,
+        ownerLogin,
     };
 }
 
 export default useMoneyRequestReportSortedTransactions;
-export {EMPTY_VIOLATIONS};
 export type {TransactionWithOptionalHighlight};

@@ -293,6 +293,7 @@ key "key"
       / groupCurrency
       / tag
       / category
+      / vendor
       / to
       / taxRate
       / cardID
@@ -327,6 +328,7 @@ key "key"
       / reimbursable
       / billable
       / declined
+      / held
       / action
       / has
       / is

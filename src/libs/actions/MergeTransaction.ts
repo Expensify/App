@@ -18,6 +18,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getIOUActionForReportID, getReportAction, getTrackExpenseActionableWhisper} from '@libs/ReportActionsUtils';
 import {
@@ -33,7 +34,20 @@ import CONST from '@src/CONST';
 import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportActions, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    CardList,
+    MergeTransaction,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActions,
+    Rule,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 
@@ -174,6 +188,8 @@ function getTransactionsForMergingLocally(
     targetTransaction: Transaction,
     transactions: OnyxCollection<Transaction>,
     rules: OnyxCollection<Rule>,
+    // The full list is needed because eligibility is checked against a different report owner per candidate transaction.
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     allPolicies: OnyxCollection<Policy>,
     currentUserLogin: string | undefined,
     allReports?: OnyxCollection<Report>,
@@ -208,7 +224,7 @@ function getTransactionsForMergingLocally(
         return (
             areTransactionsEligibleForMerge(targetTransaction, transaction) &&
             !isTransactionPendingDelete(transaction) &&
-            isMoneyRequestReportEligibleForMerge(candidateReport, isCandidateAdmin, rules)
+            isMoneyRequestReportEligibleForMerge(candidateReport, isCandidateAdmin, rules, getLoginByAccountID(candidateReport.ownerAccountID, personalDetails))
         );
     });
 
@@ -226,6 +242,7 @@ function getTransactionsForMerging({
     report,
     currentUserLogin,
     rules,
+    personalDetails,
     allPolicies,
     allReports,
 }: {
@@ -238,6 +255,8 @@ function getTransactionsForMerging({
     currentUserLogin: string | undefined;
     cardList?: CardList;
     rules: OnyxCollection<Rule>;
+    /** The full list is needed because eligibility is checked against a different report owner per candidate transaction. */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
     allPolicies?: OnyxCollection<Policy>;
     allReports?: OnyxCollection<Report>;
 }) {
@@ -274,7 +293,7 @@ function getTransactionsForMerging({
     }
 
     if (isOffline) {
-        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, allPolicies, currentUserLogin, allReports);
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, rules, personalDetails, allPolicies, currentUserLogin, allReports);
     } else {
         getTransactionsForMergingFromAPI(transactionID);
     }

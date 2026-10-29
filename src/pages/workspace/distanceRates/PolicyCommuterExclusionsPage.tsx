@@ -23,8 +23,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDistanceRateCustomUnit, hasCompanyAddress, hasOfficeWorkArrangement} from '@libs/PolicyUtils';
-import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+import {hasOfficeLocations} from '@libs/OfficeLocationUtils';
+import {getDistanceRateCustomUnit, hasOfficeWorkArrangement} from '@libs/PolicyUtils';
+import {getUnitTranslationKey} from '@libs/WorkspaceDisplayUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -68,7 +69,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         selector: (policy) => ({
             commuterExclusions: policy?.commuterExclusions,
             unit: getDistanceRateCustomUnit(policy)?.attributes?.unit,
-            hasWorkspaceAddress: hasCompanyAddress(policy),
+            hasOfficeLocations: hasOfficeLocations(policy),
             pendingFields: policy?.pendingFields,
             errorFields: policy?.errorFields,
         }),
@@ -103,7 +104,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         if (item.keyForList === selectedKey) {
             return;
         }
-        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasWorkspaceAddress) {
+        if (item.keyForList === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !policyData?.hasOfficeLocations) {
             confirmModal.showConfirmModal({
                 title: translate('workspace.distanceRates.commuterExclusions.workspaceAddressRequired.title'),
                 prompt: (
@@ -152,7 +153,7 @@ function PolicyCommuterExclusionsPage({route}: PolicyCommuterExclusionsPageProps
         }
 
         if (selectedKey === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {
-            if (!policyData?.hasWorkspaceAddress) {
+            if (!policyData?.hasOfficeLocations) {
                 return;
             }
             if (existingMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE) {

@@ -34,7 +34,7 @@ type DistanceRateNameError =
     | typeof CONST.INPUT_VALIDATION_ERRORS.INVALID
     | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LONG;
 
-/** The reason a proposed distance rate amount is invalid. Shared by the RHP edit form and inline table editing. */
+/** The reason a proposed distance rate amount is invalid. Callers translate it via `getDistanceRateValueErrorMessage`. */
 type DistanceRateValueError = typeof CONST.INPUT_VALIDATION_ERRORS.INVALID | typeof CONST.INPUT_VALIDATION_ERRORS.TOO_LOW;
 
 /**
@@ -102,14 +102,23 @@ function getDistanceRateValueError(rate: string, toLocaleDigit: (arg: string) =>
     return undefined;
 }
 
+/** Translates a {@link DistanceRateValueError} into a user-facing message. */
+function getDistanceRateValueErrorMessage(translate: LocalizedTranslate, error: DistanceRateValueError): string {
+    switch (error) {
+        case CONST.INPUT_VALIDATION_ERRORS.TOO_LOW:
+            return translate('common.error.lowRateError');
+        case CONST.INPUT_VALIDATION_ERRORS.INVALID:
+        default:
+            return translate('common.error.invalidRateError');
+    }
+}
+
 function validateRateValue(values: FormOnyxValues<RateValueForm>, toLocaleDigit: (arg: string) => string, translate: LocalizedTranslate): FormInputErrors<RateValueForm> {
     const errors: FormInputErrors<RateValueForm> = {};
     const error = getDistanceRateValueError(values.rate, toLocaleDigit);
 
-    if (error === CONST.INPUT_VALIDATION_ERRORS.INVALID) {
-        errors.rate = translate('common.error.invalidRateError');
-    } else if (error === CONST.INPUT_VALIDATION_ERRORS.TOO_LOW) {
-        errors.rate = translate('common.error.lowRateError');
+    if (error) {
+        errors.rate = getDistanceRateValueErrorMessage(translate, error);
     }
 
     return errors;
@@ -589,4 +598,5 @@ export {
     getDistanceRateNameError,
     getDistanceRateNameErrorMessage,
     getDistanceRateValueError,
+    getDistanceRateValueErrorMessage,
 };

@@ -591,6 +591,34 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense policyID:12345 amount<100');
         });
 
+        test('vendor filter value', () => {
+            // Given a filter form with a picked vendor and the "No vendor" option
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                vendor: ['Acme', 'none'],
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then both values are written to one vendor filter so the search matches either of them
+            expect(result).toEqual('type:expense vendor:Acme,none');
+        });
+
+        test('negated vendor filter value', () => {
+            // Given a filter form that excludes a vendor
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                vendorNot: ['Acme'],
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the vendor filter keeps its negation so the exclusion is not turned into a match
+            expect(result).toEqual('type:expense -vendor:Acme');
+        });
+
         test('receipt type filter value', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -650,6 +678,48 @@ describe('SearchQueryUtils', () => {
 
             // Then the declined key gets the "-" prefix
             expect(result).toEqual('type:expense -declined:no');
+        });
+
+        test('held filter value', () => {
+            // Given the Held filter set to yes on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                held: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the filter is written with the held key
+            expect(result).toEqual('type:expense held:yes');
+        });
+
+        test('negated held filter value', () => {
+            // Given the Held filter negated on an expense search
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                heldNot: 'no',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the held key gets the "-" prefix
+            expect(result).toEqual('type:expense -held:no');
+        });
+
+        test('held filter is dropped for expense reports', () => {
+            // Given the Held filter set on an expense report search, which only supports it for expenses
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                held: 'yes',
+            };
+
+            // When the query string is built from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the held filter is not written
+            expect(result).toEqual('type:expense-report');
         });
 
         test('negated receipt type filter value', () => {
@@ -1670,6 +1740,43 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        test('vendor filter keeps the typed names and the empty value', () => {
+            // Given a typed query with a quoted vendor name and the empty value
+            const queryString = 'sortBy:date sortOrder:desc type:expense vendor:"Acme Tools",none';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the filter form is built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then both values are kept as typed, since vendor names are matched by text and not checked against a list
+            expect(result).toEqual({
+                type: 'expense',
+                vendor: ['Acme Tools', 'none'],
+            });
+        });
+
+        test('negated vendor filter is kept in the negated form key', () => {
+            // Given a typed query that excludes a vendor
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense -vendor:"Acme Tools"');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the filter form is built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the exclusion lands in vendorNot so applying the form keeps it an exclusion
+            expect(result).toEqual({
+                type: 'expense',
+                vendorNot: ['Acme Tools'],
+            });
+        });
+
         test('action filter should be set to undefined if the input value is invalid', () => {
             const policyCategories = {};
             const currencyList = {};
@@ -2300,6 +2407,52 @@ describe('SearchQueryUtils', () => {
             // Then the value lands in the negated form key only
             expect(result.declinedNot).toEqual('yes');
             expect(result.declined).toBeUndefined();
+        });
+
+        test('held filter populates the form with a yes or no value', () => {
+            // Given a query that filters expenses on whether they are on hold
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense held:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the Held filter holds the yes value
+            expect(result.held).toEqual('yes');
+        });
+
+        test('held filter ignores values other than yes and no', () => {
+            // Given a hand-typed query with a value the boolean filter does not accept
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense held:maybe');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the invalid value is dropped instead of being shown as a selection
+            expect(result.held).toBeUndefined();
+        });
+
+        test('negated held filter populates heldNot', () => {
+            // Given a query that excludes held expenses with the "-" prefix
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense -held:yes');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then the value lands in the negated form key only
+            expect(result.heldNot).toEqual('yes');
+            expect(result.held).toBeUndefined();
         });
 
         test('negated receipt type filter populates receiptTypeNot', () => {
@@ -3157,6 +3310,28 @@ describe('SearchQueryUtils', () => {
             // When checking whether it can be saved
             // Then there is nothing to save
             expect(isSearchQuerySavable(undefined, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns false when only a Spend footer selection differs from the default query', () => {
+            // Given a saved search on the reimbursable total
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel footerTotal:reimbursable');
+
+            // When only the footer selections change, which the footer's own Reset undoes
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel footerTotal:billable footerCount:reports footerCurrency:EUR');
+
+            // Then the header doesn't offer Save
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('still returns true when a row filter changes alongside a footer selection', () => {
+            // Given a search on one category
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When the category changes along with the footer total
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:meals footerTotal:billable');
+
+            // Then the header offers Save, since a row filter changed
+            expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
 
         it('returns false when the query equals the default query', () => {
@@ -4630,7 +4805,7 @@ describe('SearchQueryUtils', () => {
             );
 
             expect(result).toHaveLength(1);
-            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.travelInvoicing'));
+            expect(result.at(0)?.value).toBe(translateLocal('search.filters.card.travelBilling'));
         });
 
         it('should fall back to the raw feed key when a non-Plaid feed is not in the display table', () => {
@@ -5742,6 +5917,26 @@ describe('SearchQueryUtils', () => {
         });
     });
 
+    describe('getAllPolicyValues category projections', () => {
+        test('selects projected names and skips undefined collection members', () => {
+            // Given category selectors retain only names and collection members may not have loaded
+            const names: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]: {foodKey: {name: 'Food'}},
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`]: {travelKey: {name: 'Travel'}},
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}3`]: undefined,
+            };
+            // When workspace filters must work without complete category metadata
+            const projected = getAllPolicyValues({value: ['1'], isNegated: false}, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            const negated = getAllPolicyValues({value: ['1'], isNegated: true}, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            const all = getAllPolicyValues(undefined, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, names);
+            // Then filtering must skip unloaded members without reconstructing the selected projections
+            expect(projected).toEqual([{foodKey: {name: 'Food'}}]);
+            expect(projected.at(0)).toBe(names[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`]);
+            expect(negated).toEqual([{travelKey: {name: 'Travel'}}]);
+            expect(all).toEqual([...projected, ...negated]);
+        });
+    });
+
     describe('getAllPolicyValuesMap', () => {
         const policy1 = createRandomPolicy(1, undefined, 'Workspace 1');
         const policy2 = createRandomPolicy(2, undefined, 'Workspace 2');
@@ -6005,6 +6200,42 @@ describe('SearchQueryUtils', () => {
             const lastQuery = 'type:invoice status:all';
             expect(getValidLastQuery(lastQuery, defaultSearchQuery)).toBe(defaultSearchQuery);
         });
+
+        describe('with the Spend footer selections', () => {
+            it('keeps a last query switched back to the default total, which leaves the total out', () => {
+                // Given a saved search on the reimbursable total
+                const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+
+                // When it is switched back to the plain total, which leaves the total out of the last query
+                const lastQuery = 'type:expense status:all';
+
+                // Then the last choice comes back, the same as when switching to any other total
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(lastQuery);
+                expect(getValidLastQuery('type:expense status:all footerTotal:non-reimbursable', savedQuery)).toBe('type:expense status:all footerTotal:non-reimbursable');
+            });
+
+            it('keeps a last query switched back to the default count, which leaves the count out', () => {
+                // Given a saved search on the report count
+                const savedQuery = 'type:expense status:all footerCount:reports';
+
+                // When it is switched back to the expense count, which leaves the count out of the last query
+                const lastQuery = 'type:expense status:all';
+
+                // Then the last choice comes back
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(lastQuery);
+            });
+
+            it('still drops a last query that lost a real filter', () => {
+                // Given a saved search with a footer total
+                const savedQuery = 'type:expense status:all footerTotal:reimbursable';
+
+                // When its last query drops the status filter
+                const lastQuery = 'type:expense footerTotal:reimbursable';
+
+                // Then the saved query comes back, since a row filter still decides
+                expect(getValidLastQuery(lastQuery, savedQuery)).toBe(savedQuery);
+            });
+        });
     });
 
     describe('doesQueryMatchDefaultFilterKeysAndType', () => {
@@ -6088,6 +6319,21 @@ describe('SearchQueryUtils', () => {
                 start: '2025-03-02',
                 end: '2025-03-09',
             });
+        });
+
+        test('zero-pads dates typed without leading zeros so they compare correctly with other dates', () => {
+            // Given a query whose dates are typed without leading zeros, which the search parser accepts
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-1-5 date<=2026-2-9');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the date range is read from the query
+            const range = getDateFilterRange(queryJSON);
+
+            // Then both bounds are zero-padded yyyy-MM-dd dates, like the chart groups and today they are compared with
+            expect(range).toEqual({start: '2026-01-05', end: '2026-02-09'});
         });
     });
 
