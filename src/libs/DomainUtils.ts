@@ -176,7 +176,12 @@ function getMemberCustomRowProps(accountID: number, domainPendingActions: Domain
 
     return {
         errors: getLatestError(mergedErrors),
-        pendingAction: emailPendingActions?.pendingAction ?? accountIDPendingActions?.pendingAction ?? accountIDPendingActions?.lockAccount ?? emailPendingActions?.changeDomainSecurityGroup,
+        pendingAction:
+            emailPendingActions?.pendingAction ??
+            accountIDPendingActions?.pendingAction ??
+            accountIDPendingActions?.lockAccount ??
+            accountIDPendingActions?.unlockAccount ??
+            emailPendingActions?.changeDomainSecurityGroup,
     };
 }
 

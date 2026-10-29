@@ -569,6 +569,19 @@ describe('DomainUtils', () => {
             expect(result.pendingAction).toBe('update');
         });
 
+        it('should fall back to unlockAccount pending action when accountID pendingAction is undefined', () => {
+            // Given an unlock request queued for the member, so only the unlockAccount pending field is set
+            const domainPendingActions: DomainPendingAction['member'] = {
+                [accountID]: {pendingAction: undefined, lockAccount: undefined, unlockAccount: 'update', changeDomainSecurityGroup: undefined},
+            };
+
+            // When the members list computes the row props
+            const result = getMemberCustomRowProps(accountID, domainPendingActions, undefined);
+
+            // Then the row gets the pending action, so it shows the same pending styling as the details page
+            expect(result.pendingAction).toBe('update');
+        });
+
         it('should prefer email pendingAction over accountID pendingAction', () => {
             const domainPendingActions: DomainPendingAction['member'] = {
                 [email]: {pendingAction: 'add', lockAccount: undefined, changeDomainSecurityGroup: undefined},
