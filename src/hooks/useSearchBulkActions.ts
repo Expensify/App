@@ -822,8 +822,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
     const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
     const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
-    // Names of the selected reports, so bulk pay can list the reports it skipped the same way Search shows them
-    const selectedReportNames = useDerivedReportNamesByReportIDs(selectedReports.length > 0 ? payableSelectedReports.map((report) => report.reportID) : selectedTransactionReportIDs);
+    // Names of the reports bulk pay goes through, picked the same way as its items, so it can list the reports it skipped the same way Search shows them
+    const selectedReportNames = useDerivedReportNamesByReportIDs(selectedReports.length > 0 ? payableSelectedReportIDs : selectedTransactionReportIDs);
 
     const payScopedReportIDs = useMemo(() => payScopedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payScopedReports]);
 
