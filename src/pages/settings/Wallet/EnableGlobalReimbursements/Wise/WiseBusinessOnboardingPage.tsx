@@ -21,7 +21,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {hideBankAccountErrors, openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues} from '@userActions/FormActions';
-import updateWiseOnboardingAdditionalData from '@userActions/WiseOnboarding';
+import updateWiseOnboardingAdditionalData, {clearWiseOnboardingFailedPages} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +51,8 @@ const saveErrorSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>
 
 const isSavingPageSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => !!reimbursementAccount?.isSavingWiseOnboardingPage;
 
+const hasFailedPageSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => Object.values(reimbursementAccount?.wiseOnboardingFailedPages ?? {}).some(Boolean);
+
 /** The business details we collect before Wise's own page: the representative, the business, and a confirmation of both */
 function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
@@ -62,6 +64,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
     const [saveError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: saveErrorSelector});
     const [isSavingPage] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: isSavingPageSelector});
+    const [hasFailedPage] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: hasFailedPageSelector});
     const bankAccount = bankAccountList?.[bankAccountID];
 
     const {translate} = useLocalize();
@@ -122,6 +125,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         }
         clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+        clearWiseOnboardingFailedPages();
     }, [isDraftForOtherAccount]);
 
     // After a save, the draft still holds the files picked on this device, so the next save of that page would upload them again. Once the server's file
@@ -184,12 +188,13 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
                 const {params, hasSensitiveAnswers} = getWiseOnboardingPageParams(bankAccountID, page, answers, sensitiveAnswers);
                 updateWiseOnboardingAdditionalData(params, hasSensitiveAnswers);
             }}
-            submitError={saveError || undefined}
+            // A later page's save clears the shared error, so a page that still failed shows the generic one
+            submitError={saveError || (hasFailedPage && !isSavingPage ? translate('common.genericErrorMessage') : undefined)}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}
             onSubmit={() => {
                 // A page save that is still running or has failed would leave Wise without that page, so the user stays on the confirmation page
-                if (isSavingPage || saveError) {
+                if (isSavingPage || saveError || hasFailedPage) {
                     return;
                 }
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path));

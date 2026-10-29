@@ -1,8 +1,9 @@
 import {act, render, screen} from '@testing-library/react-native';
 
+import type {DynamicFormFlowProps} from '@components/DynamicForm/types';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {setHasRadio} from '@libs/NetworkState';
@@ -35,11 +36,13 @@ const NOT_FOUND_TEST_ID = 'NotFoundPage';
 const BANK_ACCOUNT_ID = 1;
 
 const mockFlowMount = jest.fn();
+const mockFlowProps = jest.fn<void, [DynamicFormFlowProps]>();
 
 jest.mock('@components/DynamicForm', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
     const reactNative = jest.requireActual<typeof ReactNative>('react-native');
-    function MockDynamicFormFlow() {
+    function MockDynamicFormFlow(props: DynamicFormFlowProps) {
+        mockFlowProps(props);
         useEffect(() => {
             mockFlowMount();
         }, []);
@@ -67,7 +70,7 @@ const ELIGIBLE_BANK_ACCOUNT: BankAccount = {
 };
 
 /** The part of the reimbursement account the page reads */
-type BusinessReimbursementAccount = {achData: WiseBusinessAccountData};
+type BusinessReimbursementAccount = {achData: WiseBusinessAccountData; wiseOnboardingFailedPages?: Record<string, boolean>};
 
 const REIMBURSEMENT_ACCOUNT: BusinessReimbursementAccount = {
     achData: {
@@ -285,8 +288,9 @@ describe('WiseBusinessOnboardingPage', () => {
     });
 
     it('starts the draft over when it was started for another bank account', async () => {
-        // Given a draft with answers the user gave for another bank account, and a sensitive answer from that visit
+        // Given a draft with answers the user gave for another bank account, and a sensitive answer and a failed page save from that visit
         await Onyx.multiSet({
+            [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {wiseOnboardingFailedPages: {representative: true}},
             [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT]: {
                 bankAccountID: '2',
                 companyName: 'Other Business LLC',
@@ -319,6 +323,16 @@ describe('WiseBusinessOnboardingPage', () => {
             });
         });
         expect(sensitiveAnswers?.[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]).toBeFalsy();
+        const reimbursementAccount = await new Promise<OnyxEntry<Record<string, unknown>>>((resolve) => {
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+        expect(reimbursementAccount?.wiseOnboardingFailedPages).toBeFalsy();
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
@@ -364,5 +378,19 @@ describe('WiseBusinessOnboardingPage', () => {
 
         // Then the draft holds the saved file, so saving the page again lists its key instead of uploading the file again
         expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg')]);
+    });
+
+    it('keeps the user on the confirmation page while a page that failed to save has not saved since', async () => {
+        // Given the representative page failed to save, and the business page saved after it, which cleared the shared error
+        await renderPage({reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingFailedPages: {representative: true}}});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the user taps Confirm
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        act(() => flowProps?.onSubmit({}));
+
+        // Then they stay on the confirmation page with an error, since Wise does not have the representative details yet
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(flowProps?.submitError).toBe('common.genericErrorMessage');
     });
 });
