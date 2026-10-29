@@ -224,6 +224,7 @@ import {
     restoreAttachmentAnchorAttributes,
     restoreAttachmentAnchorLabels,
     requiresAttentionFromCurrentUser,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
@@ -18792,6 +18793,56 @@ describe('ReportUtils', () => {
             const result = shouldBlockSubmitDueToStrictPolicyRules(reportID, transactionViolations, true, 0, '', transactions);
 
             expect(result).toBe(true);
+        });
+    });
+
+    describe('shouldBlockSubmitDueToDeletedWorkspace', () => {
+        it('should return true when the workspace chat was archived because its workspace was deleted', () => {
+            // Given a workspace chat archived with the POLICY_DELETED reason, which deleting a workspace leaves behind
+            // without setting archivedDate on the policy
+            const isChatReportArchived = true;
+            const chatArchiveReason = CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+
+            // Then Submit is blocked, because the backend rejects submissions to a deleted workspace
+            expect(result).toBe(true);
+        });
+
+        it('should return false when the workspace chat was archived because the submitter was removed from the workspace', () => {
+            // Given a workspace chat archived because the submitter was removed, while the workspace itself still exists
+            const isChatReportArchived = true;
+            const chatArchiveReason = CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+
+            // Then Submit stays available, so a removed member's outstanding reports can still move through the workflow
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the workspace chat is not archived', () => {
+            // Given an active workspace chat, even with a stale POLICY_DELETED close reason (e.g. a restored workspace)
+            const isChatReportArchived = false;
+            const chatArchiveReason = CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+
+            // Then Submit stays available, because only a chat that is currently archived signals a deleted workspace
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the archive reason is unknown', () => {
+            // Given an archived workspace chat whose close action isn't loaded, so its reason can't be read
+            const isChatReportArchived = true;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, undefined);
+
+            // Then Submit stays available, because archived chats are only blocked when the workspace was deleted
+            expect(result).toBe(false);
         });
     });
 
