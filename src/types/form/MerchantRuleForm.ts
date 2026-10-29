@@ -16,6 +16,7 @@ const INPUT_IDS = {
     DESCRIPTION: 'comment',
     MATCH_TYPE: 'matchType',
     MERCHANT_TO_MATCH: 'merchantToMatch',
+    MERCHANT_TYPES_TO_MATCH: 'merchantTypesToMatch',
     MERCHANT: 'merchant',
     REIMBURSABLE: 'reimbursable',
     REIMBURSABLE_TO_MATCH: 'reimbursableToMatch',
@@ -44,6 +45,7 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.MATCH_TYPE]: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
         [INPUT_IDS.MERCHANT]: string;
         [INPUT_IDS.MERCHANT_TO_MATCH]: string;
+        [INPUT_IDS.MERCHANT_TYPES_TO_MATCH]: string[];
         [INPUT_IDS.REIMBURSABLE]: boolean;
         [INPUT_IDS.REIMBURSABLE_TO_MATCH]: boolean;
         [INPUT_IDS.SUBMITTERS_TO_MATCH]: string[];

@@ -39,6 +39,7 @@ import {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
     getExpenseDefaultFormValues,
+    getMerchantTypeLabel,
     getPolicyExpenseDefaultRules,
     hasExpenseDefaultConditions,
     haveSameConditions,
@@ -138,6 +139,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         MERCHANT_RULE_INPUT_IDS.SUBMITTERS_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.DATE_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.DATE_MATCH_TYPE,
+        MERCHANT_RULE_INPUT_IDS.MERCHANT_TYPES_TO_MATCH,
     ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -329,6 +331,9 @@ function ExpenseDefaultRulePageBase({
     const submittersToMatch = form?.submittersToMatch ?? [];
     // A submitter who has left the workspace keeps their account ID, so the row still shows the rule matches on someone.
     const submittersToMatchDisplayName = submittersToMatch.length > 0 ? submittersToMatch.map((accountID) => membersByAccountID.get(accountID) ?? accountID).join(', ') : undefined;
+    const merchantTypesToMatch = form?.merchantTypesToMatch ?? [];
+    const merchantTypesToMatchDisplayName =
+        merchantTypesToMatch.length > 0 ? merchantTypesToMatch.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', ') : undefined;
     const dateToMatch = form?.dateToMatch;
     const dateMatchType = form?.dateMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
     const getDateToMatchDisplayName = () => {
@@ -517,6 +522,14 @@ function ExpenseDefaultRulePageBase({
                     title: submittersToMatchDisplayName ?? translate('common.any'),
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
+                },
+                {
+                    key: 'merchantTypesToMatch',
+                    description: translate('workspace.rules.merchantTypeRule.merchantType'),
+                    title: merchantTypesToMatchDisplayName,
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TYPE_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Basket,
                 },
                 {
                     key: 'dateToMatch',

@@ -9565,6 +9565,35 @@ const CONST = {
             /** A rule firing only on these is an approval workflow rather than an expense default. */
             TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],
         },
+        /**
+         * The merchant categories a rule can match on.
+         *
+         * These are the rules engine's own vocabulary, which is not the same as the `mccGroup` groups the
+         * merchant type defaults use. The two taxonomies overlap only on `airlines` and `groceries`.
+         */
+        MERCHANT_TYPE: {
+            AIRLINES: 'airlines',
+            ALCOHOL_AND_BARS: 'alcoholAndBars',
+            AMAZON_AND_BOOKSTORES: 'amazonAndBookstores',
+            AUTOMOTIVE: 'automotive',
+            CAR_RENTALS: 'carRentals',
+            DINING: 'dining',
+            FUEL_AND_GAS: 'fuelAndGas',
+            GOVERNMENT_AND_NON_PROFITS: 'governmentAndNonProfits',
+            GROCERIES: 'groceries',
+            GYMS_AND_FITNESS: 'gymsAndFitness',
+            HEALTHCARE: 'healthcare',
+            HOTELS: 'hotels',
+            INTERNET_AND_PHONE: 'internetAndPhone',
+            OFFICE_SUPPLIES: 'officeSupplies',
+            PARKING_AND_TOLLS: 'parkingAndTolls',
+            PROFESSIONAL_SERVICES: 'professionalServices',
+            RETAIL: 'retail',
+            SHIPPING_AND_DELIVERY: 'shippingAndDelivery',
+            SOFTWARE: 'software',
+            TRANSIT_AND_RIDESHARE: 'transitAndRideshare',
+            TRAVEL_AGENCIES: 'travelAgencies',
+        },
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {

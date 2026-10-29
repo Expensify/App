@@ -31,6 +31,7 @@ const REIMBURSABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 const BILLABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE;
 const SUBMITTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 const DATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
+const MERCHANT_TYPE = 'merchantType';
 const {LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 
 const POLICY_ID = 'ABC123';
@@ -232,6 +233,7 @@ describe('ExpenseDefaultRuleUtils', () => {
                 reimbursableToMatch: true,
                 billableToMatch: false,
                 submittersToMatch: ['12345'],
+                merchantTypesToMatch: [CONST.RULES.MERCHANT_TYPE.AIRLINES],
                 dateToMatch: '2026-01-15',
                 dateMatchType: GREATER_THAN,
                 category: 'Coffee',
@@ -262,6 +264,15 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When its filters are read
             // Then the condition survives, because false is a real match rather than a cleared field
             expect(rule?.filters).toEqual({left: REIMBURSABLE, operator: EQUAL_TO, right: 'no'});
+        });
+
+        it('builds a rule that matches on merchant types alone', () => {
+            // Given a form whose only condition is two merchant categories
+            const rule = buildExpenseDefaultRule({merchantTypesToMatch: [CONST.RULES.MERCHANT_TYPE.AIRLINES, CONST.RULES.MERCHANT_TYPE.HOTELS], category: 'Travel'}, policy);
+
+            // When its filters are read
+            // Then they are ORed on the rules engine's own merchant type key, which search has no equivalent for
+            expect(rule?.filters).toEqual({left: MERCHANT_TYPE, operator: EQUAL_TO, right: ['airlines', 'hotels']});
         });
 
         it('compares the expense date with the operator the picker chose', () => {

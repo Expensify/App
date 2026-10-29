@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 /**
  * Helpers for the expense default rules stored in the `rules_` collection, which is what the merchant rule
  * editor reads and writes. Converts between the rules engine's filter tree and the flat form the editor
@@ -53,6 +55,9 @@ type ExpenseDefaultFormValues = {
 
     /** The account IDs of the members whose expenses the rule applies to. The list is matched as an OR */
     submittersToMatch?: string[];
+
+    /** The merchant categories an expense has to fall into. The list is matched as an OR */
+    merchantTypesToMatch?: string[];
 
     /** The date an expense is compared against, as `YYYY-MM-DD` */
     dateToMatch?: string;
@@ -118,6 +123,8 @@ const CONDITION = {
     BILLABLE: CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
     SUBMITTER: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
     DATE: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+    // The rules engine matches merchant categories on its own key, which search has no equivalent for.
+    MERCHANT_TYPE: 'merchantType',
 } as const;
 
 /** Search stores a boolean filter as one of these words rather than as a JSON boolean, and the rule tree follows it. */
@@ -313,6 +320,11 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.SUBMITTER, operator: EQUAL_TO, right: submittersToMatch});
     }
 
+    const merchantTypesToMatch = getNonEmptyValues(formValues.merchantTypesToMatch);
+    if (merchantTypesToMatch.length > 0) {
+        comparisons.push({left: CONDITION.MERCHANT_TYPE, operator: EQUAL_TO, right: merchantTypesToMatch});
+    }
+
     const dateToMatch = formValues.dateToMatch?.trim();
     if (dateToMatch) {
         comparisons.push({left: CONDITION.DATE, operator: formValues.dateMatchType ?? EQUAL_TO, right: dateToMatch});
@@ -324,6 +336,19 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
     }
 
     return rest.reduce<RuleFilterNode>((left, right) => ({operator: AND, left, right}), firstComparison);
+}
+
+type MerchantType = ValueOf<typeof CONST.RULES.MERCHANT_TYPE>;
+
+const MERCHANT_TYPES: MerchantType[] = Object.values(CONST.RULES.MERCHANT_TYPE);
+
+function isMerchantType(value: string): value is MerchantType {
+    return MERCHANT_TYPES.some((merchantType) => merchantType === value);
+}
+
+/** A merchant type's label, falling back to the raw value so a type the app doesn't know yet still shows. */
+function getMerchantTypeLabel(merchantType: string, translate: LocalizedTranslate): string {
+    return isMerchantType(merchantType) ? translate(`workspace.rules.merchantRules.merchantTypes.${merchantType}`) : merchantType;
 }
 
 /** Whether the form matches on anything. A rule with no conditions would apply to every expense, and the API rejects it. */
@@ -373,6 +398,7 @@ function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Pa
         first.reimbursableToMatch === second.reimbursableToMatch &&
         first.billableToMatch === second.billableToMatch &&
         haveSameConditionValues(first.submittersToMatch, second.submittersToMatch) &&
+        haveSameConditionValues(first.merchantTypesToMatch, second.merchantTypesToMatch) &&
         haveSameDateCondition(first, second)
     );
 }
@@ -465,6 +491,7 @@ type EditableConditions = Pick<
     | 'reimbursableToMatch'
     | 'billableToMatch'
     | 'submittersToMatch'
+    | 'merchantTypesToMatch'
     | 'dateToMatch'
     | 'dateMatchType'
 >;
@@ -528,6 +555,10 @@ function getConditionFromLeaf(leaf: RuleFilterComparison): EditableConditions | 
 
     if (leaf.left === CONDITION.SUBMITTER) {
         return {submittersToMatch: values};
+    }
+
+    if (leaf.left === CONDITION.MERCHANT_TYPE) {
+        return {merchantTypesToMatch: values};
     }
 
     if (leaf.left === CONDITION.REIMBURSABLE || leaf.left === CONDITION.BILLABLE) {
@@ -820,6 +851,8 @@ export {
     buildCopiedExpenseDefaultRules,
     buildExpenseDefaultFilters,
     buildExpenseDefaultRule,
+    getMerchantTypeLabel,
+    MERCHANT_TYPES,
     canEditExpenseDefaultRule,
     getExpenseDefaultTaxID,
     getCategoryExpenseDefaultRules,

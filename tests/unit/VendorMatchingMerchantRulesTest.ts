@@ -31,6 +31,7 @@ const buildForm = (overrides: Partial<MerchantRuleForm> = {}): MerchantRuleForm 
     currenciesToMatch: [],
     taxRatesToMatch: [],
     submittersToMatch: [],
+    merchantTypesToMatch: [],
     dateToMatch: '',
     dateMatchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
     reimbursableToMatch: false,
