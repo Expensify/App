@@ -74,6 +74,8 @@ function getRuleContentKey(formValues: Partial<ExpenseDefaultFormValues>): strin
         formValues.currenciesToMatch ?? [],
         formValues.taxRatesToMatch ?? [],
         formValues.submittersToMatch ?? [],
+        formValues.dateToMatch ?? null,
+        formValues.dateMatchType ?? null,
         formValues.reimbursableToMatch ?? null,
         formValues.billableToMatch ?? null,
         formValues.merchant ?? '',

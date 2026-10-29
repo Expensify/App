@@ -136,6 +136,8 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         MERCHANT_RULE_INPUT_IDS.REIMBURSABLE_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.BILLABLE_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.SUBMITTERS_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.DATE_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.DATE_MATCH_TYPE,
     ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -181,7 +183,7 @@ function ExpenseDefaultRulePageBase({
     const {isCreatedFromExpense, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.path, policyID, ruleID);
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Cash', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Calendar', 'Cash', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -327,6 +329,20 @@ function ExpenseDefaultRulePageBase({
     const submittersToMatch = form?.submittersToMatch ?? [];
     // A submitter who has left the workspace keeps their account ID, so the row still shows the rule matches on someone.
     const submittersToMatchDisplayName = submittersToMatch.length > 0 ? submittersToMatch.map((accountID) => membersByAccountID.get(accountID) ?? accountID).join(', ') : undefined;
+    const dateToMatch = form?.dateToMatch;
+    const dateMatchType = form?.dateMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+    const getDateToMatchDisplayName = () => {
+        if (!dateToMatch) {
+            return undefined;
+        }
+        if (dateMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
+            return translate('search.filters.date.after', dateToMatch);
+        }
+        if (dateMatchType === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
+            return translate('search.filters.date.before', dateToMatch);
+        }
+        return translate('search.filters.date.on', dateToMatch);
+    };
     const taxRatesToMatch = form?.taxRatesToMatch ?? [];
     // Blank rather than the raw ID once a rate is gone from the workspace.
     const taxRatesToMatchDisplayName = taxRatesToMatch.length > 0 ? taxRatesToMatch.map((externalID) => getTaxRateDisplayName(policy, externalID) || externalID).join(', ') : undefined;
@@ -419,7 +435,9 @@ function ExpenseDefaultRulePageBase({
         if (hasDuplicate) {
             // A duplicate does not have to match on a merchant, so the prompt names the first condition the two share.
             const duplicateCondition =
-                [form.merchantToMatch, categoriesToMatchDisplayName, tagsToMatchDisplayName, currenciesToMatchDisplayName, taxRatesToMatchDisplayName].find(Boolean) ?? '';
+                [form.merchantToMatch, categoriesToMatchDisplayName, tagsToMatchDisplayName, currenciesToMatchDisplayName, taxRatesToMatchDisplayName, getDateToMatchDisplayName()].find(
+                    Boolean,
+                ) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
                 prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', duplicateCondition),
@@ -499,6 +517,13 @@ function ExpenseDefaultRulePageBase({
                     title: submittersToMatchDisplayName ?? translate('common.any'),
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
+                },
+                {
+                    key: 'dateToMatch',
+                    description: translate('common.date'),
+                    title: getDateToMatchDisplayName(),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_DATE_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Calendar,
                 },
                 {
                     key: 'currenciesToMatch',

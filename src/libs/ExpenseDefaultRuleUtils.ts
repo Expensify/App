@@ -54,6 +54,12 @@ type ExpenseDefaultFormValues = {
     /** The account IDs of the members whose expenses the rule applies to. The list is matched as an OR */
     submittersToMatch?: string[];
 
+    /** The date an expense is compared against, as `YYYY-MM-DD` */
+    dateToMatch?: string;
+
+    /** Whether the expense date has to fall on (`eq`), before (`lt`) or after (`gt`) `dateToMatch` */
+    dateMatchType?: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+
     /** The merchant the expense is renamed to */
     merchant?: string;
 
@@ -93,7 +99,7 @@ type RuleWithID = {
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
-const {AND, EQUAL_TO, CONTAINS} = CONST.SEARCH.SYNTAX_OPERATORS;
+const {AND, EQUAL_TO, CONTAINS, GREATER_THAN, LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 const {YES, NO} = CONST.SEARCH.BOOLEAN;
 
 /**
@@ -111,6 +117,7 @@ const CONDITION = {
     REIMBURSABLE: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
     BILLABLE: CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
     SUBMITTER: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    DATE: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
 } as const;
 
 /** Search stores a boolean filter as one of these words rather than as a JSON boolean, and the rule tree follows it. */
@@ -121,6 +128,14 @@ const ACTION_FIELD_ORDER = [FIELD.MERCHANT, FIELD.CATEGORY, FIELD.TAG, FIELD.TAX
 
 /** Merchant match types the editor can represent. Any other operator on the merchant node makes a rule read-only. */
 const SUPPORTED_MERCHANT_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>([EQUAL_TO, CONTAINS]);
+
+/**
+ * Date comparisons the editor can represent, which are the on/before/after the picker offers.
+ *
+ * A range would need two comparisons on the same field, which the one-leaf-per-field rule in
+ * `getEditableConditions` rejects, so a stored range stays read-only for now.
+ */
+const SUPPORTED_DATE_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>([EQUAL_TO, LOWER_THAN, GREATER_THAN]);
 
 /**
  * The form key each action field reads back into, which makes reading a rule the mirror of writing one.
@@ -298,6 +313,11 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.SUBMITTER, operator: EQUAL_TO, right: submittersToMatch});
     }
 
+    const dateToMatch = formValues.dateToMatch?.trim();
+    if (dateToMatch) {
+        comparisons.push({left: CONDITION.DATE, operator: formValues.dateMatchType ?? EQUAL_TO, right: dateToMatch});
+    }
+
     const [firstComparison, ...rest] = comparisons;
     if (!firstComparison) {
         return undefined;
@@ -317,6 +337,18 @@ function haveSameConditionValues(first: string[] | undefined, second: string[] |
     const sortedSecond = getNonEmptyValues(second).sort();
 
     return sortedFirst.length === sortedSecond.length && sortedFirst.every((value, index) => value === sortedSecond.at(index));
+}
+
+/** Compares the date condition, whose match type only tells two rules apart when they both match on a date. */
+function haveSameDateCondition(first: Partial<ExpenseDefaultFormValues>, second: Partial<ExpenseDefaultFormValues>): boolean {
+    const firstDate = first.dateToMatch?.trim() ?? '';
+    const secondDate = second.dateToMatch?.trim() ?? '';
+
+    if (firstDate !== secondDate) {
+        return false;
+    }
+
+    return !firstDate || (first.dateMatchType ?? EQUAL_TO) === (second.dateMatchType ?? EQUAL_TO);
 }
 
 /** Whether two rules match on the same expenses, which is what makes one a duplicate of the other. */
@@ -340,7 +372,8 @@ function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Pa
         haveSameConditionValues(first.taxRatesToMatch, second.taxRatesToMatch) &&
         first.reimbursableToMatch === second.reimbursableToMatch &&
         first.billableToMatch === second.billableToMatch &&
-        haveSameConditionValues(first.submittersToMatch, second.submittersToMatch)
+        haveSameConditionValues(first.submittersToMatch, second.submittersToMatch) &&
+        haveSameDateCondition(first, second)
     );
 }
 
@@ -423,7 +456,17 @@ function getEditableTriggers(triggers: Rule['triggers'] | undefined): ExpenseDef
 /** The conditions the editor renders, read back off a rule's filter tree. */
 type EditableConditions = Pick<
     ExpenseDefaultFormValues,
-    'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch' | 'currenciesToMatch' | 'taxRatesToMatch' | 'reimbursableToMatch' | 'billableToMatch' | 'submittersToMatch'
+    | 'matchType'
+    | 'merchantToMatch'
+    | 'categoriesToMatch'
+    | 'tagsToMatch'
+    | 'currenciesToMatch'
+    | 'taxRatesToMatch'
+    | 'reimbursableToMatch'
+    | 'billableToMatch'
+    | 'submittersToMatch'
+    | 'dateToMatch'
+    | 'dateMatchType'
 >;
 
 /**
@@ -452,6 +495,15 @@ function getConditionFromLeaf(leaf: RuleFilterComparison): EditableConditions | 
             return undefined;
         }
         return {merchantToMatch, matchType: leaf.operator};
+    }
+
+    if (leaf.left === CONDITION.DATE) {
+        const dateToMatch = values.at(0);
+        // The form has a single date input, so only one value round-trips.
+        if (values.length !== 1 || !dateToMatch || !SUPPORTED_DATE_MATCH_TYPES.has(leaf.operator)) {
+            return undefined;
+        }
+        return {dateToMatch, dateMatchType: leaf.operator};
     }
 
     if (leaf.operator !== EQUAL_TO) {

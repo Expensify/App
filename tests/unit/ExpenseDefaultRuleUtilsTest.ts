@@ -30,6 +30,8 @@ const TAX_RATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE;
 const REIMBURSABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 const BILLABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE;
 const SUBMITTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
+const DATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
+const {LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 
 const POLICY_ID = 'ABC123';
 const OTHER_POLICY_ID = 'DEF456';
@@ -230,6 +232,8 @@ describe('ExpenseDefaultRuleUtils', () => {
                 reimbursableToMatch: true,
                 billableToMatch: false,
                 submittersToMatch: ['12345'],
+                dateToMatch: '2026-01-15',
+                dateMatchType: GREATER_THAN,
                 category: 'Coffee',
             };
 
@@ -258,6 +262,24 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When its filters are read
             // Then the condition survives, because false is a real match rather than a cleared field
             expect(rule?.filters).toEqual({left: REIMBURSABLE, operator: EQUAL_TO, right: 'no'});
+        });
+
+        it('compares the expense date with the operator the picker chose', () => {
+            // Given a form matching on expenses dated before a day
+            const rule = buildExpenseDefaultRule({dateToMatch: '2026-01-15', dateMatchType: LOWER_THAN, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the date carries the chosen operator rather than defaulting to an equality match
+            expect(rule?.filters).toEqual({left: DATE, operator: LOWER_THAN, right: '2026-01-15'});
+        });
+
+        it('defaults an unset date match type to matching the day itself', () => {
+            // Given a form with a date but no match type, which is what the picker leaves behind
+            const rule = buildExpenseDefaultRule({dateToMatch: '2026-01-15', category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the date is compared for equality, which is the On option the picker preselects
+            expect(rule?.filters).toEqual({left: DATE, operator: EQUAL_TO, right: '2026-01-15'});
         });
 
         it('builds a rule that matches on a submitter alone', () => {
@@ -442,6 +464,7 @@ describe('ExpenseDefaultRuleUtils', () => {
             ['a currency condition the picker cannot express, which only ever selects whole currencies', {filters: {left: CURRENCY, operator: CONTAINS, right: ['USD']}}],
             ['a boolean condition whose value is neither yes nor no', {filters: {left: REIMBURSABLE, operator: EQUAL_TO, right: 'true'}}],
             ['a boolean condition carrying more than one value', {filters: {left: BILLABLE, operator: EQUAL_TO, right: ['yes', 'no']}}],
+            ['a date range, which needs two comparisons on one field', {filters: {left: DATE, operator: CONST.SEARCH.SYNTAX_OPERATORS.RANGE, right: '2026-01-01'}}],
             ['a filter on a field the form has no input for', {filters: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, operator: EQUAL_TO, right: '5812'}}],
             ['an operator the form has no control for', {filters: {left: FIELD.MERCHANT, operator: GREATER_THAN, right: 'Starbucks'}}],
             ['a list of merchants, which the form has one input for', {filters: {left: FIELD.MERCHANT, operator: OR, right: ['Starbucks', 'Costa']}}],
