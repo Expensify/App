@@ -1626,6 +1626,18 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         ruleID?: undefined;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_TAX_RATE_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_REIMBURSABLE_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_BILLABLE_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: {
         policyID: string;
         ruleID?: undefined;
@@ -1801,6 +1813,18 @@ type WorkspaceSettingsParamList = {
         ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_CURRENCY_TO_MATCH]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_TAX_RATE_TO_MATCH]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_REIMBURSABLE_TO_MATCH]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_BILLABLE_TO_MATCH]: {
         policyID: string;
         ruleID: string;
     };

@@ -115,6 +115,14 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
     return translate(value ? 'common.yes' : 'common.no');
 };
 
+/** A condition left unset matches either way, rather than leaving a field alone the way an unset default does. */
+const getConditionBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
+    if (value === undefined) {
+        return translate('common.any');
+    }
+    return translate(value ? 'common.yes' : 'common.no');
+};
+
 /** A rule needs something to match on and something to set. */
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
     const matchingCriteriaFields = new Set<string>([
@@ -123,6 +131,9 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         MERCHANT_RULE_INPUT_IDS.CATEGORIES_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.TAGS_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.CURRENCIES_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.TAX_RATES_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.REIMBURSABLE_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.BILLABLE_TO_MATCH,
     ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -309,6 +320,9 @@ function ExpenseDefaultRulePageBase({
     const tagsToMatchDisplayName = hasTagCondition ? tagsToMatch.map(getCleanedTagName).join(', ') : undefined;
     const currenciesToMatch = form?.currenciesToMatch ?? [];
     const currenciesToMatchDisplayName = currenciesToMatch.length > 0 ? currenciesToMatch.join(', ') : undefined;
+    const taxRatesToMatch = form?.taxRatesToMatch ?? [];
+    // Blank rather than the raw ID once a rate is gone from the workspace.
+    const taxRatesToMatchDisplayName = taxRatesToMatch.length > 0 ? taxRatesToMatch.map((externalID) => getTaxRateDisplayName(policy, externalID) || externalID).join(', ') : undefined;
     const amountDisplayName = form?.amount ? convertToDisplayString(Number(form.amount), policy?.outputCurrency) : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     // Blank rather than the raw ID once the rate is gone from the workspace.
@@ -397,7 +411,8 @@ function ExpenseDefaultRulePageBase({
         const hasDuplicate = checkForDuplicateRule(form);
         if (hasDuplicate) {
             // A duplicate does not have to match on a merchant, so the prompt names the first condition the two share.
-            const duplicateCondition = [form.merchantToMatch, categoriesToMatchDisplayName, tagsToMatchDisplayName, currenciesToMatchDisplayName].find(Boolean) ?? '';
+            const duplicateCondition =
+                [form.merchantToMatch, categoriesToMatchDisplayName, tagsToMatchDisplayName, currenciesToMatchDisplayName, taxRatesToMatchDisplayName].find(Boolean) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
                 prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', duplicateCondition),
@@ -478,6 +493,34 @@ function ExpenseDefaultRulePageBase({
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Cash,
                 },
+                hasUsableTaxRates(policy)
+                    ? {
+                          key: 'taxRatesToMatch',
+                          description: translate('workspace.taxes.taxRate'),
+                          title: taxRatesToMatchDisplayName,
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_TAX_RATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_TAX_RATE_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.InvoiceGeneric,
+                      }
+                    : undefined,
+                {
+                    key: 'reimbursableToMatch',
+                    description: translate('common.reimbursable'),
+                    title: getConditionBooleanTitle(form?.reimbursableToMatch, translate),
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Paycheck,
+                },
+                isBillableEnabled
+                    ? {
+                          key: 'billableToMatch',
+                          description: translate('common.billable'),
+                          title: getConditionBooleanTitle(form?.billableToMatch, translate),
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_BILLABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_BILLABLE_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Paycheck,
+                      }
+                    : undefined,
             ],
         },
         {

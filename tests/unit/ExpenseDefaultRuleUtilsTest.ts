@@ -26,6 +26,9 @@ const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 const {EQUAL_TO, CONTAINS, AND, OR, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 const CURRENCY = CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY;
+const TAX_RATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE;
+const REIMBURSABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
+const BILLABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE;
 
 const POLICY_ID = 'ABC123';
 const OTHER_POLICY_ID = 'DEF456';
@@ -222,12 +225,46 @@ describe('ExpenseDefaultRuleUtils', () => {
                 categoriesToMatch: ['Coffee'],
                 tagsToMatch: ['Team A', 'Team B'],
                 currenciesToMatch: ['USD', 'EUR'],
+                taxRatesToMatch: [TAX_KEY],
+                reimbursableToMatch: true,
+                billableToMatch: false,
                 category: 'Coffee',
             };
 
             // When the built rule is read back
             // Then the form gets the same conditions it wrote
             expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
+        });
+
+        it('stores a boolean condition the way search spells it', () => {
+            // Given a form matching only on expenses that are reimbursable and not billable
+            const rule = buildExpenseDefaultRule({reimbursableToMatch: true, billableToMatch: false, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then each boolean is stored as the yes/no word search uses, rather than as a JSON boolean
+            expect(rule?.filters).toEqual({
+                operator: AND,
+                left: {left: REIMBURSABLE, operator: EQUAL_TO, right: 'yes'},
+                right: {left: BILLABLE, operator: EQUAL_TO, right: 'no'},
+            });
+        });
+
+        it('keeps a false boolean condition rather than treating it as unset', () => {
+            // Given a form matching only on expenses that are not reimbursable
+            const rule = buildExpenseDefaultRule({reimbursableToMatch: false, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the condition survives, because false is a real match rather than a cleared field
+            expect(rule?.filters).toEqual({left: REIMBURSABLE, operator: EQUAL_TO, right: 'no'});
+        });
+
+        it('builds a rule that matches on a tax rate alone', () => {
+            // Given a form whose only condition is a tax rate
+            const rule = buildExpenseDefaultRule({taxRatesToMatch: [TAX_KEY], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the single tax rate condition is the whole tree
+            expect(rule?.filters).toEqual({left: TAX_RATE, operator: EQUAL_TO, right: [TAX_KEY]});
         });
 
         it('builds a rule that matches on a currency alone', () => {
@@ -392,6 +429,8 @@ describe('ExpenseDefaultRuleUtils', () => {
             ],
             ['a condition on an operator the form has no control for', {filters: {left: FIELD.CATEGORY, operator: CONTAINS, right: 'Coffee'}}],
             ['a currency condition the picker cannot express, which only ever selects whole currencies', {filters: {left: CURRENCY, operator: CONTAINS, right: ['USD']}}],
+            ['a boolean condition whose value is neither yes nor no', {filters: {left: REIMBURSABLE, operator: EQUAL_TO, right: 'true'}}],
+            ['a boolean condition carrying more than one value', {filters: {left: BILLABLE, operator: EQUAL_TO, right: ['yes', 'no']}}],
             ['a filter on a field the form has no input for', {filters: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, operator: EQUAL_TO, right: '5812'}}],
             ['an operator the form has no control for', {filters: {left: FIELD.MERCHANT, operator: GREATER_THAN, right: 'Starbucks'}}],
             ['a list of merchants, which the form has one input for', {filters: {left: FIELD.MERCHANT, operator: OR, right: ['Starbucks', 'Costa']}}],

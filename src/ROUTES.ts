@@ -1230,6 +1230,18 @@ const DYNAMIC_ROUTES = {
         path: 'rule-currency-to-match',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
+    RULES_TAX_RATE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-tax-rate-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-reimbursable-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_BILLABLE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-billable-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
     RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
         path: 'rule-matches',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
@@ -4580,6 +4592,18 @@ const ROUTES = {
     RULES_CURRENCY_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/currency-to-match',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/currency-to-match` as const,
+    },
+    RULES_TAX_RATE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax-rate-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax-rate-to-match` as const,
+    },
+    RULES_REIMBURSABLE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/reimbursable-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/reimbursable-to-match` as const,
+    },
+    RULES_BILLABLE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/billable-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/billable-to-match` as const,
     },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',

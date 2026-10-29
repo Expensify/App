@@ -42,6 +42,15 @@ type ExpenseDefaultFormValues = {
     /** The currencies an expense has to be in. The list is matched as an OR, so any one of them matches */
     currenciesToMatch?: string[];
 
+    /** The external IDs of the tax rates an expense has to carry. The list is matched as an OR */
+    taxRatesToMatch?: string[];
+
+    /** Whether an expense has to be reimbursable. Left unset, the rule matches either way */
+    reimbursableToMatch?: boolean;
+
+    /** Whether an expense has to be billable. Left unset, the rule matches either way */
+    billableToMatch?: boolean;
+
     /** The merchant the expense is renamed to */
     merchant?: string;
 
@@ -82,6 +91,7 @@ type RuleWithID = {
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 const {AND, EQUAL_TO, CONTAINS} = CONST.SEARCH.SYNTAX_OPERATORS;
+const {YES, NO} = CONST.SEARCH.BOOLEAN;
 
 /**
  * The expense fields a rule can match on.
@@ -94,7 +104,13 @@ const CONDITION = {
     CATEGORY: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
     TAG: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
     CURRENCY: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
+    TAX_RATE: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+    REIMBURSABLE: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+    BILLABLE: CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
 } as const;
+
+/** Search stores a boolean filter as one of these words rather than as a JSON boolean, and the rule tree follows it. */
+const BOOLEAN_CONDITION_VALUES: Record<string, boolean> = {[YES]: true, [NO]: false};
 
 /** The order actions are written in, which fixes the numeric keys a built rule uses. */
 const ACTION_FIELD_ORDER = [FIELD.MERCHANT, FIELD.CATEGORY, FIELD.TAG, FIELD.TAX, FIELD.AMOUNT, FIELD.VENDOR_ID, FIELD.COMMENT, FIELD.REIMBURSABLE, FIELD.BILLABLE] as const;
@@ -260,6 +276,19 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.CURRENCY, operator: EQUAL_TO, right: currenciesToMatch});
     }
 
+    const taxRatesToMatch = getNonEmptyValues(formValues.taxRatesToMatch);
+    if (taxRatesToMatch.length > 0) {
+        comparisons.push({left: CONDITION.TAX_RATE, operator: EQUAL_TO, right: taxRatesToMatch});
+    }
+
+    if (formValues.reimbursableToMatch !== undefined) {
+        comparisons.push({left: CONDITION.REIMBURSABLE, operator: EQUAL_TO, right: formValues.reimbursableToMatch ? YES : NO});
+    }
+
+    if (formValues.billableToMatch !== undefined) {
+        comparisons.push({left: CONDITION.BILLABLE, operator: EQUAL_TO, right: formValues.billableToMatch ? YES : NO});
+    }
+
     const [firstComparison, ...rest] = comparisons;
     if (!firstComparison) {
         return undefined;
@@ -298,7 +327,10 @@ function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Pa
     return (
         haveSameConditionValues(first.categoriesToMatch, second.categoriesToMatch) &&
         haveSameConditionValues(first.tagsToMatch, second.tagsToMatch) &&
-        haveSameConditionValues(first.currenciesToMatch, second.currenciesToMatch)
+        haveSameConditionValues(first.currenciesToMatch, second.currenciesToMatch) &&
+        haveSameConditionValues(first.taxRatesToMatch, second.taxRatesToMatch) &&
+        first.reimbursableToMatch === second.reimbursableToMatch &&
+        first.billableToMatch === second.billableToMatch
     );
 }
 
@@ -379,7 +411,10 @@ function getEditableTriggers(triggers: Rule['triggers'] | undefined): ExpenseDef
 }
 
 /** The conditions the editor renders, read back off a rule's filter tree. */
-type EditableConditions = Pick<ExpenseDefaultFormValues, 'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch' | 'currenciesToMatch'>;
+type EditableConditions = Pick<
+    ExpenseDefaultFormValues,
+    'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch' | 'currenciesToMatch' | 'taxRatesToMatch' | 'reimbursableToMatch' | 'billableToMatch'
+>;
 
 /**
  * Reads one leaf comparison into the conditions it sets.
@@ -423,6 +458,18 @@ function getConditionFromLeaf(leaf: RuleFilterComparison): EditableConditions | 
 
     if (leaf.left === CONDITION.CURRENCY) {
         return {currenciesToMatch: values};
+    }
+
+    if (leaf.left === CONDITION.TAX_RATE) {
+        return {taxRatesToMatch: values};
+    }
+
+    if (leaf.left === CONDITION.REIMBURSABLE || leaf.left === CONDITION.BILLABLE) {
+        const booleanValue = values.length === 1 ? BOOLEAN_CONDITION_VALUES[values.at(0) ?? ''] : undefined;
+        if (booleanValue === undefined) {
+            return undefined;
+        }
+        return leaf.left === CONDITION.REIMBURSABLE ? {reimbursableToMatch: booleanValue} : {billableToMatch: booleanValue};
     }
 
     return undefined;
