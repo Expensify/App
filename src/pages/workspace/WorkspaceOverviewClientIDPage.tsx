@@ -75,7 +75,6 @@ function WorkspaceOverviewClientIDPage({policy}: Props) {
                         accessibilityLabel={translate('workspace.common.clientID')}
                         defaultValue={policy?.clientID}
                         spellCheck={false}
-                        containerStyles={styles.mb4}
                         autoFocus
                     />
                 </FormProvider>

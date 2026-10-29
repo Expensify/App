@@ -1,8 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -61,17 +62,18 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
             submitFlexEnabled
             shouldUseScrollView
             shouldHideFixErrorsAlert
             addBottomSafeAreaPadding
         >
-            <View style={styles.ph5}>
-                <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>
-                    {translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}ScriptIDTitle` as TranslationPaths)}
-                </Text>
+            <FormHeader
+                title={translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}ScriptIDTitle` as TranslationPaths)}
+                style={styles.ph5}
+            />
+            <FormFieldGroup style={styles.ph5}>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.SCRIPT_ID}
@@ -81,14 +83,14 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
                     spellCheck={false}
                     ref={inputCallbackRef}
                 />
-                <View style={[styles.flex1, styles.mv3, styles.renderHTML, styles.textDecorationSkipInkNone]}>
+                <View style={[styles.flex1, styles.renderHTML, styles.textDecorationSkipInkNone]}>
                     <RenderHTML
                         html={`<comment>${Parser.replace(
                             translate(`workspace.netsuite.import.importCustomFields.customSegments.addForm.${customSegmentRecordType}ScriptIDFooter` as TranslationPaths),
                         )}</comment>`}
                     />
                 </View>
-            </View>
+            </FormFieldGroup>
         </FormProvider>
     );
 }

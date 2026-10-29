@@ -1,10 +1,11 @@
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -151,16 +152,13 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     return (
         <>
             <HeaderWithBackButton title={translate('additionalDetailsStep.headerTitle')} />
-            <View style={[styles.flex1]}>
-                <View style={[styles.ph5]}>
-                    <Text style={styles.mb3}>{translate('additionalDetailsStep.helpText')}</Text>
-                    <TextLink
-                        style={styles.mb3}
-                        href={CONST.HELP_LINK_URL}
-                    >
-                        {translate('additionalDetailsStep.helpLink')}
-                    </TextLink>
-                </View>
+            <View style={[styles.flex1, styles.formContent]}>
+                <FormHeader
+                    description={translate('additionalDetailsStep.helpText')}
+                    style={styles.ph5}
+                >
+                    <TextLink href={CONST.HELP_LINK_URL}>{translate('additionalDetailsStep.helpLink')}</TextLink>
+                </FormHeader>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS}
                     validate={validate}
@@ -169,75 +167,72 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
                     submitButtonText={translate('common.saveAndContinue')}
                     style={[styles.mh5, styles.flexGrow1]}
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID="legalFirstName"
-                        containerStyles={[styles.mt4]}
-                        label={translate(fieldNameTranslationKeys.legalFirstName)}
-                        accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
-                        shouldSaveDraft
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    />
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID="legalLastName"
-                        containerStyles={[styles.mt4]}
-                        label={translate(fieldNameTranslationKeys.legalLastName)}
-                        accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
-                        shouldSaveDraft
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    />
-                    <AddressFormFields
-                        inputKeys={{
-                            street: 'addressStreet',
-                            city: 'addressCity',
-                            state: 'addressState',
-                            zipCode: 'addressZipCode',
-                        }}
-                        streetTranslationKey={fieldNameTranslationKeys.addressStreet}
-                        shouldSaveDraft
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    />
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID="phoneNumber"
-                        containerStyles={[styles.mt4]}
-                        inputMode={CONST.INPUT_MODE.TEL}
-                        label={translate(fieldNameTranslationKeys.phoneNumber)}
-                        accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={currentUserPersonalDetails.phoneNumber}
-                        placeholder={translate('common.phoneNumberPlaceholder')}
-                        shouldSaveDraft
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    />
-                    <InputWrapper
-                        InputComponent={DatePicker}
-                        inputID="dob"
-                        containerStyles={[styles.mt4]}
-                        label={translate(fieldNameTranslationKeys.dob)}
-                        placeholder={translate('common.dob')}
-                        minDate={minDate}
-                        maxDate={maxDate}
-                        shouldSaveDraft
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    />
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID="ssn"
-                        containerStyles={[styles.mt4]}
-                        label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                        accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
-                        role={CONST.ROLE.PRESENTATION}
-                        maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
-                        inputMode={CONST.INPUT_MODE.NUMERIC}
-                        shouldSaveDraft
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                    />
+                    <FormFields>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID="legalFirstName"
+                            label={translate(fieldNameTranslationKeys.legalFirstName)}
+                            accessibilityLabel={translate(fieldNameTranslationKeys.legalFirstName)}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).firstName}
+                            shouldSaveDraft
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        />
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID="legalLastName"
+                            label={translate(fieldNameTranslationKeys.legalLastName)}
+                            accessibilityLabel={translate(fieldNameTranslationKeys.legalLastName)}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={extractFirstAndLastNameFromAvailableDetails(currentUserPersonalDetails).lastName}
+                            shouldSaveDraft
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        />
+                        <AddressFormFields
+                            inputKeys={{
+                                street: 'addressStreet',
+                                city: 'addressCity',
+                                state: 'addressState',
+                                zipCode: 'addressZipCode',
+                            }}
+                            streetTranslationKey={fieldNameTranslationKeys.addressStreet}
+                            shouldSaveDraft
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        />
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID="phoneNumber"
+                            inputMode={CONST.INPUT_MODE.TEL}
+                            label={translate(fieldNameTranslationKeys.phoneNumber)}
+                            accessibilityLabel={translate(fieldNameTranslationKeys.phoneNumber)}
+                            role={CONST.ROLE.PRESENTATION}
+                            defaultValue={currentUserPersonalDetails.phoneNumber}
+                            placeholder={translate('common.phoneNumberPlaceholder')}
+                            shouldSaveDraft
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        />
+                        <InputWrapper
+                            InputComponent={DatePicker}
+                            inputID="dob"
+                            label={translate(fieldNameTranslationKeys.dob)}
+                            placeholder={translate('common.dob')}
+                            minDate={minDate}
+                            maxDate={maxDate}
+                            shouldSaveDraft
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        />
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID="ssn"
+                            label={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
+                            accessibilityLabel={translate(fieldNameTranslationKeys[shouldAskForFullSSN ? 'ssnFull9' : 'ssn'])}
+                            role={CONST.ROLE.PRESENTATION}
+                            maxLength={shouldAskForFullSSN ? CONST.BANK_ACCOUNT.MAX_LENGTH.FULL_SSN : CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+                            inputMode={CONST.INPUT_MODE.NUMERIC}
+                            shouldSaveDraft
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                        />
+                    </FormFields>
                 </FormProvider>
             </View>
         </>

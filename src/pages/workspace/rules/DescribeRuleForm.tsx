@@ -4,6 +4,8 @@
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormSection from '@components/Form/Layout/FormSection';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
@@ -337,25 +339,26 @@ function DescribeRuleForm({
                 />
             </View>
             {!!refusal && (
-                <View style={styles.mt4}>
-                    <Text style={styles.textStrong}>{translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability')}</Text>
-                    {!!refusal.explanation && <Text style={[styles.textSupporting, styles.mt1]}>{refusal.explanation}</Text>}
+                <FormSection
+                    title={translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability')}
+                    description={refusal.explanation}
+                >
                     {!!refusalSuggestedPrompt && (
-                        <>
-                            <Text style={styles.mt3}>{refusalSuggestedPrompt}</Text>
+                        <FormFieldGroup>
+                            <Text>{refusalSuggestedPrompt}</Text>
                             <Button
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
                                 // Like the form's submit button, this button sends GenerateRule, which needs a connection
                                 isDisabled={isOffline}
-                                style={[styles.mt2, styles.alignSelfStart]}
+                                style={styles.alignSelfStart}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
                             >
                                 <Button.Text>{translate('workspace.rules.newRule.impossible.tryThisInstead')}</Button.Text>
                             </Button>
-                        </>
+                        </FormFieldGroup>
                     )}
-                </View>
+                </FormSection>
             )}
         </FormProvider>
     );

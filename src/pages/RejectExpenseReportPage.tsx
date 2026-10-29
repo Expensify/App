@@ -1,6 +1,9 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -170,10 +173,8 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                 shouldRenderFooterAboveSubmit
                 footerContent={selectionError ? <FormHelpMessage message={selectionError} /> : undefined}
             >
-                <View style={styles.mb3}>
-                    <Text>{translate('iou.rejectReport.description')}</Text>
-                </View>
-                <View style={styles.mb6}>
+                <FormHeader description={translate('iou.rejectReport.description')} />
+                <FormFields>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.COMMENT}
@@ -186,23 +187,23 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
-                </View>
-                {hasPreviousApprover && (
-                    <View style={styles.mb6}>
-                        <Text style={[styles.mb3]}>{translate('iou.rejectReport.selectTarget')}</Text>
-                        <View style={styles.mhn5}>
-                            <SelectionList
-                                data={options}
-                                ListItem={UserListItem}
-                                onSelectRow={(item) => {
-                                    setSelectedTargetAccountID(item.keyForList ?? '');
-                                    setSelectionError('');
-                                }}
-                                initiallyFocusedItemKey={selectedTargetAccountID}
-                            />
-                        </View>
-                    </View>
-                )}
+                    {hasPreviousApprover && (
+                        <FormFieldGroup>
+                            <Text>{translate('iou.rejectReport.selectTarget')}</Text>
+                            <View style={styles.mhn5}>
+                                <SelectionList
+                                    data={options}
+                                    ListItem={UserListItem}
+                                    onSelectRow={(item) => {
+                                        setSelectedTargetAccountID(item.keyForList ?? '');
+                                        setSelectionError('');
+                                    }}
+                                    initiallyFocusedItemKey={selectedTargetAccountID}
+                                />
+                            </View>
+                        </FormFieldGroup>
+                    )}
+                </FormFields>
             </FormProvider>
         </ScreenWrapper>
     );

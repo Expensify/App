@@ -1,10 +1,10 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
@@ -23,7 +23,7 @@ import type {TextInput as TextInputType} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {SafeString} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {Keyboard} from 'react-native';
 
 import type {TextSelectorModalProps} from './types';
 
@@ -169,11 +169,7 @@ function TextSelectorModal({
                     shouldUseStrictHtmlTagValidation={shouldUseStrictHtmlTagValidation}
                     shouldValidateOnBlur={!isClosing}
                 >
-                    {!!subtitle && (
-                        <View style={styles.pb4}>
-                            <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
-                        </View>
-                    )}
+                    {!!subtitle && <FormHeader description={subtitle} />}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}

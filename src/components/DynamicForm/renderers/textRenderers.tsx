@@ -3,6 +3,8 @@ import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
 import TextInput from '@components/TextInput';
@@ -115,8 +117,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
         return {
             isMenuRow: false,
             input: (
-                <>
-                    <View style={[styles.mhn5, styles.mb2]}>
+                <FormFields>
+                    <FormMenuRows style={styles.mhn5}>
                         <InputWrapper
                             InputComponent={CurrencyPicker}
                             inputID={field.currencyKey}
@@ -128,9 +130,9 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                             accessibilityLabel={`${translate('common.currency')}, ${getFieldLabel(field, translate)}`}
                             shouldReadErrorWithLabel
                         />
-                    </View>
+                    </FormMenuRows>
                     {amountInput}
-                </>
+                </FormFields>
             ),
         };
     },

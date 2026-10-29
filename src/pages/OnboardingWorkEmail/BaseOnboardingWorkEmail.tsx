@@ -482,8 +482,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                     shouldRenderFooterAboveSubmit
                     shouldHideFixErrorsAlert
                 >
-                    <View>
-                        <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
+                    <View style={styles.formHeader}>
+                        <View style={onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn}>
                             <Text
                                 style={styles.textHeadlineH1}
                                 accessibilityRole={CONST.ROLE.HEADER}
@@ -491,58 +491,50 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles, route}: BaseOnboardingW
                                 {translate('onboarding.workEmail.title')}
                             </Text>
                         </View>
-                        <View style={styles.mb2}>
-                            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>
-                        </View>
-                        <View>
-                            {section.map((item) => {
-                                return (
-                                    <View
-                                        key={item.titleTranslationKey}
-                                        style={[styles.mt2, styles.mb3]}
-                                    >
-                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
-                                            <Icon
-                                                src={item.icon}
-                                                height={ICON_SIZE}
-                                                width={ICON_SIZE}
-                                                additionalStyles={[styles.mr3]}
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('onboarding.workEmail.subtitle')}</Text>
+                        {section.map((item) => {
+                            return (
+                                <View
+                                    key={item.titleTranslationKey}
+                                    style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
+                                >
+                                    <Icon
+                                        src={item.icon}
+                                        height={ICON_SIZE}
+                                        width={ICON_SIZE}
+                                        additionalStyles={[styles.mr3]}
+                                    />
+                                    <View style={[styles.flexColumn, styles.flex1]}>
+                                        {item.shouldRenderEmail ? (
+                                            <AutoEmailLink
+                                                style={[styles.textStrong, styles.lh20]}
+                                                text={translate(item.titleTranslationKey)}
                                             />
-                                            <View style={[styles.flexColumn, styles.flex1]}>
-                                                {item.shouldRenderEmail ? (
-                                                    <AutoEmailLink
-                                                        style={[styles.textStrong, styles.lh20]}
-                                                        text={translate(item.titleTranslationKey)}
-                                                    />
-                                                ) : (
-                                                    <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
-                                                )}
-                                            </View>
-                                        </View>
+                                        ) : (
+                                            <Text style={[styles.textStrong, styles.lh20]}>{translate(item.titleTranslationKey)}</Text>
+                                        )}
                                     </View>
-                                );
-                            })}
-                        </View>
+                                </View>
+                            );
+                        })}
                     </View>
 
-                    <View style={[styles.mb4, styles.pt3]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            // We do not want to auto-focus for mobile platforms
-                            ref={operatingSystem !== CONST.OS.ANDROID && operatingSystem !== CONST.OS.IOS ? inputCallbackRef : undefined}
-                            name="fname"
-                            inputID={INPUT_IDS.ONBOARDING_WORK_EMAIL}
-                            label={translate('common.workEmail')}
-                            aria-label={translate('common.workEmail')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={workEmail ?? ''}
-                            shouldSaveDraft
-                            maxLength={CONST.LOGIN_CHARACTER_LIMIT}
-                            spellCheck={false}
-                            autoComplete="email"
-                            onValueChange={clearOnboardingErrorMessage}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        // We do not want to auto-focus for mobile platforms
+                        ref={operatingSystem !== CONST.OS.ANDROID && operatingSystem !== CONST.OS.IOS ? inputCallbackRef : undefined}
+                        name="fname"
+                        inputID={INPUT_IDS.ONBOARDING_WORK_EMAIL}
+                        label={translate('common.workEmail')}
+                        aria-label={translate('common.workEmail')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={workEmail ?? ''}
+                        shouldSaveDraft
+                        maxLength={CONST.LOGIN_CHARACTER_LIMIT}
+                        spellCheck={false}
+                        autoComplete="email"
+                        onValueChange={clearOnboardingErrorMessage}
+                    />
                 </FormProvider>
             )}
         </ScreenWrapper>

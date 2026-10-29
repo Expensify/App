@@ -1,8 +1,9 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -58,18 +59,22 @@ function TypeBusiness({onNext, isEditing}: SubPageProps) {
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.flexGrow1]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('businessInfoStep.selectYourCompanyType')}</Text>
-            <InputWrapper
-                InputComponent={BusinessTypePicker}
-                inputID={COMPANY_INCORPORATION_TYPE_KEY}
-                label={translate('businessInfoStep.companyType')}
-                defaultValue={defaultIncorporationType}
-                shouldSaveDraft={!isEditing}
-                wrapperStyle={styles.mt3}
+            <FormHeader
+                title={translate('businessInfoStep.selectYourCompanyType')}
+                style={styles.ph5}
             />
+            <FormMenuRows>
+                <InputWrapper
+                    InputComponent={BusinessTypePicker}
+                    inputID={COMPANY_INCORPORATION_TYPE_KEY}
+                    label={translate('businessInfoStep.companyType')}
+                    defaultValue={defaultIncorporationType}
+                    shouldSaveDraft={!isEditing}
+                />
+            </FormMenuRows>
         </FormProvider>
     );
 }

@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import PercentageForm from '@components/PercentageForm';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +27,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesRandomReportAuditModalForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type RulesRandomReportAuditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RANDOM_REPORT_AUDIT>;
 
@@ -68,7 +68,7 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
+                    <FormFieldGroup>
                         <InputWrapper
                             label={translate('common.percentage')}
                             InputComponent={PercentageForm}
@@ -76,8 +76,8 @@ function RulesRandomReportAuditPage({route}: RulesRandomReportAuditPageProps) {
                             inputID={INPUT_IDS.AUDIT_RATE_PERCENTAGE}
                             ref={inputCallbackRef}
                         />
-                        <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>{translate('workspace.rules.expenseReportRules.randomReportAuditDescription')}</Text>
-                    </View>
+                        <Text style={styles.mutedNormalTextLabel}>{translate('workspace.rules.expenseReportRules.randomReportAuditDescription')}</Text>
+                    </FormFieldGroup>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

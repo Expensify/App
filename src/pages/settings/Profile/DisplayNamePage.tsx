@@ -1,11 +1,12 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -74,8 +75,8 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                     shouldValidateOnBlur
                     shouldValidateOnChange
                 >
-                    <Text style={[styles.mb6]}>{translate('displayNamePage.isShownOnProfile')}</Text>
-                    <View style={styles.mb4}>
+                    <FormHeader description={translate('displayNamePage.isShownOnProfile')} />
+                    <FormFields>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.FIRST_NAME}
@@ -88,8 +89,6 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             autoCapitalize="words"
                             autoComplete="given-name"
                         />
-                    </View>
-                    <View>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.LAST_NAME}
@@ -102,7 +101,7 @@ function DisplayNamePage({currentUserPersonalDetails}: DisplayNamePageProps) {
                             autoCapitalize="words"
                             autoComplete="family-name"
                         />
-                    </View>
+                    </FormFields>
                 </FormProvider>
             )}
         </ScreenWrapper>

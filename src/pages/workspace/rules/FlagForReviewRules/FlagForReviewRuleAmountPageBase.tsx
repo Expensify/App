@@ -1,6 +1,8 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -127,28 +129,32 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
                     validate={validate}
                     onSubmit={onSubmit}
                 >
-                    <View style={[styles.mb4, styles.ph5]}>
-                        <InputWrapper
-                            displayAsTextInput
-                            ref={inputCallbackRef}
-                            label={translate('iou.amount')}
-                            InputComponent={AmountForm}
-                            inputID={INPUT_IDS.MAX_AMOUNT}
-                            currency={policyCurrency}
-                            defaultValue={defaultValue}
-                            isCurrencyPressable={false}
-                        />
-                    </View>
-                    <Text style={[styles.textLabelSupporting, styles.mb3, styles.ph5]}>{translate('common.type')}</Text>
-                    <SelectionList
-                        data={expenseLimitTypes}
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={(item) => setExpenseLimitType(item.value as PolicyCategoryExpenseLimitType)}
-                        shouldSingleExecuteRowSelect
-                        alternateNumberOfSupportedLines={4}
-                        disableKeyboardShortcuts
-                        initiallyFocusedItemKey={selectedExpenseLimitType}
-                    />
+                    <FormFields style={styles.flex1}>
+                        <View style={styles.ph5}>
+                            <InputWrapper
+                                displayAsTextInput
+                                ref={inputCallbackRef}
+                                label={translate('iou.amount')}
+                                InputComponent={AmountForm}
+                                inputID={INPUT_IDS.MAX_AMOUNT}
+                                currency={policyCurrency}
+                                defaultValue={defaultValue}
+                                isCurrencyPressable={false}
+                            />
+                        </View>
+                        <FormFieldGroup style={styles.flex1}>
+                            <Text style={[styles.textLabelSupporting, styles.ph5]}>{translate('common.type')}</Text>
+                            <SelectionList
+                                data={expenseLimitTypes}
+                                ListItem={SingleSelectListItem}
+                                onSelectRow={(item) => setExpenseLimitType(item.value as PolicyCategoryExpenseLimitType)}
+                                shouldSingleExecuteRowSelect
+                                alternateNumberOfSupportedLines={4}
+                                disableKeyboardShortcuts
+                                initiallyFocusedItemKey={selectedExpenseLimitType}
+                            />
+                        </FormFieldGroup>
+                    </FormFields>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

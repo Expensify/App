@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormOnyxValues} from '@components/Form/types';
 import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -257,7 +258,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 shouldValidateOnChange={shouldValidateOnChange}
                 shouldTrimValues={false}
             >
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
+                <View style={onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn}>
                     <Text
                         style={styles.textHeadlineH1}
                         accessibilityRole={CONST.ROLE.HEADER}
@@ -265,7 +266,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         {translate('onboarding.whatsYourName')}
                     </Text>
                 </View>
-                <View style={styles.mb4}>
+                <FormFields>
                     <InputWrapper
                         InputComponent={TextInput}
                         ref={inputCallbackRef}
@@ -280,8 +281,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         spellCheck={false}
                         autoComplete="given-name"
                     />
-                </View>
-                <View>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.LAST_NAME}
@@ -295,7 +294,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         spellCheck={false}
                         autoComplete="family-name"
                     />
-                </View>
+                </FormFields>
             </FormProvider>
         </ScreenWrapper>
     );

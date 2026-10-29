@@ -1,6 +1,8 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 
@@ -21,7 +23,6 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SageIntacctDimensionsForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import DimensionTypeSelector from './DimensionTypeSelector';
 
@@ -76,7 +77,7 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
                 shouldValidateOnBlur
                 shouldValidateOnChange
             >
-                <View style={styles.mb4}>
+                <FormFields>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.INTEGRATION_NAME}
@@ -86,14 +87,14 @@ function SageIntacctAddUserDimensionPage({policy}: WithPolicyProps) {
                         spellCheck={false}
                         ref={inputCallbackRef}
                     />
-                </View>
-                <View>
-                    <InputWrapper
-                        InputComponent={DimensionTypeSelector}
-                        inputID={INPUT_IDS.DIMENSION_TYPE}
-                        aria-label="dimensionTypeSelector"
-                    />
-                </View>
+                    <FormMenuRows hasLabelAbove>
+                        <InputWrapper
+                            InputComponent={DimensionTypeSelector}
+                            inputID={INPUT_IDS.DIMENSION_TYPE}
+                            aria-label="dimensionTypeSelector"
+                        />
+                    </FormMenuRows>
+                </FormFields>
             </FormProvider>
         </ConnectionLayout>
     );

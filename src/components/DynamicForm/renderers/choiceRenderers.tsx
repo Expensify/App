@@ -132,7 +132,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
             ),
         };
     },
-    radio: (field, {values, translate, styles, isLoneField}, inputProps) => {
+    radio: (field, {values, translate, isLoneField}, inputProps) => {
         const label = getInputLabel(field, translate);
         const choices = getFieldChoices(field, values, translate);
         if (field.presentation === 'tabs') {
@@ -147,7 +147,6 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
                     {...inputProps}
                     items={choices}
                     accessibilityLabel={label}
-                    containerStyle={styles.mt0}
                 />
             ),
         };

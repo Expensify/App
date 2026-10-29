@@ -179,7 +179,7 @@ function ReportCardLostPage({
                     </>
                 ) : (
                     <>
-                        <View>
+                        <View style={styles.gap6}>
                             <Text style={[styles.textHeadline, styles.mh5]}>{translate('reportCardLostOrDamaged.reasonTitle')}</Text>
                             <RadioButtons
                                 items={radioItems}

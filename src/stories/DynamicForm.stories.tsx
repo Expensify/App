@@ -5,7 +5,7 @@ import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicField
 import getPageTitle from '@components/DynamicForm/utils/getPageTitle';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 import FormProvider from '@components/Form/FormProvider';
-import Text from '@components/Text';
+import FormHeader from '@components/Form/Layout/FormHeader';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -407,14 +407,14 @@ function SinglePage({fields, draftValues, isFlat}: Preset) {
                 pages.map((page) => {
                     const title = getPageTitle(page, inputValues, translate, allFields);
                     return (
-                        <View key={page.key}>
-                            {!!title && <Text style={[defaultStyles.textHeadlineLineHeightXXL, defaultStyles.mt5, defaultStyles.mb3]}>{title}</Text>}
+                        <React.Fragment key={page.key}>
+                            {!!title && <FormHeader title={title} />}
                             <DynamicFormFields
                                 content={page.content}
                                 allFields={allFields}
                                 values={inputValues}
                             />
-                        </View>
+                        </React.Fragment>
                     );
                 })
             }

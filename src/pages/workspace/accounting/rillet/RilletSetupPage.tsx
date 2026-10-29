@@ -1,9 +1,9 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -80,28 +80,27 @@ function RilletSetupPage({route}: RilletSetupPageProps) {
                 shouldValidateOnChange
                 addBottomSafeAreaPadding
             >
-                <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.rillet.enterCredentials')}</Text>
-                <View style={[styles.renderHTML, styles.mb5]}>
-                    <RenderHTML html={translate('workspace.rillet.howToFindAPIKey')} />
-                </View>
-
+                <FormHeader
+                    title={translate('workspace.rillet.enterCredentials')}
+                    description={
+                        <View style={styles.renderHTML}>
+                            <RenderHTML html={translate('workspace.rillet.howToFindAPIKey')} />
+                        </View>
+                    }
+                />
                 {formItems.map((formItem, index) => (
-                    <View
-                        style={styles.mb4}
+                    <InputWrapper
                         key={formItem}
-                    >
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={formItem}
-                            ref={index === 0 ? inputCallbackRef : undefined}
-                            label={translate(`common.${formItem}`)}
-                            aria-label={translate(`common.${formItem}`)}
-                            role={CONST.ROLE.PRESENTATION}
-                            spellCheck={false}
-                            secureTextEntry={formItem === INPUT_IDS.API_KEY}
-                            autoCorrect={false}
-                        />
-                    </View>
+                        InputComponent={TextInput}
+                        inputID={formItem}
+                        ref={index === 0 ? inputCallbackRef : undefined}
+                        label={translate(`common.${formItem}`)}
+                        aria-label={translate(`common.${formItem}`)}
+                        role={CONST.ROLE.PRESENTATION}
+                        spellCheck={false}
+                        secureTextEntry={formItem === INPUT_IDS.API_KEY}
+                        autoCorrect={false}
+                    />
                 ))}
             </FormProvider>
         </ConnectionLayout>

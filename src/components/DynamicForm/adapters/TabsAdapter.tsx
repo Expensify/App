@@ -2,8 +2,6 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import type {Choice} from '@components/RadioButtons';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import CONST from '@src/CONST';
@@ -35,12 +33,9 @@ type TabsAdapterProps = ForwardedFSClassProps & {
 
 /** A choice drawn as a segmented tab row, for the few-option switch that decides which fields follow */
 function TabsAdapter({items, value, onInputChange = () => {}, errorText, forwardedFSClass, accessibilityLabel, ref}: TabsAdapterProps) {
-    const styles = useThemeStyles();
-
     return (
         <View
             ref={ref}
-            style={styles.mb3}
             fsClass={forwardedFSClass}
         >
             {/* The tabs answer a question instead of switching views, so they are a radio group to screen readers */}

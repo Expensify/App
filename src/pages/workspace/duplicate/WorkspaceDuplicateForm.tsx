@@ -129,24 +129,22 @@ function WorkspaceDuplicateForm({policyID}: WorkspaceDuplicateFormProps) {
                     enabledWhenOffline
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.common.workspaceName')}
-                            accessibilityLabel={translate('workspace.common.workspaceName')}
-                            spellCheck={false}
-                            defaultValue={defaultWorkspaceName}
-                            onChangeText={(str) => {
-                                if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
-                                    return;
-                                }
-                                setWorkspaceNameFirstCharacter(str);
-                            }}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.NAME}
+                        label={translate('workspace.common.workspaceName')}
+                        accessibilityLabel={translate('workspace.common.workspaceName')}
+                        spellCheck={false}
+                        defaultValue={defaultWorkspaceName}
+                        onChangeText={(str) => {
+                            if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
+                                return;
+                            }
+                            setWorkspaceNameFirstCharacter(str);
+                        }}
+                        ref={inputCallbackRef}
+                    />
                 </FormProvider>
             </ScrollView>
         </>

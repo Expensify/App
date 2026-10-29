@@ -1,6 +1,7 @@
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -112,35 +113,37 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <OfflineWithFeedback
-                        pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
-                        errors={titleFieldError}
-                        errorRowStyles={styles.mh0}
-                        onClose={clearTitleFieldError}
-                    >
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.DEFAULT_TITLE}
-                            defaultValue={customNameDefaultValue}
-                            label={translate('workspace.reports.customNameInputLabel')}
-                            aria-label={translate('workspace.reports.customNameInputLabel')}
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            spellCheck={false}
-                            autoFocus
-                            autoGrowHeight
-                            ref={(el: BaseTextInputRef | null): void => {
-                                if (!isInputInitializedRef.current) {
-                                    updateMultilineInputRange(el);
-                                }
-                                isInputInitializedRef.current = true;
-                            }}
+                    <FormFieldGroup>
+                        <OfflineWithFeedback
+                            pendingAction={policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.pendingFields?.defaultValue}
+                            errors={titleFieldError}
+                            errorRowStyles={styles.mh0}
+                            onClose={clearTitleFieldError}
+                        >
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.DEFAULT_TITLE}
+                                defaultValue={customNameDefaultValue}
+                                label={translate('workspace.reports.customNameInputLabel')}
+                                aria-label={translate('workspace.reports.customNameInputLabel')}
+                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                spellCheck={false}
+                                autoFocus
+                                autoGrowHeight
+                                ref={(el: BaseTextInputRef | null): void => {
+                                    if (!isInputInitializedRef.current) {
+                                        updateMultilineInputRange(el);
+                                    }
+                                    isInputInitializedRef.current = true;
+                                }}
+                            />
+                        </OfflineWithFeedback>
+                        <BulletList
+                            items={RULE_EXAMPLE_BULLET_POINTS}
+                            header={translate('workspace.reports.reportsCustomTitleExamples')}
                         />
-                    </OfflineWithFeedback>
-                    <BulletList
-                        items={RULE_EXAMPLE_BULLET_POINTS}
-                        header={translate('workspace.reports.reportsCustomTitleExamples')}
-                    />
+                    </FormFieldGroup>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

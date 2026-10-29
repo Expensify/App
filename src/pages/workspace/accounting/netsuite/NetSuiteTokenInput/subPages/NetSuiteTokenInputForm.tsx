@@ -1,5 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -85,31 +87,30 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                 shouldShowLoadingImmediatelyOnPress={!isOAuthFlow}
                 footerContent={shouldShowTokenAuthenticationLink ? <NetSuiteTokenAuthenticationLink policyID={policyID} /> : undefined}
             >
-                {formInputs.map((formInput, index) => (
-                    <View
-                        style={styles.mb4}
-                        key={formInput}
-                    >
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={formInput}
-                            ref={index === 0 ? inputCallbackRef : undefined}
-                            label={translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.formInputs.${formInput}`)}
-                            aria-label={translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.formInputs.${formInput}`)}
-                            role={CONST.ROLE.PRESENTATION}
-                            spellCheck={false}
-                        />
-                        {formInput === INPUT_IDS.NETSUITE_ACCOUNT_ID && !isOAuthFlow && (
-                            <View style={[styles.flexRow, styles.pt2]}>
-                                <RenderHTML
-                                    html={`<comment><muted-text>${Parser.replace(
-                                        translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.${formInput}Description`),
-                                    )}</muted-text></comment>`}
-                                />
-                            </View>
-                        )}
-                    </View>
-                ))}
+                <FormFields>
+                    {formInputs.map((formInput, index) => (
+                        <FormFieldGroup key={formInput}>
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={formInput}
+                                ref={index === 0 ? inputCallbackRef : undefined}
+                                label={translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.formInputs.${formInput}`)}
+                                aria-label={translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.formInputs.${formInput}`)}
+                                role={CONST.ROLE.PRESENTATION}
+                                spellCheck={false}
+                            />
+                            {formInput === INPUT_IDS.NETSUITE_ACCOUNT_ID && !isOAuthFlow && (
+                                <View style={styles.flexRow}>
+                                    <RenderHTML
+                                        html={`<comment><muted-text>${Parser.replace(
+                                            translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.${formInput}Description`),
+                                        )}</muted-text></comment>`}
+                                    />
+                                </View>
+                            )}
+                        </FormFieldGroup>
+                    ))}
+                </FormFields>
             </FormProvider>
         </>
     );

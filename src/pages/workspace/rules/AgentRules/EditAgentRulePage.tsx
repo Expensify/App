@@ -1,6 +1,7 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -131,7 +132,7 @@ function EditAgentRulePage({
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
                 >
-                    <View style={styles.flexGrow1}>
+                    <FormFieldGroup style={styles.flexGrow1}>
                         <View style={inputWrapperStyles}>
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -150,8 +151,8 @@ function EditAgentRulePage({
                                 inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                             />
                         </View>
-                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
-                    </View>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
+                    </FormFieldGroup>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

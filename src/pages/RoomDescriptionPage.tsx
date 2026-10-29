@@ -1,11 +1,11 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -37,7 +37,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 type RoomDescriptionPageProps = {
     /** Policy for the current report */
@@ -117,31 +116,29 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                 >
-                    <Text style={[styles.mb5]}>{translate('reportDescriptionPage.explainerText')}</Text>
-                    <View style={[styles.mb6]}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.REPORT_DESCRIPTION}
-                            label={translate('reportDescriptionPage.roomDescription')}
-                            accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
-                            role={CONST.ROLE.PRESENTATION}
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            ref={(el: BaseTextInputRef | null): void => {
-                                if (!el) {
-                                    return;
-                                }
-                                if (!reportDescriptionInputRef.current) {
-                                    updateMultilineInputRange(el, false);
-                                }
-                                reportDescriptionInputRef.current = el;
-                            }}
-                            value={description}
-                            onChangeText={handleReportDescriptionChange}
-                            autoCapitalize="none"
-                            type="markdown"
-                        />
-                    </View>
+                    <FormHeader description={translate('reportDescriptionPage.explainerText')} />
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.REPORT_DESCRIPTION}
+                        label={translate('reportDescriptionPage.roomDescription')}
+                        accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                        role={CONST.ROLE.PRESENTATION}
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                        ref={(el: BaseTextInputRef | null): void => {
+                            if (!el) {
+                                return;
+                            }
+                            if (!reportDescriptionInputRef.current) {
+                                updateMultilineInputRange(el, false);
+                            }
+                            reportDescriptionInputRef.current = el;
+                        }}
+                        value={description}
+                        onChangeText={handleReportDescriptionChange}
+                        autoCapitalize="none"
+                        type="markdown"
+                    />
                 </FormProvider>
             )}
             {!canEdit && (

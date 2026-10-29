@@ -73,4 +73,36 @@ describe('DatePicker', () => {
         // Then March 10 is selected, so the user sees the date the field holds
         expect(screen.getByLabelText('Tuesday, March 10, 2020')).toBeSelected();
     });
+
+    it('carries no outer margin of its own', () => {
+        // Given a field rendered without any spacing from its form
+        // When it renders
+        render(
+            <DatePicker
+                inputID="date"
+                label={LABEL}
+                value=""
+            />,
+        );
+
+        // Then its outermost view has no margin, because the form that contains the field decides the space around it
+        expect(screen.root).not.toHaveStyle({marginVertical: 8});
+        expect(screen.root).not.toHaveStyle({marginTop: 8});
+    });
+
+    it('takes the space around it from containerStyles', () => {
+        // Given a field whose form puts 16px above it
+        // When it renders with that margin in containerStyles
+        render(
+            <DatePicker
+                inputID="date"
+                label={LABEL}
+                value=""
+                containerStyles={{marginTop: 16}}
+            />,
+        );
+
+        // Then the outermost view gets that margin, the same way a TextInput does
+        expect(screen.root).toHaveStyle({marginTop: 16});
+    });
 });

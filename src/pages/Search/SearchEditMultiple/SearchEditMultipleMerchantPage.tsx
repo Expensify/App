@@ -19,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchEditMultipleMerchantForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function SearchEditMultipleMerchantPage() {
     const {translate} = useLocalize();
@@ -69,18 +68,16 @@ function SearchEditMultipleMerchantPage() {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.MERCHANT}
-                        name={INPUT_IDS.MERCHANT}
-                        defaultValue={currentMerchant}
-                        label={translate('common.merchant')}
-                        accessibilityLabel={translate('common.merchant')}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                    />
-                </View>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.MERCHANT}
+                    name={INPUT_IDS.MERCHANT}
+                    defaultValue={currentMerchant}
+                    label={translate('common.merchant')}
+                    accessibilityLabel={translate('common.merchant')}
+                    role={CONST.ROLE.PRESENTATION}
+                    ref={inputCallbackRef}
+                />
             </FormProvider>
         </ScreenWrapper>
     );

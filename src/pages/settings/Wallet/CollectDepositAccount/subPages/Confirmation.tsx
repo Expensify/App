@@ -1,7 +1,8 @@
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FormProvider from '@components/Form/FormProvider';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -68,35 +69,40 @@ function Confirmation({onNext, onMove, formValues, fieldsMap, fieldsType}: Custo
             onSubmit={onSubmit}
             submitButtonText={translate('common.confirm')}
             style={[styles.flexGrow1]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             isLoading={personalBankAccount?.isLoading}
             scrollContextEnabled
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('addPersonalBankAccount.confirmationStepHeader')}</Text>
-            <Text style={[styles.mb6, styles.ph5, styles.textSupporting]}>{translate('addPersonalBankAccount.confirmationStepSubHeader')}</Text>
-            <MenuItemField
-                name={translate('common.country')}
-                value={formValues[INPUT_IDS.BANK_COUNTRY]}
-                onPress={editCountry}
+            <FormHeader
+                title={translate('addPersonalBankAccount.confirmationStepHeader')}
+                description={translate('addPersonalBankAccount.confirmationStepSubHeader')}
+                style={styles.ph5}
             />
-            {!!formValues[INPUT_IDS.BANK_CURRENCY] && (
+            <FormMenuRows>
                 <MenuItemField
-                    name={translate('common.currency')}
-                    value={formValues[INPUT_IDS.BANK_CURRENCY]}
-                    onPress={editDetails}
+                    name={translate('common.country')}
+                    value={formValues[INPUT_IDS.BANK_COUNTRY]}
+                    onPress={editCountry}
                 />
-            )}
-            {Object.entries(fieldsMap).map(([fieldName, field]) => (
-                <MenuItemField
-                    key={fieldName}
-                    name={field.label}
-                    value={formValues[fieldName]}
-                    onPress={editDetails}
-                />
-            ))}
+                {!!formValues[INPUT_IDS.BANK_CURRENCY] && (
+                    <MenuItemField
+                        name={translate('common.currency')}
+                        value={formValues[INPUT_IDS.BANK_CURRENCY]}
+                        onPress={editDetails}
+                    />
+                )}
+                {Object.entries(fieldsMap).map(([fieldName, field]) => (
+                    <MenuItemField
+                        key={fieldName}
+                        name={field.label}
+                        value={formValues[fieldName]}
+                        onPress={editDetails}
+                    />
+                ))}
+            </FormMenuRows>
             <ErrorMessageRow
                 errors={getLatestError(personalBankAccount?.errors)}
-                errorRowStyles={[styles.mt3, styles.ph5]}
+                errorRowStyles={styles.ph5}
                 onDismiss={clearPersonalBankAccountErrors}
             />
         </FormProvider>

@@ -1,8 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import type {SubPageProps} from '@hooks/useSubPage/types';
@@ -65,20 +66,25 @@ function PushRowFieldsStepImpl({formID, formTitle, pushRowFields, onSubmit, isEd
             submitButtonStyles={[styles.mh5]}
             validate={validate}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{formTitle}</Text>
-            {pushRowFields.map((pushRowField: PushRowFieldWidened) => (
-                <InputWrapper
-                    key={pushRowField.inputID as string}
-                    InputComponent={PushRowWithModal}
-                    optionsList={pushRowField.options}
-                    description={pushRowField.description}
-                    modalHeaderTitle={pushRowField.modalHeaderTitle}
-                    searchInputTitle={pushRowField.searchInputTitle}
-                    inputID={pushRowField.inputID as string}
-                    shouldSaveDraft={!isEditing}
-                    defaultValue={pushRowField.defaultValue}
-                />
-            ))}
+            <FormHeader
+                title={formTitle}
+                style={styles.mh5}
+            />
+            <FormMenuRows>
+                {pushRowFields.map((pushRowField: PushRowFieldWidened) => (
+                    <InputWrapper
+                        key={pushRowField.inputID as string}
+                        InputComponent={PushRowWithModal}
+                        optionsList={pushRowField.options}
+                        description={pushRowField.description}
+                        modalHeaderTitle={pushRowField.modalHeaderTitle}
+                        searchInputTitle={pushRowField.searchInputTitle}
+                        inputID={pushRowField.inputID as string}
+                        shouldSaveDraft={!isEditing}
+                        defaultValue={pushRowField.defaultValue}
+                    />
+                ))}
+            </FormMenuRows>
         </FormProvider>
     );
 }

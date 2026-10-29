@@ -26,7 +26,7 @@ type BusinessTypePickerProps = {
     onInputChange?: (value: string) => void;
 
     label: string;
-    wrapperStyle: StyleProp<ViewStyle>;
+    wrapperStyle?: StyleProp<ViewStyle>;
 
     /**  Callback to call when the picker modal is dismissed */
     onBlur?: () => void;

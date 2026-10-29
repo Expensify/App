@@ -10,6 +10,8 @@ import React from 'react';
 
 import type {Choice} from './RadioButtons';
 
+import FormFieldGroup from './Form/Layout/FormFieldGroup';
+import FormMenuRows from './Form/Layout/FormMenuRows';
 import RadioButtons from './RadioButtons';
 import Text from './Text';
 
@@ -26,21 +28,23 @@ function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuesti
     const styles = useThemeStyles();
 
     return (
-        <>
-            <Text
-                ref={ref}
-                style={[styles.mt3, styles.ph5]}
-            >
-                {prompt}
-            </Text>
-            <RadioButtons
-                items={possibleAnswers}
-                key={currentQuestionIndex}
-                onSelect={onInputChange}
-                errorText={errorText}
-                forwardedFSClass={forwardedFSClass}
-            />
-        </>
+        <FormMenuRows hasLabelAbove>
+            <FormFieldGroup>
+                <Text
+                    ref={ref}
+                    style={styles.ph5}
+                >
+                    {prompt}
+                </Text>
+                <RadioButtons
+                    items={possibleAnswers}
+                    key={currentQuestionIndex}
+                    onSelect={onInputChange}
+                    errorText={errorText}
+                    forwardedFSClass={forwardedFSClass}
+                />
+            </FormFieldGroup>
+        </FormMenuRows>
     );
 }
 

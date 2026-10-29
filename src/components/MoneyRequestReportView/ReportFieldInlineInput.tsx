@@ -177,9 +177,6 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                 onInputChange={(selectedDate) => saveSelectedOption(selectedDate)}
-                // The grid puts its own gap between the fields, so the default vertical margin would push a date
-                // input below the plain text inputs sharing its row.
-                wrapperStyle={styles.mv0}
                 shouldDeferShowUntilPositioned
                 shouldHideClearButton
                 // The Month/Year pickers are right-docked, and a right-docked modal opened from the RHP drops its

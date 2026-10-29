@@ -1,7 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -69,35 +70,39 @@ function Manual({onNext}: BankInfoSubStepProps) {
             submitButtonText={translate('common.next')}
             style={[styles.mh5, styles.flexGrow1]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('bankAccount.manuallyAdd')}</Text>
-            <Text style={[styles.mb5, styles.textSupporting]}>{translate('bankAccount.checkHelpLine')}</Text>
-            <ExampleCheckImage />
-            <InputWrapper
-                InputComponent={TextInput}
-                ref={inputCallbackRef}
-                inputID={BANK_INFO_STEP_KEYS.ROUTING_NUMBER}
-                label={translate('bankAccount.routingNumber')}
-                aria-label={translate('bankAccount.routingNumber')}
-                role={CONST.ROLE.PRESENTATION}
-                defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}
-                inputMode={CONST.INPUT_MODE.NUMERIC}
-                shouldSaveDraft
-                shouldUseDefaultValue={hasBankAccountData}
-                disabled={hasBankAccountData}
-            />
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER}
-                containerStyles={[styles.mt6]}
-                label={translate('bankAccount.accountNumber')}
-                aria-label={translate('bankAccount.accountNumber')}
-                role={CONST.ROLE.PRESENTATION}
-                defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]}
-                inputMode={CONST.INPUT_MODE.NUMERIC}
-                shouldSaveDraft
-                shouldUseDefaultValue={hasBankAccountData}
-                disabled={hasBankAccountData}
-            />
+            <FormHeader
+                title={translate('bankAccount.manuallyAdd')}
+                description={translate('bankAccount.checkHelpLine')}
+            >
+                <ExampleCheckImage />
+            </FormHeader>
+            <FormFields>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    ref={inputCallbackRef}
+                    inputID={BANK_INFO_STEP_KEYS.ROUTING_NUMBER}
+                    label={translate('bankAccount.routingNumber')}
+                    aria-label={translate('bankAccount.routingNumber')}
+                    role={CONST.ROLE.PRESENTATION}
+                    defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ROUTING_NUMBER]}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
+                    shouldSaveDraft
+                    shouldUseDefaultValue={hasBankAccountData}
+                    disabled={hasBankAccountData}
+                />
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER}
+                    label={translate('bankAccount.accountNumber')}
+                    aria-label={translate('bankAccount.accountNumber')}
+                    role={CONST.ROLE.PRESENTATION}
+                    defaultValue={defaultValues[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]}
+                    inputMode={CONST.INPUT_MODE.NUMERIC}
+                    shouldSaveDraft
+                    shouldUseDefaultValue={hasBankAccountData}
+                    disabled={hasBankAccountData}
+                />
+            </FormFields>
         </FormProvider>
     );
 }

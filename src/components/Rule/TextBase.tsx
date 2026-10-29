@@ -18,7 +18,6 @@ import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type TextBaseProps<TFormID extends OnyxFormKey> = {
     fieldID: string;
@@ -95,23 +94,21 @@ function TextBaseImpl({fieldID, hint, isRequired, title, label, onSubmit, formID
             enabledWhenOffline
             shouldUseStrictHtmlTagValidation
         >
-            <View style={styles.mb5}>
-                <InputWrapper
-                    hint={hint}
-                    InputComponent={TextInput}
-                    inputID={fieldID}
-                    name={fieldID}
-                    defaultValue={typeof currentValue === 'string' ? currentValue : undefined}
-                    label={label}
-                    accessibilityLabel={title}
-                    role={CONST.ROLE.PRESENTATION}
-                    ref={inputCallbackRef}
-                    type={isMarkdownEnabled ? 'markdown' : undefined}
-                    autoGrowHeight={isMarkdownEnabled}
-                    maxAutoGrowHeight={isMarkdownEnabled ? variables.textInputAutoGrowMaxHeight : undefined}
-                    shouldSubmitForm={isMarkdownEnabled}
-                />
-            </View>
+            <InputWrapper
+                hint={hint}
+                InputComponent={TextInput}
+                inputID={fieldID}
+                name={fieldID}
+                defaultValue={typeof currentValue === 'string' ? currentValue : undefined}
+                label={label}
+                accessibilityLabel={title}
+                role={CONST.ROLE.PRESENTATION}
+                ref={inputCallbackRef}
+                type={isMarkdownEnabled ? 'markdown' : undefined}
+                autoGrowHeight={isMarkdownEnabled}
+                maxAutoGrowHeight={isMarkdownEnabled ? variables.textInputAutoGrowMaxHeight : undefined}
+                shouldSubmitForm={isMarkdownEnabled}
+            />
         </FormProvider>
     );
 }

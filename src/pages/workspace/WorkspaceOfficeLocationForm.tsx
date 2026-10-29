@@ -1,11 +1,11 @@
 import AddressForm from '@components/AddressForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getWorkspaceAddressStreetLines} from '@libs/WorkspaceDisplayUtils';
 
@@ -16,7 +16,6 @@ import INPUT_IDS from '@src/types/form/WorkspaceOfficeLocationForm';
 import type {CompanyAddress, OfficeLocation} from '@src/types/onyx/Policy';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 type WorkspaceOfficeLocationFormValues = FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_OFFICE_LOCATION_FORM>;
 
@@ -43,7 +42,6 @@ type WorkspaceOfficeLocationFormProps = {
 /** The location name, address and "Set as primary" fields shared by the pages that add and edit workspace offices */
 function WorkspaceOfficeLocationForm({officeLocation, isPrimary, isPrimaryLocked, isNameRequired, takenNames, onSubmit}: WorkspaceOfficeLocationFormProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const address = officeLocation?.address;
     const {streetLineOne, streetLineTwo} = getWorkspaceAddressStreetLines(address?.addressStreet, address?.addressStreet2);
     const [currentCountry, setCurrentCountry] = useState<Country | ''>(address?.country ?? '');
@@ -122,27 +120,27 @@ function WorkspaceOfficeLocationForm({officeLocation, isPrimary, isPrimaryLocked
             zip={zipCode}
             shouldRequireZip
         >
-            <InputWrapper
-                InputComponent={TextInput}
-                inputID={INPUT_IDS.LOCATION_NAME}
-                label={translate('workspace.officeLocations.locationName')}
-                aria-label={translate('workspace.officeLocations.locationName')}
-                role={CONST.ROLE.PRESENTATION}
-                defaultValue={officeLocation?.name}
-                hint={translate('workspace.officeLocations.locationNameHint')}
-                spellCheck={false}
-            />
-            <View style={styles.formSpaceVertical} />
-            <AddressForm.Fields />
-            <View style={styles.formSpaceVertical} />
-            <InputWrapper
-                InputComponent={CheckboxWithLabel}
-                inputID={INPUT_IDS.IS_PRIMARY}
-                label={translate('workspace.officeLocations.setAsPrimary')}
-                accessibilityLabel={translate('workspace.officeLocations.setAsPrimary')}
-                defaultValue={isPrimary}
-                disabled={isPrimaryLocked}
-            />
+            <FormFields>
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.LOCATION_NAME}
+                    label={translate('workspace.officeLocations.locationName')}
+                    aria-label={translate('workspace.officeLocations.locationName')}
+                    role={CONST.ROLE.PRESENTATION}
+                    defaultValue={officeLocation?.name}
+                    hint={translate('workspace.officeLocations.locationNameHint')}
+                    spellCheck={false}
+                />
+                <AddressForm.Fields />
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
+                    inputID={INPUT_IDS.IS_PRIMARY}
+                    label={translate('workspace.officeLocations.setAsPrimary')}
+                    accessibilityLabel={translate('workspace.officeLocations.setAsPrimary')}
+                    defaultValue={isPrimary}
+                    disabled={isPrimaryLocked}
+                />
+            </FormFields>
         </AddressForm>
     );
 }

@@ -40,6 +40,8 @@ import AvatarWithImagePicker from './AvatarWithImagePicker';
 import CurrencySelector from './CurrencySelector';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
+import FormFields from './Form/Layout/FormFields';
+import FormMenuRows from './Form/Layout/FormMenuRows';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import ScrollView from './ScrollView';
@@ -229,7 +231,7 @@ function WorkspaceConfirmationForm({
                     addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                     shouldScrollToEnd={isApprovedAccountant}
                 >
-                    <View style={styles.mb4}>
+                    <FormFields>
                         {!isLoadingOnyxValue(metadata) && (
                             <InputWrapper
                                 InputComponent={TextInput}
@@ -249,7 +251,7 @@ function WorkspaceConfirmationForm({
                             />
                         )}
 
-                        <View style={[styles.mhn5, styles.mt4]}>
+                        <FormMenuRows style={styles.mhn5}>
                             <InputWrapper
                                 InputComponent={CurrencySelector}
                                 inputID={INPUT_IDS.CURRENCY}
@@ -258,10 +260,8 @@ function WorkspaceConfirmationForm({
                                 shouldShowCurrencySymbol
                                 useWorkspaceConfirmationCurrencySelector
                             />
-                        </View>
-                        {isApprovedAccountant && (
-                            <>
-                                <View style={styles.mhn5}>
+                            {isApprovedAccountant && (
+                                <>
                                     <InputWrapper
                                         InputComponent={MenuItemWithTopDescription}
                                         inputID={INPUT_IDS.PLAN_TYPE}
@@ -274,9 +274,7 @@ function WorkspaceConfirmationForm({
                                         }}
                                         value={userPlanType}
                                     />
-                                </View>
 
-                                <View style={styles.mhn5}>
                                     <InputWrapper
                                         InputComponent={MenuItemWithTopDescription}
                                         inputID={INPUT_IDS.OWNER}
@@ -289,10 +287,8 @@ function WorkspaceConfirmationForm({
                                         }}
                                         value={userOwner}
                                     />
-                                </View>
 
-                                {isOwnerDifferentFromCurrentUser && (
-                                    <View style={styles.mhn5}>
+                                    {isOwnerDifferentFromCurrentUser && (
                                         <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ph5, styles.pv3]}>
                                             <View style={styles.flex1}>
                                                 <Text style={[styles.textNormal]}>{translate('workspace.common.keepMeAsAdmin')}</Text>
@@ -303,11 +299,11 @@ function WorkspaceConfirmationForm({
                                                 onToggle={setMakeMeAdmin}
                                             />
                                         </View>
-                                    </View>
-                                )}
-                            </>
-                        )}
-                    </View>
+                                    )}
+                                </>
+                            )}
+                        </FormMenuRows>
+                    </FormFields>
                 </FormProvider>
             </ScrollView>
         </>

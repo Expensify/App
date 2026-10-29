@@ -25,7 +25,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxCodeForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type WorkspaceTaxCodePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_CODE>;
 
@@ -102,17 +101,15 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.TAX_CODE}
-                            label={translate('workspace.taxes.taxCode')}
-                            accessibilityLabel={translate('workspace.taxes.taxCode')}
-                            defaultValue={isTaxCodeCustomized ? currentTaxCode : ''}
-                            ref={inputCallbackRef}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.TAX_CODE}
+                        label={translate('workspace.taxes.taxCode')}
+                        accessibilityLabel={translate('workspace.taxes.taxCode')}
+                        defaultValue={isTaxCodeCustomized ? currentTaxCode : ''}
+                        ref={inputCallbackRef}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

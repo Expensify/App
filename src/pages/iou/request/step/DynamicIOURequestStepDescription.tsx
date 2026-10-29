@@ -49,7 +49,6 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -223,28 +222,26 @@ function DynamicIOURequestStepDescription({
                 shouldHideFixErrorsAlert
                 keyboardSubmitBehavior={KEYBOARD_SUBMIT_BEHAVIOR}
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        valueType="string"
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
-                        name={INPUT_IDS.MONEY_REQUEST_COMMENT}
-                        defaultValue={currentDescriptionInMarkdown}
-                        onValueChange={updateDescriptionRef}
-                        label={translate('moneyRequestConfirmationList.whatsItFor')}
-                        accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
-                        role={CONST.ROLE.PRESENTATION}
-                        editable={!isDiscardModalVisible}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                        shouldSubmitForm
-                        type="markdown"
-                        excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
-                        ref={inputCallbackRef}
-                        hint={descriptionHint}
-                        shouldRenderHintAsHTML={!!descriptionHint}
-                    />
-                </View>
+                <InputWrapper
+                    valueType="string"
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
+                    name={INPUT_IDS.MONEY_REQUEST_COMMENT}
+                    defaultValue={currentDescriptionInMarkdown}
+                    onValueChange={updateDescriptionRef}
+                    label={translate('moneyRequestConfirmationList.whatsItFor')}
+                    accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
+                    role={CONST.ROLE.PRESENTATION}
+                    editable={!isDiscardModalVisible}
+                    autoGrowHeight
+                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                    shouldSubmitForm
+                    type="markdown"
+                    excludedMarkdownStyles={!isReportInGroupPolicy ? ['mentionReport'] : []}
+                    ref={inputCallbackRef}
+                    hint={descriptionHint}
+                    shouldRenderHintAsHTML={!!descriptionHint}
+                />
             </FormProvider>
         </StepScreenWrapper>
     );

@@ -119,7 +119,6 @@ function DynamicFormListItemModal({isVisible, title, itemFields, keptAnswers, is
                                 validate={(inputValues) => getDynamicFieldErrors(itemFields, withInputValues(inputValues), translate)}
                                 onSubmit={(inputValues) => onSave(withInputValues(inputValues))}
                                 style={[styles.mh5, styles.flexGrow1]}
-                                submitButtonStyles={styles.mb0}
                                 enabledWhenOffline
                             >
                                 {({inputValues}) => renderFields(itemFields, withInputValues(inputValues), isSensitive)}

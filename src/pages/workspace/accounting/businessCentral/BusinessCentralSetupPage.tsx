@@ -1,9 +1,10 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -80,17 +81,18 @@ function BusinessCentralSetupPage({route}: BusinessCentralSetupPageProps) {
                 shouldValidateOnChange
                 addBottomSafeAreaPadding
             >
-                <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.businessCentral.enterCredentials')}</Text>
-                <View style={[styles.renderHTML, styles.mb5]}>
-                    <RenderHTML html={translate('workspace.businessCentral.helpArticle')} />
-                </View>
-
-                {formItems.map((formItem, index) => (
-                    <View
-                        style={styles.mb4}
-                        key={formItem}
-                    >
+                <FormHeader
+                    title={translate('workspace.businessCentral.enterCredentials')}
+                    description={
+                        <View style={styles.renderHTML}>
+                            <RenderHTML html={translate('workspace.businessCentral.helpArticle')} />
+                        </View>
+                    }
+                />
+                <FormFields>
+                    {formItems.map((formItem, index) => (
                         <InputWrapper
+                            key={formItem}
                             InputComponent={TextInput}
                             inputID={formItem}
                             ref={index === 0 ? inputCallbackRef : undefined}
@@ -102,8 +104,8 @@ function BusinessCentralSetupPage({route}: BusinessCentralSetupPageProps) {
                             secureTextEntry={formItem === INPUT_IDS.CLIENT_SECRET}
                             autoCorrect={false}
                         />
-                    </View>
-                ))}
+                    ))}
+                </FormFields>
             </FormProvider>
         </ConnectionLayout>
     );

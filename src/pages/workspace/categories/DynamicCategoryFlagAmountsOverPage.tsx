@@ -1,6 +1,10 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -34,7 +38,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryFlagAmountsOverForm';
 
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 
 type DynamicCategoryFlagAmountsOverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER>;
 
@@ -97,27 +100,34 @@ function DynamicCategoryFlagAmountsOverPage({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={[styles.mb4, styles.pt3, styles.ph5]}>
-                        <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', decodedCategoryName)}</Text>
-                        <InputWrapper
-                            label={translate('iou.amount')}
-                            InputComponent={AmountForm}
-                            inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
-                            currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
-                            defaultValue={defaultValue}
-                            isCurrencyPressable={false}
-                            ref={inputCallbackRef}
-                            displayAsTextInput
-                        />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.categoryRules.flagAmountsOverSubtitle')}</Text>
-                    </View>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`)}
-                        description={translate('common.type')}
-                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path))}
-                        wrapperStyle={[styles.ph5, styles.mt3]}
+                    <FormHeader
+                        description={translate('workspace.rules.categoryRules.flagAmountsOverDescription', decodedCategoryName)}
+                        style={styles.ph5}
                     />
+                    <FormFields>
+                        <FormFieldGroup style={styles.ph5}>
+                            <InputWrapper
+                                label={translate('iou.amount')}
+                                InputComponent={AmountForm}
+                                inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
+                                currency={policy?.outputCurrency ?? CONST.CURRENCY.USD}
+                                defaultValue={defaultValue}
+                                isCurrencyPressable={false}
+                                ref={inputCallbackRef}
+                                displayAsTextInput
+                            />
+                            <Text style={styles.mutedTextLabel}>{translate('workspace.rules.categoryRules.flagAmountsOverSubtitle')}</Text>
+                        </FormFieldGroup>
+                        <FormMenuRows>
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
+                                title={translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`)}
+                                description={translate('common.type')}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path))}
+                                wrapperStyle={styles.ph5}
+                            />
+                        </FormMenuRows>
+                    </FormFields>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

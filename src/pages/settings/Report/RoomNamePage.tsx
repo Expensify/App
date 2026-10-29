@@ -28,7 +28,6 @@ import type {Report} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
-import {View} from 'react-native';
 
 type RoomNamePageProps = {
     report: Report;
@@ -99,15 +98,13 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={RoomNameInput}
-                            ref={inputCallbackRef}
-                            inputID={INPUT_IDS.ROOM_NAME}
-                            defaultValue={report?.reportName}
-                            isFocused={isFocused}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={RoomNameInput}
+                        ref={inputCallbackRef}
+                        inputID={INPUT_IDS.ROOM_NAME}
+                        defaultValue={report?.reportName}
+                        isFocused={isFocused}
+                    />
                 </FormProvider>
             </FullPageNotFoundView>
         </ScreenWrapper>

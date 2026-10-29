@@ -1,9 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -31,7 +31,6 @@ import INPUT_IDS from '@src/types/form/WorkspacePerDiemForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type EditPerDiemDestinationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_EDIT_DESTINATION>;
 
@@ -95,9 +94,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.pb4}>
-                        <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.perDiem.editDestinationSubtitle', selectedRate?.name ?? '')}</Text>
-                    </View>
+                    <FormHeader description={translate('workspace.perDiem.editDestinationSubtitle', selectedRate?.name ?? '')} />
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}

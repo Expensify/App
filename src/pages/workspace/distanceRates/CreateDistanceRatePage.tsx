@@ -3,6 +3,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -120,18 +121,17 @@ function CreateDistanceRatePage({
                         validate={validate}
                         enabledWhenOffline
                         style={[styles.mh5, styles.flex1]}
-                        submitButtonStyles={[styles.mt0]}
                         addBottomSafeAreaPadding
                     >
-                        <InputWrapper
-                            ref={inputCallbackRef}
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('common.name')}
-                            accessibilityLabel={translate('common.name')}
-                            role={CONST.ROLE.PRESENTATION}
-                        />
-                        <View style={styles.mt4}>
+                        <FormFields>
+                            <InputWrapper
+                                ref={inputCallbackRef}
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('common.name')}
+                                accessibilityLabel={translate('common.name')}
+                                role={CONST.ROLE.PRESENTATION}
+                            />
                             <InputWrapper
                                 InputComponent={AmountForm}
                                 inputID={INPUT_IDS.RATE}
@@ -141,8 +141,6 @@ function CreateDistanceRatePage({
                                 displayAsTextInput
                                 label={translate('workspace.distanceRates.amountPerUnit', unitLabel)}
                             />
-                        </View>
-                        <View style={styles.mt2}>
                             <InputWrapper
                                 InputComponent={DatePicker}
                                 inputID={INPUT_IDS.START_DATE}
@@ -150,14 +148,14 @@ function CreateDistanceRatePage({
                                 shouldDeferShowUntilPositioned
                                 shouldDismissKeyboardBeforeShow
                             />
-                        </View>
-                        <InputWrapper
-                            InputComponent={DatePicker}
-                            inputID={INPUT_IDS.END_DATE}
-                            label={translate('workspace.distanceRates.endDate')}
-                            shouldDeferShowUntilPositioned
-                            shouldDismissKeyboardBeforeShow
-                        />
+                            <InputWrapper
+                                InputComponent={DatePicker}
+                                inputID={INPUT_IDS.END_DATE}
+                                label={translate('workspace.distanceRates.endDate')}
+                                shouldDeferShowUntilPositioned
+                                shouldDismissKeyboardBeforeShow
+                            />
+                        </FormFields>
                     </FormProvider>
                 </FullPageBlockingView>
             </ScreenWrapper>

@@ -1,5 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -24,7 +26,6 @@ import type SCREENS from '@src/SCREENS';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 
@@ -106,7 +107,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                 submitButtonStyles={[styles.ph5]}
                 shouldUseStrictHtmlTagValidation
             >
-                <View style={styles.mb5}>
+                <FormFields>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH}
@@ -118,16 +119,21 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                         ref={inputCallbackRef}
                         containerStyles={[styles.ph5]}
                     />
-                </View>
-                <MenuItemField
-                    name={translate('workspace.rules.merchantRules.matchType')}
-                    onPress={() =>
-                        Navigation.navigate(
-                            getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined)),
-                        )
-                    }
-                    value={getMatchTypeLabel()}
-                />
+                    <FormMenuRows>
+                        <MenuItemField
+                            name={translate('workspace.rules.merchantRules.matchType')}
+                            onPress={() =>
+                                Navigation.navigate(
+                                    getRuleRoute(
+                                        DYNAMIC_ROUTES.RULES_MERCHANT_MATCH_TYPE_FROM_EXPENSE.path,
+                                        ROUTES.RULES_MERCHANT_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined),
+                                    ),
+                                )
+                            }
+                            value={getMatchTypeLabel()}
+                        />
+                    </FormMenuRows>
+                </FormFields>
             </FormProvider>
         </ScreenWrapper>
     );

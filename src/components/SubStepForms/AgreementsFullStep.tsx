@@ -1,6 +1,9 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import RenderHTML from '@components/RenderHTML';
@@ -186,70 +189,72 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                 enabledWhenOffline={false}
                 isLoading={isLoading}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('agreementsStep.pleaseConfirm')}</Text>
-                {!isDocusignStepRequired && <Text style={[styles.pv3, styles.textSupporting]}>{translate('agreementsStep.regulationRequiresUs')}</Text>}
-                <InputWrapper
-                    InputComponent={CheckboxWithLabel}
-                    accessibilityLabel={translate('agreementsStep.iAmAuthorized')}
-                    inputID={inputIDs.authorizedToBindClientToAgreement}
-                    style={styles.mt6}
-                    LabelComponent={IsAuthorizedToUseBankAccountLabel}
-                    defaultValue={defaultValues[inputIDs.authorizedToBindClientToAgreement]}
-                    shouldSaveDraft
+                <FormHeader
+                    title={translate('agreementsStep.pleaseConfirm')}
+                    description={isDocusignStepRequired ? undefined : translate('agreementsStep.regulationRequiresUs')}
                 />
-                <InputWrapper
-                    InputComponent={CheckboxWithLabel}
-                    accessibilityLabel={translate('agreementsStep.iCertify')}
-                    inputID={inputIDs.provideTruthfulInformation}
-                    style={styles.mt6}
-                    LabelComponent={CertifyTrueAndAccurateLabel}
-                    defaultValue={defaultValues[inputIDs.provideTruthfulInformation]}
-                    shouldSaveDraft
-                />
-                <InputWrapper
-                    InputComponent={CheckboxWithLabel}
-                    accessibilityLabel={translate('agreementsStep.iAcceptTheTermsAndConditionsAccessibility')}
-                    inputID={inputIDs.agreeToTermsAndConditions}
-                    style={styles.mt6}
-                    LabelComponent={TermsAndConditionsLabel}
-                    defaultValue={defaultValues[inputIDs.agreeToTermsAndConditions]}
-                    shouldSaveDraft
-                />
-                <InputWrapper
-                    InputComponent={CheckboxWithLabel}
-                    accessibilityLabel={translate('agreementsStep.iConsentToThePrivacyNoticeAccessibility')}
-                    inputID={inputIDs.consentToPrivacyNotice}
-                    style={styles.mt6}
-                    LabelComponent={ConsentToPrivacyNoticeLabel}
-                    defaultValue={defaultValues[inputIDs.consentToPrivacyNotice]}
-                    shouldSaveDraft
-                />
-                {!!bankStatementInputID && (
-                    <>
-                        <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />
-                        <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('agreementsStep.bankStatement')}</Text>
-                        <InputWrapper
-                            InputComponent={UploadFile}
-                            buttonText={translate('common.chooseFile')}
-                            uploadedFiles={uploadedBankStatement}
-                            onUpload={(files) => {
-                                handleSelectBankStatement(files);
-                            }}
-                            onRemove={(fileName) => {
-                                handleRemoveBankStatement(fileName);
-                            }}
-                            acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
-                            value={uploadedBankStatement}
-                            inputID={String(bankStatementInputID)}
-                            setError={(error) => {
-                                setBankStatementError(error);
-                            }}
-                            fileLimit={1}
-                            maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
-                        />
-                        <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('agreementsStep.bankStatementDescription')}</Text>
-                    </>
-                )}
+                <FormFields>
+                    <InputWrapper
+                        InputComponent={CheckboxWithLabel}
+                        accessibilityLabel={translate('agreementsStep.iAmAuthorized')}
+                        inputID={inputIDs.authorizedToBindClientToAgreement}
+                        LabelComponent={IsAuthorizedToUseBankAccountLabel}
+                        defaultValue={defaultValues[inputIDs.authorizedToBindClientToAgreement]}
+                        shouldSaveDraft
+                    />
+                    <InputWrapper
+                        InputComponent={CheckboxWithLabel}
+                        accessibilityLabel={translate('agreementsStep.iCertify')}
+                        inputID={inputIDs.provideTruthfulInformation}
+                        LabelComponent={CertifyTrueAndAccurateLabel}
+                        defaultValue={defaultValues[inputIDs.provideTruthfulInformation]}
+                        shouldSaveDraft
+                    />
+                    <InputWrapper
+                        InputComponent={CheckboxWithLabel}
+                        accessibilityLabel={translate('agreementsStep.iAcceptTheTermsAndConditionsAccessibility')}
+                        inputID={inputIDs.agreeToTermsAndConditions}
+                        LabelComponent={TermsAndConditionsLabel}
+                        defaultValue={defaultValues[inputIDs.agreeToTermsAndConditions]}
+                        shouldSaveDraft
+                    />
+                    <InputWrapper
+                        InputComponent={CheckboxWithLabel}
+                        accessibilityLabel={translate('agreementsStep.iConsentToThePrivacyNoticeAccessibility')}
+                        inputID={inputIDs.consentToPrivacyNotice}
+                        LabelComponent={ConsentToPrivacyNoticeLabel}
+                        defaultValue={defaultValues[inputIDs.consentToPrivacyNotice]}
+                        shouldSaveDraft
+                    />
+                    {!!bankStatementInputID && (
+                        <>
+                            <View style={styles.sectionDividerLine} />
+                            <FormFieldGroup>
+                                <Text style={styles.mutedTextLabel}>{translate('agreementsStep.bankStatement')}</Text>
+                                <InputWrapper
+                                    InputComponent={UploadFile}
+                                    buttonText={translate('common.chooseFile')}
+                                    uploadedFiles={uploadedBankStatement}
+                                    onUpload={(files) => {
+                                        handleSelectBankStatement(files);
+                                    }}
+                                    onRemove={(fileName) => {
+                                        handleRemoveBankStatement(fileName);
+                                    }}
+                                    acceptedFileTypes={[...CONST.CORPAY_DOCUMENT.ALLOWED_FILE_TYPES]}
+                                    value={uploadedBankStatement}
+                                    inputID={String(bankStatementInputID)}
+                                    setError={(error) => {
+                                        setBankStatementError(error);
+                                    }}
+                                    fileLimit={1}
+                                    maxFileSize={CONST.CORPAY_DOCUMENT.MAX_FILE_SIZE}
+                                />
+                                <Text style={styles.mutedTextLabel}>{translate('agreementsStep.bankStatementDescription')}</Text>
+                            </FormFieldGroup>
+                        </>
+                    )}
+                </FormFields>
             </FormProvider>
         </InteractiveStepWrapper>
     );

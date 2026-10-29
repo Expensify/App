@@ -4,7 +4,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import WhyLink from '@pages/ReimbursementAccount/WhyLink';
 
@@ -19,7 +18,6 @@ const {SIGNER_DATE_OF_BIRTH} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 
 function DateOfBirth({onNext, onMove, isEditing}: DateOfBirthProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const inputID = SIGNER_DATE_OF_BIRTH;
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -43,7 +41,7 @@ function DateOfBirth({onNext, onMove, isEditing}: DateOfBirthProps) {
             stepFields={[inputID]}
             dobInputID={inputID}
             dobDefaultValue={defaultValue}
-            footerComponent={<WhyLink containerStyles={[styles.mt6]} />}
+            footerComponent={<WhyLink />}
         />
     );
 }

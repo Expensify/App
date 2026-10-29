@@ -1,6 +1,8 @@
 import PaymentCardCurrencyHeader from '@components/AddPaymentCard/PaymentCardCurrencyHeader';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
@@ -91,23 +93,24 @@ function ChangeBillingCurrency() {
                     shouldHideFixErrorsAlert
                 >
                     <PaymentCardCurrencyHeader />
-                    <View style={[styles.mt5, styles.mhn5]}>
-                        <MenuItemField
-                            name={translate('common.currency')}
-                            value={currency}
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path))}
+                    <FormFields>
+                        <FormMenuRows style={styles.mhn5}>
+                            <MenuItemField
+                                name={translate('common.currency')}
+                                value={currency}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path))}
+                            />
+                        </FormMenuRows>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.SECURITY_CODE}
+                            label={translate('addDebitCardPage.cvv')}
+                            aria-label={translate('addDebitCardPage.cvv')}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputMode={CONST.INPUT_MODE.NUMERIC}
+                            autoComplete="cc-csc"
                         />
-                    </View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.SECURITY_CODE}
-                        label={translate('addDebitCardPage.cvv')}
-                        aria-label={translate('addDebitCardPage.cvv')}
-                        role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt5]}
-                        inputMode={CONST.INPUT_MODE.NUMERIC}
-                        autoComplete="cc-csc"
-                    />
+                    </FormFields>
                 </FormProvider>
             </View>
         </ScreenWrapper>

@@ -19,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SpendRuleMaxAmountForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type SpendRuleMaxAmountBaseProps = {
     policyID: string;
@@ -68,18 +67,16 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
                     submitButtonText={translate('common.save')}
                     onSubmit={onSubmit}
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            displayAsTextInput
-                            ref={inputCallbackRef}
-                            label={translate('iou.amount')}
-                            InputComponent={AmountForm}
-                            inputID={INPUT_IDS.MAX_AMOUNT}
-                            currency={currencyCode}
-                            defaultValue={maxAmount}
-                            isCurrencyPressable={false}
-                        />
-                    </View>
+                    <InputWrapper
+                        displayAsTextInput
+                        ref={inputCallbackRef}
+                        label={translate('iou.amount')}
+                        InputComponent={AmountForm}
+                        inputID={INPUT_IDS.MAX_AMOUNT}
+                        currency={currencyCode}
+                        defaultValue={maxAmount}
+                        isCurrencyPressable={false}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

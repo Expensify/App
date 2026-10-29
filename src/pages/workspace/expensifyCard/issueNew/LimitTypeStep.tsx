@@ -1,6 +1,10 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import Icon from '@components/Icon';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -191,38 +195,43 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                 addBottomSafeAreaPadding
                 ref={formRef}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseLimitType')}</Text>
-                <InputWrapperWithRef
-                    InputComponent={ValuePicker}
-                    inputID={INPUT_IDS.LIMIT_TYPE}
-                    label={translate('workspace.card.issueNewCard.chooseLimitType')}
-                    value={typeSelected}
-                    defaultValue={defaultType}
-                    items={data}
-                    onValueChange={(value) => {
-                        setTypeSelected(value as CardLimitType);
-                    }}
-                    shouldShowModal={false}
-                    addBottomSafeAreaPadding={false}
-                    disableKeyboardShortcuts
-                    alternateNumberOfSupportedLines={2}
+                <FormHeader
+                    title={translate('workspace.card.issueNewCard.chooseLimitType')}
+                    style={styles.ph5}
                 />
-
-                <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
-
-                <View style={[styles.mt3, styles.mh5]}>
-                    <Text style={[styles.textLabelSupporting, styles.mb3]}>{translate('workspace.card.issueNewCard.limitAmount')}</Text>
-                    <InputWrapperWithRef
-                        InputComponent={AmountForm}
-                        label={translate('workspace.card.issueNewCard.amount')}
-                        defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, 0)}
-                        isCurrencyPressable={false}
-                        currency={issueNewCard?.data?.currency}
-                        inputID={INPUT_IDS.LIMIT}
-                        displayAsTextInput
-                        onFocus={onInputFocus}
-                    />
-                </View>
+                <FormFields>
+                    <FormMenuRows>
+                        <InputWrapperWithRef
+                            InputComponent={ValuePicker}
+                            inputID={INPUT_IDS.LIMIT_TYPE}
+                            label={translate('workspace.card.issueNewCard.chooseLimitType')}
+                            value={typeSelected}
+                            defaultValue={defaultType}
+                            items={data}
+                            onValueChange={(value) => {
+                                setTypeSelected(value as CardLimitType);
+                            }}
+                            shouldShowModal={false}
+                            addBottomSafeAreaPadding={false}
+                            disableKeyboardShortcuts
+                            alternateNumberOfSupportedLines={2}
+                        />
+                    </FormMenuRows>
+                    <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5]} />
+                    <FormFieldGroup style={styles.mh5}>
+                        <Text style={styles.textLabelSupporting}>{translate('workspace.card.issueNewCard.limitAmount')}</Text>
+                        <InputWrapperWithRef
+                            InputComponent={AmountForm}
+                            label={translate('workspace.card.issueNewCard.amount')}
+                            defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, 0)}
+                            isCurrencyPressable={false}
+                            currency={issueNewCard?.data?.currency}
+                            inputID={INPUT_IDS.LIMIT}
+                            displayAsTextInput
+                            onFocus={onInputFocus}
+                        />
+                    </FormFieldGroup>
+                </FormFields>
             </FormProvider>
         </InteractiveStepWrapper>
     );

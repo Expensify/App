@@ -90,14 +90,14 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
             headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('workspace.changeOwner.addPaymentCardTitle')}</Text>}
             footerContent={
                 <>
-                    <View style={[styles.renderHTML, styles.mt5]}>
+                    <View style={styles.renderHTML}>
                         <RenderHTML html={translate('workspace.changeOwner.addPaymentCardReadAndAcceptText')} />
                     </View>
                     <Section
                         icon={ShieldYellow}
                         cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
                         title={translate('requestorStep.isMyDataSafe')}
-                        containerStyles={[styles.mh0, styles.mt5]}
+                        containerStyles={styles.mh0}
                     >
                         <View style={[styles.mt4, styles.ph2, styles.pb2]}>
                             <Text style={[styles.textSupportingNormal, styles.dFlex, styles.alignItemsCenter]}>

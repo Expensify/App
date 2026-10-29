@@ -1,7 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import type {SubPageProps} from '@hooks/useSubPage/types';
@@ -20,7 +21,6 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 
 type AddressValues = {
     street: string;
@@ -161,30 +161,30 @@ function AddressStepImpl({
             ref={formRef}
             enabledWhenOffline
         >
-            <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
-                {!!formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
-                <AddressFormFields
-                    inputKeys={inputFieldsIDs}
-                    streetTranslationKey={streetTranslationKey}
-                    defaultValues={defaultValues}
-                    shouldSaveDraft={!isEditing}
-                    shouldDisplayStateSelector={shouldDisplayStateSelector}
-                    shouldDisplayCountrySelector={shouldDisplayCountrySelector}
-                    stateSelectorLabel={stateSelectorLabel}
-                    stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
-                    stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
-                    onCountryChange={onCountryChange}
-                    shouldAllowCountryChange={shouldAllowCountryChange}
-                    forwardedFSClass={forwardedFSClass}
-                />
-                {!!shouldShowHelpLinks && (
-                    <>
-                        <HelpLinks containerStyles={[styles.mt6]} />
-                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
-                    </>
-                )}
-            </View>
+            <FormHeader
+                title={formTitle}
+                description={formPOBoxDisclaimer}
+            />
+            <AddressFormFields
+                inputKeys={inputFieldsIDs}
+                streetTranslationKey={streetTranslationKey}
+                defaultValues={defaultValues}
+                shouldSaveDraft={!isEditing}
+                shouldDisplayStateSelector={shouldDisplayStateSelector}
+                shouldDisplayCountrySelector={shouldDisplayCountrySelector}
+                stateSelectorLabel={stateSelectorLabel}
+                stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
+                stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
+                onCountryChange={onCountryChange}
+                shouldAllowCountryChange={shouldAllowCountryChange}
+                forwardedFSClass={forwardedFSClass}
+            />
+            {!!shouldShowHelpLinks && (
+                <FormFieldGroup>
+                    <HelpLinks />
+                    {shouldShowPatriotActLink && <PatriotActLink />}
+                </FormFieldGroup>
+            )}
         </FormProvider>
     );
 }

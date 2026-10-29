@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -131,7 +132,7 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
                     shouldHideFixErrorsAlert
                     submitButtonStyles={[styles.ph5]}
                 >
-                    <View style={[styles.mb5, styles.ph5]}>
+                    <View style={styles.ph5}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.MERCHANT_NAME}
@@ -143,15 +144,17 @@ function SpendRuleMerchantEditBase({policyID, merchantIndex, merchantMatchTypes,
                             role={CONST.ROLE.PRESENTATION}
                         />
                     </View>
-                    <View style={[styles.pb2, styles.ph5]}>
-                        <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.spendRules.matchType')}</Text>
-                    </View>
-                    <SelectionList
-                        shouldSingleExecuteRowSelect
-                        data={matchTypeItems}
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={onSelectMatchType}
-                    />
+                    <FormFieldGroup style={styles.flex1}>
+                        <View style={styles.ph5}>
+                            <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.spendRules.matchType')}</Text>
+                        </View>
+                        <SelectionList
+                            shouldSingleExecuteRowSelect
+                            data={matchTypeItems}
+                            ListItem={SingleSelectListItem}
+                            onSelectRow={onSelectMatchType}
+                        />
+                    </FormFieldGroup>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

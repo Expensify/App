@@ -119,7 +119,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
                     validate={validate}
                     onSubmit={handleSubmit}
                     submitButtonText={translate('common.invite')}
-                    style={[styles.flex1, styles.ph5, styles.pb3]}
+                    style={[styles.flex1, styles.ph5]}
                 >
                     <InputWrapper
                         InputComponent={DomainEmailInput}

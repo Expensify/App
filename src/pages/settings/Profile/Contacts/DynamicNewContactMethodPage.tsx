@@ -1,11 +1,11 @@
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -31,7 +31,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 
 function DynamicNewContactMethodPage() {
     const styles = useThemeStyles();
@@ -144,20 +143,18 @@ function DynamicNewContactMethodPage() {
                     style={[styles.flexGrow1, styles.mh5]}
                     isLoading={pendingContactAction?.isLoading}
                 >
-                    <Text style={styles.mb5}>{translate('common.pleaseEnterEmailOrPhoneNumber')}</Text>
-                    <View style={styles.mb6}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
-                            aria-label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputMode={CONST.INPUT_MODE.EMAIL}
-                            ref={loginInputRef}
-                            inputID={INPUT_IDS.PHONE_OR_EMAIL}
-                            autoCapitalize="none"
-                            enterKeyHint="done"
-                        />
-                    </View>
+                    <FormHeader description={translate('common.pleaseEnterEmailOrPhoneNumber')} />
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
+                        aria-label={`${translate('common.email')}/${translate('common.phoneNumber')}`}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputMode={CONST.INPUT_MODE.EMAIL}
+                        ref={loginInputRef}
+                        inputID={INPUT_IDS.PHONE_OR_EMAIL}
+                        autoCapitalize="none"
+                        enterKeyHint="done"
+                    />
                 </FormProvider>
             </DelegateNoAccessWrapper>
         </ScreenWrapper>

@@ -1,9 +1,10 @@
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import type {SubPageProps} from '@hooks/useSubPage/types';
@@ -88,11 +89,10 @@ function DateOfBirthStepImpl({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
-            submitButtonStyles={[styles.mb0]}
             enabledWhenOffline
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{formTitle}</Text>
+            <FormHeader title={formTitle} />
             <InputWrapper
                 InputComponent={DatePicker}
                 inputID={dobInputID}
@@ -106,8 +106,12 @@ function DateOfBirthStepImpl({
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="birthdate-full"
             />
-            {footerComponent}
-            {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+            {(!!footerComponent || shouldShowPatriotActLink) && (
+                <FormFieldGroup>
+                    {footerComponent}
+                    {shouldShowPatriotActLink && <PatriotActLink />}
+                </FormFieldGroup>
+            )}
         </FormProvider>
     );
 }

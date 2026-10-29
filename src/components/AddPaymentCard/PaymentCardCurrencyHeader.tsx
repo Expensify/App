@@ -10,7 +10,7 @@ function PaymentCardCurrencyHeader({isSectionList}: {isSectionList?: boolean}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
-        <View style={[styles.renderHTML, styles.flexRow, styles.mt3, isSectionList && styles.mh5, isSectionList && styles.mb5]}>
+        <View style={[styles.renderHTML, styles.flexRow, isSectionList && [styles.mh5, styles.mt3, styles.mb5]]}>
             <RenderHTML html={translate('billingCurrency.note')} />
         </View>
     );

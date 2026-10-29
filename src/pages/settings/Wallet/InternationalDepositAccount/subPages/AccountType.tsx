@@ -1,6 +1,7 @@
 import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import ValuePicker from '@components/ValuePicker';
 
@@ -12,12 +13,10 @@ import {setDraftValues} from '@libs/actions/FormActions';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 
-import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {useRef} from 'react';
-import {View} from 'react-native';
 
 function AccountType({isEditing, onNext, fieldsMap}: CustomSubPageProps) {
     const {translate} = useLocalize();
@@ -53,15 +52,16 @@ function AccountType({isEditing, onNext, fieldsMap}: CustomSubPageProps) {
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.flexGrow1, styles.mt3]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             enabledWhenOffline
             ref={formRef}
             isSubmitButtonVisible={!isEditing}
         >
             <CollapsibleHeaderOnKeyboardGroupMember>
-                <View style={styles.ph5}>
-                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountTypeStepHeader')}</Text>
-                </View>
+                <FormHeader
+                    title={translate('addPersonalBankAccount.accountTypeStepHeader')}
+                    style={styles.ph5}
+                />
             </CollapsibleHeaderOnKeyboardGroupMember>
             <InputWrapper
                 InputComponent={ValuePicker}

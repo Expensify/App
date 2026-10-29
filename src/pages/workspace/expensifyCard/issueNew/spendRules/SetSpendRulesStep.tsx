@@ -1,6 +1,9 @@
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -274,130 +277,132 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
                 shouldHideFixErrorsAlert
                 validate={validate}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.setCardRules')}</Text>
-                {isSpendRuleVisible && (
-                    <>
-                        <ToggleSettingOptionRow
-                            title={translate('workspace.card.issueNewCard.addSpendRule')}
-                            isActive={!isSpendRuleLocked && spendRuleEnabled}
-                            onToggle={handleToggleSpendRules}
-                            disabled={isSpendRuleLocked}
-                            showLockIcon={isSpendRuleLocked}
-                            disabledAction={isSpendRuleLocked ? promptSpendRuleUpgrade : undefined}
-                            switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
-                            wrapperStyle={[styles.mv3]}
-                        />
-                        {!isSpendRuleLocked && spendRuleEnabled && (
-                            <View style={[styles.pt4, styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
-                                <TabSelectorBase
-                                    equalWidth
-                                    tabs={spendRuleTabs}
-                                    activeTabKey={spendRuleOption}
-                                    onTabPress={handleSpendRuleOptionSelection}
-                                />
-
-                                {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
-                                    <MenuItemField
-                                        name={translate('workspace.card.chooseRule')}
-                                        onPress={handleChooseSpendRule}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
-                                        value={existingSpendRuleTitle}
+                <FormHeader title={translate('workspace.card.issueNewCard.setCardRules')} />
+                <FormFields>
+                    {isSpendRuleVisible && (
+                        <FormFieldGroup>
+                            <ToggleSettingOptionRow
+                                title={translate('workspace.card.issueNewCard.addSpendRule')}
+                                isActive={!isSpendRuleLocked && spendRuleEnabled}
+                                onToggle={handleToggleSpendRules}
+                                disabled={isSpendRuleLocked}
+                                showLockIcon={isSpendRuleLocked}
+                                disabledAction={isSpendRuleLocked ? promptSpendRuleUpgrade : undefined}
+                                switchAccessibilityLabel={translate('workspace.card.issueNewCard.addSpendRule')}
+                            />
+                            {!isSpendRuleLocked && spendRuleEnabled && (
+                                <View style={[styles.pt4, styles.border, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
+                                    <TabSelectorBase
+                                        equalWidth
+                                        tabs={spendRuleTabs}
+                                        activeTabKey={spendRuleOption}
+                                        onTabPress={handleSpendRuleOptionSelection}
                                     />
-                                )}
 
-                                {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && (
-                                    <View>
+                                    {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.COPY_EXISTING && (
                                         <MenuItemField
-                                            name={translate('workspace.rules.spendRules.maxAmount')}
-                                            value={spendRuleMaxAmountTitle}
-                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                            onPress={() => {
-                                                setSpendRuleErrorMessage('');
-                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT.path));
-                                            }}
+                                            name={translate('workspace.card.chooseRule')}
+                                            onPress={handleChooseSpendRule}
+                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.CHOOSE_SPEND_RULE}
+                                            value={existingSpendRuleTitle}
                                         />
-                                        <MenuItemField
-                                            name={translate('workspace.rules.spendRules.permittedCurrencies')}
-                                            value={currenciesTitle}
-                                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
-                                            onPress={() => {
-                                                setSpendRuleErrorMessage('');
-                                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY.path));
-                                            }}
-                                        />
+                                    )}
 
-                                        <View style={[styles.ph5, styles.pv3]}>
-                                            <SpendRuleRestrictionTypeToggle
-                                                restrictionAction={!isRestrictMerchantsOff ? spendRuleAction : null}
-                                                onSelect={handleSelectRestrictionAction}
+                                    {spendRuleOption === CONST.EXPENSIFY_CARD.SPEND_RULE_OPTION.CREATE_NEW && (
+                                        <View>
+                                            <MenuItemField
+                                                name={translate('workspace.rules.spendRules.maxAmount')}
+                                                value={spendRuleMaxAmountTitle}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                                onPress={() => {
+                                                    setSpendRuleErrorMessage('');
+                                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MAX_AMOUNT.path));
+                                                }}
                                             />
-                                        </View>
-                                        {!isRestrictMerchantsOff && (
-                                            <>
-                                                <MenuItemField
-                                                    name={merchantsDescription}
-                                                    value={spendRuleMerchantNamesTitle}
-                                                    numberOfLinesValue={2}
-                                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                                    onPress={() => {
-                                                        setSpendRuleErrorMessage('');
-                                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS.path));
-                                                    }}
-                                                />
-                                                <MenuItemField
-                                                    name={merchantTypesDescription}
-                                                    value={spendRuleCategoriesTitle}
-                                                    numberOfLinesValue={2}
-                                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                                    onPress={() => {
-                                                        setSpendRuleErrorMessage('');
-                                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY.path));
-                                                    }}
-                                                />
-                                            </>
-                                        )}
-                                    </View>
-                                )}
-                            </View>
-                        )}
-                        {!!spendRuleErrorMessage && <FormHelpMessage message={spendRuleErrorMessage} />}
-                    </>
-                )}
+                                            <MenuItemField
+                                                name={translate('workspace.rules.spendRules.permittedCurrencies')}
+                                                value={currenciesTitle}
+                                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.CURRENCY_SELECTOR}
+                                                onPress={() => {
+                                                    setSpendRuleErrorMessage('');
+                                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY.path));
+                                                }}
+                                            />
 
-                {isVirtualCard && (
-                    <>
-                        <ToggleSettingOptionRow
-                            title={translate('workspace.card.issueNewCard.addExpirationDate')}
-                            subtitle={!expirationToggled ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
-                            isActive={expirationToggled}
-                            onToggle={setExpirationToggled}
-                            switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
-                            shouldPlaceSubtitleBelowSwitch
-                            wrapperStyle={[styles.mv3]}
-                        />
-                        {expirationToggled && (
-                            <>
-                                <Text style={[styles.textLabelSupporting, styles.mb1, styles.mt2]}>{translate('workspace.card.issueNewCard.validFrom')}</Text>
-                                <InputWrapper
-                                    InputComponent={DatePicker}
-                                    inputID={INPUT_IDS.VALID_FROM}
-                                    label={translate('workspace.card.issueNewCard.startDate')}
-                                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                                    minDate={minDate}
-                                    defaultValue={issueNewCard?.data?.validFrom ?? format(minDate, CONST.DATE.FNS_FORMAT_STRING)}
-                                />
-                                <InputWrapper
-                                    InputComponent={DatePicker}
-                                    inputID={INPUT_IDS.VALID_THRU}
-                                    label={translate('workspace.card.issueNewCard.endDate')}
-                                    maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                                    minDate={minDate}
-                                    defaultValue={issueNewCard?.data?.validThru}
-                                />
-                            </>
-                        )}
-                    </>
-                )}
+                                            <View style={[styles.ph5, styles.pv3]}>
+                                                <SpendRuleRestrictionTypeToggle
+                                                    restrictionAction={!isRestrictMerchantsOff ? spendRuleAction : null}
+                                                    onSelect={handleSelectRestrictionAction}
+                                                />
+                                            </View>
+                                            {!isRestrictMerchantsOff && (
+                                                <>
+                                                    <MenuItemField
+                                                        name={merchantsDescription}
+                                                        value={spendRuleMerchantNamesTitle}
+                                                        numberOfLinesValue={2}
+                                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                                        onPress={() => {
+                                                            setSpendRuleErrorMessage('');
+                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANTS.path));
+                                                        }}
+                                                    />
+                                                    <MenuItemField
+                                                        name={merchantTypesDescription}
+                                                        value={spendRuleCategoriesTitle}
+                                                        numberOfLinesValue={2}
+                                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                                                        onPress={() => {
+                                                            setSpendRuleErrorMessage('');
+                                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CATEGORY.path));
+                                                        }}
+                                                    />
+                                                </>
+                                            )}
+                                        </View>
+                                    )}
+                                </View>
+                            )}
+                            {!!spendRuleErrorMessage && <FormHelpMessage message={spendRuleErrorMessage} />}
+                        </FormFieldGroup>
+                    )}
+
+                    {isVirtualCard && (
+                        <>
+                            <ToggleSettingOptionRow
+                                title={translate('workspace.card.issueNewCard.addExpirationDate')}
+                                subtitle={!expirationToggled ? translate('workspace.card.issueNewCard.addExpirationDateDescription') : ''}
+                                isActive={expirationToggled}
+                                onToggle={setExpirationToggled}
+                                switchAccessibilityLabel={translate('workspace.card.issueNewCard.addExpirationDate')}
+                                shouldPlaceSubtitleBelowSwitch
+                            />
+                            {expirationToggled && (
+                                <>
+                                    <FormFieldGroup>
+                                        <Text style={styles.textLabelSupporting}>{translate('workspace.card.issueNewCard.validFrom')}</Text>
+                                        <InputWrapper
+                                            InputComponent={DatePicker}
+                                            inputID={INPUT_IDS.VALID_FROM}
+                                            label={translate('workspace.card.issueNewCard.startDate')}
+                                            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                            minDate={minDate}
+                                            defaultValue={issueNewCard?.data?.validFrom ?? format(minDate, CONST.DATE.FNS_FORMAT_STRING)}
+                                        />
+                                    </FormFieldGroup>
+                                    <InputWrapper
+                                        InputComponent={DatePicker}
+                                        inputID={INPUT_IDS.VALID_THRU}
+                                        label={translate('workspace.card.issueNewCard.endDate')}
+                                        maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                        minDate={minDate}
+                                        defaultValue={issueNewCard?.data?.validThru}
+                                    />
+                                </>
+                            )}
+                        </>
+                    )}
+                </FormFields>
             </FormProvider>
         </InteractiveStepWrapper>
     );

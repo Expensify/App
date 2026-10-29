@@ -1,6 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -29,7 +30,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditTravelBillingMonthlyLimitForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type WorkspaceTravelBillingMonthlyLimitPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL_SETTINGS_MONTHLY_LIMIT>;
 
@@ -110,7 +110,7 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
                 addBottomSafeAreaPadding
                 shouldShowLoadingImmediatelyOnPress={false}
             >
-                <View style={styles.mb4}>
+                <FormFieldGroup>
                     <InputWrapper
                         label={translate('iou.amount')}
                         InputComponent={AmountForm}
@@ -121,10 +121,8 @@ function WorkspaceTravelBillingMonthlyLimitPage({route}: WorkspaceTravelBillingM
                         ref={inputCallbackRef}
                         displayAsTextInput
                     />
-                    <Text style={[styles.mutedNormalTextLabel, styles.mt2]}>
-                        {translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitDescription')}
-                    </Text>
-                </View>
+                    <Text style={styles.mutedNormalTextLabel}>{translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitDescription')}</Text>
+                </FormFieldGroup>
             </FormProvider>
         </ScreenWrapper>
     );

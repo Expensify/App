@@ -24,7 +24,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesCustomForm';
 
 import React, {useState} from 'react';
-import {View} from 'react-native';
 
 type RulesCustomPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM>;
 
@@ -68,20 +67,18 @@ function RulesCustomPage({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.CUSTOM_RULES}
-                            label={translate('workspace.rules.customRules.title')}
-                            role={CONST.ROLE.PRESENTATION}
-                            value={customRulesValue}
-                            onChangeText={onChangeCustomRules}
-                            ref={inputCallbackRef}
-                            type="markdown"
-                            autoGrowHeight
-                            maxLength={CONST.DESCRIPTION_LIMIT}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        inputID={INPUT_IDS.CUSTOM_RULES}
+                        label={translate('workspace.rules.customRules.title')}
+                        role={CONST.ROLE.PRESENTATION}
+                        value={customRulesValue}
+                        onChangeText={onChangeCustomRules}
+                        ref={inputCallbackRef}
+                        type="markdown"
+                        autoGrowHeight
+                        maxLength={CONST.DESCRIPTION_LIMIT}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

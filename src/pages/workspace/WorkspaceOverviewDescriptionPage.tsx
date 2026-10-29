@@ -92,28 +92,26 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID="description"
-                            label={translate('workspace.editor.descriptionInputLabel')}
-                            accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            value={description}
-                            spellCheck={false}
-                            autoFocus
-                            onChangeText={setDescription}
-                            autoGrowHeight
-                            type="markdown"
-                            ref={(el: BaseTextInputRef | null): void => {
-                                if (!isInputInitializedRef.current) {
-                                    updateMultilineInputRange(el);
-                                }
-                                isInputInitializedRef.current = true;
-                            }}
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID="description"
+                        label={translate('workspace.editor.descriptionInputLabel')}
+                        accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                        value={description}
+                        spellCheck={false}
+                        autoFocus
+                        onChangeText={setDescription}
+                        autoGrowHeight
+                        type="markdown"
+                        ref={(el: BaseTextInputRef | null): void => {
+                            if (!isInputInitializedRef.current) {
+                                updateMultilineInputRange(el);
+                            }
+                            isInputInitializedRef.current = true;
+                        }}
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

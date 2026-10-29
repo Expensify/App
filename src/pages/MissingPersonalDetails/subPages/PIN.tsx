@@ -1,5 +1,6 @@
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import Text from '@components/Text';
 import ValidateCodeInput from '@components/ValidateCodeInput';
 
@@ -92,10 +93,10 @@ function PIN({onNext}: CustomSubPageProps) {
             // screen, so an immediate press spinner would never get reset by external loading or a focus change
             shouldShowLoadingImmediatelyOnPress={false}
         >
-            <View style={[styles.flex1]}>
-                <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
+            <View style={[styles.flex1, styles.formContent]}>
+                <Text style={styles.textHeadlineH1}>{title}</Text>
 
-                <View style={[styles.mv4, styles.ph11]}>
+                <FormFieldGroup style={styles.ph11}>
                     <ValidateCodeInput
                         key={`pin-${isConfirmStep}`}
                         autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
@@ -107,10 +108,10 @@ function PIN({onNext}: CustomSubPageProps) {
                         autoFocus
                         secureTextEntry={isPINHidden}
                     />
-                    {!!error && <Text style={[styles.formError, styles.mt2]}>{error}</Text>}
-                </View>
+                    {!!error && <Text style={styles.formError}>{error}</Text>}
+                </FormFieldGroup>
 
-                <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
+                <View style={[styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter, styles.w100]}>
                     <Button onPress={togglePINVisibility}>
                         <Button.Icon src={isPINHidden ? icons.Eye : icons.EyeDisabled} />
                         <Button.Text>{isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}</Button.Text>

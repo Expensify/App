@@ -2,6 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -137,20 +138,22 @@ function DynamicSplitExpenseCreateDateRangePage({route}: DynamicSplitExpenseCrea
                         shouldHideFixErrorsAlert
                         validate={validate}
                     >
-                        <InputWrapper
-                            InputComponent={DatePicker}
-                            inputID={INPUT_IDS.START_DATE}
-                            label={translate('iou.startDate')}
-                            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            defaultValue={draftTransaction?.comment?.splitsStartDate}
-                        />
-                        <InputWrapper
-                            InputComponent={DatePicker}
-                            inputID={INPUT_IDS.END_DATE}
-                            label={translate('iou.endDate')}
-                            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                            defaultValue={draftTransaction?.comment?.splitsEndDate}
-                        />
+                        <FormFields>
+                            <InputWrapper
+                                InputComponent={DatePicker}
+                                inputID={INPUT_IDS.START_DATE}
+                                label={translate('iou.startDate')}
+                                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                defaultValue={draftTransaction?.comment?.splitsStartDate}
+                            />
+                            <InputWrapper
+                                InputComponent={DatePicker}
+                                inputID={INPUT_IDS.END_DATE}
+                                label={translate('iou.endDate')}
+                                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                defaultValue={draftTransaction?.comment?.splitsEndDate}
+                            />
+                        </FormFields>
                     </FormProvider>
                 </View>
             </FullPageNotFoundView>

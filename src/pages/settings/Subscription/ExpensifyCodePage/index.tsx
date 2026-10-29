@@ -1,10 +1,10 @@
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -27,7 +27,6 @@ import INPUT_IDS from '@src/types/form/SubscriptionExpensifyCodeForm';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 
 function ExpensifyCodePage() {
     const {translate} = useLocalize();
@@ -90,21 +89,19 @@ function ExpensifyCodePage() {
                     style={[styles.mh5, styles.flexGrow1]}
                     shouldHideFixErrorsAlert
                 >
-                    <View>
-                        <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.expensifyCode.enterCode')}</Text>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            ref={inputCallbackRef}
-                            inputID={INPUT_IDS.EXPENSIFY_CODE}
-                            label={translate('subscription.expensifyCode.discountCode')}
-                            aria-label={translate('subscription.expensifyCode.discountCode')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={defaultValues[INPUT_IDS.EXPENSIFY_CODE]}
-                            shouldSaveDraft
-                            autoCapitalize="none"
-                            testID="expensify-code-input"
-                        />
-                    </View>
+                    <FormHeader description={translate('subscription.expensifyCode.enterCode')} />
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        ref={inputCallbackRef}
+                        inputID={INPUT_IDS.EXPENSIFY_CODE}
+                        label={translate('subscription.expensifyCode.discountCode')}
+                        aria-label={translate('subscription.expensifyCode.discountCode')}
+                        role={CONST.ROLE.PRESENTATION}
+                        defaultValue={defaultValues[INPUT_IDS.EXPENSIFY_CODE]}
+                        shouldSaveDraft
+                        autoCapitalize="none"
+                        testID="expensify-code-input"
+                    />
                 </FormProvider>
             </DelegateNoAccessWrapper>
         </ScreenWrapper>

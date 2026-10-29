@@ -1,7 +1,6 @@
 import RadioButtons from '@components/RadioButtons';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
@@ -33,7 +32,6 @@ type YesNoAdapterProps = ForwardedFSClassProps & {
 /** A boolean asked as a Yes/No question, where No is an answer too */
 function YesNoAdapter({value, onInputChange = () => {}, errorText, forwardedFSClass, accessibilityLabel, ref}: YesNoAdapterProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     let checkedValue = '';
     if (value === true) {
         checkedValue = YES;
@@ -53,7 +51,6 @@ function YesNoAdapter({value, onInputChange = () => {}, errorText, forwardedFSCl
             errorText={errorText}
             forwardedFSClass={forwardedFSClass}
             accessibilityLabel={accessibilityLabel}
-            containerStyle={styles.mt0}
         />
     );
 }

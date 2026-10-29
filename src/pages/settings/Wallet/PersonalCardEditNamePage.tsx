@@ -1,9 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -82,7 +82,6 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
                 title={translate('workspace.moreFeatures.companyCards.cardName')}
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />
-            <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_PERSONAL_CARD_NAME_FORM}
                 submitButtonText={translate('common.save')}
@@ -92,6 +91,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
                 validate={validate}
                 shouldHideFixErrorsAlert
             >
+                <FormHeader description={translate('workspace.moreFeatures.companyCards.giveItNameInstruction')} />
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}

@@ -1,10 +1,9 @@
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {updateLegalName} from '@libs/actions/PersonalDetails';
@@ -19,7 +18,6 @@ import React, {useEffect} from 'react';
 
 function TravelLegalNamePage() {
     const {translate, formatPhoneNumber} = useLocalize();
-    const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
@@ -47,8 +45,10 @@ function TravelLegalNamePage() {
             defaultFirstName={draftValues?.[INPUT_IDS.LEGAL_FIRST_NAME] ?? privatePersonalDetails?.[INPUT_IDS.LEGAL_FIRST_NAME]}
             defaultLastName={draftValues?.[INPUT_IDS.LEGAL_LAST_NAME] ?? privatePersonalDetails?.[INPUT_IDS.LEGAL_LAST_NAME]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('privatePersonalDetails.enterLegalName')}</Text>
-            <Text style={[styles.textSupporting, styles.mb6]}>{translate('workspace.moreFeatures.travel.personalDetailsDescription')}</Text>
+            <FormHeader
+                title={translate('privatePersonalDetails.enterLegalName')}
+                description={translate('workspace.moreFeatures.travel.personalDetailsDescription')}
+            />
         </BaseLegalNamePage>
     );
 }

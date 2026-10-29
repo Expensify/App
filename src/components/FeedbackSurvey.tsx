@@ -19,6 +19,9 @@ import type {Choice} from './RadioButtons';
 import FixedFooter from './FixedFooter';
 import FormProvider from './Form/FormProvider';
 import InputWrapper from './Form/InputWrapper';
+import FormFieldGroup from './Form/Layout/FormFieldGroup';
+import FormHeader from './Form/Layout/FormHeader';
+import FormMenuRows from './Form/Layout/FormMenuRows';
 import FormAlertWithSubmitButton from './FormAlertWithSubmitButton';
 import RadioButtons from './RadioButtons';
 import Text from './Text';
@@ -106,21 +109,24 @@ function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequire
             isSubmitButtonVisible={false}
             enabledWhenOffline={enabledWhenOffline}
         >
-            <View>
-                <View style={styles.mh5}>
-                    <Text style={styles.textHeadline}>{title}</Text>
-                    <Text style={[styles.mt1, styles.textNormalThemeText]}>{description}</Text>
-                </View>
-                <InputWrapper
-                    InputComponent={RadioButtons}
-                    inputID={INPUT_IDS.REASON}
-                    items={options}
-                    onSelect={handleOptionSelect}
-                    shouldSaveDraft
+            <View style={styles.formContent}>
+                <FormHeader
+                    title={title}
+                    description={description}
+                    style={styles.mh5}
                 />
+                <FormMenuRows>
+                    <InputWrapper
+                        InputComponent={RadioButtons}
+                        inputID={INPUT_IDS.REASON}
+                        items={options}
+                        onSelect={handleOptionSelect}
+                        shouldSaveDraft
+                    />
+                </FormMenuRows>
                 {!!reason && (
-                    <View style={[styles.mh5, styles.mt4]}>
-                        <Text style={[styles.textNormalThemeText, styles.mb3]}>{translate('feedbackSurvey.additionalInfoTitle')}</Text>
+                    <FormFieldGroup style={styles.mh5}>
+                        <Text style={styles.textNormalThemeText}>{translate('feedbackSurvey.additionalInfoTitle')}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.NOTE}
@@ -130,7 +136,7 @@ function FeedbackSurvey({title, description, onSubmit, footerText, isNoteRequire
                             onChangeText={handleSetNote}
                             shouldSaveDraft
                         />
-                    </View>
+                    </FormFieldGroup>
                 )}
             </View>
             <FixedFooter style={styles.pb0}>

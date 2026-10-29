@@ -4,13 +4,15 @@ import DatePicker from '@components/DatePicker';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
+import FormSection from '@components/Form/Layout/FormSection';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {State} from '@components/StateSelector';
 import StateSelector from '@components/StateSelector';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
@@ -38,7 +40,6 @@ import {useRoute} from '@react-navigation/native';
 import {subYears} from 'date-fns';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 function PrivatePersonalDetailsPage() {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
@@ -238,181 +239,169 @@ function PrivatePersonalDetailsPage() {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                 >
-                    <Text style={[styles.textStrong, styles.mb2]}>{translate('privatePersonalDetails.basicDetails')}</Text>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LEGAL_FIRST_NAME}
-                            label={translate('privatePersonalDetails.legalFirstName')}
-                            aria-label={translate('privatePersonalDetails.legalFirstName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={legalFirstName}
-                            shouldSaveDraft
-                            spellCheck={false}
-                            autoCapitalize="words"
-                            autoComplete="given-name"
-                            autoFocus={fieldToFocus === INPUT_IDS.LEGAL_FIRST_NAME}
-                        />
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.LEGAL_LAST_NAME}
-                            label={translate('privatePersonalDetails.legalLastName')}
-                            aria-label={translate('privatePersonalDetails.legalLastName')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={legalLastName}
-                            shouldSaveDraft
-                            spellCheck={false}
-                            autoCapitalize="words"
-                            autoComplete="family-name"
-                            autoFocus={fieldToFocus === INPUT_IDS.LEGAL_LAST_NAME}
-                        />
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={DatePicker}
-                            inputID={INPUT_IDS.DATE_OF_BIRTH}
-                            label={translate('common.date')}
-                            defaultValue={dob}
-                            shouldSaveDraft
-                            minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
-                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT)}
-                            autoComplete="birthdate-full"
-                            autoFocus={fieldToFocus === INPUT_IDS.DATE_OF_BIRTH}
-                        />
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.PHONE_NUMBER}
-                            label={translate('common.phoneNumber')}
-                            aria-label={translate('common.phoneNumber')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={phoneNumber}
-                            shouldSaveDraft
-                            spellCheck={false}
-                            inputMode={CONST.INPUT_MODE.TEL}
-                            autoComplete="tel"
-                            autoFocus={fieldToFocus === INPUT_IDS.PHONE_NUMBER}
-                        />
-                    </View>
-                    <Text style={[styles.textStrong, styles.mb2]}>{translate('privatePersonalDetails.address')}</Text>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={AddressSearch}
-                            inputID={INPUT_IDS.ADDRESS_LINE_1}
-                            label={translate('common.addressLine', 1)}
-                            defaultValue={initialStreet1}
-                            shouldSaveDraft
-                            autoComplete="address-line1"
-                            autoFocus={fieldToFocus === INPUT_IDS.ADDRESS_LINE_1}
-                            renamedInputKeys={{
-                                street: INPUT_IDS.ADDRESS_LINE_1,
-                                street2: INPUT_IDS.ADDRESS_LINE_2,
-                                city: INPUT_IDS.CITY,
-                                state: INPUT_IDS.STATE,
-                                zipCode: INPUT_IDS.ZIP_POST_CODE,
-                                country: INPUT_IDS.COUNTRY,
-                            }}
-                            onValueChange={(value: unknown, key: unknown) => {
-                                if (key === INPUT_IDS.COUNTRY) {
-                                    setSelectedCountry((value ?? '') as Country | '');
-                                } else if (key === INPUT_IDS.STATE) {
-                                    setSelectedState((value ?? '') as string);
-                                }
-                            }}
-                        />
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.ADDRESS_LINE_2}
-                            label={translate('common.addressLine', 2)}
-                            aria-label={translate('common.addressLine', 2)}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={initialStreet2}
-                            shouldSaveDraft
-                            spellCheck={false}
-                            autoComplete="address-line2"
-                        />
-                    </View>
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.CITY}
-                            label={translate('common.city')}
-                            aria-label={translate('common.city')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={city}
-                            shouldSaveDraft
-                            spellCheck={false}
-                            autoComplete="street-address"
-                        />
-                    </View>
-                    {selectedCountry === CONST.COUNTRY.US ? (
-                        <View style={[styles.mhn5, styles.mb4]}>
-                            <InputWrapper
-                                InputComponent={StateSelector}
-                                inputID={INPUT_IDS.STATE}
-                                value={selectedState as State}
-                                onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
-                                shouldSaveDraft
-                            />
-                        </View>
-                    ) : (
-                        <View style={styles.mb4}>
+                    <FormSection title={translate('privatePersonalDetails.basicDetails')}>
+                        <FormFields>
                             <InputWrapper
                                 InputComponent={TextInput}
-                                inputID={INPUT_IDS.STATE}
-                                label={translate('common.stateOrProvince')}
-                                aria-label={translate('common.stateOrProvince')}
+                                inputID={INPUT_IDS.LEGAL_FIRST_NAME}
+                                label={translate('privatePersonalDetails.legalFirstName')}
+                                aria-label={translate('privatePersonalDetails.legalFirstName')}
                                 role={CONST.ROLE.PRESENTATION}
-                                value={selectedState}
-                                onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
+                                defaultValue={legalFirstName}
                                 shouldSaveDraft
                                 spellCheck={false}
+                                autoCapitalize="words"
+                                autoComplete="given-name"
+                                autoFocus={fieldToFocus === INPUT_IDS.LEGAL_FIRST_NAME}
                             />
-                        </View>
-                    )}
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            inputID={INPUT_IDS.ZIP_POST_CODE}
-                            label={translate('common.zipPostCode')}
-                            aria-label={translate('common.zipPostCode')}
-                            role={CONST.ROLE.PRESENTATION}
-                            defaultValue={zip}
-                            shouldSaveDraft
-                            spellCheck={false}
-                            autoComplete="postal-code"
-                        />
-                    </View>
-                    <View style={styles.mhn5}>
-                        <InputWrapper
-                            InputComponent={CountrySelector}
-                            inputID={INPUT_IDS.COUNTRY}
-                            value={selectedCountry}
-                            onValueChange={(value: unknown) => {
-                                const newCountry = (value ?? '') as Country | '';
-                                if (newCountry === selectedCountry) {
-                                    return;
-                                }
-                                setSelectedCountry(newCountry);
-                                if (newCountry === CONST.COUNTRY.US) {
-                                    const resolved = resolveStateCode(selectedState);
-                                    if (resolved !== selectedState) {
-                                        setSelectedState(resolved);
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.LEGAL_LAST_NAME}
+                                label={translate('privatePersonalDetails.legalLastName')}
+                                aria-label={translate('privatePersonalDetails.legalLastName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={legalLastName}
+                                shouldSaveDraft
+                                spellCheck={false}
+                                autoCapitalize="words"
+                                autoComplete="family-name"
+                                autoFocus={fieldToFocus === INPUT_IDS.LEGAL_LAST_NAME}
+                            />
+                            <InputWrapper
+                                InputComponent={DatePicker}
+                                inputID={INPUT_IDS.DATE_OF_BIRTH}
+                                label={translate('common.date')}
+                                defaultValue={dob}
+                                shouldSaveDraft
+                                minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
+                                maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT)}
+                                autoComplete="birthdate-full"
+                                autoFocus={fieldToFocus === INPUT_IDS.DATE_OF_BIRTH}
+                            />
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.PHONE_NUMBER}
+                                label={translate('common.phoneNumber')}
+                                aria-label={translate('common.phoneNumber')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={phoneNumber}
+                                shouldSaveDraft
+                                spellCheck={false}
+                                inputMode={CONST.INPUT_MODE.TEL}
+                                autoComplete="tel"
+                                autoFocus={fieldToFocus === INPUT_IDS.PHONE_NUMBER}
+                            />
+                        </FormFields>
+                    </FormSection>
+                    <FormSection title={translate('privatePersonalDetails.address')}>
+                        <FormFields>
+                            <InputWrapper
+                                InputComponent={AddressSearch}
+                                inputID={INPUT_IDS.ADDRESS_LINE_1}
+                                label={translate('common.addressLine', 1)}
+                                defaultValue={initialStreet1}
+                                shouldSaveDraft
+                                autoComplete="address-line1"
+                                autoFocus={fieldToFocus === INPUT_IDS.ADDRESS_LINE_1}
+                                renamedInputKeys={{
+                                    street: INPUT_IDS.ADDRESS_LINE_1,
+                                    street2: INPUT_IDS.ADDRESS_LINE_2,
+                                    city: INPUT_IDS.CITY,
+                                    state: INPUT_IDS.STATE,
+                                    zipCode: INPUT_IDS.ZIP_POST_CODE,
+                                    country: INPUT_IDS.COUNTRY,
+                                }}
+                                onValueChange={(value: unknown, key: unknown) => {
+                                    if (key === INPUT_IDS.COUNTRY) {
+                                        setSelectedCountry((value ?? '') as Country | '');
+                                    } else if (key === INPUT_IDS.STATE) {
+                                        setSelectedState((value ?? '') as string);
                                     }
-                                    return;
-                                }
-                                // A previously selected US state (or another country's value) does not apply to the new country.
-                                setSelectedState('');
-                                setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: ''});
-                            }}
-                            shouldSaveDraft
-                        />
-                    </View>
+                                }}
+                            />
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.ADDRESS_LINE_2}
+                                label={translate('common.addressLine', 2)}
+                                aria-label={translate('common.addressLine', 2)}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={initialStreet2}
+                                shouldSaveDraft
+                                spellCheck={false}
+                                autoComplete="address-line2"
+                            />
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.CITY}
+                                label={translate('common.city')}
+                                aria-label={translate('common.city')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={city}
+                                shouldSaveDraft
+                                spellCheck={false}
+                                autoComplete="street-address"
+                            />
+                            {selectedCountry === CONST.COUNTRY.US ? (
+                                <FormMenuRows style={styles.mhn5}>
+                                    <InputWrapper
+                                        InputComponent={StateSelector}
+                                        inputID={INPUT_IDS.STATE}
+                                        value={selectedState as State}
+                                        onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
+                                        shouldSaveDraft
+                                    />
+                                </FormMenuRows>
+                            ) : (
+                                <InputWrapper
+                                    InputComponent={TextInput}
+                                    inputID={INPUT_IDS.STATE}
+                                    label={translate('common.stateOrProvince')}
+                                    aria-label={translate('common.stateOrProvince')}
+                                    role={CONST.ROLE.PRESENTATION}
+                                    value={selectedState}
+                                    onValueChange={(value: unknown) => setSelectedState((value ?? '') as string)}
+                                    shouldSaveDraft
+                                    spellCheck={false}
+                                />
+                            )}
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.ZIP_POST_CODE}
+                                label={translate('common.zipPostCode')}
+                                aria-label={translate('common.zipPostCode')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={zip}
+                                shouldSaveDraft
+                                spellCheck={false}
+                                autoComplete="postal-code"
+                            />
+                            <FormMenuRows style={styles.mhn5}>
+                                <InputWrapper
+                                    InputComponent={CountrySelector}
+                                    inputID={INPUT_IDS.COUNTRY}
+                                    value={selectedCountry}
+                                    onValueChange={(value: unknown) => {
+                                        const newCountry = (value ?? '') as Country | '';
+                                        if (newCountry === selectedCountry) {
+                                            return;
+                                        }
+                                        setSelectedCountry(newCountry);
+                                        if (newCountry === CONST.COUNTRY.US) {
+                                            const resolved = resolveStateCode(selectedState);
+                                            if (resolved !== selectedState) {
+                                                setSelectedState(resolved);
+                                            }
+                                            return;
+                                        }
+                                        // A previously selected US state (or another country's value) does not apply to the new country.
+                                        setSelectedState('');
+                                        setDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM, {[INPUT_IDS.STATE]: ''});
+                                    }}
+                                    shouldSaveDraft
+                                />
+                            </FormMenuRows>
+                        </FormFields>
+                    </FormSection>
                 </FormProvider>
             </DelegateNoAccessWrapper>
         </ScreenWrapper>

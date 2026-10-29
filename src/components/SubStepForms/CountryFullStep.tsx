@@ -1,5 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
@@ -113,6 +116,28 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
         onBackButtonPress();
     };
 
+    const currencyRow = (
+        <MenuItemField
+            name={translate('common.currency')}
+            value={currency}
+        />
+    );
+
+    const countryInput = (
+        <InputWrapper
+            InputComponent={PushRowWithModal}
+            optionsList={isUkEuCurrencySupported ? countriesSupportedForExpensifyCard : defaultCountries}
+            onValueChange={(value) => setUserSelectedCountry(value as string)}
+            description={translate('common.country')}
+            modalHeaderTitle={translate('countryStep.selectCountry')}
+            searchInputTitle={translate('countryStep.findCountry')}
+            shouldAllowChange={shouldAllowChange}
+            value={selectedCountry}
+            inputID={COUNTRY}
+            shouldSaveDraft={false}
+        />
+    );
+
     return (
         <InteractiveStepWrapper
             wrapperID="CountryFullStep"
@@ -132,41 +157,36 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                 shouldHideFixErrorsAlert
                 submitFlexEnabled={!showNoPolicyError}
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
-                <MenuItemField
-                    name={translate('common.currency')}
-                    value={currency}
+                <FormHeader
+                    title={translate('countryStep.confirmBusinessBank')}
+                    style={styles.ph5}
                 />
-                {!!policyID && (
-                    <View style={styles.ph5}>
-                        <Text style={[styles.mb3, styles.mutedTextLabel]}>
-                            {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                            <TextLink
-                                style={[styles.label]}
-                                onPress={handleSettingsPress}
-                            >
-                                {translate('common.settings').toLowerCase()}
-                            </TextLink>
-                            .
-                        </Text>
-                    </View>
+                {policyID ? (
+                    <FormFields>
+                        <FormMenuRows>{currencyRow}</FormMenuRows>
+                        <View style={styles.ph5}>
+                            <Text style={styles.mutedTextLabel}>
+                                {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                                <TextLink
+                                    style={[styles.label]}
+                                    onPress={handleSettingsPress}
+                                >
+                                    {translate('common.settings').toLowerCase()}
+                                </TextLink>
+                                .
+                            </Text>
+                        </View>
+                        <FormMenuRows>{countryInput}</FormMenuRows>
+                    </FormFields>
+                ) : (
+                    <FormMenuRows>
+                        {currencyRow}
+                        {countryInput}
+                    </FormMenuRows>
                 )}
-                <InputWrapper
-                    InputComponent={PushRowWithModal}
-                    optionsList={isUkEuCurrencySupported ? countriesSupportedForExpensifyCard : defaultCountries}
-                    onValueChange={(value) => setUserSelectedCountry(value as string)}
-                    description={translate('common.country')}
-                    modalHeaderTitle={translate('countryStep.selectCountry')}
-                    searchInputTitle={translate('countryStep.findCountry')}
-                    shouldAllowChange={shouldAllowChange}
-                    value={selectedCountry}
-                    inputID={COUNTRY}
-                    shouldSaveDraft={false}
-                />
                 {showNoPolicyError && (
                     <View style={[styles.flex1, styles.justifyContentEnd, styles.ph5]}>
                         <FormHelpMessage
-                            style={styles.mt3}
                             isError
                             shouldRenderMessageAsHTML
                             message={translate('countryStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}

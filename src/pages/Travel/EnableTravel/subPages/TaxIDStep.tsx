@@ -1,7 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -45,8 +45,10 @@ function TaxIDStep({onNext}: EnableTravelSubPageProps) {
             submitButtonText={translate('common.next')}
             enabledWhenOffline
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{translate('travel.taxID.headline')}</Text>
-            <Text style={[styles.mb5, styles.textSupporting]}>{translate('travel.taxID.subtitle')}</Text>
+            <FormHeader
+                title={translate('travel.taxID.headline')}
+                description={translate('travel.taxID.subtitle')}
+            />
             <InputWrapper
                 InputComponent={TextInput}
                 inputID={INPUT_IDS.TAX_ID}

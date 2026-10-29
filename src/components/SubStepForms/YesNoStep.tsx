@@ -1,7 +1,8 @@
 import FormProvider from '@components/Form/FormProvider';
+import FormHeader from '@components/Form/Layout/FormHeader';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -74,13 +75,18 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
             isLoading={isLoading}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5]}>{title}</Text>
-            <Text style={[styles.pv3, styles.textSupporting, styles.mh5]}>{description}</Text>
-            <RadioButtons
-                items={options}
-                onSelect={handleSelectValue}
-                defaultCheckedValue={defaultValue.toString()}
+            <FormHeader
+                title={title}
+                description={description}
+                style={styles.mh5}
             />
+            <FormMenuRows>
+                <RadioButtons
+                    items={options}
+                    onSelect={handleSelectValue}
+                    defaultCheckedValue={defaultValue.toString()}
+                />
+            </FormMenuRows>
             {children}
         </FormProvider>
     );

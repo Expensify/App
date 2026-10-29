@@ -21,7 +21,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchEditMultipleDescriptionForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function SearchEditMultipleDescriptionPage() {
     const {translate} = useLocalize();
@@ -67,23 +66,21 @@ function SearchEditMultipleDescriptionPage() {
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
             >
-                <View style={styles.mb4}>
-                    <InputWrapper
-                        valueType="string"
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.DESCRIPTION}
-                        name={INPUT_IDS.DESCRIPTION}
-                        defaultValue={currentDescription}
-                        label={translate('common.description')}
-                        accessibilityLabel={translate('common.description')}
-                        role={CONST.ROLE.PRESENTATION}
-                        ref={inputCallbackRef}
-                        autoGrowHeight
-                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                        shouldSubmitForm
-                        type="markdown"
-                    />
-                </View>
+                <InputWrapper
+                    valueType="string"
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.DESCRIPTION}
+                    name={INPUT_IDS.DESCRIPTION}
+                    defaultValue={currentDescription}
+                    label={translate('common.description')}
+                    accessibilityLabel={translate('common.description')}
+                    role={CONST.ROLE.PRESENTATION}
+                    ref={inputCallbackRef}
+                    autoGrowHeight
+                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                    shouldSubmitForm
+                    type="markdown"
+                />
             </FormProvider>
         </ScreenWrapper>
     );

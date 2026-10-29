@@ -19,7 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceSettingsForm';
 
 import React from 'react';
-import {Keyboard, View} from 'react-native';
+import {Keyboard} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
 
@@ -84,18 +84,16 @@ function WorkspaceNamePage({policy}: Props) {
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.common.workspaceName')}
-                            accessibilityLabel={translate('workspace.common.workspaceName')}
-                            defaultValue={policy?.name}
-                            spellCheck={false}
-                            autoFocus
-                        />
-                    </View>
+                    <InputWrapper
+                        InputComponent={TextInput}
+                        role={CONST.ROLE.PRESENTATION}
+                        inputID={INPUT_IDS.NAME}
+                        label={translate('workspace.common.workspaceName')}
+                        accessibilityLabel={translate('workspace.common.workspaceName')}
+                        defaultValue={policy?.name}
+                        spellCheck={false}
+                        autoFocus
+                    />
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

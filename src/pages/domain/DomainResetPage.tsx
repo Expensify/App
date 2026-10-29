@@ -105,24 +105,19 @@ function DomainResetDomainPage({route}: DomainResetDomainPageProps) {
             >
                 <View
                     fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                    style={styles.flexGrow1}
+                    style={[styles.flexGrow1, styles.formContent]}
                 >
-                    <View style={styles.mt5}>
-                        <RenderHTML
-                            html={translate('domain.admins.resetDomainInfo')}
-                            onLinkPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path))}
-                        />
-                    </View>
-                    <View style={styles.mt5}>
-                        <RenderHTML html={translate('domain.admins.resetDomainExplanation', {domainName})} />
-                    </View>
+                    <RenderHTML
+                        html={translate('domain.admins.resetDomainInfo')}
+                        onLinkPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path))}
+                    />
+                    <RenderHTML html={translate('domain.admins.resetDomainExplanation', {domainName})} />
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.DOMAIN_NAME}
                         label={translate('domain.admins.enterDomainName')}
                         aria-label={translate('domain.admins.enterDomainName')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={styles.mt5}
                         forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                     />
                 </View>

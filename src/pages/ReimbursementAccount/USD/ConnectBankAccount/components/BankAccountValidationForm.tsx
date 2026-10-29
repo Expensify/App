@@ -1,5 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -111,15 +113,14 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
         >
-            <Text>{translate('connectBankAccountStep.description')}</Text>
-            <Text>{translate('connectBankAccountStep.descriptionCTA')}</Text>
-
-            <View style={[styles.mv5]}>
+            <FormHeader description={translate('connectBankAccountStep.description')}>
+                <Text>{translate('connectBankAccountStep.descriptionCTA')}</Text>
+            </FormHeader>
+            <FormFields>
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.AMOUNT1}
                     shouldSaveDraft
-                    containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
                     autoCapitalize="words"
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 1`}
@@ -129,7 +130,6 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.AMOUNT2}
                     shouldSaveDraft
-                    containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
                     autoCapitalize="words"
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 2`}
@@ -139,15 +139,14 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
                     InputComponent={TextInput}
                     shouldSaveDraft
                     inputID={INPUT_IDS.AMOUNT3}
-                    containerStyles={[styles.mb6]}
                     inputMode={CONST.INPUT_MODE.DECIMAL}
                     autoCapitalize="words"
                     label={`${translate('connectBankAccountStep.validationInputLabel')} 3`}
                     maxLength={CONST.VALIDATION_REIMBURSEMENT_INPUT_LIMIT}
                 />
-            </View>
+            </FormFields>
             {!requiresTwoFactorAuth && (
-                <View style={[styles.mln5, styles.mrn5, styles.mt3]}>
+                <View style={[styles.mln5, styles.mrn5]}>
                     <Enable2FACard />
                 </View>
             )}

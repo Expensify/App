@@ -1,6 +1,7 @@
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -29,7 +30,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesRequiredReceiptAmountForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type RulesReceiptRequiredAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_RECEIPT_REQUIRED_AMOUNT>;
 
@@ -94,7 +94,7 @@ function RulesReceiptRequiredAmountPage({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    <View style={styles.mb4}>
+                    <FormFieldGroup>
                         <InputWrapper
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
@@ -105,8 +105,8 @@ function RulesReceiptRequiredAmountPage({
                             ref={inputCallbackRef}
                             displayAsTextInput
                         />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.individualExpenseRules.receiptRequiredAmountDescription')}</Text>
-                    </View>
+                        <Text style={styles.mutedTextLabel}>{translate('workspace.rules.individualExpenseRules.receiptRequiredAmountDescription')}</Text>
+                    </FormFieldGroup>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

@@ -1,11 +1,13 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormMenuRows from '@components/Form/Layout/FormMenuRows';
+import FormSection from '@components/Form/Layout/FormSection';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -150,113 +152,118 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                     style={[styles.flex1]}
                     submitButtonStyles={[styles.ph5, styles.pb3]}
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        label={translate('common.name')}
-                        aria-label={translate('common.name')}
-                        role={CONST.ROLE.PRESENTATION}
-                        inputID={INPUT_IDS.NAME}
-                        defaultValue=""
-                        autoCapitalize="none"
-                        spellCheck={false}
-                        enterKeyHint="done"
-                        ref={inputRef}
-                        containerStyles={[styles.ph5, styles.mv3]}
-                    />
-                    <ToggleSettingOptionRow
-                        title={translate('domain.groups.defaultGroup')}
-                        switchAccessibilityLabel={translate('domain.groups.defaultGroup')}
-                        isActive={defaultGroupForNewMembers}
-                        onToggle={setDefaultGroupForNewMembers}
-                        wrapperStyle={[styles.ph5, styles.mv3]}
-                    />
-                    <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
-                    <Text style={[styles.textNormal, styles.textStrong, styles.ph5]}>{translate('domain.groups.permissions')}</Text>
-                    <ToggleSettingOptionRow
-                        title={translate('domain.groups.strictlyEnforceWorkspaceRules')}
-                        subtitle={translate('domain.groups.strictlyEnforceWorkspaceRulesDescription')}
-                        switchAccessibilityLabel={translate('domain.groups.strictlyEnforceWorkspaceRules')}
-                        isActive={strictlyEnforceWorkspaceRules}
-                        onToggle={setStrictlyEnforceWorkspaceRules}
-                        wrapperStyle={[styles.ph5, styles.mv3]}
-                        shouldPlaceSubtitleBelowSwitch
-                    />
-                    <ToggleSettingOptionRow
-                        title={translate('domain.groups.restrictDefaultLoginSelection')}
-                        subtitle={translate('domain.groups.restrictDefaultLoginSelectionDescription')}
-                        switchAccessibilityLabel={translate('domain.groups.restrictDefaultLoginSelection')}
-                        isActive={restrictDefaultLoginSelection}
-                        onToggle={setRestrictDefaultLoginSelection}
-                        wrapperStyle={[styles.ph5, styles.mv3]}
-                        shouldPlaceSubtitleBelowSwitch
-                    />
-                    <ToggleSettingOptionRow
-                        title={translate('domain.groups.restrictExpenseWorkspaceCreation')}
-                        subtitle={translate('domain.groups.restrictExpenseWorkspaceCreationDescription')}
-                        switchAccessibilityLabel={translate('domain.groups.restrictExpenseWorkspaceCreation')}
-                        isActive={restrictExpenseWorkspaceCreation}
-                        onToggle={setRestrictExpenseWorkspaceCreation}
-                        wrapperStyle={[styles.ph5, styles.mv3]}
-                        shouldPlaceSubtitleBelowSwitch
-                    />
-                    <ToggleSettingOptionRow
-                        title={translate('domain.groups.preferredWorkspace')}
-                        subtitle={translate('domain.groups.preferredWorkspaceDescription', preferredWorkspace)}
-                        switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
-                        isActive={preferredWorkspace}
-                        disabled={!canEnablePreferredWorkspace && !preferredWorkspace}
-                        disabledAction={() => {
-                            showConfirmModal({
-                                title: translate('workspace.distanceRates.oopsNotSoFast'),
-                                prompt: translate('domain.groups.noWorkspacesMessage'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                            });
-                        }}
-                        onToggle={(value) => {
-                            setPreferredWorkspace(value);
-                            if (value) {
-                                if (!preferredPolicyID && firstAdminPolicy?.id) {
-                                    setDomainGroupCreatePreferredPolicyID(firstAdminPolicy.id);
-                                }
-                            } else {
-                                clearDomainGroupCreatePreferredPolicyID();
-                                setExpensifyCardPreferredWorkspace(false);
-                            }
-                        }}
-                        wrapperStyle={[styles.ph5, styles.mv3]}
-                        shouldPlaceSubtitleBelowSwitch
-                    />
-                    {hasAdminPolicies && (
-                        <MenuItemField
-                            name={translate('domain.groups.preferredWorkspace')}
-                            onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
-                            isDisabled={!preferredWorkspace}
-                            value={preferredWorkspaceName}
+                    <FormFields>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            label={translate('common.name')}
+                            aria-label={translate('common.name')}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID={INPUT_IDS.NAME}
+                            defaultValue=""
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            enterKeyHint="done"
+                            ref={inputRef}
+                            containerStyles={styles.ph5}
                         />
-                    )}
-                    <ToggleSettingOptionRow
-                        title={translate('domain.groups.expensifyCardPreferredWorkspace')}
-                        subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
-                        switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
-                        isActive={expensifyCardPreferredWorkspace}
-                        disabled={!canEnableCardPreferredWorkspace && !expensifyCardPreferredWorkspace}
-                        disabledAction={() => {
-                            // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
-                            if (isCardEligibilityLoading) {
-                                return;
-                            }
-                            showConfirmModal({
-                                title: translate('workspace.distanceRates.oopsNotSoFast'),
-                                prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),
-                                confirmText: translate('common.buttonConfirm'),
-                                shouldShowCancelButton: false,
-                            });
-                        }}
-                        onToggle={setExpensifyCardPreferredWorkspace}
-                        wrapperStyle={[styles.ph5, styles.mv3]}
-                        shouldPlaceSubtitleBelowSwitch
-                    />
+                        <ToggleSettingOptionRow
+                            title={translate('domain.groups.defaultGroup')}
+                            switchAccessibilityLabel={translate('domain.groups.defaultGroup')}
+                            isActive={defaultGroupForNewMembers}
+                            onToggle={setDefaultGroupForNewMembers}
+                            wrapperStyle={styles.ph5}
+                        />
+                    </FormFields>
+                    <View style={[styles.sectionDividerLine, styles.mh5]} />
+                    <FormSection
+                        title={translate('domain.groups.permissions')}
+                        style={styles.ph5}
+                    >
+                        <FormFields>
+                            <ToggleSettingOptionRow
+                                title={translate('domain.groups.strictlyEnforceWorkspaceRules')}
+                                subtitle={translate('domain.groups.strictlyEnforceWorkspaceRulesDescription')}
+                                switchAccessibilityLabel={translate('domain.groups.strictlyEnforceWorkspaceRules')}
+                                isActive={strictlyEnforceWorkspaceRules}
+                                onToggle={setStrictlyEnforceWorkspaceRules}
+                                shouldPlaceSubtitleBelowSwitch
+                            />
+                            <ToggleSettingOptionRow
+                                title={translate('domain.groups.restrictDefaultLoginSelection')}
+                                subtitle={translate('domain.groups.restrictDefaultLoginSelectionDescription')}
+                                switchAccessibilityLabel={translate('domain.groups.restrictDefaultLoginSelection')}
+                                isActive={restrictDefaultLoginSelection}
+                                onToggle={setRestrictDefaultLoginSelection}
+                                shouldPlaceSubtitleBelowSwitch
+                            />
+                            <ToggleSettingOptionRow
+                                title={translate('domain.groups.restrictExpenseWorkspaceCreation')}
+                                subtitle={translate('domain.groups.restrictExpenseWorkspaceCreationDescription')}
+                                switchAccessibilityLabel={translate('domain.groups.restrictExpenseWorkspaceCreation')}
+                                isActive={restrictExpenseWorkspaceCreation}
+                                onToggle={setRestrictExpenseWorkspaceCreation}
+                                shouldPlaceSubtitleBelowSwitch
+                            />
+                            <ToggleSettingOptionRow
+                                title={translate('domain.groups.preferredWorkspace')}
+                                subtitle={translate('domain.groups.preferredWorkspaceDescription', preferredWorkspace)}
+                                switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
+                                isActive={preferredWorkspace}
+                                disabled={!canEnablePreferredWorkspace && !preferredWorkspace}
+                                disabledAction={() => {
+                                    showConfirmModal({
+                                        title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                        prompt: translate('domain.groups.noWorkspacesMessage'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
+                                }}
+                                onToggle={(value) => {
+                                    setPreferredWorkspace(value);
+                                    if (value) {
+                                        if (!preferredPolicyID && firstAdminPolicy?.id) {
+                                            setDomainGroupCreatePreferredPolicyID(firstAdminPolicy.id);
+                                        }
+                                    } else {
+                                        clearDomainGroupCreatePreferredPolicyID();
+                                        setExpensifyCardPreferredWorkspace(false);
+                                    }
+                                }}
+                                shouldPlaceSubtitleBelowSwitch
+                            />
+                            {hasAdminPolicies && (
+                                <FormMenuRows style={styles.mhn5}>
+                                    <MenuItemField
+                                        name={translate('domain.groups.preferredWorkspace')}
+                                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
+                                        isDisabled={!preferredWorkspace}
+                                        value={preferredWorkspaceName}
+                                    />
+                                </FormMenuRows>
+                            )}
+                            <ToggleSettingOptionRow
+                                title={translate('domain.groups.expensifyCardPreferredWorkspace')}
+                                subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
+                                switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
+                                isActive={expensifyCardPreferredWorkspace}
+                                disabled={!canEnableCardPreferredWorkspace && !expensifyCardPreferredWorkspace}
+                                disabledAction={() => {
+                                    // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
+                                    if (isCardEligibilityLoading) {
+                                        return;
+                                    }
+                                    showConfirmModal({
+                                        title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                        prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
+                                }}
+                                onToggle={setExpensifyCardPreferredWorkspace}
+                                shouldPlaceSubtitleBelowSwitch
+                            />
+                        </FormFields>
+                    </FormSection>
                 </FormProvider>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

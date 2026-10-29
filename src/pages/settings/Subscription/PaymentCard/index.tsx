@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FormFieldGroup from '@components/Form/Layout/FormFieldGroup';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -146,12 +147,12 @@ function AddPaymentCard() {
                             submitButtonText={translate('subscription.paymentCard.addPaymentCard')}
                             headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('subscription.paymentCard.enterPaymentCardDetails')}</Text>}
                             footerContent={
-                                <>
+                                <FormFieldGroup>
                                     <Section
                                         icon={ShieldYellow}
                                         cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
                                         iconContainerStyles={styles.mr4}
-                                        containerStyles={[styles.mh0, styles.mt5]}
+                                        containerStyles={styles.mh0}
                                         renderTitle={() => (
                                             <Text style={[styles.mutedTextLabel]}>
                                                 {translate('subscription.paymentCard.security')}{' '}
@@ -164,8 +165,8 @@ function AddPaymentCard() {
                                             </Text>
                                         )}
                                     />
-                                    <Text style={[styles.textMicroSupporting, styles.mt3, styles.textAlignCenter, styles.mr5, styles.ml5]}>{subscriptionPricingInfo}</Text>
-                                </>
+                                    <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mr5, styles.ml5]}>{subscriptionPricingInfo}</Text>
+                                </FormFieldGroup>
                             }
                         />
                     </View>

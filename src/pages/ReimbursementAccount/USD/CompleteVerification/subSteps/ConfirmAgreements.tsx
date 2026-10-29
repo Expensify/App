@@ -1,6 +1,8 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
@@ -83,34 +85,33 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
             style={[styles.mh5, styles.flexGrow1]}
             enabledWhenOffline={false}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('completeVerificationStep.confirmAgreements')}</Text>
-            <InputWrapper
-                InputComponent={CheckboxWithLabel}
-                accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
-                inputID={COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
-                style={styles.mt6}
-                LabelComponent={IsAuthorizedToUseBankAccountLabel}
-                defaultValue={defaultValues.isAuthorizedToUseBankAccount}
-                shouldSaveDraft
-            />
-            <InputWrapper
-                InputComponent={CheckboxWithLabel}
-                accessibilityLabel={translate('completeVerificationStep.certifyTrueAndAccurate')}
-                inputID={COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION}
-                style={styles.mt6}
-                LabelComponent={CertifyTrueAndAccurateLabel}
-                defaultValue={defaultValues.certifyTrueInformation}
-                shouldSaveDraft
-            />
-            <InputWrapper
-                InputComponent={CheckboxWithLabel}
-                accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}
-                inputID={COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS}
-                style={styles.mt6}
-                LabelComponent={TermsAndConditionsLabel}
-                defaultValue={defaultValues.acceptTermsAndConditions}
-                shouldSaveDraft
-            />
+            <FormHeader title={translate('completeVerificationStep.confirmAgreements')} />
+            <FormFields>
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
+                    accessibilityLabel={translate('completeVerificationStep.isAuthorizedToUseBankAccount')}
+                    inputID={COMPLETE_VERIFICATION_KEYS.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT}
+                    LabelComponent={IsAuthorizedToUseBankAccountLabel}
+                    defaultValue={defaultValues.isAuthorizedToUseBankAccount}
+                    shouldSaveDraft
+                />
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
+                    accessibilityLabel={translate('completeVerificationStep.certifyTrueAndAccurate')}
+                    inputID={COMPLETE_VERIFICATION_KEYS.CERTIFY_TRUE_INFORMATION}
+                    LabelComponent={CertifyTrueAndAccurateLabel}
+                    defaultValue={defaultValues.certifyTrueInformation}
+                    shouldSaveDraft
+                />
+                <InputWrapper
+                    InputComponent={CheckboxWithLabel}
+                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('completeVerificationStep.termsAndConditions')}`}
+                    inputID={COMPLETE_VERIFICATION_KEYS.ACCEPT_TERMS_AND_CONDITIONS}
+                    LabelComponent={TermsAndConditionsLabel}
+                    defaultValue={defaultValues.acceptTermsAndConditions}
+                    shouldSaveDraft
+                />
+            </FormFields>
         </FormProvider>
     );
 }

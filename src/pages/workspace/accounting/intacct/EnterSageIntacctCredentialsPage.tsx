@@ -1,9 +1,10 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -22,7 +23,6 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntactCredentialsForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_PREREQUISITES>;
 
@@ -70,13 +70,11 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                 shouldValidateOnChange
                 addBottomSafeAreaPadding
             >
-                <Text style={[styles.textHeadlineH1, styles.pb5, styles.pt3]}>{translate('workspace.intacct.enterCredentials')}</Text>
-                {formItems.map((formItem, index) => (
-                    <View
-                        style={styles.mb4}
-                        key={formItem}
-                    >
+                <FormHeader title={translate('workspace.intacct.enterCredentials')} />
+                <FormFields>
+                    {formItems.map((formItem, index) => (
                         <InputWrapper
+                            key={formItem}
                             InputComponent={TextInput}
                             inputID={formItem}
                             ref={index === 0 ? inputCallbackRef : undefined}
@@ -87,8 +85,8 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                             secureTextEntry={formItem === INPUT_IDS.PASSWORD}
                             autoCorrect={false}
                         />
-                    </View>
-                ))}
+                    ))}
+                </FormFields>
             </FormProvider>
         </ScreenWrapper>
     );

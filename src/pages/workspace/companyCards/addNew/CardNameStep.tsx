@@ -82,7 +82,6 @@ function CardNameStep() {
                     label={translate('workspace.companyCards.addNewCard.enterNameOfBank')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={addNewCard?.data?.bankName}
-                    containerStyles={[styles.mb6]}
                     ref={inputCallbackRef}
                 />
             </FormProvider>

@@ -30,7 +30,6 @@ import INPUT_IDS from '@src/types/form/NewTaskForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
-import {View} from 'react-native';
 
 function DynamicNewTaskDescriptionPage() {
     const styles = useThemeStyles();
@@ -80,26 +79,24 @@ function DynamicNewTaskDescriptionPage() {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                 >
-                    <View style={styles.mb5}>
-                        <InputWrapperWithRef
-                            InputComponent={TextInput}
-                            defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName})}
-                            inputID={INPUT_IDS.TASK_DESCRIPTION}
-                            label={translate('newTaskPage.descriptionOptional')}
-                            accessibilityLabel={translate('newTaskPage.descriptionOptional')}
-                            role={CONST.ROLE.PRESENTATION}
-                            ref={(el) => {
-                                if (!inputRef.current) {
-                                    updateMultilineInputRange(el);
-                                }
-                                inputCallbackRef(el);
-                            }}
-                            autoGrowHeight
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                            shouldSubmitForm
-                            type="markdown"
-                        />
-                    </View>
+                    <InputWrapperWithRef
+                        InputComponent={TextInput}
+                        defaultValue={Parser.htmlToMarkdown(Parser.replace(task?.description ?? ''), {accountIDToName})}
+                        inputID={INPUT_IDS.TASK_DESCRIPTION}
+                        label={translate('newTaskPage.descriptionOptional')}
+                        accessibilityLabel={translate('newTaskPage.descriptionOptional')}
+                        role={CONST.ROLE.PRESENTATION}
+                        ref={(el) => {
+                            if (!inputRef.current) {
+                                updateMultilineInputRange(el);
+                            }
+                            inputCallbackRef(el);
+                        }}
+                        autoGrowHeight
+                        maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                        shouldSubmitForm
+                        type="markdown"
+                    />
                 </FormProvider>
             </>
         </ScreenWrapper>

@@ -1,3 +1,4 @@
+import FormHeader from '@components/Form/Layout/FormHeader';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -156,8 +157,9 @@ function RulesNewPage({route}: RulesNewPageProps) {
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.newRule.title')} />
                 {shouldShowDescribeSection ? (
                     <DescribeNewRuleForm policyID={policyID}>
-                        <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.rules.newRule.startWithTemplate')}</Text>
-                        {newRuleMenuItems}
+                        <FormHeader title={translate('workspace.rules.newRule.startWithTemplate')}>
+                            <View>{newRuleMenuItems}</View>
+                        </FormHeader>
                     </DescribeNewRuleForm>
                 ) : (
                     <ScrollView

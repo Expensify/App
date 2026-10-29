@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
@@ -112,7 +113,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                 shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
             >
-                {isInLandscapeMode && <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>}
+                {isInLandscapeMode && <FormHeader title={translate('workspace.card.issueNewCard.giveItName')} />}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.CARD_TITLE}
@@ -121,7 +122,6 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
                     aria-label={translate('workspace.card.issueNewCard.cardName')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={issueNewCard?.data?.cardTitle ?? defaultCardTitle}
-                    containerStyles={[styles.mb6]}
                     ref={inputCallbackRef}
                 />
             </FormProvider>

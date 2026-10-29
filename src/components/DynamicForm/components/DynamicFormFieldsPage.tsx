@@ -7,7 +7,7 @@ import getPageTitle from '@components/DynamicForm/utils/getPageTitle';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FormProvider from '@components/Form/FormProvider';
-import Text from '@components/Text';
+import FormHeader from '@components/Form/Layout/FormHeader';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
@@ -64,7 +64,6 @@ function DynamicFormFieldsPage({
                 onNext(pageValues);
             }}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={styles.mb0}
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             // An offline request is saved to disk, so the last page submits only online, as the confirmation page does
             enabledWhenOffline={!isLastPage}
@@ -88,16 +87,13 @@ function DynamicFormFieldsPage({
                 const description = getLocalizedText(translate, page.descriptionKey, page.description);
                 return (
                     <>
-                        {!!title && (
-                            <Text
-                                style={[styles.textHeadlineLineHeightXXL, styles.mb3]}
-                                accessibilityRole={CONST.ROLE.HEADER}
-                                aria-level={2}
-                            >
-                                {title}
-                            </Text>
+                        {(!!title || !!description) && (
+                            <FormHeader
+                                title={title}
+                                titleAriaLevel={2}
+                                description={description}
+                            />
                         )}
-                        {!!description && <Text style={[styles.textSupporting, styles.mb3]}>{description}</Text>}
                         <DynamicFormFields
                             content={page.content}
                             allFields={allFields}

@@ -1,9 +1,9 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
@@ -18,7 +18,6 @@ import type {Route} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type RejectReasonFormViewProps = {
     onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => void;
@@ -53,21 +52,17 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                 shouldHideFixErrorsAlert
                 buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             >
-                <View style={styles.mb6}>
-                    <Text>{translate('iou.reject.reasonPageDescription')}</Text>
-                </View>
-                <View>
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.COMMENT}
-                        valueType="string"
-                        name="comment"
-                        defaultValue={undefined}
-                        label={translate('iou.reject.rejectReason')}
-                        accessibilityLabel={translate('iou.reject.rejectReason')}
-                        ref={inputCallbackRef}
-                    />
-                </View>
+                <FormHeader description={translate('iou.reject.reasonPageDescription')} />
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.COMMENT}
+                    valueType="string"
+                    name="comment"
+                    defaultValue={undefined}
+                    label={translate('iou.reject.rejectReason')}
+                    accessibilityLabel={translate('iou.reject.rejectReason')}
+                    ref={inputCallbackRef}
+                />
             </FormProvider>
         </ScreenWrapper>
     );

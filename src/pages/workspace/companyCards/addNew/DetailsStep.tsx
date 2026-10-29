@@ -1,10 +1,11 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormFields from '@components/Form/Layout/FormFields';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 
@@ -131,7 +132,6 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             inputID={INPUT_IDS.PROCESSOR_ID}
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.processorLabel')}
                             role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.mb6]}
                             ref={inputCallbackRef}
                             defaultValue={addNewCard?.data?.feedDetails?.processorID}
                         />
@@ -140,7 +140,6 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             inputID={INPUT_IDS.BANK_ID}
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.bankLabel')}
                             role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.mb6]}
                             defaultValue={addNewCard?.data?.feedDetails?.bankID}
                         />
                         <InputWrapper
@@ -148,7 +147,6 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                             inputID={INPUT_IDS.COMPANY_ID}
                             label={translate('workspace.companyCards.addNewCard.feedDetails.vcf.companyLabel')}
                             role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.mb6]}
                             defaultValue={addNewCard?.data?.feedDetails?.companyID}
                         />
                     </>
@@ -160,7 +158,6 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                         inputID={INPUT_IDS.DISTRIBUTION_ID}
                         label={translate('workspace.companyCards.addNewCard.feedDetails.cdf.distributionLabel')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
                         defaultValue={addNewCard?.data?.feedDetails?.distributionID}
                     />
@@ -172,7 +169,6 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                         inputID={INPUT_IDS.DELIVERY_FILE_NAME}
                         label={translate('workspace.companyCards.addNewCard.feedDetails.gl1025.fileNameLabel')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mb6]}
                         ref={inputCallbackRef}
                         defaultValue={addNewCard?.data?.feedDetails?.deliveryFileName}
                     />
@@ -202,10 +198,10 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                 shouldHideFixErrorsAlert={feedProvider !== CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}
                 addBottomSafeAreaPadding
             >
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
-                    {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
-                </Text>
-                <View fsClass={CONST.FULLSTORY.CLASS.MASK}>{renderInputs()}</View>
+                {!!feedProvider && !isStripeFeedProvider && <FormHeader title={translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`)} />}
+                <View fsClass={CONST.FULLSTORY.CLASS.MASK}>
+                    <FormFields>{renderInputs()}</FormFields>
+                </View>
                 {!!feedProvider && !isStripeFeedProvider && (
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Icon

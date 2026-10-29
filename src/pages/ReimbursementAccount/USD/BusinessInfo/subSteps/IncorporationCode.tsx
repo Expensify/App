@@ -1,7 +1,7 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import FormHeader from '@components/Form/Layout/FormHeader';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -51,10 +51,13 @@ function IncorporationCode({onNext, isEditing}: SubPageProps) {
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh0, styles.flexGrow1]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
+            submitButtonStyles={styles.ph5}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb6]}>{translate('companyStep.industryClassification')}</Text>
+            <FormHeader
+                title={translate('companyStep.industryClassification')}
+                style={styles.ph5}
+            />
             <InputWrapper
                 InputComponent={IndustryCodeSelector}
                 inputID={COMPANY_INCORPORATION_CODE_KEY}

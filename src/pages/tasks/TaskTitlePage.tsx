@@ -37,7 +37,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import React, {useRef} from 'react';
-import {View} from 'react-native';
 
 type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
@@ -109,30 +108,28 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                         enabledWhenOffline
                         shouldHideFixErrorsAlert
                     >
-                        <View style={[styles.mb4]}>
-                            <InputWrapper
-                                InputComponent={TextInput}
-                                role={CONST.ROLE.PRESENTATION}
-                                inputID={INPUT_IDS.TITLE}
-                                name={INPUT_IDS.TITLE}
-                                label={translate('task.title')}
-                                accessibilityLabel={translate('task.title')}
-                                defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {accountIDToName})}
-                                ref={(element: AnimatedTextInputRef | null) => {
-                                    if (!element) {
-                                        return;
-                                    }
-                                    if (!inputRef.current && didScreenTransitionEnd) {
-                                        updateMultilineInputRange(inputRef.current);
-                                    }
-                                    inputRef.current = element;
-                                }}
-                                autoGrowHeight
-                                maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                shouldSubmitForm={false}
-                                type="markdown"
-                            />
-                        </View>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            role={CONST.ROLE.PRESENTATION}
+                            inputID={INPUT_IDS.TITLE}
+                            name={INPUT_IDS.TITLE}
+                            label={translate('task.title')}
+                            accessibilityLabel={translate('task.title')}
+                            defaultValue={Parser.htmlToMarkdown(report?.reportName ?? '', {accountIDToName})}
+                            ref={(element: AnimatedTextInputRef | null) => {
+                                if (!element) {
+                                    return;
+                                }
+                                if (!inputRef.current && didScreenTransitionEnd) {
+                                    updateMultilineInputRange(inputRef.current);
+                                }
+                                inputRef.current = element;
+                            }}
+                            autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            shouldSubmitForm={false}
+                            type="markdown"
+                        />
                     </FormProvider>
                 </FullPageNotFoundView>
             )}
