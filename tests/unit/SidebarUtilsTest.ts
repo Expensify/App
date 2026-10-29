@@ -16,7 +16,7 @@ import {
     generateReportID,
     getAllReportErrors,
     getReasonAndReportActionThatRequiresAttention,
-    getReportPreviewReportActionMessage,
+    getReportPreviewMessage,
 } from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 
@@ -464,6 +464,77 @@ describe('SidebarUtils', () => {
 
             expect(optionDataPinned?.isPinned).toBe(true);
             expect(optionDataUnpinned?.isPinned).toBe(false);
+        });
+
+        it('uses the passed hasPendingJoinRequest instead of the report actions it reads from Onyx', async () => {
+            // Given an admin room whose report actions in Onyx still hold a pending join request
+            const report: Report = {reportID: '9001', policyID: 'joinRequestPolicy', chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS};
+            const joinRequestAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '9002',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST,
+                originalMessage: {choice: '', policyID: 'joinRequestPolicy'},
+            } as ReportAction;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[joinRequestAction.reportActionID]: joinRequestAction});
+            await waitForBatchedUpdates();
+
+            // When the LHN row passes the value from its own subscription, which already knows the request was answered,
+            // and when no value is passed, which falls back to the copy in Onyx
+            const answered = SidebarUtils.getOptionData({
+                report,
+                dateFnsLocale: undefined,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+                hasPendingJoinRequest: false,
+            });
+            const fallback = SidebarUtils.getOptionData({
+                report,
+                dateFnsLocale: undefined,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then the passed value wins, so a memoized row doesn't keep showing an answered request as unread
+            expect(answered?.isUnread).toBeFalsy();
+            expect(fallback?.isUnread).toBe(true);
         });
 
         it('returns null when report is archived', async () => {
@@ -4001,7 +4072,9 @@ describe('SidebarUtils', () => {
                     rules: undefined,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
                     {
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
@@ -4011,7 +4084,7 @@ describe('SidebarUtils', () => {
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
                     },
-                    getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 );
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID, translateLocal)}: ${reportPreviewMessage}`);
             });
@@ -4119,7 +4192,9 @@ describe('SidebarUtils', () => {
                     rules: undefined,
                 });
 
-                const reportPreviewMessage = getReportPreviewReportActionMessage(
+                const reportPreviewMessage = getReportPreviewMessage(
+                    translateLocal,
+                    convertToDisplayString,
                     {
                         reportOrID: iouReport,
                         iouReportAction: iouAction,
@@ -4129,7 +4204,7 @@ describe('SidebarUtils', () => {
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
                     },
-                    getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 );
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });

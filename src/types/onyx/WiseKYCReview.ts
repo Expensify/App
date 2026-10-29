@@ -4,7 +4,7 @@ import type {ValueOf} from 'type-fest';
 
 import type {Errors} from './OnyxCommon';
 
-/** One KYC requirement the Wise onboarding still needs */
+/** One KYC requirement the Wise onboarding still needs, on `achData.wise.kycRequirements` */
 type WiseKYCRequirement = {
     /** Wise's requirement type */
     key: string;

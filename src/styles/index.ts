@@ -1,10 +1,11 @@
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -40,6 +41,7 @@ import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import tooltipPlatformStyle from './utils/generators/TooltipStyleUtils/tooltipPlatformStyles';
+import getSearchNarrowHeaderHeight from './utils/getSearchNarrowHeaderHeight';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -2877,7 +2879,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
-        tableColumnResizeIndicator: {
+        resizeIndicator: {
             backgroundColor: theme.iconMenu,
         },
 
@@ -5820,6 +5822,13 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: bulkActionBarHeight + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
         },
 
+        // Keeps a row the browser scrolls into view, such as one reached with Tab, from settling underneath the bar
+        // (WCAG 2.4.11). The content spacing above only lifts the end of the list clear of it. Applied to the scrolling
+        // container, which is what the browser measures that scroll against.
+        bulkActionBarScrollPadding: {
+            scrollPaddingBottom: bulkActionBarHeight + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
+        },
+
         // Wide enough for a three-digit count, so the bar does not resize as the selection grows past 9 or 99. A
         // selection can cover far more rows than are on screen. Also keeps the width steady while the count loads.
         bulkActionBarCount: {
@@ -6265,6 +6274,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         twoFARequiredOverlay: {
             zIndex: 20, // must be greater than floatingCameraButton.zIndex
+        },
+
+        twoFARequiredTestToolsHost: {
+            zIndex: 22, // must be greater than twoFARequiredOverlay.zIndex
         },
 
         twoFARequiredContainer: {
@@ -6782,6 +6795,16 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.rhpWidth,
         },
 
+        // The floating card is the containing block (translateZ0), so a resizable single RHP's card fills it at whatever width
+        // it is dragged to, independent of the box react-navigation measures (singleRHPStackBox).
+        singleRHPCardInterpolatorStyles: {
+            ...positioning.pFixed,
+            top: 0,
+            right: 0,
+            width: '100%',
+            height: '100%',
+        },
+
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
@@ -7075,8 +7098,8 @@ const staticStyles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            marginHorizontal: variables.qrShareHorizontalPadding,
-            marginTop: variables.qrShareHorizontalPadding,
+            marginHorizontal: variables.pieChartLegendMargin,
+            marginTop: variables.pieChartLegendMargin,
             flexDirection: 'row',
             flexWrap: 'wrap',
             rowGap: 8,
@@ -7096,6 +7119,36 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: '50%',
             width: 12,
             height: 12,
+        },
+        // `getPieChartLoadingHeight` sizes the loading chart from the responsive legend styles below, so update it with them.
+        pieChartResponsiveRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            columnGap: VictoryTheme.pie.legendGap,
+        },
+        pieChartResponsiveColumn: {
+            flexDirection: 'column',
+            alignItems: 'center',
+        },
+        pieChartLegendSide: {
+            width: VictoryTheme.pie.legendMinWidth,
+            justifyContent: 'center',
+            rowGap: VictoryTheme.pie.legendRowGap,
+        },
+        pieChartLegendBelow: {
+            alignSelf: 'stretch',
+            marginTop: VictoryTheme.pie.legendStackGap,
+            rowGap: VictoryTheme.pie.legendRowGap,
+        },
+        pieChartLegendRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            columnGap: 8,
+        },
+        pieChartLegendDotColumn: {
+            height: variables.lineHeightXLarge,
+            justifyContent: 'center',
         },
         chartInlineTable: {
             marginTop: 32,
@@ -7122,6 +7175,28 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // Fixed width so the stack never re-measures mid-drag, and always rendered because adding or removing it remounts the stack.
+        singleRHPStackBox: (isResizable: boolean) =>
+            (isResizable
+                ? {
+                      ...positioning.pAbsolute,
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      width: variables.rhpWidth,
+                  }
+                : flex.flex1) satisfies ViewStyle,
+
+        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
+        rhpResizeHandle: (singleRHPWidth: number) =>
+            ({
+                ...positioning.pAbsolute,
+                top: variables.rhpFloatingCardMargin,
+                bottom: variables.rhpFloatingCardMargin,
+                width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+            }) satisfies ViewStyle,
+
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
         // content that runs under the footer.
         offlineIndicatorAboveFooter: (footerHeight: number) =>
@@ -7599,7 +7674,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+            paddingTop: getSearchNarrowHeaderHeight(hasFilterBars),
         }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({

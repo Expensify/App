@@ -197,6 +197,7 @@ const spendIcons = {
     ThumbsUp: mockIcon,
     CheckCircle: mockIcon,
     UserEye: mockIcon,
+    Plane: mockIcon,
 };
 const workspaceIcons = {
     Building: mockIcon,
@@ -715,7 +716,6 @@ describe('Workspace Search Router navigation source', () => {
             isOffline,
             isVendorMatchingBetaEnabled: false,
             isRecruitingBetaEnabled: false,
-            isCompanyAgentsBetaEnabled: false,
             isUnifiedConnectionsBetaEnabled,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',

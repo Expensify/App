@@ -3,6 +3,7 @@ import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {DynamicFormSensitiveAnswers} from '@src/types/onyx';
 
 describe('maskOnyxState', () => {
     const mockSession = {
@@ -13,6 +14,186 @@ describe('maskOnyxState', () => {
         loading: false,
         creationDate: '2024-01-01',
     };
+
+    it('preserves recursive categories and redacts private values in mutable and readonly arrays', () => {
+        // Given exported state with unknown nested values, both array categories and masked-key arrays
+        const readonlyItems: readonly unknown[] = [null, undefined, 7, {merchant: 'Private merchant', nested: ['user@example.com', {authToken: 'Private token'}]}];
+        const input = {
+            mutableItems: [null, undefined, false, 3, 'plain value', {name: 'Private name'}],
+            readonlyItems,
+            emptyArray: [],
+            nullValue: null,
+            undefinedValue: undefined,
+            scalar: 42,
+            edits: [{text: 'Private edit'}, 'Private edit'],
+        };
+
+        // When fragile masking recurses through the real export seam
+        const result = maskOnyxState(input, true);
+
+        // Then records and arrays retain their categories, including null, undefined and scalar entries
+        expect(result.nullValue).toBeNull();
+        expect(result).toHaveProperty('undefinedValue', undefined);
+        expect(result.scalar).toBe(42);
+        expect(result.emptyArray).toEqual([]);
+        expect(result.edits).toEqual(['***', '***']);
+        expect(Array.isArray(result.mutableItems)).toBe(true);
+        expect(Array.isArray(result.readonlyItems)).toBe(true);
+        if (!Array.isArray(result.mutableItems) || !Array.isArray(result.readonlyItems)) {
+            throw new Error('Expected masked export arrays');
+        }
+        expect(result.mutableItems.slice(0, 5)).toEqual([null, undefined, false, 3, 'plain value']);
+        expect(result.readonlyItems.slice(0, 3)).toEqual([null, undefined, 7]);
+        const record: unknown = result.readonlyItems.at(3);
+        if (!isRecord(record) || !Array.isArray(record.nested)) {
+            throw new Error('Expected a masked nested export record');
+        }
+        const nestedRecord: unknown = record.nested.at(1);
+        expect(nestedRecord).toBeDefined();
+        if (!isRecord(nestedRecord)) {
+            throw new Error('Expected a masked private token record');
+        }
+        expect(record.merchant).not.toBe('Private merchant');
+        expect(record.nested.at(0)).not.toBe('user@example.com');
+        expect(nestedRecord.authToken).not.toBe('Private token');
+        expect(input.readonlyItems).toBe(readonlyItems);
+    });
+
+    it('reuses one email replacement across keys, strings and nested arrays', () => {
+        // Given the same email stored in the key and several erased export values
+        const email = 'consistent@example.com';
+        const input = {emailOccurrences: {[email]: {email, nested: [email], sentence: `Contact ${email} now`}}, other: email};
+
+        // When fragile masking exports all occurrences together
+        const result = maskOnyxState(input, true);
+
+        // Then every occurrence uses the same replacement and the original email is absent
+        const occurrences = result.emailOccurrences;
+        expect(occurrences).toBeDefined();
+        if (!isRecord(occurrences)) {
+            throw new Error('Expected the stable email occurrences record');
+        }
+        const replacement = Object.keys(occurrences).at(0);
+        expect(replacement).toBeDefined();
+        if (!replacement || !isRecord(occurrences[replacement])) {
+            throw new Error('Expected a masked email key and record');
+        }
+        const maskedRecord = occurrences[replacement];
+        expect(replacement).not.toBe(email);
+        expect(replacement).toMatch(emailRegex);
+        expect(maskedRecord.email).toBe(replacement);
+        expect(maskedRecord.nested).toEqual([replacement]);
+        expect(maskedRecord.sentence).toBe(`Contact ${replacement} now`);
+        expect(result.other).toBe(replacement);
+        expect(JSON.stringify(result)).not.toContain(email);
+    });
+
+    it('preserves an email outer export key with its existing undefined wrapper value', () => {
+        // Given an email at the outer key where the wrapper reads the original name after masking
+        const email = 'outer@example.com';
+
+        // When the real exporter masks the wrapped entry
+        const result = maskOnyxState({[email]: {email}}, true);
+
+        // Then the outer key stays present with the original wrapper result
+        expect(Object.keys(result)).toEqual([email]);
+        expect(result).toHaveProperty([email], undefined);
+    });
+
+    it.each([false, true])('removes private keys and applies rules before fragile masking when enabled is %s', (isMaskingEnabled) => {
+        // Given a removed key, a safe key and a collection rule where maskList precedes allowList
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}123`;
+        const readonlyReports = [{reportID: '123', ownerAccountID: 42, reportName: 'Private report', nested: {amount: -12, invalidAmount: Infinity, created: '2024-01-01'}}] as const;
+        const input = {
+            [ONYXKEYS.MAPBOX_ACCESS_TOKEN]: 'Private token',
+            [ONYXKEYS.CURRENT_DATE]: '2024-01-01',
+            [reportKey]: readonlyReports,
+            unknownData: {name: 'Private unknown name'},
+        };
+
+        // When the export applies its rules in either toggle state
+        const result = maskOnyxState(input, isMaskingEnabled);
+
+        // Then private keys are removed, safe data survives, and rule arrays stay arrays
+        expect(result).not.toHaveProperty(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
+        expect(result[ONYXKEYS.CURRENT_DATE]).toBe('2024-01-01');
+        const reports = result[reportKey];
+        if (!Array.isArray(reports)) {
+            throw new Error('Expected rule-processed report array');
+        }
+        const report: unknown = reports.at(0);
+        expect(report).toBeDefined();
+        if (!isRecord(report) || !isRecord(report.nested)) {
+            throw new Error('Expected the rule-processed report and nested values');
+        }
+        expect(report.reportID).toBe('123');
+        expect(report.ownerAccountID).toBe('***');
+        expect(report.reportName).not.toBe('Private report');
+        expect(report.nested.amount).toBeLessThan(0);
+        expect(report.nested.invalidAmount).toBe(0);
+        expect(report.nested.created).toBe('2024-01-01');
+        if (!isRecord(result.unknownData)) {
+            throw new Error('Expected the unruled export record');
+        }
+        if (isMaskingEnabled) {
+            expect(result.unknownData.name).not.toBe(input.unknownData.name);
+        } else {
+            expect(result.unknownData).toEqual(input.unknownData);
+        }
+    });
+
+    it.each([false, true])('removes sensitive dynamic form answers entirely when masking is %s', (isMaskingEnabled) => {
+        // Given the per-form sensitive values written by saveSensitiveAnswers instead of persisted drafts
+        const sensitiveAnswers: DynamicFormSensitiveAnswers = {[ONYXKEYS.FORMS.DYNAMIC_FORM_LIST_ITEM_FORM]: {ssn: 'private-social-security-number'}};
+        const input = {[ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS]: sensitiveAnswers, [ONYXKEYS.CURRENT_DATE]: '2024-01-01'};
+
+        // When the export runs with either toggle state, since removal must precede optional redaction
+        const result = maskOnyxState(input, isMaskingEnabled);
+
+        // Then the sensitive key is absent rather than present with masked or undefined answers
+        expect(result).not.toHaveProperty(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS);
+        expect(JSON.stringify(result)).not.toContain('private-social-security-number');
+        expect(result[ONYXKEYS.CURRENT_DATE]).toBe(input[ONYXKEYS.CURRENT_DATE]);
+    });
+
+    it('propagates collection, title and reservation context through nested records and arrays', () => {
+        // Given action text, a special title node and reservation fields requiring full masking
+        const actionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}123`;
+        const input = {
+            [actionKey]: {action: {message: [{text: 'Private text', html: '<p>Private text</p>'}]}},
+            // eslint-disable-next-line @typescript-eslint/naming-convention -- Preserve the persisted title key consumed by the masker.
+            expensify_text_title: {value: 'Private title'},
+            reservationList: [{location: 'Private location', children: [{note: 'Private note', date: '2024-01-01'}]}],
+        };
+
+        // When the fragile masker descends across the original parent contexts
+        const result = maskOnyxState(input, true);
+
+        // Then action messages are redacted and title and reservation data cannot leak
+        expect(result[actionKey]).toEqual({action: {message: [{text: '***', html: '***'}]}});
+        expect(JSON.stringify(result)).not.toContain('Private');
+        expect(JSON.stringify(result)).not.toContain('2024-01-01');
+        expect(Array.isArray(result.reservationList)).toBe(true);
+        if (!Array.isArray(result.reservationList)) {
+            throw new Error('Expected a masked reservation array');
+        }
+        const reservation: unknown = result.reservationList.at(0);
+        expect(reservation).toBeDefined();
+        if (!isRecord(reservation) || !Array.isArray(reservation.children)) {
+            throw new Error('Expected the reservation and nested children');
+        }
+        const reservationChild: unknown = reservation.children.at(0);
+        expect(reservationChild).toBeDefined();
+        if (!isRecord(reservationChild)) {
+            throw new Error('Expected the masked reservation child');
+        }
+        expect(typeof reservationChild.date).toBe('string');
+        expect(reservationChild.date).not.toBe('2024-01-01');
+        if (!isRecord(result.expensify_text_title)) {
+            throw new Error('Expected an exported title record');
+        }
+        expect(result.expensify_text_title.value).toHaveLength(input.expensify_text_title.value.length);
+    });
 
     describe('whitelist functionality', () => {
         it('should only export whitelisted fields from session', () => {
@@ -281,6 +462,33 @@ describe('maskOnyxState', () => {
 
         expect(vendors[externalID]).toMatchObject({externalID, enabled: true, origin: 'quickbooksOnline'});
         expect(vendors[externalID].name).not.toBe('Acme Supplies');
+    });
+
+    it.each([true, false])('should keep a parked attachment edit out of the export verbatim, with fragile masking %s', (isMaskingFragileDataEnabled) => {
+        // Given a parked edit holding the comment the author typed
+        const draft = 'lunch receipt for the Tokyo trip';
+        const reportActionID = '9876';
+        const input = {
+            [ONYXKEYS.DEFERRED_ATTACHMENT_EDITS]: {
+                [reportActionID]: {
+                    reportID: '1234',
+                    textForNewComment: draft,
+                    currentUserLogin: 'author@example.com',
+                    currentUserAccountID: 42,
+                    isOriginalReportArchived: false,
+                },
+            },
+        };
+
+        // When the state is exported, in either masking mode
+        const exported = JSON.stringify(maskOnyxState(input, isMaskingFragileDataEnabled));
+
+        // Then none of the text the author wrote survives, and the fields that only identify the parked edit are
+        // still readable
+        expect(exported).not.toContain(draft);
+        expect(exported).not.toContain('author@example.com');
+        expect(exported).toContain('"reportID":"1234"');
+        expect(exported).toContain('"currentUserAccountID":42');
     });
 
     describe('full pass-through safe collection keys', () => {
