@@ -675,6 +675,14 @@ describe('OnyxUtils import bypasses', () => {
         expect(scan(['/* eslint-disable @typescript-eslint/no-restricted-imports */', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
 
+    it('flags a disable that names the core rule id oxlint reports', () => {
+        // Given a src file that silences `no-restricted-imports` under the id oxlint uses, without the `@typescript-eslint/` prefix
+        // When the OnyxUtils ban scans it
+        // Then the directive counts as a bypass, the same as one naming the old id
+        expect(scan(['// eslint-disable-next-line no-restricted-imports', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(scan(['/* eslint no-restricted-imports: off */', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
     it('flags a blanket disable over an OnyxUtils import', () => {
         // Given a blanket disable over the import
         // When the OnyxUtils ban scans it
