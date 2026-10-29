@@ -510,9 +510,10 @@ function useSearchSelectorBase({
           })()
         : [];
 
-    // toggleSelection and onListEndReached are declared after the option computations on purpose. Keeping the callbacks
-    // (which depend on onSingleSelect/onSelectionChange) and the useDebounce hook call below them lets React Compiler memoize
-    // getValidOptions and the derived option lists, so parent re-renders that only pass new callbacks skip the recomputation.
+    // toggleSelection and onListEndReached are declared after all option computations on purpose.
+    // Placing toggleSelection below isolates it into its own reactive scope, preventing onSingleSelect and onSelectionChange
+    // from leaking into the option lists' memoized scope dependencies. Keeping useDebounce below avoids splitting the reactive
+    // scope between getValidOptions and the derived lists.
 
     /**
      * Toggle selection state of option based on selection mode
