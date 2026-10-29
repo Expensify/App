@@ -4429,11 +4429,11 @@ function getIconsForExpenseRequest(
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
     policy: OnyxInputOrEntry<Policy>,
     translate: LocalizedTranslate,
+    parentReportAction: OnyxEntry<ReportAction>,
 ): Icon[] {
     if (!report?.parentReportID || !report?.parentReportActionID) {
         return [];
     }
-    const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
     const workspaceIcon = getWorkspaceIcon(report, translate, policy);
     const actorDetails = parentReportAction?.actorAccountID ? personalDetails?.[parentReportAction.actorAccountID] : undefined;
     const memberIcon = {
@@ -4456,6 +4456,7 @@ function getIconsForChatThread(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
     conciergeReportID: string | undefined,
+    parentReportAction: OnyxEntry<ReportAction>,
 ): Icon[] {
     if (!report?.parentReportID || !report?.parentReportActionID) {
         return [];
@@ -4466,7 +4467,6 @@ function getIconsForChatThread(
         return getIconsForParticipants([CONST.ACCOUNT_ID.CONCIERGE], personalDetails);
     }
 
-    const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
     const actorAccountID = getReportActionActorAccountID(parentReportAction, report as OnyxEntry<Report>, report as OnyxEntry<Report>);
     const actorDetails = actorAccountID ? personalDetails?.[actorAccountID] : undefined;
     const actorDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorDetails, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber});
@@ -4691,28 +4691,43 @@ function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, poli
     return [getWorkspaceIcon(report, translate, policy)];
 }
 
+type GetIconsParams = {
+    report: OnyxInputOrEntry<Report>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    translate: LocalizedTranslate;
+    personalDetails?: OnyxInputOrEntry<PersonalDetailsList>;
+    defaultIcon?: AvatarSource | null;
+    defaultName?: string;
+    defaultAccountID?: number;
+    policy?: OnyxInputOrEntry<Policy>;
+    invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>;
+    isReportArchived?: boolean;
+    // TODO: Make `pendingDeleteMemberAccountIDs` a required param once https://github.com/Expensify/App/issues/66421 is done
+    pendingDeleteMemberAccountIDs?: string[];
+    conciergeReportID?: string;
+    /** The thread's parent action, which shapes the expense request and chat thread icons */
+    parentReportAction?: OnyxEntry<ReportAction>;
+};
+
 /**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
- *
- * TODO: Make `pendingDeleteMemberAccountIDs` a required param once https://github.com/Expensify/App/issues/66421 is done
  */
-// TODO: Refactor to use options object parameter to reduce parameter count https://github.com/Expensify/App/issues/66421
-// eslint-disable-next-line @typescript-eslint/max-params
-function getIcons(
-    report: OnyxInputOrEntry<Report>,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    translate: LocalizedTranslate,
-    personalDetails: OnyxInputOrEntry<PersonalDetailsList> = getAllPersonalDetails(),
-    defaultIcon: AvatarSource | null = null,
+function getIcons({
+    report,
+    formatPhoneNumber,
+    translate,
+    personalDetails = getAllPersonalDetails(),
+    defaultIcon = null,
     defaultName = '',
     defaultAccountID = -1,
-    policy?: OnyxInputOrEntry<Policy>,
-    invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>,
+    policy,
+    invoiceReceiverPolicy,
     isReportArchived = false,
-    pendingDeleteMemberAccountIDs?: string[],
-    conciergeReportID?: string,
-): Icon[] {
+    pendingDeleteMemberAccountIDs,
+    conciergeReportID,
+    parentReportAction,
+}: GetIconsParams): Icon[] {
     if (isEmptyObject(report)) {
         return [
             {
@@ -4723,8 +4738,14 @@ function getIcons(
             },
         ];
     }
+    // parentReportAction is temporarily optional while callers are migrated in smaller PRs. Once every caller passes it, this module-level fallback is removed as part of https://github.com/Expensify/App/issues/66419.
+    const resolvedParentReportAction =
+        parentReportAction ??
+        (report.parentReportID && report.parentReportActionID
+            ? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID]
+            : undefined);
     if (isExpenseRequest(report)) {
-        return getIconsForExpenseRequest(report, personalDetails, policy, translate);
+        return getIconsForExpenseRequest(report, personalDetails, policy, translate, resolvedParentReportAction);
     }
     if (isExpenseReport(report)) {
         return getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate);
@@ -4736,7 +4757,7 @@ function getIcons(
         return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy, translate);
     }
     if (isChatThread(report)) {
-        return getIconsForChatThread(report, personalDetails, policy, formatPhoneNumber, translate, conciergeReportID);
+        return getIconsForChatThread(report, personalDetails, policy, formatPhoneNumber, translate, conciergeReportID, resolvedParentReportAction);
     }
     if (isTaskReport(report)) {
         return getIconsForTaskReport(report, personalDetails, policy, formatPhoneNumber, translate);

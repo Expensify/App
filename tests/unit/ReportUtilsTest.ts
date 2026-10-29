@@ -9392,7 +9392,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, ['4']);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: ['4']});
 
             expect(icons.at(0)?.name).toEqual('One, Three, Two');
         });
@@ -9406,7 +9406,7 @@ describe('ReportUtils', () => {
             });
 
             // When the caller builds the icons without passing the pending delete members
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
 
             // Then the pending member is still listed: getGroupChatName no longer falls back to reading Onyx itself
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
@@ -9416,10 +9416,111 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, []);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: []});
 
             expect(icons.at(0)?.source).toEqual(getDefaultGroupAvatar(groupChatReport.reportID));
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
+        });
+    });
+
+    describe('getIcons for a thread', () => {
+        afterEach(() => Onyx.clear());
+
+        const parentReportID = '9301';
+        const parentReportActionID = '9302';
+        const passedActorAccountID = 3;
+        const onyxActorAccountID = 4;
+
+        const buildIOUAction = (actorAccountID: number): ReportAction => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: parentReportActionID,
+            actorAccountID,
+            created: '2025-01-20 12:30:03.784',
+            message: [{type: 'COMMENT', html: 'expense', text: 'expense'}],
+            originalMessage: {
+                IOUReportID: parentReportID,
+                IOUTransactionID: '9303',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 1000,
+                currency: 'USD',
+            },
+        });
+
+        const buildCommentAction = (actorAccountID: number): ReportAction => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            reportActionID: parentReportActionID,
+            actorAccountID,
+            created: '2025-01-20 12:30:03.784',
+            message: [{type: 'COMMENT', html: '<p>hi</p>', text: 'hi'}],
+        });
+
+        const expenseRequest: Report = {
+            reportID: '9304',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID,
+            parentReportActionID,
+        };
+
+        const chatThread: Report = {
+            reportID: '9305',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID,
+            parentReportActionID,
+        };
+
+        it('should build the expense request member avatar from the parent report action passed by the caller', async () => {
+            // Given an expense request whose parent action in Onyx (still read by the expense request check) was posted by one user,
+            // while the caller resolved that same action as posted by another user
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildIOUAction(onyxActorAccountID)});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built with the caller's parent report action
+            const icons = getIcons({
+                report: expenseRequest,
+                formatPhoneNumber,
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildIOUAction(passedActorAccountID),
+            });
+
+            // Then the member avatar belongs to the actor of the passed action, so the module-level cache was not read for it
+            expect(icons.at(0)?.id).toBe(passedActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Three');
+        });
+
+        it('should build the chat thread avatar from the parent report action passed by the caller', async () => {
+            // Given a chat thread whose parent chat is in Onyx but whose parent actions are not loaded there
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built with the caller's parent report action
+            const icons = getIcons({
+                report: chatThread,
+                formatPhoneNumber,
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildCommentAction(passedActorAccountID),
+            });
+
+            // Then the avatar belongs to the actor of the passed action
+            expect(icons).toHaveLength(1);
+            expect(icons.at(0)?.id).toBe(passedActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Three');
+        });
+
+        it('should fall back to the parent report action in Onyx when the caller does not pass one', async () => {
+            // Given a chat thread whose parent action is only available in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildCommentAction(onyxActorAccountID)});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built without a parent report action
+            const icons = getIcons({report: chatThread, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
+
+            // Then the avatar still resolves from Onyx until every caller passes the action
+            expect(icons.at(0)?.id).toBe(onyxActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Four');
         });
     });
 
