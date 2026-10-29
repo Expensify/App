@@ -2,19 +2,11 @@ import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLoadSearchCategoryData from '@hooks/useLoadSearchCategoryData';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
-import {
-    buildSearchQueryJSON,
-    buildSearchQueryString,
-    getQueryWithoutFooterSelections,
-    getQueryWithoutGroupBy,
-    getSearchRootParamsFromRootState,
-    hasFooterSelections,
-} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getQueryWithoutGroupBy, getSearchRootParamsFromRootState} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, getSuggestedSearchesVisibility} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -64,14 +56,9 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const {query: queryParam, rawQuery: rawQueryParam} = splitSearchQueryParams(usePreviousDefined(queryParams));
     const definedQueryParam = queryParam ?? buildSearchQueryString();
     const parsedSearchQueryJSON = buildSearchQueryJSON(definedQueryParam, rawQueryParam);
-    const {isBetaEnabled} = usePermissions();
-    const shouldDropFooterSelections = !isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS) && !!parsedSearchQueryJSON && hasFooterSelections(parsedSearchQueryJSON);
-    const searchQueryJSONWithFooter =
-        shouldDropFooterSelections && parsedSearchQueryJSON ? buildSearchQueryJSON(getQueryWithoutFooterSelections(parsedSearchQueryJSON), rawQueryParam) : parsedSearchQueryJSON;
     // Trip rooms can't be grouped, so a group-by from a saved or typed trip query is dropped
-    const shouldDropGroupBy = useShouldReturnTripRooms(searchQueryJSONWithFooter?.type) && !!searchQueryJSONWithFooter?.groupBy;
-    const currentSearchQueryJSON =
-        shouldDropGroupBy && searchQueryJSONWithFooter ? buildSearchQueryJSON(getQueryWithoutGroupBy(searchQueryJSONWithFooter), rawQueryParam) : searchQueryJSONWithFooter;
+    const shouldDropGroupBy = useShouldReturnTripRooms(parsedSearchQueryJSON?.type) && !!parsedSearchQueryJSON?.groupBy;
+    const currentSearchQueryJSON = shouldDropGroupBy && parsedSearchQueryJSON ? buildSearchQueryJSON(getQueryWithoutGroupBy(parsedSearchQueryJSON), rawQueryParam) : parsedSearchQueryJSON;
     const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 

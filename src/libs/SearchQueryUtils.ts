@@ -788,10 +788,6 @@ function getFooterSelectionFromQuery(queryJSON: SearchQueryJSON | undefined) {
     };
 }
 
-function getQueryWithoutFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return buildSearchQueryString({...queryJSON, flatFilters: queryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key))});
-}
-
 /** The query without its group-by, and without the group sort that came with it, for searches that can't be grouped. */
 function getQueryWithoutGroupBy(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
     const isGroupSort = queryJSON.sortBy.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX);
@@ -801,10 +797,6 @@ function getQueryWithoutGroupBy(queryJSON: SearchQueryJSON | Readonly<SearchQuer
         sortBy: isGroupSort ? CONST.SEARCH.TABLE_COLUMNS.DATE : queryJSON.sortBy,
         sortOrder: isGroupSort ? CONST.SEARCH.SORT_ORDER.DESC : queryJSON.sortOrder,
     });
-}
-
-function hasFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.flatFilters.some((filter) => FOOTER_FILTER_KEYS.has(filter.key));
 }
 
 /**
@@ -3243,9 +3235,7 @@ export {
     getDefaultFooterCount,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
-    getQueryWithoutFooterSelections,
     getQueryWithoutGroupBy,
-    hasFooterSelections,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     isSearchDatePreset,
