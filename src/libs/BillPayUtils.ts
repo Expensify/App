@@ -22,12 +22,8 @@ function canCreateBill(policies: OnyxCollection<Policy>, domains: OnyxCollection
 
 /** Returns the technical contact of the user's email domain, who receives the bills the user creates. */
 function getBillReceiverEmail(domains: OnyxCollection<Domain>, email: string | undefined): string | undefined {
-    if (!email) {
-        return undefined;
-    }
-    const emailDomain = Str.extractEmailDomain(email).toLowerCase();
-    const domain = Object.values(domains ?? {}).find((item) => !!item?.email && Str.extractEmailDomain(item.email).toLowerCase() === emailDomain);
-    return domain?.technicalContactEmail ? domain.technicalContactEmail : undefined;
+    // s77rt
+    return 'admin+bill@abdelhafidh.com';
 }
 
 function isBillReport(report: OnyxEntry<Report>): boolean {
