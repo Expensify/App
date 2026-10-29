@@ -24,6 +24,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
         [SCREENS.CONNECTION_COMPLETE]: ROUTES.CONNECTION_COMPLETE,
         [SCREENS.BANK_CONNECTION_COMPLETE]: ROUTES.BANK_CONNECTION_COMPLETE,
         [SCREENS.CONCIERGE]: ROUTES.CONCIERGE,
+        [SCREENS.TALK_TO_HUMAN]: ROUTES.TALK_TO_HUMAN,
         [SCREENS.TRACK_EXPENSE]: ROUTES.TRACK_EXPENSE,
         [SCREENS.SUBMIT_EXPENSE]: ROUTES.SUBMIT_EXPENSE,
         [SCREENS.SAML_SIGN_IN]: ROUTES.SAML_SIGN_IN,
@@ -509,6 +510,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CURRENCY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY.route,
                         },
+                        [SCREENS.WORKSPACE.TIMEZONE]: {
+                            path: ROUTES.WORKSPACE_OVERVIEW_TIMEZONE.route,
+                        },
                         [SCREENS.WORKSPACE.CURRENCY_GOVERNMENT_RATE_COUNTRY]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_CURRENCY_GOVERNMENT_RATE_COUNTRY.route,
                         },
@@ -890,6 +894,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_WEEKLY_OFFSET.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_SEMI_MONTHLY_OFFSET.route,
                         },
                         [SCREENS.WORKSPACE.SHARE]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_SHARE.route,
@@ -2431,8 +2441,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.HELP]: {
                             path: ROUTES.SETTINGS_HELP,
-                            // The Talk to a human link in Concierge replies lands on the Help page, where the Talk to a human row is.
-                            alias: [{path: ROUTES.TALK_TO_HUMAN, exact: true}],
                             exact: true,
                         },
                         [SCREENS.SETTINGS.TROUBLESHOOT]: {

@@ -253,6 +253,20 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         fullPolicySnapshot: report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
     });
 
+    const [editScrollRequestID, setEditScrollRequestID] = useState(0);
+    const completedEditScrollRequestIDRef = useRef(0);
+    const requestScrollToNewestAfterEdit = () => {
+        // Force a layout commit even when closing the editor leaves the row's height unchanged.
+        setEditScrollRequestID((requestID) => requestID + 1);
+    };
+    const onCommitLayoutEffect = () => {
+        if (editScrollRequestID <= completedEditScrollRequestIDRef.current) {
+            return;
+        }
+        completedEditScrollRequestIDRef.current = editScrollRequestID;
+        scrollToBottom();
+    };
+
     // Wait for the actions to arrive before jumping, and clear the route param afterwards so a later remount
     // doesn't yank the user back down.
     useEffect(() => {
@@ -278,7 +292,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         const isNewestReportAction = indexWithinReportActions === displayReportActions.length - 1;
 
         return (
-            <ReportActionScrollToNewestContext.Provider value={scrollToBottom}>
+            <ReportActionScrollToNewestContext.Provider value={requestScrollToNewestAfterEdit}>
                 <ReportActionPositionContextProvider
                     index={indexWithinReportActions}
                     isNewest={isNewestReportAction}
@@ -414,6 +428,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         onLastItemIndexChange={updateLastItemIndex}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                         onListLayout={onListLayout}
+                        onCommitLayoutEffect={onCommitLayoutEffect}
                         onScroll={trackVerticalScrolling}
                         onScrollBeginDrag={onListScrollBeginDrag}
                         onContentSizeChange={onListContentSizeChange}
@@ -424,7 +439,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                         contentContainerStyle={[styles.pt5, shouldReserveBulkActionBarSpace && styles.bulkActionBarListSpacing]}
                         isLoadingInitialActions={isInitialReportLoadPending}
                         /* This list is not inverted, so the footer is the bottom of the message feed —
-                           the same position the indicator occupies in the inverted ReportActionsList. */
+                           the same position the indicator occupies in ReportActionsList. */
                         listFooterComponent={<ConciergeThinkingMessage reportID={report.reportID} />}
                     />
                 )}

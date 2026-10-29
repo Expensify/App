@@ -5,6 +5,7 @@ import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import useCarouselTransactionIDs from '@hooks/useCarouselTransactionIDs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -13,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
+import getPlatform from '@libs/getPlatform';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getExpenseCreationTransactionID} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID, isOneTransactionReport} from '@libs/ReportUtils';
@@ -32,6 +34,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
+import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
 import {isSentMoneyReportSelector} from '@selectors/ReportAction';
@@ -44,6 +47,9 @@ const CAROUSEL_PRESERVING_SCREENS = [
     SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
     SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW,
 ] as const;
+
+// Native keydown handling doesn't skip text inputs, so the arrow keys only page between expenses on web.
+const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
@@ -102,6 +108,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
+    // The RHP itself marks the modal as visible, so only a popover or modal opened on top of it should take the arrow keys away.
+    const [isModalOpenOnTop] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
 
     const currentTransactionIndex = transactionIDsList.findIndex((id) => id === currentTransactionID);
 
@@ -450,6 +458,34 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         // eslint-disable-next-line react-hooks/exhaustive-deps -- onNext/onPrevious are rebuilt every render, so listing them would defeat the dependency list
     }, [isFocused, nextTransactionID, nextParentReportAction, prevTransactionID, prevParentReportAction]);
 
+    const canNavigateToPrevious = canResolveSibling(prevTransactionID, prevTransaction, prevParentReportAction);
+    const canNavigateToNext = canResolveSibling(nextTransactionID, nextTransaction, nextParentReportAction);
+    const isArrowKeyNavigationActive = isWeb && isFocused && !isModalOpenOnTop && transactionIDsList.length > 1 && currentTransactionIndex !== -1;
+
+    // The arrow keys mirror the on-screen arrows. Text inputs keep them for editing, and a key already handled by
+    // whatever has focus (e.g. a menu) is left alone, so keyboard and assistive tech navigation keep working.
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT,
+        (event) => {
+            if (event?.defaultPrevented) {
+                return;
+            }
+            onPrevious(event);
+        },
+        {captureOnInputs: false, isActive: isArrowKeyNavigationActive && canNavigateToPrevious},
+    );
+
+    useKeyboardShortcut(
+        CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT,
+        (event) => {
+            if (event?.defaultPrevented) {
+                return;
+            }
+            onNext(event);
+        },
+        {captureOnInputs: false, isActive: isArrowKeyNavigationActive && canNavigateToNext},
+    );
+
     // Two entries are the minimum for there to be anything to page between, and an anchor that isn't in the list
     // means this expense doesn't belong to the active carousel at all. The list belongs to a screen the user has
     // since left. Showing arrows then would step to an unrelated expense.
@@ -465,8 +501,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
                 </Text>
             )}
             <PrevNextButtons
-                isPrevButtonDisabled={!canResolveSibling(prevTransactionID, prevTransaction, prevParentReportAction)}
-                isNextButtonDisabled={!canResolveSibling(nextTransactionID, nextTransaction, nextParentReportAction)}
+                isPrevButtonDisabled={!canNavigateToPrevious}
+                isNextButtonDisabled={!canNavigateToNext}
                 onNext={onNext}
                 onPrevious={onPrevious}
             />

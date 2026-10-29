@@ -5612,7 +5612,7 @@ function showReportActionNotification(
         LocalNotification.showCommentNotification(report, reportAction, onClick, derivedReportName, formatPhoneNumber);
     }
 
-    notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID);
+    notifyNewAction(reportID, undefined, reportAction.actorAccountID === currentUserAccountID, 'realtime');
 }
 
 /** Clear the errors associated with the IOUs of a given report. */
