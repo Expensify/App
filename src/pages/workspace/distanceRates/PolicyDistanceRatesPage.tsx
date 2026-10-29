@@ -38,8 +38,8 @@ import {renameDistanceRateInline, updateDistanceRateValueInline} from '@libs/act
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getTaxReclaimableAmount, isDistanceRateTaxTrackingEnabled} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
+import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -80,7 +80,7 @@ function PolicyDistanceRatesPage({
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
     const customUnitRates: Record<string, Rate> = customUnit?.rates ?? {};
-    const shouldShowTaxReclaimableColumn = isDistanceRateTaxTrackingEnabled(policy, customUnit);
+    const shouldShowTaxReclaimableColumn = isTaxTrackingEnabled(true, policy, true);
 
     const selectableRates = Object.values(customUnitRates).reduce<Record<string, Rate>>((acc, rate) => {
         acc[rate.customUnitRateID] = rate;
