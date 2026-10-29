@@ -103,7 +103,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         isConciergeHiddenHistory,
         showFullHistory,
         hasPreviousMessages,
-        allReportActionIDs,
+        persistedReportActionIDs,
         shouldShowConciergeWelcome,
         isConciergeHistoryExpanded,
     } = useReportActionsListState();
@@ -244,7 +244,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const latestConciergeFeedbackActionIDs =
         reportNameValuePairs?.conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
             ? getEmptyArray<string>()
-            : getFeedbackPromptActionIDs(renderedVisibleReportActions, allReportActionIDs, customAgentAccountIDs);
+            : getFeedbackPromptActionIDs(renderedVisibleReportActions, persistedReportActionIDs, customAgentAccountIDs);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.

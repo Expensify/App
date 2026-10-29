@@ -40,6 +40,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         reportActions,
         allReportActions,
         allReportActionIDs,
+        persistedReportActionIDs,
         hasOlderActions,
         hasNewerActions,
         sortedAllReportActions,
@@ -160,6 +161,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         showFullHistory,
         hasPreviousMessages,
         allReportActionIDs,
+        persistedReportActionIDs,
         shouldShowConciergeWelcome,
         isConciergeHistoryExpanded,
     };

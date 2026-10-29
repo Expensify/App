@@ -9317,7 +9317,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     missingData: 'Expensify n’a pas ces informations.',
                     retroactive: 'Les règles ne s’appliquent qu’aux nouvelles activités.',
                     historyLimit: 'Les règles ne peuvent pas remonter aussi loin dans le temps.',
-                    tryThisInstead: 'Essayez plutôt ceci',
+                    useSuggestion: 'Utiliser la suggestion',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Essayez plutôt la suggestion ci-dessous :`,
+                    quotedSuggestion: (suggestedPrompt: string) => `« ${suggestedPrompt} »`,
+                    createAnyway: 'Créer quand même',
                 },
             },
             expenseDefaultsTable: {

@@ -1609,6 +1609,10 @@ describe('ReportActionsList (body)', () => {
             });
         });
 
+        afterEach(() => {
+            mockReport.type = undefined;
+        });
+
         const conciergeReply: OnyxTypes.ReportAction = {
             reportID: mockReport.reportID,
             reportActionID: 'concierge-reply',
@@ -1632,6 +1636,47 @@ describe('ReportActionsList (body)', () => {
             renderReportActionsList();
 
             expect(getRenderedReportActionsListItemProps(conciergeReply).isLatestConciergeFeedbackAction).toBe(true);
+        });
+
+        it('marks a Concierge reply in the transaction thread of a one-expense report', () => {
+            // Given a one-expense report, which shows the comments of its transaction thread that Onyx stores under the thread's reportID
+            const transactionThreadReportID = 'transaction-thread';
+            const transactionID = 'transaction';
+            const expenseAction = {
+                reportID: mockReport.reportID,
+                reportActionID: 'expense',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2023-01-03',
+                actorAccountID: 123,
+                childReportID: transactionThreadReportID,
+                message: [{type: 'COMMENT', html: '$10.00 expense', text: '$10.00 expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID, IOUReportID: mockReport.reportID, amount: 1000, currency: CONST.CURRENCY.USD},
+                shouldShow: true,
+                pendingAction: null,
+                errors: {},
+            } as OnyxTypes.ReportAction;
+            const threadConciergeReply: OnyxTypes.ReportAction = {...conciergeReply, reportID: transactionThreadReportID};
+            mockReport.type = CONST.REPORT.TYPE.EXPENSE;
+            mockUseReportTransactionsCollection.mockReturnValue({
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {transactionID, reportID: mockReport.reportID} as OnyxTypes.Transaction,
+            });
+            mockUseOnyx.mockImplementation((key, options) => {
+                if (key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`) {
+                    return [[threadConciergeReply], {status: 'loaded'}];
+                }
+                return getMockOnyxValue(key, options);
+            });
+            mockUsePaginatedReportActions.mockReturnValue({
+                ...defaultPaginatedReportActionsResult,
+                reportActions: [...mockReportActions, expenseAction],
+            });
+
+            // When the list renders
+            renderReportActionsList();
+
+            // Then the reply shows the prompt, because it is a saved comment even though the expense report does not store it
+            expect(getCapturedVisibleActions()).toContain(threadConciergeReply);
+            expect(getRenderedReportActionsListItemProps(threadConciergeReply).isLatestConciergeFeedbackAction).toBe(true);
         });
 
         it('marks the newest reply of Concierge and of each custom agent', () => {
