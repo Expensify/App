@@ -124,6 +124,8 @@ Every bank account shows a status badge. A finished account shows **Active**. An
 - **Pending** with a **Please confirm test transactions** message and a **Confirm** action means the account was submitted and is waiting on test transactions. Click the account row to open **Validate your bank account**. If **Continue setup** and **Start over** appear first, click **Continue setup** to reach it. Learn how to [validate a business bank account](/articles/new-expensify/wallet-and-payments/Validate-a-Business-Bank-Account).
 - **Verifying** means Expensify is reviewing your documentation and no action is needed from you.
 - **Locked** means the account requires attention before it can be used. Learn how to [unlock a business bank account](/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account).
+- **Active** with a **Connect to Plaid for a more accurate Expensify Card limit** message and a **Connect** action means the account is linked to the Expensify Card but isn't connected through Plaid. Select **Connect**, log into your bank through Plaid, and choose the matching bank account.
+- **Active** with a **Fix your Plaid connection for a more accurate Expensify Card limit** message and a **Fix** action means the account's Plaid connection is broken. Select **Fix**, log into your bank through Plaid again, and choose the matching bank account.
 
 [Learn what each bank account connection status means](/articles/new-expensify/wallet-and-payments/Check-Bank-Account-and-Card-Connection-Status).
 
