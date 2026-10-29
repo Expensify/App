@@ -27,7 +27,7 @@ describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
         const writeSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
         // When it is sent
-        updateWiseOnboardingAdditionalData(PARAMS);
+        updateWiseOnboardingAdditionalData(PARAMS, false);
 
         // Then it goes through the queue, so it is sent once the device is back online
         expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, PARAMS, expect.anything());
@@ -39,12 +39,13 @@ describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
         const sideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.reject(new Error('Network request failed')));
 
         // When it is sent
-        updateWiseOnboardingAdditionalData({...PARAMS, ssn: '123456789'});
+        const params = {...PARAMS, inputs: JSON.stringify({ssn: '123456789'})};
+        updateWiseOnboardingAdditionalData(params, true);
         await waitForBatchedUpdates();
 
         // Then the SSN never enters the request queue, which is written to disk, and the user is told the save failed
         expect(writeSpy).not.toHaveBeenCalled();
-        expect(sideEffectSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, expect.objectContaining({ssn: '123456789'}), expect.anything());
+        expect(sideEffectSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, expect.anything());
         const reimbursementAccount = await new Promise((resolve) => {
             const connection = Onyx.connectWithoutView({
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

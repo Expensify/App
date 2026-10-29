@@ -180,7 +180,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             shouldReplaceRoute
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
-            onPageSubmit={(page, answers, sensitiveAnswers) => updateWiseOnboardingAdditionalData(getWiseOnboardingPageParams(bankAccountID, page, answers, sensitiveAnswers))}
+            onPageSubmit={(page, answers, sensitiveAnswers) => {
+                const {params, hasSensitiveAnswers} = getWiseOnboardingPageParams(bankAccountID, page, answers, sensitiveAnswers);
+                updateWiseOnboardingAdditionalData(params, hasSensitiveAnswers);
+            }}
             submitError={saveError || undefined}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}

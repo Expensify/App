@@ -44,14 +44,14 @@ function getFiles(answer: DynamicFormValues[string]): FileObject[] {
  * The parameters of one `UpdateWiseOnboardingAdditionalData` call for a page the user left with Next.
  * Files the server holds are listed in `documents`, new ones are sent as `<field>[<index>]`, and the rest of the answers go in `inputs`.
  * Every file field of the page is listed in `documents`, so a file the user removed, or a field the answers now hide, is removed on the server too.
- * When a drafted file cannot be uploaded, `documents` is left out, so the server keeps the page's files instead of dropping one the user still sees.
+ * A typed SSN goes in `inputs` too, where the server reads it, and `hasSensitiveAnswers` tells the caller to keep the request out of the queue.
  */
 function getWiseOnboardingPageParams(
     bankAccountID: number,
     page: DynamicFormPage,
     answers: DynamicFormValues,
     sensitiveAnswers: DynamicFormValues,
-): UpdateWiseOnboardingAdditionalDataParams {
+): {params: UpdateWiseOnboardingAdditionalDataParams; hasSensitiveAnswers: boolean} {
     const fileFieldKeys = new Set(
         getContentFields(page.content)
             .filter((field) => field.type === 'file')
@@ -60,15 +60,13 @@ function getWiseOnboardingPageParams(
     const inputs: DynamicFormValues = {};
     const documents: Record<string, string[]> = {};
     const newFiles: Record<`${string}[${number}]`, FileObject> = {};
-    let hasFileWithoutData = false;
 
     for (const fieldKey of fileFieldKeys) {
         const files = getFiles(answers[fieldKey]);
         documents[fieldKey] = files.filter(isSavedFile).map((file) => file.savedFileKey);
         const localFiles = files.filter((file) => !isSavedFile(file));
-        // An entry that cannot be uploaded would reach the server as "[object Object]", so it is left out
+        // An entry that cannot be uploaded would reach the server as "[object Object]", so it is left out. It was never on the server, so nothing is lost there.
         const uploadableFiles = localFiles.filter((file) => isFileUploadable(file));
-        hasFileWithoutData ||= uploadableFiles.length < localFiles.length;
         for (const [index, file] of uploadableFiles.entries()) {
             newFiles[`${fieldKey}[${index}]`] = file;
         }
@@ -81,14 +79,19 @@ function getWiseOnboardingPageParams(
 
     // A blank SSN keeps the one the server holds, so it is only sent when the user typed one
     const ssn = typeof sensitiveAnswers.ssn === 'string' && sensitiveAnswers.ssn !== '' ? sensitiveAnswers.ssn : undefined;
+    if (ssn) {
+        inputs.ssn = ssn;
+    }
 
     return {
-        bankAccountID,
-        step: page.key,
-        inputs: JSON.stringify(inputs),
-        ...(fileFieldKeys.size > 0 && !hasFileWithoutData ? {documents: JSON.stringify(documents)} : {}),
-        ...(ssn ? {ssn} : {}),
-        ...newFiles,
+        params: {
+            bankAccountID,
+            step: page.key,
+            inputs: JSON.stringify(inputs),
+            ...(fileFieldKeys.size > 0 ? {documents: JSON.stringify(documents)} : {}),
+            ...newFiles,
+        },
+        hasSensitiveAnswers: !!ssn,
     };
 }
 

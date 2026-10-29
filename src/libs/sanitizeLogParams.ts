@@ -26,6 +26,7 @@ const SENSITIVE_KEYS = new Set([
     'ephemeralPublicKey',
     'opaquePaymentCard',
     'ssn',
+    'inputs',
 ]);
 
 const REDACTED = '<redacted>';

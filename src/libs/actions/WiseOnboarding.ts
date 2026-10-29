@@ -48,9 +48,9 @@ function saveWiseOnboardingPageWithSensitiveAnswers(params: UpdateWiseOnboarding
     });
 }
 
-/** Saves one intake page, keeping an SSN out of the request queue */
-function updateWiseOnboardingAdditionalData(params: UpdateWiseOnboardingAdditionalDataParams) {
-    if (params.ssn) {
+/** Saves one intake page, keeping a page with sensitive answers, such as an SSN in its inputs, out of the request queue */
+function updateWiseOnboardingAdditionalData(params: UpdateWiseOnboardingAdditionalDataParams, hasSensitiveAnswers: boolean) {
+    if (hasSensitiveAnswers) {
         saveWiseOnboardingPageWithSensitiveAnswers(params);
         return;
     }

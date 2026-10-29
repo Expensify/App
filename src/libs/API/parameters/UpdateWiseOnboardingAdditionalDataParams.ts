@@ -9,14 +9,11 @@ type UpdateWiseOnboardingAdditionalDataParams = {
      */
     step: string;
 
-    /** JSON of the page's answers under flat keys, such as `address.city` */
+    /** JSON of the page's answers under flat keys, such as `address.city`. It holds a typed SSN, so it is redacted from the logs. */
     inputs: string;
 
     /** JSON of the uploaded file keys the user kept, by field. Left out, the step's files stay as they are. */
     documents?: string;
-
-    /** Sent only through the request path that is not written to disk. Left out, the stored SSN is kept. */
-    ssn?: string;
 
     /** New files, as `<field>[<index>]` */
     [fileKey: `${string}[${number}]`]: FileObject;
