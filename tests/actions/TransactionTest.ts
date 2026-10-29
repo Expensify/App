@@ -2116,4 +2116,5 @@ describe('actions/Transaction', () => {
             const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${trashedExpenseID}`);
             expect(transaction?.reportID).not.toBe(CONST.REPORT.TRASH_REPORT_ID);
         });
+    });
 });
