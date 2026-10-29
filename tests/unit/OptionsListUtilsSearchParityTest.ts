@@ -161,7 +161,7 @@ function buildOptionList(sourceFixture: SearchFixture, {isSearching, maxRecentRe
         RULES,
         undefined,
         undefined,
-        undefined,
+        false,
         sortedActions,
     );
 }
