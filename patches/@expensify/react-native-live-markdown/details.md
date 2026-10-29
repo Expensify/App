@@ -16,11 +16,14 @@
     - iOS: React Native 0.87 removed `RCTCxxBridge`, which `LiveMarkdownModule.install` used to reach the JSI
       runtime. Inject the bindings from `installJSIBindingsWithRuntime:callInvoker:` instead
       (`RCTTurboModuleWithJSIBindings`, called by `RCTTurboModuleManager` when the TurboModule is created);
-      `install()` stays as a no-op so the JS side keeps working unchanged.
-    - Android: in React Native 0.88 `TextLayoutManager.measureText` gained a trailing `TextEffectRegistry`
-      parameter, so the `latest` `CustomFabricUIManager` override must pass `getTextEffectRegistry()`.
+      `install()` stays as a no-op because Android still uses it.
+    - Android: in React Native 0.87 `TextLayoutManager.measureText` gained a trailing `TextEffectRegistry`
+      parameter. The previous `latest` `CustomFabricUIManager` moves unchanged to `CustomMountingManager/86`
+      (used for RN 0.86), and `latest` (RN 0.87+) passes the original `FabricUIManager`'s registry
+      (`source.getTextEffectRegistry()`) and `ReactTypefaceUtils.getFontWeightAdjustment(context)`,
+      matching `FabricUIManager.measureText`.
     ```
 
-- Upstream PR/issue: None yet: `main` of https://github.com/Expensify/react-native-live-markdown still has both call sites (only #776 "[HOLD for RN 0.88]" exists, about parser registration). Upstream PRs to be opened as part of the RN 0.88 upgrade; drop this patch once a release contains them.
+- Upstream PR/issue: https://github.com/Expensify/react-native-live-markdown/pull/817 (drop this patch once the app upgrades to a release that contains it)
 - E/App issue: https://github.com/Expensify/App/issues/101427
 - PR introducing patch: TBD (RN 0.88 / Expo SDK 58 upgrade)

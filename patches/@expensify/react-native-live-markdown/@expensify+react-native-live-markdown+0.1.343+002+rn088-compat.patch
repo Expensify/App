@@ -1,20 +1,205 @@
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/build.gradle b/node_modules/@expensify/react-native-live-markdown/android/build.gradle
+index b524b2a..f1f97ef 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/build.gradle
++++ b/node_modules/@expensify/react-native-live-markdown/android/build.gradle
+@@ -131,6 +131,8 @@ android {
+           java.srcDirs += "src/reactNativeVersionPatch/CustomMountingManager/80"
+       } else if (REACT_NATIVE_MINOR_VERSION <= 85) {
+           java.srcDirs += "src/reactNativeVersionPatch/CustomMountingManager/81"
++      } else if (REACT_NATIVE_MINOR_VERSION == 86) {
++          java.srcDirs += "src/reactNativeVersionPatch/CustomMountingManager/86"
+       } else {
+           java.srcDirs += "src/reactNativeVersionPatch/CustomMountingManager/latest"
+       }
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/86/com/expensify/livemarkdown/CustomFabricUIManager.java b/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/86/com/expensify/livemarkdown/CustomFabricUIManager.java
+new file mode 100644
+index 0000000..7f34ed9
+--- /dev/null
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/86/com/expensify/livemarkdown/CustomFabricUIManager.java
+@@ -0,0 +1,95 @@
++package com.expensify.livemarkdown;
++
++import static com.facebook.react.fabric.mounting.LayoutMetricsConversions.getYogaMeasureMode;
++import static com.facebook.react.fabric.mounting.LayoutMetricsConversions.getYogaSize;
++
++import android.text.SpannableStringBuilder;
++
++import androidx.annotation.Nullable;
++
++import com.facebook.jni.annotations.DoNotStrip;
++import com.facebook.react.bridge.ReactApplicationContext;
++import com.facebook.react.bridge.ReadableMap;
++import com.facebook.react.common.mapbuffer.ReadableMapBuffer;
++import com.facebook.react.fabric.FabricUIManager;
++import com.facebook.react.uimanager.ViewManagerRegistry;
++import com.facebook.react.uimanager.events.BatchEventDispatchedListener;
++import com.facebook.react.views.text.TextLayoutManager;
++
++import java.lang.reflect.Field;
++
++@DoNotStrip
++public class CustomFabricUIManager extends FabricUIManager {
++
++  private final ReactApplicationContext mReactApplicationContext;
++  private final MarkdownUtils mMarkdownUtils;
++
++  public CustomFabricUIManager(
++    ReactApplicationContext reactContext,
++    ViewManagerRegistry viewManagerRegistry,
++    BatchEventDispatchedListener batchEventDispatchedListener,
++    ReadableMap markdownProps,
++    int parserId
++  ) {
++    super(reactContext, viewManagerRegistry, batchEventDispatchedListener);
++
++    this.mReactApplicationContext = reactContext;
++
++    this.mMarkdownUtils = new MarkdownUtils(reactContext);
++    this.mMarkdownUtils.setMarkdownStyle(new MarkdownStyle(markdownProps, reactContext));
++    this.mMarkdownUtils.setParserId(parserId);
++  }
++
++  @Override
++  public long measureText(
++    ReadableMapBuffer attributedString,
++    ReadableMapBuffer paragraphAttributes,
++    float minWidth,
++    float maxWidth,
++    float minHeight,
++    float maxHeight,
++    @Nullable float[] attachmentsPositions) {
++
++    return TextLayoutManager.measureText(
++      mReactApplicationContext.getAssets(),
++      attributedString,
++      paragraphAttributes,
++      getYogaSize(minWidth, maxWidth),
++      getYogaMeasureMode(minWidth, maxWidth),
++      getYogaSize(minHeight, maxHeight),
++      getYogaMeasureMode(minHeight, maxHeight),
++      spannable -> {
++        mMarkdownUtils.applyMarkdownFormatting((SpannableStringBuilder)spannable);
++      },
++      attachmentsPositions);
++  }
++
++  public static FabricUIManager create(FabricUIManager source, ReadableMap markdownProps, int parserId) {
++    try {
++      ReactApplicationContext reactContext = readPrivateField(source, "mReactApplicationContext");
++      ViewManagerRegistry viewManagerRegistry = readPrivateField(source, "mViewManagerRegistry");
++      BatchEventDispatchedListener batchEventDispatchedListener = readPrivateField(source, "mBatchEventDispatchedListener");
++
++      return new CustomFabricUIManager(
++        reactContext,
++        viewManagerRegistry,
++        batchEventDispatchedListener,
++        markdownProps,
++        parserId
++      );
++    } catch (NoSuchFieldException | IllegalAccessException e) {
++      throw new RuntimeException("[LiveMarkdown] Cannot read data from FabricUIManager", e);
++    }
++  }
++
++  @SuppressWarnings("unchecked")
++  private static <T> T readPrivateField(Object obj, String name) throws NoSuchFieldException, IllegalAccessException {
++    Class<?> clazz = obj.getClass();
++
++    Field field = clazz.getDeclaredField(name);
++    field.setAccessible(true);
++    T value = (T) field.get(obj);
++
++    return value;
++  }
++}
+diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java b/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java
+index 7f34ed9..a15c03a 100644
+--- a/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java
++++ b/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java
+@@ -14,7 +14,9 @@ import com.facebook.react.common.mapbuffer.ReadableMapBuffer;
+ import com.facebook.react.fabric.FabricUIManager;
+ import com.facebook.react.uimanager.ViewManagerRegistry;
+ import com.facebook.react.uimanager.events.BatchEventDispatchedListener;
++import com.facebook.react.views.text.TextEffectRegistry;
+ import com.facebook.react.views.text.TextLayoutManager;
++import com.facebook.react.views.text.ReactTypefaceUtils;
+ 
+ import java.lang.reflect.Field;
+ 
+@@ -23,17 +25,20 @@ public class CustomFabricUIManager extends FabricUIManager {
+ 
+   private final ReactApplicationContext mReactApplicationContext;
+   private final MarkdownUtils mMarkdownUtils;
++  private final TextEffectRegistry mSourceTextEffectRegistry;
+ 
+   public CustomFabricUIManager(
+     ReactApplicationContext reactContext,
+     ViewManagerRegistry viewManagerRegistry,
+     BatchEventDispatchedListener batchEventDispatchedListener,
+     ReadableMap markdownProps,
+-    int parserId
++    int parserId,
++    TextEffectRegistry sourceTextEffectRegistry
+   ) {
+     super(reactContext, viewManagerRegistry, batchEventDispatchedListener);
+ 
+     this.mReactApplicationContext = reactContext;
++    this.mSourceTextEffectRegistry = sourceTextEffectRegistry;
+ 
+     this.mMarkdownUtils = new MarkdownUtils(reactContext);
+     this.mMarkdownUtils.setMarkdownStyle(new MarkdownStyle(markdownProps, reactContext));
+@@ -52,6 +57,7 @@ public class CustomFabricUIManager extends FabricUIManager {
+ 
+     return TextLayoutManager.measureText(
+       mReactApplicationContext.getAssets(),
++      ReactTypefaceUtils.getFontWeightAdjustment(mReactApplicationContext),
+       attributedString,
+       paragraphAttributes,
+       getYogaSize(minWidth, maxWidth),
+@@ -61,7 +67,8 @@ public class CustomFabricUIManager extends FabricUIManager {
+       spannable -> {
+         mMarkdownUtils.applyMarkdownFormatting((SpannableStringBuilder)spannable);
+       },
+-      attachmentsPositions);
++      attachmentsPositions,
++      mSourceTextEffectRegistry);
+   }
+ 
+   public static FabricUIManager create(FabricUIManager source, ReadableMap markdownProps, int parserId) {
+@@ -75,7 +82,8 @@ public class CustomFabricUIManager extends FabricUIManager {
+         viewManagerRegistry,
+         batchEventDispatchedListener,
+         markdownProps,
+-        parserId
++        parserId,
++        source.getTextEffectRegistry()
+       );
+     } catch (NoSuchFieldException | IllegalAccessException e) {
+       throw new RuntimeException("[LiveMarkdown] Cannot read data from FabricUIManager", e);
 diff --git a/node_modules/@expensify/react-native-live-markdown/apple/LiveMarkdownModule.mm b/node_modules/@expensify/react-native-live-markdown/apple/LiveMarkdownModule.mm
+index 4cd3970..ecf41f5 100644
 --- a/node_modules/@expensify/react-native-live-markdown/apple/LiveMarkdownModule.mm
 +++ b/node_modules/@expensify/react-native-live-markdown/apple/LiveMarkdownModule.mm
-@@ -3,6 +3,7 @@
+@@ -1,24 +1,32 @@
+ #import "LiveMarkdownModule.h"
+ 
  #import <RNLiveMarkdown/RuntimeDecorator.h>
- #import <React/RCTBridge+Private.h>
+-#import <React/RCTBridge+Private.h>
++#import <ReactCommon/RCTTurboModuleWithJSIBindings.h>
  #import <jsi/jsi.h>
-+#import <ReactCommon/CallInvoker.h>
  
  using namespace facebook;
  using namespace expensify::livemarkdown;
-@@ -11,14 +12,19 @@ @implementation LiveMarkdownModule
+ 
++@interface LiveMarkdownModule () <RCTTurboModuleWithJSIBindings>
++@end
++
+ @implementation LiveMarkdownModule
  
  RCT_EXPORT_MODULE()
  
-+// RN 0.87+ removed RCTCxxBridge. RCTTurboModuleManager calls installJSIBindingsWithRuntime:callInvoker:
-+// when the TurboModule is created (before JS receives the module object), so install() is a no-op.
++// JSI bindings are injected in installJSIBindingsWithRuntime:callInvoker:, which RCTTurboModuleManager
++// calls before the module is returned to JS, so there is nothing left to do here.
  RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
  {
 -  RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
@@ -32,16 +217,3 @@ diff --git a/node_modules/@expensify/react-native-live-markdown/apple/LiveMarkdo
  - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
      (const facebook::react::ObjCTurboModule::InitParams &)params {
    return std::make_shared<facebook::react::NativeLiveMarkdownModuleSpecJSI>(
-diff --git a/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java b/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java
---- a/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java
-+++ b/node_modules/@expensify/react-native-live-markdown/android/src/reactNativeVersionPatch/CustomMountingManager/latest/com/expensify/livemarkdown/CustomFabricUIManager.java
-@@ -61,7 +61,8 @@ public class CustomFabricUIManager extends FabricUIManager {
-       spannable -> {
-         mMarkdownUtils.applyMarkdownFormatting((SpannableStringBuilder)spannable);
-       },
--      attachmentsPositions);
-+      attachmentsPositions,
-+      getTextEffectRegistry()); // RN 0.88: TextLayoutManager.measureText gained a trailing TextEffectRegistry parameter
-   }
- 
-   public static FabricUIManager create(FabricUIManager source, ReadableMap markdownProps, int parserId) {
