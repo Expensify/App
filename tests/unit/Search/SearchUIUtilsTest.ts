@@ -44,7 +44,7 @@ import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
-import type {SearchTask} from '@src/types/onyx/SearchResults';
+import type {SearchTask, SearchTrip} from '@src/types/onyx/SearchResults';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -2325,6 +2325,20 @@ describe('SearchUIUtils', () => {
         test('Should return `Submit` action for report on policy with delayed submission and no violations', () => {
             const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
+
+        test('Should not return `Submit` action when the report workspace is missing because it was deleted', () => {
+            // Given a submittable report whose workspace was deleted. Deleting a workspace removes it from the search results and
+            // leaves no archivedDate, so the only sign left is that the policy is missing.
+            const data = {...searchResults.data};
+            expect(data[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]).toBeDefined();
+            delete data[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+            // When the Search actions are computed for the report
+            const actions = SearchUIUtils.getActions(data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+
+            // Then Submit is not offered, matching the report view, because the backend rejects submissions to a deleted workspace
+            expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
         test('Should return only `View` action for the expense of a single-expense report that can be submitted', () => {
@@ -9187,6 +9201,63 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
+        it('should sort expenses by the Rejected column, ranking expenses without the field as not rejected', () => {
+            // Given a rejected expense, a never rejected one, and one returned without the field, with `inserted` set so
+            // the tie breaker between the equal rows is predictable
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const transactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'rejected', keyForList: 'rejected', inserted: '2024-01-01', declined: true},
+                {...baseTransaction, transactionID: 'not-rejected', keyForList: 'not-rejected', inserted: '2024-02-02', declined: false},
+                {...baseTransaction, transactionID: 'no-field', keyForList: 'no-field', inserted: '2024-03-03'},
+            ];
+
+            // When the expenses are sorted by Rejected in each direction
+            const sortTransactions = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    [...transactions],
+                    localeCompare,
+                    translateLocal,
+                    CONST.SEARCH.TABLE_COLUMNS.DECLINED,
+                    sortOrder,
+                    undefined,
+                ).map((item) => ('transactionID' in item ? item.transactionID : undefined));
+
+            // Then the expense without the field ranks with the not rejected one, the way its cell shows "No", so the local
+            // sort agrees with the backend's 'yes'/'no' ranking
+            expect(sortTransactions(CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['not-rejected', 'no-field', 'rejected']);
+            expect(sortTransactions(CONST.SEARCH.SORT_ORDER.DESC)).toEqual(['rejected', 'no-field', 'not-rejected']);
+        });
+
+        it('should sort expense reports by the Rejected column, ranking reports without the field as not rejected', () => {
+            // Given a rejected expense report, a never rejected one, and one returned without the field
+            const createReport = (keyForList: string, declined?: boolean) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    currency: 'USD',
+                    transactions: [],
+                    ...(declined === undefined ? {} : {declined}),
+                });
+            const reports = [createReport('report_rejected', true), createReport('report_not_rejected', false), createReport('report_no_field')];
+
+            // When the reports are sorted by Rejected in each direction
+            const sortReports = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.DECLINED, sortOrder).map(
+                    (report) => report.keyForList,
+                );
+
+            // Then the report without the field ranks with the not rejected one, the way its cell shows "No", and equal
+            // reports keep the order the backend returned them in
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_not_rejected', 'report_no_field', 'report_rejected']);
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['report_rejected', 'report_not_rejected', 'report_no_field']);
+        });
+
         it('should return getSortedReportData result when type is expense-report', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
@@ -12688,6 +12759,40 @@ describe('SearchUIUtils', () => {
             expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
         });
 
+        test('Should keep the Rejected column hidden on expense searches until the user picks it', () => {
+            // Given an expense the backend marked as rejected
+            const rejectedTransaction = {...createRandomTransaction(4), declined: true};
+            const pickedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.DECLINED, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+            // When the columns are resolved with and without the user picking Rejected
+            const defaultColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [rejectedTransaction], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+            const pickedResult = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [rejectedTransaction], visibleColumns: pickedColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+
+            // Then Rejected is offered in the Search column picker but only shown once picked, and it is not offered in the
+            // single-report view because the report view's transactions never carry the field
+            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(pickedResult).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+        });
+
+        test('Should keep the Rejected column hidden on expense report searches until the user picks it', () => {
+            // Given the column lists for expense report searches
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.DECLINED, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+
+            // When the columns are resolved with and without the user picking Rejected
+            const defaultColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            const pickedResult = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+
+            // Then Rejected is offered in the expense report column picker, stays out of the defaults, and is shown in the
+            // picked position once chosen, so it is sent in the query columns the backend reads to return the field
+            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(pickedResult).toEqual(visibleColumns);
+        });
+
         test('Should not force Avatar for group-by:from when toggled off', () => {
             const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL];
 
@@ -14115,6 +14220,17 @@ describe('SearchUIUtils', () => {
         it('should return correct translation key for WITHDRAWAL_ID column', () => {
             const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
             expect(translationKey).toBe('common.withdrawalID');
+        });
+
+        it('should label the DECLINED column with the Rejected filter label', () => {
+            // Given the Rejected column, whose header is also sent as the export column label
+            // When its translation key is resolved for expenses and expense reports
+            const expenseKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DECLINED, CONST.SEARCH.DATA_TYPES.EXPENSE);
+            const expenseReportKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DECLINED, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+
+            // Then it reuses the declined: filter's "Rejected" label, so the column, the filter, and the export header match
+            expect(expenseKey).toBe('search.filters.rejected');
+            expect(expenseReportKey).toBe('search.filters.rejected');
         });
     });
 
@@ -16434,5 +16550,242 @@ describe('getDatePresets', () => {
             CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
         ]);
         expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
+    });
+});
+
+describe('Trip search', () => {
+    const buildTrip = (tripReportID: string, overrides: Partial<SearchTrip> = {}): SearchTrip => ({
+        reportID: tripReportID,
+        reportName: `Trip ${tripReportID}`,
+        chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+        type: CONST.REPORT.TYPE.CHAT,
+        policyID: 'DD949BDE0E77A392',
+        ownerAccountID: 0,
+        startDate: '2026-10-28T00:00:00',
+        endDate: '2026-11-01T00:00:00',
+        status: CONST.SEARCH.TRIP_STATUS.UPCOMING,
+        total: 159732,
+        currency: 'USD',
+        travelerAccountID: 629,
+        ...overrides,
+    });
+
+    // Shaped like the trip search response: trip rooms only, with the traveler in personalDetailsList
+    const tripData: OnyxTypes.SearchResults['data'] = {
+        personalDetailsList: {
+            628: {accountID: 628, displayName: 'Travel Admin', login: 'travel-admin@cplustest.com'},
+            629: {accountID: 629, displayName: 'Travel Employee', login: 'travel-employee@cplustest.com'},
+        },
+        report_1: buildTrip('1', {reportName: 'Tokyo Sales Conference', startDate: '2026-10-28T00:00:00'}),
+        report_2: buildTrip('2', {reportName: 'Sales Conf Vegas', startDate: '2026-08-12T00:00:00', status: CONST.SEARCH.TRIP_STATUS.DONE, travelerAccountID: 628}),
+        report_3: buildTrip('3', {reportName: 'Oslo React Meetup', startDate: '2026-11-04T00:00:00'}),
+    };
+
+    const getTripSections = (shouldReturnTripRooms: boolean) =>
+        SearchUIUtils.getSections({
+            dateFnsLocale: undefined,
+            type: CONST.SEARCH.DATA_TYPES.TRIP,
+            data: tripData,
+            currentAccountID: 628,
+            currentUserEmail: 'travel-admin@cplustest.com',
+            translate: translateLocal,
+            formatPhoneNumber,
+            bankAccountList: {},
+            rules: undefined,
+            conciergeReportID: undefined,
+            convertToDisplayString,
+            reportAttributesDerivedValue: undefined,
+            shouldReturnTripRooms,
+        });
+
+    it('builds one row per trip room with its traveler', () => {
+        // Given a trip search with the TravelApproval beta, which returns trip rooms
+        // When the search results are turned into rows
+        const [rows, count] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+
+        // Then each trip room is a row keyed by its room, named after it, with the traveler from travelerAccountID since trip rooms have no owner
+        expect(count).toBe(3);
+        const tokyo = rows.find((row) => row.reportID === '1');
+        expect(tokyo).toEqual(
+            expect.objectContaining({keyForList: '1', tripName: 'Tokyo Sales Conference', formattedTraveler: 'Travel Employee', status: CONST.SEARCH.TRIP_STATUS.UPCOMING}),
+        );
+        expect(rows.find((row) => row.reportID === '2')?.formattedTraveler).toBe('Travel Admin');
+    });
+
+    it('keeps the expense rows for a trip search without the beta', () => {
+        // Given the same results read without the TravelApproval beta, where type:trip is still an expense search
+        // When the search results are turned into rows
+        const [rows] = getTripSections(false);
+
+        // Then no trip rows are built, since the expense search reads transactions and these results have none
+        expect(rows.some((row) => SearchUIUtils.isTripListItemType(row))).toBe(false);
+    });
+
+    it('sorts trips by start date for the default date sort', () => {
+        // Given trip rows and the canned trip search's date sort, newest first
+        const [rows] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+
+        // When the rows are sorted
+        const sorted = SearchUIUtils.getSortedSections(
+            CONST.SEARCH.DATA_TYPES.TRIP,
+            rows,
+            localeCompare,
+            translateLocal,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.SORT_ORDER.DESC,
+            undefined,
+            {shouldReturnTripRooms: true},
+        );
+
+        // Then they follow the trip's start date, since trips have no created date to sort by
+        expect(getSortedSectionsByType(sorted, SearchUIUtils.isTripListItemType).map((row) => row.reportID)).toEqual(['3', '1', '2']);
+    });
+
+    it('sorts trips by trip name and traveler through the title and from sort keys', () => {
+        // Given trip rows, since the trip search sorts trip names by title and travelers by from
+        const [rows] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+        const sortBy = (column: typeof CONST.SEARCH.TABLE_COLUMNS.TITLE | typeof CONST.SEARCH.TABLE_COLUMNS.FROM) =>
+            getSortedSectionsByType(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, [...rows], localeCompare, translateLocal, column, CONST.SEARCH.SORT_ORDER.ASC, undefined, {
+                    shouldReturnTripRooms: true,
+                }),
+                SearchUIUtils.isTripListItemType,
+            ).map((row) => row.reportID);
+
+        // When the rows are sorted by those keys
+        // Then title follows the trip name and from follows the traveler's name
+        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.TITLE)).toEqual(['3', '2', '1']);
+        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.FROM).at(0)).toBe('2');
+    });
+
+    it('offers the trip columns in Sort by with the trip search sort keys', () => {
+        // Given the trip columns, which the backend sorts by date, title and from
+        // When the Sort by options are built for a trip search
+        const options = SearchUIUtils.getSortByOptions([...CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TRIP], translateLocal, CONST.SEARCH.DATA_TYPES.TRIP);
+
+        // Then start date, trip name and traveler sort by those keys, so the default date sort shows as Start date, and end date isn't offered
+        expect(options).toEqual(
+            expect.arrayContaining([
+                {text: translateLocal('iou.startDate'), value: CONST.SEARCH.TABLE_COLUMNS.DATE},
+                {text: translateLocal('search.trip.tripName'), value: CONST.SEARCH.TABLE_COLUMNS.TITLE},
+                {text: translateLocal('search.trip.traveler'), value: CONST.SEARCH.TABLE_COLUMNS.FROM},
+            ]),
+        );
+        expect(options.map((option) => option.text)).not.toContain(translateLocal('iou.endDate'));
+    });
+
+    it('labels the date sort as Start date only for trip rooms', () => {
+        // Given the canned trip search's date sort
+        // When its label is read with and without the TravelApproval beta
+        // Then trip rooms show Start date, matching the Sort by option, and the expense search keeps Date
+        expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.DATA_TYPES.TRIP, true)).toBe('iou.startDate');
+        expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.DATA_TYPES.TRIP, false)).toBe('common.date');
+    });
+
+    it('shows the trip columns only for trip rooms', () => {
+        // Given a trip search
+        const getColumns = (shouldReturnTripRooms: boolean) =>
+            SearchUIUtils.getColumnsToShow({currentAccountID: 628, data: tripData, type: CONST.SEARCH.DATA_TYPES.TRIP, shouldReturnTripRooms});
+
+        // When the columns are worked out with and without the beta
+        // Then trip rooms get the trip columns, with no Approver column until approval data exists, and the expense search keeps its own columns
+        expect(getColumns(true)).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.START_DATE,
+            CONST.SEARCH.TABLE_COLUMNS.END_DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME,
+            CONST.SEARCH.TABLE_COLUMNS.TRAVELER,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ]);
+        expect(getColumns(false)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME);
+    });
+
+    it('shows the trip columns the user picked and always keeps the total', () => {
+        // Given a user who picked only the trip name and traveler columns, plus an expense column left from another search
+        const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME, CONST.SEARCH.TABLE_COLUMNS.TRAVELER, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
+
+        // When the trip columns are worked out
+        const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 628, data: tripData, type: CONST.SEARCH.DATA_TYPES.TRIP, visibleColumns, shouldReturnTripRooms: true});
+
+        // Then only the picked trip columns show, with the total added like on expense reports, and the expense column is ignored
+        expect(columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME, CONST.SEARCH.TABLE_COLUMNS.TRAVELER]);
+    });
+});
+
+describe('isFilterMatchingSearchValue', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('matches a filter whose label contains the search value, ignoring case and surrounding spaces', () => {
+        // Given a search value in a different case from the label, typed with spaces around it
+        // When the Paid by filter is checked against it
+        const isMatching = SearchUIUtils.isFilterMatchingSearchValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY, CONST.SEARCH.DATA_TYPES.EXPENSE, ' PAID ', translateLocal);
+
+        // Then it matches, because "Paid by" contains "paid"
+        expect(isMatching).toBe(true);
+    });
+
+    it('does not match a filter whose label does not contain the search value', () => {
+        // Given a search value the Status label does not contain
+        // When the Status filter is checked against it
+        const isMatching = SearchUIUtils.isFilterMatchingSearchValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, CONST.SEARCH.DATA_TYPES.EXPENSE, 'paid', translateLocal);
+
+        // Then it does not match, so the popover hides the Status content while this search is typed
+        expect(isMatching).toBe(false);
+    });
+
+    it('matches the label shown for the type, not the default one', () => {
+        // Given the date filter, which is labelled "Created date" for invoices and "Date" for expenses
+        // When it is checked against "created" for both types
+        const isMatchingForInvoice = SearchUIUtils.isFilterMatchingSearchValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, CONST.SEARCH.DATA_TYPES.INVOICE, 'created', translateLocal);
+        const isMatchingForExpense = SearchUIUtils.isFilterMatchingSearchValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, CONST.SEARCH.DATA_TYPES.EXPENSE, 'created', translateLocal);
+
+        // Then only the invoice one matches, because the search reads the label the user sees
+        expect(isMatchingForInvoice).toBe(true);
+        expect(isMatchingForExpense).toBe(false);
+    });
+});
+
+describe('getMatchingFilters', () => {
+    const {TYPE, STATUS, PAID, PAID_BY, SUBMITTED} = CONST.SEARCH.SYNTAX_FILTER_KEYS;
+
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('keeps only the filters whose label contains the search value and drops the sections left empty', () => {
+        // Given two sections, only the second of which holds filters labelled with "paid"
+        const filters = [
+            [TYPE, STATUS],
+            [SUBMITTED, PAID, PAID_BY],
+        ];
+
+        // When they are matched against "PAID"
+        const matchingFilters = SearchUIUtils.getMatchingFilters(filters, CONST.SEARCH.DATA_TYPES.EXPENSE, 'PAID', translateLocal);
+
+        // Then the paid filters are left in their order and the first section is gone, so no divider shows above them
+        expect(matchingFilters).toEqual([[PAID, PAID_BY]]);
+    });
+
+    it('matches the words of the search value in any order', () => {
+        // Given filters whose labels share the word "paid"
+        const filters = [[SUBMITTED, PAID, PAID_BY]];
+
+        // When they are matched against the words of "Paid by" swapped around
+        const matchingFilters = SearchUIUtils.getMatchingFilters(filters, CONST.SEARCH.DATA_TYPES.EXPENSE, 'by paid', translateLocal);
+
+        // Then only Paid by is kept, because only its label holds both words
+        expect(matchingFilters).toEqual([[PAID_BY]]);
+    });
+
+    it('returns no section when no filter label contains the search value', () => {
+        // Given a search value no filter label contains
+        // When the filters are matched against it
+        const matchingFilters = SearchUIUtils.getMatchingFilters([[TYPE, STATUS]], CONST.SEARCH.DATA_TYPES.EXPENSE, 'unicorn', translateLocal);
+
+        // Then nothing is left, so the list shows its no results message
+        expect(matchingFilters).toEqual([]);
     });
 });

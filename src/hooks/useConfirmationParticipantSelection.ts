@@ -20,6 +20,7 @@ import type useBlockDistanceRequest from './useBlockDistanceRequest';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
+import useOptimisticDraftTransactions from './useOptimisticDraftTransactions';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useSelfDMReport from './useSelfDMReport';
@@ -65,6 +66,7 @@ function useConfirmationParticipantSelection({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
+    const [transactions] = useOptimisticDraftTransactions(transaction);
 
     /** Writes the selection to the expense. Returns whether the selection was taken, so the picker can close. */
     const handleParticipantsAdded = (participantsList: Participant[], selectedPolicy?: OnyxEntry<Policy>): boolean => {
@@ -86,22 +88,33 @@ function useConfirmationParticipantSelection({
         // self DM instead of failing at submit. An expense already on a workspace chat keeps its workspace.
         const isTransactionOnPolicyExpenseChat = transaction?.participants?.some((participant) => participant?.isPolicyExpenseChat);
         const shouldKeepOnSelfDM = !!selectedParticipant?.isSelfDM || ((transaction?.amount ?? 0) < 0 && !isTransactionOnPolicyExpenseChat && isParticipantP2P(selectedParticipant));
+        // Every receipt of a multi-scan batch is submitted to the shown receipt's recipient, so the pick applies to all
+        // of them, like useParticipantSubmission does.
         if (shouldKeepOnSelfDM) {
-            setMoneyRequestParticipantsFromReport(transactionID, selfDMReport, currentUserPersonalDetails.accountID);
-            setTransactionReport(transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+            for (const transactionToUpdate of transactions) {
+                setMoneyRequestParticipantsFromReport(transactionToUpdate.transactionID, selfDMReport, currentUserPersonalDetails.accountID);
+                setTransactionReport(transactionToUpdate.transactionID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
 
-            // A workspace rate doesn't exist on the self DM and would leave the Rate field "Pending...", so use the
-            // self DM's own rate.
-            if (isDistanceRequest) {
-                const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
-                    reportID: selfDMReport?.reportID,
-                    isPolicyExpenseChat: false,
-                    isTrackDistanceExpense: true,
-                    policy: policyForMovingExpenses,
-                    lastSelectedDistanceRates,
-                    expenseDate: transaction?.created,
-                });
-                setCustomUnitRateID(transactionID, selfDMRateID, transaction, policyForMovingExpenses, false, policyForMovingExpenses?.outputCurrency ?? personalPolicy?.outputCurrency);
+                // A workspace rate doesn't exist on the self DM and would leave the Rate field "Pending...", so use the
+                // self DM's own rate.
+                if (isDistanceRequest) {
+                    const selfDMRateID = DistanceRequestUtils.getCustomUnitRateID({
+                        reportID: selfDMReport?.reportID,
+                        isPolicyExpenseChat: false,
+                        isTrackDistanceExpense: true,
+                        policy: policyForMovingExpenses,
+                        lastSelectedDistanceRates,
+                        expenseDate: transactionToUpdate.created,
+                    });
+                    setCustomUnitRateID(
+                        transactionToUpdate.transactionID,
+                        selfDMRateID,
+                        transactionToUpdate,
+                        policyForMovingExpenses,
+                        false,
+                        policyForMovingExpenses?.outputCurrency ?? personalPolicy?.outputCurrency,
+                    );
+                }
             }
 
             if (iouType !== CONST.IOU.TYPE.TRACK) {
@@ -111,15 +124,20 @@ function useConfirmationParticipantSelection({
             if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.TRACK) {
                 onIOUTypeChange(CONST.IOU.TYPE.CREATE);
             }
-            setMoneyRequestParticipants(transactionID, participantsList);
             const firstParticipant = participantsList.at(0);
-            if (iouType !== CONST.IOU.TYPE.SPLIT && firstParticipant) {
-                const isPolicyExpenseChatParticipant = !!firstParticipant.isPolicyExpenseChat;
+            const isPolicyExpenseChatParticipant = !!firstParticipant?.isPolicyExpenseChat;
 
-                // A new recipient picked by email has no chat yet. The route's reportID points at the flow's origin
-                // report, which the backend rejects for them, so a new one is generated, like useParticipantSubmission does.
-                const participantReportID = firstParticipant.reportID || (isPolicyExpenseChatParticipant ? reportID : generateReportID());
-                setTransactionReport(transactionID, {reportID: participantReportID}, true);
+            // A new recipient picked by email has no chat yet. The route's reportID points at the flow's origin
+            // report, which the backend rejects for them, so a new one is generated, like useParticipantSubmission does.
+            // It is generated once, so every receipt of a multi-scan batch shares the new chat.
+            const participantReportID = firstParticipant?.reportID || (isPolicyExpenseChatParticipant ? reportID : generateReportID());
+            for (const transactionToUpdate of transactions) {
+                const transactionIDToUpdate = transactionToUpdate.transactionID;
+                setMoneyRequestParticipants(transactionIDToUpdate, participantsList);
+                if (iouType === CONST.IOU.TYPE.SPLIT || !firstParticipant) {
+                    continue;
+                }
+                setTransactionReport(transactionIDToUpdate, {reportID: participantReportID}, true);
 
                 // A P2P recipient drops the workspace's rate, category and tag, like useParticipantSubmission does.
                 if (!isPolicyExpenseChatParticipant) {
@@ -129,16 +147,16 @@ function useConfirmationParticipantSelection({
                             isPolicyExpenseChat: false,
                             policy: undefined,
                             lastSelectedDistanceRates,
-                            expenseDate: transaction?.created,
+                            expenseDate: transactionToUpdate.created,
                         });
-                        setCustomUnitRateID(transactionID, p2pRateID, transaction, undefined, false, personalPolicy?.outputCurrency);
+                        setCustomUnitRateID(transactionIDToUpdate, p2pRateID, transactionToUpdate, undefined, false, personalPolicy?.outputCurrency);
                     }
-                    setMoneyRequestCategory(transactionID, '', undefined, getCurrencyDecimals);
-                    setMoneyRequestTag(transactionID, '');
+                    setMoneyRequestCategory(transactionIDToUpdate, '', undefined, getCurrencyDecimals);
+                    setMoneyRequestTag(transactionIDToUpdate, '');
                 } else {
                     const workspacePolicy = selectedPolicy;
                     if (isDistanceRequest) {
-                        const currentRateID = transaction?.comment?.customUnit?.customUnitRateID;
+                        const currentRateID = transactionToUpdate.comment?.customUnit?.customUnitRateID;
                         const isCurrentRateFromWorkspace = !!currentRateID && !!DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID];
                         if (!isCurrentRateFromWorkspace) {
                             const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
@@ -146,9 +164,9 @@ function useConfirmationParticipantSelection({
                                 isPolicyExpenseChat: true,
                                 policy: workspacePolicy,
                                 lastSelectedDistanceRates,
-                                expenseDate: transaction?.created,
+                                expenseDate: transactionToUpdate.created,
                             });
-                            setCustomUnitRateID(transactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
+                            setCustomUnitRateID(transactionIDToUpdate, workspaceRateID, transactionToUpdate, workspacePolicy, false, workspacePolicy?.outputCurrency);
                         }
                     }
 
@@ -156,8 +174,8 @@ function useConfirmationParticipantSelection({
                     // passed, so the category's tax is cleared too.
                     if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
                         const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
-                        setMoneyRequestCategory(transactionID, defaultCategory, undefined, getCurrencyDecimals);
-                        setMoneyRequestTag(transactionID, '');
+                        setMoneyRequestCategory(transactionIDToUpdate, defaultCategory, undefined, getCurrencyDecimals);
+                        setMoneyRequestTag(transactionIDToUpdate, '');
                     }
                 }
             }
