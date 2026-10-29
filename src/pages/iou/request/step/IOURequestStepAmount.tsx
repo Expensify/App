@@ -19,6 +19,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import type {InputType} from '@libs/focusComposerWithDelay/types';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isLookingAroundSearchRoutingActive, isMovingTransactionFromTrackExpense, isSelfDMSoleDestination} from '@libs/IOUUtils';
@@ -68,6 +69,10 @@ type IOURequestStepAmountProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 };
 
 const selectReportPolicyID = (report: OnyxEntry<Report>) => report?.policyID;
+
+function isFocusComposerInput(textInput: BaseTextInputRef | null): textInput is BaseTextInputRef & InputType {
+    return textInput !== null && 'focus' in textInput && typeof textInput.focus === 'function' && 'isFocused' in textInput && typeof textInput.isFocused === 'function';
+}
 
 function IOURequestStepAmount({
     report,
@@ -164,7 +169,14 @@ function IOURequestStepAmount({
         onCancel: () => {
             // The amount input uses a custom native TextInput. Wait for the discard modal transition to finish
             // before restoring its caret, matching the legacy merchant and description steps.
-            focusComposerWithDelay(textInput.current)(true, undefined, shouldForceKeyboardIfAlreadyFocused());
+            const input = textInput.current;
+            if (isFocusComposerInput(input)) {
+                focusComposerWithDelay(input)(true, undefined, shouldForceKeyboardIfAlreadyFocused());
+                return;
+            }
+
+            // Preserve the existing web fallback for refs that do not expose the native focus API.
+            focusTimeoutRef.current = setTimeout(() => input?.focus(), CONST.ANIMATED_TRANSITION);
         },
     });
 
