@@ -320,11 +320,11 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are saving the beneficial owners data via the API (non USD flow Step 4) */
     isSavingCorpayOnboardingBeneficialOwnersFields?: boolean;
 
-    /** Whether a Wise onboarding page is being saved */
-    isSavingWiseOnboardingPage?: boolean;
+    /** The Wise onboarding page saves still running, by save ID. Each save clears only its own, since a page with an SSN skips the queue and can run beside another. */
+    wiseOnboardingPendingSaves?: Record<string, boolean>;
 
-    /** The Wise onboarding pages whose last save failed, by step. The shared `errors` hold only the newest failure, so these keep Confirm blocked until each page saves. */
-    wiseOnboardingFailedPages?: Record<string, boolean>;
+    /** The Wise onboarding pages whose last save has not succeeded, by step. The shared `errors` hold only the newest failure, so these keep Confirm blocked until each page saves. */
+    wiseOnboardingUnsavedPages?: Record<string, boolean>;
 
     /** Whether we are saving the signer info data via the API */
     isSavingCorpayOnboardingDirectorInformation?: boolean;

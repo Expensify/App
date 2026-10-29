@@ -1,5 +1,6 @@
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
-import updateWiseOnboardingAdditionalData from '@libs/actions/WiseOnboarding';
+import updateWiseOnboardingAdditionalData, {clearWiseOnboardingSaving} from '@libs/actions/WiseOnboarding';
+import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {setHasRadio} from '@libs/NetworkState';
@@ -15,6 +16,7 @@ import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../utils/TestHelper';
 
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -34,6 +36,14 @@ const BUSINESS_PAGE: DynamicFormPage = {
     content: [{key: 'description', type: 'text', required: true}],
 };
 
+/** Whether any page save is still running, the way the page reads it */
+function hasPendingSave(reimbursementAccount: unknown) {
+    if (typeof reimbursementAccount !== 'object' || reimbursementAccount === null || !('wiseOnboardingPendingSaves' in reimbursementAccount)) {
+        return false;
+    }
+    return Object.values(reimbursementAccount.wiseOnboardingPendingSaves ?? {}).some(Boolean);
+}
+
 function readOnyxValue(key: OnyxKey) {
     return new Promise<unknown>((resolve) => {
         const connection = Onyx.connectWithoutView({
@@ -46,6 +56,8 @@ function readOnyxValue(key: OnyxKey) {
     });
 }
 
+// The tests spy on several API methods, which this rule counts as API calls
+/* eslint-disable rulesdir/no-multiple-api-calls */
 describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -67,7 +79,7 @@ describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
 
     it('queues a page without an SSN', () => {
         // Given a page save with no SSN, which may wait in the request queue
-        const writeSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+        const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
 
         // When it is sent
         updateWiseOnboardingAdditionalData(PARAMS, false);
@@ -78,40 +90,85 @@ describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
 
     it('sends a page with an SSN outside the queue and shows an error when the request cannot be sent', async () => {
         // Given a page save carrying an SSN, whose request cannot be sent, as when the network drops
-        const writeSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-        const sideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.reject(new Error('Network request failed')));
+        const writeSpy = jest.spyOn(API, 'write');
+        jest.spyOn(API, 'makeRequestWithSideEffects').mockImplementation((command, apiParams, onyxData) =>
+            Onyx.update(onyxData?.optimisticData ?? []).then(() => Promise.reject(new Error('Network request failed'))),
+        );
 
         // When it is sent
         const params = {...PARAMS, inputs: JSON.stringify({ssn: SSN})};
         updateWiseOnboardingAdditionalData(params, true);
         await waitForBatchedUpdates();
 
-        // Then the SSN never enters the request queue, which is written to disk, and the user is told the save failed, with the page kept as failed
+        // Then the SSN never enters the request queue, which is written to disk, and the user is told the save failed, with the page kept unsaved
         // so a later page's save does not let Confirm through
         expect(writeSpy).not.toHaveBeenCalled();
-        expect(sideEffectSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, expect.anything());
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(reimbursementAccount).toMatchObject({isSavingWiseOnboardingPage: false, wiseOnboardingFailedPages: {representative: true}});
+        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(hasPendingSave(reimbursementAccount)).toBe(false);
         expect(reimbursementAccount).toHaveProperty('errors');
     });
 
-    it('keeps a failed page failed when another page saves', async () => {
+    it('keeps a page with an SSN unsaved when its save never answers and the next visit ends the save', async () => {
+        // Given a page save carrying an SSN, whose answer never comes, as when the app closes during the request
+        mockFetch.pause();
+        const sideEffectSpy = jest.spyOn(API, 'makeRequestWithSideEffects');
+        const params = {...PARAMS, inputs: JSON.stringify({ssn: SSN})};
+        updateWiseOnboardingAdditionalData(params, true);
+        await waitForBatchedUpdates();
+        expect(sideEffectSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, expect.anything());
+
+        // When the next visit ends the save, since the request is not queued and never retried
+        clearWiseOnboardingSaving();
+        await waitForBatchedUpdates();
+
+        // Then the save no longer runs, but the page is still unsaved, since nothing says Wise has it, so Confirm stays blocked until it saves
+        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(hasPendingSave(reimbursementAccount)).toBe(false);
+    });
+
+    it('keeps the flow saving while a page with an SSN is still saving after another page saves', async () => {
+        // Given a representative page with an SSN, which skips the queue and whose answer has not come, next to a business page the server answers
+        global.fetch = jest.fn((url: RequestInfo | URL, options?: RequestInit) => {
+            const inputs = options?.body instanceof FormData ? options.body.get('inputs') : null;
+            if (typeof inputs === 'string' && inputs.includes(SSN)) {
+                return new Promise<Response>(() => {});
+            }
+            return Promise.resolve(createMock<Response>({ok: true, json: () => Promise.resolve({jsonCode: 200})}));
+        });
+        const representative = getWiseOnboardingPageParams(1, REPRESENTATIVE_PAGE, {firstName: 'Alice'}, {ssn: SSN});
+        const business = getWiseOnboardingPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+
+        // When both pages are saved and only the business page's save answers
+        updateWiseOnboardingAdditionalData(representative.params, representative.hasSensitiveAnswers);
+        updateWiseOnboardingAdditionalData(business.params, business.hasSensitiveAnswers);
+        await waitForBatchedUpdates();
+
+        // Then a save is still running, so the confirmation page waits for the representative page instead of letting the user through
+        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+        expect(hasPendingSave(reimbursementAccount)).toBe(true);
+        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
+    });
+
+    it('keeps an unsaved page unsaved when another page saves', async () => {
         // Given a representative page whose save failed, so its error is shown
-        await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingFailedPages: {representative: true}, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+        await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {representative: true}, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
 
         // When the user edits the business page and it saves
         const {params, hasSensitiveAnswers} = getWiseOnboardingPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
         updateWiseOnboardingAdditionalData(params, hasSensitiveAnswers);
         await waitForBatchedUpdates();
 
-        // Then the shared error is gone, but the representative page is still failed, since Wise still lacks it
-        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({
-            isSavingWiseOnboardingPage: false,
-            wiseOnboardingFailedPages: {representative: true},
-        });
+        // Then the shared error is gone, but the representative page is still unsaved, since Wise still lacks it
+        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
+        expect(hasPendingSave(reimbursementAccount)).toBe(false);
     });
 
-    it('marks a page failed when the server rejects it and clears it once it saves', async () => {
+    it('keeps a page unsaved when the server rejects it and clears it once it saves', async () => {
         // Given the server rejects the business page
         mockFetch.fail();
         const {params, hasSensitiveAnswers} = getWiseOnboardingPageParams(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
@@ -120,17 +177,17 @@ describe('actions/WiseOnboarding updateWiseOnboardingAdditionalData', () => {
         updateWiseOnboardingAdditionalData(params, hasSensitiveAnswers);
         await waitForBatchedUpdates();
 
-        // Then the page is failed
-        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingFailedPages: {business: true}});
+        // Then the page is unsaved
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {business: true}});
 
         // When the user saves the page again and the server accepts it
         mockFetch.succeed();
         updateWiseOnboardingAdditionalData(params, hasSensitiveAnswers);
         await waitForBatchedUpdates();
 
-        // Then no page is failed, so Confirm is open again
+        // Then no page is unsaved, so Confirm is open again
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingFailedPages.business');
+        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
     });
 
     it('never writes a typed SSN to the request queue on disk', async () => {
