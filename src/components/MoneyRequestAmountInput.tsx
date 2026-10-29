@@ -109,6 +109,8 @@ type MoneyRequestAmountInputProps = {
     shouldRefocusOnScrollViewClick?: boolean;
 
     disabled?: boolean;
+    /** Whether programmatic focus should be allowed on phones in landscape orientation */
+    shouldAllowFocusInLandscapeMode?: boolean;
     ref?: ForwardedRef<BaseTextInputRef>;
     keyboardType?: KeyboardTypeOptions;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur' | 'symbolTextStyle'>;
@@ -151,6 +153,7 @@ function MoneyRequestAmountInput({
     clearNegative,
     ref,
     disabled,
+    shouldAllowFocusInLandscapeMode = false,
     shouldUseDynamicFontSize = false,
     ...props
 }: MoneyRequestAmountInputProps) {
@@ -253,6 +256,7 @@ function MoneyRequestAmountInput({
             onFocus={props.onFocus}
             accessibilityLabel={`${translate('iou.amount')} (${currency})`}
             keyboardType={props.keyboardType}
+            shouldAllowFocusInLandscapeMode={shouldAllowFocusInLandscapeMode}
             shouldUseDynamicFontSize={shouldUseDynamicFontSize}
         />
     );

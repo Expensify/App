@@ -12,6 +12,7 @@ import type {TabSelectorProps} from '@components/TabSelector/types';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -22,8 +23,10 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldShowPerDiemTabOption} from '@libs/IOUUtils';
+import isNavigationStatePayload from '@libs/Navigation/helpers/isNavigationStatePayload';
 import Navigation from '@libs/Navigation/Navigation';
 import {createOnyxTabNavigator, TabScreenWithFocusTrapWrapper} from '@libs/Navigation/OnyxTabNavigator';
+import {isRecord} from '@libs/ObjectUtils';
 import {isPerDiemEligiblePolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
@@ -34,15 +37,17 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import {createIOURequestStartPoliciesSelector} from '@src/selectors/Policy';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import type {NavigationAction, NavigationState, PartialState} from '@react-navigation/native';
 import type {TupleToUnion} from 'type-fest';
 
-import React, {useEffect, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -55,6 +60,7 @@ import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
 import IOURequestStepTimeWorkspace from './step/IOURequestStepTimeWorkspace';
+import useRestoreFocusAfterDiscard from './useRestoreFocusAfterDiscard';
 
 const tabNames = [CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN, CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.PER_DIEM, CONST.TAB_REQUEST.TIME] as const;
 const {OnyxTabNavigator, TopTab} = createOnyxTabNavigator(tabNames);
@@ -65,6 +71,29 @@ type IOURequestStartPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS
 
 // Tab indices for IOURequestStartPage
 const PER_DIEM_TAB_INDEX = 2;
+
+function getTransactionIDFromRouteParams(params: unknown): string | undefined {
+    if (!isRecord(params)) {
+        return undefined;
+    }
+
+    if ('transactionID' in params && typeof params.transactionID === 'string') {
+        return params.transactionID;
+    }
+
+    // `getActionFromState()` nests a child screen's route parameters under `params.params` in a RESET payload.
+    return 'params' in params ? getTransactionIDFromRouteParams(params.params) : undefined;
+}
+
+function navigationStateContainsCreateDraft(state: PartialState<NavigationState>, activeTransactionID: string | undefined): boolean {
+    return state.routes.some((route) => {
+        if (route.name === SCREENS.MONEY_REQUEST.CREATE && getTransactionIDFromRouteParams(route.params) === activeTransactionID) {
+            return true;
+        }
+
+        return !!route.state && isNavigationStatePayload(route.state) && navigationStateContainsCreateDraft(route.state, activeTransactionID);
+    });
+}
 
 function CollapsibleTabSelector(props: TabSelectorProps) {
     return (
@@ -98,8 +127,9 @@ function IOURequestStartPage({
     const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const iouRequestStartPoliciesSelector = createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE);
     const [iouRequestStartPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: createIOURequestStartPoliciesSelector(currentUserPersonalDetails.login, iouType === CONST.IOU.TYPE.INVOICE),
+        selector: iouRequestStartPoliciesSelector,
     });
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -194,8 +224,8 @@ function IOURequestStartPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const navigateBack = () => {
-        // The confirmation is embedded with its header hidden,
+    const cleanupPreInsertedDestination = () => {
+        // In the new manual expense beta the confirmation is embedded with its header hidden,
         // so this back button is the only way to abandon the flow. Cancel any active span
         // unconditionally (mirrors IOURequestStepConfirmation.navigateBack). No-op when no
         // tracking session is active.
@@ -223,13 +253,6 @@ function IOURequestStartPage({
 
     const focusTrapContainerElements = [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
 
-    const onBackButtonPress = () => {
-        navigateBack();
-        return true;
-    };
-
-    useAndroidBackButtonHandler(onBackButtonPress);
-
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 
     // Every flow that reaches this page embeds the confirmation as its landing step except INVOICE, which stays on the
@@ -238,6 +261,90 @@ function IOURequestStartPage({
     // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = shouldUseTab || iouType === CONST.IOU.TYPE.PAY;
+    // Scan opens its confirmation on a separate route after a receipt is selected. This page remains mounted below that route,
+    // but it must not guard the standalone confirmation's successful submit. The discard guard here belongs only to the
+    // confirmation rendered by this page: Manual in tabbed flows, or PAY which has no tabs.
+    const isEmbeddedConfirmationActive = shouldEmbedConfirmation && (!shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL);
+
+    const [isSignDirty, setIsSignDirty] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const isSubmittedRef = useRef(false);
+    const {
+        clearDiscardFocus,
+        clearFocusedInput,
+        captureFocusedInput,
+        prepareForDiscardNavigation,
+        reset: resetFocusAfterDiscard,
+        restoreLastFocusedInput,
+        setDiscardModalVisibility,
+    } = useRestoreFocusAfterDiscard();
+    const isPayFlow = iouType === CONST.IOU.TYPE.PAY;
+    // Older empty drafts did not store a baseline. Treat their standard empty representation as clean, while
+    // conservatively treating an older non-empty draft as dirty so an unsaved amount is never silently discarded.
+    const initialPayAmount = transaction?.initialAmount ?? (transaction?.isAmountSet === true ? undefined : 0);
+    const initialPayIsAmountSet = transaction?.initialIsAmountSet === true;
+    const isAmountChanged = isPayFlow
+        ? !!transaction?.transactionID && ((transaction.isAmountSet === true) !== initialPayIsAmountSet || transaction.amount !== initialPayAmount)
+        : transaction?.isAmountSet === true;
+
+    useFocusEffect(
+        useCallback(() => {
+            isSubmittedRef.current = false;
+            setIsSubmitted(false);
+        }, []),
+    );
+
+    const getEmbeddedHasUnsavedChanges = () => isEmbeddedConfirmationActive && !isSubmittedRef.current && (isSignDirty || isAmountChanged);
+    const isEmbeddedDirty = isEmbeddedConfirmationActive && !isSubmitted && (isSignDirty || isAmountChanged);
+
+    const shouldPromptForEmbeddedNavigationAction = (action: NavigationAction) => {
+        // After a refresh, browser Back and Forward restore the navigator state as a RESET. It is still internal
+        // navigation when the restored state contains the current draft's Create route.
+        if (action.type !== 'RESET' || !isNavigationStatePayload(action.payload)) {
+            return true;
+        }
+
+        return !navigationStateContainsCreateDraft(action.payload, route.params.transactionID);
+    };
+
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: getEmbeddedHasUnsavedChanges,
+        shouldEnableNewFocusManagement: isEmbeddedConfirmationActive,
+        shouldPromptWhenUnfocused: isEmbeddedConfirmationActive,
+        shouldPromptForNavigationAction: shouldPromptForEmbeddedNavigationAction,
+        onConfirmWhenUnfocused: () => Navigation.closeRHPFlow(),
+        onCancel: restoreLastFocusedInput,
+        onVisibilityChange: setDiscardModalVisibility,
+        onConfirm: () => {
+            clearDiscardFocus();
+            cleanupPreInsertedDestination();
+        },
+    });
+
+    const suppressEmbeddedDiscardPrompt = () => {
+        isSubmittedRef.current = true;
+        setIsSubmitted(true);
+        suppressDiscardPrompt();
+    };
+
+    const navigateBack = () => {
+        if (isEmbeddedDirty) {
+            prepareForDiscardNavigation();
+            // Let the discard guard decide whether this navigation may proceed. Cleaning up the pre-insert now
+            // would make cancelling the discard prompt destructive.
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        cleanupPreInsertedDestination();
+    };
+
+    const onBackButtonPress = () => {
+        navigateBack();
+        return true;
+    };
+
+    useAndroidBackButtonHandler(onBackButtonPress);
 
     // The embedded confirmation renders its body without a ScreenWrapper of its own, so that this page's focus trap
     // stays the sole owner of the header + tab bar + content Tab cycle. Its viewport sizing has to move here with it:
@@ -283,6 +390,10 @@ function IOURequestStartPage({
                 route={route}
                 navigation={navigation}
                 shouldHideHeader
+                onSignDirtyChange={setIsSignDirty}
+                onInputFocus={captureFocusedInput}
+                onInputBlur={clearFocusedInput}
+                suppressDiscardPrompt={suppressEmbeddedDiscardPrompt}
             />
         );
     }
@@ -328,7 +439,11 @@ function IOURequestStartPage({
                                     <OnyxTabNavigator
                                         id={CONST.TAB.IOU_REQUEST_TYPE}
                                         defaultSelectedTab={defaultSelectedTab}
-                                        onTabSelected={resetIOUTypeIfChanged}
+                                        onTabSelected={(newIOUType) => {
+                                            setIsSignDirty(false);
+                                            resetFocusAfterDiscard();
+                                            resetIOUTypeIfChanged(newIOUType);
+                                        }}
                                         onTabSelect={onTabSelectFocusHandler}
                                         tabBar={CollapsibleTabSelector}
                                         onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}

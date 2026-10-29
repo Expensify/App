@@ -466,6 +466,9 @@ function initMoneyRequest({
 
     const newTransaction = {
         amount: 0,
+        initialAmount: 0,
+        isAmountSet: false,
+        initialIsAmountSet: false,
         comment,
         created,
         currency,
@@ -494,6 +497,8 @@ function createDraftTransaction(transaction: Transaction) {
 
     const newTransaction = {
         ...transaction,
+        initialAmount: transaction.amount,
+        initialIsAmountSet: transaction.isAmountSet === true,
     };
 
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);

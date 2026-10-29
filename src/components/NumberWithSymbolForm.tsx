@@ -578,6 +578,7 @@ function NumberWithSymbolForm({
                 onBlur={props.onBlur}
                 testID={props.testID}
                 rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton || !!leadingRightHandSideComponent ? textInputRightHandSideComponent : undefined}
+                shouldAllowFocusInLandscapeMode={props.shouldAllowFocusInLandscapeMode}
             />
         );
     }
@@ -634,7 +635,7 @@ function NumberWithSymbolForm({
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
             keyboardType={props.keyboardType}
-            shouldAllowFocusInLandscapeMode
+            shouldAllowFocusInLandscapeMode={props.shouldAllowFocusInLandscapeMode}
         />
     );
 

@@ -1,5 +1,6 @@
 import {
     copyScanResultsToMovedExpenseDraft,
+    createDraftTransaction,
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
@@ -131,6 +132,40 @@ describe('actions/IOU', () => {
 
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    describe('createDraftTransaction', () => {
+        it('stores the amount and amount-set state as the draft baseline', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'amountSetDraftTransaction',
+                amount: 5000,
+                isAmountSet: true,
+            };
+
+            createDraftTransaction(transaction);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`);
+            expect(draftTransaction?.initialAmount).toBe(5000);
+            expect(draftTransaction?.initialIsAmountSet).toBe(true);
+        });
+
+        it('stores an unset amount state as the draft baseline', async () => {
+            const transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'unsetAmountDraftTransaction',
+                amount: 0,
+                isAmountSet: false,
+            };
+
+            createDraftTransaction(transaction);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`);
+            expect(draftTransaction?.initialAmount).toBe(0);
+            expect(draftTransaction?.initialIsAmountSet).toBe(false);
+        });
     });
 
     describe('setMoneyRequestDistanceRate', () => {
@@ -497,6 +532,9 @@ describe('actions/IOU', () => {
         };
         const transactionResult: Transaction = {
             amount: 0,
+            initialAmount: 0,
+            isAmountSet: false,
+            initialIsAmountSet: false,
             comment: {},
             created: '2025-04-01',
             currency: 'USD',
