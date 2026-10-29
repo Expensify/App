@@ -309,6 +309,11 @@ function useConfirmationValidation({
             }
         }
 
+        // The per diem form now opens before a destination is picked, so a missing one is flagged inline on its row.
+        if (isPerDiemRequest && !transaction?.comment?.customUnit?.customUnitRateID) {
+            return {errorKey: 'common.error.fieldRequired'};
+        }
+
         if (isPerDiemRequest && (transaction?.comment?.customUnit?.subRates ?? []).length === 0) {
             return {errorKey: 'iou.error.invalidSubrateLength'};
         }

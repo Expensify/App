@@ -8,22 +8,19 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import ValuePicker from '@components/ValuePicker';
+import ValueFieldDropdown from '@components/ValuePicker/ValueFieldDropdown';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU/PerDiem';
@@ -31,8 +28,8 @@ import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU/PerDiem
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Subrate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -46,11 +43,10 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
-import buildPerDiemTimeBasePath from './perDiemTimeBasePath';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type DynamicIOURequestStepSubrateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT> & {
+type DynamicIOURequestStepSubrateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT> & {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The report linked to the transaction */
@@ -77,19 +73,13 @@ function getSubrateOptions(subRates: Subrate[], filledSubRates: CommentSubrate[]
 
 function DynamicIOURequestStepSubrate({
     route: {
-        params: {action, iouType, pageIndex, reportID, transactionID, backToReport},
-        name: routeName,
+        params: {action, iouType, pageIndex},
     },
     transaction,
     report,
 }: DynamicIOURequestStepSubrateProps) {
-    const isEditPage = routeName === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT;
     const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.path);
     const styles = useThemeStyles();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const policiesWithPerDiemEnabled = getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin);
-    const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
     const iouPolicyID = getIOURequestPolicyID(transaction, report);
     const {policy} = usePolicyForTransaction({
         transaction,
@@ -135,16 +125,7 @@ function DynamicIOURequestStepSubrate({
     const validOptions = getSubrateOptions(allPossibleSubrates, allSubrates, currentSubrate?.id);
 
     const goBack = () => {
-        if (isEditPage) {
-            Navigation.goBack(editBackPath);
-            return;
-        }
-        Navigation.goBack(
-            createDynamicRoute(
-                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,
-                buildPerDiemTimeBasePath({transaction, action, iouType, transactionID, reportID, backToReport, hasMoreThanOnePolicyWithPerDiemEnabled}),
-            ),
-        );
+        Navigation.goBack(editBackPath);
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
@@ -180,11 +161,7 @@ function DynamicIOURequestStepSubrate({
             updateSubrate(transaction, pageIndex, quantityInt, subrateVal, name, rate);
         }
 
-        if (isEditPage) {
-            goBack();
-        } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport));
-        }
+        goBack();
     };
 
     const deleteSubrateAndHideModal = () => {
@@ -207,18 +184,6 @@ function DynamicIOURequestStepSubrate({
         deleteSubrateAndHideModal();
     };
 
-    const tabTitles = {
-        [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SUBMIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', ''),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', ''),
-        [CONST.IOU.TYPE.SPLIT]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.TRACK]: translate('iou.createExpense'),
-        [CONST.IOU.TYPE.INVOICE]: translate('workspace.invoices.sendInvoice'),
-        [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
-    };
-
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -227,7 +192,7 @@ function DynamicIOURequestStepSubrate({
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
-                    title={isEditPage ? translate('common.subrate') : tabTitles[iouType]}
+                    title={translate('common.subrate')}
                     shouldShowBackButton
                     onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
@@ -254,18 +219,20 @@ function DynamicIOURequestStepSubrate({
                     submitButtonText={translate('common.save')}
                 >
                     <Text style={[styles.pv3]}>{translate('iou.subrateSelection')}</Text>
-                    <View style={[styles.mhn5]}>
+                    {/* The subrate row carries the form's own horizontal margin, which the page margin already provides. */}
+                    <View style={[styles.mhn4]}>
                         <InputWrapperWithRef
-                            InputComponent={ValuePicker}
+                            InputComponent={ValueFieldDropdown}
                             inputID={`subrate${pageIndex}`}
                             label={translate('common.subrate')}
                             value={subrateValue}
                             defaultValue={currentSubrate?.id}
                             items={validOptions}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SUBRATE_FIELD}
                             onValueChange={(value) => {
                                 setSubrateValue(value as string);
 
-                                // Focus the Quantity input after the ValuePicker modal closes.
+                                // Focus the Quantity input after the subrate list closes.
                                 // TransitionTracker's callback fires synchronously inside Reanimated's animation
                                 // callback (outside React's event handler), so React flushes state updates async
                                 // via MessageChannel. requestIdleCallback ensures focus() runs after React commits
@@ -277,16 +244,13 @@ function DynamicIOURequestStepSubrate({
                                     waitForUpcomingTransition: true,
                                 });
                             }}
-                            onOpen={() => {
-                                textInputRef.current?.blur();
-                            }}
                         />
                     </View>
                     <InputWrapperWithRef
                         InputComponent={TextInput}
                         inputID={`quantity${pageIndex}`}
                         ref={textInputRef}
-                        containerStyles={[styles.mt4]}
+                        containerStyles={[styles.mt2]}
                         label={translate('iou.quantity')}
                         value={quantityValue}
                         inputMode={CONST.INPUT_MODE.NUMERIC}

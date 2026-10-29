@@ -516,28 +516,6 @@ type MoneyRequestNavigatorParamList = {
         shouldSubmitExpense?: boolean;
         shouldReturnToConfirmation?: boolean;
     };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION]: {
-        action: IOUAction;
-        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-        transactionID: string;
-        reportID: string;
-        backToReport?: string;
-    };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME]: {
-        action: IOUAction;
-        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-        transactionID: string;
-        reportID: string;
-        backToReport?: string;
-    };
-    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE]: {
-        iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-        reportID: string;
-        backToReport?: string;
-        action: IOUAction;
-        pageIndex: string;
-        transactionID: string;
-    };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;

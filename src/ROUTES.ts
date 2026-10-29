@@ -673,32 +673,20 @@ const DYNAMIC_ROUTES = {
         getRoute: (pageIndex: number) => getUrlWithParams('expense-waypoint', {pageIndex: String(pageIndex)}),
         queryParams: ['pageIndex'],
     },
-    MONEY_REQUEST_STEP_DESTINATION: {
-        path: 'per-diem-destination',
-        entryScreens: [SCREENS.MONEY_REQUEST.CREATE],
-    },
     MONEY_REQUEST_STEP_DESTINATION_EDIT: {
         path: 'per-diem-destination-edit',
         // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
         entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
-    },
-    MONEY_REQUEST_STEP_TIME: {
-        path: 'per-diem-time',
-        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION, SCREENS.MONEY_REQUEST.CREATE],
     },
     MONEY_REQUEST_STEP_TIME_EDIT: {
         path: 'per-diem-time-edit',
         // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
         entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
     },
-    MONEY_REQUEST_STEP_SUBRATE: {
-        path: 'per-diem-subrate/:pageIndex',
-        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME],
-        getRoute: (pageIndex: string | number = 0) => `per-diem-subrate/${pageIndex}` as const,
-    },
     MONEY_REQUEST_STEP_SUBRATE_EDIT: {
         path: 'per-diem-subrate-edit/:pageIndex',
-        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
         getRoute: (pageIndex: string | number) => `per-diem-subrate-edit/${pageIndex}` as const,
     },
     PROFILE: {
