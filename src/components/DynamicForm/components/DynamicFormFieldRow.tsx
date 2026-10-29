@@ -104,7 +104,7 @@ function DynamicFormFieldRow({
         >
             {!!labelAbove && !shouldHideLabel && (
                 <Text
-                    style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
+                    style={[labelAbove === 'prompt' ? [styles.mt3, !isMenuRow && styles.mb3] : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
                     role={labelAbove === 'heading' ? CONST.ROLE.HEADING : undefined}
                     aria-level={labelAbove === 'heading' ? 3 : undefined}
                 >

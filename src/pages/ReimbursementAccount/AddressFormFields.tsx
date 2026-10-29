@@ -124,7 +124,6 @@ function AddressFormFields({
                     inputID={inputKeys?.street}
                     shouldSaveDraft={shouldSaveDraft}
                     label={translate(streetTranslationKey)}
-                    containerStyles={styles.mt6}
                     value={values?.street}
                     defaultValue={defaultValues?.street}
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
