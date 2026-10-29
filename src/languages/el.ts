@@ -9504,6 +9504,7 @@ ${reportName}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Ταξιδιωτικά πρακτορεία',
                 },
                 defaultRulesCannotBeDeleted: 'Οι προεπιλεγμένοι κανόνες δεν μπορούν να διαγραφούν',
+                tags: 'Ετικέτες',
             },
             agentRules: {
                 title: 'Κανόνες αντιπροσώπου',

@@ -8975,6 +8975,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Consentito ${shownCount > 1 ? 'valute' : 'valuta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} altri` : ''}`,
                 defaultRulesCannotBeDeleted: 'Le regole predefinite non possono essere eliminate',
+                tags: 'Tag',
             },
             agentRules: {
                 title: 'Regole agente',

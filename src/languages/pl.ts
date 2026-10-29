@@ -8975,6 +8975,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Dozwolone ${shownCount > 1 ? 'waluty' : 'waluta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
                 defaultRulesCannotBeDeleted: 'Domyślnych reguł nie można usunąć',
+                tags: 'Tagi',
             },
             agentRules: {
                 title: 'Zasady agenta',
