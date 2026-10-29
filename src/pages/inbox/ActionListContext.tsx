@@ -1,15 +1,15 @@
-import type FlatListRefType from '@components/FlashList/types';
-
 import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 
 import createDummySharedValue from '@src/utils/createDummySharedValue';
 
 import type {ReactNode, RefObject} from 'react';
-import type {FlatList} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 
 import React, {createContext, useContext, useLayoutEffect, useRef} from 'react';
 import {useSharedValue} from 'react-native-reanimated';
+
+import type ActionListRefType from './ActionListTypes';
+import type {ActionListRef} from './ActionListTypes';
 
 type ScrollMetrics = {
     offset: number;
@@ -42,10 +42,10 @@ type ActionListContextType = {
     getScrollOffset: () => number;
 
     /** Each list publishes its locally-owned ref on mount; pass `null` to clear on unmount. */
-    registerListRef: (ref: FlatListRefType) => void;
+    registerListRef: (ref: ActionListRefType) => void;
 
     /** Reads the currently registered list ref. Call from handlers only, never during render. */
-    getListRef: () => FlatListRefType;
+    getListRef: () => ActionListRefType;
 };
 
 const ActionListContext = createContext<ActionListContextType>({
@@ -68,7 +68,7 @@ function useActionListContext() {
  */
 function useActionListRef() {
     const {registerListRef} = useActionListContext();
-    const listRef = useRef<FlatList>(null);
+    const listRef = useRef<ActionListRef>(null);
 
     useLayoutEffect(() => {
         registerListRef(listRef);
@@ -82,7 +82,7 @@ function useActionListRef() {
 function ActionListContextProvider({children}: {children: ReactNode}) {
     // Each list owns its own ref locally and publishes it here on mount; only the register/get
     // callbacks live in context, so attaching `ref={}` stays local to each list.
-    const listRefHolder = useRef<FlatListRefType>(null);
+    const listRefHolder = useRef<ActionListRefType>(null);
     const scrollOffsetRef = useRef(0);
     const scrollMetricsSV = useSharedValue(INITIAL_SCROLL_METRICS);
     const collapsedHeaderHeightSV = useSharedValue(0);

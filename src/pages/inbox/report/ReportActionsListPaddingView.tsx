@@ -1,3 +1,4 @@
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,8 +26,9 @@ function ReportActionsListPaddingView({report, isReportArchived, children}: Repo
 
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
     const shouldUseCompactChrome = useIsMobileWebLandscape();
+    const {isHistoryExpanded: isConciergeHistoryExpanded} = useConciergeAskState(report.reportID);
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
-    const applyPaddingBetweenListAndComposer = !canShowRecipientLocalTime && !hideComposer && !shouldUseCompactChrome;
+    const applyPaddingBetweenListAndComposer = !canShowRecipientLocalTime && !hideComposer && !isConciergeHistoryExpanded && !shouldUseCompactChrome;
 
     return (
         <View

@@ -204,7 +204,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 {shouldDisplayTransactionNavigation && !!carouselTransactionID && (
                     <MoneyRequestReportTransactionsNavigation
                         currentTransactionID={carouselTransactionID}
-                        isFromReviewDuplicates={isFromReviewDuplicates}
                         shouldDisplayNarrowVersion={shouldDisplayNarrowVersion}
                     />
                 )}
