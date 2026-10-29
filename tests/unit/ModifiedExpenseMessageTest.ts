@@ -1,11 +1,12 @@
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {escapeTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 import * as ReportNameUtils from '@libs/ReportNameUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 
@@ -18,8 +19,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // Mock PolicyUtils so isPolicyAdmin are controllable in tests. ModifiedExpenseMessage
 // uses named imports from this module; spies alone do not affect those references, so we need a module mock.
 jest.mock('@libs/PolicyUtils', () => ({
-    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
-    isPolicyAdmin: jest.fn(),
+    ...jest.requireActual<{escapeTagName: typeof escapeTagName; isPolicyAdmin: typeof isPolicyAdmin}>('@libs/PolicyUtils'),
+    isPolicyAdmin: jest.fn<ReturnType<typeof isPolicyAdmin>, Parameters<typeof isPolicyAdmin>>(),
 }));
 
 // Mock ReportNameUtils so buildReportNameFromParticipantNames is controllable.
@@ -45,6 +46,149 @@ describe('ModifiedExpenseMessage', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    describe('rule field presence and ordering', () => {
+        let environmentURL: string;
+        const rulesPolicy = createMock<Policy>({id: '1234', areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE});
+
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+        });
+
+        function formatRulesAction(originalMessage: OriginalMessageModifiedExpense, policy: Policy | undefined = rulesPolicy): string {
+            return getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction: {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, originalMessage},
+                policy,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                movedFromReportName: undefined,
+            });
+        }
+
+        it('groups standalone personal fields before the ordered list and takes precedence over policy rules', () => {
+            // Given interleaved personal list and standalone fields plus policy fields on the same action
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({
+                policyID: '1234',
+                personalRulesModifiedFields: {
+                    merchant: 'Cafe',
+                    reportName: 'Trips',
+                    tax: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the persisted tax field name
+                        field_id_TAX: {name: 'VAT', externalID: '', value: '10'},
+                    },
+                    reimbursable: false,
+                    category: 'Food &amp; Drink',
+                    billable: false,
+                    comment: 'Dinner',
+                    description: 'Receipt',
+                },
+                policyRulesModifiedFields: {merchant: 'Ignored policy merchant'},
+            });
+
+            // When the real formatter builds the action message
+            const result = formatRulesAction(originalMessage);
+
+            // Then standalone ordering, list-only first positioning, decoding and personal precedence survive
+            expect(result).toBe(
+                `moved this expense to report "Trips", marked the expense as "non-reimbursable", marked the expense as "non-billable", set the merchant to "Cafe", tax rate to "VAT", category to "Food & Drink", description to "Dinner", and description to "Receipt" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`,
+            );
+        });
+
+        it('decodes producer-escaped tag delimiters, empty entries and HTML through the real decoder', () => {
+            // Given a tag escaped by the same producer used by Policy Tag actions
+            const tag = `${escapeTagName('Department:West')}:Tag &amp; Travel::${String.raw`Path\\Folder`}`;
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({personalRulesModifiedFields: {tag}});
+
+            // When the rule formatter processes the stored colon-delimited tag
+            const result = formatRulesAction(originalMessage);
+
+            // Then escaped colons stay within a tag, empty tags disappear and HTML decodes
+            expect(result).toBe(
+                `set the tag to "${String.raw`Department:West, Tag & Travel, Path\\Folder`}" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`,
+            );
+        });
+
+        it('retains the existing decoder behavior for placeholder character collisions', () => {
+            // Given tag names containing the characters used internally by getTagArrayFromName
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({personalRulesModifiedFields: {tag: '☢:☠'}});
+
+            // When the real formatter passes them through the existing decoder
+            const result = formatRulesAction(originalMessage);
+
+            // Then the existing collision output is retained without replacing the decoder
+            expect(result).toBe(`set the tag to "${String.raw`:, \\`}" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`);
+        });
+
+        it('keeps explicitly undefined fragments while omitted fields produce no fragment', () => {
+            // Given the other optional values present with undefined to distinguish presence from omission
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({
+                personalRulesModifiedFields: {
+                    reportName: undefined,
+                    reimbursable: undefined,
+                    billable: undefined,
+                    merchant: undefined,
+                    tax: undefined,
+                    category: undefined,
+                    comment: undefined,
+                    description: undefined,
+                },
+            });
+
+            // When the formatter reads keys by presence rather than dropping undefined values
+            const result = formatRulesAction(originalMessage);
+            const emptyResult = formatRulesAction(createMock<OriginalMessageModifiedExpense>({personalRulesModifiedFields: {}}));
+
+            // Then string interpolation, boolean truthiness, tax/category fallback and omission remain distinct
+            expect(result).toBe(
+                `moved this expense to report "undefined", marked the expense as "non-reimbursable", marked the expense as "non-billable", set the merchant to "undefined", tax rate to "", category to "", description to "undefined", and description to "undefined" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`,
+            );
+            expect(emptyResult).toBe('');
+        });
+
+        it('preserves present empty strings and renders a present undefined tag as empty', () => {
+            // Given empty optional strings and an undefined tag that must remain a visible fragment
+            const emptyMessage = createMock<OriginalMessageModifiedExpense>({
+                personalRulesModifiedFields: {reportName: '', merchant: '', category: '', tag: '', comment: '', description: ''},
+            });
+            const undefinedTag = createMock<OriginalMessageModifiedExpense>({personalRulesModifiedFields: {merchant: 'Cafe', tag: undefined}});
+
+            // When the real formatter is invoked for each producer outcome
+            const emptyResult = formatRulesAction(emptyMessage);
+            const undefinedResult = formatRulesAction(undefinedTag);
+
+            // Then present empty and undefined tags render without dropping their list position
+            expect(emptyResult).toBe(
+                `moved this expense to report "", set the merchant to "", category to "", tag to "", description to "", and description to "" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`,
+            );
+            expect(undefinedResult).toBe(`set the merchant to "Cafe" and tag to "" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`);
+        });
+
+        it.each([true, false])('preserves full policy messages and route precedence for admin access %s', (isAdminAccessAllowed) => {
+            // Given mixed policy standalone/list fields and an admin access decision
+            jest.mocked(isPolicyAdmin).mockReturnValue(isAdminAccessAllowed);
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({
+                policyID: '1234',
+                policyRulesModifiedFields: {
+                    tax: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the persisted tax field name
+                        field_id_TAX: {name: 'VAT', externalID: '', value: '10'},
+                    },
+                    billable: false,
+                    merchant: 'Cafe',
+                },
+            });
+
+            // When policy rules format with or without workspace rule access
+            const result = formatRulesAction(originalMessage);
+
+            // Then the tax is first only within the list and route selection follows access
+            const route = isAdminAccessAllowed ? `${environmentURL}/workspaces/1234/rules` : CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL;
+            expect(result).toBe(`marked the expense as "non-billable", set the tax rate to "VAT", and merchant to "Cafe" via <a href="${route}">workspace rules</a>`);
+        });
     });
 
     describe('getMovedReportID', () => {
@@ -1417,7 +1561,7 @@ describe('ModifiedExpenseMessage', () => {
                     outputCurrency: 'USD',
                 };
 
-                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
+                jest.mocked(isPolicyAdmin).mockReturnValue(true);
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -1569,7 +1713,7 @@ describe('ModifiedExpenseMessage', () => {
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
-                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(true);
+                jest.mocked(isPolicyAdmin).mockReturnValue(true);
             });
 
             it('returns the correct text message with multiple overrides', () => {
@@ -1758,7 +1902,7 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('returns the correct text message with help link for non-admin', () => {
-                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(false);
+                jest.mocked(isPolicyAdmin).mockReturnValue(false);
 
                 const reportAction = {
                     ...createRandomReportAction(1),
@@ -2222,7 +2366,7 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('returns the non-admin MCC message when a valid policy is provided but user is not an admin', () => {
-                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(false);
+                jest.mocked(isPolicyAdmin).mockReturnValue(false);
 
                 const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
 
@@ -2258,7 +2402,7 @@ describe('ModifiedExpenseMessage', () => {
                     outputCurrency: 'USD',
                 };
 
-                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
+                jest.mocked(isPolicyAdmin).mockReturnValue(true);
 
                 const result = getForReportAction({
                     convertToDisplayString,
