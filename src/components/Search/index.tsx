@@ -9,7 +9,6 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +20,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
 import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useStableArrayReference from '@hooks/useStableArrayReference';
@@ -95,7 +95,6 @@ import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SaveSearch} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -110,7 +109,7 @@ import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
-import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps} from './searchViewProps';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
 
@@ -124,6 +123,7 @@ import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
@@ -146,8 +146,6 @@ type SearchProps = {
     onDestinationVisible?: (wasListEmpty: boolean, source: 'focus' | 'layout') => void;
 };
 
-type HoldMenuCallback = (item: TransactionReportGroupListItemType, requestType: ActionHandledType, paymentType?: PaymentMethodType) => void;
-
 function Search({
     queryJSON,
     hasFilterBars,
@@ -166,8 +164,11 @@ function Search({
     const prevIsOffline = usePrevious(isOffline);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isLargeScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(!!hasFilterBars);
     const styles = useThemeStyles();
     const chartTabRootScrollProps = useTabRootScrollProps(styles.flexGrow1, {fillsVisibleArea: true});
+    const chartScrollLockStyle = useSearchListScrollLockStyle();
+    const chartScrollViewRef = useRegisterSearchScrollView();
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
@@ -198,7 +199,9 @@ function Search({
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {
+        selector: fullPolicySnapshotLastModifiedByPolicyIDSelector,
+    });
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -731,7 +734,14 @@ function Search({
                     fullPolicySnapshotLastModifiedByPolicyID,
                 });
                 if (shouldOpenTransactionThreadInNewTab && targetReportID) {
-                    openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: item.transactionID}), event);
+                    openInternalRouteInNewTab(
+                        ROUTES.SEARCH_REPORT.getRoute({
+                            reportID: targetReportID,
+                            backTo,
+                            anchorTransactionID: item.transactionID,
+                        }),
+                        event,
+                    );
                 }
                 if (shouldOpenTransactionThread) {
                     return;
@@ -868,7 +878,11 @@ function Search({
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
             }
 
-            const route = ROUTES.SEARCH_REPORT.getRoute({reportID, backTo, anchorTransactionID: isTransactionItem ? transactionItem.transactionID : undefined});
+            const route = ROUTES.SEARCH_REPORT.getRoute({
+                reportID,
+                backTo,
+                anchorTransactionID: isTransactionItem ? transactionItem.transactionID : undefined,
+            });
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
@@ -1393,7 +1407,7 @@ function Search({
         return <View onLayout={onDeferredLayout} />;
     }
 
-    const listContainerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!hasFilterBars) : styles.mt3;
+    const listContainerStyle = shouldUseNarrowLayout ? searchListContentContainerStyle : styles.mt3;
 
     // This is a performance optimization for the submit-expense->search path only.
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
@@ -1504,7 +1518,7 @@ function Search({
                     queryJSON={queryJSON}
                     violationSnapshotStartedAt={searchResults?.search?.violationSnapshotStartedAt}
                     onScroll={onSearchListScroll}
-                    contentContainerStyle={isInLandscapeMode ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined}
+                    contentContainerStyle={isInLandscapeMode ? searchListContentContainerStyle : undefined}
                 />
             </View>
         );
@@ -1538,7 +1552,8 @@ function Search({
         return (
             <SearchScopeProvider>
                 <Animated.ScrollView
-                    style={styles.flex1}
+                    ref={chartScrollViewRef}
+                    style={[styles.flex1, chartScrollLockStyle]}
                     {...chartTabRootScrollProps}
                     onScroll={onSearchListScroll}
                     onLayout={onLayoutChart}
@@ -1686,7 +1701,6 @@ function Search({
 
 Search.displayName = 'Search';
 
-export type {HoldMenuCallback};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
 

@@ -3,6 +3,7 @@ import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 
 import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
@@ -41,7 +42,8 @@ function handleSkeletonLayout() {
 function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: SearchWithNavigationDeferredMountProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : undefined;
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(!!props.hasFilterBars);
+    const containerStyle = shouldUseNarrowLayout ? searchListContentContainerStyle : undefined;
     // Laid out during the idle preload while nobody sees it, so it must not end the spans of a tap or submit made elsewhere.
     const isInPreloadedTab = useIsInPreloadedTab();
 
