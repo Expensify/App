@@ -3238,6 +3238,10 @@ ${amount} für ${merchant} – ${date}`,
             'Fügen Sie eine bevollmächtigte zahlende Person für in Expensify getätigte Zahlungen hinzu oder verfolgen Sie Zahlungen, die andernorts getätigt wurden.',
         collectEmployeeBankDetails: 'Bankdaten der Mitarbeitenden erfassen',
         collectEmployeeBankDetailsDescription: 'Erfassen Sie die Bankdaten Ihrer Mitarbeitenden, damit Sie ihnen Auslagen außerhalb von Expensify erstatten können.',
+        disablePaymentsTitle: 'Zahlungen deaktivieren?',
+        disablePaymentsPrompt:
+            'Für diesen Workspace sind ein Geschäftsbankkonto oder Erstattungsländer eingerichtet. Wenn Sie Zahlungen deaktivieren, erhalten Mitglieder keine Erstattungen über Expensify, bis Sie Zahlungen wieder aktivieren.',
+        disablePaymentsConfirm: 'Deaktivieren',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wende dich bitte an deine:n <account-manager-link>Account Manager</account-manager-link> oder an <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

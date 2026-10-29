@@ -3457,6 +3457,10 @@ const translations = {
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         collectEmployeeBankDetails: 'Collect employee bank details',
         collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
+        disablePaymentsTitle: 'Turn off payments?',
+        disablePaymentsPrompt:
+            'This workspace has a business bank account or reimbursement countries set up. If you turn off payments, members won’t be reimbursed through Expensify until you turn payments back on.',
+        disablePaymentsConfirm: 'Turn off',
         customApprovalWorkflowEnabled:
             '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

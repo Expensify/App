@@ -3260,6 +3260,10 @@ ${amount} dla ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Dodaj upoważnionego płatnika dla płatności dokonywanych w Expensify lub śledź płatności wykonywane gdzie indziej.',
         collectEmployeeBankDetails: 'Zbieraj dane bankowe pracowników',
         collectEmployeeBankDetailsDescription: 'Zbieraj dane bankowe pracowników, aby móc zwracać im wydatki poza Expensify.',
+        disablePaymentsTitle: 'Wyłączyć płatności?',
+        disablePaymentsPrompt:
+            'Ta przestrzeń robocza ma skonfigurowane firmowe konto bankowe lub kraje zwrotów. Jeśli wyłączysz płatności, członkowie nie będą otrzymywać zwrotów przez Expensify, dopóki ponownie ich nie włączysz.',
+        disablePaymentsConfirm: 'Wyłącz',
         customApprovalWorkflowEnabled:
             '<muted-text-label>W tym obszarze roboczym jest włączony niestandardowy proces zatwierdzania. Aby przejrzeć lub zmienić ten proces, skontaktuj się ze swoim <account-manager-link>opiekunem klienta</account-manager-link> lub z <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

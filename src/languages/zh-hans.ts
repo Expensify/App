@@ -3124,6 +3124,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         makeOrTrackPaymentsDescription: '为在 Expensify 中进行的付款添加授权付款人，或跟踪在其他地方进行的付款。',
         collectEmployeeBankDetails: '收集员工银行账户信息',
         collectEmployeeBankDetailsDescription: '收集员工的银行账户信息，以便在 Expensify 之外向他们报销。',
+        disablePaymentsTitle: '关闭付款？',
+        disablePaymentsPrompt: '此工作区已设置企业银行账户或报销国家/地区。如果关闭付款，在您重新开启之前，成员将无法通过 Expensify 获得报销。',
+        disablePaymentsConfirm: '关闭',
         customApprovalWorkflowEnabled:
             '<muted-text-label>此工作区已启用自定义审批流程。若要查看或更改此流程，请联系您的<account-manager-link>客户经理</account-manager-link>或<concierge-link>Concierge</concierge-link>。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

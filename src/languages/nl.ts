@@ -3227,6 +3227,10 @@ ${amount} voor ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Voeg een gemachtigde betaler toe voor betalingen die in Expensify worden gedaan of volg betalingen die elders zijn gedaan.',
         collectEmployeeBankDetails: 'Bankgegevens van medewerkers verzamelen',
         collectEmployeeBankDetailsDescription: 'Verzamel de bankgegevens van medewerkers, zodat je ze buiten Expensify kunt terugbetalen.',
+        disablePaymentsTitle: 'Betalingen uitschakelen?',
+        disablePaymentsPrompt:
+            'Voor deze werkruimte zijn een zakelijke bankrekening of terugbetalingslanden ingesteld. Als je betalingen uitschakelt, worden leden niet via Expensify terugbetaald totdat je betalingen weer inschakelt.',
+        disablePaymentsConfirm: 'Uitschakelen',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Er is een aangepaste goedkeuringsworkflow ingeschakeld voor deze workspace. Neem contact op met je <account-manager-link>Accountmanager</account-manager-link> of <concierge-link>Concierge</concierge-link> om deze workflow te bekijken of te wijzigen.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

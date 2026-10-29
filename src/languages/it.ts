@@ -3224,6 +3224,10 @@ ${amount} per ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Aggiungi un pagatore autorizzato per i pagamenti effettuati in Expensify o tieni traccia dei pagamenti effettuati altrove.',
         collectEmployeeBankDetails: 'Raccogli i dati bancari dei dipendenti',
         collectEmployeeBankDetailsDescription: 'Raccogli i dati bancari dei dipendenti per poterli rimborsare al di fuori di Expensify.',
+        disablePaymentsTitle: 'Disattivare i pagamenti?',
+        disablePaymentsPrompt:
+            'Questo spazio di lavoro ha un conto bancario aziendale o dei paesi di rimborso configurati. Se disattivi i pagamenti, i membri non verranno rimborsati tramite Expensify finché non li riattivi.',
+        disablePaymentsConfirm: 'Disattiva',
         customApprovalWorkflowEnabled:
             '<muted-text-label>In questo spazio di lavoro è attivato un processo di approvazione personalizzato. Per rivedere o modificare questo processo, contatta il tuo <account-manager-link>Account Manager</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

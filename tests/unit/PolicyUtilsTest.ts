@@ -76,6 +76,7 @@ import {
     getSageIntacctVendors,
     arePaymentsEnabled,
     getReimbursementChoice,
+    shouldWarnBeforeDisablingPayments,
     isPolicyPayer,
     getReimburserEmail,
     getRuleApprovers,
@@ -4354,6 +4355,73 @@ describe('PolicyUtils', () => {
 
                 // Then it is passed through, because matching on the prefix would silently invent a meaning for a value we do not know
                 expect(resolvedChoice).toBe('deprecated_reimburseSomethingElse');
+            });
+        });
+
+        describe('shouldWarnBeforeDisablingPayments', () => {
+            it('should not warn when there is no policy', () => {
+                // Given no policy, which happens while a workspace is still loading
+
+                // When we check whether turning off Payments needs a warning
+                const shouldWarn = shouldWarnBeforeDisablingPayments(undefined);
+
+                // Then no warning is needed, because there is nothing to lose
+                expect(shouldWarn).toBe(false);
+            });
+
+            it('should not warn when no countries are selected and no bank account is connected', () => {
+                // Given a workspace with an empty countries list and no business bank account
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {}}});
+
+                // When we check whether turning off Payments needs a warning
+                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+
+                // Then no warning is needed, so Payments turns off right away like before
+                expect(shouldWarn).toBe(false);
+            });
+
+            it('should not warn when every country has a falsy value', () => {
+                // Given a workspace whose countries are all deselected
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: null}}});
+
+                // When we check whether turning off Payments needs a warning
+                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+
+                // Then no warning is needed, because a deselected country is not a selected one
+                expect(shouldWarn).toBe(false);
+            });
+
+            it('should warn when a country has a truthy value', () => {
+                // Given a workspace with a selected business bank account country
+                const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: true}}});
+
+                // When we check whether turning off Payments needs a warning
+                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+
+                // Then the admin is warned, so they don't lose the country setup by accident
+                expect(shouldWarn).toBe(true);
+            });
+
+            it('should warn when a business bank account is connected', () => {
+                // Given a workspace with a connected business bank account and no countries
+                const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 123}});
+
+                // When we check whether turning off Payments needs a warning
+                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+
+                // Then the admin is warned, because turning off Payments affects the connected account
+                expect(shouldWarn).toBe(true);
+            });
+
+            it('should not warn when the bank account ID is 0', () => {
+                // Given a workspace whose achAccount has no real bank account ID
+                const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 0}});
+
+                // When we check whether turning off Payments needs a warning
+                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+
+                // Then no warning is needed, because 0 means no bank account is connected
+                expect(shouldWarn).toBe(false);
             });
         });
 

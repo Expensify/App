@@ -108,6 +108,15 @@ function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
+/**
+ * Whether turning off Payments needs a warning first, because the workspace has business bank account countries
+ * selected or a business bank account connected.
+ */
+function shouldWarnBeforeDisablingPayments(policy: OnyxInputOrEntry<Policy>): boolean {
+    const hasSelectedCountry = Object.values(policy?.reimbursement?.countries ?? {}).some((value) => !!value);
+    return hasSelectedCountry || (policy?.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) > 0;
+}
+
 /** Whether the workspace has everything auto-pay approved reports needs: workflows, direct reimbursements, and a business bank account. */
 function isAutoPayApprovedReportsAvailable(policy: OnyxInputOrEntry<Policy>): boolean {
     return !!policy?.areWorkflowsEnabled && getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES && !!policy?.achAccount?.bankAccountID;
@@ -128,6 +137,7 @@ export {
     canAdminPayReport,
     getReimbursementChoice,
     arePaymentsEnabled,
+    shouldWarnBeforeDisablingPayments,
     isAutoPayApprovedReportsAvailable,
     getReimburserAccountID,
 };
