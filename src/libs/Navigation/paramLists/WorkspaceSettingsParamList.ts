@@ -1622,6 +1622,10 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         ruleID?: undefined;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_RULES_CURRENCY_TO_MATCH]: {
+        policyID: string;
+        ruleID?: undefined;
+    };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: {
         policyID: string;
         ruleID?: undefined;
@@ -1793,6 +1797,10 @@ type WorkspaceSettingsParamList = {
         categoryName?: string;
     };
     [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: {
+        policyID: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_CURRENCY_TO_MATCH]: {
         policyID: string;
         ruleID: string;
     };

@@ -39,6 +39,9 @@ type ExpenseDefaultFormValues = {
     /** The tags an expense has to carry. The list is matched as an OR, so any one of them matches */
     tagsToMatch?: string[];
 
+    /** The currencies an expense has to be in. The list is matched as an OR, so any one of them matches */
+    currenciesToMatch?: string[];
+
     /** The merchant the expense is renamed to */
     merchant?: string;
 
@@ -90,6 +93,7 @@ const CONDITION = {
     MERCHANT: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
     CATEGORY: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
     TAG: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+    CURRENCY: CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
 } as const;
 
 /** The order actions are written in, which fixes the numeric keys a built rule uses. */
@@ -251,6 +255,11 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.TAG, operator: EQUAL_TO, right: tagsToMatch});
     }
 
+    const currenciesToMatch = getNonEmptyValues(formValues.currenciesToMatch);
+    if (currenciesToMatch.length > 0) {
+        comparisons.push({left: CONDITION.CURRENCY, operator: EQUAL_TO, right: currenciesToMatch});
+    }
+
     const [firstComparison, ...rest] = comparisons;
     if (!firstComparison) {
         return undefined;
@@ -286,7 +295,11 @@ function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Pa
         return false;
     }
 
-    return haveSameConditionValues(first.categoriesToMatch, second.categoriesToMatch) && haveSameConditionValues(first.tagsToMatch, second.tagsToMatch);
+    return (
+        haveSameConditionValues(first.categoriesToMatch, second.categoriesToMatch) &&
+        haveSameConditionValues(first.tagsToMatch, second.tagsToMatch) &&
+        haveSameConditionValues(first.currenciesToMatch, second.currenciesToMatch)
+    );
 }
 
 /** Builds the `Set` actions for a merchant rule, keyed by a stringified index in a fixed field order. */
@@ -366,7 +379,7 @@ function getEditableTriggers(triggers: Rule['triggers'] | undefined): ExpenseDef
 }
 
 /** The conditions the editor renders, read back off a rule's filter tree. */
-type EditableConditions = Pick<ExpenseDefaultFormValues, 'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch'>;
+type EditableConditions = Pick<ExpenseDefaultFormValues, 'matchType' | 'merchantToMatch' | 'categoriesToMatch' | 'tagsToMatch' | 'currenciesToMatch'>;
 
 /**
  * Reads one leaf comparison into the conditions it sets.
@@ -406,6 +419,10 @@ function getConditionFromLeaf(leaf: RuleFilterComparison): EditableConditions | 
 
     if (leaf.left === CONDITION.TAG) {
         return {tagsToMatch: values};
+    }
+
+    if (leaf.left === CONDITION.CURRENCY) {
+        return {currenciesToMatch: values};
     }
 
     return undefined;

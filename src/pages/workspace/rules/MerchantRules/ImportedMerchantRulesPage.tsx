@@ -71,6 +71,7 @@ function getRuleContentKey(formValues: Partial<ExpenseDefaultFormValues>): strin
         // that matches on more than the row does is a different rule.
         formValues.categoriesToMatch ?? [],
         formValues.tagsToMatch ?? [],
+        formValues.currenciesToMatch ?? [],
         formValues.merchant ?? '',
         formValues.category ?? '',
         formValues.tag ?? '',

@@ -25,6 +25,7 @@ import createRandomPolicy from '../utils/collections/policies';
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 const {EQUAL_TO, CONTAINS, AND, OR, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
+const CURRENCY = CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY;
 
 const POLICY_ID = 'ABC123';
 const OTHER_POLICY_ID = 'DEF456';
@@ -214,18 +215,28 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
 
         it('round trips every condition', () => {
-            // Given a form matching on all three fields
+            // Given a form matching on all four fields
             const formValues: ExpenseDefaultFormValues = {
                 merchantToMatch: 'Starbucks',
                 matchType: CONTAINS,
                 categoriesToMatch: ['Coffee'],
                 tagsToMatch: ['Team A', 'Team B'],
+                currenciesToMatch: ['USD', 'EUR'],
                 category: 'Coffee',
             };
 
             // When the built rule is read back
             // Then the form gets the same conditions it wrote
             expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
+        });
+
+        it('builds a rule that matches on a currency alone', () => {
+            // Given a form whose only condition is a currency
+            const rule = buildExpenseDefaultRule({currenciesToMatch: ['USD'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the single currency condition is the whole tree, ORing the values it was given
+            expect(rule?.filters).toEqual({left: CURRENCY, operator: EQUAL_TO, right: ['USD']});
         });
     });
 
@@ -380,6 +391,7 @@ describe('ExpenseDefaultRuleUtils', () => {
                 },
             ],
             ['a condition on an operator the form has no control for', {filters: {left: FIELD.CATEGORY, operator: CONTAINS, right: 'Coffee'}}],
+            ['a currency condition the picker cannot express, which only ever selects whole currencies', {filters: {left: CURRENCY, operator: CONTAINS, right: ['USD']}}],
             ['a filter on a field the form has no input for', {filters: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, operator: EQUAL_TO, right: '5812'}}],
             ['an operator the form has no control for', {filters: {left: FIELD.MERCHANT, operator: GREATER_THAN, right: 'Starbucks'}}],
             ['a list of merchants, which the form has one input for', {filters: {left: FIELD.MERCHANT, operator: OR, right: ['Starbucks', 'Costa']}}],

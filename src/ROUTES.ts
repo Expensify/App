@@ -1226,6 +1226,10 @@ const DYNAMIC_ROUTES = {
         path: 'rule-tag-to-match',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
+    RULES_CURRENCY_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-currency-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
     RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
         path: 'rule-matches',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
@@ -4572,6 +4576,10 @@ const ROUTES = {
     RULES_TAG_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag-to-match',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag-to-match` as const,
+    },
+    RULES_CURRENCY_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/currency-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/currency-to-match` as const,
     },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',

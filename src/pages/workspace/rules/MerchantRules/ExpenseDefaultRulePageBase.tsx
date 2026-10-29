@@ -122,6 +122,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         MERCHANT_RULE_INPUT_IDS.MATCH_TYPE,
         MERCHANT_RULE_INPUT_IDS.CATEGORIES_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.TAGS_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.CURRENCIES_TO_MATCH,
     ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -306,6 +307,8 @@ function ExpenseDefaultRulePageBase({
     const tagsToMatch = form?.tagsToMatch ?? [];
     const hasTagCondition = tagsToMatch.length > 0;
     const tagsToMatchDisplayName = hasTagCondition ? tagsToMatch.map(getCleanedTagName).join(', ') : undefined;
+    const currenciesToMatch = form?.currenciesToMatch ?? [];
+    const currenciesToMatchDisplayName = currenciesToMatch.length > 0 ? currenciesToMatch.join(', ') : undefined;
     const amountDisplayName = form?.amount ? convertToDisplayString(Number(form.amount), policy?.outputCurrency) : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     // Blank rather than the raw ID once the rate is gone from the workspace.
@@ -394,7 +397,7 @@ function ExpenseDefaultRulePageBase({
         const hasDuplicate = checkForDuplicateRule(form);
         if (hasDuplicate) {
             // A duplicate does not have to match on a merchant, so the prompt names the first condition the two share.
-            const duplicateCondition = [form.merchantToMatch, categoriesToMatchDisplayName, tagsToMatchDisplayName].find(Boolean) ?? '';
+            const duplicateCondition = [form.merchantToMatch, categoriesToMatchDisplayName, tagsToMatchDisplayName, currenciesToMatchDisplayName].find(Boolean) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
                 prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', duplicateCondition),
@@ -468,6 +471,13 @@ function ExpenseDefaultRulePageBase({
                           onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_TAG_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_TAG_TO_MATCH.getRoute(policyID, ruleID))),
                           icon: icons.Tag,
                       },
+                {
+                    key: 'currenciesToMatch',
+                    description: translate('common.currency'),
+                    title: currenciesToMatchDisplayName,
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
+                },
             ],
         },
         {

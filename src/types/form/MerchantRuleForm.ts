@@ -9,6 +9,7 @@ const INPUT_IDS = {
     BILLABLE: 'billable',
     CATEGORY: 'category',
     CATEGORIES_TO_MATCH: 'categoriesToMatch',
+    CURRENCIES_TO_MATCH: 'currenciesToMatch',
     DESCRIPTION: 'comment',
     MATCH_TYPE: 'matchType',
     MERCHANT_TO_MATCH: 'merchantToMatch',
@@ -29,6 +30,7 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.BILLABLE]: boolean;
         [INPUT_IDS.CATEGORY]: string;
         [INPUT_IDS.CATEGORIES_TO_MATCH]: string[];
+        [INPUT_IDS.CURRENCIES_TO_MATCH]: string[];
         [INPUT_IDS.DESCRIPTION]: string;
         [INPUT_IDS.MATCH_TYPE]: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
         [INPUT_IDS.MERCHANT]: string;
