@@ -3,7 +3,7 @@
 import colors from '@styles/theme/colors';
 
 /**
- * Seatbelt baseline dashboard — parses eslint.seatbelt.tsv and emits an HTML report
+ * Seatbelt baseline dashboard: parses oxlint.seatbelt.tsv and emits an HTML report
  * with aggregated tables and optional git history charts (Chart.js pinned beside the HTML).
  *
  * Styling uses the same dark palette as src/styles/theme/themes/dark.ts via @styles/theme/colors.
@@ -20,13 +20,13 @@ import path from 'node:path';
 import Git from './utils/Git';
 import TSVUtils from './utils/TSVUtils';
 
-const SEATBELT_REL = 'config/eslint/eslint.seatbelt.tsv';
+const SEATBELT_REL = 'config/oxlint/oxlint.seatbelt.tsv';
 
 /** Pinned Chart.js for reproducible reports (UMD build). */
 const CHART_JS_CDN = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js';
 
 /** Written beside the HTML so `file://` loads work (remote scripts from disk are unreliable). */
-const CHART_BUNDLE_FILENAME = 'eslint-report.chart.umd.min.js';
+const CHART_BUNDLE_FILENAME = 'lint-report.chart.umd.min.js';
 
 /**
  * Semantic colors aligned with src/styles/theme/themes/dark.ts (dark theme).
@@ -140,18 +140,18 @@ type HistorySnapshot = {
 const parseSeatbeltTsv = (content: string): SeatbeltRow[] => {
     const {rows} = TSVUtils.parse(content, {
         onInvalidRow: (error, line) => {
-            console.warn(`eslint-report: skipping malformed line: ${error.message}: ${line.slice(0, 120)}`);
+            console.warn(`lint-report: skipping malformed line: ${error.message}: ${line.slice(0, 120)}`);
         },
     });
     const parsed: SeatbeltRow[] = [];
     for (const row of rows) {
         if (row.cells.length !== 3) {
-            console.warn(`eslint-report: skipping malformed line (${row.cells.length} columns)`);
+            console.warn(`lint-report: skipping malformed line (${row.cells.length} columns)`);
             continue;
         }
         const [rawPath, rule, count] = row.cells;
         if (typeof rawPath !== 'string' || typeof rule !== 'string' || typeof count !== 'number' || !Number.isFinite(count) || count < 0) {
-            console.warn(`eslint-report: skipping bad row for ${String(rawPath)}`);
+            console.warn(`lint-report: skipping bad row for ${String(rawPath)}`);
             continue;
         }
         parsed.push({rawPath, rule, count});
@@ -268,13 +268,13 @@ const renderHtml = (opts: {
     ruleRows: Array<[string, number]>;
     fileRows: Array<[string, number]>;
     chartPayload: ChartPayload | null;
-    /** Relative script URL (e.g. ./eslint-report.chart.umd.min.js) when chart is included; omit Chart otherwise. */
+    /** Relative script URL (e.g. ./lint-report.chart.umd.min.js) when chart is included; omit Chart otherwise. */
     chartScriptSrc: string | null;
     chartWarning: string | null;
 }): string => {
     const chartBundles =
         opts.chartPayload && opts.chartScriptSrc
-            ? `<script type="application/json" id="eslint-report-data">${JSON.stringify(opts.chartPayload)}</script>
+            ? `<script type="application/json" id="lint-report-data">${JSON.stringify(opts.chartPayload)}</script>
   <script src="${escapeHtml(opts.chartScriptSrc)}"></script>`
             : '';
     const ruleRowsHtml = opts.ruleRows.map(([rule, n]) => `<tr><td>${escapeHtml(rule)}</td><td class="num">${n}</td></tr>`).join('\n');
@@ -293,7 +293,7 @@ const renderHtml = (opts: {
   <meta name="color-scheme" content="dark"/>
   <meta name="theme-color" content="${REPORT_THEME.appBG}"/>
   <link rel="icon" href="${faviconHref}" type="image/svg+xml" sizes="any"/>
-  <title>ESLint seatbelt baseline</title>
+  <title>Lint seatbelt baseline</title>
   <style>
     :root {
       color-scheme: dark;
@@ -397,8 +397,8 @@ const renderHtml = (opts: {
   </style>
 </head>
 <body>
-  <h1>ESLint seatbelt baseline</h1>
-  <p class="muted">Aggregates come from parsing <code>eslint.seatbelt.tsv</code>, the source of truth for ESLint findings in this repo. This tool reads that file instead of running ESLint so the report stays fast—refresh or tighten the seatbelt before generating if you want updated counts.</p>
+  <h1>Lint seatbelt baseline</h1>
+  <p class="muted">Aggregates come from parsing <code>oxlint.seatbelt.tsv</code>, the source of truth for lint findings in this repo. This tool reads that file instead of running the linter so the report stays fast—refresh or tighten the seatbelt before generating if you want updated counts.</p>
 
   <div class="summary">
     <dl>
@@ -440,7 +440,7 @@ const renderHtml = (opts: {
   ${chartBundles}
   <script>
 (() => {
-  const dataEl = document.getElementById('eslint-report-data');
+  const dataEl = document.getElementById('lint-report-data');
   const payload = dataEl ? JSON.parse(dataEl.textContent || 'null') : null;
 
   const sortTable = (tableId, colIndex, numeric) => {
@@ -555,7 +555,7 @@ const renderHtml = (opts: {
       const toggleLabel = document.createElement('label');
       const visibilityCheckbox = document.createElement('input');
       visibilityCheckbox.type = 'checkbox';
-      visibilityCheckbox.id = 'eslint-seatbelt-ds-' + datasetIndex;
+      visibilityCheckbox.id = 'lint-seatbelt-ds-' + datasetIndex;
       visibilityCheckbox.checked = chartDataset.hidden !== true;
       visibilityCheckbox.dataset.index = String(datasetIndex);
       const datasetLabelSpan = document.createElement('span');
@@ -624,7 +624,7 @@ const runReport = async (): Promise<void> => {
         namedArgs: {
             output: {
                 description: 'Output HTML path (relative to App repo root unless absolute)',
-                default: path.join('.eslint-reports', 'eslint-report.html'),
+                default: path.join('.lint-reports', 'lint-report.html'),
             },
             'git-limit': {
                 description: 'Max commits for history chart',
@@ -651,7 +651,7 @@ const runReport = async (): Promise<void> => {
     const openReport = !cli.flags['no-open'];
 
     if (!fs.existsSync(seatbeltPath)) {
-        console.error(`eslint-report: seatbelt file not found: ${seatbeltPath}`);
+        console.error(`lint-report: seatbelt file not found: ${seatbeltPath}`);
         process.exit(1);
     }
 
@@ -677,7 +677,7 @@ const runReport = async (): Promise<void> => {
     let chartPayload = buildChartPayload(history, topRuleNames);
     let chartWarning: string | null = null;
     if (!history.length) {
-        chartWarning = 'No git history for eslint.seatbelt.tsv (not a git repo, or file never committed).';
+        chartWarning = 'No git history for oxlint.seatbelt.tsv (not a git repo, or file never committed).';
         chartPayload = null;
     }
 
@@ -688,7 +688,7 @@ const runReport = async (): Promise<void> => {
     if (chartPayload) {
         const saved = await saveChartJsBesideHtml(outAbs);
         if (!saved.ok) {
-            throw new Error(`eslint-report: could not download Chart.js: ${saved.message}`);
+            throw new Error(`lint-report: could not download Chart.js: ${saved.message}`);
         }
         chartScriptSrc = `./${CHART_BUNDLE_FILENAME}`;
     }
@@ -707,14 +707,14 @@ const runReport = async (): Promise<void> => {
     });
 
     fs.writeFileSync(outAbs, html, 'utf8');
-    console.log(`eslint-report: wrote ${outAbs}`);
+    console.log(`lint-report: wrote ${outAbs}`);
 
     const shouldOpen = openReport && !process.env.CI;
     if (shouldOpen) {
         try {
             openHtmlReport(outAbs);
         } catch {
-            console.warn('eslint-report: could not open report in browser (display unavailable?)');
+            console.warn('lint-report: could not open report in browser (display unavailable?)');
         }
     }
 };
