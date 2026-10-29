@@ -2261,6 +2261,20 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'le dernier jour du mois',
             [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'à la fin de votre voyage',
         },
+        scheduleEta: {
+            weekly: {monday: 'lundi', tuesday: 'mardi', wednesday: 'mercredi', thursday: 'jeudi', friday: 'vendredi', saturday: 'samedi', sunday: 'dimanche'},
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `les ${firstDay} et ${secondDay} de chaque mois`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `le ${firstDay} et le dernier jour de chaque mois`,
+            monthlyLastWeekday: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'le dernier lundi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'le dernier mardi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'le dernier mercredi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'le dernier jeudi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'le dernier vendredi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'le dernier samedi du mois',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'le dernier dimanche du mois',
+            },
+        },
     },
     profilePage: {
         profile: 'Profil',
@@ -2870,6 +2884,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Veuillez confirmer les transactions de test',
             accountRequiresAttention: 'Ce compte nécessite une attention particulière',
             unlock: 'Déverrouiller',
+            plaidBrokenReconnect: 'Corrigez votre connexion Plaid pour un plafond de Carte Expensify plus précis',
+            plaidConnectForLimit: 'Connectez Plaid pour une limite de Carte Expensify plus précise',
+            connect: 'Connecter',
+        },
+        linkPlaid: {
+            title: 'Se connecter à Plaid',
+            successHeading: 'Connexion réussie',
+            successDescription: 'Merci de vous être connecté à Plaid !',
+            failureHeading: 'Connexion infructueuse',
+            failureDescription: '<muted-text>Veuillez réessayer ou <concierge-link>contactez Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Mauvais compte bancaire',
+            wrongAccountDescription: 'Veuillez sélectionner le compte bancaire correspondant dans Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Vérifions que tout est correct',
@@ -3267,6 +3293,13 @@ ${amount} pour ${merchant} - ${date}`,
                 '9': 'Neuvième',
                 '10': 'Dixième',
             },
+            lastMondayOfMonth: 'Lundi dernier',
+            lastTuesdayOfMonth: 'Mardi dernier',
+            lastWednesdayOfMonth: 'Mercredi dernier',
+            lastThursdayOfMonth: 'Jeudi dernier',
+            lastFridayOfMonth: 'Vendredi dernier',
+            lastSaturdayOfMonth: 'Samedi dernier',
+            lastSundayOfMonth: 'Dimanche dernier',
         },
         approverInMultipleWorkflows: 'Ce membre appartient déjà à un autre circuit d’approbation. Toute mise à jour effectuée ici sera également répercutée là-bas.',
         approverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur ou supprimez ce flux de travail.',
@@ -3288,10 +3321,60 @@ ${amount} pour ${merchant} - ${date}`,
         approverFromProvider: ({provider}: {provider: string}) => `de la part de ${provider}`,
         finalApprover: 'Approbateur final',
         manager: 'Manager',
+        submitFrequency: 'Fréquence de soumission',
+        submitOn: 'Soumettre le',
+        dayOfTheWeek: 'Jour de la semaine',
+        dayOfTheMonth: 'Jour du mois',
+        firstSubmission: 'Première soumission',
+        secondSubmission: 'Deuxième soumission',
+        submissionDatesOrderError: 'La première date de soumission doit être antérieure à la deuxième date de soumission',
+        daysOfWeek: {monday: 'Lundi', tuesday: 'Mardi', wednesday: 'Mercredi', thursday: 'Jeudi', friday: 'Vendredi', saturday: 'Samedi', sunday: 'Dimanche'},
+        frequencySummary: {
+            weekly: {
+                monday: 'Chaque semaine le lundi',
+                tuesday: 'Toutes les semaines le mardi',
+                wednesday: 'Chaque semaine le mercredi',
+                thursday: 'Chaque semaine le jeudi',
+                friday: 'Chaque semaine le vendredi',
+                saturday: 'Chaque semaine le samedi',
+                sunday: 'Chaque semaine le dimanche',
+            },
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `Deux fois par mois, les ${firstDay} et ${secondDay}`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `Deux fois par mois le ${firstDay} et le dernier jour`,
+            monthly: ({day}: {day: string}) => `Mensuellement le ${day}`,
+            monthlyOffset: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH]: 'Mensuellement le dernier jour',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH]: 'Mensuellement le dernier jour ouvrable',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'Mensuellement le dernier lundi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'Mensuellement le dernier mardi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'Mensuel le dernier mercredi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'Mensuellement le dernier jeudi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'Mensuellement le dernier vendredi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'Mensuel le dernier samedi',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'Mensuellement le dernier dimanche',
+            },
+        },
+        frequencyRowDescription: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Les dépenses sont soumises dès qu’elles sont créées',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Les notes de frais sont soumises après deux jours sans dépenses',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Les notes de frais restent en brouillon jusqu’à ce qu’un membre les soumette',
+        },
+        frequencyHelperText: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Les dépenses sont soumises immédiatement après leur création.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Les notes de frais sont soumises automatiquement chaque jour, en fonction du <a href="${timezoneLink}">fuseau horaire de l’espace de travail</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Les notes de frais sont soumises automatiquement chaque semaine, en fonction du <a href="${timezoneLink}">fuseau horaire de l’espace de travail</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Les notes de frais sont soumises automatiquement deux fois par mois, en fonction du <a href="${timezoneLink}">fuseau horaire de l’espace de travail</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Les notes de frais sont automatiquement soumises chaque mois, en fonction du <a href="${timezoneLink}">fuseau horaire de l'espace de travail</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Les notes de frais sont soumises après deux jours complets sans nouvelles dépenses.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: "Les notes de frais restent à l'état de brouillon jusqu'à ce qu'un membre les soumette.",
+        },
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "La fréquence de soumission n'a pas pu être modifiée. Veuillez réessayer ou contacter l'assistance.",
-        monthlyOffsetErrorMessage: 'La fréquence mensuelle n’a pas pu être modifiée. Veuillez réessayer ou contacter l’assistance.',
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Frais de conversion de devise',
@@ -5105,6 +5188,11 @@ ${amount} pour ${merchant} - ${date}`,
             archived: 'Archivé',
             workspaceStatus: "Statut de l'espace de travail",
             findRoom: 'Trouver un salon',
+            emptyRoomsTitle: 'Aucune salle à afficher',
+            emptyRoomsSubtitle: 'Les salons de cet espace de travail apparaîtront ici.',
+            emptyRoomsArchivedTitle: 'Ces salons sont archivés',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Désarchivez cet espace de travail</a> pour les utiliser à nouveau.</centered-text></muted-text>`,
             edit: 'Modifier l’espace de travail',
             enabled: 'Activé',
             disabled: 'Désactivé',
@@ -7986,6 +8074,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                             return 'Synchronisation des données Campfire';
                         case 'campfireSyncConnection':
                             return 'Initialisation de la connexion à Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Synchronisation des données Zoho Books';
                         case 'zohoBooksSyncConnection':
                             return 'Initialisation de la connexion à Zoho Books';
                         case 'campfireSyncImportData':
@@ -8245,6 +8335,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             avatarUploadFailureMessage: 'Une erreur s’est produite lors du téléchargement de l’avatar. Veuillez réessayer.',
             addressContext: 'Une adresse d’espace de travail est requise pour activer Expensify Travel. Veuillez saisir une adresse associée à votre entreprise.',
             policy: 'Politique de dépenses',
+            timezoneInputLabel: 'Fuseau horaire',
+            timezoneInputHelpText: 'Votre fuseau horaire est utilisé pour la soumission automatique des notes de frais',
+            timezoneErrorMessage: 'Le fuseau horaire n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
         },
         officeLocations: {
             title: 'Sites de bureau',
@@ -9087,7 +9180,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>Pour appliquer vos règles d’agent, nous avons créé un agent pour vous et l’avons ajouté comme administrateur de votre espace de travail.<br><br>Modifiez les détails de votre agent dans <a href="${agentsRoute}">Compte &gt; Agents</a>.</muted-text>`,
                 suggestionsTab: 'Suggestions',
-                writeTab: 'Modifier',
+                writeTab: 'Personnalisé',
                 findSuggestion: 'Trouver une règle',
                 emptySuggestionsTitle: 'Aucune suggestion disponible',
                 emptySuggestionsSubtitle: 'Essayez d’écrire votre propre règle.',
@@ -9566,6 +9659,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         zohoBooks: {
             organization: 'Organisation Zoho Books',
+            organizationSelectDescription: 'Choisissez l’organisation dans Zoho Books à partir de laquelle vous souhaitez importer des données.',
+            noOrganizationsFound: 'Aucune organisation trouvée',
+            noOrganizationsFoundDescription: 'Veuillez ajouter une organisation dans Zoho Books et synchroniser à nouveau la connexion',
+            multiLocationNotSupported: 'Les organisations multi-sites ne sont pas encore prises en charge',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
@@ -10820,6 +10917,15 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
         spendOverTime: 'Dépenses dans le temps',
+        trip: {
+            tripName: 'Nom du voyage',
+            traveler: 'Voyageur',
+            status: {
+                upcoming: 'À venir',
+                done: 'Terminé',
+                canceled: 'Annulé',
+            },
+        },
         tabs: {
             expenseReports: 'Notes de frais',
             reports: 'Notes de frais',
@@ -10914,6 +11020,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         genericUpdateReportFieldFailureMessage: 'Erreur inattendue lors de la mise à jour du champ. Veuillez réessayer plus tard.',
         genericUpdateReportNameEditFailureMessage: 'Erreur inattendue lors du renommage de la note de frais. Veuillez réessayer plus tard.',
         noActivityYet: 'Aucune activité pour le moment',
+        collapsedSystemMessages: () => ({
+            one: 'afficher 1 mise à jour',
+            other: (count: number) => `afficher ${count} mises à jour`,
+        }),
         connectionSettings: 'Paramètres de connexion',
         actions: {
             type: {

@@ -10,7 +10,7 @@ import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
-import {clearCampfireErrorField, updateCampfireTravelInvoicingSettlementsAccount} from '@libs/actions/connections/Campfire';
+import {clearCampfireErrorField, updateCampfireTravelBillingSettlementsAccount} from '@libs/actions/connections/Campfire';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -80,7 +80,7 @@ function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnec
 
     const setTravelInvoicingSettlementsAccount = (item: AccountListItem) => {
         if (item.value !== travelInvoicingSettlementsBankAccountID && policyID) {
-            updateCampfireTravelInvoicingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
+            updateCampfireTravelBillingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
         }
         Navigation.goBack(backPath);
     };
