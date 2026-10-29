@@ -9,6 +9,7 @@ import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import type {Policy, PolicyTagLists, Rule} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import type {ExpenseDefaultRuleSummaryField} from './ExpenseDefaultRuleUtils';
 
@@ -204,36 +205,14 @@ function getMerchantRulesTableData({
                     ({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags),
                 );
                 const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
-                const contained: string[] = [];
-                const exact: string[] = [];
-                for (const {value, isExactMatch} of merchants) {
-                    (isExactMatch ? exact : contained).push(value);
-                }
                 const merchantNames = merchants.map(({value}) => value).join(', ');
-                const containedMerchantNames = contained.join(', ');
-                const exactMerchantNames = exact.join(', ');
                 const categoryNames = categories.map(getDecodedCategoryName).join(', ');
                 const tagNames = tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ');
 
-                const conditions: string[] = [];
-                // Spelled out rather than a single "Merchant is", so a contains rule and an exact match rule on the
-                // same merchant don't read as duplicates.
-                if (containedMerchantNames) {
-                    conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantContains', containedMerchantNames));
-                }
-                if (exactMerchantNames) {
-                    conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantExactlyMatches', exactMerchantNames));
-                }
-                if (categoryNames) {
-                    conditions.push(translate('workspace.rules.expenseDefaultsTable.categoryIs', categoryNames));
-                }
-                if (tagNames) {
-                    conditions.push(translate('workspace.rules.expenseDefaultsTable.tagIs', tagNames));
-                }
-
-                // The Categories section lists the rules a category alone decides. One that also matches on a
-                // merchant or a tag reads as a merchant rule, so it stays with them.
+                // Each section lists the rules that one field alone decides. A rule matching on more than one of
+                // them reads as a merchant rule, so it stays with the merchants rather than being listed twice.
                 const isCategoryOnlyRule = categories.length > 0 && merchants.length === 0 && tags.length === 0;
+                const isTagOnlyRule = tags.length > 0 && merchants.length === 0 && categories.length === 0;
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
                 const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
 
@@ -254,11 +233,10 @@ function getMerchantRulesTableData({
                 return {
                     keyForList: ruleID,
                     ruleID,
-                    section: isCategoryOnlyRule ? CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES : CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
+                    section: getExpenseDefaultSection(isCategoryOnlyRule, isTagOnlyRule),
                     isRename: hasOnlyMerchantRename,
                     typeLabel,
-                    // A rule matches on every condition it carries, so the row reads them as one sentence.
-                    conditionText: conditions.join(` ${translate('common.and')} `),
+                    conditionText: getExpenseDefaultConditionText(rule.filters, translate),
                     ruleDescription,
                     searchTokens: [merchantNames, categoryNames, tagNames, ruleDescription].filter(Boolean),
                     pendingAction,
@@ -269,6 +247,52 @@ function getMerchantRulesTableData({
                 };
             })
     );
+}
+
+/**
+ * Reads a rule's conditions as one sentence, which is what both the Expense defaults table and the category
+ * settings rows show so a rule is worded the same in both places.
+ *
+ * `shouldOmitCategories` drops the category clause for the category's own settings page, where naming the
+ * category the admin is already looking at reads as noise.
+ */
+function getExpenseDefaultConditionText(filters: Rule['filters'], translate: LocaleContextProps['translate'], shouldOmitCategories = false): string {
+    const {merchants, categories, tags} = getExpenseDefaultConditionSummary(filters);
+
+    const contained: string[] = [];
+    const exact: string[] = [];
+    for (const {value, isExactMatch} of merchants) {
+        (isExactMatch ? exact : contained).push(value);
+    }
+
+    const conditions: string[] = [];
+    // Spelled out rather than a single "Merchant is", so a contains rule and an exact match rule on the
+    // same merchant don't read as duplicates.
+    if (contained.length > 0) {
+        conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantContains', contained.join(', ')));
+    }
+    if (exact.length > 0) {
+        conditions.push(translate('workspace.rules.expenseDefaultsTable.merchantExactlyMatches', exact.join(', ')));
+    }
+    if (!shouldOmitCategories && categories.length > 0) {
+        conditions.push(translate('workspace.rules.expenseDefaultsTable.categoryIs', categories.map(getDecodedCategoryName).join(', ')));
+    }
+    if (tags.length > 0) {
+        conditions.push(translate('workspace.rules.expenseDefaultsTable.tagIs', tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ')));
+    }
+
+    // A rule matches on every condition it carries, so the row reads them as one sentence.
+    return conditions.join(` ${translate('common.and')} `);
+}
+
+function getExpenseDefaultSection(isCategoryOnlyRule: boolean, isTagOnlyRule: boolean): ValueOf<typeof CONST.POLICY.EXPENSE_DEFAULTS_SECTION> {
+    if (isCategoryOnlyRule) {
+        return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES;
+    }
+    if (isTagOnlyRule) {
+        return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.TAGS;
+    }
+    return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS;
 }
 
 function getExpenseDefaultsTableData({
@@ -297,6 +321,7 @@ function getExpenseDefaultsTableData({
 
 export {
     getDefaultMccGroupCategory,
+    getExpenseDefaultConditionText,
     getExpenseDefaultRuleDescription,
     getExpenseDefaultsTableData,
     getMerchantRulesTableData,

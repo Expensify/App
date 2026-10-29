@@ -9757,6 +9757,7 @@ const translations = {
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
+                tags: 'Tags',
                 merchants: 'Merchants',
                 currencies: 'Currencies',
                 noAvailableCards: 'All cards already have a rule',

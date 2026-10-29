@@ -17,7 +17,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
 import {getCategoryExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
-import {getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
+import {getExpenseDefaultConditionText, getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
 import {
     categoryHasAnyRequireFieldsRule,
     formatRequireFieldsRuleDescriptions,
@@ -28,6 +28,8 @@ import {
 type CategoryContextualRule = {
     key: string;
     summary: string;
+    /** What the rule matches on, shown under the summary so two rules with the same action can be told apart. */
+    conditionSummary?: string;
     /** Dynamic route suffix under category settings (keeps Categories underlay on refresh). */
     dynamicRoutePath: DynamicRouteSuffix | ReturnType<typeof DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute>;
     pendingAction?: PendingAction;
@@ -140,6 +142,8 @@ function getCategoryContextualRules({
         rules.push({
             key: `expense-default-${ruleID}`,
             summary,
+            // The category is left out, since naming the page the admin is already on reads as noise.
+            conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, true),
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute(ruleID),
             pendingAction: rulePendingAction,
             isDisabled: isRulePendingDelete,
