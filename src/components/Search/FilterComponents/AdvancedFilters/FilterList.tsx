@@ -154,7 +154,7 @@ function FilterList({
                 label={translate('search.filters.searchFilters')}
                 inputValue={searchValue}
                 onChangeText={onSearchValueChange}
-                style={styles.mb3}
+                style={[styles.mb3, styles.mw100]}
                 ref={searchInputRef}
             />
             {shouldShowNoResultsFound && (
