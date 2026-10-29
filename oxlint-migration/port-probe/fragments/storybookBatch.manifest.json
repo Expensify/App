@@ -1,0 +1,74 @@
+{
+    "storybook/hierarchy-separator": {
+        "fixture": "fixtures/sbTitleBatch.stories.tsx",
+        "oxlintRule": "hosted/hierarchy-separator",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; eslint-plugin-storybook has no oxlint counterpart at all, so the whole recommended set is hosted through config/oxlint/plugins/hosted-rules.mjs"
+    },
+    "storybook/no-redundant-story-name": {
+        "fixture": "fixtures/sbTitleBatch.stories.tsx",
+        "oxlintRule": "hosted/no-redundant-story-name",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; eslint-plugin-storybook has no oxlint counterpart at all, so the whole recommended set is hosted through config/oxlint/plugins/hosted-rules.mjs"
+    },
+    "storybook/prefer-pascal-case": {
+        "fixture": "fixtures/sbTitleBatch.stories.tsx",
+        "oxlintRule": "hosted/prefer-pascal-case",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; eslint-plugin-storybook has no oxlint counterpart at all, so the whole recommended set is hosted through config/oxlint/plugins/hosted-rules.mjs"
+    },
+    "storybook/default-exports": {
+        "fixture": "fixtures/sbNoDefault.stories.tsx",
+        "oxlintRule": "hosted/default-exports",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; eslint-plugin-storybook has no oxlint counterpart at all, so the whole recommended set is hosted through config/oxlint/plugins/hosted-rules.mjs"
+    },
+    "storybook/story-exports": {
+        "fixture": "fixtures/sbNoStories.stories.tsx",
+        "oxlintRule": "hosted/story-exports",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; eslint-plugin-storybook has no oxlint counterpart at all, so the whole recommended set is hosted through config/oxlint/plugins/hosted-rules.mjs"
+    },
+    "storybook/no-renderer-packages": {
+        "fixture": "fixtures/sbRenderer.stories.tsx",
+        "oxlintRule": "hosted/no-renderer-packages",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; eslint-plugin-storybook has no oxlint counterpart at all, so the whole recommended set is hosted through config/oxlint/plugins/hosted-rules.mjs"
+    },
+    "storybook/context-in-play-function": {
+        "fixture": "fixtures/sbPlay.stories.tsx",
+        "oxlintRule": "hosted/context-in-play-function",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; eslint-plugin-storybook has no oxlint counterpart at all, so the whole recommended set is hosted through config/oxlint/plugins/hosted-rules.mjs"
+    },
+    "storybook/use-storybook-expect": {
+        "fixture": "fixtures/sbPlay.stories.tsx",
+        "oxlintRule": "hosted/use-storybook-expect",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; eslint-plugin-storybook has no oxlint counterpart at all, so the whole recommended set is hosted through config/oxlint/plugins/hosted-rules.mjs"
+    },
+    "storybook/use-storybook-testing-library": {
+        "fixture": "fixtures/sbPlay.stories.tsx",
+        "oxlintRule": "hosted/use-storybook-testing-library",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; eslint-plugin-storybook has no oxlint counterpart at all, so the whole recommended set is hosted through config/oxlint/plugins/hosted-rules.mjs"
+    },
+    "storybook/await-interactions": {
+        "fixture": "fixtures/sbAwait.stories.tsx",
+        "oxlintRule": "hosted/await-interactions",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; only fires on interaction helpers imported from storybook own test package, which is why this rule needs its own fixture rather than sharing sbPlay"
+    },
+    "storybook/no-uninstalled-addons": {
+        "fixture": "fixtures/sbMain.ts",
+        "oxlintRule": "hosted/no-uninstalled-addons",
+        "expected": 1,
+        "why": "WIRED 2026-09-14; the one rule upstream scopes to .storybook/main rather than to stories, and the only one that reads package.json off disk instead of the AST, so it gets its own fixture"
+    },
+    "jsdoc/require-jsdoc": {
+        "fixture": "fixtures/sbRequireJsdoc.ts",
+        "oxlintRule": "hosted/require-jsdoc",
+        "expected": 2,
+        "why": "WIRED 2026-09-14; enforced over src/types/onyx only, and the jsdoc prefix is reserved by oxlint native plugin so the rule has to be hosted"
+    }
+}

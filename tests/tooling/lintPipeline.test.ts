@@ -269,9 +269,27 @@ describe('filterReactCompilerMessages', () => {
     });
 
     it('does not persist fallback compiler failures to cache', () => {
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: false, cacheable: false})).toBe(false);
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: false, cacheable: true})).toBe(true);
-        expect(shouldPersistCompilerCache({filename: 'a.tsx', memoized: true, cacheable: true})).toBe(true);
+        expect(
+            shouldPersistCompilerCache({
+                filename: 'a.tsx',
+                memoized: false,
+                cacheable: false,
+            }),
+        ).toBe(false);
+        expect(
+            shouldPersistCompilerCache({
+                filename: 'a.tsx',
+                memoized: false,
+                cacheable: true,
+            }),
+        ).toBe(true);
+        expect(
+            shouldPersistCompilerCache({
+                filename: 'a.tsx',
+                memoized: true,
+                cacheable: true,
+            }),
+        ).toBe(true);
         expect(shouldPersistCompilerCache(undefined)).toBe(false);
     });
 });

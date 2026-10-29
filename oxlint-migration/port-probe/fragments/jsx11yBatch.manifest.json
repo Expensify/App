@@ -1,0 +1,188 @@
+{
+    "jsx-a11y/alt-text": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/alt-text",
+        "expected": 1,
+        "why": "production passes elements/img/object/area lists rather than defaults, so the fixture checks the option is read as well as the rule running"
+    },
+    "jsx-a11y/anchor-has-content": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/anchor-has-content",
+        "expected": 1,
+        "why": "enabled bare in production; empty <a /> is the only shape it matches"
+    },
+    "jsx-a11y/anchor-is-valid": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/anchor-is-valid",
+        "expected": 1,
+        "why": "production adds components: [Link] and specialLink: [to]; the fixture carries a Link control so a dropped option shows up as an extra finding"
+    },
+    "jsx-a11y/aria-activedescendant-has-tabindex": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/aria-activedescendant-has-tabindex",
+        "expected": 1,
+        "why": "enabled bare in production; aria-activedescendant on a non-interactive div with no tabIndex"
+    },
+    "jsx-a11y/aria-props": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/aria-props",
+        "expected": 1,
+        "why": "enabled bare in production; aria-labeledby is the misspelling that is not an ARIA attribute"
+    },
+    "jsx-a11y/aria-proptypes": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/aria-proptypes",
+        "expected": 1,
+        "why": "enabled bare in production; aria-hidden=\"yes\" is outside the boolean enum"
+    },
+    "jsx-a11y/aria-role": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/aria-role",
+        "expected": 1,
+        "why": "production sets ignoreNonDOM: false; role=\"buttons\" is not in aria-query's role set"
+    },
+    "jsx-a11y/aria-unsupported-elements": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/aria-unsupported-elements",
+        "expected": 1,
+        "why": "enabled bare in production; <meta> is an element ARIA cannot be applied to"
+    },
+    "jsx-a11y/control-has-associated-label": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/control-has-associated-label",
+        "expected": 2,
+        "why": "production's ignoreElements excludes input and textarea, so the violation is an empty <button> and the control exercises labelAttributes: [label]"
+    },
+    "jsx-a11y/heading-has-content": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/heading-has-content",
+        "expected": 1,
+        "why": "production passes components: [\"\"] (the default list plus an empty entry); an empty <h2 /> is what it matches"
+    },
+    "jsx-a11y/html-has-lang": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/html-has-lang",
+        "expected": 1,
+        "why": "enabled bare in production; lang=\"\" is the shape both engines read as absent -- a bare <html> makes oxlint's lang fire too, lang={null} makes ESLint's fire too"
+    },
+    "jsx-a11y/iframe-has-title": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/iframe-has-title",
+        "expected": 1,
+        "why": "enabled bare in production; <iframe> with no title"
+    },
+    "jsx-a11y/img-redundant-alt": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/img-redundant-alt",
+        "expected": 1,
+        "why": "enabled bare in production; alt text that repeats the word photo is redundant to a screen reader"
+    },
+    "jsx-a11y/label-has-associated-control": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/label-has-associated-control",
+        "expected": 1,
+        "why": "production asserts \"either\" htmlFor or a nested control; a bare <label> has neither"
+    },
+    "jsx-a11y/lang": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/lang",
+        "expected": 2,
+        "why": "enabled bare in production; two findings because both lang=\"foo\" and the empty lang in HtmlHasLang are invalid language tags, and the empty string is the only missing-lang shape neither engine handles alone"
+    },
+    "jsx-a11y/media-has-caption": {
+        "fixture": "fixtures/jsx11yBatchA.tsx",
+        "oxlintRule": "jsx-a11y/media-has-caption",
+        "expected": 1,
+        "why": "production empties the audio/video/track component lists, leaving the plain DOM elements to flag; <video> with no captions track"
+    },
+    "jsx-a11y/interactive-supports-focus": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/interactive-supports-focus",
+        "expected": 1,
+        "why": "enabled bare in production; role=\"button\" without tabIndex is not focusable"
+    },
+    "jsx-a11y/mouse-events-have-key-events": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/mouse-events-have-key-events",
+        "expected": 1,
+        "why": "enabled bare in production; onMouseOver with no onFocus. oxlint splits this rule in two (click-events-have-key-events is separate), so the anchor is the interesting part"
+    },
+    "jsx-a11y/no-access-key": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/no-access-key",
+        "expected": 1,
+        "why": "enabled bare in production; accessKey duplicates the tab sequence"
+    },
+    "jsx-a11y/no-autofocus": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/no-autofocus",
+        "expected": 1,
+        "why": "production sets ignoreNonDOM: true, which only excuses components; autoFocus on a DOM <input> still reports"
+    },
+    "jsx-a11y/no-distracting-elements": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/no-distracting-elements",
+        "expected": 1,
+        "why": "production lists marquee and blink explicitly; <marquee> is the first"
+    },
+    "jsx-a11y/no-interactive-element-to-noninteractive-role": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/no-interactive-element-to-noninteractive-role",
+        "expected": 1,
+        "why": "production allows tr to take none/presentation and nothing else, so <button role=\"presentation\"> is the violation"
+    },
+    "jsx-a11y/no-noninteractive-element-interactions": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/no-noninteractive-element-interactions",
+        "expected": 1,
+        "why": "production lists the handler names explicitly; onClick on a heading (non-interactive implicit role) is the violation"
+    },
+    "jsx-a11y/no-noninteractive-element-to-interactive-role": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/no-noninteractive-element-to-interactive-role",
+        "expected": 1,
+        "why": "production allow-lists ul/menu and ol/menu; <p role=\"button\"> is outside it and the ul control proves the allow-list is read"
+    },
+    "jsx-a11y/no-noninteractive-tabindex": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/no-noninteractive-tabindex",
+        "expected": 1,
+        "why": "production allow-lists the tabpanel role and no extra tags; tabIndex on a plain div is the violation, the tabpanel control the exception"
+    },
+    "jsx-a11y/no-redundant-roles": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/no-redundant-roles",
+        "expected": 1,
+        "why": "enabled bare in production; <ul role=\"list\"> restates the implicit role"
+    },
+    "jsx-a11y/no-static-element-interactions": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/no-static-element-interactions",
+        "expected": 1,
+        "why": "production lists the handler names explicitly; onClick on a role-less div is the violation"
+    },
+    "jsx-a11y/role-has-required-aria-props": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/role-has-required-aria-props",
+        "expected": 1,
+        "why": "enabled bare in production; role=\"checkbox\" requires aria-checked"
+    },
+    "jsx-a11y/role-supports-aria-props": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/role-supports-aria-props",
+        "expected": 1,
+        "why": "enabled bare in production; aria-sort belongs to columnheader, not to the checkbox role carrying it"
+    },
+    "jsx-a11y/scope": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/scope",
+        "expected": 1,
+        "why": "enabled bare in production; scope outside th/td/tr is meaningless"
+    },
+    "jsx-a11y/tabindex-no-positive": {
+        "fixture": "fixtures/jsx11yBatchB.tsx",
+        "oxlintRule": "jsx-a11y/tabindex-no-positive",
+        "expected": 1,
+        "why": "enabled bare in production; tabIndex={3} on a button, so no-noninteractive-tabindex stays out of this rule's count"
+    }
+}

@@ -154,6 +154,7 @@ export default defineConfig({
         'src/libs/SearchParser/searchParser.js',
         'src/libs/SearchParser/autocompleteParser.js',
         'help/_scripts/**/*',
+        'oxlint-migration/**',
         'modules/ExpensifyNitroUtils/nitrogen/**/*',
         'Mobile-Expensify/**/*',
         '**/vendor',

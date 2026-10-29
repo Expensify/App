@@ -162,9 +162,10 @@ function buildMessage(category, error) {
  * category it does not know, so an oxc-transform-react bump that changes the categories fails the run.
  * @param {string} filename
  * @param {string} sourceText
+ * @param {Record<string, unknown>} [environment] the lint-only validations; the harness passes variants
  * @returns {Array<{ruleName: string, loc: {start: {line: number, column: number}, end: {line: number, column: number}}, message: string}>}
  */
-function analyze(filename, sourceText) {
+function analyze(filename, sourceText, environment = ENVIRONMENT) {
     let result;
     try {
         const buildOptions = oxcReactCompilerConfig();
@@ -176,7 +177,7 @@ function analyze(filename, sourceText) {
                 // Without it the binding returns only fatal diagnostics.
                 reportDiagnostics: true,
                 flowSuppressions: false,
-                environment: {...buildOptions.environment, ...ENVIRONMENT},
+                environment: {...buildOptions.environment, ...environment},
             },
         });
     } catch (error) {
@@ -254,4 +255,4 @@ function reactCompilerDiagnostics(filename, sourceText) {
     return cache.get(filename);
 }
 
-export {RULE_BY_CATEGORY, reactCompilerDiagnostics};
+export {analyze, CONFIG_CATEGORY, ENVIRONMENT, IGNORED_CATEGORIES, RULE_BY_CATEGORY, reactCompilerDiagnostics};
