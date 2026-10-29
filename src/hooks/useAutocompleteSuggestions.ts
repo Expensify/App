@@ -103,6 +103,19 @@ const DEFAULT_STATUS_VALUES = Object.values({
 });
 
 /**
+ * Suggests the values from a fixed list that contain what the user typed and aren't already in the query.
+ * Matching ignores case because the query keeps already-entered values lowercased.
+ */
+function getFixedValueSuggestions(values: readonly string[], filterKey: UserFriendlyKey, autocompleteValue: string, alreadyAutocompletedKeys: Set<string>): AutocompleteItemData[] {
+    const lowerCaseAutocompleteValue = autocompleteValue.toLowerCase();
+
+    return values
+        .filter((value) => value.toLowerCase().includes(lowerCaseAutocompleteValue) && !alreadyAutocompletedKeys.has(value.toLowerCase()))
+        .sort()
+        .map((value) => ({filterKey, text: value}));
+}
+
+/**
  * Computes autocomplete suggestions for the search router.
  *
  * Guards all expensive derived computations behind the autocomplete key so that
@@ -452,14 +465,10 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE: {
-            return TRAVEL_TYPE_VALUES.filter((travelType) => travelType.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(travelType))
-                .sort()
-                .map((travelType) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_TYPE, text: travelType}));
+            return getFixedValueSuggestions(TRAVEL_TYPE_VALUES, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_TYPE, autocompleteValue, alreadyAutocompletedKeys);
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM: {
-            return TRAVEL_PLATFORM_VALUES.filter((travelPlatform) => travelPlatform.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(travelPlatform))
-                .sort()
-                .map((travelPlatform) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_PLATFORM, text: travelPlatform}));
+            return getFixedValueSuggestions(TRAVEL_PLATFORM_VALUES, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_PLATFORM, autocompleteValue, alreadyAutocompletedKeys);
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
             const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
