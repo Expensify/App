@@ -11,7 +11,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx';
+import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -42,8 +42,9 @@ type InvoiceReportIcons = {
 /**
  * Resolves an invoice report's avatars: the sending workspace and the receiver, with the layout they show in.
  * Without a reportID, every read selects nothing.
+ * A caller already holding the report preview passes it in, so the hook does not look it up. On Search, the snapshot can hold the preview row without its room's actions.
  */
-function useInvoiceReportIcons(reportID: string | undefined): InvoiceReportIcons {
+function useInvoiceReportIcons(reportID: string | undefined, reportPreviewAction?: OnyxEntry<ReportAction>): InvoiceReportIcons {
     const defaultAvatars = useDefaultAvatars();
     const [invoice] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportAvatarFieldsSelector});
     const invoiceRoomID = getNonEmptyStringOnyxID(invoice?.chatReportID);
@@ -58,7 +59,10 @@ function useInvoiceReportIcons(reportID: string | undefined): InvoiceReportIcons
     const parentReportActionID = invoice?.parentReportActionID;
     const hasReportPreviewSelector = (reportActions: OnyxEntry<ReportActions>) =>
         getReportActionByIDSelector(reportActions, parentReportActionID)?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const [hasReportPreview] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceRoomID}`, {selector: hasReportPreviewSelector});
+    const [hasReportPreviewInRoom] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportPreviewAction ? undefined : invoice?.chatReportID)}`, {
+        selector: hasReportPreviewSelector,
+    });
+    const hasReportPreview = reportPreviewAction ? reportPreviewAction.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW : hasReportPreviewInRoom;
 
     const isIndividualReceiver = invoiceRoom?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
     // Only an archived invoice to a person depends on who sent its expenses, so only then does the sender lookup read the whole rows it needs.
@@ -66,9 +70,10 @@ function useInvoiceReportIcons(reportID: string | undefined): InvoiceReportIcons
     const [senderInvoice] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isSenderNeeded ? reportID : undefined)}`);
     const [senderInvoiceRoom] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isSenderNeeded ? invoiceRoomID : undefined)}`);
     const reportPreviewSelector = (reportActions: OnyxEntry<ReportActions>) => getReportActionByIDSelector(reportActions, parentReportActionID);
-    const [senderReportPreview] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isSenderNeeded ? invoiceRoomID : undefined)}`, {
+    const [senderReportPreviewInRoom] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isSenderNeeded && !reportPreviewAction ? invoiceRoomID : undefined)}`, {
         selector: reportPreviewSelector,
     });
+    const senderReportPreview = isSenderNeeded ? (reportPreviewAction ?? senderReportPreviewInRoom) : undefined;
     const senderAccountID = useReportPreviewSenderID({iouReport: senderInvoice, action: senderReportPreview, chatReport: senderInvoiceRoom});
 
     const policyID = invoiceRoom?.policyID ?? invoice?.policyID;

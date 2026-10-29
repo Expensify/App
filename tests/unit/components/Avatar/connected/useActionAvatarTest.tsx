@@ -42,6 +42,7 @@ const PENDING_B2B_INVOICE_REPORT_ID = '901';
 const NO_WORKSPACE_INVOICE_ROOM_ID = '910';
 const NO_WORKSPACE_INVOICE_REPORT_ID = '911';
 const SEARCH_IOU_REPORT_ID = '920';
+const OTHER_WORKSPACE_THREAD_ID = '930';
 const TRANSACTION_THREAD_ID = '800';
 const PREVIEW_ID = '9001';
 
@@ -144,6 +145,8 @@ const transactionThread: Report = {
     parentReportActionID: PREVIEW_ID,
     policyID: POLICY_ID,
 };
+// An expense's thread that sits on another workspace than the report the expense is in.
+const otherWorkspaceThread: Report = {reportID: OTHER_WORKSPACE_THREAD_ID, type: CONST.REPORT.TYPE.CHAT, parentReportID: EXPENSE_REPORT_ID, policyID: RECEIVER_POLICY_ID};
 const tripRoom: Report = {reportID: TRIP_ROOM_ID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM, chatReportID: WORKSPACE_CHAT_ID, policyID: POLICY_ID};
 
 const baseAction = {reportActionID: PREVIEW_ID, created: '2024-01-01 00:00:00', actorAccountID: USER_ACCOUNT_ID};
@@ -231,6 +234,8 @@ const SCENARIOS: Scenario[] = [
     ['a deleted expense in its thread', transactionThread, createdExpense, false, expenseReport],
     ['an invoice preview to a workspace whose policy has not loaded', pendingB2BInvoiceReport, reportPreview(pendingB2BInvoiceReport), false, pendingB2BInvoiceRoom],
     ['an IOU report preview missing from its chat actions', searchIOUReport, reportPreview(searchIOUReport), false, dm, false],
+    ['an invoice preview to a workspace missing from its room actions', b2bInvoiceReport, reportPreview(b2bInvoiceReport), false, b2bInvoiceRoom, false],
+    ['a created expense whose thread sits on another workspace', expenseReport, {...createdExpense, childReportID: OTHER_WORKSPACE_THREAD_ID}, false, workspaceChat],
 ];
 
 describe('useActionAvatar', () => {
@@ -262,6 +267,7 @@ describe('useActionAvatar', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NO_WORKSPACE_INVOICE_ROOM_ID}`, noWorkspaceInvoiceRoom),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${NO_WORKSPACE_INVOICE_REPORT_ID}`, noWorkspaceInvoiceReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SEARCH_IOU_REPORT_ID}`, searchIOUReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${OTHER_WORKSPACE_THREAD_ID}`, otherWorkspaceThread),
         ]);
         await waitForBatchedUpdates();
     });
@@ -342,18 +348,24 @@ describe('useActionAvatar', () => {
         expect(mockSenderLookupCalls.every((call) => JSON.stringify(call) === JSON.stringify({}))).toBe(true);
     });
 
-    it('should label an invoice preview by its sender until the invoice names its workspace', async () => {
-        // Given an invoice preview whose invoice and room name no workspace yet, so the unknown account (ID 0) stands in for it.
-        // This differs from the legacy avatars, which showed the receiver alone, but invoices are always sent from a workspace.
+    it('should picture an invoice preview by its sender until the invoice names its workspace', async () => {
+        // Given an invoice preview whose invoice and room name no workspace yet, as while an optimistic invoice loads
         const action = reportPreview(noWorkspaceInvoiceReport);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${NO_WORKSPACE_INVOICE_ROOM_ID}`, {[action.reportActionID]: action});
         await waitForBatchedUpdates();
 
-        // When its avatar is resolved
-        const {result} = renderHook(() => useActionAvatar({report: noWorkspaceInvoiceReport, action, shouldUseRealActor: false}), {wrapper});
+        // When both the legacy hook and the new one resolve its avatar
+        const {result: legacy} = renderHook(() => useReportActionAvatars({report: noWorkspaceInvoiceReport, action, shouldUseRealActor: false}), {wrapper});
+        const {result: current} = renderHook(() => useActionAvatar({report: noWorkspaceInvoiceReport, action, shouldUseRealActor: false}), {wrapper});
         await waitForBatchedUpdates();
 
-        // Then the accessibility label names the account the preview is credited to rather than reading "0"
-        expect(result.current.actorHint).toBe('manager@example.com');
+        // Then the person the preview is credited to stands in for the workspace, with the same avatar, name and account as the legacy hook
+        const legacyLayout = getAvatarLayout({icons: legacy.current.avatars, avatarType: legacy.current.avatarType, shouldRequireSecondaryIconName: true});
+        expect(pickIcon(current.current.primaryAvatar)).toEqual(pickIcon(legacyLayout.primaryIcon));
+        expect(current.current.primaryAvatar.name).toBe('Manager Name');
+        expect(current.current.accountID).toBe(legacy.current.details.accountID);
+
+        // And the accessibility label names that person by login, where the legacy hook read out their account ID
+        expect(current.current.actorHint).toBe('manager@example.com');
     });
 });

@@ -163,7 +163,7 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const isOtherAction = !isIOUReportPreview && !isInvoiceReportPreview;
 
     const iouReportIcons = useIOUReportIcons(isIOUReportPreview ? iouReport?.reportID : undefined, isIOUReportPreview ? action : undefined);
-    const invoiceReportIcons = useInvoiceReportIcons(isInvoiceReportPreview ? iouReport?.reportID : undefined);
+    const invoiceReportIcons = useInvoiceReportIcons(isInvoiceReportPreview ? iouReport?.reportID : undefined, isInvoiceReportPreview ? action : undefined);
 
     // An IOU report preview finds its sender inside its avatar hook. Other report previews look it up here, every other action has none.
     const shouldLookUpSender = isAReportPreviewAction && !isIOUReportPreview;
@@ -183,8 +183,8 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '';
     const personActorHint = String(login || defaultDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
 
-    // A report preview moved to another workspace takes the new workspace's icon, so it reads the policyID its report now has.
-    const [actionChildReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isOtherAction && isAReportPreviewAction ? action?.childReportID : undefined)}`, {
+    // An action's child report can sit on another workspace, e.g. a report preview moved there, so its icons follow the policyID that report now has.
+    const [actionChildReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isOtherAction ? action?.childReportID : undefined)}`, {
         selector: policyIDSelector,
     });
     const isReportArchived = useReportIsArchived(isOtherAction ? iouReport?.reportID : undefined);
@@ -241,7 +241,11 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     }
 
     if (isInvoiceReportPreview) {
-        const {primaryAvatar, receiverIcon, layout, isBusinessToBusiness} = invoiceReportIcons;
+        const {primaryAvatar: workspaceAvatar, receiverIcon, layout, isBusinessToBusiness} = invoiceReportIcons;
+        // Until the invoice names its workspace, the person the preview is credited to stands in for it.
+        const primaryAvatar: Icon = workspaceAvatar.id
+            ? workspaceAvatar
+            : {id: accountID, type: CONST.ICON_TYPE_AVATAR, source: avatar ?? defaultAvatars.FallbackAvatar, name: defaultDisplayName, fallbackIcon};
         let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT;
         if (isBusinessToBusiness) {
             avatarType = CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE;
@@ -258,8 +262,8 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
             actedForAccountID: undefined,
             isWorkspaceActor: true,
             shouldDisplayAllActors: !reportPreviewSenderID,
-            // Until the invoice names its workspace, the unknown account (ID 0) stands in, so the label names the person instead.
-            actorHint: primaryAvatar.id ? String(primaryAvatar.id).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : personActorHint,
+            // Without a workspace, the label names the person by login rather than reading out their account ID.
+            actorHint: workspaceAvatar.id ? String(workspaceAvatar.id).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : personActorHint,
             reportPreviewSenderID,
             chatReportID,
             iouReportID,
