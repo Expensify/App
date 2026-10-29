@@ -82,6 +82,8 @@ const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => get
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
 const TRANSACTION_STATUS_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
+const TRAVEL_TYPE_VALUES = Object.values(CONST.SEARCH.TRAVEL_TYPE);
+const TRAVEL_PLATFORM_VALUES = Object.values(CONST.SEARCH.TRAVEL_PLATFORM);
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
@@ -448,6 +450,16 @@ function useAutocompleteSuggestions({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
                 text: receiptType,
             }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE: {
+            return TRAVEL_TYPE_VALUES.filter((travelType) => travelType.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(travelType))
+                .sort()
+                .map((travelType) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_TYPE, text: travelType}));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM: {
+            return TRAVEL_PLATFORM_VALUES.filter((travelPlatform) => travelPlatform.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(travelPlatform))
+                .sort()
+                .map((travelPlatform) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_PLATFORM, text: travelPlatform}));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
             const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
