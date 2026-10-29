@@ -6859,6 +6859,35 @@ describe('ReportUtils', () => {
                 expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction], currentUserAccountID, undefined, THREADING_OTHER_MEMBER_EMAIL, undefined, undefined)).toBe(false);
             });
 
+            it('should decide from the passed report actions whether the report was forwarded since its last submit', async () => {
+                // Given a submitted report whose owner submits to the approver holding it, and a history that so far holds one submit
+                await setUpApprovalChain();
+                const report = buildSubmittedReport();
+                const transaction = {...createRandomTransaction(911), reportID: report.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(report.reportID, transaction.transactionID, currentUserAccountID);
+                const submittedAction: ReportAction = {...createRandomReportAction(912), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'};
+                const forwardedAction: ReportAction = {...createRandomReportAction(913), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'};
+
+                // When the passed actions hold only that submit, the submitter can still delete because the report awaits its first level
+                expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction, submittedAction], currentUserAccountID, undefined, THREADING_OWNER_EMAIL, undefined, undefined)).toBe(
+                    true,
+                );
+
+                // Then a forward after that submit, read from the same passed actions, blocks the delete
+                expect(
+                    canDeleteMoneyRequestReport(
+                        report,
+                        [transaction],
+                        [iouAction, submittedAction, forwardedAction],
+                        currentUserAccountID,
+                        undefined,
+                        THREADING_OWNER_EMAIL,
+                        undefined,
+                        undefined,
+                    ),
+                ).toBe(false);
+            });
+
             it('should resolve the report owner from the personalDetails canDeleteReportAction is given', async () => {
                 // Given the same submitted report, reachable by reportID, and its report preview action
                 await setUpApprovalChain();
@@ -12933,6 +12962,58 @@ describe('ReportUtils', () => {
             // Then it is discarded in favour of the store, rather than reaching the approval lookup and matching no
             // employee, which would fall through to the policy default approver and wrongly report false
             expect(result).toBe(true);
+        });
+
+        describe('reportActions', () => {
+            const submittedAction: ReportAction = {...createRandomReportAction(901), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'};
+            const forwardedAction: ReportAction = {...createRandomReportAction(902), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'};
+            const forwardedActions = {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction};
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${buildProcessingReport().reportID}` as const;
+
+            afterEach(async () => {
+                await Onyx.merge(reportActionsKey, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('should not be awaiting first level approval when the passed reportActions show a forward after the last submit', async () => {
+                // Given a report that the approval chain alone would place with its first approver
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+
+                // When the caller passes actions showing the report was forwarded after its last submit
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, forwardedActions);
+
+                // Then the report is past its first level
+                expect(result).toBe(false);
+            });
+
+            it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+                // Given Onyx says the report was forwarded after its last submit
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+                await Onyx.merge(reportActionsKey, forwardedActions);
+                await waitForBatchedUpdates();
+
+                // When the caller passes only the submit, as an array
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, [submittedAction]);
+
+                // Then the passed actions win, so the report is still awaiting its first level
+                expect(result).toBe(true);
+            });
+
+            it('should fall back to the report actions stored in Onyx when reportActions is not passed', async () => {
+                // Given Onyx says the report was forwarded after its last submit
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+                await Onyx.merge(reportActionsKey, forwardedActions);
+                await waitForBatchedUpdates();
+
+                // When a caller that has not been migrated yet omits reportActions
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL);
+
+                // Then the transitional fallback still sees the forward
+                expect(result).toBe(false);
+            });
         });
     });
 
