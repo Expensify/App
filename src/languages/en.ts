@@ -8048,6 +8048,13 @@ const translations = {
                 continue: 'Continue without members',
                 description: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
             },
+            confirmMembers: {
+                title: 'Copy members',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Are you sure you want to replace the members of ${targetWorkspaceName} with the members from this workspace?`,
+                    other: `Are you sure you want to replace the members of ${count} workspaces with the members from this workspace?`,
+                }),
+            },
             upgrade: {
                 title: 'Some features require a Control plan',
                 description: ({workspaceName, features}: {workspaceName: string; features: string}) =>

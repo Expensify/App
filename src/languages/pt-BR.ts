@@ -7545,6 +7545,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 continue: 'Continuar sem membros',
                 description: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
             },
+            confirmMembers: {
+                title: 'Copiar membros',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Tem certeza de que deseja substituir os membros de ${targetWorkspaceName} pelos membros deste espaço de trabalho?`,
+                    other: `Tem certeza de que deseja substituir os membros de ${count} espaços de trabalho pelos membros deste espaço de trabalho?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Cópia em andamento...',
                 copyInProgressDescription: 'Você pode esperar o processo terminar ou o Concierge pode avisar você quando estiver concluído.',

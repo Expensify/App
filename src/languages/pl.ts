@@ -7564,6 +7564,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 continue: 'Kontynuuj bez członków',
                 description: 'Kopiowanie przepływów pracy bez członków nie skopiuje przepływów zatwierdzania. Ustawienia przesyłania i płatności nadal zostaną skopiowane.',
             },
+            confirmMembers: {
+                title: 'Skopiuj członków',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Czy na pewno chcesz zastąpić członków ${targetWorkspaceName} członkami z tej przestrzeni roboczej?`,
+                    other: `Czy na pewno chcesz zastąpić członków ${count} przestrzeni roboczych członkami z tej przestrzeni roboczej?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Trwa kopiowanie...',
                 copyInProgressDescription: 'Możesz poczekać, aż proces się zakończy, albo Concierge może dać ci znać, kiedy będzie gotowe.',

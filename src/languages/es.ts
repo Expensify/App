@@ -7449,6 +7449,13 @@ ${amount} para ${merchant} - ${date}`,
                 continue: 'Continuar sin miembros',
                 description: 'Copiar flujos de trabajo sin miembros no copiará los flujos de aprobación. La configuración de envío y pago sí se copiará.',
             },
+            confirmMembers: {
+                title: 'Copiar miembros',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `¿Seguro que quieres reemplazar los miembros de ${targetWorkspaceName} por los miembros de este espacio de trabajo?`,
+                    other: `¿Seguro que quieres reemplazar los miembros de ${count} espacios de trabajo por los miembros de este espacio de trabajo?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Copia en curso...',
                 copyInProgressDescription: 'Puedes esperar a que el proceso termine o Concierge puede avisarte cuando esté listo.',
