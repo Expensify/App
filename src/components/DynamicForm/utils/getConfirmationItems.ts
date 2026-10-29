@@ -42,22 +42,12 @@ function getListItemRows(
     });
 }
 
-/** A boolean shown as a link the user turns on and off, such as "I don't have a social security number" */
-function isLink(field: DynamicFormField): boolean {
-    return field.type === 'boolean' && field.presentation === 'link';
-}
-
-/** The fields a link opts out of, which show only while it is off, such as the SSN and ID document behind "I don't have a social security number". A link with none is a plain yes or no answer. */
+/** The fields a link opts out of, which show only while it is off, such as the SSN and ID document behind "I don't have a social security number". Any other field, including a link with none, opts out of nothing. */
 function getOptOutFields(field: DynamicFormField, allFields: DynamicFormField[]): DynamicFormField[] {
-    if (!isLink(field)) {
+    if (field.type !== 'boolean' || field.presentation !== 'link') {
         return [];
     }
     return allFields.filter((candidate) => candidate.showWhen?.key === field.key && candidate.showWhen.equals.includes('false'));
-}
-
-/** An opt-out link that is off is not an answer worth a row, since the fields it opts out of are shown and already carry the answer */
-function isOptOutLinkOff(field: DynamicFormField, values: DynamicFormValues, allFields: DynamicFormField[]): boolean {
-    return values[field.key] !== true && getOptOutFields(field, allFields).length > 0;
 }
 
 /** The question an opt-out link that is on hides, such as the SSN, so the link's row can stand in for it */
@@ -82,7 +72,10 @@ function getConfirmationItems(
             return [];
         }
 
-        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter((field) => !isOptOutLinkOff(field, values, allFields));
+        // An opt-out link that is off has no row, since the fields it opts out of are shown and already carry the answer
+        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter(
+            (field) => values[field.key] === true || getOptOutFields(field, allFields).length === 0,
+        );
 
         if (fields.length === 0) {
             return [];
@@ -107,26 +100,14 @@ function getConfirmationItems(
                     const isEditable = !field.readonly;
                     const fieldLabel = getFieldLabel(field, translate);
                     const isMasked = isSensitiveField(field) && !!getVisibleEnding(answer);
+                    const shownAnswer = isSensitiveField(field) ? maskSensitiveValue(answer) : answer;
                     const optedOutField = getOptedOutField(field, values, allFields);
-
-                    if (optedOutField) {
-                        return [
-                            {
-                                id: field.key,
-                                description: getFieldLabel(optedOutField, translate),
-                                title: fieldLabel,
-                                shouldShowRightIcon: isEditable,
-                                onPress: isEditable ? handleEdit : noop,
-                                interactive: isEditable,
-                            },
-                        ];
-                    }
 
                     return [
                         {
                             id: field.key,
-                            description: fieldLabel,
-                            title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
+                            description: optedOutField ? getFieldLabel(optedOutField, translate) : fieldLabel,
+                            title: optedOutField ? fieldLabel : shownAnswer,
                             // Screen readers would read out each bullet of the mask
                             accessibilityLabel: isMasked ? translate('dynamicForm.maskedValueLabel', {label: fieldLabel, ending: getVisibleEnding(answer)}) : undefined,
                             shouldShowRightIcon: isEditable,
