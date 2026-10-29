@@ -3108,6 +3108,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: 'Bitte akzeptieren Sie alle Bedingungen, um fortzufahren.',
             },
         },
+        wiseSetupInProgress: {message: 'Einrichtung der globalen Rückerstattungen läuft.', continue: 'Fortfahren.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Globale Rückerstattungen einrichten?',
             subtitle: 'Zahlen Sie Mitglieder weltweit in ihrer lokalen Währung.',

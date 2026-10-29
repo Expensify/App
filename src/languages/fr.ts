@@ -3113,6 +3113,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: 'Veuillez accepter toutes les conditions pour continuer.',
             },
         },
+        wiseSetupInProgress: {message: 'Configuration des remboursements globaux en cours.', continue: 'Continuer.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Configurer les remboursements globaux ?',
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',

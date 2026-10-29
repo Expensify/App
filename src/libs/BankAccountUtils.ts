@@ -289,6 +289,29 @@ function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEnt
     return bankAccountID;
 }
 
+/**
+ * Whether the admin left the account's Wise onboarding before Submit and can continue it. Only the copy of the admin doing the setup holds the last page
+ * saved, and the onboarding opens only for an eligible account.
+ */
+function canContinueWiseOnboarding(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    const wise = bankAccount?.accountData?.additionalData?.wise;
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        !!wise?.step &&
+        !wise.status &&
+        isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)
+    );
+}
+
+/** Whether the account's Wise onboarding is submitted and Wise has not approved or rejected it yet */
+function isWiseOnboardingAwaitingDecision(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    const status = bankAccount?.accountData?.additionalData?.wise?.status;
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        (status === CONST.WISE.ONBOARDING_STATUS.IN_REVIEW || status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED)
+    );
+}
+
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -461,6 +484,8 @@ export {
     shouldSetUpGlobalReimbursementsBeforePaying,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
+    canContinueWiseOnboarding,
+    isWiseOnboardingAwaitingDecision,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

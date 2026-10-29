@@ -3076,6 +3076,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: '続行するにはすべての規約に同意してください。',
             },
         },
+        wiseSetupInProgress: {message: 'グローバル払い戻しの設定が進行中です。', continue: '続行。'},
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',
             subtitle: '世界中のメンバーに現地通貨で支払えます。',

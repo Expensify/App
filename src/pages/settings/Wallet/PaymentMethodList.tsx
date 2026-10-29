@@ -14,7 +14,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, getBankAccountState, canLinkPlaid, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {
+    canContinueWiseOnboarding,
+    canLinkPlaid,
+    getBankAccountConnectionStatus,
+    getBankAccountState,
+    isPersonalBankAccountMissingInfo,
+    isWiseOnboardingAwaitingDecision,
+} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
 import {
@@ -111,6 +118,9 @@ type PaymentMethodListProps = {
     /** Whether connection statuses and sync details should be shown */
     shouldShowConnectionStatus?: boolean;
 
+    /** Whether bank accounts with a Wise onboarding in progress show the in-progress row */
+    shouldShowWiseSetupInProgress?: boolean;
+
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
 
@@ -160,6 +170,16 @@ function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMet
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
+function getWiseSetupInProgress(paymentMethod: PaymentMethod): PaymentMethodItem['wiseSetupInProgress'] {
+    if (paymentMethod.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        return undefined;
+    }
+    const bankAccount = paymentMethod as BankAccount;
+    const bankAccountID = bankAccount.accountData?.bankAccountID;
+    const canContinue = canContinueWiseOnboarding(bankAccount);
+    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount)) ? {bankAccountID, canContinue} : undefined;
+}
+
 function keyExtractor(item: PaymentMethod | string) {
     if (typeof item === 'string') {
         return item;
@@ -176,6 +196,7 @@ function PaymentMethodList({
     addBankAccountItemStyle,
     shouldShowAssignedCards = false,
     shouldShowConnectionStatus = false,
+    shouldShowWiseSetupInProgress = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
     style = {},
@@ -648,6 +669,7 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
+                wiseSetupInProgress: shouldShowWiseSetupInProgress ? getWiseSetupInProgress(paymentMethod) : undefined,
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
                 connectionStatus: bankConnectionStatus
                     ? mapBankStatusToRowStatus(

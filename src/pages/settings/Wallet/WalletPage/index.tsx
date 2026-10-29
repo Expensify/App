@@ -38,9 +38,10 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
+import {canContinueWiseOnboarding, isBankAccountEligibleForGlobalReimbursements, isPersonalBankAccountMissingInfo, showUnlockAlreadyRequestedModal} from '@libs/BankAccountUtils';
 import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import navigateToWiseGlobalReimbursements from '@libs/Navigation/helpers/navigateToWiseGlobalReimbursements';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
@@ -532,7 +533,10 @@ function WalletPage() {
                           }
                           if (isWiseGlobalReimbursementsEnabled) {
                               closeModal(() =>
-                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
+                                  navigateToWiseGlobalReimbursements(
+                                      createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)),
+                                      canContinueWiseOnboarding(bankAccountList[paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID]),
+                                  ),
                               );
                               return;
                           }
@@ -747,6 +751,7 @@ function WalletPage() {
                                 listItemStyle={cardPaddingHorizontal}
                                 shouldShowBankAccountSections
                                 shouldShowConnectionStatus
+                                shouldShowWiseSetupInProgress={isWiseGlobalReimbursementsEnabled}
                                 threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>
