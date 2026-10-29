@@ -9,6 +9,7 @@ import type {
     ConnectBankAccountParams,
     CreateCollectOnlyDepositAccountParams,
     DeletePaymentBankAccountParams,
+    LinkPlaidToBankAccountParams,
     EnableGlobalReimbursementsForUSDBankAccountParams,
     FinishCorpayBankAccountOnboardingParams,
     OpenReimbursementAccountPageParams,
@@ -96,7 +97,8 @@ function createCollectOnlyDepositAccount(parameters: CreateCollectOnlyDepositAcc
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
-                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure')},
+                // Key 0 so a server-sent error always sorts newer than this fallback, even with device clock skew
+                value: {errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure', 0)},
             },
         ],
         finallyData: [
@@ -535,6 +537,38 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
 
     API.write(WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID, parameters, getVBBADataForOnyx());
     return true;
+}
+
+/**
+ * Link (or re-link/fix) an existing verified Business Bank Account to Plaid.
+ */
+function linkPlaidToBankAccount(bankAccountID: number, publicToken: string) {
+    const parameters: LinkPlaidToBankAccountParams = {bankAccountID, publicToken};
+
+    const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {isLoading: true, errors: null, errorFields: {[CONST.BANK_ACCOUNT.PLAID_WRONG_ACCOUNT_ERROR_FIELD]: null}}},
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.BANK_ACCOUNT_LIST,
+                value: {[bankAccountID]: {isLoading: false}},
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.LINK_PLAID_TO_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function clearLinkPlaidBankAccountErrors(bankAccountID: number) {
+    return Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        [bankAccountID]: {isLoading: false, errors: null, errorFields: {[CONST.BANK_ACCOUNT.PLAID_WRONG_ACCOUNT_ERROR_FIELD]: null}},
+    });
 }
 
 /**
@@ -2032,6 +2066,9 @@ export {
     openPlaidView,
     connectBankAccountManually,
     connectBankAccountWithPlaid,
+    clearPlaid,
+    linkPlaidToBankAccount,
+    clearLinkPlaidBankAccountErrors,
     createCorpayBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,

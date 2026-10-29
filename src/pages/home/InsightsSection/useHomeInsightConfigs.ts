@@ -1,11 +1,8 @@
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSuggestedSearches, getSuggestedSearchesVisibility, SPEND_INSIGHT_KEYS} from '@libs/SearchUIUtils';
 
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from '@pages/Insights/dashboardSpecs';
@@ -18,9 +15,6 @@ import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsGraphKey} from '@src/types/onyx';
-
-import {defaultExpensifyCardSelector} from '@selectors/Card';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 // Home only shows Spend charts, which also exist as Search menu items
 type HomeInsightGraphKey = Extract<InsightsGraphKey, SearchKey>;
@@ -59,22 +53,12 @@ function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: Insig
 
 /**
  * Builds the configs for the Home insights the current user should see, in display order.
- * With the Insights page beta, Home's supported charts use the Insights dashboard filters and visibility, otherwise the Spend menu.
+ * Home's supported charts use the Insights dashboard filters and visibility.
  */
 function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean; shouldShowRunningTotal: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
-    const {isBetaEnabled} = usePermissions();
     const {filters, isResolved: areFiltersResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
-
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
-        const {visibility, shouldShowExpensifyCard} = getSuggestedSearchesVisibility(session?.email, cardFeedsByPolicy, policies, defaultExpensifyCard, false, !!isTrackIntentUser);
-        const suggestedSearches = getSuggestedSearches(session?.accountID, (defaultCardFeed ?? defaultExpensifyCard)?.id, shouldShowExpensifyCard);
-        return {configs: SPEND_INSIGHT_KEYS.filter((key) => visibility[key]).map((key) => suggestedSearches[key]), isResolved: true, shouldShowRunningTotal: false};
-    }
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const configs = getVisibleCharts([headlineChart, ...supportingCharts], policies, filters.policyIDs, session?.email)

@@ -788,14 +788,6 @@ function getFooterSelectionFromQuery(queryJSON: SearchQueryJSON | undefined) {
     };
 }
 
-function getQueryWithoutFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return buildSearchQueryString({...queryJSON, flatFilters: queryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key))});
-}
-
-function hasFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.flatFilters.some((filter) => FOOTER_FILTER_KEYS.has(filter.key));
-}
-
 /**
  * The query the Spend footer's selections produce, built from the query the footer is showing. Only `footerTotal`
  * changes what the backend returns. The other two ride along so the selection is restored with the search.
@@ -3232,8 +3224,6 @@ export {
     getDefaultFooterCount,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
-    getQueryWithoutFooterSelections,
-    hasFooterSelections,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     isSearchDatePreset,

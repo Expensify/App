@@ -59,9 +59,6 @@
 "../../src/components/AnchorForCommentsOnly/index.tsx"	"no-restricted-syntax"	1
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"@typescript-eslint/no-deprecated/Animated.createAnimatedComponent"	1
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/components/AnimatedSubmitButton/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/refs"	4
-"../../src/components/AnimatedSubmitButton/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/components/ApprovalWorkflowSection.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
 "../../src/components/ApproverSelectionList.tsx"	"no-restricted-imports"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
@@ -1041,7 +1038,6 @@
 "../../src/pages/inbox/report/ReportActionCompose/useComposerFocus.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/useReceiptDrop.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/pages/inbox/report/ReportActionItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/inbox/report/ReportActionItem.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionItemMessageEdit.tsx"	"react-hooks/refs"	5
@@ -1687,7 +1683,6 @@
 "../../src/pages/workspace/companyCards/DynamicWorkspaceCompanyCardDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/DynamicWorkspaceCompanyCardDetailsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/companyCards/DynamicWorkspaceCompanyCardDetailsPage.tsx"	"rulesdir/no-onyx-loading-status"	2
-"../../src/pages/workspace/companyCards/WorkspaceCompanyCardAddWorkEmailPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardAddWorkEmailPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage.tsx"	"rulesdir/no-onyx-loading-status"	1
@@ -1939,7 +1934,6 @@
 "../../src/selectors/AdvancedSearchFiltersForm.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Domain.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/selectors/Policy.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/setup/moduleInitPolyfill.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/setup/telemetry/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/AddressSearch.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/stories/ButtonWithDropdownMenu.stories.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
