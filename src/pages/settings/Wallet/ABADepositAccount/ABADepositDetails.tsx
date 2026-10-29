@@ -13,13 +13,17 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {normalizeBSB} from '@libs/BankAccountUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
+import {createDepositABAAccount} from '@userActions/BankAccounts';
+import {clearErrors} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ABADepositAccountForm';
 
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 const REQUIRED_FIELDS = [INPUT_IDS.BSB_NUMBER, INPUT_IDS.ACCOUNT_NUMBER, INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME, INPUT_IDS.BILLING_ADDRESS, INPUT_IDS.CITY];
@@ -48,6 +52,11 @@ function ABADepositDetails({onBackButtonPress}: ABADepositDetailsProps) {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
+    // Clear any error left from an earlier attempt
+    useEffect(() => {
+        clearErrors(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM);
+    }, []);
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
         const bsbNumber = values[INPUT_IDS.BSB_NUMBER]?.trim();
@@ -66,6 +75,17 @@ function ABADepositDetails({onBackButtonPress}: ABADepositDetailsProps) {
         return errors;
     };
 
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM>) => {
+        createDepositABAAccount({
+            bsbNumber: normalizeBSB(values[INPUT_IDS.BSB_NUMBER]),
+            accountNumber: values[INPUT_IDS.ACCOUNT_NUMBER].trim(),
+            firstName: values[INPUT_IDS.FIRST_NAME].trim(),
+            lastName: values[INPUT_IDS.LAST_NAME].trim(),
+            billingAddress: values[INPUT_IDS.BILLING_ADDRESS].trim(),
+            city: values[INPUT_IDS.CITY].trim(),
+        });
+    };
+
     return (
         <InteractiveStepWrapper
             wrapperID="ABADepositDetails"
@@ -75,7 +95,7 @@ function ABADepositDetails({onBackButtonPress}: ABADepositDetailsProps) {
             <FormProvider
                 formID={ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM}
                 validate={validate}
-                onSubmit={() => {}}
+                onSubmit={submit}
                 submitButtonText={translate('common.next')}
                 style={styles.flexGrow1}
                 submitButtonStyles={styles.mh5}
