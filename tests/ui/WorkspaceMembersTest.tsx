@@ -701,7 +701,9 @@ describe('WorkspaceMembers', () => {
 
             expect(screen.getByLabelText(approverHeaderLabel())).toBeOnTheScreen();
 
-            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
+            const ownerRow = await screen.findByLabelText(
+                new RegExp(`^Owner User, ${TestHelper.translateLocal('common.owner')}, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`),
+            );
             expect(ownerRow).toBeOnTheScreen();
 
             const adminRow = screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
@@ -730,7 +732,9 @@ describe('WorkspaceMembers', () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
-            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`));
+            const ownerRow = await screen.findByLabelText(
+                new RegExp(`^Owner User, ${TestHelper.translateLocal('common.owner')}, ${ownerEmail}, ${TestHelper.translateLocal('common.approver')}: Admin User`),
+            );
 
             // Only the approver is mid-change, so the dim belongs to that cell. Dimming the row instead would read
             // as the whole member being mid-change, and it would come and go with the column's own layout rules.
@@ -832,7 +836,7 @@ describe('WorkspaceMembers', () => {
             expect(await screen.findByLabelText(new RegExp(`^Auditor User, ${auditorEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
 
             // The owner falls back to the default approver rather than keeping the auditor the downgrade dropped.
-            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${TestHelper.translateLocal('common.owner')}, ${ownerEmail}, ${approverLabel}: Admin User`))).toBeOnTheScreen();
 
             unmount();
         });
@@ -863,7 +867,7 @@ describe('WorkspaceMembers', () => {
             expect(screen.getByLabelText(new RegExp(`^Admin User, ${adminEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
 
             // The owner is the default approver, so they approve their own expenses and show as their own approver.
-            expect(screen.getByLabelText(new RegExp(`^Owner User, ${ownerEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
+            expect(screen.getByLabelText(new RegExp(`^Owner User, ${TestHelper.translateLocal('common.owner')}, ${ownerEmail}, ${approverLabel}: Owner User`))).toBeOnTheScreen();
 
             unmount();
         });
