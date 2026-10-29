@@ -470,7 +470,7 @@ describe('BankAccountUtils', () => {
         });
 
         it.each([CONST.CURRENCY.USD, undefined])('keeps the confirm action for a PENDING account in currency "%s"', (currency) => {
-            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING}, currency)).toEqual(
+            expect(getBankAccountConnectionStatus(accountFor(CONST.BANK_ACCOUNT.STATE.PENDING), currency)).toEqual(
                 expect.objectContaining({
                     labelKey: 'walletPage.bankAccountStatus.pending',
                     actionKey: 'common.confirm',
@@ -479,7 +479,7 @@ describe('BankAccountUtils', () => {
         });
 
         it.each(['GBP', 'EUR', 'AUD'])('maps a PENDING account in currency "%s" to Incomplete, since only USD accounts have test transactions', (currency) => {
-            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING}, currency)).toEqual({
+            expect(getBankAccountConnectionStatus(accountFor(CONST.BANK_ACCOUNT.STATE.PENDING), currency)).toEqual({
                 labelKey: 'walletPage.bankAccountStatus.incomplete',
                 messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
                 actionKey: 'walletPage.bankAccountStatus.finish',
@@ -491,12 +491,12 @@ describe('BankAccountUtils', () => {
         it.each([CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
             'is unaffected by a non-USD currency in state "%s"',
             (state) => {
-                expect(getBankAccountConnectionStatus({state}, 'GBP')).toEqual(getBankAccountConnectionStatus({state}));
+                expect(getBankAccountConnectionStatus(accountFor(state), 'GBP')).toEqual(getBankAccountConnectionStatus({state}));
             },
         );
 
-        it.each([{state: undefined}, {state: ''}, {state: 'UNKNOWN'}])('returns undefined for unsupported state "%s"', (accountData) => {
-            expect(getBankAccountConnectionStatus(accountData)).toBeUndefined();
+        it.each([undefined, '', 'UNKNOWN'])('returns undefined for unsupported state "%s"', (state) => {
+            expect(getBankAccountConnectionStatus(accountFor(state))).toBeUndefined();
         });
 
         it.each(CONST.BANK_ACCOUNT.NOC_CODE.INSUFFICIENT_FUNDS)('maps VALIDATION_FAILED with insufficient-funds code %s to the insufficient-funds Fix status', (code) => {
@@ -511,12 +511,7 @@ describe('BankAccountUtils', () => {
         });
 
         it.each(CONST.BANK_ACCOUNT.NOC_CODE.DEBIT_BLOCKED)('maps VALIDATION_FAILED with debit-blocked code %s to the debit-blocked Fix status', (code) => {
-            expect(
-                getBankAccountConnectionStatus({
-                    state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED,
-                    additionalData: {lastNocCode: code},
-                } as AccountData),
-            ).toEqual({
+            expect(getBankAccountConnectionStatus(accountFor(CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED, code))).toEqual({
                 labelKey: 'walletPage.bankAccountStatus.pending',
                 messageKey: 'walletPage.bankAccountStatus.debitBlocked',
                 actionKey: 'common.actionBadge.fix',
@@ -526,22 +521,14 @@ describe('BankAccountUtils', () => {
             });
         });
 
-        it.each([{lastNocCode: undefined}, {lastNocCode: ''}, {lastNocCode: 'R99'}])(
-            'maps VALIDATION_FAILED with unknown NOC bucket (lastNocCode: "$lastNocCode") to the Concierge fallback status',
-            ({lastNocCode}) => {
-                expect(
-                    getBankAccountConnectionStatus({
-                        state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED,
-                        additionalData: {lastNocCode},
-                    } as AccountData),
-                ).toEqual({
-                    labelKey: 'walletPage.bankAccountStatus.pending',
-                    messageKey: 'walletPage.bankAccountStatus.validationFailedFallback',
-                    tone: 'danger',
-                    brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
-                });
-            },
-        );
+        it.each([undefined, '', 'R99'])('maps VALIDATION_FAILED with unknown NOC bucket (lastNocCode: "$lastNocCode") to the Concierge fallback status', (code) => {
+            expect(getBankAccountConnectionStatus(accountFor(CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED, code))).toEqual({
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                messageKey: 'walletPage.bankAccountStatus.validationFailedFallback',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            });
+        });
 
         it('returns undefined when accountData is undefined', () => {
             expect(getBankAccountConnectionStatus(undefined)).toBeUndefined();
