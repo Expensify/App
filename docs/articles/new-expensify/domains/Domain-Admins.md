@@ -33,6 +33,8 @@ To action the request:
 
 ![Domains tab showing a green dot indicator with an admin access request]({{site.url}}/assets/images/Domain_Domain-Admins_Access-Request.png){:width="100%"}
 
+If you approve the request, the member becomes a Domain Admin and can manage the domain from their **Domains** tab. If you deny the request, the member loses access to the domain and can send a new request from the **Domain exists** page.
+
 ---
 
 ## How to remove a Domain Admin

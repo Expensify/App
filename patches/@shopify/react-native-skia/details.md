@@ -156,9 +156,9 @@
     Untransformed canvases keep the previous ratio, so nothing else changes.
     ```
 
-- Upstream PR/issue:
+- Upstream PR/issue: https://github.com/Shopify/react-native-skia/issues/4084 was closed as not a Skia bug: the maintainer considers a canvas painted under a CSS transform an app concern, and said neither https://github.com/Shopify/react-native-skia/pull/4085 (this approach) nor https://github.com/Shopify/react-native-skia/pull/4105 (an opt-in pixelDensity prop) is the way to fix it. No upstream fix is planned, so this patch has to be carried across Skia upgrades unless the charts stop being fitted with a transform.
 - E/App issue: https://github.com/Expensify/App/issues/95221
-- PR introducing patch:
+- PR introducing patch: https://github.com/Expensify/App/pull/101291
 
 ### [@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch](@shopify+react-native-skia+2.11.2+005+load-skia-web-fail-closed.patch)
 
@@ -193,3 +193,30 @@
 - Upstream PR/issue:
 - E/App issue: https://github.com/Expensify/App/issues/102042
 - PR introducing patch: https://github.com/Expensify/App/pull/102138
+
+### [@shopify+react-native-skia+2.11.2+006+redraw-texture-view-when-window-visible.patch](@shopify+react-native-skia+2.11.2+006+redraw-texture-view-when-window-visible.patch)
+
+- Reason:
+
+    ```
+    Fixes a Skia canvas going blank on Android when it lives in a Modal and the
+    app is minimized and reopened (e.g. the expanded Concierge chart).
+
+    When the activity stops, Android destroys the hardware resources of every
+    window sharing its token, Dialog windows included. For a TextureView that
+    only drops the texture layer: the SurfaceTexture is kept, so no
+    onSurfaceTextureDestroyed/Available callback reaches Skia. On restart a new
+    layer is attached to the old SurfaceTexture, but it only latches a frame once
+    a new one is queued or the view gets onVisibilityChanged(VISIBLE). Activity
+    views get the latter because ActivityThread toggles the decor view's
+    visibility. A Dialog's decor is never toggled, and a static Skia picture
+    never queues a new frame, so the canvas stays blank. iOS is unaffected
+    because a CAMetalLayer keeps its contents across backgrounding.
+
+    SkiaTextureView now redraws when its window becomes visible again, through
+    the existing size-changed path, which queues a fresh frame for the new layer.
+    ```
+
+- Upstream PR/issue: https://github.com/wcandillon/react-native-skia/issues/2135
+- E/App issue: https://github.com/Expensify/App/issues/101396
+- PR introducing patch: https://github.com/Expensify/App/pull/103398

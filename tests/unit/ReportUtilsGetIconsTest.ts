@@ -124,9 +124,6 @@ beforeAll(() => {
             ...FAKE_POLICIES,
         },
     });
-    // @ts-expect-error Until we add NVP_PRIVATE_DOMAINS to ONYXKEYS, we need to mock it here
-
-    Onyx.connect({key: ONYXKEYS.NVP_PRIVATE_DOMAINS, callback: () => {}});
 });
 
 describe('getIcons', () => {
@@ -136,12 +133,29 @@ describe('getIcons', () => {
         expect(icons).toHaveLength(1);
     });
 
+    it('should return the assigned support rep avatar for a support ticket', () => {
+        // Given a support ticket where the customer appears before the assigned support rep
+        const report: Report = {
+            ...LHNTestUtils.getFakeReport([2, 1], 0, true),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: 2,
+            managerID: 1,
+        };
+
+        // When the ticket avatar is resolved
+        const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
+
+        // Then it represents the assigned support rep
+        expect(icons).toHaveLength(1);
+        expect(icons.at(0)?.id).toBe(report.managerID);
+    });
+
     it('should return the correct icons for an expense request', () => {
         const report: Report = {
             ...LHNTestUtils.getFakeReport([1], 0, true),
             parentReportID: '3',
             parentReportActionID: '2',
-            type: CONST.REPORT.TYPE.IOU,
+            type: CONST.REPORT.TYPE.CHAT,
         };
         const policy = LHNTestUtils.getFakePolicy('1');
 

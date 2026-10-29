@@ -18,6 +18,8 @@ import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getBillableAndTaxTotal, getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isCurrentUserSubmitter} from '@libs/ReportUtils';
 import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
 
+import {resolveLayoutSpacing} from '@styles/layoutSpacing';
+
 import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
 
 import CONST from '@src/CONST';
@@ -58,6 +60,7 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {pageGutter} = resolveLayoutSpacing(shouldUseNarrowLayout);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus', 'Plus']);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -109,7 +112,7 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
     return (
         <View style={[shouldUseNarrowLayout ? styles.pb2 : styles.pb4]}>
             {showPendingExpensePlaceholder && (
-                <View style={styles.ph5}>
+                <View style={pageGutter}>
                     <SearchRowSkeleton
                         shouldAnimate
                         fixedNumItems={1}
@@ -125,7 +128,7 @@ function MoneyRequestReportListFooter({report, policy, transactions, hasPendingA
                     styles.flexRow,
                     shouldShowAddExpenseButton ? styles.justifyContentBetween : styles.justifyContentEnd,
                     styles.gap6,
-                    styles.ph5,
+                    pageGutter,
                     styles.mv2,
                     styles.alignItemsStart,
                     styles.minHeight7,

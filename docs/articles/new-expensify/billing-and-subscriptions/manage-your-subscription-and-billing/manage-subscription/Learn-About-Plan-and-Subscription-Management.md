@@ -1,8 +1,8 @@
 ---
 title: Learn About Plan and Subscription Management
 description: Learn who can change a Workspace's plan or subscription in New Expensify and the conditions that apply, including when you can and can't downgrade.
-keywords: [New Expensify, plan management, subscription management, change plan, change subscription, downgrade plan, workspace Owner, Collect, Control, Annual, Pay-per-use]
-internalScope: Audience is Workspace owners. Covers who can change a Workspace's plan or subscription and the conditions that apply. Does not cover plan features or how to change a subscription.
+keywords: [New Expensify, plan management, subscription management, change plan, change subscription, downgrade plan, workspace Owner, Workspace Admin, Collect, Control, Annual, Pay-per-use]
+internalScope: Audience is Workspace owners and Workspace Admins. Covers who can change a Workspace's plan or subscription and the conditions that apply. Does not cover plan features or how to change a subscription.
 retrievalIntent: When are Workspace plan or subscription changes allowed.
 contentType: topic
 platform: new
@@ -11,7 +11,7 @@ order: 1
 
 # Learn About Plan and Subscription Management
 
-Every paid Workspace has a plan and a subscription, and together they determine how billing is calculated. The Workspace owner can manage them, but changes may be restricted depending on your current subscription type. 
+Every paid Workspace has a plan and a subscription, and together they determine how billing is calculated. Any Workspace Admin can change the plan, and the Workspace owner manages the subscription. Changes may be restricted depending on your current subscription type. 
 
 If you're new to Expensify billing, start with [Learn How Billing and Subscriptions Work](/articles/new-expensify/billing-and-subscriptions/Learn-How-Billing-and-Subscriptions-Work).
 
@@ -19,9 +19,9 @@ If you're new to Expensify billing, start with [Learn How Billing and Subscripti
 
 ## Who can manage a plan or subscription
 
-Only the Workspace owner can manage the Workspace's plan or subscription. Each workspace has exactly one owner, whose payment card is charged for the subscription.
+Any Workspace Admin can change the Workspace's plan, including upgrading from Collect to Control and downgrading from Control to Collect.
 
-Being a Workspace Admin doesn't include plan and subscription management permissions. Admins can manage members and workspace settings, but they can't change the Workspace's plan or subscription unless they first take over ownership.
+Only the Workspace owner can manage the Workspace's subscription. Each Workspace has exactly one owner, whose payment card is charged for the subscription. Plan changes made by any Workspace Admin affect the Workspace owner's bill.
 
 To learn more, see [Learn About Billing Permissions](/articles/new-expensify/billing-and-subscriptions/Learn-About-Billing-Permissions).
 
@@ -57,7 +57,7 @@ Use these articles to complete common plan and subscription tasks:
 
 ## Can a Workspace Admin change the plan or subscription?
 
-No. Only the Workspace owner can manage the Workspace's plan or subscription. If an admin needs to make these changes, they must first become the Workspace owner. [Learn how to transfer workspace ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership).
+A Workspace Admin can change the plan, but not the subscription. Only the Workspace owner can manage the Workspace's subscription. If a Workspace Admin needs to change the subscription, they must first become the Workspace owner. [Learn how to transfer Workspace ownership](/articles/new-expensify/billing-and-subscriptions/manage-your-subscription-and-billing/manage-billing/Transfer-Workspace-Ownership).
 
 ## Why can't I switch from Control to Collect?
 

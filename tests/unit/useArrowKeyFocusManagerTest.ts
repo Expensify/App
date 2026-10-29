@@ -20,6 +20,15 @@ function pressArrowDown() {
     });
 }
 
+function pressArrowUp() {
+    act(() => {
+        if (!shortcuts.ArrowUp?.isActive) {
+            return;
+        }
+        shortcuts.ArrowUp.callback();
+    });
+}
+
 describe('useArrowKeyFocusManager', () => {
     afterEach(() => {
         for (const key of Object.keys(shortcuts)) {
@@ -173,5 +182,62 @@ describe('useArrowKeyFocusManager', () => {
         });
 
         expect(onFocusedIndexChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('moves ArrowUp past a disabled header at index 0 to -1 when cyclic traversal is off and negative indexes are allowed', () => {
+        // Given a sectioned list (header at index 0) that lets ArrowUp leave the list for the search input
+        const {result} = renderHook(() =>
+            useArrowKeyFocusManager({
+                maxIndex: 3,
+                initialFocusedIndex: 1,
+                disabledIndexes: [0],
+                disableCyclicTraversal: true,
+                allowNegativeIndexes: true,
+                isActive: true,
+            }),
+        );
+
+        // When ArrowUp is pressed on the first row
+        pressArrowUp();
+
+        // Then focus leaves the rows instead of wrapping to the last row
+        expect(result.current[0]).toBe(-1);
+
+        // When ArrowDown is pressed from the search input
+        pressArrowDown();
+
+        // Then focus returns to the first row, skipping the header
+        expect(result.current[0]).toBe(1);
+    });
+
+    it('moves ArrowUp from the first row to -1 but still wraps ArrowDown from the last row when only negative indexes are allowed', () => {
+        // Given a sectioned list (header at index 0) that lets ArrowUp leave the list but keeps cyclic traversal on
+        const {result} = renderHook(() =>
+            useArrowKeyFocusManager({
+                maxIndex: 3,
+                initialFocusedIndex: 3,
+                disabledIndexes: [0],
+                allowNegativeIndexes: true,
+                isActive: true,
+            }),
+        );
+
+        // When ArrowDown is pressed on the last row
+        pressArrowDown();
+
+        // Then focus wraps to the first row, skipping the header
+        expect(result.current[0]).toBe(1);
+
+        // When ArrowUp is pressed on the first row
+        pressArrowUp();
+
+        // Then focus leaves the rows for the search input instead of wrapping to the last row
+        expect(result.current[0]).toBe(-1);
+
+        // When ArrowDown is pressed from the search input
+        pressArrowDown();
+
+        // Then focus returns to the first row
+        expect(result.current[0]).toBe(1);
     });
 });

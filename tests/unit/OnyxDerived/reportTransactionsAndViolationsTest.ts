@@ -112,4 +112,37 @@ describe('reportTransactionsAndViolations compute', () => {
         expect(result.reportF?.transactions?.[txKey('8')]).toBeUndefined();
         expect(result.reportF?.transactions?.[txKey('9')]).toBeTruthy();
     });
+
+    it('should return the current value when the delta touches no stored transaction', () => {
+        // Given a derived value holding one transaction
+        const transactions: OnyxCollection<Transaction> = {[txKey('10')]: makeTx('10', 'reportG')};
+        const currentValue: ReportTransactionsAndViolationsDerivedValue = {reportG: {transactions: {[txKey('10')]: makeTx('10', 'reportG')}, violations: {}}};
+
+        // When a violation lands for a transaction that isn't in the collection
+        const violations: OnyxCollection<TransactionViolation[]> = {[violationsKey('unknown')]: [dupViolation]};
+        const result = reportTransactionsAndViolationsConfig.compute([transactions, violations], {
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: violations},
+            currentValue,
+        });
+
+        // Then the same object comes back, so consumers comparing by reference don't re-render
+        expect(result).toBe(currentValue);
+    });
+
+    it('should return a new object when the delta changes a stored transaction', () => {
+        // Given a derived value holding one transaction
+        const transactions: OnyxCollection<Transaction> = {[txKey('11')]: makeTx('11', 'reportH')};
+        const currentValue: ReportTransactionsAndViolationsDerivedValue = {reportH: {transactions: {[txKey('11')]: makeTx('11', 'reportH')}, violations: {}}};
+
+        // When that transaction gets a violation
+        const violations: OnyxCollection<TransactionViolation[]> = {[violationsKey('11')]: [dupViolation]};
+        const result = reportTransactionsAndViolationsConfig.compute([transactions, violations], {
+            sourceValues: {[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: violations},
+            currentValue,
+        });
+
+        // Then a new object carries the violation instead of the current value being reused
+        expect(result).not.toBe(currentValue);
+        expect(result.reportH?.violations?.[violationsKey('11')]).toHaveLength(1);
+    });
 });

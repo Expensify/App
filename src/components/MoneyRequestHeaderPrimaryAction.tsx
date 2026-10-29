@@ -10,6 +10,7 @@ import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButton
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import {markRejectViolationAsResolved} from '@libs/actions/IOU/RejectMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -18,7 +19,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction} from '@libs/ReportPrimaryActionUtils';
-import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 
@@ -103,6 +103,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                         changeMoneyRequestHoldStatus(
                             parentReportAction,
                             transaction,
+                            policy,
                             isOffline,
                             currentUserLogin ?? '',
                             accountID,

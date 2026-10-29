@@ -11,6 +11,9 @@ type ReusableDistanceRoute = {
     /** Distance of the route in the policy distance unit */
     distance: number;
 
+    /** Distance in meters of the route alternative the source expense took */
+    routeDistanceMeters?: number;
+
     /** URL of the map receipt image */
     receiptSource?: string;
 

@@ -20,11 +20,14 @@ type TimeDetailsFieldsProps = {
     /** Whether a description is required by the selected category */
     isDescriptionRequired: boolean;
 
+    /** The selected category's description hint */
+    descriptionHint: string;
+
     /** Error state surfaced into Amount */
     errorState: ErrorState;
 };
 
-function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorState}: TimeDetailsFieldsProps) {
+function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, descriptionHint, errorState}: TimeDetailsFieldsProps) {
     const {fieldVisibility, iouCurrencyCode} = useDetailsFields();
 
     return (
@@ -43,6 +46,7 @@ function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, errorS
 
             <DescriptionField
                 isDescriptionRequired={isDescriptionRequired}
+                descriptionHint={descriptionHint}
                 policy={policy}
             />
 
