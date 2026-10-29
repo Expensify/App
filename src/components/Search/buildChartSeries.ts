@@ -47,6 +47,11 @@ type ChartAverage = {
 /** What the chart is compared against, drawn as a second series */
 type ChartComparison = ChartComparedRows | ChartAverage;
 
+/** Returns whether the chart is compared against an average rather than other rows */
+function isChartAverage(comparison: ChartComparison | undefined): comparison is ChartAverage {
+    return !!comparison && 'total' in comparison;
+}
+
 /** Tooltip label of the average for each group-by */
 const AVERAGE_LABEL_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.DAY]: 'insightsPage.compare.dailyAverage',
@@ -137,7 +142,7 @@ function buildChartSeries({
     colorScheme,
 }: BuildChartSeriesParams): SearchChartModel {
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
-    const average = comparison && 'total' in comparison ? comparison : undefined;
+    const average = isChartAverage(comparison) ? comparison : undefined;
     const comparedRows = comparison && 'data' in comparison ? comparison : undefined;
     const periods = comparedRows?.periods;
     const getAmount = (item: GroupedItem) => convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD));
@@ -264,5 +269,5 @@ function buildChartSeries({
     };
 }
 
-export {buildChartSeries, getSliceColorsByDataIndex, CHART_SERIES_KEY};
+export {buildChartSeries, getSliceColorsByDataIndex, isChartAverage, CHART_SERIES_KEY};
 export type {ChartComparison, SearchChartModel};

@@ -44,6 +44,9 @@ type LineChartProps = CartesianChartProps & {
 
     /** Steps the x-axis may label points at, ascending. When set, labels stay horizontal and only every Nth point is labeled. */
     labelSteps?: readonly number[];
+
+    /** Whether a compared tooltip shows how the primary series changed against the compared one */
+    shouldShowTooltipChange?: boolean;
 };
 
 type LineChartContentProps = LineChartProps & {
@@ -53,7 +56,7 @@ type LineChartContentProps = LineChartProps & {
 
 type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps, chartWidth, fontManager}: LineChartCanvasProps) {
+function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps, shouldShowTooltipChange, chartWidth, fontManager}: LineChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -393,6 +396,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
                     onDismiss={onTooltipDismiss}
+                    shouldShowTooltipChange={shouldShowTooltipChange}
                 />
             </Animated.View>
         </GestureDetector>

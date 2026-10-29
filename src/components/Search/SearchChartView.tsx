@@ -23,7 +23,7 @@ import {View} from 'react-native';
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
 import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
-import {buildChartSeries} from './buildChartSeries';
+import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
@@ -183,6 +183,7 @@ function SearchChartView({
                     isLoading={isLoading}
                     onPointPress={onItemPress}
                     labelSteps={labelSteps}
+                    shouldShowTooltipChange={!shouldShowRunningTotal || !isChartAverage(comparison)}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                 />
