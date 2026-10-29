@@ -41,10 +41,7 @@ import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import useRulesPrefetch from './useRulesPrefetch';
 
-/**
- * Coding parts whose IDs are tied to the target's existing accounting connection.
- * When any of these are copied without "accounting", source and every target must already share the same connection (or all be unconnected).
- */
+/** Coding IDs must match the target accounting connection unless Accounting is also copied. */
 const CODING_PARTS_TIED_TO_CONNECTION = ['categories', 'tags', 'reports', 'taxes'] as const satisfies readonly Part[];
 
 const isCodingPart = (part: Part): boolean => (CODING_PARTS_TIED_TO_CONNECTION as readonly Part[]).includes(part);
@@ -53,7 +50,7 @@ type FeatureListItem = ListItem & {
     keyForList: Part;
 };
 
-/** Shares the settings and dependencies used when copying into existing or new policies. */
+/** Shares settings selection between copy and duplicate. */
 function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, targetPolicies: Array<Policy | undefined>, initialParts?: readonly Part[], isNewPolicy = false) {
     const sourcePolicyID = sourcePolicy?.id;
     const {translate} = useLocalize();
@@ -66,9 +63,7 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
     const isCodingCompatible = isNewPolicy || areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
     const isAccountingPartCompatible = isNewPolicy || areAllTargetsCompatibleForAccountingPart(sourcePolicy, targetPolicies);
 
-    // Provisioning a target for travel creates a Spotnana entity, which requires a company address.
-    // The source address only reaches a target when "overview" is also copied, so without overview a
-    // target that lacks an address can't be provisioned.
+    // Targets without an address need Overview copied before Travel can be set up.
     const sourceHasAddress = !isEmptyObject(sourcePolicy?.address);
     const hasTargetWithoutAddress = targetPolicies.some((policy) => isEmptyObject(policy?.address));
 
@@ -136,8 +131,6 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
         if (isCodingPart(part)) {
             return !isCodingCompatible;
         }
-        // Travel needs a company address on every target. When the source has no address either,
-        // copying "overview" can't supply one, so travel can never be provisioned - hard-disable it.
         if (part === 'travel') {
             return hasTargetWithoutAddress && !sourceHasAddress;
         }
@@ -168,9 +161,6 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
         effectiveSelectedFeatures.push('currency');
     }
 
-    // Travel needs every target to have a company address. The source address only reaches a target
-    // when "overview" is copied, so when a target lacks one require overview (and a source address to
-    // copy). isPartIncompatible already hard-disables the case where the source has no address.
     const isTravelAddressMismatch = (part: Part): boolean => part === 'travel' && hasTargetWithoutAddress && !(isOverviewSelected && sourceHasAddress);
 
     const shouldSelectCurrency = (part: Part): boolean => part === 'currency' && isWorkflowsSelected && currencyNeededForWorkflows && !currencyBlockedByBA;
@@ -226,7 +216,7 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
         if (part === CONST.POLICY.POLICY_FEATURE.ACCOUNTING) {
             return !isAccountingPartCompatible;
         }
-        // When accounting is selected, the connection mismatch will be resolved by the copy.
+        // Copying Accounting resolves the connection mismatch.
         if (isAccountingSelected) {
             return false;
         }

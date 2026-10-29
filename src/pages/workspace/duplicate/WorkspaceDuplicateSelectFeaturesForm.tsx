@@ -130,9 +130,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         });
     };
 
-    // When the component mounts, if there is a new avatar, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
-    // This is because until the request is saved, the avatar file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
-    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the duplication process.
+    // Refreshing loses the avatar blob, so restart the flow if it cannot be read.
     useEffect(() => {
         if (!duplicateWorkspace?.fileURI || !policyID) {
             return;

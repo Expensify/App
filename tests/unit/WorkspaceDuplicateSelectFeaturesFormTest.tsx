@@ -33,7 +33,7 @@ type CapturedSelectionListProps = {
 };
 let mockSelectionListProps: CapturedSelectionListProps | undefined;
 
-// The list itself isn't under test, so it is replaced by a stub that captures the rows, the row handler and the Continue button.
+// Capture selection and consent controls without rendering the list.
 jest.mock('@components/SelectionList', () => ({
     __esModule: true,
     default: (props: CapturedSelectionListProps) => {
@@ -65,7 +65,7 @@ jest.mock('@hooks/useConfirmModal', () => ({
     default: () => ({showConfirmModal: jest.fn(() => Promise.resolve({action: 'cancel'}))}),
 }));
 
-// The form fires openDuplicatePolicyPage on mount and duplicateWorkspace on Continue. Both are stubbed so the test can read the parts the form sends.
+// Capture requests without making API calls.
 jest.mock('@userActions/Policy/Policy', () => ({
     openDuplicatePolicyPage: jest.fn(),
     duplicateWorkspace: jest.fn(),
@@ -79,7 +79,7 @@ const MERCHANT_RULE: Rule = {
     actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}]),
 };
 
-/** A Control workspace whose only possible workspace-level rule is eReceipts, so the test decides whether the Rules row is shown. */
+/** Uses eReceipts to control whether the Rules row appears. */
 function createSourcePolicy(hasWorkspaceRules: boolean): Policy {
     return {
         ...createRandomPolicy(Number(POLICY_ID), CONST.POLICY.TYPE.CORPORATE),
@@ -138,7 +138,7 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
     });
 
     beforeEach(() => {
-        // Without a fetch mock, background requests reach the real fetch and fail in the test environment.
+        // Keep background requests local to the test.
         global.fetch = TestHelper.createGlobalFetchMock();
         mockSelectionListProps = undefined;
     });
@@ -150,28 +150,23 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
     });
 
     it('keeps Merchant rules selected independently when Rules is deselected', async () => {
-        // Given a source with workspace-level rules and a merchant rule, where every row starts selected
         await renderForm(true);
         expect(getRow('rules')?.isSelected).toBe(true);
         expect(getRow('codingRules')?.isSelected).toBe(true);
 
-        // When the admin deselects Rules and continues
         await pressRow('rules');
         pressContinue();
 
-        // Copying merchant rules does not require copying the workspace's other rules.
         expect(getRow('codingRules')?.isSelected).toBe(true);
         expect(getSentParts()).not.toContain('rules');
         expect(getSentParts()).toContain('codingRules');
     });
 
     it('selects Merchant rules without selecting Rules', async () => {
-        // Given Rules and Merchant rules were both deselected
         await renderForm(true);
         await pressRow('rules');
         await pressRow('codingRules');
 
-        // When the admin selects Merchant rules and continues
         await pressRow('codingRules');
         pressContinue();
 
@@ -182,29 +177,23 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
     });
 
     it('keeps Rules selected when only Merchant rules is deselected', async () => {
-        // Given every row starts selected
         await renderForm(true);
 
-        // When the admin deselects only Merchant rules and continues
         await pressRow('codingRules');
         pressContinue();
 
-        // Then the workspace-level rules are still copied without the merchant rules, because Rules doesn't depend on Merchant rules
         expect(getRow('rules')?.isSelected).toBe(true);
         expect(getSentParts()).toContain('rules');
         expect(getSentParts()).not.toContain('codingRules');
     });
 
     it('copies merchant rules on their own when the source has no workspace-level rules', async () => {
-        // Given a source with a merchant rule but no workspace-level rules, so the Rules row is hidden
         await renderForm(false);
         expect(getRow('rules')).toBeUndefined();
         expect(getRow('codingRules')?.isSelected).toBe(true);
 
-        // When the admin continues
         pressContinue();
 
-        // Then the merchant rules are still copied, because there is no Rules row they could depend on
         expect(getSentParts()).not.toContain('rules');
         expect(getSentParts()).toContain('codingRules');
     });

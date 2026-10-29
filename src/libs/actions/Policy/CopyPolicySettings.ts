@@ -140,21 +140,7 @@ function findCustomUnitByName(policy: Policy | undefined, unitName: string): Cus
     return Object.values(policy.customUnits).find((unit) => unit.name === unitName);
 }
 
-/**
- * Returns the customUnits patch to merge into the target policy when distanceRates and/or perDiem are
- * being copied. This mirrors what Auth's CopyPolicySettings persists: the source unit is written under
- * the target's existing unit ID, and each source rate keeps the target's rate ID when the target
- * already has a rate of the same name.
- *
- * Units and rates the target doesn't have yet are left out. Auth mints their IDs and pushes them to
- * Onyx as a merge, so optimistically inventing a different ID would leave the same unit or rate on
- * screen twice once the server push lands.
- *
- * Skipping the optimistic update for those new rates is fine because the copy runs behind a blocking
- * modal, so nothing is on screen waiting for them. Showing them optimistically would require sending
- * an optimisticRateIDs parameter and having Auth use those IDs instead of minting its own, which we
- * can add later if we need it.
- */
+/** Reuses existing unit/rate IDs; new IDs come from Auth to avoid duplicate rates after its push. */
 function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDistanceSelected: boolean, isPerDiemSelected: boolean): {customUnits: Record<string, CustomUnit>} | undefined {
     const unitNames = [...(isDistanceSelected ? [CONST.CUSTOM_UNITS.NAME_DISTANCE] : []), ...(isPerDiemSelected ? [CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL] : [])];
     const patch: Record<string, CustomUnit> = {};
@@ -233,23 +219,12 @@ function buildTimeTrackingPatch(sourcePolicy: Policy): Pick<Policy, 'units'> | u
     return {units: {time: sourceTime}};
 }
 
-/**
- * Returns the travelSettings patch to merge onto the target when travel is copied. Only the
- * non-identity autoAddTripName preference is transferred; the target keeps its own Spotnana
- * identity fields (spotnanaCompanyID/associatedTravelDomainAccountID) and hasAcceptedTerms, which
- * the backend re-provisions per target. Mirrors Auth's autoAddTripName-only copy. Spreading the
- * target's existing travelSettings (like setWorkspaceTravelSettings) means a target that is not yet
- * provisioned gets only {autoAddTripName} with no fabricated identity fields, so it is not treated
- * as provisioned.
- */
+/** Copies Travel preferences while preserving the target's own identity and consent. */
 function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'travelSettings'> | undefined {
     if (!sourcePolicy.isTravelEnabled) {
         return undefined;
     }
 
-    // A target that is not yet provisioned has no travelSettings, so the spread yields just
-    // {autoAddTripName}. The Spotnana identity fields are optional (populated by the backend at
-    // provision time), so leaving them out here keeps the target from looking provisioned.
     return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourcePolicy.travelSettings?.autoAddTripName ?? true}};
 }
 

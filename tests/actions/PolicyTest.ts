@@ -627,7 +627,6 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // When these parts are disabled, the corresponding policy settings should be false
             expect(policy?.areWorkflowsEnabled).toBe(false);
             expect(policy?.areDistanceRatesEnabled).toBe(false);
             expect(policy?.areInvoicesEnabled).toBe(false);
@@ -660,8 +659,7 @@ describe('actions/Policy', () => {
                 filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
                 actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}),
             };
-            // The copies are optimistic only - they are dropped once the server responds with its own rule IDs,
-            // so the request stays paused while they are asserted.
+            // Keep optimistic rules visible until assertions finish.
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
@@ -705,8 +703,6 @@ describe('actions/Policy', () => {
             expect(policy?.receiptPartners?.uber?.organizationID).toBe('source-org');
             expect(policy?.invoice).toEqual({markUp: 20});
 
-            // Merchant rules are copied into the rules collection as new rules scoped to the duplicate,
-            // rather than onto the duplicated policy object.
             const duplicatedRules = Object.values((await getRulesCollection()) ?? {}).filter((rule) => rule?.scopeID === policyID);
             expect(duplicatedRules).toHaveLength(1);
             expect(duplicatedRules.at(0)).toMatchObject({
@@ -723,7 +719,6 @@ describe('actions/Policy', () => {
         });
 
         it('duplicate workspace without the rules and codingRules options copies no merchant rules', async () => {
-            // Given a source workspace with a merchant rule
             const fakePolicy = createRandomPolicy(16, CONST.POLICY.TYPE.CORPORATE);
             const sourceRule: Rule = {
                 scope: CONST.RULES.SCOPE.POLICY,
@@ -739,7 +734,6 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
 
-            // When the workspace is duplicated with both the Rules and Merchant rules options unselected
             Policy.duplicateWorkspace(fakePolicy, {
                 currentUserAccountID: ESH_ACCOUNT_ID,
                 currentUserEmail: ESH_EMAIL,
@@ -754,7 +748,6 @@ describe('actions/Policy', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then no merchant rule is scoped to the duplicate and the Rules feature stays off, because the admin chose not to copy either
             const duplicatedRules = Object.values((await getRulesCollection()) ?? {}).filter((rule) => rule?.scopeID === policyID);
             expect(duplicatedRules).toHaveLength(0);
             const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -927,7 +920,6 @@ describe('actions/Policy', () => {
         });
 
         it('duplicate workspace with distance rates gives every rate a new ID and sends the map to the server', async () => {
-            // Given source rates whose IDs must be replaced by the Auth copy flow.
             const apiWriteSpy = jest.spyOn(APIModule, 'write');
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
 
@@ -966,10 +958,9 @@ describe('actions/Policy', () => {
                 personalDetailsByLogins: {},
             };
 
-            // Pause the API call so successData (which clears the optimistic source rate IDs) does not
-            // run yet — this lets us inspect the optimistic state the user sees offline.
+            // Inspect optimistic rates before the server response.
             mockFetch.pause();
-            // When duplication queues the request, it must use the command that accepts Auth part names.
+
             const params = Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
@@ -983,7 +974,6 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Then the request uses the new endpoint and the same rate IDs as the optimistic policy.
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'DuplicatePolicyWithSettings',
                 expect.objectContaining({parts: JSON.stringify(['distanceRates']), optimisticRateIDs: params.optimisticRateIDs}),
@@ -994,9 +984,9 @@ describe('actions/Policy', () => {
             if (!distanceUnit) {
                 throw new Error('Expected duplicated distance unit');
             }
-            // The duplicated unit's customUnitID should differ from the source's (fresh ID).
+
             expect(distanceUnit.customUnitID).not.toBe(sourceDistanceUnitID);
-            // Both rates are copied under new IDs, and the server gets the same IDs keyed by source rate ID.
+
             const rates = Object.values(distanceUnit.rates);
             const newDefaultRateID = rates.find((rate) => rate.name === 'Default Rate')?.customUnitRateID;
             const newExtraRateID = rates.find((rate) => rate.name === 'Extra Rate')?.customUnitRateID;
@@ -1005,9 +995,6 @@ describe('actions/Policy', () => {
             expect(newExtraRateID).not.toBe(sourceExtraRateID);
             expect(JSON.parse(params.optimisticRateIDs)).toEqual({[sourceDefaultRateID]: newDefaultRateID, [sourceExtraRateID]: newExtraRateID});
 
-            // Resume the mocked fetch so the API call resolves; the duplicated workspace's optimistic
-            // rates remain visible until a Pusher response (not mocked here) repopulates them with
-            // the server's rate set, which uses the IDs sent in optimisticRateIDs.
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
             apiWriteSpy.mockRestore();

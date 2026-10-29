@@ -3519,7 +3519,7 @@ function buildOptimisticDuplicatePolicy(
         optimisticRateIDs,
     } = policyOptions;
 
-    // Start with creation defaults so unselected settings and source provisioning identities stay out of the duplicate.
+    // Start with defaults so unselected settings and source identities are not copied.
     return {
         id: targetPolicyID,
         name: policyName,
@@ -3593,7 +3593,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
     const distanceCustomUnitID = generateCustomUnitID();
     const perDiemCustomUnitID = generateCustomUnitID();
 
-    // Every copied rate gets a new ID, so the duplicate never shares a rate ID with its source.
+    // Use fresh rate IDs to keep the duplicate separate from its source.
     const optimisticRateIDs: Record<string, string> = {};
     const copiedUnits = [
         parts.includes('distanceRates') ? PolicyUtils.getDistanceRateCustomUnit(policy) : undefined,
@@ -3840,7 +3840,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
 
     optimisticData.push(...(defaultOptimisticCategoriesData.optimisticData ?? []), ...copyData.optimisticData);
     successData.push(...(defaultOptimisticCategoriesData.successData ?? []), ...copyData.successData);
-    // Creation rollback must run after the shared settings rollback so the failed policy keeps its creation error.
+    // Restore settings first so the creation error is preserved.
     failureData.unshift(...copyData.failureData);
     failureData.push(...(defaultOptimisticCategoriesData.failureData ?? []));
 
