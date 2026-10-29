@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
-index f7fc390..a6ac9d2 100644
+index a8040aa..00c5a27 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
 @@ -3,6 +3,7 @@ package com.swmansion.rnscreens.gamma.tabs.appearance
@@ -10,7 +10,7 @@ index f7fc390..a6ac9d2 100644
  import android.graphics.Typeface
  import android.graphics.drawable.StateListDrawable
  import android.util.TypedValue
-@@ -162,7 +163,7 @@ internal class TabsAppearanceApplicator(
+@@ -160,7 +161,7 @@ internal class TabsAppearanceApplicator(
              // Bold is set here rather than with `setItemTextAppearanceActiveBoldEnabled`, which re-applies Material's text size
              // to this label alone, so Material lifts the selected item by the size difference between the two labels.
              largeLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, largeFontSize)
@@ -19,7 +19,7 @@ index f7fc390..a6ac9d2 100644
              largeLabel.letterSpacing = 0f
          }
      }
-@@ -170,13 +171,16 @@ internal class TabsAppearanceApplicator(
+@@ -168,13 +169,16 @@ internal class TabsAppearanceApplicator(
      fun updateMenuItemAppearance(
          menuItem: MenuItem,
          tabsScreen: TabsScreen,
@@ -51,7 +51,7 @@ index d827309..c59fcb4 100644
      }
  }
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
-index b98825c..5c2dbb5 100644
+index b98825c..aa8e895 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
 @@ -3,6 +3,8 @@ package com.swmansion.rnscreens.gamma.tabs.container
@@ -75,7 +75,7 @@ index b98825c..5c2dbb5 100644
       */
      private var isInExternalOperationContext: Boolean = false
  
-+    /** The tab the selection was hidden on, until its active indicator stops fading out after a switch. */
++    /** The tab the selection was hidden on, until it is selected again. */
 +    private var hiddenSelectionMenuItemId: Int? = null
 +
      private var fragmentManager: FragmentManager? = null
@@ -94,18 +94,18 @@ index b98825c..5c2dbb5 100644
  
 +    /**
 +     * The shared active indicator color comes from the selected tab, so the tab the selection was hidden on would fade
-+     * its indicator out in the color of the tab the user switched to. It keeps a transparent indicator until then.
++     * its indicator out in the color of the tab the user switched to. It keeps a transparent indicator until it is
++     * selected again. Every appearance update replaces all indicators with the shared color, so this runs after each one.
 +     */
++    @SuppressLint("RestrictedApi")
 +    private fun hideActiveIndicatorOfHiddenSelectionTab() {
 +        val menuItemId = hiddenSelectionMenuItemId ?: return
-+        hiddenSelectionMenuItemId = null
 +        if (menuItemId == bottomNavigationView.selectedItemId) {
++            hiddenSelectionMenuItemId = null
 +            return
 +        }
-+        val itemView = bottomNavigationView.findViewById<NavigationBarItemView>(menuItemId) ?: return
++        val itemView = bottomNavigationView.findViewById<View>(menuItemId) as? NavigationBarItemView ?: return
 +        itemView.setActiveIndicatorDrawable(ColorDrawable(Color.TRANSPARENT))
-+        // Setting the shared color again gives every tab its regular indicator back.
-+        postDelayed({ bottomNavigationView.itemActiveIndicatorColor = bottomNavigationView.itemActiveIndicatorColor }, HIDDEN_SELECTION_FADE_OUT_MS)
 +    }
 +
      private fun updateNavigationStateAndSelectedFragment(
@@ -122,16 +122,6 @@ index b98825c..5c2dbb5 100644
          if (stateChanged && !isRepeated) {
              // If we've effectively changed the tab, we need to raise appropriate flags.
              // This line assumes that any required e.g. appearance actions will be performed
-@@ -783,6 +810,9 @@ class TabsContainer internal constructor(
- 
-     companion object {
-         const val TAG = "TabsContainer"
-+
-+        // Longer than Material's active indicator animation (motionDurationLong2).
-+        private const val HIDDEN_SELECTION_FADE_OUT_MS = 1000L
-     }
- }
- 
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
 index d76842a..bc62e29 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
