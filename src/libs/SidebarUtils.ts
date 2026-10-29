@@ -6,6 +6,7 @@ import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    BankAccountList,
     Card,
     GuideAccountIDsDerivedValue,
     PersonalDetails,
@@ -13,12 +14,13 @@ import type {
     PolicyTagLists,
     ReportActions,
     ReportAttributesDerivedValue,
+    ReportMetadata,
     ReportNameValuePairs,
     Transaction,
     TransactionViolation,
     VisibleReportActionsDerivedValue,
 } from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportNamesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
@@ -219,7 +221,6 @@ function shouldDisplayReportInLHN({
         (isPublicRoom(report) && isAnonymousUser()) ||
         isSystemChat ||
         !!report.isPinned ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         requiresAttention ||
         (report.isOwnPolicyExpenseChat && !isReportArchived);
 
@@ -442,7 +443,6 @@ function updateReportsToDisplayInLHN({
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const isUnreadReport = getIsUnreadReportForInboxTab(report, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
             const existingEntry = displayedReports[reportID];
 
@@ -764,6 +764,10 @@ function getOptionData({
     isTrackIntentUser,
     formatPhoneNumber,
     rules,
+    bankAccountList,
+    reportMetadata: reportMetadataParam,
+    hasPendingJoinRequest,
+    lastActionTransaction,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -788,12 +792,24 @@ function getOptionData({
     movedToReport?: OnyxEntry<Report>;
     currentUserAccountID: number;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+    reportAttributesDerived?: ReportNamesDerivedValue;
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     rules: OnyxCollection<Rule>;
+
+    /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
+    bankAccountList?: OnyxEntry<BankAccountList>;
+
+    /** The report's metadata. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+
+    /** Whether the report has a pending join request. Pass it from a subscription for the same reason as `reportMetadata`. */
+    hasPendingJoinRequest?: boolean;
+
+    /** The transaction of `lastAction`. Pass it from a subscription for the same reason as `reportMetadata`. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -834,8 +850,8 @@ function getOptionData({
         isDeletedParentAction: false,
         isConciergeChat: false,
     };
-    const reportMetadata = getReportMetadata(report?.reportID);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report);
+    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
     const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
 
@@ -868,9 +884,8 @@ function getOptionData({
     result.policyID = report.policyID;
     result.stateNum = report.stateNum;
     result.statusNum = report.statusNum;
-    // When the only message of a report is deleted lastVisibleActionCreated is not reset leading to wrongly
-    // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.isEmpty) && !!report.lastActorAccountID;
+    // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted is already excluded here.
+    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.isEmpty);
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -947,11 +962,13 @@ function getOptionData({
         convertToDisplayString,
         convertToDisplayStringWithoutCurrency,
         rules,
+        bankAccountList,
+        lastActionTransaction,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
-    if (isJoinRequestInAdminRoom(report, currentUserLogin)) {
+    if (isJoinRequestInAdminRoom(report, currentUserLogin, hasPendingJoinRequest)) {
         result.isUnread = true;
     }
 
@@ -974,7 +991,6 @@ function getOptionData({
             rawReportName: report.reportName,
             hasDerivedEntry: !!derivedEntry,
             derivedReportName: derivedEntry?.reportName,
-            derivedCount: reportAttributesDerived ? Object.keys(reportAttributesDerived).length : 0,
         });
     }
 
@@ -1022,13 +1038,8 @@ function getOptionData({
  * Computed once while building the LHN report set (which is cached/incremental) so the tab filter only reads a flag.
  */
 function getIsUnreadReportForInboxTab(report: Report, isReportArchived: boolean, derivedIsEmptyReport: boolean | undefined): boolean {
-    // The `lastActorAccountID` guard matches getOptionData: it keeps chats whose only visible message was
-    // deleted out of the Unread tab even though isUnread() can still be true (lastVisibleActionCreated isn't reset).
-    return (
-        isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) &&
-        !!report.lastActorAccountID &&
-        getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
-    );
+    // isUnread() gates on isEmptyReport, so a chat whose only visible message was deleted never reaches this tab.
+    return isUnread(report, undefined, isReportArchived, derivedIsEmptyReport) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE;
 }
 
 /** Whether a report belongs in the "To-do" Inbox tab: it has an outstanding GBR (requiresAttention) or RBR (errors). */

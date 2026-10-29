@@ -1,10 +1,12 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type CapturedPhoto from '@libs/cameraCapture/types';
+
 import usePhotoUpgrade from '@pages/iou/request/step/IOURequestStepScan/hooks/usePhotoUpgrade';
 
 import CONST from '@src/CONST';
 
-import type {Camera, Orientation, PhotoFile} from 'react-native-vision-camera';
+import type {CameraPhotoOutput} from 'react-native-vision-camera';
 
 const mockReplace = jest.fn<Promise<string>, [string, string, (() => boolean) | undefined]>();
 const mockDiscard = jest.fn<Promise<void>, [string]>();
@@ -39,14 +41,16 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
     getSpan: (spanId: string) => mockGetSpan(spanId),
 }));
 
-const mockRotate = jest.fn<Promise<string | undefined>, [string, Orientation | undefined]>();
+const mockRotate = jest.fn<Promise<string | undefined>, [string]>();
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/utils/rotatePhotoToUpright', () => ({
     __esModule: true,
-    default: (path: string, orientation?: Orientation) => mockRotate(path, orientation),
+    default: (path: string) => mockRotate(path),
 }));
 
-jest.mock('react-native-fs', () => ({TemporaryDirectoryPath: '/tmp'}));
+jest.mock('@libs/cameraCapture', () => ({
+    capturePhotoToPath: (photoOutput: {capture: () => Promise<CapturedPhoto>}) => photoOutput.capture(),
+}));
 
 const UPGRADE_SPAN_ID = `${CONST.TELEMETRY.SPAN_RECEIPT_UPGRADE}_receipt_1234.jpg`;
 const DURABLE_NAME = 'receipt_1234.jpg';
@@ -55,26 +59,23 @@ const UPRIGHT_PATH = '/tmp/ImageManipulator/upright.jpg';
 const PHOTO_CAPTURE_TIMEOUT_MS = 3000;
 const ROTATE_TIMEOUT_MS = 5000;
 
-function buildPhoto(path = PHOTO_PATH): PhotoFile {
-    // A portrait capture off a landscape sensor reports `landscape-left`, per VisionCamera's own docs.
-    return {path, width: 1920, height: 1440, isRawPhoto: false, orientation: 'landscape-left', isMirrored: false};
+function buildPhoto(path = PHOTO_PATH): CapturedPhoto {
+    return {path, width: 1920, height: 1440};
 }
 
-/** A camera whose captures the test resolves or rejects on demand, in the order they were started. */
-function buildCamera() {
-    const started: Array<{resolve: (photo: PhotoFile) => void; reject: (error: Error) => void}> = [];
-    const takePhoto = jest.fn(
+function buildPhotoOutput() {
+    const started: Array<{resolve: (photo: CapturedPhoto) => void; reject: (error: Error) => void}> = [];
+    const capturePhoto = jest.fn(
         () =>
-            new Promise<PhotoFile>((resolve, reject) => {
+            new Promise<CapturedPhoto>((resolve, reject) => {
                 started.push({resolve, reject});
             }),
     );
 
     return {
-        // The hook only ever calls `takePhoto`, so a stub of the one method is all the test needs.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        camera: {takePhoto} as unknown as Camera,
-        takePhoto,
+        photoOutput: {capture: capturePhoto} as unknown as CameraPhotoOutput,
+        capturePhoto,
         landPhoto: async (photo = buildPhoto(), index = 0) => {
             await act(async () => {
                 started.at(index)?.resolve(photo);
@@ -104,13 +105,13 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('holds the camera session open from the shutter until the photo lands', async () => {
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         expect(result.current.hasPendingPhotoCapture).toBe(false);
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         expect(result.current.hasPendingPhotoCapture).toBe(true);
 
@@ -119,11 +120,11 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('swaps the upright photo onto the receipt and cleans up the file it rotated from', async () => {
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -131,7 +132,7 @@ describe('usePhotoUpgrade', () => {
         await landPhoto();
 
         // The hold the photo was taken in decides which way it is turned, so it has to be passed along.
-        expect(mockRotate).toHaveBeenCalledWith(PHOTO_PATH, 'landscape-left');
+        expect(mockRotate).toHaveBeenCalledWith(PHOTO_PATH);
         expect(mockReplace).toHaveBeenCalledWith(DURABLE_NAME, UPRIGHT_PATH, expect.any(Function));
         expect(mockDiscard).toHaveBeenCalledWith(PHOTO_PATH);
         // Only a receipt whose bytes really changed gets a new version, which is what makes a view reload it.
@@ -142,11 +143,11 @@ describe('usePhotoUpgrade', () => {
 
     it('swaps the photo as captured when it needs no rotation, leaving nothing to clean up', async () => {
         mockRotate.mockResolvedValue(undefined);
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -158,11 +159,11 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('keeps the snapshot and releases the session when the photo misses the deadline', async () => {
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -186,11 +187,11 @@ describe('usePhotoUpgrade', () => {
 
     it('leaves the receipt alone once an upload has claimed it', async () => {
         mockWasClaimed.mockReturnValue(true);
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -206,11 +207,11 @@ describe('usePhotoUpgrade', () => {
 
     it('keeps the snapshot when the rotate never settles, rather than holding the upgrade open', async () => {
         mockRotate.mockReturnValue(new Promise<string>(() => {}));
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -235,11 +236,11 @@ describe('usePhotoUpgrade', () => {
                 landRotate = resolve;
             }),
         );
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -261,11 +262,11 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('hands the swap a guard that still reports a claim made after the swap began', async () => {
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -285,11 +286,11 @@ describe('usePhotoUpgrade', () => {
     it('records a swap that backed out for an upload as claimed rather than failed', async () => {
         mockReplace.mockRejectedValue(new Error('a reader stopped waiting'));
         mockWasClaimed.mockReturnValue(false);
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -305,11 +306,11 @@ describe('usePhotoUpgrade', () => {
 
     it('deletes the rotated copy when the swap fails, so failed upgrades do not pile up', async () => {
         mockReplace.mockRejectedValue(new Error('no space left on device'));
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -321,11 +322,11 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('keeps the snapshot when the capture itself fails', async () => {
-        const {camera, failCapture} = buildCamera();
+        const {photoOutput, failCapture} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -340,11 +341,11 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('deletes the photo when the receipt it was meant for never arrived', async () => {
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.discardPendingPhoto();
@@ -356,20 +357,20 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('deletes the photo of a capture the next shutter replaced before it was claimed', async () => {
-        const {camera, takePhoto, landPhoto} = buildCamera();
+        const {photoOutput, capturePhoto, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         // Two shutters, and the first was never handed a receipt — so nothing else will clean up after it.
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
 
         // The second shutter replaces the first capture without starting one of its own, since the camera
         // is still busy with it.
-        expect(takePhoto).toHaveBeenCalledTimes(1);
+        expect(capturePhoto).toHaveBeenCalledTimes(1);
 
         // The abandoned photo still lands, and is still deleted, even though nothing replaced it.
         await landPhoto(buildPhoto('/tmp/orphaned.jpg'), 0);
@@ -378,11 +379,11 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('deletes an unclaimed photo when the scan screen goes away', async () => {
-        const {camera, landPhoto} = buildCamera();
+        const {photoOutput, landPhoto} = buildPhotoOutput();
         const {result, unmount} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         unmount();
 
@@ -392,11 +393,11 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('does not start a second photo over one the camera is still taking, since the next snapshot pays for it', async () => {
-        const {camera, takePhoto, landPhoto} = buildCamera();
+        const {photoOutput, capturePhoto, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -405,9 +406,9 @@ describe('usePhotoUpgrade', () => {
         // The user came back to the camera and shot again before the first photo landed. Starting a
         // second capture here is what made a later `takeSnapshot` take seconds on device.
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
-        expect(takePhoto).toHaveBeenCalledTimes(1);
+        expect(capturePhoto).toHaveBeenCalledTimes(1);
 
         // The receipt this shutter produced keeps its snapshot rather than waiting on a contended camera.
         act(() => {
@@ -419,11 +420,11 @@ describe('usePhotoUpgrade', () => {
     });
 
     it('takes a photo again once the camera has finished the previous one', async () => {
-        const {camera, takePhoto, landPhoto} = buildCamera();
+        const {photoOutput, capturePhoto, landPhoto} = buildPhotoOutput();
         const {result} = renderHook(() => usePhotoUpgrade());
 
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
         act(() => {
             result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -432,9 +433,9 @@ describe('usePhotoUpgrade', () => {
 
         // The camera is free, so the guard lets the next shutter upgrade as normal.
         act(() => {
-            result.current.startPhotoCapture(camera);
+            result.current.startPhotoCapture(photoOutput);
         });
-        expect(takePhoto).toHaveBeenCalledTimes(2);
+        expect(capturePhoto).toHaveBeenCalledTimes(2);
     });
     describe('telemetry', () => {
         /** The outcome of the last ended upgrade span, which is what a dashboard groups by. */
@@ -444,11 +445,11 @@ describe('usePhotoUpgrade', () => {
         }
 
         it('reports an upgrade that landed, with the resolution it won', async () => {
-            const {camera, landPhoto} = buildCamera();
+            const {photoOutput, landPhoto} = buildPhotoOutput();
             const {result} = renderHook(() => usePhotoUpgrade());
 
             act(() => {
-                result.current.startPhotoCapture(camera);
+                result.current.startPhotoCapture(photoOutput);
             });
             act(() => {
                 result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -469,11 +470,11 @@ describe('usePhotoUpgrade', () => {
         });
 
         it('separates a capture that missed its deadline from one that failed', async () => {
-            const {camera, failCapture} = buildCamera();
+            const {photoOutput, failCapture} = buildPhotoOutput();
             const {result} = renderHook(() => usePhotoUpgrade());
 
             act(() => {
-                result.current.startPhotoCapture(camera);
+                result.current.startPhotoCapture(photoOutput);
             });
             act(() => {
                 result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -485,10 +486,10 @@ describe('usePhotoUpgrade', () => {
             expect(readOutcome().attributes).toEqual({[CONST.TELEMETRY.ATTRIBUTE_UPGRADE_OUTCOME]: CONST.TELEMETRY.UPGRADE_OUTCOME.CAPTURE_TIMED_OUT});
 
             mockEndSpanWithAttributes.mockClear();
-            const second = buildCamera();
+            const second = buildPhotoOutput();
             const {result: secondResult} = renderHook(() => usePhotoUpgrade());
             act(() => {
-                secondResult.current.startPhotoCapture(second.camera);
+                secondResult.current.startPhotoCapture(second.photoOutput);
             });
             act(() => {
                 secondResult.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -500,11 +501,11 @@ describe('usePhotoUpgrade', () => {
         });
 
         it('reports a receipt an upload claimed, which is a backed-out swap rather than a failure', async () => {
-            const {camera, landPhoto} = buildCamera();
+            const {photoOutput, landPhoto} = buildPhotoOutput();
             const {result} = renderHook(() => usePhotoUpgrade());
 
             act(() => {
-                result.current.startPhotoCapture(camera);
+                result.current.startPhotoCapture(photoOutput);
             });
             act(() => {
                 result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -516,12 +517,12 @@ describe('usePhotoUpgrade', () => {
         });
 
         it('reports a rotate that never settled, the one failure seen repeatedly on device', async () => {
-            const {camera, landPhoto} = buildCamera();
+            const {photoOutput, landPhoto} = buildPhotoOutput();
             const {result} = renderHook(() => usePhotoUpgrade());
             mockRotate.mockReturnValue(new Promise(() => {}));
 
             act(() => {
-                result.current.startPhotoCapture(camera);
+                result.current.startPhotoCapture(photoOutput);
             });
             act(() => {
                 result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -536,13 +537,13 @@ describe('usePhotoUpgrade', () => {
 
         it('reports a rotate that failed outright apart from the swap, so the outcomes stay comparable', async () => {
             // Given a rotate that rejects before the swap starts, e.g. the photo size cannot be read
-            const {camera, landPhoto} = buildCamera();
+            const {photoOutput, landPhoto} = buildPhotoOutput();
             const {result} = renderHook(() => usePhotoUpgrade());
             mockRotate.mockRejectedValue(new Error('could not read the image size'));
 
             // When the photo lands and the upgrade runs
             act(() => {
-                result.current.startPhotoCapture(camera);
+                result.current.startPhotoCapture(photoOutput);
             });
             act(() => {
                 result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -555,11 +556,11 @@ describe('usePhotoUpgrade', () => {
         });
 
         it('marks the attempt on the capture span, so a lost outcome is still countable', () => {
-            const {camera} = buildCamera();
+            const {photoOutput} = buildPhotoOutput();
             const {result} = renderHook(() => usePhotoUpgrade());
 
             act(() => {
-                result.current.startPhotoCapture(camera);
+                result.current.startPhotoCapture(photoOutput);
             });
 
             // The capture span ends in milliseconds, so it survives the background that would cancel the
@@ -569,7 +570,7 @@ describe('usePhotoUpgrade', () => {
         });
 
         it('reports one outcome per upgrade, even when the swap rejects after it already reported', async () => {
-            const {camera, landPhoto} = buildCamera();
+            const {photoOutput, landPhoto} = buildPhotoOutput();
             const {result} = renderHook(() => usePhotoUpgrade());
             // `recordUpgrade` runs in the same `then` as the reported outcome, so throwing there is what
             // actually reaches the outer catch. A rejected `discard` would not: `discardPhoto` swallows it.
@@ -580,7 +581,7 @@ describe('usePhotoUpgrade', () => {
             });
 
             act(() => {
-                result.current.startPhotoCapture(camera);
+                result.current.startPhotoCapture(photoOutput);
             });
             act(() => {
                 result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
@@ -599,18 +600,18 @@ describe('usePhotoUpgrade', () => {
         });
 
         it('records a shutter that skipped the upgrade on the capture span, since no receipt exists yet', () => {
-            const {camera} = buildCamera();
+            const {photoOutput} = buildPhotoOutput();
             const {result} = renderHook(() => usePhotoUpgrade());
 
             act(() => {
-                result.current.startPhotoCapture(camera);
+                result.current.startPhotoCapture(photoOutput);
             });
             act(() => {
                 result.current.upgradeReceiptWithPhoto(DURABLE_NAME);
             });
             // The first capture is still running, so this shutter keeps its snapshot.
             act(() => {
-                result.current.startPhotoCapture(camera);
+                result.current.startPhotoCapture(photoOutput);
             });
 
             expect(mockGetSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);

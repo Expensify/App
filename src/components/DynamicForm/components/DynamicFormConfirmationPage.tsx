@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 
 /** The last page of a dynamic form flow: every answer as a row the user can tap to edit, and a Confirm button */
-function DynamicFormConfirmationPage({isEditing, onNext, onMove, pages, allFields, values, confirmationTitle, isSubmitting, submitError}: DynamicFormSubPageProps) {
+function DynamicFormConfirmationPage({isEditing, onNext, onMove, pages, allFields, values, confirmationTitle, isSubmitting, submitError, onOpenListItemEditor}: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
 
     return (
@@ -19,10 +19,12 @@ function DynamicFormConfirmationPage({isEditing, onNext, onMove, pages, allField
             onNext={() => onNext()}
             onMove={onMove}
             pageTitle={confirmationTitle}
-            groups={getConfirmationItems(pages, allFields, values, translate, onMove)}
+            groups={getConfirmationItems(pages, allFields, values, translate, onMove, onOpenListItemEditor)}
             showOnfidoLinks={false}
             isLoading={isSubmitting}
             error={submitError}
+            shouldMarkTitleAsHeading
+            shouldAnnounceSubmitState
             forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );

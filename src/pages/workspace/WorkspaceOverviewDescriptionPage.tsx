@@ -9,6 +9,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
+import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,7 +22,7 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 
 import type {WithPolicyProps} from './withPolicy';
@@ -36,37 +37,31 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
     const {translate} = useLocalize();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const isInputInitializedRef = useRef(false);
-    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription')));
+    const reportIDToName = useReportIDToNameMap();
+    const [description, setDescription] = useState(() => Parser.htmlToMarkdown(policy?.description ?? translate('workspace.common.defaultDescription'), {reportIDToName}));
 
     /**
-     * @param {Object} values - form input values passed by the Form component
-     * @returns {Boolean}
+     * @param values - form input values passed by the Form component
      */
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
-            const errors = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
+        const errors = {};
 
-            if (values.description.length > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', values.description.length, CONST.DESCRIPTION_LIMIT));
-            }
+        if (values.description.length > CONST.DESCRIPTION_LIMIT) {
+            addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', values.description.length, CONST.DESCRIPTION_LIMIT));
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
-            if (!policy || policy.isPolicyUpdating) {
-                return;
-            }
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_DESCRIPTION_FORM>) => {
+        if (!policy || policy.isPolicyUpdating) {
+            return;
+        }
 
-            updateWorkspaceDescription(policy.id, values.description.trim(), policy.description, getReviewWorkspaceSettingsTaskCompletion());
-            Keyboard.dismiss();
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
-        },
-        [policy, getReviewWorkspaceSettingsTaskCompletion],
-    );
+        updateWorkspaceDescription(policy.id, values.description.trim(), policy.description, getReviewWorkspaceSettingsTaskCompletion());
+        Keyboard.dismiss();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
+    };
 
     return (
         <AccessOrNotFoundWrapper

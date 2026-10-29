@@ -56,8 +56,8 @@ function getDraft(): Promise<OnyxEntry<Transaction>> {
     });
 }
 
-/** Renders the share Submit confirmation with the real confirmation list and opens the fields behind "Show more". */
-async function renderShareConfirmationAndShowMore() {
+/** Renders the share Submit confirmation with the real confirmation list. */
+async function renderShareConfirmation() {
     render(
         <OnyxListItemProvider>
             <HTMLEngineProvider>
@@ -73,6 +73,11 @@ async function renderShareConfirmationAndShowMore() {
         </OnyxListItemProvider>,
     );
     await waitForBatchedUpdatesWithAct();
+}
+
+/** Renders the share Submit confirmation and opens the fields behind "Show more". */
+async function renderShareConfirmationAndShowMore() {
+    await renderShareConfirmation();
     fireEvent.press(await screen.findByText(translateLocal('common.showMore')));
     await waitForBatchedUpdatesWithAct();
 }
@@ -187,7 +192,7 @@ describe('SubmitDetailsPage — manually entered Scan fields', () => {
         });
 
         // When the Submit page mounts for the newly picked chat
-        await renderShareConfirmationAndShowMore();
+        await renderShareConfirmation();
 
         // Then the draft follows the new destination, and neither the merchant nor the currency the user entered is
         // overwritten by the policy's output currency.
@@ -195,6 +200,10 @@ describe('SubmitDetailsPage — manually entered Scan fields', () => {
         expect(draft?.reportID).toBe(SHARED_REPORT_ID);
         expect(draft?.currency).toBe('EUR');
         expect(draft?.merchant).toBe('Starbucks');
+
+        // And the fields the user already filled in open expanded rather than hiding behind "Show more"
+        expect(screen.queryByText(translateLocal('common.showMore'))).not.toBeOnTheScreen();
+        expect(screen.getByLabelText(translateLocal('common.merchant'))).toHaveDisplayValue('Starbucks');
     });
 
     // Clearing the amount sets `isAmountSet` back to false while the picked currency stays on the draft, so the

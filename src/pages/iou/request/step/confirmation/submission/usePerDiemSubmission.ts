@@ -9,7 +9,13 @@ import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpe
 import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import Navigation from '@libs/Navigation/Navigation';
-import {generateReportID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
+import {
+    generateReportID,
+    getChatReportFromMoneyRequestReport,
+    getReportOrDraftReport,
+    hasViolations as hasViolationsReportUtils,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+} from '@libs/ReportUtils';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 
@@ -176,7 +182,7 @@ function usePerDiemSubmission({
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
         let existingChatReport = report;
         if (isExpenseReport) {
-            existingChatReport = getReportOrDraftReport(report?.chatReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
+            existingChatReport = getChatReportFromMoneyRequestReport(report, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${report?.chatReportID}`] ?? {});
         } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
             existingChatReport = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {});
         }

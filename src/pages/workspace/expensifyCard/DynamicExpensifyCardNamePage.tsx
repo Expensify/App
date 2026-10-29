@@ -29,7 +29,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardNameForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type DynamicExpensifyCardNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.EXPENSIFY_CARD.DYNAMIC_EXPENSIFY_CARD_NAME>;
 
@@ -45,9 +45,9 @@ function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
     const card = cardsList?.[cardID];
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath, {compareParams: false});
-    }, [backPath]);
+    };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM>) => {
         updateExpensifyCardTitle(defaultFundID, Number(cardID), StringUtils.sanitizeName(values[INPUT_IDS.NAME]), card?.nameValuePairs?.cardTitle);

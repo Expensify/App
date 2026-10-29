@@ -29,7 +29,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 
 type FieldsEditValuePageProps = {
@@ -50,27 +50,21 @@ function FieldsEditValuePage({policy, policyID, valueIndex, featureName, policyF
 
     const currentValueName = formDraft?.listValues?.[valueIndex] ?? '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            validateReportFieldListValueName(values[INPUT_IDS.NEW_VALUE_NAME].trim(), currentValueName, formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.NEW_VALUE_NAME, translate),
-        [currentValueName, formDraft, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
+        validateReportFieldListValueName(values[INPUT_IDS.NEW_VALUE_NAME].trim(), currentValueName, formDraft?.[INPUT_IDS.LIST_VALUES] ?? [], INPUT_IDS.NEW_VALUE_NAME, translate);
 
-    const editValue = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
-            if (currentValueName !== valueName) {
-                renameReportFieldsListValue({
-                    valueIndex,
-                    newValueName: valueName,
-                    listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
-                });
-            }
-            Keyboard.dismiss();
-            Navigation.goBack();
-        },
-        [currentValueName, formDraft, valueIndex],
-    );
+    const editValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+        const valueName = values[INPUT_IDS.NEW_VALUE_NAME]?.trim();
+        if (currentValueName !== valueName) {
+            renameReportFieldsListValue({
+                valueIndex,
+                newValueName: valueName,
+                listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
+            });
+        }
+        Keyboard.dismiss();
+        Navigation.goBack();
+    };
 
     return (
         <AccessOrNotFoundWrapper

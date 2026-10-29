@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -45,6 +46,7 @@ function DynamicCategoryDescriptionHintPage({
     const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const decodedCategoryName = getDecodedCategoryName(categoryName);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -72,7 +74,7 @@ function DynamicCategoryDescriptionHintPage({
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_DESCRIPTION_HINT_FORM}
                     onSubmit={({commentHint}) => {
-                        setWorkspaceCategoryDescriptionHint(policyID, categoryName, getParsedComment(commentHint), policyCategories);
+                        setWorkspaceCategoryDescriptionHint(policyID, categoryName, getParsedComment(commentHint), policyCategories, getReviewWorkspaceSettingsTaskCompletion());
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
                     }}
                     submitButtonText={translate('common.save')}

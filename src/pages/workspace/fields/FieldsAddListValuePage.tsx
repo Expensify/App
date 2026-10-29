@@ -31,7 +31,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 
 type FieldsAddListValuePageProps = {
@@ -55,38 +55,25 @@ function FieldsAddListValuePage({policy, policyID, reportFieldID, featureName, p
     const draftListValues = formDraft?.[INPUT_IDS.LIST_VALUES];
     const draftDisabledListValues = formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES];
 
-    const listValues = useMemo(() => {
-        let reportFieldListValues: string[];
+    const reportFieldListValues: string[] = reportFieldID ? Object.values(reportField?.values ?? {}) : (draftListValues ?? []);
+    const listValues = reportFieldListValues;
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
+        validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', listValues, INPUT_IDS.VALUE_NAME, translate);
+
+    const createValue = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
         if (reportFieldID) {
-            reportFieldListValues = Object.values(reportField?.values ?? {});
+            addReportFieldListValue({policy, reportFieldID, valueName: values[INPUT_IDS.VALUE_NAME]});
         } else {
-            reportFieldListValues = draftListValues ?? [];
+            createReportFieldsListValue({
+                valueName: values[INPUT_IDS.VALUE_NAME],
+                listValues: draftListValues ?? [],
+                disabledListValues: draftDisabledListValues ?? [],
+            });
         }
-        return reportFieldListValues;
-    }, [draftListValues, reportField?.values, reportFieldID]);
-
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) =>
-            validateReportFieldListValueName(values[INPUT_IDS.VALUE_NAME].trim(), '', listValues, INPUT_IDS.VALUE_NAME, translate),
-        [listValues, translate],
-    );
-
-    const createValue = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            if (reportFieldID) {
-                addReportFieldListValue({policy, reportFieldID, valueName: values[INPUT_IDS.VALUE_NAME]});
-            } else {
-                createReportFieldsListValue({
-                    valueName: values[INPUT_IDS.VALUE_NAME],
-                    listValues: draftListValues ?? [],
-                    disabledListValues: draftDisabledListValues ?? [],
-                });
-            }
-            Keyboard.dismiss();
-            Navigation.goBack();
-        },
-        [draftDisabledListValues, draftListValues, policy, reportFieldID],
-    );
+        Keyboard.dismiss();
+        Navigation.goBack();
+    };
 
     if (isReportFieldInvalid) {
         return <NotFoundPage />;

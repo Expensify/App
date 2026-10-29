@@ -33,7 +33,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReportsDefaultTitleModalForm';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE>;
@@ -57,18 +57,15 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     const titleField = getTitleFieldWithFallback(policy);
     const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
 
-    const validateCustomName = useCallback(
-        ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
-            if (!defaultTitle) {
-                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
-            } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
-                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', defaultTitle.length, CONST.REPORT_TITLE_FORMULA_LIMIT);
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validateCustomName = ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
+        if (!defaultTitle) {
+            errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
+        } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
+            errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', defaultTitle.length, CONST.REPORT_TITLE_FORMULA_LIMIT);
+        }
+        return errors;
+    };
 
     const clearTitleFieldError = () => {
         clearPolicyTitleFieldError(policyID);

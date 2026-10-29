@@ -36,7 +36,7 @@ import type {IssueNewCardData} from '@src/types/onyx/Card';
 import type {ValueOf} from 'type-fest';
 
 import {format, toZonedTime} from 'date-fns-tz';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type SetSpendRulesStepProps = {
@@ -88,12 +88,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const assigneePersonalDetails = Object.values(personalDetails ?? {}).find((detail) => detail?.login === issueNewCard?.data?.assigneeEmail);
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
 
-    const minDate = useMemo(() => {
-        if (!assigneeTimeZone) {
-            return new Date();
-        }
-        return toZonedTime(new Date(), assigneeTimeZone);
-    }, [assigneeTimeZone]);
+    const minDate = !assigneeTimeZone ? new Date() : toZonedTime(new Date(), assigneeTimeZone);
 
     const spendRuleTabs = [
         {
@@ -171,7 +166,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
     const hasAnyMerchant = !!spendRuleForm.merchantNames?.some((name) => name.trim() !== '') && !isRestrictMerchantsOff;
     const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount || hasAnyCurrency;
 
-    const getSpendRuleErrorMessage = useCallback(() => {
+    const getSpendRuleErrorMessage = () => {
         if (!spendRuleEnabled) {
             return '';
         }
@@ -185,7 +180,7 @@ function SetSpendRulesStep({policyID, stepNames, startStepIndex}: SetSpendRulesS
         }
 
         return '';
-    }, [hasAnyRuleApplied, spendRuleEnabled, spendRuleID, spendRuleOption, translate]);
+    };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
         const formSpendRuleError = getSpendRuleErrorMessage();

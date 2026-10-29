@@ -31,7 +31,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 
 type DynamicEditTagPageProps =
@@ -52,33 +52,27 @@ function DynamicEditTagPage({route}: DynamicEditTagPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_EDIT;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path : DYNAMIC_ROUTES.WORKSPACE_TAG_EDIT.path);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-            const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
-            const error = getTagNameError(tags, values.tagName, currentTagName);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+        const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
+        const error = getTagNameError(tags, values.tagName, currentTagName);
 
-            if (error) {
-                errors.tagName = getTagNameErrorMessage(translate, error, values.tagName);
-            }
+        if (error) {
+            errors.tagName = getTagNameErrorMessage(translate, error, values.tagName);
+        }
 
-            return errors;
-        },
-        [policyTags, orderWeight, currentTagName, translate],
-    );
+        return errors;
+    };
 
-    const editTag = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const tagName = StringUtils.sanitizeName(values.tagName);
-            // Do not call the API if the edited tag name is the same as the current tag name
-            if (currentTagName !== tagName) {
-                renamePolicyTag(policyData, {oldName: route.params.tagName, newName: tagName}, orderWeight, isVendorMatchingBetaEnabled);
-            }
-            Keyboard.dismiss();
-            Navigation.goBack(backPath);
-        },
-        [policyData, currentTagName, route.params.tagName, orderWeight, backPath, isVendorMatchingBetaEnabled],
-    );
+    const editTag = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const tagName = StringUtils.sanitizeName(values.tagName);
+        // Do not call the API if the edited tag name is the same as the current tag name
+        if (currentTagName !== tagName) {
+            renamePolicyTag(policyData, {oldName: route.params.tagName, newName: tagName}, orderWeight, isVendorMatchingBetaEnabled);
+        }
+        Keyboard.dismiss();
+        Navigation.goBack(backPath);
+    };
 
     return (
         <AccessOrNotFoundWrapper

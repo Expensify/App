@@ -32,7 +32,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type FieldsInitialValuePageProps = {
@@ -55,54 +55,48 @@ function FieldsInitialValuePage({policy, policyID, reportFieldID, featureName, e
     const currentInitialValue = getReportFieldInitialValue(reportField, translate);
     const [initialValue, setInitialValue] = useState(currentInitialValue);
 
-    const submitForm = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            if (currentInitialValue !== values.initialValue) {
-                updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: values.initialValue});
-            }
-            Navigation.goBack();
-        },
-        [currentInitialValue, policy, reportFieldID],
-    );
+    const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+        if (currentInitialValue !== values.initialValue) {
+            updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: values.initialValue});
+        }
+        Navigation.goBack();
+    };
 
     const submitListValueUpdate = (value: string) => {
         updateReportFieldInitialValue({policy, reportFieldID, newInitialValue: currentInitialValue === value ? '' : value});
         Navigation.goBack();
     };
 
-    const validateForm = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
-            const {initialValue: formInitialValue} = values;
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
+    const validateForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> => {
+        const {initialValue: formInitialValue} = values;
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM> = {};
 
-            if (formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', formInitialValue.length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH);
+        if (formInitialValue.length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
+            errors[INPUT_IDS.INITIAL_VALUE] = translate('common.error.characterLimitExceedCounter', formInitialValue.length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH);
+        }
+
+        if (
+            (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) &&
+            hasCircularReferences(formInitialValue, reportField?.name, getReportFieldsForTarget(policy?.fieldList, expectedTarget))
+        ) {
+            errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
+        }
+
+        if ((reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
+            const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
+            if (unsupportedFormulaParts.length > 0) {
+                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', unsupportedFormulaParts.join(', '));
             }
+        }
 
-            if (
-                (reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) &&
-                hasCircularReferences(formInitialValue, reportField?.name, getReportFieldsForTarget(policy?.fieldList, expectedTarget))
-            ) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
-            }
+        if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && hasAvailableListValues && !isRequiredFulfilled(formInitialValue)) {
+            errors[INPUT_IDS.INITIAL_VALUE] = translate(
+                isInvoiceField ? 'workspace.invoiceFields.invoiceFieldInitialValueRequiredError' : 'workspace.reportFields.reportFieldInitialValueRequiredError',
+            );
+        }
 
-            if ((reportField?.type === CONST.REPORT_FIELD_TYPES.TEXT || reportField?.type === CONST.REPORT_FIELD_TYPES.FORMULA) && !!formInitialValue && !errors[INPUT_IDS.INITIAL_VALUE]) {
-                const unsupportedFormulaParts = getUnsupportedReportFieldFormulaParts(formInitialValue);
-                if (unsupportedFormulaParts.length > 0) {
-                    errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.unsupportedFormulaValueError', unsupportedFormulaParts.join(', '));
-                }
-            }
-
-            if (reportField?.type === CONST.REPORT_FIELD_TYPES.LIST && hasAvailableListValues && !isRequiredFulfilled(formInitialValue)) {
-                errors[INPUT_IDS.INITIAL_VALUE] = translate(
-                    isInvoiceField ? 'workspace.invoiceFields.invoiceFieldInitialValueRequiredError' : 'workspace.reportFields.reportFieldInitialValueRequiredError',
-                );
-            }
-
-            return errors;
-        },
-        [hasAvailableListValues, expectedTarget, isInvoiceField, reportField?.name, reportField?.type, policy?.fieldList, translate],
-    );
+        return errors;
+    };
 
     if (!reportField || !isReportFieldTargetValid(reportField, expectedTarget)) {
         return <NotFoundPage />;
