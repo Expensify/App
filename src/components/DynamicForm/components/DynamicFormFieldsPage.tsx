@@ -64,7 +64,8 @@ function DynamicFormFieldsPage({
                 onNext(pageValues);
             }}
             style={[styles.mh5, styles.flexGrow1]}
-            submitButtonStyles={styles.mb0}
+            submitButtonStyles={[styles.mh5, styles.mb0]}
+            shouldSubmitButtonStickToBottom
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             // An offline request is saved to disk, so the last page submits only online, as the confirmation page does
             enabledWhenOffline={!isLastPage}

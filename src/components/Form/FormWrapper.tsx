@@ -180,13 +180,16 @@ function FormWrapper({
     const isLegacyBottomSafeAreaPaddingAlreadyApplied = paddingBottom === 0;
     const shouldApplyBottomSafeAreaPadding = addBottomSafeAreaPadding ?? !isLegacyBottomSafeAreaPaddingAlreadyApplied;
 
+    // A submit button sticking to the bottom sits below the scroll view, so it takes the bottom paddings instead of the scroll view.
+    const shouldApplyScrollViewBottomSafeAreaPadding = shouldApplyBottomSafeAreaPadding && !shouldSubmitButtonStickToBottom;
+    const addScrollViewOfflineIndicatorBottomSafeAreaPadding = addOfflineIndicatorBottomSafeAreaPadding && !shouldSubmitButtonStickToBottom;
+
     // We need to add bottom safe area padding to the submit button when we don't use a scroll view or
     // when the submit button is sticking to the bottom.
     const addSubmitButtonBottomSafeAreaPadding = addBottomSafeAreaPadding && (!shouldUseScrollView || shouldSubmitButtonStickToBottom);
     const submitButtonStylesWithBottomSafeAreaPadding = useBottomSafeSafeAreaPaddingStyle({
         addBottomSafeAreaPadding: addSubmitButtonBottomSafeAreaPadding,
         addOfflineIndicatorBottomSafeAreaPadding,
-        styleProperty: shouldSubmitButtonStickToBottom ? 'bottom' : 'paddingBottom',
         additionalPaddingBottom: shouldSubmitButtonStickToBottom ? styles.pb5.paddingBottom : 0,
         style: submitButtonStyles,
     });
@@ -210,10 +213,8 @@ function FormWrapper({
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
             containerStyles={[
                 styles.mh0,
-                styles.mt5,
-                submitFlexEnabled && styles.flex1,
+                shouldSubmitButtonStickToBottom ? styles.flexShrink0 : [styles.mt5, submitFlexEnabled && styles.flex1],
                 submitButtonStylesWithBottomSafeAreaPadding,
-                shouldSubmitButtonStickToBottom && [styles.stickToBottom, style],
             ]}
             enabledWhenOffline={enabledWhenOffline}
             buttonVariant={buttonVariant}
@@ -277,8 +278,8 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
-                    addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
-                    addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
+                    addBottomSafeAreaPadding={shouldApplyScrollViewBottomSafeAreaPadding}
+                    addOfflineIndicatorBottomSafeAreaPadding={addScrollViewOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
                 >
                     {scrollViewContent()}
@@ -288,8 +289,8 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
-                    addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
-                    addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
+                    addBottomSafeAreaPadding={shouldApplyScrollViewBottomSafeAreaPadding}
+                    addOfflineIndicatorBottomSafeAreaPadding={addScrollViewOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
                     onScroll={onScroll}
                 >
