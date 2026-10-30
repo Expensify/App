@@ -1228,6 +1228,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformidade',
         runningTotal: 'Total acumulado',
+        upsellState: {
+            title: 'Faça upgrade para o plano Control para ter mais insights',
+            subtitle: 'Acompanhe tendências de conformidade com a política de despesas e sinalize reincidentes.',
+            button: 'Fazer upgrade para Control',
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',

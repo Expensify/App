@@ -1273,6 +1273,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
+        upsellState: {
+            title: 'Αναβαθμίστε σε Control για περισσότερες πληροφορίες',
+            subtitle: 'Παρακολουθήστε τις τάσεις συμμόρφωσης με την πολιτική εξόδων και επισημάνετε τους επανειλημμένους παραβάτες.',
+            button: 'Αναβαθμίστε σε Control',
+        },
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',

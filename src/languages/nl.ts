@@ -1228,6 +1228,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Naleving',
         runningTotal: 'Doorlopend totaal',
+        upsellState: {
+            title: 'Upgrade naar Control voor meer inzichten',
+            subtitle: 'Volg trends in naleving van onkostenbeleid en markeer herhaalde overtreders.',
+            button: 'Upgraden naar Control',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
