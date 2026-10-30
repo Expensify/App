@@ -44,6 +44,8 @@ import type {Errors, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {createPolicyViolationVisibilitySelector} from '@selectors/Policy';
+import {reportViolationVisibilitySelector} from '@selectors/Report';
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
@@ -415,8 +417,8 @@ function MoneyRequestReportTransactionItem({
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (cardID ? cardList?.[cardID] : undefined)});
     const [cards = EMPTY_CARDS] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (cardList) => getReportRowCards(cardList, cardID)});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: (categories) => getReportRowPolicyCategories(categories, category)});
-    const [fullReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [fullPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [violationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportViolationVisibilitySelector});
+    const [violationPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: createPolicyViolationVisibilitySelector(email ?? '')});
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.
@@ -436,7 +438,7 @@ function MoneyRequestReportTransactionItem({
     // The search API pre-resolves the card name, local Onyx transactions carry the raw one
     const resolvedCardName = card ? getCardDescription(card, translate) : undefined;
     const transaction = resolvedCardName && resolvedCardName !== rawTransaction.cardName ? {...rawTransaction, cardName: resolvedCardName} : rawTransaction;
-    const violations = getVisibleReportRowViolations(transaction, rawViolations, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, fullReport, reportOwnerLogin, fullPolicy);
+    const violations = getVisibleReportRowViolations(transaction, rawViolations, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, violationReport, reportOwnerLogin, violationPolicy);
 
     // Every prop is passed explicitly so React Compiler can reuse the body element, and skip the body, while nothing this row shows has changed
     const Body = isNarrowLayout ? MoneyRequestReportTransactionItemBody : MoneyRequestReportTransactionItemWithInlineEdit;

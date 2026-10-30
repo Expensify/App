@@ -564,6 +564,30 @@ const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'av
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+/** Keeps only the policy fields `getVisibleTransactionViolations` reads, and only the current user's `employeeList` entry. */
+const createPolicyViolationVisibilitySelector =
+    (email: string) =>
+    (policy: OnyxEntry<Policy>): OnyxEntry<Policy> => {
+        if (!policy) {
+            return policy;
+        }
+        const {id, name, role, type, owner, outputCurrency, autoReporting, autoReportingFrequency, isAttendeeTrackingEnabled, autoCategorizeNewExpenses} = policy;
+        const employee = policy.employeeList?.[email];
+        return {
+            id,
+            name,
+            role,
+            type,
+            owner,
+            outputCurrency,
+            autoReporting,
+            autoReportingFrequency,
+            isAttendeeTrackingEnabled,
+            autoCategorizeNewExpenses,
+            employeeList: employee ? {[email]: employee} : undefined,
+        };
+    };
+
 const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
@@ -652,5 +676,6 @@ export {
     isCollectingDepositAccountsSelector,
     createIsInternationalCountrySelector,
     groupByPolicyAccountIDPoliciesSelector,
+    createPolicyViolationVisibilitySelector,
 };
 export type {ReusablePolicyConnectionName};
