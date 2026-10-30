@@ -59,6 +59,7 @@ import type {
     SyntaxFilterKey,
 } from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
+import type {RowChromeWidths} from '@components/Table/columnResize/getResizableColumnLayout';
 
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
@@ -7020,7 +7021,6 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
           }
         : {
-              [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
@@ -7398,7 +7398,30 @@ const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal;
  * of width at the end of the row that no column ever fills.
  */
 function getSearchTableRowInsetWidth(columnCount: number): number {
-    return variables.searchTableRowCheckboxWidth + (columnCount + 1) * variables.searchTableColumnGap + SEARCH_TABLE_ROW_ARROW_WIDTH + variables.searchTableRowChromeWidth;
+    const {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth} = getSearchTableRowChromeWidths(columnCount);
+
+    return selectionColumnWidth + totalGapWidth + rowMarginWidth + rowPaddingWidth;
+}
+
+/**
+ * Search row inset in the shape column resizing reads, so resizing works against the same room as the scroller.
+ * The checkbox and the trailing arrow count as the selection width, since resizing only sums the row chrome.
+ */
+function getSearchTableRowChromeWidths(columnCount: number): RowChromeWidths {
+    return {
+        selectionColumnWidth: variables.searchTableRowCheckboxWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
+        totalGapWidth: (columnCount + 1) * variables.searchTableColumnGap,
+        rowMarginWidth: variables.searchTableRowChromeWidth,
+        rowPaddingWidth: 0,
+    };
+}
+
+/**
+ * One stored layout per data type, since each shows its own columns. Grouped tables don't resize, so the group-by isn't
+ * part of it. Not per query, so a filter change keeps the widths.
+ */
+function getSearchColumnResizingID(type: SearchDataTypes): string {
+    return `${CONST.TABLES.COLUMN_RESIZING_IDS.SEARCH_PREFIX}:${type}`;
 }
 
 function getTableMinWidth(
@@ -7897,6 +7920,8 @@ export {
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,
     getSearchTableRowInsetWidth,
+    getSearchTableRowChromeWidths,
+    getSearchColumnResizingID,
     getTableMinWidth,
     getGroupColumnWidthFlags,
     getGroupTableScrollLayout,
