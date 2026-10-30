@@ -70,7 +70,7 @@ function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions)
     const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
     const camera = useRef<CameraRef>(null);
 
-    const askForPermissions = useCallback(() => requestCameraPermission(translate, setCameraPermissionStatus), [translate]);
+    const askForPermissions = () => requestCameraPermission(translate, setCameraPermissionStatus);
 
     const {tapGesture, cameraFocusIndicatorAnimatedStyle} = useTapToFocusGesture(camera, device?.supportsFocusMetering ?? false);
 

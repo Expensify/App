@@ -99,11 +99,15 @@ function AmountField({
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
 
-    const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
+    // A receipt that is still scanning and whose fields the user can't enter inline (for example, a tracked scan moved
+    // to someone) shows the read-only row, so it reads "Scanning…" instead of the receipt's placeholder zero amount.
+    const isScanningReceipt = !!transactionSlice?.isScanning && !canEnterScanFieldsManually;
+    const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest || isScanningReceipt;
     // The read-only row only opens the amount page for a form whose amount the user could have typed in the first
     // place. A distance or time amount is computed from the fields below it, so its row has nothing to open and is
-    // not offered as a control at all: no caret, no hover, no press.
-    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields;
+    // not offered as a control at all: no caret, no hover, no press. A scanning receipt's amount comes from SmartScan,
+    // so its row is locked the same way until the scan finishes.
+    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields && !isScanningReceipt;
     const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
