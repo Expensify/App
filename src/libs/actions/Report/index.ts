@@ -395,6 +395,9 @@ type OpenReportActionParams = {
 
     hasReportActions: boolean | undefined;
 
+    /** Whether report actions are already available optimistically, so initial loading should be considered complete */
+    hasOptimisticReportActions?: boolean;
+
     /**
      * Whether this report's actions loaded at least once this session (RAM-only, so falsy means a page refresh /
      * cold start — when a manual unread marker is cleared). Only the report screen passes it; other callers omit
@@ -1759,6 +1762,7 @@ function openReport(params: OpenReportActionParams) {
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
         hasReportActions,
+        hasOptimisticReportActions = false,
         // Defaults to true so only the report screen, the one caller that passes it, can clear a manual unread marker.
         hasOnceLoadedReportActions = true,
         shouldMarkAsRead = true,
@@ -1814,7 +1818,10 @@ function openReport(params: OpenReportActionParams) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`,
             value: {
-                isLoadingInitialReportActions: true,
+                hasOnceLoadedReportActions: hasOptimisticReportActions ? true : undefined,
+                // Offline this only ever clears from the OpenReport response, which never arrives, so setting it for a
+                // report whose actions are already in Onyx pins the skeleton over content we could render right away.
+                isLoadingInitialReportActions: !hasOptimisticReportActions && !(isOfflineNetwork() && hasReportActions),
                 isLoadingOlderReportActions: false,
                 hasLoadingOlderReportActionsError: false,
                 isLoadingNewerReportActions: false,
@@ -2516,6 +2523,10 @@ type CreateTransactionThreadReportParams = {
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     hasCompletedGuidedSetupFlow?: boolean;
 
+    /** Whether the transaction thread actions are fully seeded optimistically */
+    hasOptimisticReportActions?: boolean;
+
+    /** The Concierge chat report */
     conciergeChat: OnyxEntry<Report>;
 
     /** The lastModified of the expense report policy's cached full policy snapshot, so the server can leave out the collections the client already has */
@@ -2537,6 +2548,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         personalDetails,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
+        hasOptimisticReportActions,
         conciergeChat,
         fullPolicySnapshotLastModified,
         delegateAccountID,
@@ -2606,6 +2618,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         currentUserAccountID,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,
+        hasOptimisticReportActions,
         hasReportActions: false,
         fullPolicySnapshot:
             !selfDMReportID && reportToUse.policyID && fullPolicySnapshotLastModified ? {policyID: reportToUse.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,

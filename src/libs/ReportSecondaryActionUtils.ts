@@ -865,7 +865,7 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
 function isMergeActionForSelectedTransactions(
     transactions: Transaction[],
     reports: Report[],
-    policies: Policy[],
+    policies: Array<OnyxEntry<Policy>>,
     rules: OnyxCollection<Rule>,
     // The full list is needed because the loop below resolves a different report owner on each pass.
     personalDetails: OnyxEntry<PersonalDetailsList>,
