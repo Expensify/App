@@ -1,6 +1,6 @@
 /**
  * Lets an admin pick the Zoho Books account that company card expenses export to.
- * Only active bank and credit card accounts are listed, since those are the accounts Zoho Books expenses can be paid through.
+ * It lists the active bank and credit card accounts the backend syncs for this picker, since saving only accepts one of those.
  */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
@@ -24,13 +24,13 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {ZohoBooksAccount} from '@src/types/onyx/Policy';
+import type {ZohoBooksBankAccount} from '@src/types/onyx/Policy';
 
 import React from 'react';
 import {View} from 'react-native';
 
 type AccountListItem = ListItem & {
-    value: ZohoBooksAccount['id'];
+    value: ZohoBooksBankAccount['id'];
 };
 
 function ZohoBooksCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
@@ -43,19 +43,13 @@ function ZohoBooksCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const creditCardAccountID = zohoBooksConfig?.export?.creditCardAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT.getRoute(policyID) : undefined;
 
-    // Company card expenses are paid through a bank or credit card account in Zoho Books.
     const data: AccountListItem[] =
-        zohoBooksData?.accounts
-            ?.filter(
-                (accountItem) =>
-                    accountItem.isActive && (accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD || accountItem.accountType === CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK),
-            )
-            .map((accountItem) => ({
-                value: accountItem.id,
-                text: accountItem.name,
-                keyForList: accountItem.id,
-                isSelected: creditCardAccountID === accountItem.id,
-            })) ?? [];
+        zohoBooksData?.bankAccounts?.map((accountItem) => ({
+            value: accountItem.id,
+            text: accountItem.name,
+            keyForList: accountItem.id,
+            isSelected: creditCardAccountID === accountItem.id,
+        })) ?? [];
     const {filteredData, textInputOptions} = useSelectionListSearch(data);
 
     const headerContent = (
@@ -93,6 +87,7 @@ function ZohoBooksCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
+            shouldShowListEmptyContent={!textInputOptions.value}
             onSelectRow={selectCreditCardAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={creditCardAccountID}

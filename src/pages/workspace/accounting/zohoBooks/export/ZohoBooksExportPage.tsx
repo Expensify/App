@@ -37,7 +37,7 @@ function ZohoBooksExportPage({policy}: WithPolicyConnectionsProps) {
     const exportDate = zohoBooksConfig?.export?.exportDate ?? CONST.ZOHO_BOOKS_EXPORT_DATE.LAST_EXPENSE;
     const exportNonReimbursable = zohoBooksConfig?.export?.nonReimbursable ?? CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE.EXPENSE;
     const defaultCompanyCardVendor = getZohoBooksVendors(policy).find((vendor) => vendor.id === zohoBooksConfig?.export?.defaultVendorID);
-    const companyCardAccount = zohoBooksData?.accounts?.find((account) => account.id === zohoBooksConfig?.export?.creditCardAccountID);
+    const companyCardAccount = zohoBooksData?.bankAccounts?.find((account) => account.id === zohoBooksConfig?.export?.creditCardAccountID);
 
     return (
         <ConnectionLayout
