@@ -66,6 +66,14 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
     const dragRef = useRef<Drag | null>(null);
     const lineRef = useRef<HTMLDivElement>(null);
 
+    /** The element the live width is painted on. Cleared through this rather than `scopeRef`, which a callback ref empties while React swaps it, past this handle's layout effects. */
+    const paintedScopeRef = useRef<HTMLElement | null>(null);
+
+    const clearLiveWidth = () => {
+        clearLiveSingleRHPWidth(paintedScopeRef.current);
+        paintedScopeRef.current = null;
+    };
+
     /** Thickens the line while a drag is held on the default width. Set on the DOM, so a drag stays free of React renders. */
     const setLineSnapped = (isSnapped: boolean) => {
         lineRef.current?.style.setProperty('width', `${isSnapped ? CONST.RHP_RESIZE.SNAPPED_INDICATOR_WIDTH : CONST.RHP_RESIZE.ACTIVE_INDICATOR_WIDTH}px`);
@@ -92,7 +100,8 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
                 return;
             }
 
-            writeLiveSingleRHPWidth(scopeRef.current, liveWidth);
+            paintedScopeRef.current = scopeRef.current;
+            writeLiveSingleRHPWidth(paintedScopeRef.current, liveWidth);
             setLineSnapped(liveWidth === SNAP.to);
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
             drag.liveWidth = liveWidth;
@@ -108,7 +117,7 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
 
             // Nothing gets saved, so no render follows to clear the live width.
             if (liveWidth === undefined || liveWidth === width) {
-                clearLiveSingleRHPWidth(scopeRef.current);
+                clearLiveWidth();
                 return;
             }
 
@@ -127,8 +136,8 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
             return;
         }
 
-        clearLiveSingleRHPWidth(scopeRef.current);
-    }, [width, scopeRef]);
+        clearLiveWidth();
+    }, [width]);
 
     // The scope outlives the handle, so unmounting before the save renders would otherwise pin the cards at the live width.
     useEffect(() => {
