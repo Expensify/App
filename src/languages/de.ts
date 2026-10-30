@@ -1531,10 +1531,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Wenn Sie keine Website haben, können Sie stattdessen das LinkedIn- oder Social-Media-Profil Ihres Unternehmens angeben.',
         invalidDomainError: 'Du hast eine ungültige Domain eingegeben. Um fortzufahren, gib bitte eine gültige Domain ein.',
         publicDomainError: 'Sie haben eine öffentliche Domain eingegeben. Um fortzufahren, geben Sie bitte eine private Domain ein.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 Ausgabe',
-                other: (count: number) => `${count} Ausgaben`,
+                one: (count: number) => `${formattedCount ?? count} Ausgabe`,
+                other: (count: number) => `${formattedCount ?? count} Ausgaben`,
             };
         },
         deleteExpense: () => ({

@@ -1565,10 +1565,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Jeśli nie masz strony internetowej, możesz zamiast niej podać profil swojej firmy na LinkedIn lub w mediach społecznościowych.',
         invalidDomainError: 'Wprowadzone domena jest nieprawidłowa. Aby kontynuować, wprowadź prawidłową domenę.',
         publicDomainError: 'Wprowadziłeś domenę publiczną. Aby kontynuować, wprowadź domenę prywatną.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 wydatek',
-                other: (count: number) => `${count} wydatki`,
+                one: (count: number) => `${formattedCount ?? count} wydatek`,
+                other: (count: number) => `wydatki: ${formattedCount ?? count}`,
             };
         },
         deleteExpense: () => ({

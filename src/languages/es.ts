@@ -1518,10 +1518,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 gasto',
-                other: (count: number) => `${count} gastos`,
+                one: (count: number) => `gasto de ${formattedCount ?? count}`,
+                other: (count: number) => `${formattedCount ?? count} gastos`,
             };
         },
         deleteExpense: () => ({

@@ -1529,10 +1529,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Als u geen website hebt, kunt u in plaats daarvan het LinkedIn-profiel of een socialmediaprofiel van uw bedrijf opgeven.',
         invalidDomainError: 'Je hebt een ongeldig domein ingevoerd. Voer een geldig domein in om door te gaan.',
         publicDomainError: 'Je hebt een openbaar domein ingevoerd. Voer om door te gaan een privé‑domein in.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 uitgave',
-                other: (count: number) => `${count} declaraties`,
+                one: (count: number) => `${formattedCount ?? count} uitgave`,
+                other: (count: number) => `${formattedCount ?? count} uitgaven`,
             };
         },
         deleteExpense: () => ({

@@ -1537,10 +1537,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Si vous n’avez pas de site web, vous pouvez indiquer à la place le profil LinkedIn ou le profil sur les réseaux sociaux de votre entreprise.',
         invalidDomainError: 'Vous avez saisi un domaine invalide. Pour continuer, veuillez saisir un domaine valide.',
         publicDomainError: 'Vous avez saisi un domaine public. Pour continuer, veuillez saisir un domaine privé.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 dépense',
-                other: (count: number) => `${count} dépenses`,
+                one: (count: number) => `${formattedCount ?? count} dépense`,
+                other: (count: number) => `${formattedCount ?? count} dépenses`,
             };
         },
         deleteExpense: () => ({
