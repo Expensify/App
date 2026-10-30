@@ -104,6 +104,7 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId,
+                policies: {},
                 reports: allReports,
                 isDefaultRoomsBetaEnabled: true,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -125,6 +126,7 @@ describe('SidebarUtils', () => {
         await measureFunction(() =>
             SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId,
+                policies: {},
                 reports: allReports,
                 isDefaultRoomsBetaEnabled: true,
                 priorityMode: CONST.PRIORITY_MODE.GSD,
