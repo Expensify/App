@@ -5,6 +5,7 @@ import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupBut
 import type {ButtonComponentProps, PopoverComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SearchAdvancedFiltersPopup from '@components/Search/FilterDropdowns/SearchAdvancedFiltersPopup';
 import type {SearchQueryJSON} from '@components/Search/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -16,13 +17,14 @@ import useSearchFilterSync, {shouldDeferSearchFilterSync} from '@hooks/useSearch
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React from 'react';
+import React, {useRef} from 'react';
 
 type SearchAdvancedFiltersButtonProp = {
     queryJSON: SearchQueryJSON;
@@ -37,6 +39,7 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter']);
     const {isOffline} = useNetwork();
     const filterFormValues = useFilterFormValues(queryJSON);
+    const filterSearchInputRef = useRef<BaseTextInputRef | null>(null);
     const [areCategoriesLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED);
     const [isLoadingCategories] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA);
     const shouldDeferFilterSync = shouldDeferSearchFilterSync(queryJSON, areCategoriesLoaded, isLoadingCategories, isOffline);
@@ -97,12 +100,20 @@ function SearchAdvancedFiltersButton({queryJSON}: SearchAdvancedFiltersButtonPro
         <SearchAdvancedFiltersPopup
             queryJSON={queryJSON}
             closeOverlay={closeOverlay}
+            filterSearchInputRef={filterSearchInputRef}
         />
     );
 
     return (
         <FilterPopupButton
             PopoverComponent={filtersPopup}
+            // The popover blurs whatever input is focused as it opens, so `autoFocus` would lose to it on the first open.
+            onModalShow={() => {
+                if (!canFocusInputOnScreenFocus()) {
+                    return;
+                }
+                filterSearchInputRef.current?.focus();
+            }}
             popoverWidth={CONST.ADVANCED_FILTERS_POPOVER_WIDTH}
             popoverAnchorAlignment={{
                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
