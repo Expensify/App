@@ -2138,6 +2138,7 @@ const CONST = {
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 UNDELETED_TRANSACTION: 'UNDELETEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                QUEUED_FOR_EXPORT: 'QUEUEDFOREXPORT',
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
@@ -10063,11 +10064,23 @@ const CONST = {
     RESIZE_HANDLE: {
         /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
         INDICATOR_WIDTH: 2,
+
+        /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
+        DRAG_SLOP: 3,
     },
 
     RHP_RESIZE: {
         /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
         HANDLE_HIT_WIDTH: 12,
+
+        /** How close, in px, a drag has to come to the default width to snap onto it. */
+        SNAP_THRESHOLD: 20,
+
+        /** Width of the line while the edge is pressed or dragged. */
+        ACTIVE_INDICATOR_WIDTH: 3,
+
+        /** Width of the line while a drag is held on the default width. */
+        SNAPPED_INDICATOR_WIDTH: 5,
 
         /** Narrowest the single RHP can be dragged, in px. */
         MIN_WIDTH: 380,
@@ -10122,9 +10135,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
-            DRAG_SLOP: 3,
 
             /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
             DOUBLE_CLICK_INTERVAL: 150,

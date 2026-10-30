@@ -1205,6 +1205,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? '年' : `${year}年目`),
             increase: (percentage: string) => `${percentage} 増加`,
             decrease: (percentage: string) => `${percentage} 減少`,
+            dailyAverage: '日次平均',
+            weeklyAverage: '週平均',
+            monthlyAverage: '月平均',
+            quarterlyAverage: '四半期平均',
+            yearlyAverage: '年間平均',
+            allSpenderAverage: '全利用者の平均',
+            allMerchantAverage: '全加盟店の平均',
+            allCategoryAverage: '全カテゴリ平均',
+            averageValue: (amount: string) => `平均 ${amount}`,
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
@@ -7441,6 +7450,17 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 continue: 'メンバーなしで続行',
                 description: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
             },
+            confirmMembers: {
+                title: 'メンバーをコピー',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                    // Japanese has no "one" plural category, so handle the single-workspace case here
+                    other:
+                        count === 1
+                            ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
+                            : `${count}個のワークスペースのメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'コピーを実行中です...',
                 copyInProgressDescription: '処理が完了するまで待つこともできますし、完了したら Concierge からお知らせすることもできます。',
@@ -9105,7 +9125,10 @@ ${reportName}`,
                     missingData: 'Expensify はその情報を持っていません。',
                     retroactive: 'ルールは新しいアクティビティにのみ適用されます。',
                     historyLimit: 'ルールはそれほど前までさかのぼることができません。',
-                    tryThisInstead: '代わりにこちらをお試しください',
+                    useSuggestion: '提案を使用',
+                    explanationWithSuggestion: (explanation: string) => `${explanation}代わりに以下の提案をお試しください：`,
+                    quotedSuggestion: (suggestedPrompt: string) => `「${suggestedPrompt}」`,
+                    createAnyway: 'このまま作成',
                 },
             },
             expenseDefaultsTable: {
@@ -10324,6 +10347,7 @@ ${reportName}`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
+        addedExpensifyCardFeed: (feedName: string) => `「${feedName}」Expensify カードフィードを追加しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
