@@ -76,7 +76,11 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
     [CONST.SEARCH.GROUP_BY.TAG]: {
         titleIconName: 'Tag',
         getLabel: (item: GroupedItem) => (item as TransactionTagGroupListItemType).formattedTag ?? '',
-        getFilterQuery: (item: GroupedItem) => `tag:"${(item as TransactionTagGroupListItemType).tag}"`,
+        getFilterQuery: (item: GroupedItem) => {
+            const {tag} = item as TransactionTagGroupListItemType;
+            // Grouped snapshots use an empty string or "(untagged)", but Search filters require "none" for missing tags.
+            return `tag:"${tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag}"`;
+        },
     },
     [CONST.SEARCH.GROUP_BY.DAY]: {
         titleIconName: 'Calendar',
