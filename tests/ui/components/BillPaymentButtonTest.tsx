@@ -34,7 +34,7 @@ const businessBankAccount: BankAccountList = {
         methodID: 7992,
         title: 'Citibank',
         bankCurrency: CONST.CURRENCY.USD,
-        accountType: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+        accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         accountData: {bankAccountID: 7992, allowDebit: true, state: CONST.BANK_ACCOUNT.STATE.OPEN, accountNumber: '0000007992', type: CONST.BANK_ACCOUNT.TYPE.BUSINESS},
     }),
 };
