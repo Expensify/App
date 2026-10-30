@@ -125,6 +125,7 @@ const WRITE_COMMANDS = {
     ADD_ATTACHMENT: 'AddAttachment',
     ADD_TEXT_AND_ATTACHMENT: 'AddTextAndAttachment',
     CONNECT_BANK_ACCOUNT_WITH_PLAID: 'ConnectBankAccountWithPlaid',
+    LINK_PLAID_TO_BANK_ACCOUNT: 'LinkPlaidToBankAccount',
     ADD_PERSONAL_BANK_ACCOUNT: 'AddPersonalBankAccount',
     CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT: 'CreateCollectOnlyDepositAccount',
     UPDATE_PERSONAL_BANK_ACCOUNT_INFO: 'UpdatePersonalBankAccountInfo',
@@ -773,6 +774,7 @@ const WRITE_COMMANDS = {
     CHANGE_REPORT_POLICY: 'ChangeReportPolicy',
     CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER: 'ChangeReportPolicyAndInviteSubmitter',
     CHANGE_TRANSACTIONS_REPORT: 'ChangeTransactionsReport',
+    UNDELETE_TRANSACTIONS: 'UndeleteTransactions',
     RETRACT_REPORT: 'RetractReport',
     PAY_AND_DOWNGRADE: 'PayAndDowngrade',
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
@@ -935,6 +937,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_APP_REPORT]: Parameters.CreateAppReportParams;
     [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachmentParams;
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: Parameters.ConnectBankAccountParams;
+    [WRITE_COMMANDS.LINK_PLAID_TO_BANK_ACCOUNT]: Parameters.LinkPlaidToBankAccountParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
     [WRITE_COMMANDS.CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT]: Parameters.CreateCollectOnlyDepositAccountParams;
     [WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO]: Parameters.UpdatePersonalBankAccountInfoParams;
@@ -1634,6 +1637,7 @@ type WriteCommandParameters = {
 
     // Change transaction report
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
+    [WRITE_COMMANDS.UNDELETE_TRANSACTIONS]: Parameters.UndeleteTransactionsParams;
     [WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST]: null;
     [WRITE_COMMANDS.ASSIGN_REPORT_TO_ME]: Parameters.AssignReportToMeParams;
     [WRITE_COMMANDS.ADD_REPORT_APPROVER]: Parameters.AddReportApproverParams;
