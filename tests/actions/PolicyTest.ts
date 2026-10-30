@@ -914,6 +914,56 @@ describe('actions/Policy', () => {
             expect(policy?.originalFileName).toBe(file.name);
         });
 
+        it('duplicate workspace does not copy isCollectDepositAccountsEnabled when workflows are not selected', async () => {
+            // Given a source workspace that collects employee bank details
+            const fakePolicy = {...createRandomPolicy(19, CONST.POLICY.TYPE.TEAM), isCollectDepositAccountsEnabled: true};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const options = {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyName: 'Workspace Without Workflows',
+                policyID: fakePolicy.id,
+                targetPolicyID: policyID,
+                welcomeNote: 'Join my policy',
+                parts: {
+                    people: false,
+                    reports: false,
+                    connections: false,
+                    categories: false,
+                    tags: false,
+                    taxes: false,
+                    perDiem: false,
+                    reimbursements: false,
+                    expenses: false,
+                    distance: false,
+                    invoices: false,
+                    exportLayouts: false,
+                },
+                localCurrency: 'USD',
+                personalDetailsByLogins: {},
+            };
+
+            // When the workspace is duplicated without the Workflows feature
+            Policy.duplicateWorkspace(fakePolicy, options);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the duplicate should not collect employee bank details, because that setting belongs to Workflows
+            expect(policy?.isCollectDepositAccountsEnabled).toBe(false);
+        });
+
         it('duplicate workspace propagates the caller currentUserEmail to the expense chat CREATED report action message', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy = createRandomPolicy(18, CONST.POLICY.TYPE.TEAM);

@@ -5203,6 +5203,25 @@ describe('ReportActionsUtils', () => {
             const result = getAddedCardFeedMessage(translateLocal, action);
             expect(result).toBe('added card feed "Visa Commercial"');
         });
+
+        it('should return the Expensify Card message when feedType is ExpensifyCard', () => {
+            // Given an added card feed action for an Expensify Card feed shared to the workspace
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'acme.com',
+                    feedType: CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD,
+                },
+            } as ReportAction;
+
+            // When the message is built
+            const result = getAddedCardFeedMessage(translateLocal, action);
+
+            // Then it uses the Expensify Card wording so admins can tell it apart from a company card feed
+            expect(result).toBe('added "acme.com" Expensify Card feed');
+        });
     });
 
     describe('getRemovedCardFeedMessage', () => {

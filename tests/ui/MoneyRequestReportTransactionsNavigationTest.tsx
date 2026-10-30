@@ -13,6 +13,7 @@ import * as ReportActions from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 
 import Navigation from '@navigation/Navigation';
+import navigationRef from '@navigation/navigationRef';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -272,6 +273,36 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expect(setParamsSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: IOU_REPORT_ID, anchorTransactionID: SECOND_TRANSACTION_ID}));
         });
         expect(openReportSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the entry point as backTo when stepping to a sibling, so Back leaves the carousel', async () => {
+        // Given a carousel opened from Home, whose screen carries Home as its backTo
+        mockIsOffline.value = true;
+        jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: IOU_REPORT_ID}));
+        jest.spyOn(navigationRef, 'getCurrentRoute').mockReturnValue({
+            key: 'expenseReport',
+            name: SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            params: {reportID: IOU_REPORT_ID, backTo: ROUTES.HOME},
+        });
+
+        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        await waitForBatchedUpdates();
+
+        // When the user steps to the next expense
+        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
+        const nextButton = buttons.at(1);
+        if (!nextButton) {
+            throw new Error('next arrow did not render');
+        }
+        fireEvent.press(nextButton);
+
+        // Then the sibling replaces the screen in place with the original backTo, not the expense being left -
+        // otherwise Back would step to the previous expense instead of closing the RHP
+        await waitFor(() => {
+            expect(setParamsSpy).toHaveBeenCalledWith(expect.objectContaining({anchorTransactionID: SECOND_TRANSACTION_ID, backTo: ROUTES.HOME}));
+        });
     });
 });
 

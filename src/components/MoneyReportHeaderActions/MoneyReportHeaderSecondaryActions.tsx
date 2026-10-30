@@ -30,6 +30,7 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -151,6 +152,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
+
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -463,6 +466,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         const runPaymentSelection = () =>
             selectPaymentType({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 event,
                 iouPaymentType,
