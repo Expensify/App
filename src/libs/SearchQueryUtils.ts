@@ -965,7 +965,8 @@ function getQueryHashWithoutFilters(query: SearchQueryJSON, exclude: ReadonlySet
     const flatFilters = query.flatFilters
         .map((filter) => {
             const filterKey = filter.key;
-            const filters = cloneDeep(filter.filters);
+            const isDateFilter = (DATE_FILTER_KEYS as readonly string[]).includes(filterKey);
+            const filters = cloneDeep(filter.filters).map((queryFilter) => (isDateFilter ? {...queryFilter, value: normalizeDatePreset(queryFilter.value.toString())} : queryFilter));
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
