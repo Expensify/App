@@ -2,7 +2,6 @@ import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
-import applyRunningTotal from '@components/Search/runningTotal';
 import SearchChartView from '@components/Search/SearchChartView';
 import type {SearchQueryJSON} from '@components/Search/types';
 import WidgetContainer from '@components/WidgetContainer';
@@ -33,6 +32,7 @@ import type {SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -53,11 +53,11 @@ type InsightsChartWidgetProps = {
     /** The snapshot stored under the chart's query for the previous period */
     previousPeriodSnapshot: OnyxEntry<SearchResults>;
 
-    /** The chart's query for the average amounts */
-    averageQueryJSON: Readonly<SearchQueryJSON> | undefined;
+    /** Average group total the backend returned for the chart, drawn in the Average compare mode */
+    averageTotal: number | undefined;
 
-    /** The snapshot stored under the chart's query for the average amounts */
-    averageSnapshot: OnyxEntry<SearchResults>;
+    /** Whether GetInsights answered the dashboard's query */
+    isDashboardLoaded: boolean | undefined;
 
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
@@ -75,8 +75,8 @@ function InsightsChartWidget({
     snapshot,
     previousPeriodQueryJSON,
     previousPeriodSnapshot,
-    averageQueryJSON,
-    averageSnapshot,
+    averageTotal,
+    isDashboardLoaded,
     filters,
     onRetry,
     onGroupByChange,
@@ -87,7 +87,7 @@ function InsightsChartWidget({
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}, filters);
+    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}, filters);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
@@ -102,9 +102,16 @@ function InsightsChartWidget({
             return;
         }
 
-        // Running total shows cumulative values, so the export accumulates the same way the chart does.
-        const csvData = shouldShowRunningTotal ? applyRunningTotal({data, groupBy}).data : data;
-        const content = buildInsightsChartCSV({data: csvData, groupBy, dateRange: getDateFilterRange(queryJSON), currency: filters.groupCurrency, getCurrencyDecimals, translate});
+        const content = buildInsightsChartCSV({
+            data,
+            groupBy,
+            dateFilterStart: getDateFilterRange(queryJSON).start,
+            currency: filters.groupCurrency,
+            getCurrencyDecimals,
+            translate,
+            today: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            shouldShowRunningTotal,
+        });
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
 

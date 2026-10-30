@@ -53,7 +53,7 @@ type AnchoredSelectionListPopoverProps = {
 
     /** The list */
     children: ReactNode;
-} & Pick<PopoverWithMeasuredContentProps, 'isVisible' | 'anchorPosition' | 'anchorAlignment' | 'shouldMeasureAnchorPositionFromTop'>;
+} & Pick<PopoverWithMeasuredContentProps, 'isVisible' | 'anchorPosition' | 'anchorAlignment' | 'shouldMeasureAnchorPositionFromTop' | 'onModalHide'>;
 
 /**
  * The container a field's selection list opens in: a pop-over on a wide layout, a bottom sheet on a narrow one, sized
@@ -63,6 +63,7 @@ type AnchoredSelectionListPopoverProps = {
 function AnchoredSelectionListPopover({
     isVisible,
     onClose,
+    onModalHide,
     anchorPosition,
     anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldMeasureAnchorPositionFromTop = false,
@@ -94,6 +95,7 @@ function AnchoredSelectionListPopover({
             anchorRef={anchorRef}
             isVisible={isVisible}
             onClose={onClose}
+            onModalHide={onModalHide}
             anchorPosition={anchorPosition}
             popoverDimensions={popoverDimensions}
             anchorAlignment={anchorAlignment}

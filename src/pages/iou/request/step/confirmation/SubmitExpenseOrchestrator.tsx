@@ -489,3 +489,4 @@ function SubmitExpenseOrchestrator({
 }
 
 export default SubmitExpenseOrchestrator;
+export type {SubmitExpenseOrchestratorProps};
