@@ -379,6 +379,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
             });
 
             it('uses the default autoAddTripName preference when the source has none', () => {
+                // Given no source preference and a target that has trip names disabled.
                 const sourcePolicy = makeSourcePolicy({
                     travelSettings: {
                         spotnanaCompanyID: 'SOURCE_COMPANY',
@@ -394,9 +395,11 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 };
                 const targetPolicy = makeTargetPolicy({travelSettings: targetTravelSettings});
 
+                // When Travel settings are copied without an explicit preference.
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {}, {});
                 const policy = getOptimisticPolicy(optimisticData);
 
+                // Then Auth's default is applied while the target keeps its own Travel identity.
                 expect(policy?.travelSettings).toEqual({...targetTravelSettings, autoAddTripName: true});
             });
 

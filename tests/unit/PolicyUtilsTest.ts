@@ -2083,6 +2083,7 @@ describe('PolicyUtils', () => {
             });
 
             it('gives every rate the new ID from the map, keeping its data and order', () => {
+                // Given rates stored out of display order with tax metadata.
                 const sourceUnit = {
                     customUnitID: 'srcDist',
                     name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
@@ -2097,11 +2098,13 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(0),
                     customUnits: {[sourceUnit.customUnitID]: sourceUnit},
                 };
+                // When fresh IDs are assigned to the duplicated distance unit and its rates.
                 const result = getCustomUnitsForDuplication(policyWithRates, true, false, {
                     distanceCustomUnitID: 'newDist',
                     perDiemCustomUnitID: 'newPerDiem',
                     rateIDsBySourceRateID: {rateA: 'newA', rateB: 'newB'},
                 });
+                // Then the original order and metadata survive under the new IDs.
                 expect(result).toEqual({
                     newDist: {
                         ...sourceUnit,
@@ -2116,6 +2119,7 @@ describe('PolicyUtils', () => {
             });
 
             it('keeps the source ID for a rate the map leaves out', () => {
+                // Given a source rate absent from the client ID map.
                 const sourceUnit = {
                     customUnitID: 'srcPerDiem',
                     name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
@@ -2128,11 +2132,13 @@ describe('PolicyUtils', () => {
                     ...createRandomPolicy(0),
                     customUnits: {[sourceUnit.customUnitID]: sourceUnit},
                 };
+                // When the per diem unit is duplicated with an incomplete map.
                 const result = getCustomUnitsForDuplication(policyWithRates, false, true, {
                     distanceCustomUnitID: 'newDist',
                     perDiemCustomUnitID: 'newPerDiem',
                     rateIDsBySourceRateID: {},
                 });
+                // Then the unmapped rate keeps its ID instead of being dropped.
                 expect(result?.newPerDiem.rates).toEqual(sourceUnit.rates);
             });
         });

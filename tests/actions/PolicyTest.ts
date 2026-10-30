@@ -877,6 +877,7 @@ describe('actions/Policy', () => {
                 personalDetailsByLogins: {},
             };
 
+            // When the selected settings are duplicated with explicit Travel consent.
             const params = Policy.duplicateWorkspace(fakePolicy, {...options, hasAcceptedTravelTerms: true});
             // Then the duplicate reflects the selected settings without changing its source.
             expect(params.hasAcceptedTravelTerms).toBe(true);
@@ -999,6 +1000,7 @@ describe('actions/Policy', () => {
             };
 
             mockFetch.pause();
+            // When Members is copied by the caller creating the new workspace.
             const params = Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
