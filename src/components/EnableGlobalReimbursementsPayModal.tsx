@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type EnableGlobalReimbursementsModal from '@src/types/onyx/EnableGlobalReimbursementsModal';
 
+import {wiseBusinessOnboardingDraftBankAccountIDSelector} from '@selectors/WiseBusinessOnboardingForm';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import {useLockedAccountActions, useLockedAccountState} from './LockedAccountModalProvider';
@@ -23,6 +24,7 @@ function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
     const [enableGlobalReimbursementsModal] = useOnyx(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [wiseOnboardingDraftBankAccountID] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {selector: wiseBusinessOnboardingDraftBankAccountIDSelector});
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -42,7 +44,7 @@ function EnableGlobalReimbursementsPayModal() {
             } else {
                 navigateToWiseGlobalReimbursements(
                     getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal),
-                    canContinueWiseOnboarding(bankAccountList?.[modalData.bankAccountID]),
+                    canContinueWiseOnboarding(bankAccountList?.[modalData.bankAccountID], wiseOnboardingDraftBankAccountID),
                     {skipMatchingFullScreenRoute: true},
                 );
             }

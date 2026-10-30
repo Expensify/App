@@ -158,9 +158,10 @@ describe('PaymentMethodList', () => {
     });
 
     it('continues a Wise onboarding the admin left before Submit', async () => {
-        // Given a business bank account whose Wise onboarding has a page saved and is not submitted
+        // Given a business bank account whose Wise onboarding the admin opened on this device and did not submit
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount({step: 'representative'})});
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount(undefined)});
+            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID)});
         });
 
         // When the Wallet's bank accounts list renders and the admin presses Continue
@@ -175,9 +176,10 @@ describe('PaymentMethodList', () => {
     });
 
     it('shows a submitted Wise onboarding as in progress without Continue', async () => {
-        // Given a business bank account whose Wise onboarding is in review
+        // Given a business bank account whose Wise onboarding is in review, with its draft still on this device
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, step: 'business'})});
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})});
+            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID)});
         });
 
         // When the Wallet's bank accounts list renders
@@ -190,9 +192,10 @@ describe('PaymentMethodList', () => {
     });
 
     it('hides the Wise onboarding row without the Wise beta', async () => {
-        // Given a business bank account whose Wise onboarding has a page saved
+        // Given a business bank account whose Wise onboarding the admin opened and did not submit
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount({step: 'representative'})});
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount(undefined)});
+            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID)});
         });
 
         // When the list renders the way it does for a user without the Wise beta

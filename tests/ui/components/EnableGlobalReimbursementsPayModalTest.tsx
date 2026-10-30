@@ -59,13 +59,14 @@ describe('EnableGlobalReimbursementsPayModal', () => {
     });
 
     it.each([
-        ['continues the onboarding the admin left before Submit', {step: 'representative'}, true],
-        ['opens the intro for an account that has not started', undefined, false],
-        ['opens the intro for a submitted onboarding, which has nothing to continue', {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, step: 'business'}, false],
-    ])('%s when Pay is blocked', async (_label, wise, shouldContinueOnboarding) => {
-        // Given an admin with the Wise beta and a USD business account that is not set up for global reimbursements
+        ['continues the onboarding the admin left before Submit', undefined, String(BANK_ACCOUNT_ID), true],
+        ['opens the intro for an account that has not started', undefined, undefined, false],
+        ['opens the intro for a submitted onboarding, which has nothing to continue', {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}, String(BANK_ACCOUNT_ID), false],
+    ])('%s when Pay is blocked', async (_label, wise, onboardingDraftBankAccountID, shouldContinueOnboarding) => {
+        // Given an admin with the Wise beta and a USD business account that is not set up for global reimbursements, and the onboarding draft on this device
         await act(async () => {
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount(wise)});
+            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, onboardingDraftBankAccountID ? {bankAccountID: onboardingDraftBankAccountID} : null);
         });
         render(
             <LocaleContextProvider>

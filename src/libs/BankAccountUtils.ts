@@ -290,15 +290,16 @@ function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEnt
 }
 
 /**
- * Whether the admin left the account's Wise onboarding before Submit and can continue it. Only the copy of the admin doing the setup holds the last page
- * saved, and the onboarding opens only for an eligible account.
+ * Whether the admin left the account's Wise onboarding before Submit and can continue it. The onboarding draft on this device holds the account it was
+ * opened for, and the onboarding opens only for an eligible account.
  */
-function canContinueWiseOnboarding(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
-    const wise = bankAccount?.accountData?.additionalData?.wise;
+function canContinueWiseOnboarding(bankAccount: OnyxEntry<OnyxTypes.BankAccount>, onboardingDraftBankAccountID: string | undefined): boolean {
+    const bankAccountID = bankAccount?.accountData?.bankAccountID;
     return (
         bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-        !!wise?.step &&
-        !wise.status &&
+        !!bankAccountID &&
+        String(bankAccountID) === onboardingDraftBankAccountID &&
+        !bankAccount?.accountData?.additionalData?.wise?.status &&
         isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)
     );
 }

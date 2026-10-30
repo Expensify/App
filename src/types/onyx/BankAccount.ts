@@ -35,10 +35,7 @@ type BankAccountAdditionalData = {
     globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
 
     /** The business's Wise onboarding without its answers */
-    wise?: Pick<WiseBusinessOnboarding, 'status'> & {
-        /** The last onboarding page saved, only on the copy of the admin doing the setup */
-        step?: string;
-    };
+    wise?: Pick<WiseBusinessOnboarding, 'status'>;
 
     /** Whether the account is set up for global reimbursements. The backend rejects payments from a USD business account where this is false */
     isGlobalReimbursementEnabled?: boolean;

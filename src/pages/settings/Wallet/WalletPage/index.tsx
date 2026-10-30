@@ -71,6 +71,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isCollectingDepositAccountsSelector} from '@selectors/Policy';
+import {wiseBusinessOnboardingDraftBankAccountIDSelector} from '@selectors/WiseBusinessOnboardingForm';
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import React, {useContext, useEffect, useRef, useState} from 'react';
@@ -87,6 +88,7 @@ const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
 function WalletPage() {
     const {convertToDisplayString} = useCurrencyListActions();
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [wiseOnboardingDraftBankAccountID] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {selector: wiseBusinessOnboardingDraftBankAccountIDSelector});
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         selector: fundListSelector,
@@ -535,7 +537,10 @@ function WalletPage() {
                               closeModal(() =>
                                   navigateToWiseGlobalReimbursements(
                                       createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)),
-                                      canContinueWiseOnboarding(bankAccountList[paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID]),
+                                      canContinueWiseOnboarding(
+                                          bankAccountList[paymentMethod.selectedPaymentMethod.bankAccountID ?? CONST.DEFAULT_NUMBER_ID],
+                                          wiseOnboardingDraftBankAccountID,
+                                      ),
                                   ),
                               );
                               return;
