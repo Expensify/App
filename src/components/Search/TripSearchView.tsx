@@ -53,8 +53,9 @@ function TripSearchView({
 }: TripSearchViewProps) {
     const {type} = queryJSON;
 
-    const {isOffline, isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, modal, handleSelectRow, scrollToListIndex} =
-        useSearchListViewState({data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow: true});
+    const {isOffline, isKeyboardShown, safeAreaPaddingBottomStyle, isLargeScreenWidth, toggleAll, selectedTransactions, listRef, handleSelectRow, scrollToListIndex} = useSearchListViewState(
+        {data, isMobileSelectionModeEnabled, onSelectRow, shouldPreventLongPressRow: true},
+    );
 
     // Trips are a flat list, so visibility and selection counts are a single pass over the rows.
     const isItemVisible = (item: SearchListItem) => !isRowDeleted(item) || isOffline;
@@ -131,7 +132,6 @@ function TripSearchView({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
             />
-            {modal}
         </SearchListViewLayout>
     );
 }
