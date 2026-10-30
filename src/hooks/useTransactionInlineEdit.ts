@@ -274,19 +274,17 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         };
     };
 
-    const applyEdit = (edit: (params: TransactionInlineEditParams) => void): Promise<void> => getEditParams().then(edit);
+    const onEditDate = (newDate: string) => getEditParams().then((editParams) => editTransactionDateInline(editParams, newDate, renderedEditDataRef.current.personalOutputCurrency));
 
-    const onEditDate = (newDate: string) => applyEdit((params) => editTransactionDateInline(params, newDate, renderedEditDataRef.current.personalOutputCurrency));
+    const onEditMerchant = (newMerchant: string) => getEditParams().then((editParams) => showInlineEditError(editTransactionMerchantInline(translate, editParams, newMerchant)));
 
-    const onEditMerchant = (newMerchant: string) => applyEdit((params) => showInlineEditError(editTransactionMerchantInline(translate, params, newMerchant)));
+    const onEditDescription = (newDescription: string) => getEditParams().then((editParams) => showInlineEditError(editTransactionDescriptionInline(translate, editParams, newDescription)));
 
-    const onEditDescription = (newDescription: string) => applyEdit((params) => showInlineEditError(editTransactionDescriptionInline(translate, params, newDescription)));
+    const onEditCategory = (newCategory: string) => getEditParams().then((editParams) => editTransactionCategoryInline(editParams, newCategory));
 
-    const onEditCategory = (newCategory: string) => applyEdit((params) => editTransactionCategoryInline(params, newCategory));
+    const onEditAmount = (newAmount: number) => getEditParams().then((editParams) => showInlineEditError(editTransactionAmountInline(translate, editParams, newAmount)));
 
-    const onEditAmount = (newAmount: number) => applyEdit((params) => showInlineEditError(editTransactionAmountInline(translate, params, newAmount)));
-
-    const onEditTag = (newTag: string) => applyEdit((params) => editTransactionTagInline(params, newTag));
+    const onEditTag = (newTag: string) => getEditParams().then((editParams) => editTransactionTagInline(editParams, newTag));
 
     return {
         ...permissions,
