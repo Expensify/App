@@ -20,7 +20,7 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 | Performance | `PERF-*` | Render optimization, memo patterns, useEffect hygiene, data selection |
 | Consistency | `CONSISTENCY-*` | Platform checks, magic values, unused props, ESLint discipline, localization, file naming, JSDoc |
 | Clean React Patterns | `CLEAN-REACT-PATTERNS-*` | Composition, component ownership, state structure, prop typing, function components |
-| UI | `UI-*` | Loading indicators, scrollable pages, styling conventions |
+| UI | `UI-*` | Loading indicators, scrollable pages, styling conventions, selection-list ordering |
 
 ## Quick Reference
 
@@ -86,6 +86,7 @@ Before committing, stage everything with `git add -A`. Then start a general-purp
 - [UI-3](rules/ui-3-no-inline-styles.md) — Do not use inline style objects
 - [UI-4](rules/ui-4-layout-spacing-tokens.md) — Type and responsive insets come from tokens
 - [UI-5](rules/ui-5-reuse-existing-styles.md) — Reuse an existing style or StyleUtils helper instead of adding a new one
+- [UI-6](rules/ui-6-pin-initial-selection.md) — Searchable selection lists show the pre-selected item at the top
 
 ### Onyx
 - [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep Onyx reads off the render path and out of a written tick
