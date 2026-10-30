@@ -77,6 +77,7 @@ import usePermissions from './usePermissions';
 import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
+import useReportTransactions from './useReportTransactions';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
@@ -140,6 +141,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const iouReportTransactions = useReportTransactions(iouReport?.reportID);
 
     // Global collections
     const [personalDetails] = useAllPersonalDetails();
@@ -580,6 +582,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             requestParentReportAction,
                             transactionThreadReport,
                             iouReport,
+                            iouReportTransactions,
                             chatIOUReport,
                             isChatIOUReportArchived,
                             getCurrencyDecimals,
