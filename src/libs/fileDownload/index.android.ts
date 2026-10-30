@@ -1,5 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import HttpsError from '@libs/Errors/HttpsError';
 import fileURIToPath from '@libs/fileURIToPath';
 
 import CONST from '@src/CONST';
@@ -11,7 +12,7 @@ import RNFS from 'react-native-fs';
 
 import type {FileDownload} from './types';
 
-import {appendTimeToFileName, getFileName, isErrorResponseForFileDownload, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
+import {appendTimeToFileName, getFileName, isErrorResponseForFileDownload, rejectWithFileDownloadError, showGeneralErrorAlert, showPermissionErrorAlert, showSuccessAlert} from './FileUtils';
 import hasGalleryWritePermission from './hasGalleryWritePermission';
 import saveLocalFileToGallery from './saveLocalFileToGallery';
 
@@ -73,7 +74,14 @@ function handleDownload(translate: LocalizedTranslate, url: string, fileName?: s
     });
 }
 
-const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void, appendTimestamp = true): Promise<void> => {
+const postDownloadFile = (
+    translate: LocalizedTranslate,
+    url: string,
+    fileName?: string,
+    formData?: FormData,
+    onDownloadFailed?: (error?: HttpsError) => void,
+    appendTimestamp = true,
+): Promise<void> => {
     const fetchOptions: RequestInit = {
         method: 'POST',
         body: formData,
@@ -86,7 +94,7 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             }
             const contentType = response.headers.get('content-type');
             if (isErrorResponseForFileDownload(contentType, fileName)) {
-                throw new Error();
+                return rejectWithFileDownloadError(response);
             }
             return response.text();
         })
@@ -101,11 +109,11 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             RNFetchBlob.fs.unlink(downloadPath);
             showSuccessAlert(translate);
         })
-        .catch(() => {
+        .catch((error: unknown) => {
             if (!onDownloadFailed) {
                 showGeneralErrorAlert(translate);
             }
-            onDownloadFailed?.();
+            onDownloadFailed?.(error instanceof HttpsError ? error : undefined);
         });
 };
 

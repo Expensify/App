@@ -18,6 +18,7 @@ import {
     isHighResolutionImage,
     isLabelledDng,
     isLabelledTiff,
+    rejectWithFileDownloadError,
     resizeImageIfNeeded,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
@@ -187,6 +188,19 @@ describe('FileUtils', () => {
 
             // Then it isn't, since JSON is what that file contains
             expect(isError).toBe(false);
+        });
+    });
+
+    describe('rejectWithFileDownloadError', () => {
+        it('rejects with the error the API responded with', async () => {
+            // Given the API responded to a file download with an error
+            const response = createMock<Response>({json: () => Promise.resolve({jsonCode: 402, message: '402 Missing AU deposit account'})});
+
+            // When reading the error
+            const result = rejectWithFileDownloadError(response);
+
+            // Then it carries the API's code and message, so the caller can tell the user what went wrong
+            await expect(result).rejects.toMatchObject({status: '402', message: '402 Missing AU deposit account'});
         });
     });
 

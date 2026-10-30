@@ -9,6 +9,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
+import type HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {translateLocal} from '@libs/Localize';
@@ -1010,7 +1011,7 @@ type PayViaABAFunctionParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     translate: LocalizedTranslate;
-    onDownloadFailed: () => void;
+    onDownloadFailed: (error?: HttpsError) => void;
 };
 
 /**

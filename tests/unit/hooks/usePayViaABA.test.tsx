@@ -7,6 +7,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import usePayViaABA from '@hooks/usePayViaABA';
 
+import HttpsError from '@libs/Errors/HttpsError';
+
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
@@ -111,6 +113,30 @@ describe('usePayViaABA', () => {
             expect.objectContaining({
                 title: translateLocal('common.downloadFailedTitle'),
                 prompt: translateLocal('common.downloadFailedDescription'),
+            }),
+        );
+    });
+
+    it("names the employee when the ABA file can't pay them because they have no bank account", async () => {
+        // Given a report submitted by an employee who hasn't added a bank account the ABA file can pay into
+        const employeeAccountID = 2;
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', ownerAccountID: employeeAccountID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[employeeAccountID]: {accountID: employeeAccountID, login: 'tom@test.com', displayName: 'Tom Jones'}});
+        });
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => result.current.payReportsViaABA(['123'], policy));
+
+        // When the download fails because they're missing a deposit account
+        const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
+        onDownloadFailed?.(new HttpsError({message: '402 Missing AU deposit account', status: '402'}));
+
+        // Then the admin is told who needs to add one, since trying again won't work until they do
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: translateLocal('common.downloadFailedTitle'),
+                prompt: translateLocal('iou.missingABADepositAccount', {name: 'Tom Jones'}),
             }),
         );
     });

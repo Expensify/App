@@ -3195,6 +3195,9 @@ const CONST = {
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
 
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
+
+        // Sent when an employee being paid via ABA has no Australian bank account to pay into
+        MISSING_ABA_DEPOSIT_ACCOUNT: 'Missing AU deposit account',
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',

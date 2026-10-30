@@ -1,9 +1,12 @@
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
+import type HttpsError from '@libs/Errors/HttpsError';
+import {getDisplayNameForParticipant, getReportOrDraftReport} from '@libs/ReportUtils';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
@@ -25,7 +28,7 @@ import useVerifyAccountAndResume from './useVerifyAccountAndResume';
  * Also returns whether a download is in progress, so the Pay button can show it's loading.
  */
 function usePayViaABA() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const {showDecisionModal} = useDecisionModal();
@@ -40,6 +43,17 @@ function usePayViaABA() {
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resume) => resume?.());
     const [isDownloadingABAFile, setIsDownloadingABAFile] = useState(false);
+
+    const getDownloadFailedPrompt = (reportIDs: string[], error?: HttpsError) => {
+        if (!error?.message.includes(CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT) || reportIDs.length !== 1) {
+            return translate('common.downloadFailedDescription');
+        }
+
+        // The employee who's missing an account is the one who submitted the report
+        const report = getReportOrDraftReport(reportIDs.at(0));
+        const name = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldFallbackToHidden: false, formatPhoneNumber});
+        return name ? translate('iou.missingABADepositAccount', {name}) : translate('common.downloadFailedDescription');
+    };
 
     const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) => {
         setIsDownloadingABAFile(true);
@@ -56,10 +70,10 @@ function usePayViaABA() {
             amountOwed,
             ownerBillingGracePeriodEnd,
             translate,
-            onDownloadFailed: () => {
+            onDownloadFailed: (error) => {
                 showDecisionModal({
                     title: translate('common.downloadFailedTitle'),
-                    prompt: translate('common.downloadFailedDescription'),
+                    prompt: getDownloadFailedPrompt(reportIDs, error),
                     secondOptionText: translate('common.buttonConfirm'),
                 });
             },

@@ -1,6 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
+import HttpsError from '@libs/Errors/HttpsError';
 import fileURIToPath from '@libs/fileURIToPath';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
@@ -173,6 +174,15 @@ function getDownloadFileName(displayName: string, source: string): string {
  */
 function isErrorResponseForFileDownload(contentType: string | null, fileName?: string): boolean {
     return contentType === 'application/json' && ['.csv', '.aba'].some((extension) => fileName?.includes(extension));
+}
+
+/**
+ * Rejects with the API's error so the caller can tell the user why the download failed.
+ */
+function rejectWithFileDownloadError(response: Response): Promise<never> {
+    return response.json().then((error: {jsonCode?: number; message?: string}) => {
+        throw new HttpsError({message: error.message ?? '', status: String(error.jsonCode ?? '')});
+    });
 }
 
 /**
@@ -1046,6 +1056,7 @@ function cleanFileObjectName(fileObject: FileObject): FileObject {
 export {
     showGeneralErrorAlert,
     isErrorResponseForFileDownload,
+    rejectWithFileDownloadError,
     showSuccessAlert,
     showPermissionErrorAlert,
     showCameraPermissionsAlert,
