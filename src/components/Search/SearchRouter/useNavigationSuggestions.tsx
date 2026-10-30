@@ -110,7 +110,6 @@ type BuildTopLevelNavigationItemsParams = {
         account: string;
     };
     icons: TopLevelNavigationIcons;
-    isInsightsPageBetaEnabled: boolean;
     getSpendRoute: () => Route;
     getDestinationText: (destination: string) => string;
 };
@@ -209,7 +208,7 @@ type BuildAccountNavigationItemsParams = {
 };
 
 // Tab buttons own stateful navigation behavior and do not expose reusable descriptors, so Search Router keeps deterministic destination actions here.
-function buildTopLevelNavigationItems({labels, icons, isInsightsPageBetaEnabled, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
+function buildTopLevelNavigationItems({labels, icons, getSpendRoute, getDestinationText}: BuildTopLevelNavigationItemsParams): NavigationSuggestionSourceItem[] {
     return [
         {
             text: getDestinationText(labels.home),
@@ -232,17 +231,13 @@ function buildTopLevelNavigationItems({labels, icons, isInsightsPageBetaEnabled,
             keyForList: 'topLevelSpend',
             matchTerms: [labels.spend],
         },
-        ...(isInsightsPageBetaEnabled
-            ? [
-                  {
-                      text: getDestinationText(labels.insights),
-                      singleIcon: icons.PieChart,
-                      action: () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)),
-                      keyForList: 'topLevelInsights',
-                      matchTerms: [labels.insights],
-                  },
-              ]
-            : []),
+        {
+            text: getDestinationText(labels.insights),
+            singleIcon: icons.PieChart,
+            action: () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND)),
+            keyForList: 'topLevelInsights',
+            matchTerms: [labels.insights],
+        },
         {
             text: getDestinationText(labels.workspaces),
             singleIcon: icons.Building,
@@ -417,7 +412,6 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             account: translate('initialSettingsPage.account'),
         },
         icons,
-        isInsightsPageBetaEnabled: isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE),
         getSpendRoute: () => getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuerySelector(searchFilters)),
         getDestinationText: (destination) => getGoToText(translate, destination),
     });

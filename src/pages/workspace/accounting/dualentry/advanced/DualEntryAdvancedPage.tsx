@@ -32,13 +32,16 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
 function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -101,7 +104,11 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.ACCOUNTING_METHOD], dualentryConfig?.pendingFields)}>
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT_METHOD.getRoute(policyID)) : undefined))}
+                        onPress={callFunctionIfActionIsAllowed(
+                            () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT_METHOD.getRoute(policyID)) : undefined),
+                            false,
+                            session,
+                        )}
                     >
                         <MenuItemField.Row
                             name={translate('workspace.dualEntry.accountingMethods.label')}

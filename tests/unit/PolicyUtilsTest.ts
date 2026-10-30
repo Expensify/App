@@ -98,6 +98,7 @@ import {
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
+    getTagListEntryByOrderWeight,
     getTravelStep,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
@@ -3379,6 +3380,38 @@ describe('PolicyUtils', () => {
             ])('%s', (_description, orderWeight, expected) => {
                 const tagList = getTagListByOrderWeight(policyTags, orderWeight);
                 expect(tagList.name).toEqual(expected);
+            });
+        });
+        describe('getTagListEntryByOrderWeight', () => {
+            // Given tag lists that share a name but are stored under unique Onyx keys, as a no-header import with
+            // GL codes in adjacent columns can return them
+            const tagListsWithDuplicateNames: PolicyTagLists = {
+                Clients: {name: 'Clients', orderWeight: 0, required: false, tags: {}},
+                'Sub-projects': {name: 'Sub-projects', orderWeight: 1, required: false, tags: {}},
+                'Sub-projects_2': {name: 'Sub-projects', orderWeight: 2, required: false, tags: {}},
+            };
+
+            it.each([
+                ['returns the entry of the first list with a repeated name', 1, 'Sub-projects'],
+                ['returns the entry of the second list with a repeated name', 2, 'Sub-projects_2'],
+            ])('%s', (_description, orderWeight, expectedKey) => {
+                // When the entry is looked up by orderWeight
+                const entry = getTagListEntryByOrderWeight(tagListsWithDuplicateNames, orderWeight);
+
+                // Then the key and value of the matching list are returned, so callers write to its key, not its name
+                expect(entry).toEqual([expectedKey, tagListsWithDuplicateNames[expectedKey]]);
+            });
+
+            it('returns undefined when no list has the orderWeight', () => {
+                // Given tag lists without orderWeight 3
+                // When / Then
+                expect(getTagListEntryByOrderWeight(tagListsWithDuplicateNames, 3)).toBeUndefined();
+            });
+
+            it('returns undefined when there are no tag lists', () => {
+                // Given no tag lists
+                // When / Then
+                expect(getTagListEntryByOrderWeight(undefined, 0)).toBeUndefined();
             });
         });
         describe('hasAnyTagGLCode', () => {

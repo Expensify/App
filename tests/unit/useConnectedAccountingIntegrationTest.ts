@@ -10,6 +10,7 @@ import createRandomPolicy from '../utils/collections/policies';
 
 const mockSyncConnection = jest.fn();
 let mockConnectedIntegration: ConnectionName | undefined;
+let mockSynchronizationError: string | undefined;
 
 jest.mock('@hooks/useCardFeeds', () => () => [undefined]);
 jest.mock('@hooks/useCardsLists', () => () => [undefined]);
@@ -78,11 +79,48 @@ jest.mock('@pages/workspace/accounting/certinia/utils', () => ({
 jest.mock('@pages/workspace/accounting/utils', () => ({
     getAccountingIntegrationData: () => undefined,
     getAccountingIntegrationDisplayName: () => '',
-    getSynchronizationErrorMessage: () => undefined,
+    getSynchronizationErrorMessage: () => mockSynchronizationError,
     isIntuitEnterpriseSuiteConnection: () => false,
 }));
 
 const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), id: 'policy-1'};
+
+const zohoBooksPolicy: Policy = {
+    ...policy,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The hook only reads the entity list and the selected entity, so the rest of the connection config is left out.
+    connections: {
+        [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {
+            config: {subsidiaryID: 'org-1'},
+            data: {
+                organizations: [
+                    {id: 'org-1', name: 'Organization One', currency: 'USD'},
+                    {id: 'org-2', name: 'Organization Two', currency: 'USD'},
+                ],
+            },
+        },
+    } as Policy['connections'],
+};
+
+const campfirePolicy: Policy = {
+    ...policy,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The hook only reads the entity list and the selected entity, so the rest of the connection config is left out.
+    connections: {
+        [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {
+            config: {subsidiaryID: 'subsidiary-1'},
+            data: {
+                subsidiaries: [
+                    {id: 'subsidiary-1', name: 'Subsidiary One', currency: 'USD'},
+                    {id: 'subsidiary-2', name: 'Subsidiary Two', currency: 'USD'},
+                ],
+            },
+        },
+    } as Policy['connections'],
+};
+
+function getSettingsMenuItemDescriptions(policyToRender: Policy) {
+    const {result} = renderHook(() => useConnectedAccountingIntegration(policyToRender));
+    return result.current.connectionDetails?.settingsMenuItems.map((item) => item.description);
+}
 
 function getSyncNowItem() {
     const {result} = renderHook(() => useConnectedAccountingIntegration(policy));
@@ -93,6 +131,7 @@ describe('useConnectedAccountingIntegration', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockConnectedIntegration = undefined;
+        mockSynchronizationError = undefined;
     });
 
     describe('Sync now menu item', () => {
@@ -116,6 +155,32 @@ describe('useConnectedAccountingIntegration', () => {
 
             // Then syncConnection is called with forceDataRefresh false since only QBD uses Codat's cached data
             expect(mockSyncConnection).toHaveBeenCalledWith(policy, CONST.POLICY.CONNECTIONS.NAME.QBO, false);
+        });
+    });
+
+    describe('Integration-specific settings row on a failed sync', () => {
+        it('should keep the Zoho Books organization row when the last sync failed', () => {
+            // Given a workspace connected to Zoho Books with two organizations whose last sync failed
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+            mockSynchronizationError = 'Sync failed';
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(zohoBooksPolicy);
+
+            // Then the organization row is still shown, because the selected organization can be what broke the sync and admins need the row to switch it
+            expect(descriptions).toContain('workspace.zohoBooks.organization');
+        });
+
+        it('should drop the integration-specific row for other connectors when the last sync failed', () => {
+            // Given a workspace connected to Campfire with two entities whose last sync failed
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+            mockSynchronizationError = 'Sync failed';
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(campfirePolicy);
+
+            // Then the entity row is hidden, since only Zoho Books keeps its row through a sync error
+            expect(descriptions).not.toContain('workspace.campfire.entity');
         });
     });
 });

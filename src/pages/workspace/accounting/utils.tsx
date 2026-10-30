@@ -687,9 +687,13 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                // Import, export, and advanced screens are added in later releases.
-                onImportPagePress: () => null,
-                subscribedImportSettings: [],
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.ZOHO_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.ZOHO_BOOKS_CONFIG.SYNC_TAX_RATES,
+                    ...(policy?.connections?.zohoBooks?.data?.reportingTags?.map((reportingTag) => `${CONST.ZOHO_BOOKS_CONFIG.FIELD_MAPPING_PREFIX}${reportingTag.id}`) ?? []),
+                ],
+                // Export and advanced screens are added in later releases.
                 onExportPagePress: () => null,
                 subscribedExportSettings: [],
                 onAdvancedPagePress: () => null,
