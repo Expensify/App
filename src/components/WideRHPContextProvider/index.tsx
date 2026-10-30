@@ -49,15 +49,16 @@ const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
 const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
 const WideRHPActionsContext = createContext<WideRHPActionsContextType>(defaultWideRHPActionsContextValue);
 
-// Only invoice and task reports opt out of the wide hint, so keep just their keys: the result stays equal across unrelated report writes
-const narrowRHPReportKeysSelector = (reports: OnyxCollection<Report>) => {
-    const keys: Record<string, true> = {};
-    for (const [key, report] of Object.entries(reports ?? {})) {
-        if (report?.type === CONST.REPORT.TYPE.INVOICE || report?.type === CONST.REPORT.TYPE.TASK) {
-            keys[key] = true;
-        }
-    }
-    return keys;
+const expenseReportSelector = (reports: OnyxCollection<Report>) => {
+    return Object.fromEntries(
+        Object.entries(reports ?? {}).map(([key, report]) => [
+            key,
+            {
+                reportID: report?.reportID,
+                type: report?.type,
+            },
+        ]),
+    );
 };
 
 // Function to add a Wide/Super Wide RHP route key to the array including wide/super wide RHP route keys
@@ -109,8 +110,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     // A reportID maps to at most one hint, making "wide vs super-wide" structurally mutually exclusive.
     const [reportRHPWidthHints, setReportRHPWidthHints] = useState<Map<string, RHPWidthHint>>(() => new Map());
 
-    const [narrowRHPReportKeys] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: narrowRHPReportKeysSelector,
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: expenseReportSelector,
     });
 
     const isWideRHPClosingRef = useRef(false);
@@ -223,7 +224,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             return;
         }
         if (width === 'wide') {
-            if (narrowRHPReportKeys?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            if (report?.type === CONST.REPORT.TYPE.INVOICE || report?.type === CONST.REPORT.TYPE.TASK) {
                 return;
             }
         }

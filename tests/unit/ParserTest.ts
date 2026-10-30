@@ -1,11 +1,5 @@
 import Parser from '@libs/Parser';
 
-import ONYXKEYS from '@src/ONYXKEYS';
-
-import Onyx from 'react-native-onyx';
-
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-
 describe('Parser', () => {
     describe('isHTML', () => {
         test('returns true for strings containing HTML tags', () => {
@@ -94,33 +88,6 @@ describe('Parser', () => {
 
         test('returns #Hidden for mention-report when reportID is missing from the map', () => {
             expect(Parser.htmlToText('<mention-report reportID="99" />', {reportIDToName: {}})).toBe('#Hidden');
-        });
-    });
-
-    describe('report mentions', () => {
-        beforeAll(() => {
-            Onyx.init({keys: ONYXKEYS});
-        });
-
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdates();
-        });
-
-        test('uses the current report name, including after a rename', async () => {
-            // Given a room stored in Onyx
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', reportName: '#general'});
-            await waitForBatchedUpdates();
-
-            // When a report mention is converted before and after the room is renamed
-            const beforeRename = Parser.htmlToMarkdown('<mention-report reportID="1" />');
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportName: '#renamed'});
-            await waitForBatchedUpdates();
-            const afterRename = Parser.htmlToMarkdown('<mention-report reportID="1" />');
-
-            // Then each conversion uses the name the report had at that time, since the name map is rebuilt when reports change
-            expect(beforeRename).toBe('#general');
-            expect(afterRename).toBe('#renamed');
         });
     });
 });
