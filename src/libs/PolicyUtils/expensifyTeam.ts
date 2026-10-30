@@ -1,5 +1,5 @@
 /**
- * Its own file so domains.ts can use it without importing members.ts, which pulls in actions/BankAccounts.
+ * Its own file so domains.ts can use isExpensifyTeam without importing members.ts, which pulls in actions/BankAccounts.
  */
 import CONST from '@src/CONST';
 
@@ -13,5 +13,22 @@ function isExpensifyTeam(email: string | undefined): boolean {
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
 }
 
-// eslint-disable-next-line import/prefer-default-export -- re-exported through the PolicyUtils barrel's `export *`, which skips default exports
-export {isExpensifyTeam};
+/** Whether Expensify team members should be hidden from the given policy/user combination. */
+function shouldFilterExpensifyTeam(policyOwner: string | undefined, currentUserLogin: string | undefined): boolean {
+    return !!policyOwner && !!currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin);
+}
+
+/**
+ * Whether a login should be hidden from a cardholder picker because it belongs to Expensify staff, who are also hidden from the Workspace Members page.
+ * The current cardholder is never hidden, so editing an existing assignment doesn't blank out the selection.
+ */
+function shouldHideExpensifyTeamCardholder(
+    login: string | null | undefined,
+    currentCardholderLogin: string | undefined,
+    policyOwner: string | undefined,
+    currentUserLogin: string | undefined,
+): boolean {
+    return !!login && login !== currentCardholderLogin && isExpensifyTeam(login) && shouldFilterExpensifyTeam(policyOwner, currentUserLogin);
+}
+
+export {isExpensifyTeam, shouldFilterExpensifyTeam, shouldHideExpensifyTeamCardholder};
