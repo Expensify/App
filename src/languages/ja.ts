@@ -2294,6 +2294,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: '新しい連絡方法',
         goBackContactMethods: '連絡方法に戻る',
+        integrationServerLogin: {
+            title: '連携',
+            description: 'Integration Server API に使用されます。',
+            removeDescription: 'このログインを削除すると、Integration Server API のアクセスが取り消されます。',
+        },
         yourDefaultContactMethodRestrictedSwitch: 'これは現在のデフォルトの連絡方法です。会社により、これを削除または変更することは制限されています。',
     },
     pronouns: {

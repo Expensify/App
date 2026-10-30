@@ -142,6 +142,11 @@ const DYNAMIC_ROUTES = {
             getUrlWithParams(`${encodeURIComponent(contactMethod)}/details`, {shouldSkipInitialValidation: shouldSkipInitialValidation ? 'true' : undefined}),
         queryParams: ['shouldSkipInitialValidation'],
     },
+    INTEGRATION_SERVER_LOGIN_DETAILS: {
+        path: 'integration-server-login/:partnerUserID',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+        getRoute: (partnerUserID: string) => `integration-server-login/${encodeURIComponent(partnerUserID)}` as const,
+    },
     NEW_CONTACT_METHOD: {
         path: 'new-contact-method',
         entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],

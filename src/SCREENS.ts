@@ -113,6 +113,7 @@ const SCREENS = {
             DISPLAY_NAME: 'Settings_Display_Name',
             DYNAMIC_CONTACT_METHODS: 'Dynamic_Settings_ContactMethods',
             DYNAMIC_CONTACT_METHOD_DETAILS: 'Dynamic_Settings_ContactMethodDetails',
+            DYNAMIC_INTEGRATION_SERVER_LOGIN_DETAILS: 'Dynamic_Settings_IntegrationServerLoginDetails',
             DYNAMIC_NEW_CONTACT_METHOD: 'Dynamic_Settings_NewContactMethod',
             DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE: 'Dynamic_Settings_NewContactMethod_ConfirmValidateCode',
             CONTACT_METHOD_SET_DEFAULT_CONFIRM: 'Settings_ContactMethod_SetDefault_Confirm',

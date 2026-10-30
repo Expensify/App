@@ -435,6 +435,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.AVATAR]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Avatar/AvatarPage').default,
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/DynamicContactMethodsPage').default,
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/DynamicContactMethodDetailsPage').default,
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_INTEGRATION_SERVER_LOGIN_DETAILS]: () =>
+        require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/DynamicIntegrationServerLoginDetailsPage').default,
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/DynamicNewContactMethodPage').default,
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/DynamicNewContactMethodConfirmValidateCodePage').default,

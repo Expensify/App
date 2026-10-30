@@ -2371,6 +2371,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Νέος τρόπος επικοινωνίας',
         goBackContactMethods: 'Επιστρέψτε στις μεθόδους επικοινωνίας',
+        integrationServerLogin: {
+            title: 'Ενσωματώσεις',
+            description: 'Χρησιμοποιείται για το Integration Server API.',
+            removeDescription: 'Η αφαίρεση αυτής της σύνδεσης θα ανακαλέσει την πρόσβαση του Integration Server API.',
+        },
         enterSecurityCode: (contactMethod: string) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod}. Θα πρέπει να φτάσει μέσα σε ένα-δύο λεπτά.`,
     },
     pronouns: {

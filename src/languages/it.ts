@@ -2313,6 +2313,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nuovo metodo di contatto',
         goBackContactMethods: 'Torna ai metodi di contatto',
+        integrationServerLogin: {
+            title: 'Integrazioni',
+            description: "Viene usato per l'API di Integration Server.",
+            removeDescription: "Rimuovendo questo accesso, verrà revocato l'accesso dell'API di Integration Server.",
+        },
         yourDefaultContactMethodRestrictedSwitch: 'Questo è il tuo metodo di contatto predefinito attuale. La tua azienda ne ha limitato la rimozione o la modifica.',
     },
     pronouns: {

@@ -266,4 +266,54 @@ describe('UserUtils', () => {
             expect(result.map((login) => login.partnerUserID)).toEqual(['b@example.com', 'a@example.com']);
         });
     });
+
+    describe('integrationServerLoginsSelector', () => {
+        test('returns an empty array when there are no logins', () => {
+            // Given the logins key hasn't loaded
+            // When the Integration Server logins are selected
+            const result = UserUtils.integrationServerLoginsSelector(undefined);
+
+            // Then the contact methods page gets an empty list, so it shows no Integrations section
+            expect(result).toEqual([]);
+        });
+
+        test('keeps only Integration Server logins', () => {
+            // Given an account with an email contact method, a device login and an Integration Server login
+            const logins = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '1_user@example.com': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: 'user@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: '2024-01-01',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '14_device': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.IPHONE,
+                    partnerUserID: 'device@example.com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '53_aa_user_example_com': {
+                    created: '2024-01-01',
+                    accountID: 1,
+                    partnerID: CONST.PARTNER_ID.INTEGRATIONS,
+                    partnerUserID: 'aa_user_example_com',
+                    lastLogin: '2024-01-02',
+                    validatedDate: null,
+                },
+            };
+
+            // When the Integration Server logins are selected
+            const result = UserUtils.integrationServerLoginsSelector(logins);
+
+            // Then only the Integration Server login is kept, because the other logins have their own sections and pages
+            expect(result.map((login) => login.partnerUserID)).toEqual(['aa_user_example_com']);
+        });
+    });
 });

@@ -33,6 +33,9 @@ type AccountSettingsParamList = {
         contactMethod: string;
         shouldSkipInitialValidation?: string;
     };
+    [SCREENS.SETTINGS.PROFILE.DYNAMIC_INTEGRATION_SERVER_LOGIN_DETAILS]: {
+        partnerUserID: string;
+    };
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD]: undefined;
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE]: undefined;
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: {

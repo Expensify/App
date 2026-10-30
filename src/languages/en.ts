@@ -2478,6 +2478,11 @@ const translations = {
         },
         newContactMethod: 'New contact method',
         goBackContactMethods: 'Go back to contact methods',
+        integrationServerLogin: {
+            title: 'Integrations',
+            description: 'This is used for the Integration Server API.',
+            removeDescription: "Removing this login will revoke the Integration Server API's access.",
+        },
     },
     // cspell:disable
     pronouns: {

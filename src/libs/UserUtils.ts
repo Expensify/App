@@ -91,7 +91,14 @@ function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefin
     return result;
 }
 
-const DEVICE_PARTNER_IDS = new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT, CONST.PARTNER_ID.OAUTH]);
+/**
+ * Selector that filters the `logins` Onyx key to the Integration Server API logins (partnerID === 53)
+ */
+function integrationServerLoginsSelector(logins: OnyxEntry<Logins>) {
+    return Object.values(logins ?? {}).filter((login) => login.partnerID === CONST.PARTNER_ID.INTEGRATIONS);
+}
+
+const DEVICE_PARTNER_IDS =new Set<number>([CONST.PARTNER_ID.IPHONE, CONST.PARTNER_ID.ANDROID, CONST.PARTNER_ID.NEWDOT, CONST.PARTNER_ID.OAUTH]);
 
 function isDeviceLogin(login: NewLogin) {
     return DEVICE_PARTNER_IDS.has(login.partnerID) && (!login.additionalData?.infiniteLoginRoot || login.additionalData.infiniteLoginRoot === login.partnerUserID);
@@ -290,5 +297,6 @@ export {
     getDeviceDisplayName,
     hasDeviceManagementError,
     expensifyLoginsSelector,
+    integrationServerLoginsSelector,
 };
 export type {AvatarSource};
