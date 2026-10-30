@@ -239,6 +239,10 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
 }
 
 function getCancellationDeadline(pnrData: HotelPnr): string | undefined {
+    // A deadline would show "Free cancellation until …", which is wrong for a non-refundable room.
+    if (pnrData.room.cancellationPolicy?.policy === CONST.CANCELLATION_POLICY.NON_REFUNDABLE) {
+        return undefined;
+    }
     const deadlineUtc = pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
     // `deadlineUtc` with an offset is the exact deadline Spotnana shows, in the hotel's timezone.
     if (deadlineUtc && CONST.REGEX.ISO_8601_UTC_OFFSET_SUFFIX.test(deadlineUtc)) {

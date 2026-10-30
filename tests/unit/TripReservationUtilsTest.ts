@@ -3050,6 +3050,22 @@ describe('TripReservationUtils', () => {
             // Then the UTC deadline is still shown rather than dropping to the generic policy text
             expect(cancellationDeadline).toBe('2026-10-19T22:59:00Z');
         });
+
+        it('should not return a deadline for a non-refundable room', () => {
+            // Given a non-refundable room that still has deadlines set
+            // When the hotel reservation is parsed
+            const cancellationDeadline = getHotelCancellationDeadline(
+                {
+                    policy: CONST.CANCELLATION_POLICY.NON_REFUNDABLE,
+                    deadline: {iso8601: '2026-10-19T23:59:00'},
+                    deadlineUtc: {iso8601: '2026-10-19T23:59:00+01:00'},
+                },
+                '2026-10-21T15:00:00',
+            );
+
+            // Then no deadline is returned, so the page shows "Non-refundable" instead of "Free cancellation until …"
+            expect(cancellationDeadline).toBeUndefined();
+        });
     });
 
     describe('getPNRReservationDataFromTripReport', () => {
