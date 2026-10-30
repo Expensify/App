@@ -1966,6 +1966,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       isSelfTourViewed,
                       conciergeChat,
                       delegateAccountID,
+                      currentUserAccountID: currentUserAccountIDParam,
                   })?.guidedSetupData
                 : undefined;
 
@@ -3056,7 +3057,8 @@ function getNavigationUrlAfterTrackExpenseDelete(
     chatIOUReport: OnyxEntry<OnyxTypes.Report>,
     isChatReportArchived: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    isSingleTransactionView = false,
+    isSingleTransactionView: boolean | undefined,
+    currentUserAccountID: number,
 ): Route | undefined {
     if (!chatReportID || !transactionID) {
         return undefined;
@@ -3075,6 +3077,7 @@ function getNavigationUrlAfterTrackExpenseDelete(
             isChatReportArchived,
             getCurrencyDecimals,
             isSingleTransactionView,
+            currentUserAccountID,
         );
     }
 
@@ -3122,6 +3125,7 @@ function deleteTrackExpense({
         isChatIOUReportArchived,
         getCurrencyDecimals,
         isSingleTransactionView,
+        currentUserAccountID,
     );
 
     const allReports = getAllReports();

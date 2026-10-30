@@ -584,6 +584,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             isChatIOUReportArchived,
                             getCurrencyDecimals,
                             false,
+                            accountID,
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
