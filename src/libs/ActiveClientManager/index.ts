@@ -1,5 +1,5 @@
 import {setModalVisibility} from '@libs/actions/Modal';
-import Log, {setLogTabTag} from '@libs/Log';
+import Log, {setActiveTab} from '@libs/Log';
 
 import {setActiveClients} from '@userActions/ActiveClients';
 
@@ -78,7 +78,7 @@ const isClientTheLeader: IsClientTheLeader = () => {
 };
 
 function logActiveClientsChange() {
-    setLogTabTag(clientID, isClientTheLeader());
+    setActiveTab({clientID, isLeader: isClientTheLeader()});
 
     Log.info('[ActiveClientManager] Active clients changed', false, {
         activeClientCount: activeClients.length,

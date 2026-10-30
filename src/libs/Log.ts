@@ -15,18 +15,20 @@ import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
 let timeout: NodeJS.Timeout;
 
-let tabTag: {clientID: string; isLeader: boolean} | undefined;
+type ActiveTab = {clientID: string; isLeader: boolean};
 
-function setLogTabTag(clientID: string, isLeader: boolean) {
-    tabTag = {clientID, isLeader};
+let activeTab: ActiveTab | undefined;
+
+function setActiveTab(tab: ActiveTab) {
+    activeTab = tab;
 }
 
-function tagLogMessage(message: string): string {
-    if (!tabTag) {
+function tagMessage(message: string): string {
+    if (!activeTab) {
         return message;
     }
 
-    return `[${tabTag.clientID} leader:${tabTag.isLeader}] ${message}`;
+    return `${message} [tab ${activeTab.clientID} leader:${activeTab.isLeader}]`;
 }
 
 type LogCommandParameters = {
@@ -50,7 +52,7 @@ type RequestParams = Merge<
     {shouldProcessImmediately: boolean; shouldRetry: boolean; expensifyCashAppVersion: string; parameters?: string; email?: string | null}
 >;
 
-type LogLine = {email?: string | null; clientID?: string; isLeader?: boolean; [key: string]: unknown};
+type LogLine = {email?: string | null; [key: string]: unknown};
 
 /**
  * Network interface for logger.
@@ -124,37 +126,15 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
 // callback methods are passed in here so we can decouple the logging library from the logging methods.
 class TabTaggedLogger extends Logger {
-    add(...addArgs: Parameters<Logger['add']>) {
-        const [message, parameters, forceFlushToServer, onlyFlushWithOthers, extraData] = addArgs;
-        const tagAtWrite = tabTag;
-        const {maxLogLinesBeforeFlush} = this;
-
-        // Logger.add flushes from inside itself as soon as it pushes the line, which would send this
-        // line before the tag below is attached, so the queue is held open and flushed here instead.
-        this.maxLogLinesBeforeFlush = Number.POSITIVE_INFINITY;
-
-        try {
-            super.add(message, parameters, false, onlyFlushWithOthers, extraData);
-        } finally {
-            this.maxLogLinesBeforeFlush = maxLogLinesBeforeFlush;
-        }
-
-        const line = this.logLines.at(-1);
-
-        if (line && tagAtWrite) {
-            Object.assign(line, tagAtWrite);
-        }
-
-        if (forceFlushToServer || this.logLines.length > maxLogLinesBeforeFlush) {
-            this.logToServer();
-        }
+    add(...[message, ...rest]: Parameters<Logger['add']>) {
+        super.add(tagMessage(message), ...rest);
     }
 }
 
 const Log = new TabTaggedLogger({
     serverLoggingCallback,
     clientLoggingCallback: (message, extraData) => {
-        console.debug(tagLogMessage(message), extraData);
+        console.debug(message, extraData);
     },
     maxLogLinesBeforeFlush: 500,
     isDebug: true,
@@ -182,6 +162,6 @@ AppLogs.registerHandler({
     },
 });
 
-export {setLogTabTag};
+export {setActiveTab};
 
 export default Log;
