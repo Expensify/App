@@ -65,6 +65,9 @@ type BuildChartSeriesParams = {
     /** Returns how many decimals a currency is displayed with */
     getCurrencyDecimals: (currency: string) => number;
 
+    /** Writes out the money a group totals, named beside a plotted value that isn't money. Left out by charts plotting the amount itself. */
+    formatTotal?: (total: number, currency: string | undefined) => string;
+
     /** Returns the label of the group whose period includes today, or undefined for any other group */
     getInProgressLabel?: (item: GroupedItem) => string | undefined;
 
@@ -115,6 +118,7 @@ function buildChartSeries({
     getLabel,
     getShortLabel,
     getCurrencyDecimals,
+    formatTotal,
     getInProgressLabel,
     isLaterPeriod,
     translate,
@@ -127,10 +131,12 @@ function buildChartSeries({
     const getValue = (item: GroupedItem) => (isCountMetric ? item.count : convertToFrontendAmountAsInteger(item.total ?? 0, getCurrencyDecimals(item.currency ?? CONST.CURRENCY.USD)));
     // The share the search reports is a share of total spend, so it says nothing about a group's place among the counts.
     const getShare = (item: GroupedItem) => (isCountMetric ? undefined : item.percentOfTotal);
+    // A group a search reports no spend for has no money to name, so the value stands on its own.
+    const getTotal = (item: GroupedItem) => (item.total === undefined ? undefined : formatTotal?.(item.total, item.currency));
     // A time bucket's counterpart covers other dates, so compared time buckets are keyed by start date. Other groups match by their own key.
     const comparedByKey = new Map(comparison?.data.map((item) => [(periods && getDateRange?.(item)?.start) ?? item.keyForList, item]));
 
-    /** Returns a group's compared value and share, plus its bucket labels when it is compared against another period */
+    /** Returns a group's compared value, share and total, plus its bucket labels when it is compared against another period */
     const getCompared = (item: GroupedItem) => {
         const bucketRange = getDateRange?.(item);
         if (periods && isTimeGroupBy(groupBy) && bucketRange) {
@@ -139,6 +145,7 @@ function buildChartSeries({
             return {
                 value: counterpartRange && (comparedItem ? getValue(comparedItem) : 0),
                 percentOfTotal: comparedItem && getShare(comparedItem),
+                total: comparedItem && getTotal(comparedItem),
                 bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, groupBy, translate, dateFnsLocale),
                 counterpartStart: counterpartRange?.start,
                 sortDate: bucketRange.start,
@@ -148,7 +155,7 @@ function buildChartSeries({
         const comparedItem = comparedByKey.get(item.keyForList);
         // No compared match for a time bucket means its counterpart doesn't exist, but for any other group it means the group had no spend.
         const missingValue = getDateRange ? undefined : 0;
-        return {value: comparedItem ? getValue(comparedItem) : missingValue, percentOfTotal: comparedItem && getShare(comparedItem)};
+        return {value: comparedItem ? getValue(comparedItem) : missingValue, percentOfTotal: comparedItem && getShare(comparedItem), total: comparedItem && getTotal(comparedItem)};
     };
 
     const pairedRows = data.map((item) => {
@@ -177,6 +184,7 @@ function buildChartSeries({
                 },
             }),
             ...(compared && {seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: getShare(item), [CHART_SERIES_KEY.COMPARISON]: compared.percentOfTotal}}),
+            ...(formatTotal && {seriesTotals: {[CHART_SERIES_KEY.PRIMARY]: getTotal(item), ...(compared && {[CHART_SERIES_KEY.COMPARISON]: compared.total})}}),
             isInProgress: isInProgress || !!isLaterPeriod?.(item),
         };
 
@@ -192,6 +200,7 @@ function buildChartSeries({
             values: {[CHART_SERIES_KEY.COMPARISON]: getValue(comparedItem)},
             seriesLabels: {[CHART_SERIES_KEY.COMPARISON]: bucketLabels.seriesLabel},
             seriesPercentOfTotal: {[CHART_SERIES_KEY.COMPARISON]: getShare(comparedItem)},
+            ...(formatTotal && {seriesTotals: {[CHART_SERIES_KEY.COMPARISON]: getTotal(comparedItem)}}),
             isInProgress: false,
         };
         return {row: {point}, sortDate: getPositionInPrimaryPeriod(range, comparisonPeriods, timeGroupBy)};

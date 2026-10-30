@@ -43,6 +43,9 @@ type ChartDataPoint = {
     /** Number of expenses in this point */
     count?: number;
 
+    /** The money each series' expenses total at this point, written out. Set when the plotted value isn't money, so the tooltip can name the spend behind it. */
+    seriesTotals?: Partial<Record<string, string>>;
+
     /** Marks a time-based point whose period hasn't ended yet, the current one or a later one, so its total is still changing. A line chart draws these points dashed. */
     isInProgress?: boolean;
 };

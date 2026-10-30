@@ -529,6 +529,73 @@ describe('buildChartSeries with the count metric', () => {
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([6, 5]);
     });
 
+    it('names the money each group totals beside its count, since a count says nothing about the spend behind it', () => {
+        // Given merchant groups plotted by how many expenses they hold
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting counts, with a formatter for the money a group totals
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+            formatTotal: (total) => `$${total / 100}`,
+        });
+
+        // Then each point carries its group's total, which the tooltip and the table write in the parentheses the share would have held
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY])).toEqual(['$4800', '$1900']);
+    });
+
+    it("names the compared period's own total too, so each row in a comparison says what it was worth", () => {
+        // Given two quarters plotted by count against the average the search returned for each
+        const data = [quarterGroup(1, 30000, 2026, 9), quarterGroup(2, 60000, 2026, 4)];
+        const averages = [quarterGroup(1, 30000, 2026, 6), quarterGroup(2, 45000, 2026, 5)];
+
+        // When the series is built for a line chart comparing counts against the average
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            comparison: {data: averages, label: 'Average', color: themeColors.green200},
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel,
+            getCurrencyDecimals,
+            formatTotal: (total) => `$${total / 100}`,
+        });
+
+        // Then both series carry their own totals, because a row quoting the other series' spend would misname its own count
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY])).toEqual(['$300', '$600']);
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.COMPARISON])).toEqual(['$300', '$450']);
+    });
+
+    it('leaves the totals off an amount chart, whose values are already the money', () => {
+        // Given merchant groups plotted by what they total, with no formatter for a second reading of that money
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting amounts
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then no point carries one, because the tooltip would print the value it already shows a second time in parentheses
+        expect(rows.every((row) => row.point.seriesTotals === undefined)).toBe(true);
+    });
+
     it('leaves the share off every point, since the only share the search reports is of total spend', () => {
         // Given merchant groups the search reported shares of total spend for
         const data = [merchantGroup('Person', 480000, 12, 71.6), merchantGroup('Target', 190000, 41, 28.4)];

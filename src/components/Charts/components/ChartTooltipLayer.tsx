@@ -90,8 +90,8 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatV
                 />
             ) : (
                 <ChartTooltipSummary
-                    amount={tooltipData.amount}
-                    percentage={tooltipData.percentage}
+                    value={tooltipData.value}
+                    note={tooltipData.note}
                     expenseCount={tooltipData.expenseCount}
                 />
             )}

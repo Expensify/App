@@ -105,7 +105,7 @@ function SearchChartView({
     const theme = useTheme();
     const {preferredLocale, translate, dateFnsLocale, numberFormat} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
@@ -119,8 +119,11 @@ function SearchChartView({
     // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
     // Axis ticks take the bare number instead, to stay short, and `shouldUseWholeNumberTicks` keeps them off fractions of an expense.
     const formatCount: ChartValueFormatter = (value, options) =>
-        options?.shouldUseCompactNotation ? numberFormat(value, {maximumFractionDigits: 0, notation: 'compact'}) : formatExpenseCount(value, translate, numberFormat);
+        options?.shouldUseCompactNotation ? numberFormat(value, {notation: 'compact'}).replace('K', 'k') : formatExpenseCount(value, translate, numberFormat);
     const formatValue = isCountMetric ? formatCount : undefined;
+
+    // A count says nothing about the money behind it, so a count chart names each group's spend alongside it, in that group's own currency.
+    const formatTotal = isCountMetric ? convertToDisplayString : undefined;
 
     const {series, rows} = buildChartSeries({
         data: chartData,
@@ -131,6 +134,7 @@ function SearchChartView({
         getLabel,
         getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
         getCurrencyDecimals,
+        formatTotal,
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
         isLaterPeriod: (item) => {
             const range = getDateRange?.(item);

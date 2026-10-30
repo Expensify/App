@@ -62,8 +62,8 @@ function VictoryChartCartesianInteractive() {
                         onChartMoved={onChartMoved}
                     >
                         <ChartTooltipSummary
-                            amount={activeTooltipData.amount}
-                            percentage={activeTooltipData.percentage}
+                            value={activeTooltipData.amount}
+                            note={activeTooltipData.percentage}
                         />
                     </ChartTooltip>
                 )}
