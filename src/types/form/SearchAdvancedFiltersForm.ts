@@ -148,6 +148,9 @@ const FILTER_KEYS = {
     CATEGORY_NOT: 'categoryNot',
     CATEGORY: 'category',
 
+    VENDOR_NOT: 'vendorNot',
+    VENDOR: 'vendor',
+
     CARD_ID_NOT: 'cardIDNot',
     CARD_ID: 'cardID',
 
@@ -249,6 +252,8 @@ const FILTER_KEYS = {
 
     DECLINED_NOT: 'declinedNot',
     DECLINED: 'declined',
+    HELD_NOT: 'heldNot',
+    HELD: 'held',
 
     ACTION_NOT: 'actionNot',
     ACTION: 'action',
@@ -325,6 +330,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.CATEGORY_NOT,
         FILTER_KEYS.TAG,
         FILTER_KEYS.TAG_NOT,
+        FILTER_KEYS.VENDOR,
+        FILTER_KEYS.VENDOR_NOT,
         FILTER_KEYS.PAYER,
         FILTER_KEYS.PAYER_NOT,
         FILTER_KEYS.PAID_BY,
@@ -359,6 +366,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.BILLABLE_NOT,
         FILTER_KEYS.DECLINED,
         FILTER_KEYS.DECLINED_NOT,
+        FILTER_KEYS.HELD,
+        FILTER_KEYS.HELD_NOT,
         FILTER_KEYS.REPORT_ID,
         FILTER_KEYS.REPORT_ID_NOT,
         FILTER_KEYS.SUBMITTED_ON,
@@ -835,6 +844,9 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.CATEGORY_NOT]: string[];
 
+        [FILTER_KEYS.VENDOR]: string[];
+        [FILTER_KEYS.VENDOR_NOT]: string[];
+
         [FILTER_KEYS.POLICY_ID]: string[];
         [FILTER_KEYS.POLICY_ID_NOT]: string[];
 
@@ -939,6 +951,8 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.DECLINED]: BooleanValue;
         [FILTER_KEYS.DECLINED_NOT]: BooleanValue;
+        [FILTER_KEYS.HELD]: BooleanValue;
+        [FILTER_KEYS.HELD_NOT]: BooleanValue;
 
         [FILTER_KEYS.ACTION]: string;
         [FILTER_KEYS.ACTION_NOT]: string;

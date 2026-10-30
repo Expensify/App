@@ -1,7 +1,9 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import type FeatureTrainingComponent from '@components/FeatureTraining';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,12 +13,15 @@ import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import type * as InFlightRequests from '@hooks/useInFlightRequests';
 import useNetwork from '@hooks/useNetwork';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import {ActionListContextProvider} from '@pages/inbox/ActionListContext';
 import type * as ReportActionIndexContexts from '@pages/inbox/report/ReportActionIndexContext';
 import type ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
@@ -39,8 +44,11 @@ const MOCK_UNIFIED_LAST_ITEM_INDEX = 37;
 const mockScrollToIndex = jest.fn();
 const mockScrollToEnd = jest.fn();
 const mockScrollToOffset = jest.fn();
+const mockNewestActionUnmount = jest.fn();
 let mockIsNewestReportAction: boolean | undefined;
 let mockScrollToNewestAction: (() => void) | undefined;
+let mockOnCommitLayoutEffect: (() => void) | undefined;
+let mockShouldRenderNewestAction = true;
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
@@ -85,6 +93,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getDeepestFocusedScreen: jest.fn(() => undefined),
+    isTopmostRouteModalScreen: jest.fn(() => false),
     setParams: jest.fn(),
 }));
 
@@ -97,6 +106,7 @@ jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList'
         isLoadingInitialActions,
         listRef,
         onLastItemIndexChange,
+        onCommitLayoutEffect,
         visibleReportActions,
         renderReportAction,
     }: {
@@ -108,17 +118,19 @@ jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList'
             scrollToOffset: typeof mockScrollToOffset;
         }>;
         onLastItemIndexChange?: (index: number) => void;
+        onCommitLayoutEffect?: () => void;
         visibleReportActions: ReportAction[];
         renderReportAction: (reportAction: ReportAction, index: number) => React.ReactElement;
     }) => {
         ReactActual.useImperativeHandle(listRef, () => ({scrollToIndex: mockScrollToIndex, scrollToEnd: mockScrollToEnd, scrollToOffset: mockScrollToOffset}));
         ReactActual.useLayoutEffect(() => onLastItemIndexChange?.(MOCK_UNIFIED_LAST_ITEM_INDEX), [onLastItemIndexChange]);
+        mockOnCommitLayoutEffect = onCommitLayoutEffect;
         const newestAction = visibleReportActions.at(-1);
 
         return (
             <View testID="MockMoneyRequestReportTransactionList">
                 {isLoadingInitialActions ? <View testID="MockInitialReportActionsSkeleton" /> : null}
-                {newestAction ? renderReportAction(newestAction, visibleReportActions.length - 1) : null}
+                {newestAction && mockShouldRenderNewestAction ? renderReportAction(newestAction, visibleReportActions.length - 1) : null}
                 {listFooterComponent}
             </View>
         );
@@ -131,15 +143,16 @@ jest.mock('@components/MoneyRequestReportView/SearchMoneyRequestReportEmptyState
     return () => <View testID="MockSearchMoneyRequestReportEmptyState" />;
 });
 
-jest.mock('@components/HoldOrRejectEducationalModal', () => {
+// The content mock skips the illustrations but keeps the real confirm button, so the flow test still renders the real
+// FeatureTrainingModal tree on the global modal stack
+jest.mock('@components/HoldOrRejectEducationalModalContent', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const {View} = require('react-native');
-    return (props: {onConfirm: () => void}) => (
+    const {default: FeatureTraining} = jest.requireActual<{default: typeof FeatureTrainingComponent}>('@components/FeatureTraining');
+    const {translateLocal: translate} = jest.requireActual<typeof TestHelper>('../utils/TestHelper');
+    return () => (
         <View testID="HoldOrRejectEducationalModal">
-            <View
-                testID="HoldOrRejectEducationalModal-confirm"
-                onTouchEnd={props.onConfirm}
-            />
+            <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
         </View>
     );
 });
@@ -202,6 +215,12 @@ jest.mock('@pages/inbox/report/ReportActionsListItemRenderer', () => {
         jest.requireActual<typeof ReportActionIndexContexts>('@pages/inbox/report/ReportActionIndexContext');
 
     return jest.fn(() => {
+        ReactActual.useEffect(
+            () => () => {
+                mockNewestActionUnmount();
+            },
+            [],
+        );
         mockIsNewestReportAction = ReactActual.useContext(ReportActionIndexContextActual).isNewest;
         mockScrollToNewestAction = ReactActual.useContext(ReportActionScrollToNewestContextActual);
         return null;
@@ -286,7 +305,7 @@ const mockCommentReportAction: ReportAction = {
 
 const renderComponent = () => {
     return render(
-        <ComposeProviders components={[ActionListContextProvider, OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[ActionListContextProvider, OnyxListItemProvider, LocaleContextProvider, ModalProvider]}>
             <SearchContextProvider>
                 <ScreenWrapper testID="test">
                     <MoneyRequestReportActionsList />
@@ -313,6 +332,8 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         jest.clearAllMocks();
         mockIsNewestReportAction = undefined;
         mockScrollToNewestAction = undefined;
+        mockOnCommitLayoutEffect = undefined;
+        mockShouldRenderNewestAction = true;
         jest.spyOn(NativeNavigation, 'useIsFocused').mockReturnValue(true);
         mockUseIsReportLoadPending.mockReturnValue(false);
         mockUseNetwork.mockReturnValue({isOffline: false});
@@ -322,7 +343,8 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         });
     });
 
-    it('should use the unified list index when the newest action requests a bottom scroll', async () => {
+    it('keeps newest-action scroll requests until FlashList commits after the editor unmounts', async () => {
+        // Given a loaded money report with an editable newest action and an unchanged row height.
         await act(async () => {
             await Onyx.multiSet({
                 [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
@@ -341,9 +363,34 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(mockIsNewestReportAction).toBe(true);
-        act(() => mockScrollToNewestAction?.());
+        mockScrollToIndex.mockClear();
+        act(() => mockOnCommitLayoutEffect?.());
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        // When closing the editor queues a request and unmounts its consumer, without a size-change event.
+        const requestScroll = mockScrollToNewestAction;
+        mockShouldRenderNewestAction = false;
+        act(() => requestScroll?.());
+        expect(mockNewestActionUnmount).toHaveBeenCalledTimes(1);
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+        // Then the list's layout commit consumes the request once and preserves its indexed landing.
+        const firstCommit = mockOnCommitLayoutEffect;
+        act(() => {
+            firstCommit?.();
+            firstCommit?.();
+        });
         expect(mockScrollToIndex).toHaveBeenCalledWith({index: MOCK_UNIFIED_LAST_ITEM_INDEX, animated: false, viewPosition: 1});
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(1);
         expect(mockScrollToEnd).not.toHaveBeenCalled();
+
+        // A later edit needs its own layout commit; a repeated older callback cannot consume it.
+        mockShouldRenderNewestAction = true;
+        act(() => requestScroll?.());
+        act(() => firstCommit?.());
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(1);
+        act(() => mockOnCommitLayoutEffect?.());
+        expect(mockScrollToIndex).toHaveBeenCalledTimes(2);
     });
 
     it('should show reject educational modal when reject option is selected and explanation has NOT been dismissed', async () => {
@@ -372,6 +419,34 @@ describe('MoneyRequestReportActionsList - Reject Educational Modal', () => {
         // Modal should now be visible
         expect(screen.getByTestId('HoldOrRejectEducationalModal')).toBeTruthy();
         expect(mockOriginalRejectOnSelected).not.toHaveBeenCalled();
+    });
+
+    it('should open bulk reject once the reject educational modal is confirmed', async () => {
+        // Given a user who has not dismissed the reject explanation yet
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION]: false,
+                [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_REPORT_ID}` as const]: mockReport,
+                [`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}` as const]: mockPolicy,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${FAKE_TRANSACTION_ID}` as const]: mockTransaction,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_REPORT_ID}` as const]: {[mockReportAction.reportActionID]: mockReportAction},
+                [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${FAKE_REPORT_ID}` as const]: {isLoadingInitialReportActions: false, hasOnceLoadedReportActions: true},
+                [ONYXKEYS.SESSION]: {accountID: FAKE_ACCOUNT_ID, email: FAKE_EMAIL} as Session,
+            });
+        });
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they pick reject, which opens the educational modal on the global modal stack, and then confirm it
+        fireEvent.press(screen.getByTestId(`dropdown-option-${CONST.REPORT.SECONDARY_ACTIONS.REJECT}`));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('common.buttonConfirm')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the modal leaves the stack and the bulk reject flow opens
+        expect(screen.queryByTestId('HoldOrRejectEducationalModal')).toBeNull();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: FAKE_REPORT_ID}));
     });
 
     it('should NOT show reject educational modal when explanation HAS been dismissed', async () => {

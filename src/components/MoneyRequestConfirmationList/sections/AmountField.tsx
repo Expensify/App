@@ -75,7 +75,7 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
     const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
@@ -89,6 +89,7 @@ function AmountField({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
+    const currencyButtonRef = useRef<View>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
@@ -99,17 +100,21 @@ function AmountField({
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const [isAmountInputFocused, setIsAmountInputFocused] = useState(false);
 
-    const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest;
+    // A receipt that is still scanning and whose fields the user can't enter inline (for example, a tracked scan moved
+    // to someone) shows the read-only row, so it reads "Scanning…" instead of the receipt's placeholder zero amount.
+    const isScanningReceipt = !!transactionSlice?.isScanning && !canEnterScanFieldsManually;
+    const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest || isScanningReceipt;
     // The read-only row only opens the amount page for a form whose amount the user could have typed in the first
     // place. A distance or time amount is computed from the fields below it, so its row has nothing to open and is
-    // not offered as a control at all: no caret, no hover, no press.
-    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields;
+    // not offered as a control at all: no caret, no hover, no press. A scanning receipt's amount comes from SmartScan,
+    // so its row is locked the same way until the scan finishes.
+    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields && !isScanningReceipt;
     const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
     // error from, so a scan expense (where the amount is read off the receipt whenever the user leaves the field
     // blank) can't show a phantom required error under a field that is deliberately empty.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually);
+    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually, isPolicyExpenseChat);
     const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
     const shouldShowAmountMissingError = shouldDisplayFieldError && amountIsMissing;
 
@@ -344,6 +349,7 @@ function AmountField({
                 headerText={translate('common.selectCurrency')}
                 value={effectiveCurrency}
                 onInputChange={updateCurrency}
+                launcherRef={currencyButtonRef}
             />
             {!isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
@@ -365,6 +371,7 @@ function AmountField({
                             shouldShowCurrencyButton={shouldShowAmountButtons}
                             shouldShowBigNumberPad={false}
                             onCurrencyButtonPress={showCurrencyPicker}
+                            currencyButtonRef={currencyButtonRef}
                             onFocus={() => {
                                 setIsAmountInputFocused(true);
                             }}

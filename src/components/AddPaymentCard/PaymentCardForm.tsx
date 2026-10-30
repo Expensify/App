@@ -27,7 +27,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type PaymentCardFormProps = {
@@ -147,7 +147,7 @@ function PaymentCardForm({
 
     // Formats user input into a valid expiration date (MM/YY) and automatically adds slash after the month.
     // Ensures the month is always between 01 and 12 by correcting invalid value to match the proper format.
-    const onChangeExpirationDate = useCallback((newValue: string) => {
+    const onChangeExpirationDate = (newValue: string) => {
         if (typeof newValue !== 'string') {
             return;
         }
@@ -182,7 +182,7 @@ function PaymentCardForm({
 
         previousValueRef.current = formattedValue;
         setExpirationDate(formattedValue);
-    }, []);
+    };
 
     const [cardNumber, setCardNumber] = useState('');
 
@@ -228,7 +228,7 @@ function PaymentCardForm({
         return errors;
     };
 
-    const onChangeCardNumber = useCallback((newValue: string) => {
+    const onChangeCardNumber = (newValue: string) => {
         // Replace all characters that are not spaces or digits
         let validCardNumber = newValue.replaceAll(/[^\d ]/g, '');
 
@@ -251,7 +251,7 @@ function PaymentCardForm({
         }
 
         setCardNumber(validCardNumber);
-    }, []);
+    };
 
     if (!shouldShowPaymentCardForm || isLoadingOnyxValue(metadata) || !hasClearedDraftCurrency) {
         return null;
