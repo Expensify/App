@@ -120,4 +120,12 @@ function areAllModalsHidden() {
     return closeModals.length === 0;
 }
 
-export {setCloseModal, close, onModalDidClose, setModalVisibility, setModalCovering, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden};
+/**
+ * Whether this close callback is the topmost one, which is the one Escape reaches. Anything that answers Escape from
+ * outside this stack uses it to leave a modal opened above it alone.
+ */
+function isTopCloseModal(onClose: () => void) {
+    return closeModals.at(-1) === onClose;
+}
+
+export {setCloseModal, close, onModalDidClose, setModalVisibility, setModalCovering, willAlertModalBecomeVisible, setDisableDismissOnEscape, closeTop, areAllModalsHidden, isTopCloseModal};

@@ -597,6 +597,11 @@ const translations = {
         reimbursableTotal: 'Reimbursable total',
         nonReimbursableTotal: 'Non-reimbursable total',
         opensInNewTab: 'Opens in a new tab',
+        dateSegments: {
+            year: 'Year',
+            month: 'Month',
+            day: 'Day',
+        },
         locked: 'Locked',
         month: 'Month',
         week: 'Week',
