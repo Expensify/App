@@ -177,7 +177,12 @@ describe('getMoneyRequestInformation', () => {
             const moneyRequestReportID = 'iou-report-lookup-1';
             const differentPolicyID = 'policy-different';
             await Onyx.set(ONYXKEYS.SESSION, {accountID: PAYEE_ACCOUNT_ID, email: 'payee@example.com'});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${differentPolicyID}`, {id: differentPolicyID, type: CONST.POLICY.TYPE.CORPORATE, name: 'Test Policy'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${differentPolicyID}`, {
+                id: differentPolicyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.USER,
+            });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`, {
                 reportID: moneyRequestReportID,
                 policyID: differentPolicyID,

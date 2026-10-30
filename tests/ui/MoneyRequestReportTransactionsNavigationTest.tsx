@@ -13,6 +13,7 @@ import * as ReportActions from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 
 import Navigation from '@navigation/Navigation';
+import navigationRef from '@navigation/navigationRef';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -89,6 +90,7 @@ jest.mock('@components/Search/SearchContext', () => ({
 
 jest.mock('@components/WideRHPContextProvider', () => ({
     useWideRHPActions: () => ({markReportRHPWidth: jest.fn(), unmarkReportRHPWidth: jest.fn()}),
+    useWideRHPState: () => ({superWideRHPRouteKeys: [], wideRHPRouteKeys: []}),
 }));
 
 jest.mock('@components/OnyxListItemProvider', () => ({
@@ -198,6 +200,30 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         expect(setParamsSpy).not.toHaveBeenCalled();
     });
 
+    it("sends the sibling parent report's full policy snapshot marker when fetching that report", async () => {
+        // Given the sibling's parent report belongs to a policy whose full snapshot is already cached
+        const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, {reportID: IOU_REPORT_ID, policyID: 'policy1'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`, {lastModified: 123});
+        await waitForBatchedUpdates();
+
+        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        await waitForBatchedUpdates();
+
+        // When next is pressed before that report's actions are loaded
+        const nextButton = screen.getAllByLabelText(CONST.ROLE.BUTTON).at(1);
+        if (!nextButton) {
+            throw new Error('next arrow did not render');
+        }
+        fireEvent.press(nextButton);
+
+        // Then the fetch sends the marker so the server can leave out the policy collections the client already has
+        await waitFor(() => {
+            expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: IOU_REPORT_ID, fullPolicySnapshot: {policyID: 'policy1', lastModified: 123}}));
+        });
+    });
+
     it('abandons a staged press when the user has navigated elsewhere', async () => {
         jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
         const createThreadSpy = jest.spyOn(ReportActions, 'createTransactionThreadReport');
@@ -247,6 +273,36 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             expect(setParamsSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: IOU_REPORT_ID, anchorTransactionID: SECOND_TRANSACTION_ID}));
         });
         expect(openReportSpy).not.toHaveBeenCalled();
+    });
+
+    it('keeps the entry point as backTo when stepping to a sibling, so Back leaves the carousel', async () => {
+        // Given a carousel opened from Home, whose screen carries Home as its backTo
+        mockIsOffline.value = true;
+        jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
+        const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: IOU_REPORT_ID}));
+        jest.spyOn(navigationRef, 'getCurrentRoute').mockReturnValue({
+            key: 'expenseReport',
+            name: SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            params: {reportID: IOU_REPORT_ID, backTo: ROUTES.HOME},
+        });
+
+        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        await waitForBatchedUpdates();
+
+        // When the user steps to the next expense
+        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
+        const nextButton = buttons.at(1);
+        if (!nextButton) {
+            throw new Error('next arrow did not render');
+        }
+        fireEvent.press(nextButton);
+
+        // Then the sibling replaces the screen in place with the original backTo, not the expense being left -
+        // otherwise Back would step to the previous expense instead of closing the RHP
+        await waitFor(() => {
+            expect(setParamsSpy).toHaveBeenCalledWith(expect.objectContaining({anchorTransactionID: SECOND_TRANSACTION_ID, backTo: ROUTES.HOME}));
+        });
     });
 });
 

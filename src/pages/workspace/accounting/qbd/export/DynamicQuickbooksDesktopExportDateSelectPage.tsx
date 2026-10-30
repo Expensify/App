@@ -22,7 +22,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
@@ -36,34 +36,27 @@ function DynamicQuickbooksDesktopExportDateSelectPage({policy}: WithPolicyConnec
     const exportDate = qbdConfig?.export?.exportDate;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT.path);
 
-    const data: CardListItem[] = useMemo(
-        () =>
-            Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
-                value: dateType,
-                text: translate(`workspace.qbd.exportDate.values.${dateType}.label`),
-                alternateText: translate(`workspace.qbd.exportDate.values.${dateType}.description`),
-                keyForList: dateType,
-                isSelected: exportDate === dateType,
-            })),
-        [exportDate, translate],
-    );
+    const data: CardListItem[] = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
+        value: dateType,
+        text: translate(`workspace.qbd.exportDate.values.${dateType}.label`),
+        alternateText: translate(`workspace.qbd.exportDate.values.${dateType}.description`),
+        keyForList: dateType,
+        isSelected: exportDate === dateType,
+    }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const selectExportDate = useCallback(
-        (row: CardListItem) => {
-            if (!policyID) {
-                return;
-            }
-            if (row.value !== exportDate) {
-                updateQuickbooksDesktopExportDate(policyID, row.value, exportDate);
-            }
-            goBack();
-        },
-        [policyID, exportDate, goBack],
-    );
+    const selectExportDate = (row: CardListItem) => {
+        if (!policyID) {
+            return;
+        }
+        if (row.value !== exportDate) {
+            updateQuickbooksDesktopExportDate(policyID, row.value, exportDate);
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen
