@@ -100,9 +100,6 @@ type Response<TKey extends OnyxKey> = {
     /** Which leg flight search results are for, 0 for the first leg */
     legIndex?: number;
 
-    /** How many flight schedules Spotnana found, across all pages */
-    totalResults?: number;
-
     /** One flight search result per flight row */
     itineraries?: FlightItinerary[];
 

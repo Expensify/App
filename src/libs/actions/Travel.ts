@@ -130,7 +130,7 @@ function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: Fligh
     latestFlightSearchNumber += 1;
     const flightSearchNumber = latestFlightSearchNumber;
     const isCurrentSearch = () => flightSearchNumber === latestFlightSearchNumber;
-    let hasPricedResults = false;
+    let isPricedSearchFinished = false;
     Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {query: {policyID, legs, filters}, legIndex, isLoading: true});
 
     const parameters = {policyID, legs: JSON.stringify(legs), filters: JSON.stringify(filters), searchID, selectedFareID, legIndex};
@@ -138,7 +138,7 @@ function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: Fligh
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the server returns the schedules instead of writing Onyx, so they are stored here
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHT_SCHEDULES, parameters)
         .then((response) => {
-            if (!isCurrentSearch() || hasPricedResults || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            if (!isCurrentSearch() || isPricedSearchFinished || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 return;
             }
             Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {scheduleItineraries: response.itineraries});
@@ -153,10 +153,10 @@ function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: Fligh
             if (!isCurrentSearch()) {
                 return;
             }
+            isPricedSearchFinished = true;
             if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 throw new Error(response?.message ?? 'Flight search failed');
             }
-            hasPricedResults = true;
             Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {
                 searchID: response.searchID,
                 legIndex: response.legIndex,
@@ -170,7 +170,12 @@ function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: Fligh
             if (!isCurrentSearch()) {
                 return;
             }
-            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+            isPricedSearchFinished = true;
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {
+                scheduleItineraries: null,
+                isLoading: false,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            });
         });
 }
 

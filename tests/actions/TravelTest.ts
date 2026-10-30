@@ -134,14 +134,16 @@ describe('actions/Travel', () => {
         });
 
         it('carries the previous search and picked fare to the return leg and shows an error when the request fails', async () => {
-            // Given both searches fail
-            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 517, message: '517 Spotnana error'}).mockResolvedValueOnce({jsonCode: 517, message: '517 Spotnana error'});
+            // Given the schedules load but the priced search fails
+            mockMakeRequestWithSideEffects
+                .mockResolvedValueOnce({jsonCode: 200, itineraries: [{itineraryID: 'UA368@2027-01-21T23:30:00', flights: []}]})
+                .mockResolvedValueOnce({jsonCode: 517, message: '517 Spotnana error'});
 
             // When the return leg is searched
             await searchFlights(POLICY_ID, ROUND_TRIP_LEGS, {}, 1, SEARCH_ID, FARE_ID);
             await waitForBatchedUpdates();
 
-            // Then the request names the previous search and fare, and loading stops with an error
+            // Then the request names the previous search and fare, and loading stops with an error and no schedules left showing
             expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(
                 SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS,
                 expect.objectContaining({searchID: SEARCH_ID, selectedFareID: FARE_ID, legIndex: 1}),
@@ -149,6 +151,7 @@ describe('actions/Travel', () => {
             const flightSearch = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH);
             expect(flightSearch?.isLoading).toBe(false);
             expect(flightSearch).toHaveProperty('errors');
+            expect(flightSearch?.scheduleItineraries).toBeUndefined();
         });
 
         it('ignores results from a search the traveler has since replaced', async () => {
