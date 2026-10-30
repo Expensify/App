@@ -4383,7 +4383,74 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('getReportPrivateNote', () => {
+        it('does not fetch private notes for a passed anonymous session even when the stored session is signed in', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'user@example.com'});
+            await waitForBatchedUpdates();
+            const apiReadSpy = jest.spyOn(require('@libs/API'), 'read');
+
+            // When private notes are requested for an anonymous session passed by the caller
+            Report.getReportPrivateNote('4200', {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+
+            // Then the passed session decides: anonymous users have no private notes, so nothing is fetched
+            expect(apiReadSpy).not.toHaveBeenCalled();
+            apiReadSpy.mockRestore();
+        });
+
+        it('fetches private notes for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session stored in Onyx, as during an anonymous-to-signed-in transition
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+            const apiReadSpy = jest.spyOn(require('@libs/API'), 'read');
+
+            // When private notes are requested for a signed-in session passed by the caller
+            Report.getReportPrivateNote('4201', {accountID: 1, email: 'user@example.com'});
+
+            // Then the passed session decides: the signed-in user's notes are fetched
+            expect(apiReadSpy).toHaveBeenCalledTimes(1);
+            apiReadSpy.mockRestore();
+        });
+    });
+
     describe('markAllMessagesAsRead', () => {
+        it('does nothing for a passed anonymous session even when the stored session is signed in', async () => {
+            // Given a signed-in session stored in Onyx and an unread report
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'user@example.com'});
+            const currentTime = DateUtils.getDBTime();
+            const unreadReport = {
+                ...createRandomReport(4100, undefined),
+                lastMessageText: 'test',
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1),
+                lastVisibleActionCreated: currentTime,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${unreadReport.reportID}`, unreadReport);
+            await waitForBatchedUpdates();
+
+            // When marking everything as read for an anonymous session passed by the caller
+            markAllMessagesAsRead(undefined, undefined, undefined, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+
+            // Then the passed session decides: anonymous users can't mark reports read, so the report keeps its read time
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${unreadReport.reportID}` as const);
+            expect(report?.lastReadTime).toBe(unreadReport.lastReadTime);
+        });
+
+        it('goes past the anonymous-user check for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session stored in Onyx, as during an anonymous-to-signed-in transition, and a report to check
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4101`, createRandomReport(4101, undefined));
+            await waitForBatchedUpdates();
+            const isUnreadSpy = jest.spyOn(require('@libs/ReportUtils'), 'isUnread');
+
+            // When marking everything as read for a signed-in session passed by the caller
+            markAllMessagesAsRead(undefined, undefined, undefined, {accountID: 1, email: 'user@example.com'});
+
+            // Then the passed session decides: the action is not blocked as anonymous and goes on to check the reports
+            expect(isUnreadSpy).toHaveBeenCalled();
+            isUnreadSpy.mockRestore();
+        });
+
         it('should mark all unread reports as read', async () => {
             // Given a collection of 10 unread and read reports, where even-index report is unread
             const currentTime = DateUtils.getDBTime();
@@ -4405,7 +4472,7 @@ describe('actions/Report', () => {
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
 
             // When mark all reports as read
-            markAllMessagesAsRead(undefined, undefined, undefined);
+            markAllMessagesAsRead(undefined, undefined, undefined, {accountID: 1});
 
             await waitForBatchedUpdates();
 
