@@ -235,16 +235,16 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_ADD_AVATAR]: undefined;
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT]: {
-        accountID: number;
+        accountID: number | string;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_NAME]: {
-        accountID: number;
+        accountID: number | string;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_PROMPT]: {
-        accountID: number;
+        accountID: number | string;
     };
     [SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR]: {
-        accountID: number;
+        accountID: number | string;
     };
     [SCREENS.SETTINGS.RULES.ADD]: undefined;
     [SCREENS.SETTINGS.RULES.ADD_MERCHANT]: undefined;
