@@ -12744,9 +12744,9 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         toSubmit: 'przesłać',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'aby automatycznie wysyłać';
+                return 'automatycznie przesłać';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `aby automatycznie przesyłać ${eta} dnia każdego miesiąca` : `aby automatycznie przesłać ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatycznie przesłać ${eta} dnia każdego miesiąca` : `automatycznie przesłać ${eta}`;
         },
         toApprove: 'zatwierdzić',
         toPay: 'zapłacić',

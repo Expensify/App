@@ -12791,16 +12791,16 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     bulkActionBar: {label: 'Sammelaktionen', clearSelection: 'Auswahl aufheben', loadingSelection: 'Auswahl wird geladen'},
     reportHistoryPage: {
         title: 'Verlauf des Berichts',
-        created: 'Bericht erstellt',
-        submitted: 'eingereicht',
-        approved: 'genehmigt',
-        paid: 'bezahlt',
+        created: 'hat den Bericht erstellt',
+        submitted: 'hat eingereicht',
+        approved: 'hat genehmigt',
+        paid: 'hat bezahlt',
         toSubmit: 'einreichen',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
                 return 'automatisch einreichen';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `um automatisch am ${eta} jedes Monats einzureichen` : `um ${eta} automatisch einzureichen`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta} jedes Monats automatisch einreichen` : `${eta} automatisch einreichen`;
         },
         toApprove: 'genehmigen',
         toPay: 'bezahlen',

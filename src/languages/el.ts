@@ -13033,9 +13033,9 @@ ${reportName}`,
         toSubmit: 'να υποβάλει',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'να υποβάλλεται αυτόματα';
+                return 'να υποβάλει αυτόματα';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `για αυτόματη υποβολή στις ${eta} κάθε μήνα` : `να υποβληθεί αυτόματα σε ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `να υποβάλει αυτόματα στις ${eta} κάθε μήνα` : `να υποβάλει αυτόματα ${eta}`;
         },
         toApprove: 'να εγκρίνει',
         toPay: 'να πληρώσει',

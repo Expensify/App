@@ -13050,16 +13050,16 @@ ${reportName}`,
     bulkActionBar: {label: 'Acciones en bloque', clearSelection: 'Borrar selección', loadingSelection: 'Cargando selección'},
     reportHistoryPage: {
         title: 'Historial del informe',
-        created: 'informe creado',
-        submitted: 'enviado',
-        approved: 'aprobado',
-        paid: 'pagado',
+        created: 'creó el informe',
+        submitted: 'envió',
+        approved: 'aprobó',
+        paid: 'pagó',
         toSubmit: 'enviar',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'para enviar automáticamente';
+                return 'enviar automáticamente';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `para enviar automáticamente el día ${eta} de cada mes` : `para enviar automáticamente ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `enviar automáticamente el día ${eta} de cada mes` : `enviar automáticamente ${eta}`;
         },
         toApprove: 'aprobar',
         toPay: 'pagar',

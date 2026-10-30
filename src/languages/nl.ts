@@ -12707,16 +12707,16 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
     bulkActionBar: {label: 'Bulkacties', clearSelection: 'Selectie wissen', loadingSelection: 'Selectie laden'},
     reportHistoryPage: {
         title: 'Rapportgeschiedenis',
-        created: 'rapport gemaakt',
-        submitted: 'ingediend',
-        approved: 'goedgekeurd',
-        paid: 'betaald',
+        created: 'heeft rapport gemaakt',
+        submitted: 'heeft ingediend',
+        approved: 'heeft goedgekeurd',
+        paid: 'heeft betaald',
         toSubmit: 'indienen',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
                 return 'automatisch indienen';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `om automatisch in te dienen op de ${eta} van elke maand` : `om automatisch in te dienen ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatisch indienen op de ${eta} van elke maand` : `${eta} automatisch indienen`;
         },
         toApprove: 'goedkeuren',
         toPay: 'betalen',

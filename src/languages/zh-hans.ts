@@ -12256,7 +12256,7 @@ ${reportName}`,
             if (!eta) {
                 return '自动提交';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每月的 ${eta} 自动提交` : `以在 ${eta} 自动提交`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每月的 ${eta} 自动提交` : `${eta}自动提交`;
         },
         toApprove: '批准',
         toPay: '支付',

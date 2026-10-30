@@ -12566,7 +12566,7 @@ ${reportName}`,
             if (!eta) {
                 return '自動送信する';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `毎月${eta}に自動で送信する` : `${eta} に自動送信する`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `毎月${eta}に自動で送信する` : `${eta}自動送信する`;
         },
         toApprove: '承認する',
         toPay: '支払う',

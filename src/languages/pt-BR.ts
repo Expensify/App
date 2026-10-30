@@ -12703,16 +12703,16 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
     bulkActionBar: {label: 'Ações em massa', clearSelection: 'Limpar seleção', loadingSelection: 'Carregando seleção'},
     reportHistoryPage: {
         title: 'Histórico do relatório',
-        created: 'relatório criado',
-        submitted: 'enviado',
-        approved: 'aprovado',
-        paid: 'pago',
+        created: 'criou o relatório',
+        submitted: 'enviou',
+        approved: 'aprovou',
+        paid: 'pagou',
         toSubmit: 'enviar',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'para enviar automaticamente';
+                return 'enviar automaticamente';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `para enviar automaticamente no dia ${eta} de cada mês` : `para enviar automaticamente ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `enviar automaticamente no dia ${eta} de cada mês` : `enviar automaticamente ${eta}`;
         },
         toApprove: 'aprovar',
         toPay: 'pagar',

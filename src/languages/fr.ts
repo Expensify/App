@@ -12821,16 +12821,16 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     bulkActionBar: {label: 'Actions groupées', clearSelection: 'Effacer la sélection', loadingSelection: 'Chargement de la sélection'},
     reportHistoryPage: {
         title: 'Historique de la note de frais',
-        created: 'note de frais créée',
-        submitted: 'soumis',
-        approved: 'approuvé',
-        paid: 'payé',
+        created: 'a créé la note de frais',
+        submitted: 'a soumis',
+        approved: 'a approuvé',
+        paid: 'a payé',
         toSubmit: 'soumettre',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'pour soumettre automatiquement';
+                return 'soumettre automatiquement';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `pour soumettre automatiquement le ${eta} de chaque mois` : `pour soumettre automatiquement ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `soumettre automatiquement le ${eta} de chaque mois` : `soumettre automatiquement ${eta}`;
         },
         toApprove: 'approuver',
         toPay: 'payer',
