@@ -207,23 +207,23 @@ describe('actions/Policy/CopyPolicySettings', () => {
             });
 
             it('copies only invoice markup and preserves the target invoicing identity', () => {
+                // Given workspaces with separate invoicing identities.
                 const sourcePolicy = makeSourcePolicy({invoice: {markUp: 25, companyName: 'Source', bankAccount: {stripeConnectAccountID: 'source-stripe'}}});
                 const targetPolicy = makeTargetPolicy({invoice: {markUp: 5, companyName: 'Target', bankAccount: {stripeConnectAccountID: 'target-stripe'}}});
+                // When invoice settings are copied.
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['invoices'], {}, {}, {});
+                // Then only markup changes, because billing identity belongs to the target.
                 expect(getOptimisticPolicy(optimisticData)?.invoice).toEqual({...targetPolicy.invoice, markUp: 25});
             });
 
             it('keeps bulk-copy progress untouched when copying into a new policy', () => {
-                const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(
-                    makeSourcePolicy(),
-                    [makeTargetPolicy()],
-                    ['timeTracking', 'receiptPartners'],
-                    {},
-                    {},
-                    {},
-                    false,
-                    true,
-                );
+                // Given a new destination with no bulk-copy operation to track.
+                const source = makeSourcePolicy();
+                const target = makeTargetPolicy();
+
+                // When the shared copier builds duplicate settings.
+                const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(source, [target], ['timeTracking', 'receiptPartners'], {}, {}, {}, false, true);
+                // Then every lifecycle leaves the existing bulk-copy state alone.
                 for (const update of [...optimisticData, ...successData, ...failureData]) {
                     expect(update.key).not.toBe(ONYXKEYS.COPY_POLICY_SETTINGS);
                     expect(update.key).not.toBe(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);

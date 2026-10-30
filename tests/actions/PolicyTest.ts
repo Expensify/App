@@ -587,6 +587,121 @@ describe('actions/Policy', () => {
             }
         });
 
+        it('duplicate workspace keeps copied categories after success without recreating defaults', async () => {
+            // Given a source whose categories replace every creation default.
+            const source = createRandomPolicy(30, CONST.POLICY.TYPE.TEAM);
+            const categories = {Custom: {name: 'Custom', enabled: true}};
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When Categories is copied and the request succeeds.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Copied categories',
+                welcomeNote: '',
+                localCurrency: 'USD',
+                parts: ['categories'],
+                policyCategories: categories,
+                personalDetailsByLogins: {},
+            });
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then success feedback must not restore the deleted default names.
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual(categories);
+        });
+
+        it('duplicate workspace applies matching category rules to creation defaults while offline', async () => {
+            // Given a source rule on a category that exists in a new workspace.
+            const source = createRandomPolicy(31, CONST.POLICY.TYPE.TEAM);
+            const categoryName = CONST.POLICY.DEFAULT_CATEGORIES.ADVERTISING;
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When Rules is copied without replacing Categories.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Copied category rules',
+                welcomeNote: '',
+                localCurrency: 'USD',
+                parts: ['rules'],
+                policyCategories: {[categoryName]: {name: categoryName, enabled: true, areCommentsRequired: true, maxExpenseAmount: 5000}},
+                personalDetailsByLogins: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then matching rules are visible before the server responds.
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`);
+            expect(categories?.[categoryName]).toEqual(expect.objectContaining({name: categoryName, enabled: true, areCommentsRequired: true, maxExpenseAmount: 5000}));
+        });
+
+        it('duplicate workspace omits pending deletions from copied settings while offline', async () => {
+            // Given source settings already removed locally but still queued for deletion.
+            const pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const source: PolicyType = {
+                ...createRandomPolicy(32, CONST.POLICY.TYPE.TEAM),
+                employeeList: {[EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER, pendingAction}},
+                fieldList: {
+                    deleted: {
+                        fieldID: 'deleted',
+                        name: 'Deleted',
+                        type: 'text',
+                        target: 'expense',
+                        pendingAction,
+                        defaultValue: '',
+                        orderWeight: 0,
+                        deletable: true,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        isTax: false,
+                    },
+                },
+                taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '', foreignTaxDefault: '', taxes: {deleted: {name: 'Deleted', value: '10%', pendingAction}}},
+            };
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When those setting groups are copied to a new workspace.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Filtered settings',
+                welcomeNote: '',
+                localCurrency: 'USD',
+                parts: ['members', 'reports', 'accounting', 'taxes', 'categories', 'tags'],
+                policyCategories: {Deleted: {name: 'Deleted', enabled: true, pendingAction}, Kept: {name: 'Kept', enabled: true}},
+                policyTags: {
+                    Deleted: {name: 'Deleted', required: false, orderWeight: 0, tags: {}, pendingAction},
+                    Kept: {name: 'Kept', required: false, orderWeight: 1, tags: {Deleted: {name: 'Deleted', enabled: true, pendingAction}, Kept: {name: 'Kept', enabled: true}}},
+                },
+                personalDetailsByLogins: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then only surviving records appear, and the source remains unchanged.
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`);
+            expect(duplicate?.employeeList?.[EMPLOYEE_EMAIL]).toBeUndefined();
+            expect(duplicate?.employeeList?.[ESH_EMAIL]).toBeDefined();
+            expect(duplicate?.fieldList).toEqual({});
+            expect(duplicate?.taxRates?.taxes).toEqual({});
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual({Kept: {name: 'Kept', enabled: true}});
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`)).toEqual({
+                Kept: {name: 'Kept', required: false, orderWeight: 1, tags: {Kept: {name: 'Kept', enabled: true}}},
+            });
+            expect(source.employeeList?.[EMPLOYEE_EMAIL]?.pendingAction).toBe(pendingAction);
+        });
+
         it('duplicate workspace disabled options', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy = {

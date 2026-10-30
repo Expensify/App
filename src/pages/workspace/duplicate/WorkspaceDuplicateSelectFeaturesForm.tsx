@@ -87,6 +87,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const duplicateWorkspaceName = duplicateWorkspace?.name;
     const duplicateWorkspacePolicyID = duplicateWorkspace?.policyID;
     const confirmSelectedFeatures = () => {
+        // Without Members, copied workflows cannot keep their original approvers.
         if (effectiveSelectedItems.includes('workflows') && !effectiveSelectedItems.includes('members') && totalMembers > 1) {
             showConfirmModal({
                 title: translate('common.headsUp'),

@@ -3561,20 +3561,39 @@ function buildOptimisticDuplicatePolicy(
     };
 }
 
-function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOptions) {
+function filterPendingDeletes<T>(data: Record<string, T> | undefined): Record<string, T> {
+    return Object.fromEntries(
+        Object.entries(data ?? {}).filter(
+            ([, value]) => !value || typeof value !== 'object' || !('pendingAction' in value) || value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        ),
+    );
+}
+
+function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicyDataOptions) {
     const {
         policyName = '',
         policyID = generatePolicyID(),
         file,
         parts,
         targetPolicyID = generatePolicyID(),
-        policyCategories,
-        policyTags,
+        policyCategories: sourceCategories,
+        policyTags: sourceTags,
         currentUserAccountID,
         currentUserEmail,
         rules,
         personalDetailsByLogins,
     } = options;
+
+    // Queued deletions belong to the source and must not appear in the duplicate.
+    const policy = {
+        ...sourcePolicy,
+        employeeList: filterPendingDeletes(sourcePolicy.employeeList),
+        fieldList: filterPendingDeletes(sourcePolicy.fieldList),
+        connections: filterPendingDeletes(sourcePolicy.connections),
+        taxRates: sourcePolicy.taxRates ? {...sourcePolicy.taxRates, taxes: filterPendingDeletes(sourcePolicy.taxRates.taxes)} : undefined,
+    };
+    const policyCategories = filterPendingDeletes(sourceCategories);
+    const policyTags = Object.fromEntries(Object.entries(filterPendingDeletes(sourceTags)).map(([name, tagList]) => [name, {...tagList, tags: filterPendingDeletes(tagList.tags)}]));
 
     const {
         adminsChatReportID,
@@ -3615,7 +3634,10 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         sourceForCopy,
         [newPolicy],
         parts,
-        {[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`]: policyCategories},
+        {
+            [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`]: policyCategories,
+            [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`]: defaultOptimisticCategoriesData.categories,
+        },
         {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTags},
         rules,
         false,
@@ -3839,11 +3861,16 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
         ...announceRoomChat.onyxFailureData,
     ];
 
-    optimisticData.push(...(defaultOptimisticCategoriesData.optimisticData ?? []), ...copyData.optimisticData);
-    successData.push(...(defaultOptimisticCategoriesData.successData ?? []), ...copyData.successData);
+    // Default-category feedback must not recreate categories replaced by the source.
+    if (!parts.includes('categories')) {
+        optimisticData.push(...(defaultOptimisticCategoriesData.optimisticData ?? []));
+        successData.push(...(defaultOptimisticCategoriesData.successData ?? []));
+        failureData.push(...(defaultOptimisticCategoriesData.failureData ?? []));
+    }
+    optimisticData.push(...copyData.optimisticData);
+    successData.push(...copyData.successData);
     // Restore settings first so the creation error is preserved.
     failureData.unshift(...copyData.failureData);
-    failureData.push(...(defaultOptimisticCategoriesData.failureData ?? []));
 
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? createFile(file as File) : undefined;
