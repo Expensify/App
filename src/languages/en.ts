@@ -4610,6 +4610,7 @@ const translations = {
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Example: ${example}`,
+        onFile: 'On file',
         fileCount: ({count}: {count: number}) => ({
             one: '1 file',
             other: `${count} files`,

@@ -9,6 +9,12 @@ const reimbursementAccountErrorSelector = (reimbursementAccount: OnyxEntry<Reimb
 
 const hasReimbursementAccountErrorsSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => !isEmptyObject(reimbursementAccount?.errors);
 
+/** Whether a Wise onboarding page save is still running */
+const isSavingWiseOnboardingPageSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => Object.values(reimbursementAccount?.wiseOnboardingPendingSaves ?? {}).some(Boolean);
+
+/** Whether a Wise onboarding page has not saved yet, as when its save is running or failed */
+const hasUnsavedWiseOnboardingPageSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => Object.values(reimbursementAccount?.wiseOnboardingUnsavedPages ?? {}).some(Boolean);
+
 /**
  * Returns a selector that reports whether there are other eligible existing business bank accounts that could be connected.
  */
@@ -17,4 +23,10 @@ const hasOtherEligibleBusinessBankAccountsSelector =
     (bankAccountList: OnyxEntry<BankAccountList>): boolean =>
         getEligibleExistingBusinessBankAccounts(bankAccountList, currency, true, excludeBankAccountID).length > 0;
 
-export {reimbursementAccountErrorSelector, hasReimbursementAccountErrorsSelector, hasOtherEligibleBusinessBankAccountsSelector};
+export {
+    reimbursementAccountErrorSelector,
+    hasReimbursementAccountErrorsSelector,
+    hasOtherEligibleBusinessBankAccountsSelector,
+    isSavingWiseOnboardingPageSelector,
+    hasUnsavedWiseOnboardingPageSelector,
+};

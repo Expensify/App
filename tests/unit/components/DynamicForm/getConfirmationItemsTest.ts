@@ -150,6 +150,15 @@ describe('getConfirmationItems', () => {
         expect(group.rows.find((row) => row.id === 'name')).toMatchObject({accessibilityLabel: undefined});
     });
 
+    it('shows a blank sensitive answer the server holds as on file, read out as written', () => {
+        // Given a resumed SSN the server holds, left blank on this visit
+        // When the confirmation sections are built
+        const [group] = getConfirmationItems(pages, getAllFields(pages), {name: 'Ada', ssn: '', ssnProvided: true, country: 'US'}, translateLocal, jest.fn(), jest.fn());
+
+        // Then the row says the SSN is on file, and screen readers read that text instead of a masked ending taken from it
+        expect(group.rows.find((row) => row.id === 'ssn')).toMatchObject({title: translateLocal('dynamicForm.onFile'), accessibilityLabel: undefined});
+    });
+
     it('names a list above its entry rows when other answers share its section', () => {
         // Given a page titled Business holding the company name and a labelled list of owners with one entry
         const businessPages: DynamicFormPage[] = [

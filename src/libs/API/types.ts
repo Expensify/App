@@ -766,6 +766,7 @@ const WRITE_COMMANDS = {
     USER_UNBLOCK_EMAIL: 'User_UnblockEmail',
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
+    UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA: 'UpdateWiseOnboardingAdditionalData',
     DELETE_APP_REPORT: 'DeleteAppReport',
     MERGE_REPORTS: 'MergeReports',
     SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION: 'SaveCorpayOnboardingDirectorInformation',
@@ -1278,6 +1279,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
     [WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
+    [WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA]: Parameters.UpdateWiseOnboardingAdditionalDataParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION]: Parameters.SaveCorpayOnboardingDirectorInformationParams;
     [WRITE_COMMANDS.ASK_FOR_CORPAY_SIGNER_INFORMATION]: Parameters.AskForCorpaySignerInformationParams;
     [WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION]: Parameters.SendReminderForCorpaySignerInformationParams;
@@ -1989,6 +1991,8 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     REVEAL_CARD_PIN: 'RevealCardPIN',
     CHANGE_CARD_PIN: 'ChangeCardPIN',
     OPEN_SEARCH_TAG_FILTERS_PAGE: 'OpenSearchTagFiltersPage',
+    // A Wise onboarding page that carries a sensitive answer, such as the SSN, is sent without the request queue so the answer is never written to disk
+    UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA: 'UpdateWiseOnboardingAdditionalData',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
@@ -2041,6 +2045,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN]: Parameters.RevealCardPINParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN]: Parameters.ChangeCardPINParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE]: Parameters.OpenSearchTagFiltersPageParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA]: Parameters.UpdateWiseOnboardingAdditionalDataParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

@@ -13,6 +13,7 @@ import getContentFields from './getContentFields';
 import {getFieldLabel} from './getLocalizedText';
 import {getPageSectionName, isPageShown} from './getPageTitle';
 import getVisibleFields from './getVisibleFields';
+import hasProvidedAnswer from './hasProvidedAnswer';
 import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
 import {getListItems} from './listItems';
@@ -77,18 +78,20 @@ function getConfirmationItems(
                         return shouldNameList ? [{kind: 'label', id: `${field.key}-label`, title: getFieldLabel(field, translate)}, ...listItemRows] : listItemRows;
                     }
 
-                    const answer = formatDynamicFieldValue(field, values, translate);
+                    const typedAnswer = formatDynamicFieldValue(field, values, translate);
+                    // A resumed sensitive answer, such as an SSN, is blank because the server never sends it back, so the row says it is on file instead of looking unanswered
+                    const answer = !typedAnswer && hasProvidedAnswer(field, values) ? translate('dynamicForm.onFile') : typedAnswer;
                     const isEditable = !field.readonly;
                     const fieldLabel = getFieldLabel(field, translate);
-                    const isMasked = isSensitiveField(field) && !!getVisibleEnding(answer);
+                    const isMasked = isSensitiveField(field) && !!typedAnswer && !!getVisibleEnding(typedAnswer);
 
                     return [
                         {
                             id: field.key,
                             description: fieldLabel,
-                            title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
+                            title: isSensitiveField(field) && typedAnswer ? maskSensitiveValue(typedAnswer) : answer,
                             // Screen readers would read out each bullet of the mask
-                            accessibilityLabel: isMasked ? translate('dynamicForm.maskedValueLabel', {label: fieldLabel, ending: getVisibleEnding(answer)}) : undefined,
+                            accessibilityLabel: isMasked ? translate('dynamicForm.maskedValueLabel', {label: fieldLabel, ending: getVisibleEnding(typedAnswer)}) : undefined,
                             shouldShowRightIcon: isEditable,
                             onPress: isEditable ? handleEdit : noop,
                             interactive: isEditable,

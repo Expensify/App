@@ -7,8 +7,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useWiseOnboardingSaveStatus from '@hooks/useWiseOnboardingSaveStatus';
 
 import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
+import {getSavedFileAnswers} from '@libs/getWiseOnboardingPageParams';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -17,9 +19,10 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
-import {openReimbursementAccountPage} from '@userActions/BankAccounts';
+import {hideBankAccountErrors, openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues} from '@userActions/FormActions';
+import saveWiseOnboardingPage, {clearWiseOnboardingSaving, clearWiseOnboardingUnsavedPages} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +33,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {deepEqual} from 'fast-equals';
 import pick from 'lodash/pick';
 import React, {useEffect, useState} from 'react';
 
@@ -52,6 +56,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draft, draftMetadata] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
+    const {isSaving, saveError} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
 
     const {translate} = useLocalize();
@@ -79,6 +84,16 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [isNewVisit] = useState(!route.params.subPage);
     const shouldReadBusinessAccount = isNewVisit && !isOffline;
     const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(false);
+
+    // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit.
+    // It also ends a page save the earlier visit left running, whose page stays unsaved.
+    useEffect(() => {
+        if (!isNewVisit) {
+            return;
+        }
+        hideBankAccountErrors();
+        clearWiseOnboardingSaving();
+    }, [isNewVisit]);
     if (businessAccount?.isLoading && !hasBusinessAccountReadStarted) {
         setHasBusinessAccountReadStarted(true);
     }
@@ -104,7 +119,24 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         }
         clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
+        clearWiseOnboardingUnsavedPages();
     }, [isDraftForOtherAccount]);
+
+    // After a save, the draft still holds the files picked on this device, so the next save of that page would upload them again. Once the server's file
+    // keys change and no save is running, the draft takes them instead. Only changes count, since the keys a page opens with may predate its newest files.
+    const savedDocuments = businessAccount?.data?.bankAccountID === bankAccountID ? businessAccount.data.wise?.documents : undefined;
+    const [draftedSavedDocuments, setDraftedSavedDocuments] = useState(savedDocuments);
+    const [haveSavedDocumentsChanged, setHaveSavedDocumentsChanged] = useState(false);
+    if (!isSaving && !deepEqual(savedDocuments, draftedSavedDocuments)) {
+        setDraftedSavedDocuments(savedDocuments);
+        setHaveSavedDocumentsChanged(true);
+    }
+    useEffect(() => {
+        if (!haveSavedDocumentsChanged) {
+            return;
+        }
+        saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, getSavedFileAnswers(draftedSavedDocuments));
+    }, [haveSavedDocumentsChanged, draftedSavedDocuments]);
 
     const missingPrefill =
         isLoading || isPrefillDone || isDraftForOtherAccount
@@ -145,9 +177,18 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             buildRoute={(pageName, action) => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath)}
             shouldReplaceRoute
             onBack={goBackToIntro}
+            // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
+            onPageSubmit={(page, answers, sensitiveAnswers) => saveWiseOnboardingPage(bankAccountID, page, answers, sensitiveAnswers)}
+            submitError={saveError}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}
-            onSubmit={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path))}
+            onSubmit={() => {
+                // A page that is still saving or did not save would leave Wise without it, so the user stays on the confirmation page
+                if (isSaving || saveError) {
+                    return;
+                }
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path));
+            }}
         />
     );
 }

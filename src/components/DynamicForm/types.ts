@@ -41,8 +41,12 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     /** Receives the answers to every visible field, sensitive ones included. The flow drops sensitive answers once `isSubmitting` turns false without `submitError`, or right away when `isSubmitting` is not passed. */
     onSubmit: (answers: DynamicFormValues) => void;
 
-    /** Receives a page and its draft answers when the user leaves it with Next, for flows that save each page. Sensitive answers are not passed, since a page save would persist them in the request queue. */
-    onPageSubmit?: (page: DynamicFormPage, answers: DynamicFormValues) => void;
+    /**
+     * Receives a page and its draft answers when the user leaves it with Next, for flows that save each page.
+     * The page's sensitive answers come apart from the others, so the screen can send them on a request that is not written to disk.
+     * Sensitive answers inside list entries, such as a director's SSN, are not passed, since they stay in memory only.
+     */
+    onPageSubmit?: (page: DynamicFormPage, answers: DynamicFormValues, sensitiveAnswers: DynamicFormValues) => void;
 
     /** Leaves the flow from its first page */
     onBack: () => void;

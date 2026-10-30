@@ -4,6 +4,7 @@ import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
 import {getCountryCode, resolveStateCode} from '@libs/CountryUtils';
+import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
@@ -17,8 +18,8 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 
 import US from './forms/US';
 
-/** The bank account's company details the business page shows, under the same keys */
-const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'incorporationType'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
+/** The bank account's company details the business page shows, under the same keys, and the onboarding pages already saved to Wise */
+const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'incorporationType', 'wise'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
 
 type WiseBusinessAccountData = Pick<ACHDataReimbursementAccount, TupleToUnion<typeof WISE_BUSINESS_ACCOUNT_KEYS>>;
 
@@ -44,8 +45,29 @@ function getStateCode(countryCode: string | undefined, state: string | undefined
     return stateCode in COMMON_CONST.STATES ? stateCode : undefined;
 }
 
+/** The answers of every saved page, with each saved file as a draft entry the next save can tell apart from a new one. A key a later save dropped comes back as null and is left out. */
+function getSavedAnswers(wise: WiseBusinessAccountData['wise']): DynamicFormValues {
+    const answers: DynamicFormValues = {};
+    for (const pageAnswers of Object.values(wise?.pages ?? {})) {
+        for (const [key, answer] of Object.entries(pageAnswers ?? {})) {
+            if (answer !== null && answer !== undefined) {
+                answers[key] = answer;
+            }
+        }
+    }
+    for (const pageDocuments of Object.values(wise?.documents ?? {})) {
+        for (const [fieldKey, fileKeys] of Object.entries(pageDocuments ?? {})) {
+            if (fileKeys?.length) {
+                answers[fieldKey] = fileKeys.map(toSavedFile);
+            }
+        }
+    }
+    return answers;
+}
+
 /**
- * Answers the onboarding form starts with: the representative from the user's private details, and the business from the bank account's details.
+ * Answers the onboarding form starts with: the representative from the user's private details, and the business from the bank account's details,
+ * overridden by the pages the user already saved to Wise.
  * The reimbursement account holds one bank account at a time, so the details of another account are not used.
  */
 function getWiseBusinessOnboardingPrefill(
@@ -78,6 +100,8 @@ function getWiseBusinessOnboardingPrefill(
         [addressKeys.country]: countryCode,
         companyName: business?.companyName,
         companyType: COMPANY_TYPE_BY_INCORPORATION_TYPE[business?.incorporationType ?? ''],
+        // What the user already saved to Wise wins over the details above
+        ...getSavedAnswers(business?.wise),
     };
 }
 

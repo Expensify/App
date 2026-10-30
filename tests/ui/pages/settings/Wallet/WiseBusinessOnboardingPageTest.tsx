@@ -1,8 +1,10 @@
 import {act, render, screen} from '@testing-library/react-native';
 
+import type {DynamicFormFlowProps} from '@components/DynamicForm/types';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import {navigationRef} from '@libs/Navigation/Navigation';
+import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {setHasRadio} from '@libs/NetworkState';
@@ -32,13 +34,16 @@ const FLOW_TEST_ID = 'DynamicFormFlow';
 const LOADER_TEST_ID = 'FullScreenLoadingIndicator';
 const NOT_FOUND_TEST_ID = 'NotFoundPage';
 const BANK_ACCOUNT_ID = 1;
+const SAVE_ID = '1';
 
 const mockFlowMount = jest.fn();
+const mockFlowProps = jest.fn<void, [DynamicFormFlowProps]>();
 
 jest.mock('@components/DynamicForm', () => {
     const {useEffect} = jest.requireActual<typeof React>('react');
     const reactNative = jest.requireActual<typeof ReactNative>('react-native');
-    function MockDynamicFormFlow() {
+    function MockDynamicFormFlow(props: DynamicFormFlowProps) {
+        mockFlowProps(props);
         useEffect(() => {
             mockFlowMount();
         }, []);
@@ -55,7 +60,7 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     return {__esModule: true, default: () => <reactNative.View testID="NotFoundPage" />};
 });
 jest.mock('@userActions/DynamicForm', () => ({...jest.requireActual<Record<string, unknown>>('@userActions/DynamicForm'), saveDraftAnswers: jest.fn()}));
-jest.mock('@userActions/BankAccounts', () => ({openReimbursementAccountPage: jest.fn()}));
+jest.mock('@userActions/BankAccounts', () => ({hideBankAccountErrors: jest.fn(), openReimbursementAccountPage: jest.fn()}));
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/1'));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
@@ -66,7 +71,7 @@ const ELIGIBLE_BANK_ACCOUNT: BankAccount = {
 };
 
 /** The part of the reimbursement account the page reads */
-type BusinessReimbursementAccount = {achData: WiseBusinessAccountData};
+type BusinessReimbursementAccount = {achData: WiseBusinessAccountData; wiseOnboardingPendingSaves?: Record<string, boolean>; wiseOnboardingUnsavedPages?: Record<string, boolean>};
 
 const REIMBURSEMENT_ACCOUNT: BusinessReimbursementAccount = {
     achData: {
@@ -284,8 +289,9 @@ describe('WiseBusinessOnboardingPage', () => {
     });
 
     it('starts the draft over when it was started for another bank account', async () => {
-        // Given a draft with answers the user gave for another bank account, and a sensitive answer from that visit
+        // Given a draft with answers the user gave for another bank account, and a sensitive answer and a failed page save from that visit
         await Onyx.multiSet({
+            [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {wiseOnboardingUnsavedPages: {representative: true}},
             [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT]: {
                 bankAccountID: '2',
                 companyName: 'Other Business LLC',
@@ -318,6 +324,16 @@ describe('WiseBusinessOnboardingPage', () => {
             });
         });
         expect(sensitiveAnswers?.[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]).toBeFalsy();
+        const reimbursementAccount = await new Promise<OnyxEntry<Record<string, unknown>>>((resolve) => {
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+        expect(reimbursementAccount?.wiseOnboardingUnsavedPages).toBeFalsy();
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
@@ -343,5 +359,64 @@ describe('WiseBusinessOnboardingPage', () => {
         // Then the user sees not found instead of the form
         expect(screen.getByTestId(NOT_FOUND_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('puts the saved file keys in the draft once a page save returns them', async () => {
+        // Given an open flow whose draft holds an ID document picked on this device and sent with a page save
+        await renderPage();
+        act(() => saveDraftAnswersToOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {idDocument: [{name: 'passport.jpg', uri: 'file://passport.jpg'}]}));
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingPendingSaves: {[SAVE_ID]: true}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the save returns the key the server stored the file under
+        await act(() =>
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                wiseOnboardingPendingSaves: {[SAVE_ID]: null},
+                achData: {wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}},
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the draft holds the saved file, so saving the page again lists its key instead of uploading the file again
+        expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg')]);
+    });
+
+    it('keeps the user on the confirmation page while a page that failed to save has not saved since', async () => {
+        // Given the representative page failed to save, and the business page saved after it, which cleared the shared error
+        await renderPage({reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingUnsavedPages: {representative: true}}});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the user taps Confirm
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        act(() => flowProps?.onSubmit({}));
+
+        // Then they stay on the confirmation page with an error, since Wise does not have the representative details yet
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(flowProps?.submitError).toBe('common.genericErrorMessage');
+    });
+
+    it('ends a save left running by an earlier visit but keeps the user on the confirmation page until that page saves', async () => {
+        // Given the app closed while the representative page was saving, so its save never answered and is not retried
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the user opens the flow again and taps Confirm
+        await renderPage({reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingPendingSaves: {[SAVE_ID]: true}, wiseOnboardingUnsavedPages: {representative: true}}});
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        act(() => flowProps?.onSubmit({}));
+
+        // Then the save no longer runs, so the page does not wait for it forever, and the user stays with an error, since Wise may not have the page
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(flowProps?.submitError).toBe('common.genericErrorMessage');
+        const reimbursementAccount = await new Promise<OnyxEntry<Record<string, unknown>>>((resolve) => {
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                callback: (value) => {
+                    Onyx.disconnect(connection);
+                    resolve(value);
+                },
+            });
+        });
+        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(reimbursementAccount?.wiseOnboardingPendingSaves).toBeFalsy();
     });
 });
