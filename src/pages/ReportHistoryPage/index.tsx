@@ -1,3 +1,4 @@
+import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -5,6 +6,7 @@ import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -38,6 +40,7 @@ type ReportHistoryPageProps = WithReportOrNotFoundProps & PlatformStackScreenPro
 
 function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Info']);
     const {translate, dateFnsLocale} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_HISTORY.path);
@@ -81,6 +84,15 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
                 <ScrollView contentContainerStyle={[styles.ph5, styles.pv3]}>
+                    {isOffline && (
+                        <Banner
+                            text={translate('reportHistoryPage.offlineMessage')}
+                            icon={icons.Info}
+                            shouldShowIcon
+                            containerStyles={[styles.mb3, styles.p4, styles.br3]}
+                            textStyles={[styles.breakWord, styles.textSupporting]}
+                        />
+                    )}
                     {shouldShowSkeleton
                         ? Array.from({length: steps.length + 1}, (_, index) => (
                               <View key={index}>
