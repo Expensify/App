@@ -73,7 +73,7 @@ type OnyxData<TKey extends OnyxKey> = OnyxDataBase<OnyxUpdate<TKey>>;
 type AnyOnyxData = OnyxDataBase<AnyOnyxUpdate>;
 
 /** HTTP request method names */
-type RequestType = 'get' | 'post' | 'head';
+type RequestType = 'get' | 'post';
 
 /** Generic base model for API requests containing common metadata and handlers */
 type RequestDataBase<TKey extends OnyxKey> = {
@@ -88,9 +88,6 @@ type RequestDataBase<TKey extends OnyxKey> = {
 
     /** The HTTP request method name */
     type?: RequestType;
-
-    /** Cancels an in-memory request without cancelling shared authentication. */
-    signal?: AbortSignal;
 
     /** Whether the app should connect to the secure API endpoints */
     shouldUseSecure?: boolean;

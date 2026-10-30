@@ -3156,6 +3156,7 @@ const CONST = {
         POLICY_DIFF_WARNING: 305,
     },
     HTTP_STATUS: {
+        OK: 200,
         // Cloudflare Access rejects an expired bearer token at the HTTP layer, before any jsonCode body
         UNAUTHORIZED: 401,
         FORBIDDEN: 403,

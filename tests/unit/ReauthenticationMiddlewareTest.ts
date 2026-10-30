@@ -46,23 +46,6 @@ beforeEach(() => {
 });
 
 describe('Reauthentication middleware', () => {
-    test.each([401, 407])('only treats a HEAD HTTP 401 as image authentication failure; status=%s', async (status) => {
-        // Given a HEAD transport error that may be a proxy challenge rather than an expired image token
-        if (status === 401) {
-            jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false});
-        }
-        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
-            command: 'HeadAttachment',
-            type: CONST.NETWORK.METHOD.HEAD,
-            data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
-        };
-
-        // When the middleware classifies the transport error
-        await Reauthentication(Promise.reject(new HttpsError({message: 'Unauthorized', status: String(status)})), request, false);
-
-        // Then a proxy 407 cannot initiate application reauthentication
-        expect(reauthenticate).toHaveBeenCalledTimes(status === 401 ? 1 : 0);
-    });
     test('clears original request failure updates when failed reauthentication redirects to sign-in', () => {
         jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false});
 

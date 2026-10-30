@@ -144,23 +144,22 @@ describe('HttpUtils', () => {
             jest.useRealTimers();
         });
 
-        it.each([200, 401, 407, 500])('returns HTTP %s without reading a response body', async (status) => {
-            // Given an image response without a body that must not enter JSON API parsing
+        it('returns the HTTP status without reading a response body', async () => {
+            // Given a rejected image response without a body that must not enter JSON API parsing
             const json = jest.fn();
-            const fetchMock = jest.fn().mockResolvedValue({ok: status >= 200 && status < 300, status, headers: new Headers(), json});
+            const fetchMock = jest.fn().mockResolvedValue({status: CONST.HTTP_STATUS.UNAUTHORIZED, json});
             globalThis.fetch = fetchMock;
 
             // When the existing transport sends an authenticated HEAD to the image endpoint
-            const result = await HttpUtils.xhr('HeadAttachment', {imageURL}, CONST.NETWORK.METHOD.HEAD);
+            const result = await HttpUtils.head(imageURL);
 
-            // Then its HTTP status is preserved without FormData, JSON parsing, or startup prefetch
-            expect(result).toEqual({jsonCode: status});
+            // Then the caller receives the rejection without JSON parsing or a request body
+            expect(result).toBe(CONST.HTTP_STATUS.UNAUTHORIZED);
             expect(json).not.toHaveBeenCalled();
             expect(fetchMock).toHaveBeenCalledWith(
                 imageURL,
                 expect.objectContaining({method: CONST.NETWORK.METHOD.HEAD, body: null, headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: 'image-token'}, credentials: 'omit'}),
             );
-            expect(mockPreparePrefetchRequest).not.toHaveBeenCalled();
         });
 
         it.each(['untrusted host', 'missing token'])('prevents credential leakage with an %s', async (reason) => {
@@ -173,10 +172,10 @@ describe('HttpUtils', () => {
             const url = reason === 'untrusted host' ? 'https://attacker.example/image.jpg' : imageURL;
 
             // When authenticated recovery reaches the transport
-            const result = await HttpUtils.xhr('HeadAttachment', {imageURL: url}, CONST.NETWORK.METHOD.HEAD);
+            const result = await HttpUtils.head(url);
 
             // Then the transport independently prevents an unsafe request
-            expect(result.jsonCode).toBe(CONST.HTTP_STATUS.FORBIDDEN);
+            expect(result).toBe(CONST.HTTP_STATUS.FORBIDDEN);
             expect(fetchMock).not.toHaveBeenCalled();
         });
 
@@ -190,7 +189,7 @@ describe('HttpUtils', () => {
                         options?.signal?.addEventListener('abort', () => reject(new Error('Probe aborted')));
                     }),
             );
-            const probe = HttpUtils.xhr('HeadAttachment', {imageURL}, CONST.NETWORK.METHOD.HEAD, false, false, controller.signal);
+            const probe = HttpUtils.head(imageURL, controller.signal);
             const rejection = expect(probe).rejects.toMatchObject({name: CONST.ERROR.REQUEST_CANCELLED});
 
             // When the deadline passes or the image is replaced

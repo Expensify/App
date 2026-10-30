@@ -1,23 +1,22 @@
 import reauthenticateAttachmentImages from '@libs/actions/Session/AttachmentImageReauthenticator';
 import * as API from '@libs/API';
-import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import {getEncryptedAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
 
 import CONFIG from '@src/CONFIG';
 
-jest.mock('@libs/API', () => ({makeRequestWithSideEffects: jest.fn()}));
+jest.mock('@libs/API', () => ({makeHeadRequest: jest.fn()}));
 jest.mock('@libs/Network/NetworkStore', () => ({getEncryptedAuthToken: jest.fn()}));
 jest.mock('@libs/NetworkState', () => ({getIsOffline: jest.fn()}));
 
-const makeRequest = jest.mocked(API.makeRequestWithSideEffects);
+const makeRequest = jest.mocked(API.makeHeadRequest);
 const IMAGE_URL = `${CONFIG.EXPENSIFY.EXPENSIFY_URL}receipts/image.jpg`;
 
 beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(getIsOffline).mockReturnValue(false);
     jest.mocked(getEncryptedAuthToken).mockReturnValue('new-token');
-    makeRequest.mockResolvedValue({jsonCode: 200});
+    makeRequest.mockResolvedValue(200);
 });
 
 describe('AttachmentImageReauthenticator', () => {
@@ -28,8 +27,8 @@ describe('AttachmentImageReauthenticator', () => {
         [401, 'new-token', false],
         [undefined, 'new-token', false],
     ] as const)('requires a successful probe and replacement credentials: status=%s, token=%s', async (status, token, wasSuccessful) => {
-        // Given a middleware result that may lack accepted replacement credentials
-        makeRequest.mockResolvedValueOnce(status === undefined ? undefined : {jsonCode: status});
+        // Given a probe result that may lack accepted replacement credentials
+        makeRequest.mockResolvedValueOnce(status);
         jest.mocked(getEncryptedAuthToken).mockReturnValue(token);
         const controller = new AbortController();
 
@@ -38,7 +37,7 @@ describe('AttachmentImageReauthenticator', () => {
 
         // Then only a successful response with a new token permits an image retry
         expect(result).toEqual({wasSuccessful});
-        expect(makeRequest).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.HEAD_ATTACHMENT, {imageURL: IMAGE_URL}, {}, {signal: controller.signal});
+        expect(makeRequest).toHaveBeenCalledWith(IMAGE_URL, {signal: controller.signal});
     });
 
     it.each(['offline', 'untrusted', 'cancelled'])('skips recovery when %s', async (reason) => {

@@ -14,12 +14,8 @@ import type Middleware from './types';
  * - EXPENSIFY_SERVICE_INTERRUPTED → failure (server down: 500/502/504/520, auth socket)
  * - SERVICE_UNAVAILABLE → success (app-level 503 inside an HTTP 200, so the server answered)
  */
-const FailureTracking: Middleware = (response, request) => {
-    // An attachment-only CORS failure does not establish that the API is unreachable.
-    if (request.type === CONST.NETWORK.METHOD.HEAD) {
-        return response;
-    }
-    return response
+const FailureTracking: Middleware = (response) =>
+    response
         .then((data) => {
             recordSuccess();
             return data;
@@ -40,6 +36,5 @@ const FailureTracking: Middleware = (response, request) => {
 
             throw error;
         });
-};
 
 export default FailureTracking;
