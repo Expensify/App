@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
@@ -40,14 +41,17 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import {useSharedValue} from 'react-native-reanimated';
 
 function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
@@ -63,26 +67,18 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const shouldShowCustomFormIDOptions = useSharedValue(!shouldHideCustomFormIDOptions(config));
     const shouldAnimateAccordionSection = useSharedValue(false);
 
-    const selectedReimbursementAccount = useMemo(
-        () => getFilteredReimbursableAccountOptions(payableList).find(({id}) => id === config?.reimbursementAccountID),
-        [payableList, config?.reimbursementAccountID],
-    );
-    const selectedCollectionAccount = useMemo(
-        () => getFilteredCollectionAccountOptions(payableList).find(({id}) => id === config?.collectionAccount),
-        [payableList, config?.collectionAccount],
-    );
-    const selectedFxExpenseAccount = useMemo(() => expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount), [expenseAccounts, config?.fxExpenseAccount]);
+    const selectedReimbursementAccount = getFilteredReimbursableAccountOptions(payableList).find(({id}) => id === config?.reimbursementAccountID);
+    const selectedCollectionAccount = getFilteredCollectionAccountOptions(payableList).find(({id}) => id === config?.collectionAccount);
+    const selectedFxExpenseAccount = expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount);
     const approvalAccount = config?.approvalAccount;
-    const selectedApprovalAccount = useMemo(() => {
-        // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
-        if (!approvalAccount || approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT) {
-            return {
-                id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
-                name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
-            };
-        }
-        return getFilteredApprovalAccountOptions(payableList).find(({id}) => id === approvalAccount);
-    }, [approvalAccount, payableList, translate]);
+    // NetSuite uses a synthesized "default approval account" when nothing is explicitly set.
+    const selectedApprovalAccount =
+        !approvalAccount || approvalAccount === CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT
+            ? {
+                  id: CONST.NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
+                  name: translate('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
+              }
+            : getFilteredApprovalAccountOptions(payableList).find(({id}) => id === approvalAccount);
 
     const renderDefaultMenuItem = (item: MenuItemToRender) => {
         return (
@@ -90,7 +86,7 @@ function NetSuiteAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 key={item.description}
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields) ?? settingsPendingAction(item.subscribedSettings, autoSyncConfig?.pendingFields)}
             >
-                <MenuItem.Root onPress={item?.onPress ? callFunctionIfActionIsAllowed(item.onPress) : undefined}>
+                <MenuItem.Root onPress={item?.onPress ? callFunctionIfActionIsAllowed(item.onPress, false, session) : undefined}>
                     <MenuItemField.Row
                         name={item.description ?? ''}
                         value={item.title}

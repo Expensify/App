@@ -494,5 +494,38 @@ describe('useReportUnreadMessageScrollTracking', () => {
 
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
         });
+
+        it('keeps the action badge hidden when the live range shows the target despite stale viewable items', () => {
+            // Given a live range that contains the target, as after a sent message shifts it from index 2 to 3
+            const offsetRef = {current: 0};
+            const {result} = renderHook(() =>
+                useReportUnreadMessageScrollTracking({
+                    reportID,
+                    currentVerticalScrollingOffsetRef: offsetRef,
+                    onUnreadActionVisible: onUnreadActionVisibleMockFn,
+                    onTrackScrolling: onTrackScrollingMockFn,
+                    hasNewerActions: false,
+                    unreadMarkerReportActionIndex: -1,
+                    isInverted: true,
+                    actionBadgeTargetIndex: 3,
+                    getVisibleIndexRange: () => ({startIndex: 0, endIndex: 3}),
+                }),
+            );
+
+            // When FlashList reports a snapshot taken before the shift, which ends at index 2
+            act(() => {
+                result.current.onViewableItemsChanged({
+                    viewableItems: [
+                        {index: 0, key: 'reportActions_0', isViewable: true, item: {}},
+                        {index: 1, key: 'reportActions_1', isViewable: true, item: {}},
+                        {index: 2, key: 'reportActions_2', isViewable: true, item: {}},
+                    ],
+                    changed: [],
+                });
+            });
+
+            // Then the live range wins and the pill does not flash
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
+        });
     });
 });

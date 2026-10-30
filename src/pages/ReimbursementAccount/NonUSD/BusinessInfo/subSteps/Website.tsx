@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type WebsiteProps = SubPageProps;
 
@@ -36,21 +36,18 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
     const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
     const isWebsiteRequired = currency === CONST.CURRENCY.USD || CONST.CURRENCY.CAD;
 
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account, true), [session, account]);
+    const defaultWebsiteExample = getDefaultCompanyWebsite(session, account, true);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = isWebsiteRequired ? getFieldRequiredErrors(values, STEP_FIELDS, translate) : {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = isWebsiteRequired ? getFieldRequiredErrors(values, STEP_FIELDS, translate) : {};
 
-            if (values[COMPANY_WEBSITE] && !isValidWebsite(Str.sanitizeURL(values[COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
-                errors[COMPANY_WEBSITE] = translate('bankAccount.error.website');
-            }
+        if (values[COMPANY_WEBSITE] && !isValidWebsite(Str.sanitizeURL(values[COMPANY_WEBSITE], CONST.COMPANY_WEBSITE_DEFAULT_SCHEME))) {
+            errors[COMPANY_WEBSITE] = translate('bankAccount.error.website');
+        }
 
-            return errors;
-        },
-        [isWebsiteRequired, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
