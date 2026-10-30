@@ -84,6 +84,21 @@ describe('BillPaymentButton', () => {
         expect(texts).toEqual(['Pay with business account', 'Mark as paid']);
     });
 
+    it('does not offer an Expensify Card settlement account that is marked inside its account data', async () => {
+        // Given the payer's only business bank account settles Expensify Card spend, marked in accountData
+        const settlementAccount = businessBankAccount['7992'];
+        await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+            // eslint-disable-next-line @typescript-eslint/naming-convention -- Bank account lists are keyed by bankAccountID
+            '7992': {...settlementAccount, accountData: {...settlementAccount.accountData, isExpensifyCardSettlementAccount: true}},
+        });
+
+        // When the Pay button renders for a USD bill
+        const {texts} = await renderOptions(makeBill(CONST.CURRENCY.USD));
+
+        // Then the settlement account isn't a payment source, so the payer starts adding a business bank account instead
+        expect(texts).toEqual(['Pay with business account', 'Mark as paid']);
+    });
+
     it('only offers Mark as paid on a bill that is not in USD', async () => {
         // Given a payer with a business bank account
         await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, businessBankAccount);

@@ -50,6 +50,7 @@ function payableBankAccountsSelector(bankAccounts: OnyxEntry<BankAccountList>): 
                 bank.accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
                 bank.bankCurrency === CONST.CURRENCY.USD &&
                 !bank.isExpensifyCardSettlementAccount &&
+                !bank.accountData?.isExpensifyCardSettlementAccount &&
                 !!bank.methodID,
         ),
     );
