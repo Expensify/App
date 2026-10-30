@@ -3004,6 +3004,18 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined, tra
 }
 
 /**
+ * Whether a report is card-only (has non-reimbursable spend and nothing reimbursable). Prefers the per-transaction answer when
+ * expenses are loaded, and falls back to the stored report totals otherwise, matching the backend's "no reimbursable transaction" check.
+ */
+function isCardOnlyReport(report: OnyxEntry<Report>, transactionsParam?: Transaction[]): boolean {
+    if (transactionsParam && transactionsParam.length > 0) {
+        return hasOnlyNonReimbursableTransactions(report?.reportID, transactionsParam);
+    }
+
+    return getReimbursableTotal(report) === 0 && (report?.nonReimbursableTotal ?? 0) !== 0;
+}
+
+/**
  * Checks if a report has only one transaction associated with it
  */
 function isOneTransactionReport(report: OnyxEntry<Report>): boolean {
@@ -14419,6 +14431,15 @@ function getIntegrationIcon(
     return undefined;
 }
 
+/**
+ * Whether an export is already in flight, which the backend records as the report's latest action.
+ */
+function isQueuedForExport(reportActions?: ReportAction[]): boolean {
+    const latestAction = reportActions?.reduce<ReportAction | undefined>((latest, action) => (!latest || action.created > latest.created ? action : latest), undefined);
+
+    return latestAction?.actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT;
+}
+
 function canBeExported(report: OnyxEntry<Report>) {
     if (!report?.statusNum) {
         return false;
@@ -14454,6 +14475,23 @@ function getIntegrationNameFromExportMessage(reportActions: OnyxEntry<ReportActi
     }
 }
 
+/** Actions that reset the approval state, which invalidates any export or export failure recorded before them */
+const RESET_APPROVAL_ACTION_TYPES = new Set<string>([
+    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+    CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+    CONST.REPORT.ACTIONS.TYPE.REOPENED,
+    CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+]);
+
+/**
+ * The `created` time of the report's most recent approval reset, or an empty string when it has never been reset.
+ */
+function getLastApprovalResetTime(reportActionList: ReportAction[]): string {
+    return reportActionList.reduce((latest, action) => (RESET_APPROVAL_ACTION_TYPES.has(action.actionName) && action.created > latest ? action.created : latest), '');
+}
+
 function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
     if (report?.isExportedToIntegration !== undefined) {
         return report.isExportedToIntegration;
@@ -14466,26 +14504,12 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
 
     const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
 
-    // Actions that reset the approval state and invalidate previous exports
-    const resetApprovalActionTypes = new Set<string>([
-        CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
-        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-        CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
-        CONST.REPORT.ACTIONS.TYPE.REOPENED,
-        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
-    ]);
     const validExportLabels = new Set<string>(Object.values(CONST.EXPORT_LABELS));
 
-    let lastResetCreated = '';
+    const lastResetCreated = getLastApprovalResetTime(reportActionList);
     let lastSuccessfulExportCreated = '';
 
     for (const action of reportActionList) {
-        if (resetApprovalActionTypes.has(action.actionName)) {
-            if (action.created > lastResetCreated) {
-                lastResetCreated = action.created;
-            }
-        }
         if (isExportIntegrationAction(action)) {
             const originalMessage = getOriginalMessage(action);
             const label = originalMessage?.label;
@@ -14516,11 +14540,21 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
         return false;
     }
 
-    if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isIntegrationMessageAction(action) && !getOriginalMessage(action)?.result?.reconciled);
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions);
+
+    // A message older than the last reset describes an export the report has since moved past, which is how the
+    // server reads it too
+    const lastResetCreated = getLastApprovalResetTime(reportActionList);
+
+    const integrationMessages = reportActionList.filter(isIntegrationMessageAction);
+    if (integrationMessages.length === 0) {
+        return false;
     }
 
-    return Object.values(reportActions).some((action) => isIntegrationMessageAction(action) && !getOriginalMessage(action)?.result?.reconciled);
+    // Only the latest integration message reflects the current export state. A later reconciled message clears an earlier failure.
+    const latestMessage = integrationMessages.reduce((latest, action) => (action.created > latest.created ? action : latest));
+
+    return !getOriginalMessage(latestMessage)?.result?.reconciled && latestMessage.created > lastResetCreated;
 }
 
 function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>, shouldExcludeDeletedTransactions = false): boolean {
@@ -15864,9 +15898,11 @@ export {
     canBeExported,
     canShareReport,
     isExported,
+    isQueuedForExport,
     hasExpensifyGuidesEmails,
     hasExportError,
     hasOnlyNonReimbursableTransactions,
+    isCardOnlyReport,
     hasSettledZeroReimbursableSpend,
     isPayOptional,
     getReportLastMessage,

@@ -1729,6 +1729,12 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    // Queued-for-export is a backend bookkeeping action with no user-facing message. Hide it explicitly so a future
+    // backend change that adds message text does not surface it in chat. Matches Auth's Report::HIDDEN_ACTIONS.
+    if (actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT) {
+        return false;
+    }
+
     // Hide automatic TAKE_CONTROL actions created by OldDot's auto-pay workflow.
     // When automaticAction is true and there are no mentionedAccountIDs, this indicates
     // the TAKE_CONTROL was a side effect of auto-pay rather than a manual approver change.
