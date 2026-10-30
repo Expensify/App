@@ -1,9 +1,10 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
-import type {ListItem, SelectionListProps} from '@components/SelectionList/types';
+import type PillSelector from '@components/PillSelector';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import type AutoReportingSubmitOnRows from '@pages/workspace/workflows/AutoReportingSubmitOnRows';
 import WorkspaceAutoReportingFrequencyPage from '@pages/workspace/workflows/WorkspaceAutoReportingFrequencyPage';
 
 import {setWorkspaceAutoReportingFrequency} from '@userActions/Policy/Policy';
@@ -14,11 +15,13 @@ import type {Policy} from '@src/types/onyx';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 import createMock from 'tests/utils/createMock';
 
 type Frequency = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
-type FrequencyRow = ListItem<Frequency>;
-const mockSelectionList = jest.fn<void, [SelectionListProps<FrequencyRow>]>();
+type FrequencyPillsProps = React.ComponentProps<typeof PillSelector<Frequency>>;
+const mockPillSelector = jest.fn<void, [FrequencyPillsProps]>();
+const mockSubmitOnRows = jest.fn<void, [React.ComponentProps<typeof AutoReportingSubmitOnRows>]>();
 
 jest.mock('@pages/workspace/withPolicy', () => (component: unknown) => component);
 jest.mock(
@@ -39,11 +42,16 @@ jest.mock(
         ({children}: {children: React.ReactNode}) =>
             children,
 );
-jest.mock('@components/SelectionList', () => (props: SelectionListProps<FrequencyRow>) => {
-    mockSelectionList(props);
+jest.mock('@components/PillSelector', () => (props: FrequencyPillsProps) => {
+    mockPillSelector(props);
     return null;
 });
-jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
+jest.mock('@pages/workspace/workflows/AutoReportingSubmitOnRows', () => (props: React.ComponentProps<typeof AutoReportingSubmitOnRows>) => {
+    mockSubmitOnRows(props);
+    return null;
+});
+jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () => jest.fn(() => null));
+jest.mock('@components/RenderHTML', () => jest.fn(() => null));
 jest.mock(
     '@components/OfflineWithFeedback',
     () =>
@@ -62,19 +70,18 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@userActions/Policy/Policy', () => ({
     setWorkspaceAutoReportingFrequency: jest.fn(),
     clearPolicyErrorField: jest.fn(),
+    setWorkspaceAutoReportingOffset: jest.fn(),
 }));
 type PageProps = {policy: Policy; route: {params: {policyID: string}}};
 // The mocked withPolicy HOC returns the inner page; only its policy and route are supplied by this test.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const Page = WorkspaceAutoReportingFrequencyPage as unknown as React.ComponentType<PageProps>;
 const props = () => {
-    const value = mockSelectionList.mock.lastCall?.[0];
-    const onSelectRow = value?.onSelectRow;
-    const onConfirm = value?.confirmButtonOptions?.onConfirm;
-    if (!value || !value.confirmButtonOptions || !onSelectRow || !onConfirm) {
-        throw new Error('Frequency list did not render');
+    const value = mockPillSelector.mock.lastCall?.[0];
+    if (!value) {
+        throw new Error('Frequency pills did not render');
     }
-    return {...value, confirmButtonOptions: {...value.confirmButtonOptions, onConfirm}, onSelectRow};
+    return value;
 };
 function renderPage(type: Policy['type']) {
     const policy = createMock<Policy>({
@@ -90,30 +97,31 @@ function renderPage(type: Policy['type']) {
     );
 }
 describe('WorkspaceAutoReportingFrequencyPage', () => {
-    beforeEach(() => jest.clearAllMocks());
-    it('keeps Submit frequencies ordered without instant and shows the monthly footer', () => {
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        await Onyx.clear();
+    });
+    it('keeps Submit frequencies ordered without instant and passes the monthly schedule to its rows', () => {
         // Given a Submit policy currently reporting monthly
         renderPage(CONST.POLICY.TYPE.SUBMIT);
-        // When the real page constructs its selection rows
+        // When the real page constructs the frequency pills and schedule rows
         const selection = props();
-        // Then instant is omitted, order is stable, and the selected monthly row owns the footer
-        expect(selection.data.map((row) => row.keyForList)).toEqual(['monthly', 'immediate', 'weekly', 'semimonthly', 'trip', 'manual']);
-        expect(selection.data.at(0)?.footerContent).toBeTruthy();
-        expect(selection.confirmButtonOptions.isDisabled).toBe(true);
+        // Then instant is omitted, order is stable, and the monthly schedule remains selected
+        expect(selection.options.map((option) => option.key)).toEqual(['immediate', 'weekly', 'semimonthly', 'monthly', 'trip', 'manual']);
+        expect(selection.selectedKey).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY);
+        expect(screen.getByText('common.save')).toBeDisabled();
+        expect(mockSubmitOnRows.mock.lastCall?.[0].frequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY);
     });
-    it('appends instant for an ordinary workspace and saves the selected key', () => {
+    it('offers instant first for an ordinary workspace and saves the selected key', async () => {
         // Given a group workspace reporting monthly
         renderPage(CONST.POLICY.TYPE.TEAM);
-        // When the user selects instant and confirms
-        const instant = props().data.at(-1);
-        expect(instant?.keyForList).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
-        if (!instant) {
-            throw new Error('Instant row missing');
-        }
-        act(() => props().onSelectRow(instant));
-        expect(props().confirmButtonOptions.isDisabled).toBe(false);
-        expect(props().data.find((row) => row.keyForList === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY)?.footerContent).toBeFalsy();
-        act(() => props().confirmButtonOptions.onConfirm());
+        // When the user selects instant through the page's actual draft update and saves
+        expect(props().options.at(0)?.key).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+        act(() => props().onSelect(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT));
+        await waitFor(() => expect(props().selectedKey).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT));
+        expect(mockSubmitOnRows.mock.lastCall?.[0].frequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+        expect(screen.getByText('common.save')).toBeEnabled();
+        fireEvent.press(screen.getByText('common.save'));
         // Then the page sends the exact selected frequency and navigates back
         expect(setWorkspaceAutoReportingFrequency).toHaveBeenCalledWith(
             'policy1',

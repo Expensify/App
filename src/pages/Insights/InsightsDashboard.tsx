@@ -1,6 +1,7 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import TabRootScrollViewMarker from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBar from '@components/Navigation/TopBar';
@@ -14,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -27,19 +27,23 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
 import {View} from 'react-native';
 
 import type {InsightsFilters} from './insightsFilters';
+import type {InsightsChartQuery} from './insightsQueries';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
+import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
-import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
+import InsightsTabSelector from './InsightsTabSelector';
+import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
@@ -57,8 +61,8 @@ type InsightsDashboardContentProps = {
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
-    /** Changes the time bucket the headline chart aggregates into */
-    onGroupByChange: (groupBy: InsightsFilters['groupBy']) => void;
+    /** Changes how the headline chart aggregates: the time bucket, or Running total */
+    onGroupByChange: (update: Partial<InsightsFilters>) => void;
 };
 
 function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
@@ -118,12 +122,14 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 
     if (isEmptyState) {
         return (
-            <ScrollView
-                {...scrollProps}
-                addBottomSafeAreaPadding
-            >
-                {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
-            </ScrollView>
+            <TabRootScrollViewMarker>
+                <ScrollView
+                    {...scrollProps}
+                    addBottomSafeAreaPadding
+                >
+                    {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
+                </ScrollView>
+            </TabRootScrollViewMarker>
         );
     }
 
@@ -131,65 +137,81 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     const columns = shouldUseNarrowLayout ? [supportingCharts] : [supportingCharts.filter((chart, index) => index % 2 === 0), supportingCharts.filter((chart, index) => index % 2 === 1)];
 
     return (
-        <ScrollView
-            style={styles.insightsDashboardScrollView}
-            onScroll={triggerScrollEvent}
-            {...scrollProps}
-            addBottomSafeAreaPadding
-        >
-            <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
-                <InsightsChartWidget
-                    chart={headlineChart.chart}
-                    queryJSON={headlineChart.queryJSON}
-                    snapshot={headlineChart.snapshot}
-                    filters={filters}
-                    onRetry={onRetry}
-                    onGroupByChange={onGroupByChange}
-                />
-                <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
-                    {columns.map((columnCharts, columnIndex) => (
-                        <View
-                            // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                            key={columnIndex}
-                            style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
-                        >
-                            {columnCharts.map(({chart, queryJSON, snapshot}) => (
-                                <InsightsChartWidget
-                                    key={chart.graphKey}
-                                    chart={chart}
-                                    queryJSON={queryJSON}
-                                    snapshot={snapshot}
-                                    filters={filters}
-                                    onRetry={onRetry}
-                                />
-                            ))}
-                        </View>
-                    ))}
+        <TabRootScrollViewMarker>
+            <ScrollView
+                style={styles.insightsDashboardScrollView}
+                onScroll={triggerScrollEvent}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                {...scrollProps}
+                addBottomSafeAreaPadding
+            >
+                <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
+                    <InsightsChartWidget
+                        chart={headlineChart.chart}
+                        queryJSON={headlineChart.queryJSON}
+                        snapshot={headlineChart.snapshot}
+                        previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
+                        previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
+                        averageTotal={headlineChart.averageTotal}
+                        isDashboardLoaded={headlineChart.isDashboardLoaded}
+                        filters={filters}
+                        onRetry={onRetry}
+                        onGroupByChange={onGroupByChange}
+                    />
+                    <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
+                        {columns.map((columnCharts, columnIndex) => (
+                            <View
+                                // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                                key={columnIndex}
+                                style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
+                            >
+                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}) => (
+                                    <InsightsChartWidget
+                                        key={chart.graphKey}
+                                        chart={chart}
+                                        queryJSON={queryJSON}
+                                        snapshot={snapshot}
+                                        previousPeriodQueryJSON={previousPeriodQueryJSON}
+                                        previousPeriodSnapshot={previousPeriodSnapshot}
+                                        averageTotal={averageTotal}
+                                        isDashboardLoaded={isDashboardLoaded}
+                                        filters={filters}
+                                        onRetry={onRetry}
+                                    />
+                                ))}
+                            </View>
+                        ))}
+                    </View>
                 </View>
-            </View>
-        </ScrollView>
+            </ScrollView>
+        </TabRootScrollViewMarker>
     );
 }
 
-function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
+function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
+    const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
-    const {isBetaEnabled} = usePermissions();
-
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE)) : undefined;
-    const jsonQuery = query?.jsonQuery;
+    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
+    const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
+    const query = isResolved && !isLoadingOnyxValue(policiesMetadata) ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
     const hash = query?.hash;
+    // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
+    const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
 
     const requestDashboard = () => {
-        if (!query || !jsonQuery || hash === undefined || isOffline) {
+        if (!query || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, hash, jsonQuery, query.snapshotHashes);
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {
@@ -201,22 +223,45 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
             return;
         }
         onRequestConditionsChanged();
-    }, [dashboardID, jsonQuery, hash, isFocused, isOffline]);
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket and the eligible charts are listed because the hash leaves them out, so changing them triggers a refetch while a pure Running total toggle does not.
+    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
-    // Until the filters resolve, the charts have no query to read data for, so they show their loading state
+    // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
-        ? [query.headlineChart, ...query.supportingCharts.filter(({chart}) => eligibleCharts.includes(chart))]
-        : [headlineSpec, ...eligibleCharts].map((chart) => ({chart, queryJSON: undefined}));
-    const snapshots = useMultipleSnapshots(visibleChartQueries.flatMap(({queryJSON}) => (queryJSON ? [String(queryJSON.hash)] : [])));
+        ? [query.headlineChart, ...query.supportingCharts]
+        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
+    const snapshots = useMultipleSnapshots(
+        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON}) =>
+            [queryJSON, previousPeriodQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
+        ),
+    );
     const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
         ...chartQuery,
         snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
+        previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
+        averageTotal: dashboard?.graphs?.[chartQuery.chart.graphKey]?.average,
+        isDashboardLoaded: hasDashboardResponse(dashboard),
     }));
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts);
+
+    const tabSelector =
+        accessibleDashboards.length > 1 ? (
+            <InsightsTabSelector
+                activeDashboardID={dashboardID}
+                dashboardIDs={accessibleDashboards}
+            />
+        ) : null;
+
+    const pageControls =
+        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? (
+            <InsightsPageControls
+                filters={filters}
+                defaultFilters={defaultFilters}
+                onChange={setFilters}
+            />
+        ) : null;
 
     return (
         <ScreenWrapper
@@ -229,12 +274,20 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
             />
-            {state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && (
-                <InsightsPageControls
-                    filters={filters}
-                    defaultFilters={defaultFilters}
-                    onChange={setFilters}
-                />
+            {shouldUseNarrowLayout ? (
+                <>
+                    {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
+                    {pageControls}
+                </>
+            ) : (
+                (!!tabSelector || !!pageControls) && (
+                    <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
+                        <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                            {tabSelector}
+                            {pageControls}
+                        </View>
+                    </View>
+                )
             )}
             <InsightsDashboardContent
                 state={state}
@@ -242,7 +295,7 @@ function InsightsDashboard({dashboardID}: {dashboardID: InsightsDashboardID}) {
                 supportingCharts={supportingCharts}
                 filters={filters}
                 onRetry={requestDashboard}
-                onGroupByChange={(groupBy) => setFilters({groupBy})}
+                onGroupByChange={setFilters}
             />
         </ScreenWrapper>
     );

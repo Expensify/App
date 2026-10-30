@@ -1,5 +1,8 @@
 import {useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
+import formatTooltipComparison from '@components/Charts/utils/formatTooltipComparison';
+
+import useLocalize from '@hooks/useLocalize';
 
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 import type {NonEmptyTuple} from 'type-fest';
@@ -9,6 +12,8 @@ import {useAnimatedReaction, useDerivedValue, useSharedValue} from 'react-native
 import {scheduleOnRN} from 'react-native-worklets';
 
 import ChartTooltip from './ChartTooltip';
+import ChartTooltipComparison from './ChartTooltipComparison';
+import ChartTooltipSummary from './ChartTooltipSummary';
 
 type ChartTooltipLayerProps = {
     matchedIndex: SharedValue<number>;
@@ -34,15 +39,29 @@ type ChartTooltipLayerProps = {
     /** Called with how far the chart moved in the window while the tooltip is shown */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 
-    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
-    onDismiss?: () => void;
+    /** Hides the tooltip */
+    onDismiss: () => void;
+
+    /** Whether a compared tooltip shows how the primary series changed against the compared one */
+    shouldShowTooltipChange?: boolean;
 };
 
 /**
  * Renders the chart tooltip in an isolated subtree so that hover-driven state changes
  * (active index, visibility) only re-render this lightweight component, not the chart itself.
  */
-function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatValue, chartWidth, initialTooltipPosition, onChartMoved, onDismiss}: ChartTooltipLayerProps) {
+function ChartTooltipLayer({
+    matchedIndex,
+    isTooltipActive,
+    data,
+    series,
+    formatValue,
+    chartWidth,
+    initialTooltipPosition,
+    onChartMoved,
+    onDismiss,
+    shouldShowTooltipChange = true,
+}: ChartTooltipLayerProps) {
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
 
     // Set from the content's layout, since on native a value set during render can reach the UI thread before the new content is mounted
@@ -55,19 +74,20 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatV
         },
     );
 
+    const {preferredLocale} = useLocalize();
     const isContentCurrent = useDerivedValue(() => matchedIndex.get() === laidOutIndex.get());
     const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
+    const activeDataPoint = data.at(activeDataIndex);
 
-    if (!tooltipData) {
+    if (!tooltipData || !activeDataPoint) {
         return null;
     }
+
+    const comparison = formatTooltipComparison(activeDataPoint, series, formatValue, preferredLocale);
 
     return (
         <ChartTooltip
             label={tooltipData.label}
-            amount={tooltipData.amount}
-            percentage={tooltipData.percentage}
-            expenseCount={tooltipData.expenseCount}
             chartWidth={chartWidth}
             initialTooltipPosition={initialTooltipPosition}
             isVisible={isTooltipActive}
@@ -76,7 +96,20 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, series, formatV
             onDismiss={onDismiss}
             contentKey={activeDataIndex}
             onContentLayout={() => laidOutIndex.set(activeDataIndex)}
-        />
+        >
+            {comparison ? (
+                <ChartTooltipComparison
+                    rows={comparison.rows}
+                    change={shouldShowTooltipChange ? comparison.change : undefined}
+                />
+            ) : (
+                <ChartTooltipSummary
+                    amount={tooltipData.amount}
+                    percentage={tooltipData.percentage}
+                    expenseCount={tooltipData.expenseCount}
+                />
+            )}
+        </ChartTooltip>
     );
 }
 

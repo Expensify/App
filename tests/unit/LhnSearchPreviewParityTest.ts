@@ -405,6 +405,7 @@ async function computeBothSurfaces({
             convertToDisplayString,
             conciergeReportID: CONCIERGE_REPORT_ID,
             isSearching: true,
+            formatPhoneNumber,
         },
         undefined,
         undefined,

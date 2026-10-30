@@ -3,7 +3,6 @@
  */
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {isAnyHRConnected, isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {isAnyRecruitingConnected} from '@libs/merge/RecruitingUtils';
 import {getObjectKeys} from '@libs/ObjectUtils';
@@ -23,6 +22,7 @@ import {
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
+    shouldShowQBOReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
@@ -36,6 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -84,6 +85,7 @@ type WorkspaceMenuItem = WithSentryLabel & {
     getRoute: () => Route;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     screenName: WorkspaceTopLevelScreens;
+    badgeTranslationKey?: TranslationPaths;
     badgeText?: string;
     highlighted?: boolean;
 
@@ -102,12 +104,16 @@ type GetWorkspaceMenuItemsParams = {
     policyID: string | undefined;
     /** Login used to determine the member's feature access. */
     currentUserLogin?: string;
+    /** Personal details used to determine the member's feature access. */
+    currentUserPersonalDetails?: CurrentUserPersonalDetails;
     /** Lazily loaded icons used by the menu items. */
     icons: WorkspaceMenuIconMap;
     /** Whether an accounting connection is currently syncing. */
     isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
+    /** Whether any of the workspace agents has errors. */
+    hasAgentErrors?: boolean;
     /** Whether any of the policy's merchant rules failed to save, used to surface a red dot on the Rules row. */
     hasMerchantRuleErrors?: boolean;
     /** Previous pending fields used to identify the most recently enabled feature. */
@@ -132,9 +138,11 @@ function getWorkspaceMenuItems({
     policy,
     policyID,
     currentUserLogin,
+    currentUserPersonalDetails,
     icons,
     isConnectionInProgress = false,
     policyCategories,
+    hasAgentErrors,
     hasMerchantRuleErrors,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
@@ -145,6 +153,7 @@ function getWorkspaceMenuItems({
     isUnifiedConnectionsBetaEnabled = false,
     convertToDisplayString,
 }: GetWorkspaceMenuItemsParams): WorkspaceMenuItem[] {
+    const isAgentAccount = currentUserPersonalDetails?.isCustomAgent;
     const canReadPolicyFeature = (policyFeature: PolicyFeature) => canMemberRead(policy, currentUserLogin ?? '', policyFeature);
     const canReadMoreFeatures = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const shouldShowProtectedItems = [
@@ -248,6 +257,19 @@ function getWorkspaceMenuItems({
         }
         return canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.MEMBERS);
     });
+
+    if (isGroupPolicy(policy) && canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.AGENTS) && !isAgentAccount) {
+        const membersItemIndex = items.findIndex((item) => item.screenName === SCREENS.WORKSPACE.MEMBERS);
+        items.splice(membersItemIndex + 1, 0, {
+            translationKey: 'agentsPage.title',
+            icon: icons.Bot,
+            getRoute: () => ROUTES.WORKSPACE_AGENTS.getRoute(policyID),
+            screenName: SCREENS.WORKSPACE.AGENTS,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.AGENTS,
+            badgeTranslationKey: 'common.beta',
+            brickRoadIndicator: hasAgentErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+        });
+    }
 
     if (isGroupPolicy(policy) && shouldShowProtectedItems) {
         if (canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.REPORT_FIELDS)) {

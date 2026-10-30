@@ -79,7 +79,7 @@ import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import SplitList from './SplitList';
@@ -177,20 +177,19 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         );
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
-    const transactionDetailsAmount = useMemo(() => {
-        // `initSplitExpense` computes the total against the fallback rate for self-DM splits
-        // where the original rate was deleted from the workspace, and stores it on the draft.
-        const draftAmount = draftTransaction?.amount;
-        const signedAmount = transactionDetails?.amount;
-        if (typeof draftAmount === 'number' && draftAmount !== 0) {
-            const sign = typeof signedAmount === 'number' && signedAmount < 0 ? -1 : 1;
-            return sign * Math.abs(draftAmount);
-        }
-        if (typeof signedAmount !== 'number') {
-            return 0;
-        }
-        return signedAmount;
-    }, [draftTransaction?.amount, transactionDetails.amount]);
+    let transactionDetailsAmount;
+    // `initSplitExpense` computes the total against the fallback rate for self-DM splits
+    // where the original rate was deleted from the workspace, and stores it on the draft.
+    const draftAmount = draftTransaction?.amount;
+    const signedAmount = transactionDetails?.amount;
+    if (typeof draftAmount === 'number' && draftAmount !== 0) {
+        const sign = typeof signedAmount === 'number' && signedAmount < 0 ? -1 : 1;
+        transactionDetailsAmount = sign * Math.abs(draftAmount);
+    } else if (typeof signedAmount !== 'number') {
+        transactionDetailsAmount = 0;
+    } else {
+        transactionDetailsAmount = signedAmount;
+    }
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? EMPTY_SPLIT_EXPENSES;
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
@@ -414,7 +413,12 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
-            searchContext: {currentSearchHash: isSearchBackPath ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
+            searchContext: {
+                currentSearchHash: isSearchBackPath ? currentSearchHash : undefined,
+                currentSearchQueryJSON: isSearchBackPath ? currentSearchQueryJSON : undefined,
+                activeGroupSearchHashes,
+                clearSelectedTransactions,
+            },
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
