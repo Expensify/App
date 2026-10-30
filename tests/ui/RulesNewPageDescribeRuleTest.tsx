@@ -50,7 +50,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: (key: string) => key,
+        translate: (key: string, ...params: unknown[]) => [key, ...params].join(' '),
     })),
 );
 jest.mock('@hooks/usePolicy', () => jest.fn());
@@ -465,10 +465,41 @@ describe('New rule describe section', () => {
         });
 
         // Then New rule shows the reason and the suggestion, and nothing opens, because no rule can be drafted
-        expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
-        expect(screen.getByText('Comment on the report when it is submitted')).toBeOnTheScreen();
+        expect(screen.getByText('workspace.rules.newRule.impossible.explanationWithSuggestion Rules cannot send text messages.')).toBeOnTheScreen();
+        expect(screen.getByText('workspace.rules.newRule.impossible.quotedSuggestion Comment on the report when it is submitted')).toBeOnTheScreen();
         expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toBeUndefined();
+    });
+
+    it('drafts the refused description as an agent rule when the admin taps Create anyway', async () => {
+        // Given Concierge refused a description on New rule and suggested another one
+        const logSpy = jest.spyOn(Log, 'info');
+        const prompt = 'Text the approver when a report is submitted';
+        await renderRulesNewPage();
+        const {generationID} = describeRule(writeSpy, prompt);
+        await answerGeneration({
+            generationID,
+            state: CONST.GENERATED_RULE.STATE.IMPOSSIBLE,
+            reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+            explanation: 'Rules cannot send text messages.',
+            suggestedPrompt: 'Comment on the report when it is submitted',
+        });
+        const generateRuleRequestCount = writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE).length;
+
+        // When the admin keeps their own description and taps Create anyway, the button that replaces Next next to Use suggestion
+        fireEvent.press(screen.getByLabelText('workspace.rules.newRule.impossible.createAnyway'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the description becomes the agent rule draft without another request to Concierge, because Concierge already answered it
+        expect(writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.GENERATE_RULE)).toHaveLength(generateRuleRequestCount);
+        expect(await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM_DRAFT)).toEqual({prompt});
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_AGENT_NEW.getRoute(POLICY_ID, generationID));
+        expect(logSpy).toHaveBeenCalledWith('[GenerateRule] Created an agent rule after a refusal', false, {
+            policyID: POLICY_ID,
+            generationID,
+            reason: CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY,
+        });
+        logSpy.mockRestore();
     });
 
     it('loads the policy categories when the workspace uses categories and none are loaded', async () => {

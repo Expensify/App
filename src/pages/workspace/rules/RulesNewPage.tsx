@@ -8,6 +8,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearDraftMerchantRule} from '@libs/actions/User';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -53,6 +54,13 @@ function RulesNewPage({route}: RulesNewPageProps) {
     // From category settings the rule is pre-scoped to the category, so it opens the editor directly.
     const openCategoryScopedRule = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_NEW.path));
 
+    // The draft outlives a closed tab, and this is the one entry point that opens the editor without seeding one,
+    // so a rule abandoned earlier would otherwise come back filled in.
+    const openExpenseDefaultRule = () => {
+        clearDraftMerchantRule();
+        Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID));
+    };
+
     const newRuleOptions: NewRuleOption[] = [
         {
             key: 'restrictCardSpend',
@@ -94,7 +102,7 @@ function RulesNewPage({route}: RulesNewPageProps) {
             icon: illustrations.ReportReceipt,
             title: translate('workspace.rules.newRule.applyExpenseDefaults'),
             description: translate('workspace.rules.newRule.applyExpenseDefaultsDescription'),
-            onPress: () => (isCategorySettingsFlow ? openCategoryScopedRule() : Navigation.navigate(ROUTES.RULES_MERCHANT_NEW.getRoute(policyID))),
+            onPress: () => (isCategorySettingsFlow ? openCategoryScopedRule() : openExpenseDefaultRule()),
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.NEW_RULE_MENU_ITEM_APPLY_EXPENSE_DEFAULTS,
             // Only category settings can scope the editor to its category, so a category passed any other way drops it.
             isWorkspaceOnly: !isCategorySettingsFlow,

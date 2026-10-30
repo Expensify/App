@@ -389,6 +389,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     <MenuItem
                                         icon={expensifyIcons.Bolt}
                                         title={rule.summary}
+                                        description={rule.conditionSummary}
+                                        shouldShowDescriptionOnTop={false}
                                         numberOfLinesTitle={3}
                                         shouldShowBasicTitle
                                         onPress={() => navigateToCategoryRule(rule.dynamicRoutePath)}

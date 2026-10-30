@@ -725,7 +725,6 @@ function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined):
     return summary;
 }
 
-/** A rule that matches on a category, paired with the conditions the match was read from. */
 /**
  * Every expense default the policy has that matches on the given category, which is what category settings lists.
  *

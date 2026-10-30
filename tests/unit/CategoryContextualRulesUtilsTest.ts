@@ -288,6 +288,80 @@ describe('getCategoryContextualRules', () => {
             expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)", update amount to "$10.00"');
         });
 
+        it('shows what a rule matches on, so two rules with the same action can be told apart', () => {
+            // Given two rules setting the same description, one of which also matches on a merchant
+            const sameActionRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS, right: 'Starbucks'},
+                        right: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    },
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.COMMENT, value: 'test desc'}]),
+                },
+                [`${ONYXKEYS.COLLECTION.RULE}rule2`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.COMMENT, value: 'test desc'}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyCategories: undefined,
+                policyRules: sameActionRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then the merchant rule names its merchant, and the category-only rule has nothing left to name,
+            // so the two rows are no longer identical
+            const conditionSummaries = rules.map((rule) => rule.conditionSummary);
+            expect(conditionSummaries).toContain('Merchant contains "Starbucks"');
+            expect(conditionSummaries).toContain('');
+        });
+
+        it('leaves the category out of the condition line, since the page already names it', () => {
+            // Given a rule matching the category the admin is looking at together with a tag
+            const categoryAndTagRules: OnyxCollection<Rule> = {
+                [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
+                    scope: CONST.RULES.SCOPE.POLICY,
+                    scopeID: policy.id,
+                    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+                    filters: {
+                        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                        left: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+                        right: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAG, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Engineering']},
+                    },
+                    actions: toIndexMap([{name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.COMMENT, value: 'test desc'}]),
+                },
+            };
+
+            // When the category details RHP builds its rules
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyCategories: undefined,
+                policyRules: categoryAndTagRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: false,
+            });
+
+            // Then only the tag is named, because repeating the category the page is already about reads as noise
+            expect(rules.at(0)?.conditionSummary).toBe('Tag is "Engineering"');
+        });
+
         it('lists a rule that also matches on a merchant', () => {
             // Given the category's own rule and a second rule matching the category together with a merchant
             const withMerchantRule: OnyxCollection<Rule> = {

@@ -415,13 +415,14 @@ const CONST = {
     // tap submit. If the user submits before this fires, the fallback (non-pre-insert) path is used.
     PRE_INSERT_FULLSCREEN_DELAY: 300,
     /**
-     * Controls when a fullscreen destination is placed behind an open RHP on narrow layout.
+     * Controls when the fullscreen submit destination of an open RHP is mounted. Narrow layout puts it under the RHP, wide
+     * layout mounts it hidden inside the tab navigator.
      */
-    NARROW_DESTINATION_STRATEGY: {
-        /** Put the destination behind the RHP before submit, so closing the RHP shows an already-rendered screen. */
+    DESTINATION_STRATEGY: {
+        /** Mount the destination before submit, so closing the RHP shows an already-rendered screen. */
         PRE_INSERT: 'preInsert',
 
-        /** Wait until submit to put the destination behind the RHP, avoiding early navigation changes. */
+        /** Wait until submit to put the destination in place, avoiding early navigation changes. */
         REVEAL: 'reveal',
     },
     LIMIT_TIMEOUT: 2147483647,
@@ -846,6 +847,7 @@ const CONST = {
         PRODUCT_UPDATE_SEPTEMBER_2026: 'productUpdateSeptember2026',
     },
     BANK_ACCOUNT: {
+        PLAID_WRONG_ACCOUNT_ERROR_FIELD: 'plaidWrongAccount',
         BENEFICIAL_OWNER_INFO_STEP: {
             BENEFICIAL_OWNER_DATA: {
                 BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
@@ -1458,17 +1460,12 @@ const CONST = {
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
-        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
-        INSIGHTS_PAGE: 'insightsPage',
-        INSIGHTS_COMPARE: 'insightsCompare',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
-        PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
-        SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -1749,7 +1746,6 @@ const CONST = {
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     FORMATTED_EXAMPLE_PHONE_NUMBER: '+1-(201)-867-5309',
     CONCIERGE_CHAT_NAME: 'Concierge',
-    CONCIERGE_SESSION_EXPIRATION_MS: 2 * 3600 * 1000, // 2 hours
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
@@ -2142,6 +2138,7 @@ const CONST = {
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 UNDELETED_TRANSACTION: 'UNDELETEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                QUEUED_FOR_EXPORT: 'QUEUEDFOREXPORT',
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
@@ -3371,6 +3368,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
+    ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX: /^file_\d+$/,
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
@@ -4607,6 +4605,7 @@ const CONST = {
             ADDRESS: 'address',
             PHONE_NUMBER: 'phone-number',
             CONFIRMATION: 'confirmation',
+            VALIDATE_CODE: 'validate-code',
             SUCCESS: 'success',
         },
     },
@@ -5049,6 +5048,7 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
+            TAGS: 'tags',
             MERCHANTS: 'merchants',
             MERCHANT_TYPES: 'merchantTypes',
         },
@@ -5141,6 +5141,28 @@ const CONST = {
         AUTO_REPORTING_OFFSET: {
             LAST_BUSINESS_DAY_OF_MONTH: 'lastBusinessDayOfMonth',
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
+            LAST_MONDAY_OF_MONTH: 'lastMondayOfMonth',
+            LAST_TUESDAY_OF_MONTH: 'lastTuesdayOfMonth',
+            LAST_WEDNESDAY_OF_MONTH: 'lastWednesdayOfMonth',
+            LAST_THURSDAY_OF_MONTH: 'lastThursdayOfMonth',
+            LAST_FRIDAY_OF_MONTH: 'lastFridayOfMonth',
+            LAST_SATURDAY_OF_MONTH: 'lastSaturdayOfMonth',
+            LAST_SUNDAY_OF_MONTH: 'lastSundayOfMonth',
+        },
+        AUTO_REPORTING_WEEKDAYS: {
+            MONDAY: 1,
+            TUESDAY: 2,
+            WEDNESDAY: 3,
+            THURSDAY: 4,
+            FRIDAY: 5,
+            SATURDAY: 6,
+            SUNDAY: 7,
+        },
+        AUTO_REPORTING_MAX_DAY_OF_MONTH: 28,
+        AUTO_REPORTING_DEFAULT_SEMI_MONTHLY_OFFSET: 15,
+        SEMI_MONTHLY_SUBMISSIONS: {
+            FIRST: 'first',
+            SECOND: 'second',
         },
         APPROVAL_MODE: {
             OPTIONAL: 'OPTIONAL',
@@ -5326,6 +5348,7 @@ const CONST = {
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
             GENERAL_SETTINGS: 'generalSettings',
+            TIME_ZONE: 'timeZone',
         },
         EXPENSE_REPORT_RULES: {
             PREVENT_SELF_APPROVAL: 'preventSelfApproval',
@@ -10055,11 +10078,23 @@ const CONST = {
     RESIZE_HANDLE: {
         /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
         INDICATOR_WIDTH: 2,
+
+        /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
+        DRAG_SLOP: 3,
     },
 
     RHP_RESIZE: {
         /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
         HANDLE_HIT_WIDTH: 12,
+
+        /** How close, in px, a drag has to come to the default width to snap onto it. */
+        SNAP_THRESHOLD: 20,
+
+        /** Width of the line while the edge is pressed or dragged. */
+        ACTIVE_INDICATOR_WIDTH: 3,
+
+        /** Width of the line while a drag is held on the default width. */
+        SNAPPED_INDICATOR_WIDTH: 5,
 
         /** Narrowest the single RHP can be dragged, in px. */
         MIN_WIDTH: 380,
@@ -10114,9 +10149,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
-            DRAG_SLOP: 3,
 
             /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
             DOUBLE_CLICK_INTERVAL: 150,
@@ -10195,6 +10227,9 @@ const CONST = {
         ODOMETER_EXPENSE: {
             CAPTURE_IMAGE_START: 'IOURequestStepDistanceOdometer-CaptureStartImage',
             CAPTURE_IMAGE_END: 'IOURequestStepDistanceOdometer-CaptureEndImage',
+        },
+        PILL_SELECTOR: {
+            PILL: 'PillSelector-Pill',
         },
         OPTION_CARD_PICKER: {
             OPTION_ITEM: 'OptionCardPicker-OptionItem',
@@ -10749,6 +10784,7 @@ const CONST = {
                 NAME: 'WorkspaceOverview-Name',
                 DESCRIPTION: 'WorkspaceOverview-Description',
                 CURRENCY: 'WorkspaceOverview-Currency',
+                TIMEZONE: 'WorkspaceOverview-Timezone',
                 ADDRESS: 'WorkspaceOverview-Address',
                 OFFICE_LOCATION: 'WorkspaceOverview-OfficeLocation',
                 COMPANY_ADDRESS_OFFICE_LOCATION: 'WorkspaceOverview-CompanyAddressOfficeLocation',
@@ -10798,6 +10834,8 @@ const CONST = {
             },
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
+                AUTO_REPORTING_OFFSET: 'WorkspaceWorkflows-AutoReportingOffset',
+                AUTO_REPORTING_SECOND_OFFSET: 'WorkspaceWorkflows-AutoReportingSecondOffset',
                 CURRENCY_CONVERSION_FEES: 'WorkspaceWorkflows-CurrencyConversionFees',
                 ADD_APPROVAL: 'WorkspaceWorkflows-AddApproval',
                 MORE_DROPDOWN: 'WorkspaceWorkflows-MoreDropdown',
@@ -10805,6 +10843,7 @@ const CONST = {
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
                 AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
+                BUSINESS_BANK_ACCOUNT_COUNTRIES: 'WorkspaceWorkflows-BusinessBankAccountCountries',
                 APPROVALS_EDIT_SAVE: 'WorkspaceWorkflows-ApprovalsEditSave',
                 APPROVAL_EDITOR_MEMBERS: 'WorkspaceWorkflows-ApprovalEditorMembers',
                 APPROVAL_EDITOR_APPROVER: 'WorkspaceWorkflows-ApprovalEditorApprover',
@@ -10828,6 +10867,7 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+                TAG_RULE_ITEM: 'WorkspaceRules-TagRuleItem',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_DESCRIBE: 'WorkspaceRules-RequireFieldsRuleDescribe',

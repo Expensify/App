@@ -4048,6 +4048,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
+        /** The second day of the month a twice a month scheduled submit happens on */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The IANA timezone the scheduled submit runs in */
+        timeZone?: string;
+
         employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
