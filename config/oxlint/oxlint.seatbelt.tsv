@@ -586,6 +586,7 @@
 "../../src/hooks/useReviewDuplicatesNavigation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useReviewDuplicatesNavigation.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/hooks/useRulesPrefetch.ts"	"rulesdir/no-onyx-loading-status"	1
+"../../src/hooks/useSaveMarketingAttribution.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
 "../../src/hooks/useSearchBulkActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../src/hooks/useSearchFilterSync.ts"	"rulesdir/no-onyx-loading-status"	1
