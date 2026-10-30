@@ -1,3 +1,4 @@
+/** Shares a single column's heading data (name, label, layout style, sorting) from `SortableTableHeader` to the child that renders its heading. */
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {createContext, useContext} from 'react';
@@ -48,4 +49,3 @@ function SortableColumnProvider({columnName, label, style, sorting, labelProps, 
 }
 
 export {SortableColumnProvider, useSortableColumn};
-export type {SortableColumn, SortableColumnSorting};
