@@ -4,6 +4,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
 import ReceiptScanningLine from '@components/ReceiptScanningLine';
+import Text from '@components/Text';
 import TranslatedReceiptCard from '@components/TranslatedReceiptCard';
 
 import useAllTransactions from '@hooks/useAllTransactions';
@@ -575,7 +576,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         );
     } else if (translatedReceiptRows) {
         footerActionButtons = (
-            <View style={[styles.flexRow, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
+            <View style={[styles.ph5, styles.pb5, styles.alignItemsCenter]}>
+                <Text
+                    variant="label"
+                    style={[styles.textSupporting, styles.textAlignCenter, styles.mb4]}
+                >
+                    {translate('receipt.translationDisclaimer')}
+                </Text>
                 <Button
                     onPress={showOriginal}
                     style={styles.transactionReceiptButton}

@@ -1958,7 +1958,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     GET_INSIGHTS: 'GetInsights',
     GET_SCIM_TOKEN: 'GetSCIMToken',
     PARSE_EXPENSE_FILTERS: 'ParseExpenseFilters',
-    // TODO: Placeholder name until the backend command from Expensify/Web-Expensify#57518 is final.
     TRANSLATE_RECEIPT: 'TranslateReceipt',
 
     LOG_OUT: 'LogOut',

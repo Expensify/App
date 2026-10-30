@@ -1074,8 +1074,8 @@ const ONYXKEYS = {
         TRANSACTION_DRAFT: 'transactionsDraft_',
         SKIP_CONFIRMATION: 'skipConfirmation_',
         TRANSACTION_BACKUP: 'transactionsBackup_',
-        /** Receipt translations saved on this device only, keyed by transactionID */
-        RECEIPT_TRANSLATION: 'receiptTranslation_',
+        /** Receipt translations keyed by transactionID, then by the viewer's locale */
+        RECEIPT_TRANSLATIONS: 'receiptTranslations_',
         SPLIT_TRANSACTION_DRAFT: 'splitTransactionDraft_',
         MERGE_TRANSACTION: 'mergeTransaction_',
         PRIVATE_NOTES_DRAFT: 'privateNotesDraft_',
@@ -1710,7 +1710,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.SKIP_CONFIRMATION]: boolean;
     [ONYXKEYS.COLLECTION.TRANSACTION_BACKUP]: OnyxTypes.Transaction;
-    [ONYXKEYS.COLLECTION.RECEIPT_TRANSLATION]: OnyxTypes.ReceiptTranslation;
+    [ONYXKEYS.COLLECTION.RECEIPT_TRANSLATIONS]: OnyxTypes.ReceiptTranslation;
     [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: OnyxTypes.TransactionViolations;
     [ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.MERGE_TRANSACTION]: OnyxTypes.MergeTransaction;

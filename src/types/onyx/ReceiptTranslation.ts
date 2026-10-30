@@ -3,36 +3,47 @@ import type CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 import type Locale from './Locale';
-import type {ReceiptSource} from './Transaction';
 
 /** One line of a translated receipt, in the order it is printed */
 type TranslatedReceiptRow = {
     /** How the row is laid out */
     type: ValueOf<typeof CONST.RECEIPT.TRANSLATION_ROW_TYPE>;
 
-    /** Alignment of a text row */
+    /** Alignment of a heading or text row */
     align?: ValueOf<typeof CONST.RECEIPT.TRANSLATION_ROW_ALIGN>;
 
-    /** Text of a text row, or the label or description on the left of the other rows */
+    /** Text of a heading or text row */
     text?: string;
 
+    /** Label or description on the left of the other rows */
+    left?: string;
+
     /** Value or amount on the right, exactly as printed on the receipt */
-    value?: string;
+    right?: string;
 
     /** Smaller gray line under an item's description */
-    subtext?: string;
+    detail?: string;
+
+    /** Whether the text row is shown as printed because its translation could not be checked */
+    isOriginal?: boolean;
 };
 
 /** A receipt translated into one language */
 type TranslatedReceipt = {
-    /** Receipt source that was translated, so a replaced receipt is translated again */
-    source: ReceiptSource;
+    /** Receipt that was translated, so a replaced receipt is translated again */
+    receiptID: number;
 
-    /** Every line of the receipt */
-    rows: TranslatedReceiptRow[];
+    /** Whether the receipt could be translated */
+    state: ValueOf<typeof CONST.RECEIPT.TRANSLATION_STATE>;
+
+    /** Language the receipt was printed in */
+    sourceLanguage?: string;
+
+    /** Every line of the receipt, only filled when it was translated */
+    rows?: TranslatedReceiptRow[];
 };
 
-/** Translations of a transaction's receipt, saved on this device only */
+/** Translations of a transaction's receipt, keyed by the viewer's locale */
 type ReceiptTranslation = Partial<Record<Locale, TranslatedReceipt>>;
 
 /** Session-scoped translate state for a transaction's receipt */

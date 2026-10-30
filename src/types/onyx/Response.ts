@@ -2,7 +2,6 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
-import type {TranslatedReceiptRow} from './ReceiptTranslation';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 
@@ -142,13 +141,6 @@ type Response<TKey extends OnyxKey> = {
 
     /** Human-readable summary of the parsed filters returned by ParseExpenseFilters on success */
     humanReadableSummary?: string;
-
-    // TODO: Placeholder shape until the TranslateReceipt response from Expensify/Web-Expensify#57518 is final.
-    /** Receipt lines returned by TranslateReceipt on success */
-    translatedReceiptRows?: TranslatedReceiptRow[];
-
-    /** Why TranslateReceipt could not translate the receipt */
-    translationError?: string;
 };
 
 export default Response;

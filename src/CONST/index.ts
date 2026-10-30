@@ -1948,6 +1948,7 @@ const CONST = {
         TRANSLATION_SCAN_LINE_HEIGHT: 8,
         TRANSLATION_SCAN_TINT_OPACITY: 0.2,
         TRANSLATION_ROW_TYPE: {
+            HEADING: 'heading',
             TEXT: 'text',
             LABEL_VALUE: 'labelValue',
             ITEM: 'item',
@@ -1958,10 +1959,10 @@ const CONST = {
             LEFT: 'left',
             CENTER: 'center',
         },
-        TRANSLATION_ERROR: {
+        TRANSLATION_STATE: {
+            TRANSLATED: 'translated',
             UNREADABLE: 'unreadable',
-            SAME_LANGUAGE: 'sameLanguage',
-            GENERIC: 'generic',
+            ALREADY_IN_LANGUAGE: 'alreadyInLanguage',
         },
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
