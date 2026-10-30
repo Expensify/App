@@ -54,23 +54,28 @@ const MOCK_EMAIL = 'test@expensify.com';
 const mockGetValidOptions = jest.mocked(getValidOptions);
 const mockGetSearchOptions = jest.mocked(getSearchOptions);
 
-// Holds the Onyx-sourced personal detail options returned by the mocked useFilteredOptions, so individual tests can control them.
-const mockFilteredPersonalDetails: {current: OptionData[]} = {current: []};
+// Keep the options reference stable while inputs are unchanged, matching useFilteredOptions.
+// Tests set personalDetails here; creating a new options object on every render would invalidate the selector's cache.
+const mockFilteredOptions: {reports: OptionData[]; personalDetails: OptionData[]} = {reports: [], personalDetails: []};
+const mockLoadMore = jest.fn();
 
 jest.mock('@hooks/useFilteredOptions', () => ({
     __esModule: true,
     default: () => ({
-        options: {reports: [], personalDetails: mockFilteredPersonalDetails.current},
+        options: mockFilteredOptions,
         isLoading: false,
-        loadMore: jest.fn(),
+        loadMore: mockLoadMore,
         hasMore: false,
         isLoadingMore: false,
     }),
 }));
 
+// Keep the personal details reference stable while its data is unchanged, matching the real provider.
+const mockPersonalDetails = {};
+
 jest.mock('@components/OnyxListItemProvider', () => ({
     ...jest.requireActual<typeof OnyxListItemProvider>('@components/OnyxListItemProvider'),
-    usePersonalDetails: () => ({}),
+    usePersonalDetails: () => mockPersonalDetails,
     useCardList: () => ({}),
     useWorkspaceCardList: () => ({}),
 }));
@@ -462,7 +467,7 @@ describe('useSearchSelector selection and non-existing options', () => {
         jest.mocked(useContactImport).mockReturnValue({contacts, contactPermissionState: RESULTS.DENIED, importAndSaveContacts, pickContact, setContactPermissionState});
         const useNativeSelector = jest.requireActual<{default: typeof useSearchSelectorNative}>('@hooks/useSearchSelector/index.native.ts').default;
         mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
-        mockFilteredPersonalDetails.current = [];
+        mockFilteredOptions.personalDetails = [];
 
         // When the actual native wrapper delegates to the real base selector.
         const {result} = renderHook(() =>
@@ -921,7 +926,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockFilteredPersonalDetails.current = [];
+        mockFilteredOptions.personalDetails = [];
 
         // getValidOptions is mocked, so the contact de-duplication under test only depends on the inputs passed to the hook.
         mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
@@ -944,7 +949,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
 
     it('drops an imported contact whose login already exists in personal details, keeping the real Onyx account', async () => {
         // EXISTING_CONTACT is alice@expensify.com with the real Onyx accountID 100.
-        mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
+        mockFilteredOptions.personalDetails = [EXISTING_CONTACT];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -983,7 +988,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
     it('drops a phone contact that resolves to an SMS login already in personal details', async () => {
         // getContactOption already normalizes a device phone number to its SMS-domain login, so both sides carry the same login.
         const smsLogin = '+15551234567@expensify.sms';
-        mockFilteredPersonalDetails.current = [{...EXISTING_CONTACT, login: smsLogin, accountID: 300}];
+        mockFilteredOptions.personalDetails = [{...EXISTING_CONTACT, login: smsLogin, accountID: 300}];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -1000,7 +1005,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
     });
 
     it('matches logins case-insensitively so a differently-cased contact is not duplicated', async () => {
-        mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
+        mockFilteredOptions.personalDetails = [EXISTING_CONTACT];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -1018,7 +1023,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
 
     it('keeps an imported contact when the only matching Onyx entry is optimistic', async () => {
         // An optimistic personal detail is filtered out by getValidOptions, so it must not suppress the real device contact.
-        mockFilteredPersonalDetails.current = [{...EXISTING_CONTACT, isOptimisticPersonalDetail: true}];
+        mockFilteredOptions.personalDetails = [{...EXISTING_CONTACT, isOptimisticPersonalDetail: true}];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -1035,7 +1040,7 @@ describe('useSearchSelector phone contact de-duplication', () => {
     });
 
     it('keeps all imported contacts when none of them are already known', async () => {
-        mockFilteredPersonalDetails.current = [EXISTING_CONTACT];
+        mockFilteredOptions.personalDetails = [EXISTING_CONTACT];
 
         renderHook(() =>
             useSearchSelectorBase({
@@ -1057,7 +1062,7 @@ describe('useSearchSelector search term trimming', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockFilteredPersonalDetails.current = [];
+        mockFilteredOptions.personalDetails = [];
         mockGetValidOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
         mockGetSearchOptions.mockReturnValue({options: EMPTY_OPTIONS, hasMore: false});
         await act(async () => {
