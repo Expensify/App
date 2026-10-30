@@ -468,6 +468,32 @@ describe('actions/Delegate', () => {
             const tabNavigatorState = resetState?.routes.at(resetState.index ?? -1)?.state;
             expect(tabNavigatorState?.routes.at(tabNavigatorState.index ?? -1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
         });
+
+        it('finishes the switch when resetting navigation throws', async () => {
+            // Given a navigation reset that throws, after the auth token was already swapped to the restored account
+            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: 2, email: 'copilot@test.com'});
+            jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
+            jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {
+                throw new Error('Invalid navigation state');
+            });
+            jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockResolvedValue(undefined);
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+            // When the copilot switches back to their own account
+            await restoreDelegateSession({
+                authToken: 'copilotAuthToken',
+                encryptedAuthToken: 'encrypted',
+                accountID: 2,
+                email: 'copilot@test.com',
+                stashedCredentials: {},
+                stashedSession: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then Onyx is still cleared and reseeded, so the restored account never sees the previous account's data
+            expect(await getOnyxValue(ONYXKEYS.STASHED_SESSION)).toEqual({});
+            expect((await getOnyxValue(ONYXKEYS.CREDENTIALS))?.accountID).toBe(2);
+        });
     });
     /* eslint-enable rulesdir/no-multiple-api-calls */
 

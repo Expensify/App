@@ -8,10 +8,7 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import {clearPreservedNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
-import {clearLastVisitedTabPaths} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
-import navigationRef from '@libs/Navigation/navigationRef';
+import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
@@ -74,18 +71,10 @@ function clearOnyxForDelegateTransition(extraSeeds?: OnyxMultiSetInput): Promise
 
 /**
  * Navigation state belongs to the account it was built for, so drop it on a delegate-access transition like we do on sign-out.
- * Otherwise screens of the previous account stay mounted (e.g. their workspace chat in the Inbox tab) and show "not found".
  * The fresh navigation state lands on the Settings tab, where accounts are usually switched.
  */
 function resetNavigationForDelegateTransition() {
-    clearPreservedNavigatorStates();
-    clearLastVisitedTabPaths();
-
-    // Not ready when connecting from a deep link, because the navigator mounts only after the switch
-    if (!navigationRef.isReady()) {
-        return;
-    }
-    navigationRef.resetRoot({...getAdaptedStateFromPath(ROUTES.SETTINGS), stale: true});
+    Navigation.resetForSessionChange(ROUTES.SETTINGS);
 }
 
 type LoadAccountAfterDelegateTransitionParams = {
