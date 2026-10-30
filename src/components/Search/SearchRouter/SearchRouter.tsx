@@ -37,7 +37,7 @@ import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {isHiddenForCurrentUser, isOneOnOneChat} from '@libs/ReportUtils';
+import {isHiddenForCurrentUser, isInvoiceReport, isMoneyRequestReport, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -272,7 +272,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         const reportAction = getReportAction(contextualReport?.parentReportID, contextualReport?.parentReportActionID);
         const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
         if (!reportForContextualSearch) {
-            if (!contextualReport || isHiddenForCurrentUser(contextualReport)) {
+            if (!contextualReport) {
+                return undefined;
+            }
+
+            // Money request and invoice reports are created with a hidden notification preference for their owner, so keep the suggestion for them while the user is viewing them
+            const isHiddenByDefault = isMoneyRequestReport(contextualReport) || isInvoiceReport(contextualReport);
+            if (isHiddenForCurrentUser(contextualReport) && !isHiddenByDefault) {
                 return undefined;
             }
 
