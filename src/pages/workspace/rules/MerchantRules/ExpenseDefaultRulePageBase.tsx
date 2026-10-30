@@ -510,6 +510,20 @@ function ExpenseDefaultRulePageBase({
             titleTranslationKey: 'workspace.rules.merchantRules.expensesWith',
             items: [
                 {
+                    key: 'submittersToMatch',
+                    description: translate('common.submitter'),
+                    title: submittersToMatchDisplayName ?? translate('common.any'),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Paycheck,
+                },
+                {
+                    key: 'amountToMatch',
+                    description: translate('iou.amount'),
+                    title: getAmountToMatchDisplayName(),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_AMOUNT_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
+                },
+                {
                     key: 'merchantToMatch',
                     description: translate('common.merchant'),
                     title: form?.merchantToMatch,
@@ -517,6 +531,14 @@ function ExpenseDefaultRulePageBase({
                         Navigation.navigate(
                             getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
                         ),
+                    icon: icons.Basket,
+                },
+                {
+                    key: 'merchantTypesToMatch',
+                    description: translate('workspace.rules.merchantTypeRule.merchantType'),
+                    title: merchantTypesToMatchDisplayName,
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TYPE_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Basket,
                 },
                 hasCategoriesToMatch()
@@ -540,33 +562,29 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.Tag,
                       },
                 {
-                    key: 'submittersToMatch',
-                    description: translate('common.submitter'),
-                    title: submittersToMatchDisplayName ?? translate('common.any'),
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
+                    key: 'reimbursableToMatch',
+                    description: translate('common.reimbursable'),
+                    title: getConditionBooleanTitle(form?.reimbursableToMatch, translate),
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
                 },
-                {
-                    key: 'merchantTypesToMatch',
-                    description: translate('workspace.rules.merchantTypeRule.merchantType'),
-                    title: merchantTypesToMatchDisplayName,
-                    onPress: () =>
-                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TYPE_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Basket,
-                },
+                isBillableEnabled
+                    ? {
+                          key: 'billableToMatch',
+                          description: translate('common.billable'),
+                          title: getConditionBooleanTitle(form?.billableToMatch, translate),
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_BILLABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_BILLABLE_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Paycheck,
+                      }
+                    : undefined,
                 {
                     key: 'dateToMatch',
                     description: translate('common.date'),
                     title: getDateToMatchDisplayName(),
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_DATE_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Calendar,
-                },
-                {
-                    key: 'amountToMatch',
-                    description: translate('iou.amount'),
-                    title: getAmountToMatchDisplayName(),
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_AMOUNT_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Cash,
                 },
                 {
                     key: 'currenciesToMatch',
@@ -585,29 +603,18 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
-                {
-                    key: 'reimbursableToMatch',
-                    description: translate('common.reimbursable'),
-                    title: getConditionBooleanTitle(form?.reimbursableToMatch, translate),
-                    onPress: () =>
-                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Paycheck,
-                },
-                isBillableEnabled
-                    ? {
-                          key: 'billableToMatch',
-                          description: translate('common.billable'),
-                          title: getConditionBooleanTitle(form?.billableToMatch, translate),
-                          onPress: () =>
-                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_BILLABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_BILLABLE_TO_MATCH.getRoute(policyID, ruleID))),
-                          icon: icons.Paycheck,
-                      }
-                    : undefined,
             ],
         },
         {
             titleTranslationKey: 'workspace.rules.merchantRules.applyUpdates',
             items: [
+                {
+                    key: 'amount',
+                    description: translate('iou.amount'),
+                    title: amountDisplayName,
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_AMOUNT.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
+                },
                 {
                     key: 'merchant',
                     description: translate('common.merchant'),
@@ -656,13 +663,6 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
-                {
-                    key: 'amount',
-                    description: translate('iou.amount'),
-                    title: amountDisplayName,
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_AMOUNT.getRoute(policyID, ruleID))),
-                    icon: icons.Cash,
-                },
                 isVendorFeatureEnabled
                     ? {
                           key: 'vendorID',
