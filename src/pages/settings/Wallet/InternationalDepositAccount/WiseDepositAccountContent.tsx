@@ -5,8 +5,6 @@ import type {FormValue} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,14 +16,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
 import {clearWiseBankAccountFields, getWiseBankAccountFields} from '@userActions/BankAccounts';
-import {clearDraftValues} from '@userActions/FormActions';
+import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type WiseDepositAccountContentProps = {
     backTo?: Route;
@@ -40,24 +38,21 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
     const [selectedCountry, setSelectedCountry] = useState(wiseBankAccountFields?.country ?? country ?? '');
-    const [selectedPayoutType, setSelectedPayoutType] = useState<string>();
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
-    const payoutTypes = wiseBankAccountFields?.payoutTypes ?? [];
-    const payoutType = payoutTypes.find((option) => option.type === selectedPayoutType) ?? (payoutTypes.length === 1 ? payoutTypes.at(0) : undefined);
+    const payoutType = wiseBankAccountFields?.payoutType;
+    const schema = wiseBankAccountFields?.schema;
+
+    useEffect(() => {
+        if (!payoutType || draftValues?.payoutType === payoutType) {
+            return;
+        }
+        setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {payoutType});
+    }, [payoutType, draftValues?.payoutType]);
 
     const leaveFlow = () => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
         clearWiseBankAccountFields();
-        setSelectedPayoutType(undefined);
         Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET);
-    };
-
-    const leaveForm = () => {
-        if (payoutTypes.length > 1) {
-            setSelectedPayoutType(undefined);
-            return;
-        }
-        clearWiseBankAccountFields();
     };
 
     const fetchForm = () => {
@@ -66,7 +61,7 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     };
 
     const refreshForm = (inputID: string, value: FormValue) => {
-        const answers: Record<string, unknown> = {...draftValues, payoutType: payoutType?.type, [inputID]: value};
+        const answers: Record<string, unknown> = {...draftValues, [inputID]: value};
         const currency = typeof answers.currency === 'string' ? answers.currency : wiseBankAccountFields?.currency;
         getWiseBankAccountFields(selectedCountry, currency, answers);
     };
@@ -82,10 +77,10 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
         );
     }
 
-    if (payoutType) {
+    if (schema) {
         return (
             <DynamicFormFlow
-                schema={payoutType.schema}
+                schema={schema}
                 formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
                 headerTitle={translate('bankAccount.addBankAccount')}
                 confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
@@ -94,28 +89,8 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
                 currency={wiseBankAccountFields.currency}
                 onRefreshRequirements={refreshForm}
                 onSubmit={submitForm}
-                onBack={leaveForm}
+                onBack={clearWiseBankAccountFields}
             />
-        );
-    }
-
-    if (payoutTypes.length > 1) {
-        return (
-            <ScreenWrapper
-                shouldEnableMaxHeight
-                testID="WiseDepositAccountContent"
-            >
-                <Header>
-                    <Header.BackButton onPress={clearWiseBankAccountFields} />
-                    <Header.Title title={translate('bankAccount.addBankAccount')} />
-                </Header>
-                <SelectionList
-                    data={payoutTypes.map((option) => ({keyForList: option.type, text: option.title, isSelected: option.type === selectedPayoutType}))}
-                    ListItem={SingleSelectListItem}
-                    onSelectRow={(item) => setSelectedPayoutType(item.keyForList)}
-                    shouldSingleExecuteRowSelect
-                />
-            </ScreenWrapper>
         );
     }
 

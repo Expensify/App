@@ -30,20 +30,14 @@ type WiseAccountRequirement = {
     }>;
 };
 
-type WisePayoutTypeOption = {
-    type: string;
-    title: string;
+type WiseBankAccountFields = {
+    country: string;
+    currency: string;
+    payoutType: string;
     schema: DynamicFormSchema;
 
     /** Single-option selects Wise asks for, answered by the server on create instead of shown */
     answeredByServer: Record<string, string>;
-};
-
-type WiseBankAccountFields = {
-    country: string;
-    currency: string;
-    defaultPayoutType: string;
-    payoutTypes: WisePayoutTypeOption[];
 };
 
 const SWIFT_PAYOUT_TYPE = 'swift_code';
@@ -122,10 +116,30 @@ function toField(descriptor: WiseFieldDescriptor): DynamicFormField {
     }
 }
 
-function toPayoutTypeOption(requirement: WiseAccountRequirement): WisePayoutTypeOption {
+function toPayoutTypeField(payoutTypes: WiseAccountRequirement[]): DynamicFormField {
+    return {
+        key: 'payoutType',
+        type: 'select',
+        label: 'Payment method',
+        required: true,
+        refreshOnChange: true,
+        values: payoutTypes.map((payoutType) => ({key: payoutType.type, label: payoutType.title})),
+    };
+}
+
+/** Builds what the server writes to `wiseBankAccountFields`: the chosen rail's form, with a rail select under the currency when more than one local rail fits */
+function toWiseBankAccountFields(country: string, currency: string, requirements: WiseAccountRequirement[], isDomestic = true, chosenPayoutType = ''): WiseBankAccountFields | undefined {
+    const payoutTypes = pickPayoutTypes(requirements, isDomestic);
+    const requirement = payoutTypes.find((payoutType) => payoutType.type === chosenPayoutType) ?? payoutTypes.at(0);
+    if (!requirement) {
+        return undefined;
+    }
     const descriptors = requirement.fields.flatMap((group) => group.group);
     const answeredByServer: Record<string, string> = {};
     const accountFields: DynamicFormField[] = [{key: 'currency', type: 'currency', labelKey: 'common.currency', required: true, refreshOnChange: true}];
+    if (payoutTypes.length > 1) {
+        accountFields.push(toPayoutTypeField(payoutTypes));
+    }
     const holderFields: DynamicFormField[] = [];
     const addressParts = descriptors.filter((descriptor) => descriptor.key.startsWith(ADDRESS_KEY_PREFIX));
 
@@ -165,17 +179,7 @@ function toPayoutTypeOption(requirement: WiseAccountRequirement): WisePayoutType
     ];
     const pages = allPages.filter((page) => page.content.length > 0);
 
-    return {type: requirement.type, title: requirement.title, schema: {pages}, answeredByServer};
-}
-
-/** Builds what the server writes to `wiseBankAccountFields` from Wise's account requirements for one country and currency */
-function toWiseBankAccountFields(country: string, currency: string, requirements: WiseAccountRequirement[], isDomestic = true): WiseBankAccountFields | undefined {
-    const payoutTypes = pickPayoutTypes(requirements, isDomestic).map(toPayoutTypeOption);
-    const defaultPayoutType = payoutTypes.at(0)?.type;
-    if (!defaultPayoutType) {
-        return undefined;
-    }
-    return {country, currency, defaultPayoutType, payoutTypes};
+    return {country, currency, payoutType: requirement.type, schema: {pages}, answeredByServer};
 }
 
 export default toWiseBankAccountFields;
