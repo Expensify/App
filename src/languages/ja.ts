@@ -2589,6 +2589,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lockAccount: 'アカウントをロック',
         lockMyAccount: 'アカウントをロックする',
         unlockAccount: 'アカウントのロック解除',
+        pendingUnlockRequest: 'ロック解除リクエスト保留中',
         findYourSituation: 'ほとんどの問題ではアカウントをロックする必要はありません。以下からご自身の状況をお探しください。',
         lostCardOrCharges:
             '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">カードの紛失または身に覚えのない請求</a>：カードを解約し、不明な取引について異議申し立てをするために Concierge へご連絡ください。',

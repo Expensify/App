@@ -2606,6 +2606,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lockAccount: 'Account vergrendelen',
         lockMyAccount: 'Account vergrendelen',
         unlockAccount: 'Account ontgrendelen',
+        pendingUnlockRequest: 'Ontgrendelingsverzoek in behandeling',
         findYourSituation: 'Voor de meeste problemen hoef je je account niet te blokkeren. Zoek hieronder jouw situatie:',
         lostCardOrCharges:
             '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Kaart kwijt of onbekende kosten</a>: Annuleer je kaart en neem contact op met Concierge om onbekende transacties te betwisten.',

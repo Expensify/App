@@ -2620,6 +2620,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lockAccount: 'Verrouiller le compte',
         lockMyAccount: 'Verrouiller mon compte',
         unlockAccount: 'Déverrouiller le compte',
+        pendingUnlockRequest: 'Demande de déverrouillage en attente',
         findYourSituation: 'La plupart des problèmes ne nécessitent pas de verrouiller votre compte ! Trouvez votre situation ci-dessous :',
         lostCardOrCharges:
             '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Carte perdue ou frais inconnus</a> : Annulez votre carte et contactez Concierge pour contester les transactions inconnues.',

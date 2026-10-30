@@ -23,7 +23,7 @@ import {
     setTwoFactorAuthExemptEmailForDomain,
 } from '@libs/actions/Domain';
 import {clearDraftValues} from '@libs/actions/FormActions';
-import {requestUnlockAccount} from '@libs/actions/User';
+import {clearUnlockAccountError, requestUnlockAccount} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -45,7 +45,7 @@ import type {Domain} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {requiresTwoFactorAuthSelector} from '@selectors/Account';
-import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
+import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, unlockRequestedSelector, vacationDelegateSelector} from '@selectors/Domain';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -57,7 +57,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'CircularArrowBackwards']);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'Hourglass', 'CircularArrowBackwards']);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [shouldForceCloseAccount, setShouldForceCloseAccount] = useState<boolean>();
     // We need to use isSmallScreenWidth here because the DecisionModal is opening from RHP and ShouldUseNarrowLayout layout will not work in this place
@@ -90,6 +90,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const memberLogin = personalDetails?.login ?? '';
 
     const [isAccountLocked] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: accountLockSelector(accountID)});
+    const [isUnlockRequested] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: unlockRequestedSelector(accountID)});
+    const unlockAccountPendingAction = domainPendingActions?.member?.[accountID]?.unlockAccount;
     const lockDomainError = getLatestError(domainErrors?.memberErrors?.[accountID]?.lockAccountErrors);
     const lockDomainErrorMessage = Object.values(lockDomainError).at(0);
 
@@ -138,7 +140,10 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     );
 
     const showUnlockAccountModal = () => {
-        requestUnlockAccount(accountID);
+        // Don't send another request while one is already queued or has been received
+        if (!isUnlockRequested && !unlockAccountPendingAction) {
+            requestUnlockAccount(accountID, domainAccountID, domainName);
+        }
         showConfirmModal({
             title: translate('lockAccountPage.unlockTitle'),
             prompt: translate('lockAccountPage.unlockDescription'),
@@ -213,12 +218,19 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 )}
 
                 {isAccountLocked ? (
-                    <MenuItemAction
+                    <OfflineWithFeedback
                         key="UnlockAccount"
-                        title={translate('lockAccountPage.unlockAccount')}
-                        icon={icons.Unlock}
-                        onPress={showUnlockAccountModal}
-                    />
+                        errorRowStyles={styles.mh5}
+                        pendingAction={unlockAccountPendingAction}
+                        errors={getLatestError(domainErrors?.memberErrors?.[accountID]?.unlockAccountErrors)}
+                        onClose={() => clearUnlockAccountError(domainAccountID, accountID)}
+                    >
+                        <MenuItemAction
+                            title={translate(isUnlockRequested ? 'lockAccountPage.pendingUnlockRequest' : 'lockAccountPage.unlockAccount')}
+                            icon={isUnlockRequested ? icons.Hourglass : icons.Unlock}
+                            onPress={showUnlockAccountModal}
+                        />
+                    </OfflineWithFeedback>
                 ) : (
                     <MenuItem.Root
                         key="ReportSuspiciousActivity"

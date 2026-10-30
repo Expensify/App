@@ -1004,6 +1004,7 @@ describe('actions/User', () => {
             const domainAccountID = 200;
             const domainName = 'expensify.com';
             const userLockKey = `${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`;
+            const userUnlockRequestedKey = `${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`;
 
             it('should include correct domain optimistic, success, and failure data', async () => {
                 UserActions.lockAccount(currentUserAccountID, accountID, domainAccountID, domainName);
@@ -1014,11 +1015,11 @@ describe('actions/User', () => {
                 const failureData = onyxData?.failureData ?? [];
                 const successData = onyxData?.successData ?? [];
 
-                // Optimistic: sets lock flag to true
+                // Optimistic: sets lock flag to true and clears any unlock request from a previous lock
                 expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                    value: {[userLockKey]: true},
+                    value: {[userLockKey]: true, [userUnlockRequestedKey]: false},
                 });
 
                 // Optimistic: sets pending action to UPDATE
@@ -1088,7 +1089,65 @@ describe('actions/User', () => {
             UserActions.requestUnlockAccount(accountID);
             await waitForBatchedUpdates();
 
-            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID});
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID}, {optimisticData: [], successData: [], failureData: []});
+        });
+
+        it('should only mark the unlock as requested once the server receives it when called from a domain', async () => {
+            // Given a domain admin requesting an unlock for a locked domain member
+            const accountID = 123456;
+            const domainAccountID = 200;
+            const domainName = 'expensify.com';
+            const userUnlockRequestedKey = `${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}${accountID}`;
+
+            // When the unlock is requested
+            UserActions.requestUnlockAccount(accountID, domainAccountID, domainName);
+            await waitForBatchedUpdates();
+
+            // Then the domain identifiers are sent so the backend knows which domain the request came from
+            expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, {accountID, domainAccountID, domainName}, expect.anything());
+
+            const onyxData = mockAPI.write.mock.calls.at(0)?.[2];
+            const optimisticData = onyxData?.optimisticData ?? [];
+            const successData = onyxData?.successData ?? [];
+            const failureData = onyxData?.failureData ?? [];
+            const pendingActionsKey = `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`;
+
+            // Then the queued request is only marked with a pending action, so offline it doesn't look like the server received it
+            expect(optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toBeUndefined();
+            expect(optimisticData.find((update) => update.key === pendingActionsKey)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: pendingActionsKey,
+                value: {member: {[accountID]: {unlockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+            });
+
+            // Then a successful request marks the member as having a pending unlock request and clears the pending action
+            expect(successData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                value: {[userUnlockRequestedKey]: true},
+            });
+            expect(successData.find((update) => update.key === pendingActionsKey)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: pendingActionsKey,
+                value: {member: {[accountID]: {unlockAccount: null}}},
+            });
+
+            // Then a failed request clears the pending action so the admin can try again
+            expect(failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)).toBeUndefined();
+            expect(failureData.find((update) => update.key === pendingActionsKey)).toEqual({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: pendingActionsKey,
+                value: {member: {[accountID]: {unlockAccount: null}}},
+            });
+
+            // Then a failed request surfaces an error on the member
+            expect(failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`)).toEqual(
+                expect.objectContaining({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+                    value: {memberErrors: {[accountID]: {unlockAccountErrors: anyObject}}},
+                }),
+            );
         });
     });
 

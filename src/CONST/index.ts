@@ -11183,6 +11183,8 @@ const CONST = {
         PRIVATE_VACATION_DELEGATE_PREFIX: 'private_vacationDelegate_',
         /** Onyx prefix for lock account IDs */
         PRIVATE_LOCKED_ACCOUNT_PREFIX: 'private_lockAccountDetails_',
+        /** Onyx prefix for account IDs with a pending unlock request */
+        PRIVATE_UNLOCK_REQUESTED_PREFIX: 'private_unlockRequested_',
 
         MEMBERS: {
             SECONDARY_ACTIONS: {

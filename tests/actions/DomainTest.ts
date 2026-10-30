@@ -1087,6 +1087,36 @@ describe('actions/Domain', () => {
         });
     });
 
+    it('clearDomainMemberError - keeps queued lock and unlock pending actions', async () => {
+        const domainAccountID = 123;
+        const accountID = 456;
+        const email = 'user@test.com';
+
+        // Given a member with a failed vacation delegate update while an unlock request is still queued
+        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}` as const, {
+            member: {
+                [accountID]: {
+                    vacationDelegate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    lockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    unlockAccount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+
+        // When the user dismisses the error from the members list
+        clearDomainMemberError(domainAccountID, accountID, email, '');
+
+        // Then the vacation delegate pending action is cleared, but the lock and unlock ones stay so a duplicate request can't be sent
+        await TestHelper.getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            callback: (pendingActions) => {
+                expect(pendingActions?.member?.[accountID]?.vacationDelegate).toBeFalsy();
+                expect(pendingActions?.member?.[accountID]?.lockAccount).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                expect(pendingActions?.member?.[accountID]?.unlockAccount).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            },
+        });
+    });
+
     it('clearDomainMemberError - clears the placeholder personal details for an optimistic account', async () => {
         const domainAccountID = 123;
         const email = 'user@test.com';

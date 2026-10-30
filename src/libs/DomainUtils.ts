@@ -137,7 +137,9 @@ function hasDomainMemberDetailsErrors(memberDetailsErrors: DomainMemberErrors): 
     return (
         !isEmptyObject(memberDetailsErrors?.vacationDelegateErrors) ||
         !isEmptyObject(memberDetailsErrors?.twoFactorAuthExemptEmailsError) ||
-        !isEmptyObject(memberDetailsErrors?.changeDomainSecurityGroupErrors)
+        !isEmptyObject(memberDetailsErrors?.changeDomainSecurityGroupErrors) ||
+        !isEmptyObject(memberDetailsErrors?.lockAccountErrors) ||
+        !isEmptyObject(memberDetailsErrors?.unlockAccountErrors)
     );
 }
 
@@ -163,6 +165,7 @@ function getMemberCustomRowProps(accountID: number, domainPendingActions: Domain
     const mergedErrors = {
         ...getLatestError(accountIDErrors?.errors),
         ...getLatestError(accountIDErrors?.lockAccountErrors),
+        ...getLatestError(accountIDErrors?.unlockAccountErrors),
         ...getLatestError({...accountIDErrors?.changeDomainSecurityGroupErrors, ...emailErrors?.changeDomainSecurityGroupErrors}),
         ...getLatestError(emailErrors?.errors),
         ...getLatestError(accountIDErrors?.vacationDelegateErrors),
@@ -173,7 +176,12 @@ function getMemberCustomRowProps(accountID: number, domainPendingActions: Domain
 
     return {
         errors: getLatestError(mergedErrors),
-        pendingAction: emailPendingActions?.pendingAction ?? accountIDPendingActions?.pendingAction ?? accountIDPendingActions?.lockAccount ?? emailPendingActions?.changeDomainSecurityGroup,
+        pendingAction:
+            emailPendingActions?.pendingAction ??
+            accountIDPendingActions?.pendingAction ??
+            accountIDPendingActions?.lockAccount ??
+            accountIDPendingActions?.unlockAccount ??
+            emailPendingActions?.changeDomainSecurityGroup,
     };
 }
 

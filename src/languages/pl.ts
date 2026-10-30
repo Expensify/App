@@ -2647,6 +2647,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lockAccount: 'Zablokuj konto',
         lockMyAccount: 'Zablokuj moje konto',
         unlockAccount: 'Odblokuj konto',
+        pendingUnlockRequest: 'Oczekująca prośba o odblokowanie',
         findYourSituation: 'Większość problemów nie wymaga blokowania konta! Znajdź swoją sytuację poniżej:',
         lostCardOrCharges:
             '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Zgubiona karta lub nieznane obciążenia</a>: Anuluj swoją kartę i skontaktuj się z Concierge, żeby zakwestionować nieznane transakcje.',

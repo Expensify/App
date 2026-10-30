@@ -2523,6 +2523,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lockAccount: '锁定账户',
         lockMyAccount: '锁定我的账户',
         unlockAccount: '解锁账户',
+        pendingUnlockRequest: '解锁请求待处理',
         findYourSituation: '大多数问题都不需要锁定你的账户！请在以下列表中找到与你相符的情况：',
         lostCardOrCharges:
             '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">卡片遗失或出现不明扣款</a>：请挂失您的卡片，并联系 Concierge 申诉未知交易。',

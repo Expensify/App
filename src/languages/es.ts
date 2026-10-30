@@ -2517,6 +2517,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lockAccount: 'Bloquear cuenta',
         lockMyAccount: 'Bloquear mi cuenta',
         unlockAccount: 'Desbloquear cuenta',
+        pendingUnlockRequest: 'Solicitud de desbloqueo pendiente',
         unlockTitle: 'Hemos recibido tu solicitud',
         unlockDescription: 'Revisaremos la cuenta para verificar que sea seguro desbloquearla y nos comunicaremos a través de Concierge si tenemos alguna pregunta.',
         findYourSituation: '¡La mayoría de los problemas no requieren bloquear tu cuenta! Busca tu situación a continuación:',

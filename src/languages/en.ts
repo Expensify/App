@@ -2779,6 +2779,7 @@ const translations = {
         lockAccount: 'Lock account',
         lockMyAccount: 'Lock my account',
         unlockAccount: 'Unlock account',
+        pendingUnlockRequest: 'Pending unlock request',
         unlockTitle: 'We’ve received your request',
         unlockDescription: 'We’ll review the account to verify it’s safe to unlock and reach out via Concierge with any questions.',
         findYourSituation: 'Most issues don’t require locking your account! Find your situation below:',

@@ -357,6 +357,28 @@ describe('DomainUtils', () => {
             };
             expect(hasDomainMembersErrors(domainErrors)).toBe(true);
         });
+
+        it('should return true when a member has only a lock account error', () => {
+            // Given a member whose lock request failed, which is stored outside the generic `errors` field
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {user1: {errors: {}, lockAccountErrors: {timestamp1: 'Lock error'}}},
+            };
+
+            // When / Then the Domain members row and the Domains list should still show the red dot
+            expect(hasDomainMembersErrors(domainErrors)).toBe(true);
+        });
+
+        it('should return true when a member has only an unlock account error', () => {
+            // Given a member whose unlock request failed, which is stored outside the generic `errors` field
+            const domainErrors: DomainErrors = {
+                errors: {},
+                memberErrors: {user1: {errors: {}, unlockAccountErrors: {timestamp1: 'Unlock error'}}},
+            };
+
+            // When / Then the Domain members row and the Domains list should still show the red dot
+            expect(hasDomainMembersErrors(domainErrors)).toBe(true);
+        });
     });
 
     describe('hasDomainMembersSettingsErrors', () => {
@@ -544,6 +566,19 @@ describe('DomainUtils', () => {
                 [accountID]: {pendingAction: undefined, lockAccount: 'update', changeDomainSecurityGroup: undefined},
             };
             const result = getMemberCustomRowProps(accountID, domainPendingActions, undefined);
+            expect(result.pendingAction).toBe('update');
+        });
+
+        it('should fall back to unlockAccount pending action when accountID pendingAction is undefined', () => {
+            // Given an unlock request queued for the member, so only the unlockAccount pending field is set
+            const domainPendingActions: DomainPendingAction['member'] = {
+                [accountID]: {pendingAction: undefined, lockAccount: undefined, unlockAccount: 'update', changeDomainSecurityGroup: undefined},
+            };
+
+            // When the members list computes the row props
+            const result = getMemberCustomRowProps(accountID, domainPendingActions, undefined);
+
+            // Then the row gets the pending action, so it shows the same pending styling as the details page
             expect(result.pendingAction).toBe('update');
         });
 

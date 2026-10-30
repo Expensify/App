@@ -2615,6 +2615,7 @@ const translations: TranslationDeepObject<typeof en> = {
         lockAccount: 'Konto sperren',
         lockMyAccount: 'Sperren Sie mein Konto',
         unlockAccount: 'Konto entsperren',
+        pendingUnlockRequest: 'Ausstehende Entsperranfrage',
         findYourSituation: 'Die meisten Probleme erfordern keine Sperrung Ihres Kontos! Finden Sie Ihre Situation unten:',
         lostCardOrCharges:
             '<a href="https://help.expensify.com/articles/expensify-classic/expensify-card/Dispute-Transaction">Karte verloren oder unbekannte Abbuchungen</a>: Sperren Sie Ihre Karte und kontaktieren Sie Concierge, um unbekannte Transaktionen anzufechten.',
