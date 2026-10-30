@@ -1031,7 +1031,7 @@
 "../../src/libs/SearchQueryUtils.ts"	"import/no-cycle"	4
 "../../src/libs/SearchQueryUtils.ts"	"unicorn/prefer-string-replace-all"	1
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
-"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	71
+"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	70
 "../../src/libs/SearchUIUtils.ts"	"import/no-cycle"	1
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ShortcutManager/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
