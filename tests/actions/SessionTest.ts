@@ -73,7 +73,7 @@ jest.mock('@libs/getPlatform', () => jest.fn());
 const mockedGetPlatform = jest.mocked(getPlatform);
 
 type AccountMergeUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>, {onyxMethod: typeof Onyx.METHOD.MERGE}>;
-type AccountMergeValue = Pick<NonNullable<AccountMergeUpdate['value']>, 'isLoading' | 'errors' | 'twoFactorAuthSecretKey'>;
+type AccountMergeValue = Pick<NonNullable<AccountMergeUpdate['value']>, 'isLoading' | 'errors' | 'twoFactorAuthSecretKey' | 'recoveryCodes'>;
 type AccountMergeObjectUpdate = Omit<AccountMergeUpdate, 'value'> & {value: AccountMergeValue};
 
 function isAccountMergeUpdate(value: unknown): value is AccountMergeObjectUpdate {
@@ -848,6 +848,28 @@ describe('Session', () => {
         });
     });
 
+    describe('toggleTwoFactorAuth', () => {
+        test('disable success data clears the pending secret and recovery codes', () => {
+            // Given a user turning 2FA off after an unfinished setup kept its secret locally
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // When the disable request is sent
+            SessionUtil.toggleTwoFactorAuth(false, '123456');
+
+            // Then success clears the secret and recovery codes so a later setup cannot reuse them
+            const [command, , onyxData] = TestHelper.getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(command).toBe(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH);
+            const accountSuccess = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountSuccess)) {
+                throw new Error('Expected a typed account success update');
+            }
+            expect(accountSuccess.value.recoveryCodes).toBeNull();
+            expect(accountSuccess.value.twoFactorAuthSecretKey).toBeNull();
+
+            writeSpy.mockRestore();
+        });
+    });
+
     describe('replaceTwoFactorDevice', () => {
         test('sets isLoading and clears errors optimistically for both steps', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
@@ -896,6 +918,33 @@ describe('Session', () => {
     });
 
     describe('validateTwoFactorAuth', () => {
+        test('success data clears the secret and recovery codes even if the setup screen is already gone', () => {
+            // Given a validation request that can finish after the user has closed the setup panel
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            // When the user submits the authenticator code
+            SessionUtil.validateTwoFactorAuth('123456', false);
+
+            // Then success drops both the secret and the recovery codes, because the success screen will not run cleanup
+            const onyxData = makeRequestSpy.mock.calls.at(0)?.[2] ?? {};
+            const accountSuccess = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountSuccess)) {
+                throw new Error('Expected a typed account success update');
+            }
+            expect(accountSuccess.value.recoveryCodes).toBeNull();
+            expect(accountSuccess.value.twoFactorAuthSecretKey).toBeNull();
+
+            // And a failed code drops the saved codes so reopening setup can fetch a fresh secret, while the QR stays for a retry
+            const accountFailure = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountFailure)) {
+                throw new Error('Expected a typed account failure update');
+            }
+            expect(accountFailure.value.recoveryCodes).toBeNull();
+            expect(accountFailure.value).not.toHaveProperty('twoFactorAuthSecretKey');
+
+            makeRequestSpy.mockRestore();
+        });
+
         test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
             // Given a user completing forced-onboarding 2FA while the success screen remains open.
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({

@@ -22,6 +22,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
+import type {PersonalDetailsByLogin} from './PersonalDetailsByLoginProvider';
 
 import Button from './Button';
 
@@ -38,6 +39,7 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport, sess
         reportID?: string;
         accountID?: number;
         login?: string;
+        personalDetailsByLogin: PersonalDetailsByLogin;
         currentUserAccountID: number;
         introSelected: OnyxEntry<IntroSelected>;
         personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -86,6 +88,7 @@ const PromotedActions = {
         reportID,
         accountID,
         login,
+        personalDetailsByLogin,
         personalDetails,
         currentUserAccountID,
         introSelected,
@@ -106,7 +109,8 @@ const PromotedActions = {
 
             if (login) {
                 navigateToAndOpenReport({
-                    userLogins: [login],
+                    login,
+                    personalDetailsByLogin,
                     personalDetails,
                     currentUserAccountID,
                     introSelected,

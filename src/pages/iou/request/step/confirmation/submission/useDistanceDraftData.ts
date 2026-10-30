@@ -43,7 +43,4 @@ function useDistanceDraftData({transaction, isGPSDistanceRequest, isManualDistan
     };
 }
 
-type DistanceDraftData = ReturnType<typeof useDistanceDraftData>;
-
 export default useDistanceDraftData;
-export type {DistanceDraftData};
