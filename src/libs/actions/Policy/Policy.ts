@@ -363,8 +363,8 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Checks if the currency is supported for global reimbursement
  */
-function isCurrencySupportedForGlobalReimbursement(currency: string) {
-    return (CONST.DIRECT_REIMBURSEMENT_CURRENCIES as readonly string[]).includes(currency);
+function isCurrencySupportedForGlobalReimbursement(currency: string | undefined) {
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.some((supportedCurrency) => supportedCurrency === currency);
 }
 
 /** Check if the policy has invoicing company details */
