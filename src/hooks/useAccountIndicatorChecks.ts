@@ -1,4 +1,5 @@
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
+import {hasAgentErrorsSelector} from '@libs/AgentUtils';
 import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {hasCardPendingDigitalWalletApproval, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
@@ -40,9 +41,8 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {
-        selector: hasDeviceManagementError,
-    });
+    const [hasDeviceManagementErrorValue] = useOnyx(ONYXKEYS.LOGINS, {selector: hasDeviceManagementError});
+    const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
 
     const {
         companyCards: {shouldShowRBR: hasCompanyCardFeedErrors},
@@ -75,6 +75,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
         [CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS, !isPolicyAdmin ? hasCompanyCardFeedErrors : false],
         [CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT, Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED)],
         [CONST.INDICATOR_STATUS.HAS_DEVICE_MANAGEMENT_ERROR, hasDeviceManagementErrorValue],
+        [CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS, !!hasAgentError],
     ];
 
     const infoChecks: Array<[IndicatorStatus, boolean]> = [

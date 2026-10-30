@@ -17,7 +17,7 @@ import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 type StateSelectorModalProps = {
     isVisible: boolean;
@@ -42,35 +42,27 @@ function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, 
     });
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
-    const countryStates = useMemo(
-        () =>
-            Object.values(COMMON_CONST.STATES).map(({stateISO: stateKey}) => {
-                const stateName = translate(`allStates.${stateKey}.stateName`);
-                const stateISO = translate(`allStates.${stateKey}.stateISO`);
-                return {
-                    value: stateISO,
-                    keyForList: stateISO,
-                    text: stateName,
-                    isSelected: currentState === stateISO,
-                    searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
-                };
-            }),
-
-        [translate, currentState],
-    );
+    const countryStates = Object.values(COMMON_CONST.STATES).map(({stateISO: stateKey}) => {
+        const stateName = translate(`allStates.${stateKey}.stateName`);
+        const stateISO = translate(`allStates.${stateKey}.stateISO`);
+        return {
+            value: stateISO,
+            keyForList: stateISO,
+            text: stateName,
+            isSelected: currentState === stateISO,
+            searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
+        };
+    });
 
     const orderedCountryStates = moveInitialSelectionToTop(countryStates, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates);
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
-            value: searchValue,
-            label: translate('common.search'),
-            onChangeText: setSearchValue,
-        }),
-        [debouncedSearchValue, searchResults.length, searchValue, setSearchValue, translate],
-    );
+    const textInputOptions = {
+        headerMessage: debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '',
+        value: searchValue,
+        label: translate('common.search'),
+        onChangeText: setSearchValue,
+    };
 
     return (
         <Modal

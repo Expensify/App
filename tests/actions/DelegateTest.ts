@@ -302,7 +302,6 @@ describe('actions/Delegate', () => {
                 credentials: {},
                 session: {authToken: 'restrictedToken', authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE},
                 activePolicyID: undefined,
-                isFromOldDot: true,
             });
             await waitForBatchedUpdates();
 

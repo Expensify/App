@@ -9,10 +9,9 @@ import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFrag
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {canSwitchAccountsSelector} from '@selectors/Account';
 import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import AccountSwitcherButton from './AccountSwitcherButton';
@@ -32,19 +31,8 @@ function AccountSwitcher({isScreenFocused, shouldShowSwitchButton = true}: Accou
     const styles = useThemeStyles();
     const {formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-
-    const canSwitchAccounts = canSwitchAccountsSelector(account);
-
-    const isAccountSwitchInFlight = !!isLoadingApp && !!hasLoadedApp;
-    const [wasAbleToSwitchAccounts, setWasAbleToSwitchAccounts] = useState(canSwitchAccounts);
-    if (!isAccountSwitchInFlight && wasAbleToSwitchAccounts !== canSwitchAccounts) {
-        setWasAbleToSwitchAccounts(canSwitchAccounts);
-    }
 
     const displayName = currentUserPersonalDetails.displayName ?? '';
     const doesDisplayNameContainEmojis = new RegExp(CONST.REGEX.EMOJIS, CONST.REGEX.EMOJIS.flags.concat('g')).test(displayName);
@@ -53,7 +41,6 @@ function AccountSwitcher({isScreenFocused, shouldShowSwitchButton = true}: Accou
     const shouldStackHeader = shouldUseNarrowLayout && !isInLandscapeMode;
     const displayNameStyle = shouldStackHeader ? [styles.textHeadlineH1, styles.textAlignCenter] : [styles.textBold, styles.textNormal, styles.flexShrink1, styles.lineHeightXLarge];
     const avatarSize = shouldStackHeader ? CONST.AVATAR_SIZE.XXXX_LARGE : CONST.AVATAR_SIZE.DEFAULT;
-    const shouldReserveSwitchButtonRow = shouldShowSwitchButton && shouldStackHeader && wasAbleToSwitchAccounts && !canSwitchAccounts && isAccountSwitchInFlight;
 
     return (
         <View
@@ -113,12 +100,6 @@ function AccountSwitcher({isScreenFocused, shouldShowSwitchButton = true}: Accou
                 </View>
             </View>
             {!!shouldShowSwitchButton && <AccountSwitcherButton isScreenFocused={isScreenFocused} />}
-            {!!shouldReserveSwitchButtonRow && (
-                <View
-                    testID={CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID}
-                    style={styles.minHeightComponentSizeSmall}
-                />
-            )}
         </View>
     );
 }

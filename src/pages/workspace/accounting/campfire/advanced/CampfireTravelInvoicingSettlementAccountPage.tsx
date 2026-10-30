@@ -8,9 +8,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
-import {clearCampfireErrorField, updateCampfireTravelInvoicingSettlementsAccount} from '@libs/actions/connections/Campfire';
+import {clearCampfireErrorField, updateCampfireTravelBillingSettlementsAccount} from '@libs/actions/connections/Campfire';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -43,8 +43,8 @@ function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnec
     const travelInvoicingSettlementsBankAccountID = campfireConfig?.sync?.travelInvoicingSettlementsBankAccountID;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_CAMPFIRE_ADVANCED.getRoute(policyID) : undefined;
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
     const syncTravelInvoicingSettlements = campfireConfig?.sync?.syncTravelInvoicingSettlements ?? true;
@@ -63,7 +63,7 @@ function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnec
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.campfire.travelInvoicingSettlementAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.campfire.travelBillingSettlementAccount.description')}</Text>
         </View>
     );
 
@@ -80,7 +80,7 @@ function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnec
 
     const setTravelInvoicingSettlementsAccount = (item: AccountListItem) => {
         if (item.value !== travelInvoicingSettlementsBankAccountID && policyID) {
-            updateCampfireTravelInvoicingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
+            updateCampfireTravelBillingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
         }
         Navigation.goBack(backPath);
     };
@@ -92,7 +92,7 @@ function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnec
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
             displayName="CampfireTravelInvoicingSettlementAccountPage"
-            title="workspace.campfire.travelInvoicingSettlementAccount.label"
+            title="workspace.campfire.travelBillingSettlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}

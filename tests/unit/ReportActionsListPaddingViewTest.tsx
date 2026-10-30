@@ -25,6 +25,8 @@ jest.mock('@libs/ReportUtils', () => ({
     canUserPerformWriteAction: jest.fn(),
 }));
 
+jest.mock('@hooks/useConciergeAskState', () => () => ({isHistoryExpanded: false}));
+
 jest.mock('@hooks/useThemeStyles', () => () => ({
     flex1: {flex: 1},
     pb4: {paddingBottom: PB4_PADDING_BOTTOM},
