@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -31,6 +32,7 @@ type ThemeEntry = ListItem & {
 const BASE_THEMES = [CONST.THEME.LIGHT, CONST.THEME.DARK, CONST.THEME.SYSTEM] as const;
 
 function ThemePage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
@@ -59,7 +61,7 @@ function ThemePage() {
     };
 
     const saveTheme = () => {
-        updateThemeUserAction(themeToStore);
+        updateThemeUserAction(themeToStore, true, session);
     };
 
     const confirmButtonOptions = {

@@ -41,6 +41,7 @@ import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
 import tooltipPlatformStyle from './utils/generators/TooltipStyleUtils/tooltipPlatformStyles';
+import getSearchNarrowHeaderHeight from './utils/getSearchNarrowHeaderHeight';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -2487,6 +2488,12 @@ const staticStyles = (theme: ThemeColors) =>
         chatFooterFullCompose: {
             height: '100%',
             paddingTop: 20,
+        },
+
+        conciergeAskColumn: {
+            width: '100%',
+            maxWidth: variables.conciergeAskColumnMaxWidth,
+            alignSelf: 'center',
         },
 
         chatItemDraft: {
@@ -6284,6 +6291,10 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 20, // must be greater than floatingCameraButton.zIndex
         },
 
+        twoFARequiredTestToolsHost: {
+            zIndex: 22, // must be greater than twoFARequiredOverlay.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -7087,6 +7098,13 @@ const staticStyles = (theme: ThemeColors) =>
             width: 8,
             height: 8,
         },
+        chartTooltipAverageDash: {
+            width: 7,
+            height: 1,
+            borderRadius: 0.5,
+            backgroundColor: theme.text,
+            opacity: VictoryTheme.averageLine.opacity,
+        },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -7678,7 +7696,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+            paddingTop: getSearchNarrowHeaderHeight(hasFilterBars),
         }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
