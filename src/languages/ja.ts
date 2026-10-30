@@ -8517,6 +8517,7 @@ ${reportName}`,
                     selectWorkspace: 'ワークスペースを選択し、プランの種類を次に変更してください:',
                 },
                 upgradeWorkspaceWarning: `ワークスペースをアップグレードできません`,
+                createWorkspaceWarning: `ワークスペースを作成できません`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'あなたの会社ではワークスペースの作成が制限されています。管理者に連絡してサポートを受けてください。',
             },
             hr: {

@@ -8773,6 +8773,7 @@ ${reportName}`,
                     selectWorkspace: 'selecciona un espacio de trabajo y cambia el tipo de plan a',
                 },
                 upgradeWorkspaceWarning: 'No se puede actualizar el espacio de trabajo',
+                createWorkspaceWarning: `No se puede crear el espacio de trabajo`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Su empresa ha restringido la creación de espacios de trabajo. Por favor, contacte a un administrador para obtener ayuda.',
             },

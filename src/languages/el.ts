@@ -9046,6 +9046,7 @@ ${reportName}`,
                     selectWorkspace: 'επιλέξτε έναν χώρο εργασίας και αλλάξτε τον τύπο πλάνου σε',
                 },
                 upgradeWorkspaceWarning: `Δεν είναι δυνατή η αναβάθμιση του χώρου εργασίας`,
+                createWorkspaceWarning: `Δεν είναι δυνατή η δημιουργία χώρου εργασίας`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt:
                     'Η εταιρεία σας έχει περιορίσει τη δημιουργία χώρων εργασίας. Παρακαλούμε επικοινωνήστε με έναν διαχειριστή για βοήθεια.',
             },

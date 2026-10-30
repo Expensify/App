@@ -8617,6 +8617,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                     selectWorkspace: 'selecione um workspace e altere o tipo de plano para',
                 },
                 upgradeWorkspaceWarning: `Não é possível atualizar o workspace`,
+                createWorkspaceWarning: `Não é possível criar o workspace`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Sua empresa restringiu a criação de espaços de trabalho. Entre em contato com um administrador para obter ajuda.',
             },
             hr: {
