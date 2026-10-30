@@ -267,6 +267,20 @@ function getRateStatus(rate: Rate): string {
     return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
 }
 
+/**
+ * The tax reclaimable amount of a distance rate (taxClaimablePercentage × rate), in the rate's currency subunits.
+ * Like the rate details page, it only applies when the rate has a tax rate that exists on the policy, a non-zero percentage, and a non-zero rate.
+ * Returns undefined otherwise.
+ */
+function getTaxReclaimableAmount(rate: Rate, policy: Policy | null | undefined): number | undefined {
+    const taxClaimablePercentage = rate.attributes?.taxClaimablePercentage;
+    const taxRateExternalID = rate.attributes?.taxRateExternalID;
+    if (!taxRateExternalID || !policy?.taxRates?.taxes?.[taxRateExternalID] || !taxClaimablePercentage || !rate.rate) {
+        return undefined;
+    }
+    return taxClaimablePercentage * rate.rate;
+}
+
 function getGovernmentRateAmountForUnit(governmentRateAmount: number, sourceRateID: string | undefined, currentUnit: Unit | undefined): number {
     if (!sourceRateID || !currentUnit) {
         return governmentRateAmount;
@@ -584,6 +598,7 @@ export {
     buildOnyxDataForPolicyDistanceRateUpdates,
     buildOnyxDataForGovernmentRateAutoUpdate,
     getRateStatus,
+    getTaxReclaimableAmount,
     getGovernmentRateCountryForCurrency,
     isSharedGovernmentRateCurrency,
     isCurrencySupportedForAutoUpdate,
