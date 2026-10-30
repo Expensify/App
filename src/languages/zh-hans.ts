@@ -1473,10 +1473,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: '如果您没有公司网站，可以改为提供公司的 LinkedIn 或社交媒体主页。',
         invalidDomainError: '您输入的域名无效。若要继续，请输入有效的域名。',
         publicDomainError: '您输入的是公共域名。若要继续，请输入私有域名。',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 笔报销',
-                other: (count: number) => `${count} 笔报销`,
+                one: (count: number) => `${formattedCount ?? count} 笔报销`,
+                other: (count: number) => `${formattedCount ?? count} 笔报销费用`,
             };
         },
         deleteExpense: () => ({

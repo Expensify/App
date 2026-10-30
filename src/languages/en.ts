@@ -1667,10 +1667,10 @@ const translations = {
         yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
         invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
         publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 expense',
-                other: (count: number) => `${count} expenses`,
+                one: (count: number) => `${formattedCount ?? count} expense`,
+                other: (count: number) => `${formattedCount ?? count} expenses`,
             };
         },
         deleteExpense: () => ({

@@ -72,6 +72,19 @@ describe('useChartLabelFormats', () => {
         // Then the numbers are abbreviated with a lowercase k so axis labels stay short, and the multi-char unit keeps its separator
         expect(formatted).toEqual(['zł 100k', 'zł 1.5M']);
     });
+
+    it('writes values with the formatter it is given, in place of the number-and-unit format', () => {
+        // Given a chart plotting something other than money, which hands the hook its own formatter and no unit
+        const formatValue = (value: number, options?: {shouldUseCompactNotation?: boolean}) =>
+            `${value.toLocaleString('en-US', options?.shouldUseCompactNotation ? {notation: 'compact'} : {})} expenses`;
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, formatValue}));
+
+        // When formatting a plotted value and an axis tick
+        const formatted = [result.current.formatValue(1200), result.current.formatCompactValue(1200)];
+
+        // Then both come from the given formatter, so the axis, the labels and the tooltip all read the value the same way
+        expect(formatted).toEqual(['1,200 expenses', '1.2K expenses']);
+    });
 });
 
 describe('formatLabel', () => {

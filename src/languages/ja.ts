@@ -1514,10 +1514,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'ウェブサイトがない場合は、代わりに自社のLinkedInまたはソーシャルメディアのプロフィールを入力できます。',
         invalidDomainError: '無効なドメインが入力されています。続行するには、有効なドメインを入力してください。',
         publicDomainError: '公開ドメインが入力されています。続行するには、プライベートドメインを入力してください。',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1件の経費',
-                other: (count: number) => `${count}件の経費`,
+                one: (count: number) => `${formattedCount ?? count} 件の経費`,
+                other: (count: number) => `${formattedCount ?? count} 件の経費`,
             };
         },
         deleteExpense: () => ({

@@ -1575,10 +1575,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Αν δεν έχετε ιστοσελίδα, μπορείτε αντί γι’ αυτό να δώσετε το προφίλ της εταιρείας σας στο LinkedIn ή σε κάποιο μέσο κοινωνικής δικτύωσης.',
         invalidDomainError: 'Έχετε εισαγάγει μη έγκυρο τομέα. Για να συνεχίσετε, παρακαλούμε εισαγάγετε έναν έγκυρο τομέα.',
         publicDomainError: 'Έχετε εισαγάγει ένα δημόσιο domain. Για να συνεχίσετε, παρακαλούμε εισαγάγετε ένα ιδιωτικό domain.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 δαπάνη',
-                other: (count: number) => `${count} δαπάνες`,
+                one: (count: number) => `έξοδο ${formattedCount ?? count}`,
+                other: (count: number) => `${formattedCount ?? count} έξοδα`,
             };
         },
         deleteExpense: () => ({

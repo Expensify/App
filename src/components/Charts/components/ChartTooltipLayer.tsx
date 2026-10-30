@@ -104,8 +104,8 @@ function ChartTooltipLayer({
                 />
             ) : (
                 <ChartTooltipSummary
-                    amount={tooltipData.amount}
-                    percentage={tooltipData.percentage}
+                    value={tooltipData.value}
+                    note={tooltipData.note}
                     expenseCount={tooltipData.expenseCount}
                 />
             )}

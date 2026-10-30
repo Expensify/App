@@ -35,7 +35,7 @@ function merchantGroup(merchant: string, total: number, count = 1, percentOfTota
 }
 
 /** A grouped quarter result, the shape of group the search still returns without a share of the total. */
-function quarterGroup(quarter: number, total: number, year = 2026): TransactionQuarterGroupListItemType {
+function quarterGroup(quarter: number, total: number, year = 2026, count = 1): TransactionQuarterGroupListItemType {
     return {
         groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
         year,
@@ -44,7 +44,7 @@ function quarterGroup(quarter: number, total: number, year = 2026): TransactionQ
         shortFormattedQuarter: `Q${quarter}`,
         sortKey: quarter,
         keyForList: `group_${year}_Q${quarter}`,
-        count: 1,
+        count,
         total,
         currency: CONST.CURRENCY.USD,
         transactions: [],
@@ -485,6 +485,187 @@ describe('buildChartSeries', () => {
         // Then both periods that haven't ended are marked, so the line chart draws them dashed, and only the current one says "so far"
         expect(rows.map((row) => row.point.isInProgress)).toEqual([false, true, true]);
         expect(rows.map((row) => row.point.label)).toEqual(['Q2 2026', 'Q3 so far', 'Q4 2026']);
+    });
+});
+
+describe('buildChartSeries with the count metric', () => {
+    it('plots how many expenses each group holds instead of what it totals', () => {
+        // Given merchant groups the search ranked by spend, where the bigger spender is not the busier merchant
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting counts
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then each value is the group's own count, untouched, because a count has no currency to scale down from
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([12, 41]);
+    });
+
+    it('stops carrying the expense count beside the value, since the value is already that count', () => {
+        // Given merchant groups plotted by how many expenses they hold
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting counts
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then no point carries one, because the tooltip prints it as a second line and would read "41" above "41 expenses"
+        expect(rows.every((row) => row.point.count === undefined)).toBe(true);
+    });
+
+    it('counts the compared rows too, so a baseline is read in the same metric as the chart', () => {
+        // Given two quarters and the compared rows for each, where the compared counts and totals rank differently
+        const data = [quarterGroup(1, 30000, 2026, 9), quarterGroup(2, 60000, 2026, 4)];
+        const compared = [quarterGroup(1, 30000, 2026, 6), quarterGroup(2, 30000, 2026, 5)];
+
+        // When the series is built for a line chart comparing counts against the compared rows
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            comparison: {data: compared, color: themeColors.green200},
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then both series read counts, because a baseline drawn in dollars against a line drawn in expenses
+        // would put the two on one axis that measures neither, and the delta between them would mean nothing
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([9, 4]);
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([6, 5]);
+    });
+
+    it('drops the average from a chart of counts, since the average the search returns is one of spend', () => {
+        // Given merchant groups plotted by how many expenses they hold, and the all-merchant average spend
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a bar chart plotting counts against the average
+        const {series, rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            comparison: {total: 43000},
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then only the primary series is drawn, because a line at $430 on an axis counting expenses would measure neither
+        expect(series).toHaveLength(1);
+        expect(rows.every((row) => row.point.values[CHART_SERIES_KEY.COMPARISON] === undefined)).toBe(true);
+    });
+
+    it('names the money each group totals beside its count, since a count says nothing about the spend behind it', () => {
+        // Given merchant groups plotted by how many expenses they hold
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting counts, with a formatter for the money a group totals
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+            formatTotal: (total) => `$${total / 100}`,
+        });
+
+        // Then each point carries its group's total, which the tooltip and the table write in the parentheses the share would have held
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY])).toEqual(['$4800', '$1900']);
+    });
+
+    it("names the compared period's own total too, so each row in a comparison says what it was worth", () => {
+        // Given two quarters plotted by count against the compared rows for each
+        const data = [quarterGroup(1, 30000, 2026, 9), quarterGroup(2, 60000, 2026, 4)];
+        const compared = [quarterGroup(1, 30000, 2026, 6), quarterGroup(2, 45000, 2026, 5)];
+
+        // When the series is built for a line chart comparing counts against the compared rows
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            comparison: {data: compared, color: themeColors.green200},
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.LINE,
+            getLabel,
+            getCurrencyDecimals,
+            formatTotal: (total) => `$${total / 100}`,
+        });
+
+        // Then both series carry their own totals, because a row quoting the other series' spend would misname its own count
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.PRIMARY])).toEqual(['$300', '$600']);
+        expect(rows.map((row) => row.point.seriesTotals?.[CHART_SERIES_KEY.COMPARISON])).toEqual(['$300', '$450']);
+    });
+
+    it('leaves the totals off an amount chart, whose values are already the money', () => {
+        // Given merchant groups plotted by what they total, with no formatter for a second reading of that money
+        const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
+
+        // When the series is built for a chart plotting amounts
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then no point carries one, because the tooltip would print the value it already shows a second time in parentheses
+        expect(rows.every((row) => row.point.seriesTotals === undefined)).toBe(true);
+    });
+
+    it('leaves the share off every point, since the only share the search reports is of total spend', () => {
+        // Given merchant groups the search reported shares of total spend for
+        const data = [merchantGroup('Person', 480000, 12, 71.6), merchantGroup('Target', 190000, 41, 28.4)];
+
+        // When the series is built for a pie chart plotting counts
+        const {rows} = buildChartSeries({
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            data,
+            metric: CONST.SEARCH.CHART_METRIC.COUNT,
+            view: CONST.SEARCH.VIEW.PIE,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then no point carries a share, because quoting a spend share beside a count would read as the count's
+        // share, and the donut would size its slices by count while dropping the ones that spent too little to draw
+        expect(rows.every((row) => row.point.percentOfTotal === undefined)).toBe(true);
     });
 });
 
