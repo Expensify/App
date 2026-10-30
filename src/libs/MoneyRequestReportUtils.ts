@@ -283,6 +283,7 @@ function getReportRowPolicyCategories(policyCategories: OnyxEntry<PolicyCategori
         return rowCategories;
     }
 
+    // CategoryGLCodeCell stays editable only when the workspace has any GL code, so keep one GL-coded category even if the row's category has none.
     const glCodeCategory = Object.entries(policyCategories ?? {}).find(([name, policyCategory]) => hasAnyCategoryGLCode({[name]: policyCategory}));
     if (!glCodeCategory) {
         return rowCategories;
