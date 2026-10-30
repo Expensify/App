@@ -38,8 +38,8 @@ const MOCK_EMAIL = 'test@expensify.com';
 const mockGetValidOptions = jest.mocked(getValidOptions);
 const mockGetSearchOptions = jest.mocked(getSearchOptions);
 
-// Mirrors the real useFilteredOptions, which keeps the same options object between renders. Tests control the
-// Onyx-sourced personal details through it, and a fresh object per render would defeat the hook's memoization.
+// Keep the options reference stable while inputs are unchanged, matching useFilteredOptions.
+// Tests set personalDetails here; creating a new options object on every render would invalidate the selector's cache.
 const mockFilteredOptions: {reports: OptionData[]; personalDetails: OptionData[]} = {reports: [], personalDetails: []};
 const mockLoadMore = jest.fn();
 
@@ -54,7 +54,7 @@ jest.mock('@hooks/useFilteredOptions', () => ({
     }),
 }));
 
-// Mirrors the real provider, which keeps the same personal details object between renders.
+// Keep the personal details reference stable while its data is unchanged, matching the real provider.
 const mockPersonalDetails = {};
 
 jest.mock('@components/OnyxListItemProvider', () => ({
@@ -810,7 +810,7 @@ describe('useSearchSelector memoization', () => {
     });
 
     it('does not recompute the option lists when the parent only passes new callbacks', async () => {
-        // Given a multi-select search selector whose parent passes inline callbacks, as NewChatPage and ParticipantSearchResults do
+        // Given a selector in multiple selection mode whose onSelectionChange callback can change between renders
         const {result, rerender} = renderHook(
             ({onSelectionChange}: {onSelectionChange: (options: OptionData[]) => void}) =>
                 useSearchSelectorBase({
@@ -828,8 +828,8 @@ describe('useSearchSelector memoization', () => {
         rerender({onSelectionChange: jest.fn()});
         await waitForBatchedUpdatesWithAct();
 
-        // Then getValidOptions does not run again and the derived options keep their reference. A hook call placed between
-        // getValidOptions and the derived lists stops React Compiler from memoizing them, which this test would catch.
+        // Then getValidOptions keeps its call count and availableOptions keeps its reference,
+        // because changing only onSelectionChange leaves the option inputs unchanged.
         expect(mockGetValidOptions).toHaveBeenCalledTimes(getValidOptionsCallCount);
         expect(result.current.availableOptions).toBe(initialAvailableOptions);
     });
@@ -850,7 +850,7 @@ describe('useSearchSelector memoization', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the memoized lists are recomputed rather than served stale, so the selected contact leaves the available options
+        // Then availableOptions.personalDetails is recomputed rather than served stale, excluding the selected contact
         expect(result.current.availableOptions.personalDetails.map((option) => option.login)).not.toContain(EXISTING_CONTACT.login);
     });
 
@@ -878,7 +878,7 @@ describe('useSearchSelector memoization', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // When list end reached is triggered (starting the 300 ms debounce) and the parent re-renders mid-wait
+        // When onListEndReached starts the 300 ms debounce and the parent renders again after 150 ms
         act(() => {
             result.current.onListEndReached();
         });
@@ -894,7 +894,7 @@ describe('useSearchSelector memoization', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the pending page load completes rather than getting cancelled by the re-render, expanding maxElements to 10
+        // Then the pending page load completes rather than getting cancelled by the re-render, increasing maxElements from 5 to 10
         expect(mockGetValidOptions.mock.calls.at(-1)?.[7]?.maxElements).toBe(10);
 
         jest.useRealTimers();
