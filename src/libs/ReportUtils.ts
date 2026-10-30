@@ -15372,7 +15372,7 @@ function doReportsHaveMatchingReportFieldValues(selectedReports: Array<OnyxEntry
                 return [
                     field.fieldID,
                     {
-                        value,
+                        value: fieldType === CONST.REPORT_FIELD_TYPES.TEXT ? value.trim() : value,
                         externalID: externalID === '' ? undefined : externalID,
                     },
                 ];

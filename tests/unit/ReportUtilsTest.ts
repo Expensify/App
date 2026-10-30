@@ -28830,6 +28830,22 @@ describe('ReportUtils', () => {
             expect(result).toBe(true);
         });
 
+        it.each([
+            ['Open', makeOpenReport],
+            ['Processing', makeProcessingReport],
+            ['Approved', makeApprovedReport],
+        ] as const)('ignores leading and trailing spaces in text fields on %s reports', (_state, makeReport) => {
+            // Given two reports with text values that only differ by whitespace, which the editor does not let users change on its own.
+            const first = makeReport({fieldList: {expensify_client: makeReportField('client', ' Project X ')}});
+            const second = makeReport({fieldList: {expensify_client: makeReportField('client', 'Project X')}});
+
+            // When their editable fields are compared for merging.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then insignificant whitespace cannot block a merge that the user has no way to fix directly.
+            expect(result).toBe(true);
+        });
+
         it('returns false when an editable report field value differs', () => {
             // Given two otherwise mergeable reports with different values for the same editable report field.
             const firstField = makeReportField('client', 'Acme');
