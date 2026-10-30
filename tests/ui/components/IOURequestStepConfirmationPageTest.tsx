@@ -187,6 +187,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         }),
         setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
         getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+        getPreMountedFullscreenRouteKey: jest.fn(() => undefined),
         getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
         clearFullscreenPreInsertedFlag: jest.fn(),
         revealRouteBeforeDismissingModal: jest.fn((_route: unknown, options?: {afterTransition?: () => void}) => {
@@ -1337,6 +1338,150 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 getChatByParticipantsSpy.mockRestore();
                 getReusableP2PReportIDSpy.mockRestore();
                 jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('still reveals the pay destination when its wide pre-mount is the topmost report', async () => {
+            // Given a wide pre-mount of the pay destination, which puts it on top of a background Reports stack
+            const optimisticP2PReportID = 'optimistic-p2p-report-2';
+            const transactionID = 'tx-wide-pay';
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            const originalBuildConfirmAction = ConfirmAction.default;
+            const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
+                sendMoney = params.onSendMoney;
+                return originalBuildConfirmAction(params);
+            });
+            const submitWithDismissFirstSpy = jest.spyOn(SubmitWithDismissFirst, 'submitWithDismissFirst').mockImplementation(() => {});
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue(undefined);
+            const getReusableP2PReportIDSpy = jest.spyOn(IOUUtils, 'getReusableP2PReportID').mockReturnValue(optimisticP2PReportID);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: optimisticP2PReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.PAY,
+                                                transactionID,
+                                                reportID: optimisticP2PReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+                await waitForBatchedUpdatesWithAct();
+                jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue('Report-wide-pre-mount-1');
+                jest.mocked(Navigation.getTopmostReportId).mockReturnValue(optimisticP2PReportID);
+
+                // When the user sends money
+                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+
+                // Then it goes through the reveal instead of the plain path that dismisses first and drops the pre-mount
+                expect(submitWithDismissFirstSpy).toHaveBeenCalledWith(expect.objectContaining({destinationReportID: optimisticP2PReportID}));
+            } finally {
+                buildConfirmActionSpy.mockRestore();
+                submitWithDismissFirstSpy.mockRestore();
+                getChatByParticipantsSpy.mockRestore();
+                getReusableP2PReportIDSpy.mockRestore();
+                jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue(undefined);
+                jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+            }
+        });
+
+        it('keeps the narrow pay path when the narrow pre-insert is the topmost report', async () => {
+            // Given a narrow pre-insert of the pay destination, which already sits under the RHP as the topmost report
+            const optimisticP2PReportID = 'optimistic-p2p-report-3';
+            const transactionID = 'tx-narrow-pay';
+            let sendMoney: ((paymentMethod: PaymentMethodType | undefined) => void) | undefined;
+            const originalBuildConfirmAction = ConfirmAction.default;
+            const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
+                sendMoney = params.onSendMoney;
+                return originalBuildConfirmAction(params);
+            });
+            const submitWithDismissFirstSpy = jest.spyOn(SubmitWithDismissFirst, 'submitWithDismissFirst').mockImplementation(() => {});
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue(undefined);
+            const getReusableP2PReportIDSpy = jest.spyOn(IOUUtils, 'getReusableP2PReportID').mockReturnValue(optimisticP2PReportID);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: optimisticP2PReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.PAY,
+                                                transactionID,
+                                                reportID: optimisticP2PReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+                await waitForBatchedUpdatesWithAct();
+                jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(true);
+                jest.mocked(Navigation.getTopmostReportId).mockReturnValue(optimisticP2PReportID);
+
+                // When the user sends money
+                act(() => sendMoney?.(CONST.IOU.PAYMENT_TYPE.ELSEWHERE));
+
+                // Then sendMoney navigates on its own as it did before wide pre-mounts, because only a wide pre-mount hides the topmost report
+                expect(submitWithDismissFirstSpy).not.toHaveBeenCalled();
+            } finally {
+                buildConfirmActionSpy.mockRestore();
+                submitWithDismissFirstSpy.mockRestore();
+                getChatByParticipantsSpy.mockRestore();
+                getReusableP2PReportIDSpy.mockRestore();
+                jest.mocked(Navigation.getIsFullscreenPreInsertedUnderRHP).mockReturnValue(false);
+                jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
             }
         });
 
@@ -2541,6 +2686,54 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const draftTransaction = await getDraftTransaction();
             expect(draftTransaction?.category).toBe(DESTINATION_DEFAULT_CATEGORY);
             expect(draftTransaction?.tag).toBe('');
+        });
+
+        it('moves every receipt of a multi-scan batch to the selected workspace', async () => {
+            const SECOND_TRANSACTION_ID = '2';
+
+            // Given two scanned receipts confirmed together, both assigned to the source workspace
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${SECOND_TRANSACTION_ID}`, {
+                    transactionID: SECOND_TRANSACTION_ID,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    amount: 0,
+                    currency: 'USD',
+                    created: '2025-08-29',
+                    merchant: '(none)',
+                    reportID: SOURCE_CHAT_REPORT_ID,
+                    participants: [createWorkspaceParticipant(SOURCE_CHAT_REPORT_ID, SOURCE_POLICY_ID)],
+                    category: 'Source category',
+                    tag: 'Source tag',
+                    receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
+                });
+            });
+            await renderConfirmationOnSourceWorkspace({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                amount: 0,
+                receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
+            });
+
+            // When a different workspace is selected in the participant picker while the first receipt is on screen
+            await selectParticipants([createWorkspaceParticipant(DESTINATION_CHAT_REPORT_ID, DESTINATION_POLICY_ID)]);
+
+            // Then the receipt that isn't on screen is moved too, because submitting sends every receipt in the batch to
+            // the visible receipt's recipient, so a different recipient on another receipt would be silently ignored
+            const secondDraftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${SECOND_TRANSACTION_ID}`,
+                    callback: (value) => {
+                        resolve(value);
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+            const firstDraftTransaction = await getDraftTransaction();
+            for (const draftTransaction of [firstDraftTransaction, secondDraftTransaction]) {
+                expect(draftTransaction?.participants?.at(0)?.policyID).toBe(DESTINATION_POLICY_ID);
+                expect(draftTransaction?.reportID).toBe(DESTINATION_CHAT_REPORT_ID);
+                expect(draftTransaction?.category).toBe('');
+                expect(draftTransaction?.tag).toBe('');
+            }
         });
     });
 
