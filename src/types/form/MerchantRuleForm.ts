@@ -16,6 +16,8 @@ const INPUT_IDS = {
     DATE_MATCH_TYPE: 'dateMatchType',
     DATE_TO_MATCH: 'dateToMatch',
     DESCRIPTION: 'comment',
+    HAS_MATCH_TYPE: 'hasMatchType',
+    HAS_TO_MATCH: 'hasToMatch',
     MATCH_TYPE: 'matchType',
     MERCHANT_TO_MATCH: 'merchantToMatch',
     MERCHANT_TYPES_TO_MATCH: 'merchantTypesToMatch',
@@ -46,6 +48,8 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.DATE_MATCH_TYPE]: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
         [INPUT_IDS.DATE_TO_MATCH]: string;
         [INPUT_IDS.DESCRIPTION]: string;
+        [INPUT_IDS.HAS_MATCH_TYPE]: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+        [INPUT_IDS.HAS_TO_MATCH]: string[];
         [INPUT_IDS.MATCH_TYPE]: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
         [INPUT_IDS.MERCHANT]: string;
         [INPUT_IDS.MERCHANT_TO_MATCH]: string;

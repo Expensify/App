@@ -71,6 +71,12 @@ type ExpenseDefaultFormValues = {
     /** Whether the expense amount has to equal (`eq`), exceed (`gt`) or stay under (`lt`) `amountToMatch` */
     amountMatchType?: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
+    /** The parts an expense has to carry, such as a receipt or a category. The list is matched as an OR */
+    hasToMatch?: string[];
+
+    /** Whether the expense has to carry (`eq`) or lack (`neq`) everything in `hasToMatch` */
+    hasMatchType?: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+
     /** The merchant the expense is renamed to */
     merchant?: string;
 
@@ -110,7 +116,7 @@ type RuleWithID = {
 
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
-const {AND, EQUAL_TO, CONTAINS, GREATER_THAN, LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
+const {AND, EQUAL_TO, NOT_EQUAL_TO, CONTAINS, GREATER_THAN, LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 const {YES, NO} = CONST.SEARCH.BOOLEAN;
 
 /**
@@ -130,6 +136,7 @@ const CONDITION = {
     SUBMITTER: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
     DATE: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     AMOUNT: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+    HAS: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
     // The rules engine matches merchant categories on its own key, which search has no equivalent for.
     MERCHANT_TYPE: 'merchantType',
 } as const;
@@ -153,6 +160,17 @@ const SUPPORTED_DATE_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTAX_OP
 
 /** Amount comparisons the editor can represent, which are the equal to/greater than/less than the picker offers. */
 const SUPPORTED_AMOUNT_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>([EQUAL_TO, LOWER_THAN, GREATER_THAN]);
+
+/** The has/doesn't have pair the picker offers, which is all the rules engine needs for a presence check. */
+const SUPPORTED_HAS_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>([EQUAL_TO, NOT_EQUAL_TO]);
+
+/**
+ * The parts of an expense the editor can check for.
+ *
+ * Search also offers the submitted and approved violations, which are left out because a rule runs on
+ * `CreateTransaction`, before an expense can carry either. `link` is left out because it only applies to chats.
+ */
+const HAS_OPTIONS = [CONST.SEARCH.HAS_VALUES.RECEIPT, CONST.SEARCH.HAS_VALUES.ATTACHMENT, CONST.SEARCH.HAS_VALUES.CATEGORY, CONST.SEARCH.HAS_VALUES.TAG] as const;
 
 /**
  * The form key each action field reads back into, which makes reading a rule the mirror of writing one.
@@ -345,6 +363,11 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.AMOUNT, operator: formValues.amountMatchType ?? EQUAL_TO, right: amountToMatch});
     }
 
+    const hasToMatch = getNonEmptyValues(formValues.hasToMatch);
+    if (hasToMatch.length > 0) {
+        comparisons.push({left: CONDITION.HAS, operator: formValues.hasMatchType ?? EQUAL_TO, right: hasToMatch});
+    }
+
     const [firstComparison, ...rest] = comparisons;
     if (!firstComparison) {
         return undefined;
@@ -403,6 +426,15 @@ function haveSameAmountCondition(first: Partial<ExpenseDefaultFormValues>, secon
     return !firstAmount || (first.amountMatchType ?? EQUAL_TO) === (second.amountMatchType ?? EQUAL_TO);
 }
 
+/** Compares the has condition, whose match type only tells two rules apart when they both check for something. */
+function haveSameHasCondition(first: Partial<ExpenseDefaultFormValues>, second: Partial<ExpenseDefaultFormValues>): boolean {
+    if (!haveSameConditionValues(first.hasToMatch, second.hasToMatch)) {
+        return false;
+    }
+
+    return getNonEmptyValues(first.hasToMatch).length === 0 || (first.hasMatchType ?? EQUAL_TO) === (second.hasMatchType ?? EQUAL_TO);
+}
+
 /** Whether two rules match on the same expenses, which is what makes one a duplicate of the other. */
 function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Partial<ExpenseDefaultFormValues>): boolean {
     const firstMerchant = first.merchantToMatch?.trim().toLowerCase() ?? '';
@@ -427,7 +459,8 @@ function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Pa
         haveSameConditionValues(first.submittersToMatch, second.submittersToMatch) &&
         haveSameConditionValues(first.merchantTypesToMatch, second.merchantTypesToMatch) &&
         haveSameDateCondition(first, second) &&
-        haveSameAmountCondition(first, second)
+        haveSameAmountCondition(first, second) &&
+        haveSameHasCondition(first, second)
     );
 }
 
@@ -524,6 +557,8 @@ type EditableConditions = Pick<
     | 'dateMatchType'
     | 'amountToMatch'
     | 'amountMatchType'
+    | 'hasToMatch'
+    | 'hasMatchType'
 >;
 
 /**
@@ -570,6 +605,13 @@ function getConditionFromLeaf(leaf: RuleFilterComparison): EditableConditions | 
             return undefined;
         }
         return {amountToMatch, amountMatchType: leaf.operator};
+    }
+
+    if (leaf.left === CONDITION.HAS) {
+        if (values.length === 0 || !SUPPORTED_HAS_MATCH_TYPES.has(leaf.operator)) {
+            return undefined;
+        }
+        return {hasToMatch: values, hasMatchType: leaf.operator};
     }
 
     if (leaf.operator !== EQUAL_TO) {
@@ -891,6 +933,7 @@ export {
     buildExpenseDefaultRule,
     getMerchantTypeLabel,
     MERCHANT_TYPES,
+    HAS_OPTIONS,
     canEditExpenseDefaultRule,
     getExpenseDefaultTaxID,
     getCategoryExpenseDefaultRules,

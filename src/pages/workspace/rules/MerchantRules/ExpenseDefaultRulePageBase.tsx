@@ -60,7 +60,7 @@ import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeader
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
+import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -142,6 +142,8 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         MERCHANT_RULE_INPUT_IDS.MERCHANT_TYPES_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.AMOUNT_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.AMOUNT_MATCH_TYPE,
+        MERCHANT_RULE_INPUT_IDS.HAS_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.HAS_MATCH_TYPE,
     ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -187,7 +189,7 @@ function ExpenseDefaultRulePageBase({
     const {isCreatedFromExpense, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.path, policyID, ruleID);
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Calendar', 'Cash', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Calendar', 'Cash', 'Folder', 'Paperclip', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -365,6 +367,17 @@ function ExpenseDefaultRulePageBase({
         }
         return translate('search.filters.amount.equalTo', formattedAmount);
     };
+    const hasToMatch = form?.hasToMatch ?? [];
+    const hasMatchType = form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+    const getHasToMatchDisplayName = () => {
+        if (hasToMatch.length === 0) {
+            return undefined;
+        }
+        const parts = hasToMatch.map((value) => translate(HAS_VALUE_TRANSLATION_KEYS[value] ?? 'common.other')).join(', ');
+        const matchType =
+            hasMatchType === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? translate('search.filters.filterType.has.negative') : translate('search.filters.filterType.has.positive');
+        return `${matchType} ${parts}`;
+    };
     const taxRatesToMatch = form?.taxRatesToMatch ?? [];
     // Blank rather than the raw ID once a rate is gone from the workspace.
     const taxRatesToMatchDisplayName = taxRatesToMatch.length > 0 ? taxRatesToMatch.map((externalID) => getTaxRateDisplayName(policy, externalID) || externalID).join(', ') : undefined;
@@ -465,6 +478,7 @@ function ExpenseDefaultRulePageBase({
                     taxRatesToMatchDisplayName,
                     getDateToMatchDisplayName(),
                     getAmountToMatchDisplayName(),
+                    getHasToMatchDisplayName(),
                 ].find(Boolean) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
@@ -603,6 +617,13 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
+                {
+                    key: 'hasToMatch',
+                    description: translate('workspace.rules.merchantRules.hasOrDoesNotHave'),
+                    title: getHasToMatchDisplayName(),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_HAS_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Paperclip,
+                },
             ],
         },
         {

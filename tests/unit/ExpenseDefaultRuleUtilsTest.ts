@@ -32,6 +32,8 @@ const BILLABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE;
 const SUBMITTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 const DATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
 const AMOUNT = CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT;
+const HAS = CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS;
+const {NOT_EQUAL_TO} = CONST.SEARCH.SYNTAX_OPERATORS;
 const MERCHANT_TYPE = 'merchantType';
 const {LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 
@@ -310,6 +312,24 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When its filters are read
             // Then the amount is compared for equality, which is the Equal to option the picker preselects
             expect(rule?.filters).toEqual({left: AMOUNT, operator: EQUAL_TO, right: '3000'});
+        });
+
+        it("matches on expenses missing a part when the picker chose doesn't have", () => {
+            // Given a form matching on expenses that carry no receipt
+            const rule = buildExpenseDefaultRule({hasToMatch: ['receipt'], hasMatchType: NOT_EQUAL_TO, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the check is negated rather than defaulting to a presence match
+            expect(rule?.filters).toEqual({left: HAS, operator: NOT_EQUAL_TO, right: ['receipt']});
+        });
+
+        it('defaults an unset has match type to requiring the part to be present', () => {
+            // Given a form listing parts but no match type, which is what the picker leaves behind
+            const rule = buildExpenseDefaultRule({hasToMatch: ['receipt', 'tag'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the parts are required, which is the Has option the picker preselects
+            expect(rule?.filters).toEqual({left: HAS, operator: EQUAL_TO, right: ['receipt', 'tag']});
         });
 
         it('builds a rule that matches on a submitter alone', () => {

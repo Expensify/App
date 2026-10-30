@@ -9650,6 +9650,7 @@ const translations = {
                 dateMatchTypeOn: 'On',
                 dateMatchTypeBefore: 'Before',
                 dateMatchTypeAfter: 'After',
+                hasOrDoesNotHave: "Has/Doesn't have",
                 amountMatchTypeEqualTo: 'Equal to',
                 amountMatchTypeGreaterThan: 'Greater than',
                 amountMatchTypeLessThan: 'Less than',
