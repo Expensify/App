@@ -2094,7 +2094,7 @@ const hotelPnr: Pnr = {
             room: {
                 roomName: 'Deluxe Suite',
                 cancellationPolicy: {
-                    policy: 'Non-refundable',
+                    policy: CONST.CANCELLATION_POLICY.FREE_CANCELLATION_UNTIL,
                     deadline: {iso8601: '2023-10-04T15:00:00Z'},
                     deadlineUtc: {
                         iso8601: '',
