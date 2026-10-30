@@ -35,7 +35,6 @@ jest.mock('@components/Modal/Global/ModalContext', () => ({
     ModalActions: {CONFIRM: 'CONFIRM', CLOSE: 'CLOSE'},
 }));
 jest.mock('@components/ActivityIndicator', () => () => null);
-jest.mock('@components/HeaderWithBackButton', () => () => null);
 jest.mock('@components/ImportOnyxState', () => () => null);
 jest.mock(
     '@components/ScreenWrapper',

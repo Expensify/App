@@ -782,14 +782,12 @@ function MerchantRulePageBase({
                 includeSafeAreaPaddingBottom
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')}>
-                    <Header.Actions>
-                        {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
+                    {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
                         switch condition type, which the two storage shapes can't express as one edit. A locked category
                         isn't the admin's to clear. */}
-                        {canWriteRules && !isEditingSavedRule && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition) && (
-                            <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
-                        )}
-                    </Header.Actions>
+                    {canWriteRules && !isEditingSavedRule && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition) && (
+                        <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
+                    )}
                     {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                 </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>

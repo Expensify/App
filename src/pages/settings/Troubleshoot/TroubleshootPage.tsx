@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportOnyxState from '@components/ImportOnyxState';
 import MenuItemList from '@components/MenuItemList';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -207,13 +207,9 @@ function TroubleshootPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="TroubleshootPage"
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
-                shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-                shouldUseHeadlineHeader
             />
             <View style={styles.flex1}>
                 <ScrollView contentContainerStyle={styles.pt3}>

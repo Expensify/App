@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
@@ -64,13 +64,9 @@ function PreferencesPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="PreferencesPage"
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 title={translate('common.preferences')}
-                shouldUseHeadlineHeader
-                shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

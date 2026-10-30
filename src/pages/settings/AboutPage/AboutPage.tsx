@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import MenuItemList from '@components/MenuItemList';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -182,13 +182,9 @@ function AboutPage() {
             shouldShowOfflineIndicatorInWideScreen
             testID="AboutPage"
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 title={translate('initialSettingsPage.about')}
-                shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                onBackButtonPress={Navigation.goBack}
-                shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
                 <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
