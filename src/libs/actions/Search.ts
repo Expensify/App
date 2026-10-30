@@ -278,9 +278,6 @@ type HandleActionButtonPressParams = {
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
     confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
-    shouldDisableSearchSubmitPress?: boolean;
-    /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
-    consumeIgnoreNextSearchSubmitPress?: () => boolean;
     currentUserAccountID: number;
     currentUserLogin?: string;
     introSelected?: OnyxEntry<IntroSelected>;
@@ -325,8 +322,6 @@ function handleActionButtonPress({
     confirmSubmitReportViolations,
     currentUserAccountID,
     openReportSubmitToPopover,
-    shouldDisableSearchSubmitPress,
-    consumeIgnoreNextSearchSubmitPress,
     currentUserLogin,
     introSelected,
     isASAPSubmitBetaEnabled,
@@ -433,9 +428,6 @@ function handleActionButtonPress({
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (shouldDisableSearchSubmitPress || consumeIgnoreNextSearchSubmitPress?.()) {
-                return;
-            }
             if (snapshotReport.policyID && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;

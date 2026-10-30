@@ -229,9 +229,12 @@ function TransactionListItemInner<TItem extends ListItem>({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress, shouldIgnoreSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
     const handleActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
+        if (shouldIgnoreSearchSubmitPress(liveTransactionItem.action)) {
+            return;
+        }
         const [conciergeReportID, introSelected, onboarding, amountOwed, bankAccountList] = await Onyx.multiGet([
             ONYXKEYS.CONCIERGE_REPORT_ID,
             ONYXKEYS.NVP_INTRO_SELECTED,
@@ -262,8 +265,6 @@ function TransactionListItemInner<TItem extends ListItem>({
             amountOwed,
             onUndelete: () => onUndelete?.(transactionItem),
             openReportSubmitToPopover,
-            shouldDisableSearchSubmitPress,
-            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             confirmSubmitReportViolations,

@@ -212,7 +212,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress, shouldIgnoreSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = Object.values(reportTransactions);
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
@@ -250,6 +250,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         });
 
     const handleOnButtonPress = async () => {
+        if (shouldIgnoreSearchSubmitPress(liveReportItem.action)) {
+            return;
+        }
         const [conciergeReportID, introSelected, onboarding, amountOwed, bankAccountList] = await Onyx.multiGet([
             ONYXKEYS.CONCIERGE_REPORT_ID,
             ONYXKEYS.NVP_INTRO_SELECTED,
@@ -280,8 +283,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             openReportSubmitToPopover,
-            shouldDisableSearchSubmitPress,
-            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,

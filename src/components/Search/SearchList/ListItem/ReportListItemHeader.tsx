@@ -312,9 +312,12 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress, shouldIgnoreSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
     const handleOnButtonPress = async (event?: ModifiedMouseEvent) => {
+        if (shouldIgnoreSearchSubmitPress(reportItem.action)) {
+            return;
+        }
         const [conciergeReportID, introSelected, onboarding, amountOwed, bankAccountList] = await Onyx.multiGet([
             ONYXKEYS.CONCIERGE_REPORT_ID,
             ONYXKEYS.NVP_INTRO_SELECTED,
@@ -345,8 +348,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             amountOwed,
             confirmSubmitReportViolations,
             openReportSubmitToPopover,
-            shouldDisableSearchSubmitPress,
-            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
