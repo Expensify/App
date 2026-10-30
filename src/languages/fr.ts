@@ -1233,6 +1233,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Conformité',
         runningTotal: 'Total cumulé',
+        upsellState: {
+            title: "Passez à Control pour obtenir plus d'informations",
+            subtitle: 'Suivez les tendances de conformité aux politiques de dépenses et signalez les récidivistes.',
+            button: 'Passer à Control',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

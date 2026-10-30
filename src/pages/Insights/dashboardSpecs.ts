@@ -2,6 +2,8 @@
 
 import type {ChartView, SearchGroupBy} from '@components/Search/types';
 
+import {canEditWorkspaceSettings} from '@libs/PolicyUtils/permissions';
+import {isArchivedOrPendingDeletePolicy, isControlPolicy, isGroupPolicy} from '@libs/PolicyUtils/policyType';
 import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -40,6 +42,9 @@ type InsightsDashboardSpec = {
 
     /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
     isPolicyEligible?: (policy: Policy, login: string | undefined) => boolean;
+
+    /** The dashboard's charts are replaced by the Control upsell when no workspace in scope is on Control */
+    requiresControlPlan?: boolean;
 
     /** Chart across the top of the page, the only one the group-by filter applies to */
     headlineChart: InsightsChartSpec;
@@ -94,6 +99,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         labelKey: 'insightsPage.compliance',
         beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
         isPolicyEligible: canViewAllPolicyData,
+        requiresControlPlan: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
             titleKey: 'insightsPage.compliance',
@@ -103,10 +109,38 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     },
 };
 
-/** Returns the charts that at least one workspace in scope is eligible for. No selected workspaces means every workspace is in scope. */
-function getVisibleCharts(charts: InsightsChartSpec[], policies: OnyxCollection<Policy>, policyIDs: string[], login: string | undefined): InsightsChartSpec[] {
-    const policiesInScope = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+/** Returns the workspaces the filter leaves in scope. No selected workspaces means every workspace is in scope. */
+function getPoliciesInScope(policies: OnyxCollection<Policy>, policyIDs: string[]): Policy[] {
+    return Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && (policyIDs.length === 0 || policyIDs.includes(policy.id)));
+}
+
+/** Returns the charts that at least one workspace in scope is eligible for. */
+function getVisibleCharts(charts: InsightsChartSpec[], policiesInScope: Policy[], login: string | undefined): InsightsChartSpec[] {
     return charts.filter(({isPolicyEligible}) => !isPolicyEligible || policiesInScope.some((policy) => isPolicyEligible(policy, login)));
+}
+
+/**
+ * Whether the dashboard needs Control but no workspace in scope can feed it, so the upsell stands in for the charts.
+ * A Control workspace only counts when it would produce charts, so archived ones and ones the user can see no data for are ignored.
+ */
+function shouldUpsellControlPlan(dashboardID: InsightsDashboardID, policiesInScope: Policy[], login: string | undefined): boolean {
+    const {requiresControlPlan, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    if (!requiresControlPlan) {
+        return false;
+    }
+    return !policiesInScope.some((policy) => isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && (!isPolicyEligible || isPolicyEligible(policy, login)));
+}
+
+/**
+ * The workspace the upsell's CTA pre-selects: the one in scope the user could upgrade.
+ * Returns undefined when none or several qualify, leaving the user to pick one from the workspace list.
+ * Eligibility mirrors the upgrade page's own gate so the CTA never lands on a not-found page.
+ */
+function getUpgradeablePolicyIDInScope(policiesInScope: Policy[], login: string | undefined): string | undefined {
+    const upgradeable = policiesInScope.filter(
+        (policy) => isGroupPolicy(policy) && !isControlPolicy(policy) && !isArchivedOrPendingDeletePolicy(policy) && canEditWorkspaceSettings(policy, login),
+    );
+    return upgradeable.length === 1 ? upgradeable.at(0)?.id : undefined;
 }
 
 /** Returns the dashboards the user can open, ignoring the workspace filter. */
@@ -118,6 +152,6 @@ function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string
     });
 }
 
-export {getAccessibleDashboards, getVisibleCharts};
+export {getAccessibleDashboards, getPoliciesInScope, getUpgradeablePolicyIDInScope, getVisibleCharts, shouldUpsellControlPlan};
 export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;
