@@ -158,6 +158,6 @@ function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string
     });
 }
 
-export {getAccessibleDashboards, getVisibleCharts};
+export {getAccessibleDashboards, getVisibleCharts, VIOLATION_HAS_VALUES};
 export type {InsightsChartSpec};
 export default INSIGHTS_DASHBOARD_SPECS;

@@ -86,7 +86,11 @@ describe('insightsQueries', () => {
                 searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE,
                 filters: {
                     operator: 'and',
-                    left: {operator: 'eq', left: 'groupCurrency', right: 'USD'},
+                    left: {
+                        operator: 'and',
+                        left: {operator: 'eq', left: 'groupCurrency', right: 'USD'},
+                        right: {operator: 'eq', left: 'has', right: ['submitted-violation', 'approved-violation']},
+                    },
                     right: {
                         operator: 'or',
                         left: {operator: 'eq', left: 'anySubmission', right: 'year-to-date'},
@@ -128,8 +132,12 @@ describe('insightsQueries', () => {
                     operator: 'and',
                     left: {
                         operator: 'and',
-                        left: {operator: 'eq', left: 'groupCurrency', right: 'USD'},
-                        right: {operator: 'eq', left: 'policyID', right: 'A1'},
+                        left: {
+                            operator: 'and',
+                            left: {operator: 'eq', left: 'groupCurrency', right: 'USD'},
+                            right: {operator: 'eq', left: 'policyID', right: 'A1'},
+                        },
+                        right: {operator: 'eq', left: 'has', right: ['submitted-violation', 'approved-violation']},
                     },
                     right: {
                         operator: 'or',

@@ -9,7 +9,7 @@ import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@sr
 import type {InsightsChartSpec} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
 
-import INSIGHTS_DASHBOARD_SPECS from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {VIOLATION_HAS_VALUES} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 
 /** How many periods before the selected date range the Average mode spans */
@@ -57,7 +57,7 @@ function buildComplianceFilters(filters: InsightsFilters) {
         left: buildStageFilter('anySubmission'),
         right: buildStageFilter('anyApproval'),
     };
-    const commonFilters = buildSearchQueryJSON(buildQueryStringFromFilterFormValues(buildFilterFormValues(filters, false)))?.filters;
+    const commonFilters = buildSearchQueryJSON(buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters, false), has: VIOLATION_HAS_VALUES}))?.filters;
 
     return commonFilters ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: commonFilters, right: actionDates} : actionDates;
 }
