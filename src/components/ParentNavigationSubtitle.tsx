@@ -8,11 +8,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, isReportActionVisible} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, getPolicyExpenseChat, isExpenseReport, isMoneyRequestReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
@@ -20,8 +21,10 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 
 import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import {getReportHasParentAccess} from '@selectors/Report';
@@ -67,6 +70,11 @@ type ParentNavigationSubtitleProps = {
     shouldShowFromPrefix?: boolean;
 };
 
+/** Picks the fields that find a report's parent, so the subtitle doesn't re-render when other fields of the report change */
+function parentNavigationReportSelector(report: OnyxEntry<Report>) {
+    return report && {hasParentAccess: getReportHasParentAccess(report), isExpenseReport: isExpenseReport(report), ownerAccountID: report.ownerAccountID, policyID: report.policyID};
+}
+
 function ParentNavigationSubtitle({
     parentNavigationSubtitleData,
     reportID = '',
@@ -100,12 +108,16 @@ function ParentNavigationSubtitle({
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
-    const [hasParentAccess] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportHasParentAccess});
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
-    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(parentReportID)});
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: parentNavigationReportSelector});
+    const hasParentAccess = currentReport?.hasParentAccess;
+    const policyExpenseChat = !parentReportID && currentReport?.isExpenseReport ? getPolicyExpenseChat(currentReport.ownerAccountID, currentReport.policyID) : undefined;
+    const parentNavigationReportID = parentReportID || policyExpenseChat?.reportID;
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
+    const report = parentReport ?? policyExpenseChat;
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {selector: reportVisibleActionsSelector(parentNavigationReportID)});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const hasAccessToParentReport = hasParentAccess !== false;
+    const hasAccessToParentReport = !!parentNavigationReportID && hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         // Find the tab navigator, which wraps all full-screen navigators
         const tabNavigatorRoute = state?.routes?.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
@@ -141,8 +153,12 @@ function ParentNavigationSubtitle({
     }
 
     const onPress = () => {
-        const parentAction = getReportAction(parentReportID, parentReportActionID);
-        const isVisibleAction = isReportActionVisible(parentAction, parentReportID, canUserPerformWriteAction, visibleReportActionsData);
+        if (!parentNavigationReportID) {
+            return;
+        }
+
+        const parentAction = getReportAction(parentNavigationReportID, parentReportActionID);
+        const isVisibleAction = isReportActionVisible(parentAction, parentNavigationReportID, canUserPerformWriteAction, visibleReportActionsData);
 
         const focusedNavigatorState = currentFocusedNavigator?.state;
         const currentReportIndex = focusedNavigatorState?.index;
@@ -156,24 +172,24 @@ function ParentNavigationSubtitle({
 
                     if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
                         const moneyRequestReportID = (previousRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT])?.reportID;
-                        if (moneyRequestReportID === parentReportID) {
+                        if (moneyRequestReportID === parentNavigationReportID) {
                             Navigation.goBack();
                             return;
                         }
                     }
                 }
 
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: parentReportID}));
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: parentNavigationReportID}));
                 return;
             }
 
-            if (Navigation.getTopmostSuperWideRHPReportID() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+            if (Navigation.getTopmostSuperWideRHPReportID() === parentNavigationReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 Navigation.dismissToSuperWideRHP();
                 return;
             }
 
             // If the parent report is already displayed underneath RHP, simply dismiss the modal
-            if (Navigation.getTopmostReportId() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+            if (Navigation.getTopmostReportId() === parentNavigationReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 Navigation.dismissModal();
                 return;
             }
@@ -192,7 +208,7 @@ function ParentNavigationSubtitle({
                 (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || previousRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) &&
                 previousRoute.params &&
                 'reportID' in previousRoute.params &&
-                previousRoute.params.reportID === parentReportID
+                previousRoute.params.reportID === parentNavigationReportID
             ) {
                 Navigation.goBack();
                 return;
@@ -207,7 +223,7 @@ function ParentNavigationSubtitle({
                 (lastRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT && currentFullScreenRoute?.name === SCREENS.HOME)
             ) {
                 const backTo = currentFullScreenRoute?.name === SCREENS.HOME ? Navigation.getActiveRoute() : undefined;
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: parentReportActionID, backTo}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentNavigationReportID, reportActionID: parentReportActionID, backTo}));
                 return;
             }
 
@@ -219,7 +235,7 @@ function ParentNavigationSubtitle({
                 const topRoute = fullScreenState?.routes?.[fullScreenState.index ?? 0];
                 const topRouteReportID = topRoute?.params && 'reportID' in topRoute.params ? String(topRoute.params.reportID) : undefined;
 
-                if (topRouteReportID === parentReportID && topRoute?.key && fullScreenState?.key) {
+                if (topRouteReportID === parentNavigationReportID && topRoute?.key && fullScreenState?.key) {
                     if (isVisibleAction && parentReportActionID) {
                         Navigation.setParams({reportActionID: parentReportActionID}, topRoute.key, fullScreenState.key);
                     }
@@ -233,11 +249,11 @@ function ParentNavigationSubtitle({
             // would yank the user to Inbox.
             if (isReportInRHP) {
                 if (!isSmallScreenWidth && isMoneyRequestReport(report)) {
-                    Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: parentReportID}));
+                    Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: parentNavigationReportID}));
                     return;
                 }
 
-                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentReportID, reportActionID: isVisibleAction ? parentReportActionID : undefined}));
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: parentNavigationReportID, reportActionID: isVisibleAction ? parentReportActionID : undefined}));
                 return;
             }
         }
@@ -250,7 +266,7 @@ function ParentNavigationSubtitle({
             const prevRoute = focusedNavigatorState.routes[(currentReportIndex ?? 0) - 1];
             const prevRouteReportID = prevRoute?.params && 'reportID' in prevRoute.params ? String(prevRoute.params.reportID) : undefined;
 
-            if (prevRouteReportID === parentReportID && prevRoute?.key) {
+            if (prevRouteReportID === parentNavigationReportID && prevRoute?.key) {
                 if (isVisibleAction && parentReportActionID) {
                     // Set params on the background screen first so it is already correct when revealed.
                     Navigation.setParams({reportActionID: parentReportActionID}, prevRoute.key, focusedNavigatorState.key);
@@ -261,9 +277,9 @@ function ParentNavigationSubtitle({
         }
 
         if (isVisibleAction) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID, parentReportActionID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentNavigationReportID, parentReportActionID));
         } else {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentReportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(parentNavigationReportID));
         }
     };
 

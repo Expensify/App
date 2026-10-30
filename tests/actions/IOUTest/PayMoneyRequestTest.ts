@@ -2287,6 +2287,55 @@ describe('actions/IOU/PayMoneyRequest', () => {
             mockFetch?.resume?.();
         });
 
+        it('sends a cancellation request for a bill without a chat report', async () => {
+            // Given a bill with a cancellable ACH payment and no chat report.
+            const policy: Policy = {
+                ...createRandomPolicy(100),
+                role: CONST.POLICY.ROLE.ADMIN,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            };
+            const billReport: Report = {
+                ...createRandomReport(100, undefined),
+                type: CONST.REPORT.TYPE.BILL,
+                policyID: policy.id,
+                managerID: CARLOS_ACCOUNT_ID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                total: -amount,
+                nonReimbursableTotal: 0,
+                canCancelReimbursement: true,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReport.reportID}`, billReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            const writeSpy = jest.spyOn(APIActions, 'write').mockImplementation(jest.fn());
+            try {
+                // When the receiver confirms cancellation.
+                cancelPayment(billReport, undefined, policy, false, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined);
+
+                // Then the app sends CancelPayment for the bill without requiring a chat report.
+                const [command, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                expect(command).toBe(WRITE_COMMANDS.CANCEL_PAYMENT);
+                expect(parameters).toMatchObject({iouReportID: billReport.reportID});
+                expect(parameters).not.toHaveProperty('chatReportID');
+
+                // And a failed cancellation restores the bill's state as well as its status
+                const reportRollback = getRequiredOnyxUpdate(
+                    getRequiredWriteCall(writeSpy.mock.calls, 0)[2],
+                    'failureData',
+                    `${ONYXKEYS.COLLECTION.REPORT}${billReport.reportID}`,
+                    Onyx.METHOD.MERGE,
+                    true,
+                ).value;
+                expect(reportRollback).toMatchObject({stateNum: billReport.stateNum, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
         it('pendingAction is not null after canceling the payment failed', async () => {
             let expenseReport: OnyxEntry<Report>;
             let chatReport: OnyxEntry<Report>;
