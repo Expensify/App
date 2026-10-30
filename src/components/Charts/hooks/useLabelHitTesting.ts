@@ -1,4 +1,4 @@
-import type {LabelRotation} from '@components/Charts/types';
+import type {LabelRotation, WrappedLabelConfig} from '@components/Charts/types';
 import {getAdditionalOffset, getFontLineMetrics, isCursorOverChartLabel, rotatedLabelYOffset} from '@components/Charts/utils';
 import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD} from '@components/Charts/VictoryTheme';
 
@@ -46,6 +46,9 @@ type UseLabelHitTestingParams = {
     labelRotation: LabelRotation;
     labelSkipInterval: number;
     chartBottom: SharedValue<number>;
+
+    /** When set, labels are hit-tested as horizontal boxes centered on each tick, spanning the full bar column and the wrapped lines. Used for wrapped bar-name labels. */
+    wrapConfig?: WrappedLabelConfig;
 };
 
 /**
@@ -61,12 +64,26 @@ type UseLabelHitTestingParams = {
  * Labels are right-aligned at the tick: the 45° parallelogram's upper-right corner is
  * offset by (iconSize/3 * sinA) left and down, placing the box just below the axis line.
  */
-function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelRotation, labelSkipInterval, chartBottom}: UseLabelHitTestingParams) {
+function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelRotation, labelSkipInterval, chartBottom, wrapConfig}: UseLabelHitTestingParams) {
     const tickXPositions = useSharedValue<number[]>([]);
 
     const angleRad = (Math.abs(labelRotation) * Math.PI) / 180;
 
     const fontMetrics = fontManager ? getFontLineMetrics(fontManager, fontSize) : null;
+
+    // Wrapped bar labels are horizontal boxes centered on each tick spanning the full bar column, so a
+    // non-empty label's hit area always covers its painted text even when ChartXAxisLabels nudges an edge
+    // label inward to avoid canvas-edge clipping (the nudge keeps the longest line within the column).
+    // The height spans the wrapped lines below the axis gap, from wrapConfig so the box matches the
+    // reserved and painted label area. Empty labels keep a zero width so they stay non-interactive.
+    const wrapHitGeometry =
+        wrapConfig && wrapConfig.lineHeight > 0
+            ? {
+                  halfWidths: wrapConfig.hasLabel.map((present) => (present ? wrapConfig.columnWidth / 2 : 0)),
+                  topOffset: VictoryTheme.axis.xAxisLabelGap,
+                  boxHeight: wrapConfig.maxLines * wrapConfig.lineHeight,
+              }
+            : null;
 
     let labelHitGeometry: LabelHitGeometry | null = null;
     if (fontMetrics) {
@@ -89,10 +106,20 @@ function useLabelHitTesting({fontManager, fontSize, truncatedLabelWidths, labelR
 
     /**
      * Hit-tests whether the cursor is over the x-axis label at `activeIndex`.
-     * Supports 0°, ~45° (parallelogram), and 90° label orientations.
+     * Supports wrapped horizontal boxes, and 0°, ~45° (parallelogram), and 90° label orientations.
      */
     const isCursorOverLabel = (args: HitTestArgs, activeIndex: number): boolean => {
         'worklet';
+
+        if (wrapHitGeometry) {
+            const halfWidth = wrapHitGeometry.halfWidths.at(activeIndex) ?? 0;
+            if (halfWidth === 0) {
+                return false;
+            }
+            const top = args.chartBottom + wrapHitGeometry.topOffset;
+            const bottom = top + wrapHitGeometry.boxHeight;
+            return args.cursorX >= args.targetX - halfWidth && args.cursorX <= args.targetX + halfWidth && args.cursorY >= top && args.cursorY <= bottom;
+        }
 
         if (!labelHitGeometry || activeIndex % labelSkipInterval !== 0) {
             return false;

@@ -7,12 +7,16 @@ import {
     appendTimeToFileName,
     canvasFallback,
     createFile,
+    getConvertedJpegFileName,
+    getDownloadFileName,
     getExportFileName,
     getExtensionFromMimeType,
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
     isHighResolutionImage,
+    isLabelledDng,
+    isLabelledTiff,
     resizeImageIfNeeded,
     splitExtensionFromFileName,
 } from '@libs/fileDownload/FileUtils';
@@ -634,6 +638,142 @@ describe('FileUtils', () => {
 
             expect(result.title).toBe('');
             expect(result.reason).toBe('');
+        });
+    });
+
+    describe('isLabelledTiff', () => {
+        it.each([
+            ['an Android gallery DNG', {name: 'PXL_20260101.dng', type: 'image/x-adobe-dng'}],
+            ['a document-picked DNG with an upper-case extension', {name: 'IMG_0001.DNG', type: 'image/x-adobe-dng'}],
+            ['a DNG the platform gave no MIME type', {name: 'PXL_20260101.dng', type: null}],
+            ['a TIFF by MIME type only', {name: 'scan', type: 'image/tiff'}],
+            ['a .tif by extension only', {name: 'scan.tif', type: null}],
+            ['a .tiff by extension only', {name: 'scan.tiff', type: undefined}],
+        ])('recognizes %s', (description, file) => {
+            // Given a file labelled as TIFF/DNG by at least one of its name or MIME type
+            // When checked
+            // Then it is treated as a TIFF/DNG so the picker transcodes it
+            expect(isLabelledTiff(file)).toBe(true);
+        });
+
+        it.each([
+            ['an iOS gallery pick relabelled as JPEG', {name: '1A2B.jpg', type: 'image/jpg'}],
+            ['a HEIC', {name: 'photo.heic', type: 'image/heic'}],
+            ['a PDF', {name: 'receipt.pdf', type: 'application/pdf'}],
+            ['a file with no name or type', {name: null, type: null}],
+            ['a file whose name merely contains the extension', {name: 'dng-notes.txt', type: 'text/plain'}],
+        ])('does not match %s', (description, file) => {
+            // Given a file that isn't labelled as TIFF/DNG (an iOS gallery pick has to be sniffed by magic bytes instead)
+            // When checked
+            // Then it is left alone
+            expect(isLabelledTiff(file)).toBe(false);
+        });
+    });
+
+    describe('isLabelledDng', () => {
+        it.each([
+            ['a DNG by extension', {name: 'IMG_0001.DNG', type: null}, true],
+            ['a DNG by MIME type', {name: 'photo', type: 'image/x-adobe-dng'}, true],
+            ['a plain TIFF', {name: 'scan.tiff', type: 'image/tiff'}, false],
+            ['a JPEG', {name: 'photo.jpg', type: 'image/jpeg'}, false],
+            ['nothing', {name: null, type: null}, false],
+        ])('returns %s for %s', (description, file, expected) => {
+            // Given a file label
+            // When checked for DNG specifically
+            // Then only DNGs match, since TIFFs are an accepted receipt format and must not be swept up with them
+            expect(isLabelledDng(file)).toBe(expected);
+        });
+    });
+
+    describe('getConvertedJpegFileName', () => {
+        it.each([
+            ['swaps a DNG extension for .jpg', 'IMG_0001.DNG', 'IMG_0001.jpg'],
+            ['swaps a HEIC extension for .jpg', 'photo.heic', 'photo.jpg'],
+            ['keeps a relabelled .jpg name as-is', 'D1F3.jpg', 'D1F3.jpg'],
+            ['appends .jpg to a name with no extension', 'raw', 'raw.jpg'],
+            ['keeps dots inside the base name', 'trip.day 2.dng', 'trip.day 2.jpg'],
+        ])('%s', (description, originalFileName, expected) => {
+            // Given the name the picker returned for an image about to be transcoded
+            // When the JPEG's name is derived from it
+            // Then the user's name is kept and only the extension changes, so the upload doesn't get the converter's random name
+            expect(getConvertedJpegFileName(originalFileName, 'ABCD.jpg')).toBe(expected);
+        });
+
+        it.each([undefined, null, ''])('falls back to the converted file name when the picker gave %p', (originalFileName) => {
+            // Given a picker that returned no file name
+            // When the JPEG's name is derived
+            // Then the name of the file the converter saved is used, since there is no picked name to keep
+            expect(getConvertedJpegFileName(originalFileName, 'ABCD.jpg')).toBe('ABCD.jpg');
+        });
+    });
+
+    describe('getDownloadFileName', () => {
+        const source = 'https://staging.expensify.com/chat-attachments/123/w_9cb3daa39e7b4276ab18285ee51d65b461b38aa5.csv';
+
+        it('leaves a name that already carries its extension alone', () => {
+            // Given a display name that already ends in the stored file extension
+            const displayName = 'PerDiem-2024-11-21_10_02_48.939.csv';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the name is used as is, with no second extension appended
+            expect(downloadName).toBe('PerDiem-2024-11-21_10_02_48.939.csv');
+        });
+
+        it('takes the extension from the source when a rename dropped it', () => {
+            // Given a label the author renamed to something without an extension
+            const displayName = '1234';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the stored file extension is appended so the download still opens as a csv
+            expect(downloadName).toBe('1234.csv');
+        });
+
+        it('appends the extension when the only dot in the name is not an extension', () => {
+            // Given a label whose only dot is part of the text rather than an extension
+            const displayName = 'Q3.2026 numbers';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the stored file extension is still appended
+            expect(downloadName).toBe('Q3.2026 numbers.csv');
+        });
+
+        it('keeps the source extension even when the name ends in a different one', () => {
+            // Given a label that ends in a different extension from the stored file
+            const displayName = 'report.txt';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the stored file extension wins, since it is the real file type
+            expect(downloadName).toBe('report.txt.csv');
+        });
+
+        it('matches the extension case-insensitively', () => {
+            // Given a label that carries the stored file extension in upper case
+            const displayName = 'report.CSV';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, source);
+
+            // Then the extension is recognized and not appended again
+            expect(downloadName).toBe('report.CSV');
+        });
+
+        it('leaves the name alone when the source has no extension either', () => {
+            // Given a label without an extension, stored under a URL that has none to borrow
+            const displayName = '1234';
+
+            // When the download name is built from it
+            const downloadName = getDownloadFileName(displayName, 'https://staging.expensify.com/chat-attachments/123/w_9cb3daa');
+
+            // Then the name is left as is rather than gaining an empty extension
+            expect(downloadName).toBe('1234');
         });
     });
 

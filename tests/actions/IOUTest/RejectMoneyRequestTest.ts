@@ -9,7 +9,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report} from '@src/types/onyx';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -22,6 +22,7 @@ import type {MockFetch} from '../../utils/TestHelper';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -785,7 +786,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID, undefined);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -804,7 +805,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, true, rejectViolations, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, true, rejectViolations, iouReport.reportID, undefined);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
@@ -827,7 +828,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved
-            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID, undefined);
             await waitForBatchedUpdates();
 
             // Then: API.write should be called with the correct command and transactionID
@@ -849,7 +850,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved while online
-            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, iouReport.reportID, undefined);
             await waitForBatchedUpdates();
 
             // Then: notifyNewAction should be called
@@ -867,7 +868,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             }
 
             // When: Mark violation as resolved without reportID
-            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, undefined);
+            markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, undefined, undefined);
             await waitForBatchedUpdates();
 
             // Then: API.write should not be called
@@ -898,7 +899,7 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             ];
 
             // When: Mark violation as resolved with the passed violations
-            markRejectViolationAsResolved(transaction.transactionID, false, passedViolations, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, passedViolations, iouReport.reportID, undefined);
             await waitForBatchedUpdates();
 
             // Then: the optimistic update removes only AUTO_REPORTED_REJECTED_EXPENSE and keeps the other
@@ -917,6 +918,92 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             );
 
             writeSpy.mockRestore();
+        });
+
+        describe('when the resolved report is a transaction thread', () => {
+            const threadReportID = '2';
+            let iouAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            let secondIOUAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+
+            beforeEach(async () => {
+                if (!transaction?.transactionID || !iouReport?.reportID) {
+                    throw new Error('Required transaction or report data is missing');
+                }
+                iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                    reportActionID: '10',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    childReportID: threadReportID,
+                    message: [{type: 'COMMENT', html: 'USD 1.00 expense', text: 'USD 1.00 expense'}],
+                    originalMessage: {
+                        IOUTransactionID: transaction.transactionID,
+                        IOUReportID: iouReport.reportID,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: 100,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                });
+                secondIOUAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                    reportActionID: '11',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    childReportID: '3',
+                    message: [{type: 'COMMENT', html: 'USD 2.00 expense', text: 'USD 2.00 expense'}],
+                    originalMessage: {
+                        IOUTransactionID: 'other-transaction',
+                        IOUReportID: iouReport.reportID,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: 200,
+                        currency: CONST.CURRENCY.USD,
+                    },
+                });
+                const threadReport: Report = {...createRandomReport(Number(threadReportID), undefined), parentReportID: iouReport.reportID, parentReportActionID: iouAction.reportActionID};
+
+                // The shared fixture has no report type, and only IOU, expense and invoice reports can be one-transaction reports
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {type: CONST.REPORT.TYPE.IOU});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, threadReport);
+                await waitForBatchedUpdates();
+            });
+
+            it('should notify the parent report when the passed parent report actions show the thread is its only expense', async () => {
+                // eslint-disable-next-line rulesdir/no-multiple-api-calls
+                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+                const {notifyNewAction} = require('@src/libs/actions/Report/reportActionSubscribers');
+
+                if (!transaction?.transactionID || !iouReport?.reportID) {
+                    throw new Error('Required transaction or report data is missing');
+                }
+
+                // Given the parent's actions hold a single IOU action whose child is the thread
+                const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+                // When marking the violation as resolved from the thread
+                markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, threadReportID, parentReportActions);
+                await waitForBatchedUpdates();
+
+                // Then the new action is announced on the one-transaction parent, which is the report the user is looking at
+                expect(notifyNewAction).toHaveBeenCalledWith(iouReport.reportID, undefined, true);
+                writeSpy.mockRestore();
+            });
+
+            it('should notify the thread itself when the passed parent report actions hold more than one expense', async () => {
+                // eslint-disable-next-line rulesdir/no-multiple-api-calls
+                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+                const {notifyNewAction} = require('@src/libs/actions/Report/reportActionSubscribers');
+
+                if (!transaction?.transactionID) {
+                    throw new Error('Required transaction data is missing');
+                }
+
+                // Given the parent's actions hold two expenses, so it is not a one-transaction report
+                const parentReportActions = {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction};
+
+                // When marking the violation as resolved from the thread
+                markRejectViolationAsResolved(transaction.transactionID, false, rejectViolations, threadReportID, parentReportActions);
+                await waitForBatchedUpdates();
+
+                // Then the new action is announced on the thread, because the parent still shows the full expense list
+                expect(notifyNewAction).toHaveBeenCalledWith(threadReportID, undefined, true);
+                writeSpy.mockRestore();
+            });
         });
     });
 });

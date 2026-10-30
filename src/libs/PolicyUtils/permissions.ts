@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 
 import {isArchivedPolicy, isControlPolicy, isSubmitPolicy} from './policyType';
 
@@ -45,8 +45,8 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
  * Only a member who was invited to the chat can be removed from it. Everybody else is there by virtue of the
  * workspace configuration, so their membership is governed by that configuration and not by this screen — see the
  * expense chat rules in `contributingGuides/philosophies/SECURITY.md`. That covers admins, the policy owner,
- * approvers, who are auto-added to the chats of everybody who submits to them, and auditors, who are default members
- * of every workspace chat.
+ * approvers, who are auto-added to the chats of everybody who submits to them, and members with read-only access to all
+ * reports (auditors and payments admins), who are default members of every workspace chat.
  *
  * Fails closed on a missing `login`: without one we cannot resolve the member's role, and offering removal for a
  * member whose role is unknown could remove a workspace admin. Both the member list and the member details page must
@@ -65,14 +65,14 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
  * protection, so every caller must state it even when it is `undefined`.
  */
 const isRoomMemberProtectedByPolicyRole = (policy: OnyxInputOrEntry<Policy>, login: string | undefined, accountID: number | undefined): boolean =>
-    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || isPolicyAuditor(policy, login, false) || isPolicyApprover(policy, login);
+    isPolicyOwner(policy, accountID) || !login || isPolicyAdmin(policy, login, false) || hasReadOnlyAllReportsAccess(policy, login, false) || isPolicyApprover(policy, login);
 
 const ALL_POLICY_FEATURES = Object.values(CONST.POLICY.POLICY_FEATURE);
 
-function buildFeatureAccessMap(access: PolicyFeatureAccess, excludedFeature?: PolicyFeature): Partial<Record<PolicyFeature, PolicyFeatureAccess>> {
+function buildFeatureAccessMap(access: PolicyFeatureAccess, excludedFeatures: PolicyFeature[] = []): Partial<Record<PolicyFeature, PolicyFeatureAccess>> {
     const features: Partial<Record<PolicyFeature, PolicyFeatureAccess>> = {};
     for (const feature of ALL_POLICY_FEATURES) {
-        if (feature === excludedFeature) {
+        if (excludedFeatures.includes(feature)) {
             continue;
         }
         features[feature] = access;
@@ -84,47 +84,71 @@ const WRITE_ALL_POLICY_FEATURES = buildFeatureAccessMap(CONST.POLICY.POLICY_FEAT
 
 const READ_ALL_POLICY_FEATURES = buildFeatureAccessMap(CONST.POLICY.POLICY_FEATURE_ACCESS.READ);
 
-const EDITOR_POLICY_FEATURES = buildFeatureAccessMap(CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES);
+// Editor inherits every feature except the ones that only elevated roles hold.
+const EDITOR_POLICY_FEATURES = buildFeatureAccessMap(CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE, [CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES, CONST.POLICY.POLICY_FEATURE.ALL_REPORTS]);
 
 const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, PolicyFeatureAccess>>> = {
     [CONST.POLICY.ROLE.ADMIN]: WRITE_ALL_POLICY_FEATURES,
     [CONST.POLICY.ROLE.EDITOR]: EDITOR_POLICY_FEATURES,
+    // Auditors get read-only access to workspace settings, write access to chat rooms, and can create expenses.
     [CONST.POLICY.ROLE.AUDITOR]: {
         ...READ_ALL_POLICY_FEATURES,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
     [CONST.POLICY.ROLE.USER]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.AGENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
+    [CONST.POLICY.ROLE.APPROVE_ONLY]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     },
     [CONST.POLICY.ROLE.GUEST]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
     [CONST.POLICY.ROLE.CARD_ADMIN]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.AGENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
     [CONST.POLICY.ROLE.PEOPLE_ADMIN]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.AGENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
     },
     [CONST.POLICY.ROLE.PAYMENTS_ADMIN]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.AGENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.WORKFLOWS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
         [CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.ALL_REPORTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     },
 };
 
-const CONTROL_POLICY_ONLY_ROLES = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.GUEST, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
+const CONTROL_POLICY_ONLY_ROLES = [
+    CONST.POLICY.ROLE.AUDITOR,
+    CONST.POLICY.ROLE.GUEST,
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.APPROVE_ONLY,
+];
 
 function isControlPolicyOnlyRole(role: string | undefined): boolean {
     return CONTROL_POLICY_ONLY_ROLES.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === role);
@@ -156,13 +180,33 @@ function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature
     return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
 }
 
+/**
+ * Whether the role can see every workspace report but can't administer them. Today that means Auditor and Payments Admin.
+ * These members must not get room administration, such as editing a room's avatar or description.
+ *
+ * When `login` belongs to somebody other than the current user, it must be passed so the role comes from the employee list.
+ */
+function hasReadOnlyAllReportsAccess(policy: OnyxInputOrEntry<Policy>, login?: string, shouldCheckGlobalPolicyRole = true): boolean {
+    const role = getPolicyRole(policy, login, shouldCheckGlobalPolicyRole);
+    if (!role) {
+        return false;
+    }
+
+    // Downgrading to Team changes the policy type before the stale role is cleared, so the type must be checked too.
+    if (isControlPolicyOnlyRole(role) && (!policy || !isControlPolicy(policy))) {
+        return false;
+    }
+
+    return ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.ALL_REPORTS] === CONST.POLICY.POLICY_FEATURE_ACCESS.READ;
+}
+
 function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, role: string | undefined): boolean {
     if (!role) {
         return false;
     }
 
-    // Guest role assignment is temporarily disabled until the remaining guest issues are fixed.
-    if (role === CONST.POLICY.ROLE.GUEST) {
+    // Approve-only role assignment is temporarily disabled.
+    if (role === CONST.POLICY.ROLE.APPROVE_ONLY) {
         return false;
     }
 
@@ -175,11 +219,35 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return true;
     }
 
-    // Reaching here: USER always, plus GUEST/AUDITOR only on corporate policies (control-only roles are
-    // already filtered out on non-corporate policies above). Assigning USER/GUEST/AUDITOR needs the
-    // MEMBERS permission, and only on corporate policies.
-    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.GUEST || role === CONST.POLICY.ROLE.AUDITOR;
+    // Reaching here: USER always, plus GUEST/AUDITOR/APPROVE_ONLY only on corporate policies (control-only roles are
+    // already filtered out on non-corporate policies above). Assigning these needs the
+    // MEMBERS permission, and only on corporate policies. The following roles stay within a People Admin's
+    // authority because they are less permissive than the "People Admin" role.
+    const isNonElevatedRole = role === CONST.POLICY.ROLE.USER || role === CONST.POLICY.ROLE.GUEST || role === CONST.POLICY.ROLE.AUDITOR || role === CONST.POLICY.ROLE.APPROVE_ONLY;
     return isCorporatePolicy && canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.MEMBERS) && isNonElevatedRole;
+}
+
+/**
+ * The roles a member can be moved to, in the order the role selector lists them. Owner and Editor are left out
+ * because neither is assignable through the role selector.
+ */
+const SELECTABLE_ROLES = [
+    CONST.POLICY.ROLE.ADMIN,
+    CONST.POLICY.ROLE.AUDITOR,
+    CONST.POLICY.ROLE.GUEST,
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.USER,
+    CONST.POLICY.ROLE.APPROVE_ONLY,
+] as const;
+
+/**
+ * The roles the given member may assign on this policy, optionally narrowed to a permitted set (for example an
+ * Authorized Payer may only hold a role that can pay).
+ */
+function getSelectableRoles(policy: OnyxInputOrEntry<Policy>, login: string, allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>): Array<ValueOf<typeof CONST.POLICY.ROLE>> {
+    return SELECTABLE_ROLES.filter((role) => canMemberAssignRole(policy, login, role) && (!allowedRoles || allowedRoles.includes(role)));
 }
 
 // Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
@@ -214,6 +282,35 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
 }
 
 /**
+ * Workspace roles from highest to lowest privilege, matching the role hierarchy in Auth.
+ */
+const POLICY_ROLE_RANKING = [
+    CONST.POLICY.ROLE.ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.AUDITOR,
+    CONST.POLICY.ROLE.EDITOR,
+    CONST.POLICY.ROLE.USER,
+    CONST.POLICY.ROLE.APPROVE_ONLY,
+    CONST.POLICY.ROLE.GUEST,
+] as const;
+
+/**
+ * Returns the highest-privilege role held across the given policies.
+ * Defaults to user when no ranked role is found, so a member on any workspace is not reported as a guest.
+ */
+function getHighestPolicyRole(policyList: Array<OnyxInputOrEntry<Pick<Policy, 'role'>>>): TupleToUnion<typeof POLICY_ROLE_RANKING> {
+    const roles = new Set(policyList.map((policy) => policy?.role));
+    for (const rankedRole of POLICY_ROLE_RANKING) {
+        if (roles.has(rankedRole)) {
+            return rankedRole;
+        }
+    }
+    return CONST.POLICY.ROLE.USER;
+}
+
+/**
  * Whether the given role is allowed to pay (reimburse) on a workspace.
  */
 function canRolePay(role: string | undefined): boolean {
@@ -225,6 +322,14 @@ function canRolePay(role: string | undefined): boolean {
  * Authorized Payer (reimburser) must always hold one of these, so any role change for a payer is restricted to this set.
  */
 const PAYER_ROLES = Object.values(CONST.POLICY.ROLE).filter(canRolePay);
+
+function canRoleCreateExpenses(role: string | undefined): boolean {
+    return !!role && ROLE_PERMISSION_BUNDLES[role]?.[CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES] === CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE;
+}
+
+function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
+    return canRoleCreateExpenses(getPolicyRole(policy, login, false) ?? policy?.role);
+}
 
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: string) {
@@ -297,15 +402,21 @@ function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: stri
 export {
     isPolicyAdmin,
     isPolicyOwner,
+    POLICY_ROLE_RANKING,
     isRoomMemberProtectedByPolicyRole,
     isControlPolicyOnlyRole,
     canMemberRead,
     canMemberWrite,
+    hasReadOnlyAllReportsAccess,
     canMemberAssignRole,
+    getSelectableRoles,
     canMemberAssignElevatedRole,
     canMemberManageMemberWithRole,
     getPolicyRole,
+    getHighestPolicyRole,
     canRolePay,
+    canRoleCreateExpenses,
+    canCreateExpensesOnPolicy,
     PAYER_ROLES,
     isPolicyApprover,
     getPolicyApproverLogins,

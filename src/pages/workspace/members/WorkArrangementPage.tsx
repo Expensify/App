@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -6,24 +6,29 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
+import {setWorkspaceInviteWorkArrangementDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, isMemberInHomeAndOfficeWorkspace} from '@libs/PolicyUtils';
-import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
+import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -43,12 +48,16 @@ type WorkArrangementOption = ListItem & {
 };
 
 type WorkArrangementPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT> & {
+    (
+        | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT>
+        | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT>
+    ) & {
         personalDetails: OnyxEntry<PersonalDetailsList>;
     };
 
 function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPageProps) {
-    const accountID = Number(route.params.accountID);
+    const isInviteFlow = route.name === SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT;
+    const inviteBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path, isInviteFlow);
     const policyID = route.params.policyID;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -56,23 +65,39 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
 
-    const memberLogin = personalDetails?.[accountID]?.login ?? '';
+    const [inviteWorkArrangementDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`);
+    // Only an existing member has an account ID here. The invite flow reads its own arrangement draft and never looks up a member.
+    const accountID = route.name === SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT ? Number(route.params.accountID) : CONST.DEFAULT_NUMBER_ID;
+    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
     const member = policy?.employeeList?.[memberLogin];
+    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
+    const memberAccountID = memberPersonalDetails?.accountID ?? accountID;
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
-    const canAccessWorkArrangementPage = canWriteMembers && isWorkArrangementBetaEnabled && isMemberInHomeAndOfficeWorkspace(policy, memberLogin);
+    const isHomeAndOfficeWorkspace = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+    const canAccessWorkArrangementPage =
+        canWriteMembers && isWorkArrangementBetaEnabled && isHomeAndOfficeWorkspace && (isInviteFlow || isMemberInHomeAndOfficeWorkspace(policy, memberLogin));
 
-    // The member-level setting wins; otherwise fall back to the workspace default, then to no regular workspace.
-    const currentIsOffice = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
+    // The member-level setting wins; otherwise use the workspace default and the server's office-based fallback.
+    const currentIsOffice = getEffectiveWorkArrangement(isInviteFlow ? inviteWorkArrangementDraft : member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
 
     const navigateBackToDetails = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, accountID));
+        if (isInviteFlow) {
+            Navigation.goBack(inviteBackPath);
+            return;
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, memberAccountID));
     };
 
     const changeWorkArrangement = ({value}: WorkArrangementOption) => {
         if (value === currentIsOffice || !canAccessWorkArrangementPage) {
             return;
         }
-        setEmployeeWorkArrangement(policy, [accountID], value, personalDetails, translate);
+        if (isInviteFlow) {
+            setWorkspaceInviteWorkArrangementDraft(policyID, value);
+            navigateBackToDetails();
+            return;
+        }
+        setEmployeeWorkArrangement(policy, [memberAccountID], value, personalDetails);
         navigateBackToDetails();
     };
 
@@ -89,7 +114,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
             text: getWorkArrangementLabel(translate, false),
             alternateText: translate('workspace.people.workArrangementPage.optionNoRegularWorkspaceHelp'),
             isSelected: !currentIsOffice,
-            keyForList: 'no-regular-workplace',
+            keyForList: 'no-regular-workspace',
         },
     ];
 
@@ -104,10 +129,10 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
                 testID="WorkArrangementPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.people.workArrangementPage.title')}
-                    onBackButtonPress={navigateBackToDetails}
-                />
+                <Header>
+                    <Header.BackButton onPress={navigateBackToDetails} />
+                    <Header.Title title={translate('workspace.people.workArrangementPage.title')} />
+                </Header>
                 <View style={[styles.flex1]}>
                     <SelectionList
                         ListItem={SingleSelectListItem}
