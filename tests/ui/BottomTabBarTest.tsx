@@ -3,7 +3,9 @@ import {cleanup, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import DebugTabView from '@components/Navigation/DebugTabView';
+import type * as WebDebugTabViewPlaceholderModule from '@components/Navigation/DebugTabViewPlaceholder/index';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import {NavigatorTabBarVisibleContext} from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -75,6 +77,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@hooks/useRestoreWorkspacesTabOnNavigate', () => jest.fn(() => jest.fn()));
+
+const DebugTabViewPlaceholder = jest.requireActual<typeof WebDebugTabViewPlaceholderModule>('../../src/components/Navigation/DebugTabViewPlaceholder/index.tsx').default;
 
 // Helper function to render with proper navigation setup
 const renderWithNavigation = (component: React.ReactElement) => {
@@ -226,6 +230,46 @@ describe('DebugTabView', () => {
                     expect(await screen.findByText("There's a problem with a contact method", {includeHiddenElements: true})).toBeTruthy();
                     expect(screen.queryByTestId('DebugTabView', {includeHiddenElements: true})).toBeNull();
                     expect(screen.queryByTestId('DebugTabViewContainer', {includeHiddenElements: true})).toBeNull();
+                });
+
+                it('keeps the banner space only while the navigator draws the banner', async () => {
+                    // Given a login error, so the Settings banner has a message to show
+                    await Onyx.set(ONYXKEYS.LOGINS, {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '1_foo@bar.com': {
+                            partnerID: 1,
+                            partnerUserID: 'foo@bar.com',
+                            errorFields: {
+                                addedLogin: {
+                                    message: 'Partner name is missing!',
+                                },
+                            },
+                        },
+                    });
+
+                    // When the navigator hides its tab bar, as it does during the back transition or behind a blocking view
+                    const {rerender} = renderWithNavigation(
+                        <NavigatorTabBarVisibleContext.Provider value={false}>
+                            <DebugTabViewPlaceholder selectedTab={NAVIGATION_TABS.SETTINGS} />
+                        </NavigatorTabBarVisibleContext.Provider>,
+                    );
+
+                    // Then the placeholder doesn't reserve space, since the real banner is hidden too
+                    expect(screen.queryByText("There's a problem with a contact method", {includeHiddenElements: true})).toBeNull();
+
+                    // When the navigator shows its tab bar and the banner again
+                    rerender(
+                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
+                            <NavigationContainer ref={navigationRef}>
+                                <NavigatorTabBarVisibleContext.Provider value>
+                                    <DebugTabViewPlaceholder selectedTab={NAVIGATION_TABS.SETTINGS} />
+                                </NavigatorTabBarVisibleContext.Provider>
+                            </NavigationContainer>
+                        </ComposeProviders>,
+                    );
+
+                    // Then the placeholder takes the banner's space again
+                    expect(await screen.findByText("There's a problem with a contact method", {includeHiddenElements: true})).toBeTruthy();
                 });
             });
         });

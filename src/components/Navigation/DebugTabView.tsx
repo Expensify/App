@@ -151,7 +151,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
 type Props = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
 
-    /** Renders an invisible copy that only takes the banner's space, so a screen laid out under the banner can end above it */
+    /** Renders an invisible copy that only takes the banner's space, so a screen the banner is drawn over can end above it */
     isPlaceholder?: boolean;
 };
 
