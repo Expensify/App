@@ -1,20 +1,22 @@
 ---
 title: Use the Expensify MCP server with AI assistants
-description: Learn how to connect MCP-compatible AI assistants like ChatGPT, Claude, and Cursor to your Expensify account to securely search and analyze your Expensify data using natural language.
-keywords: [connect AI assistants to Expensify, Expensify MCP server, ChatGPT Expensify integration, Claude Expensify MCP, MCP server setup, AI expense analysis]
-internalScope: Audience is members, managers, accountants, and Workspace Admins using MCP-compatible AI clients. Covers connecting AI assistants to Expensify using the MCP server and understanding supported workflows, permissions, and security limitations. Does not cover client-specific MCP configuration steps or non-MCP integrations.
+description: Connect an AI assistant to Expensify to securely search and analyze your Expensify data using the Expensify connector or MCP server.
+keywords: [connect AI assistants to Expensify, Expensify MCP server, Expensify AI connectors, ChatGPT Expensify integration, Claude Expensify connector, Cursor Expensify MCP, Grok Expensify connector, AI expense analysis]
+internalScope: Audience is members using MCP-compatible AI assistants. Covers connecting supported AI assistants to Expensify using built-in connectors or the Expensify MCP server, plus supported workflows, permissions, and security. Does not cover detailed client-specific configuration.
 order: 1
 ---
 
 # Use the Expensify MCP server with AI assistants
 
-The Expensify MCP server lets you connect AI assistants like ChatGPT, Claude, and Cursor directly to your Expensify account. Once connected, you can ask questions about expenses, reports, reimbursements, receipts, trips, chats, tasks, invoices, and spending trends directly from your AI client. 
+Connect an AI assistant to Expensify to search and analyze your Expensify data using natural language. Once connected, you can ask questions about expenses, reports, reimbursements, receipts, trips, chats, tasks, invoices, and spending trends directly from your AI client. 
 
-Instead of manually exporting data or building custom reporting workflows, you can ask questions in natural language and get answers directly from your AI assistant.
+ChatGPT, Claude, Cursor, and Grok offer built-in ways to connect to Expensify. You can also manually connect other MCP-compatible AI assistants using the Expensify MCP server.
 
 ## What is MCP?
 
 MCP (Model Context Protocol) is an open standard that lets AI assistants securely connect to services like Expensify.
+
+Expensify’s MCP server provides compatible AI assistants with Search functionality so they can retrieve and analyze Expensify data on your behalf.
 
 Once connected, your AI assistant can:
 
@@ -25,37 +27,41 @@ Once connected, your AI assistant can:
  - Surface approval bottlenecks
  - Answer natural language questions about your Expensify data
 
-Expensify’s MCP server exposes Search functionality to compatible AI assistants, allowing them to retrieve and analyze Expensify data on your behalf.
+## Who can connect AI assistants to Expensify
 
-## Who can connect AI assistants using Expensify’s MCP server
-
-Any member with an Expensify account and access to an MCP-compatible AI client can connect to the Expensify MCP server.
+Any member with an Expensify account and access to a supported AI assistant or MCP-compatible AI client can connect to Expensify.
 
 Supported AI clients include:
 
  - Claude 
  - ChatGPT
  - Cursor
+ - Grok
+ - Other MCP-compatible AI clients
 
-Other MCP-compatible AI clients may also work with the Expensify MCP server.
+## How to connect a supported AI assistant to Expensify
 
-## How to connect AI assistants using Expensify’s MCP server
+If you use ChatGPT, Claude, Cursor, or Grok, follow the setup guide for your AI assistant. These integrations provide a built-in way to connect to Expensify without manually configuring the Expensify MCP server.
 
-Each AI client has its own MCP configuration flow, but the general setup process is similar.
+- [Connect ChatGPT to Expensify](/articles/new-expensify/connections/connect-ai-assistants/Connect-ChatGPT-to-Expensify-Using-MCP)
+- [Connect Claude to Expensify](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP)
+- [Connect Cursor to Expensify](/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP)
+- [Connect Grok to Expensify](/articles/new-expensify/connections/connect-ai-assistants/Connect-Grok-to-Expensify)
+
+## How to manually connect an AI assistant using Expensify’s MCP server
+
+If your AI assistant supports custom MCP connections, you can manually connect it to the Expensify MCP server.
+
+The exact setup varies by AI client, but the general process is:
 
 1. Open your MCP-compatible AI client.
-2. Locate the MCP or integrations settings.
-3. Add a new MCP server connection.
-4. Connect to `https://www.expensify.com/mcp`.
+2. Locate its MCP, connector, or integrations settings.
+3. Add a new MCP server or custom connector.
+4. Enter `https://www.expensify.com/mcp/` as the server URL.
 5. Sign in to Expensify when prompted.
 6. Review the requested permissions.
 7. Approve the OAuth access request.
 8. Return to your AI client and test the connection using a natural language query.
-
-Supported setup guides: 
- - [Connect ChatGPT to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-ChatGPT-to-Expensify-Using-MCP)
- - [Connect Claude to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP)
- - [Connect Cursor to Expensify using MCP](/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP)
 
 ## What you can do with Expensify’s MCP server
 
@@ -101,27 +107,29 @@ When connecting:
 3. Expensify shows a consent screen explaining the requested access.
 4. You approve or deny the connection.
 
-When you authorize the connection, you grant the `mcp:tools` scope. This gives the AI assistant read access to the Expensify data you can already access based on your account and Workspace permissions.
+When you authorize the connection, you grant the `mcp:tools` scope. This gives the AI assistant read access to the Expensify data you can already access based on your account and workspace permissions.
 
 The MCP server provides read-only access to Expensify data through the Search tool. Your AI assistant can search, retrieve, and analyze data, but it cannot create, edit, or delete anything in Expensify.
 
 You can revoke access at any time.
 
-## How to revoke access to Expensify’s MCP server
+## How to revoke an AI assistant’s access to Expensify
 
 You can disconnect your AI assistant from Expensify at any time.
 
-To revoke access:
+If you connected Expensify using a built-in connector, follow the instructions for your AI assistant to remove or disconnect the Expensify connector.
+
+If you manually configured the Expensify MCP server:
 
 1. Open the AI client you connected to Expensify.
 2. Locate the MCP or integrations settings.
 3. Remove or disconnect the Expensify MCP server connection.
 
-You may also revoke access directly through Expensify’s OAuth revocation flow if supported by your client configuration.
+You may also revoke access directly through **Device management** in your Expensify account if supported by your AI client. [Learn how to managed logged in devices](/articles/new-expensify/settings/Manage-Logged-in-Devices). 
 
 After revocation, the AI assistant will no longer be able to access your Expensify data through MCP.
 
-## What happens after you connect AI assistants using Expensify’s MCP server
+## What happens after you connect an AI assistant to Expensify
 
 Once connected, your AI assistant can use Expensify’s MCP Search tool to retrieve and analyze your searchable Expensify data in response to natural language prompts.
 
@@ -139,7 +147,9 @@ The MCP server supports read-only workflows focused on:
 
 ## Which AI assistants work with Expensify’s MCP server?
 
-Any MCP-compatible AI client may work with Expensify’s MCP server. Official setup guides are available for Claude, ChatGPT and Cursor. 
+ChatGPT, Claude, Cursor, and Grok can connect to Expensify using their built-in Expensify integrations.
+
+Other MCP-compatible AI clients may also work with the Expensify MCP server by connecting to `https://www.expensify.com/mcp/`.
 
 ## What data can Expensify’s MCP server access?
 
@@ -156,7 +166,7 @@ The MCP server can access data available through Expensify’s Search tool, incl
 
 ## Can Expensify’s MCP server approve reports or edit expenses?
 
-No. The Expensify MCP server provides read-only access to your data. It can search, filter, summarize, and analyze information, but it cannot approve reports, edit expenses, reimburse payments, or manage Workspace settings.
+No. The Expensify MCP server provides read-only access to your data. It can search, filter, summarize, and analyze information, but it cannot approve reports, edit expenses, reimburse payments, or manage workspace settings.
 
 ## Are the documented prompts the only supported use cases?
 
@@ -167,7 +177,3 @@ Many similar analytical and search-based workflows may also work depending on th
 ## Is my data secure when using Expensify’s MCP server?
 
 Yes. Expensify uses OAuth 2.1 with PKCE and explicit user consent to authorize AI assistant connections. You can revoke access at any time.
-
-## What happens after I connect my AI assistant?
-
-Once connected, your AI assistant can use Expensify’s MCP Search tool to retrieve and analyze your searchable Expensify data in response to natural language prompts. 
