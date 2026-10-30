@@ -183,7 +183,7 @@
     "react-native": "0.86.0",
     "react-native-advanced-input-mask": "1.4.6",
     "react-native-app-logs": "0.3.1",
-    "react-native-blob-util": "0.24.9",
+    "react-native-blob-util": "0.24.12",
     "react-native-collapsible": "^1.6.2",
     "react-native-config": "1.5.3",
     "react-native-device-info": "10.3.1",
