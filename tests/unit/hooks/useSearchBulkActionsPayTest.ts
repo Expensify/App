@@ -723,6 +723,22 @@ describe('useSearchBulkActions - pay via ABA', () => {
         expect(jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0)?.shouldShowPayViaABAOption).toBe(true);
     });
 
+    it('tells the pay options when the selected reports are in different currencies', async () => {
+        // Given an AUD report and a USD report selected from the same AUD workspace, e.g. because the USD report's first expense was in USD
+        mockSelectedReports = [
+            makeSelectedReport({reportID: '1', chatReportID: 'chat1', currency: CONST.CURRENCY.AUD}),
+            makeSelectedReport({reportID: '3', chatReportID: 'chat3', currency: CONST.CURRENCY.USD}),
+        ];
+
+        // When the bulk actions are shown
+        await renderBulkActions();
+
+        // Then the pay options know about the mix of currencies, so they can still offer paying via ABA
+        const bulkPayOptionsProps = jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0);
+        expect(bulkPayOptionsProps?.hasMultipleCurrencies).toBe(true);
+        expect(bulkPayOptionsProps?.shouldShowPayViaABAOption).toBe(true);
+    });
+
     it('does not offer paying via ABA when everything matching the search is selected', async () => {
         // Given every report matching the search is selected, which only the backend has the list of
         mockAreAllMatchingItemsSelected = true;

@@ -23,7 +23,7 @@ function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{children}</ComposeProviders>;
 }
 
-async function getPayViaABAOption(shouldShowPayViaABAOption: boolean) {
+async function getBulkPayButtonOptions(shouldShowPayViaABAOption: boolean, {onlyShowPayElsewhere = false, hasMultipleCurrencies = false} = {}) {
     const {result} = renderHook(
         () =>
             useBulkPayOptions({
@@ -32,13 +32,19 @@ async function getPayViaABAOption(shouldShowPayViaABAOption: boolean) {
                 selectedReport: expenseReport,
                 currency: CONST.CURRENCY.AUD,
                 formattedAmount: 'A$100.00',
-                onlyShowPayElsewhere: false,
+                onlyShowPayElsewhere,
+                hasMultipleCurrencies,
                 shouldShowPayViaABAOption,
             }),
         {wrapper: Wrapper},
     );
     await waitForBatchedUpdatesWithAct();
-    return result.current.bulkPayButtonOptions?.find((option) => option.key === CONST.PAYMENT_METHODS.ABA);
+    return result.current.bulkPayButtonOptions;
+}
+
+async function getPayViaABAOption(shouldShowPayViaABAOption: boolean) {
+    const bulkPayButtonOptions = await getBulkPayButtonOptions(shouldShowPayViaABAOption);
+    return bulkPayButtonOptions?.find((option) => option.key === CONST.PAYMENT_METHODS.ABA);
 }
 
 describe('useBulkPayOptions', () => {
@@ -87,5 +93,27 @@ describe('useBulkPayOptions', () => {
 
         // Then the option is disabled, since the ABA file can only be downloaded while online
         expect(payViaABAOption?.disabled).toBe(true);
+    });
+
+    it('still offers paying via ABA when the reports are in different currencies', async () => {
+        // Given reports in different currencies that can be paid via ABA
+        const options = {hasMultipleCurrencies: true};
+
+        // When the bulk pay options are built
+        const bulkPayButtonOptions = await getBulkPayButtonOptions(true, options);
+
+        // Then only paying via ABA and marking as paid are offered, since an ABA file pays every report in AUD but a bank account pays in one currency
+        expect(bulkPayButtonOptions?.map((option) => option.key)).toEqual([CONST.PAYMENT_METHODS.ABA, CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
+    });
+
+    it('only offers marking as paid when a report can only be marked as paid', async () => {
+        // Given a selection with a report that can only be marked as paid, even though the workspace can pay via ABA
+        const options = {onlyShowPayElsewhere: true, hasMultipleCurrencies: true};
+
+        // When the bulk pay options are built
+        const bulkPayButtonOptions = await getBulkPayButtonOptions(true, options);
+
+        // Then only marking as paid is offered, since an ABA file can't pay that report either
+        expect(bulkPayButtonOptions?.map((option) => option.key)).toEqual([CONST.IOU.PAYMENT_TYPE.ELSEWHERE]);
     });
 });

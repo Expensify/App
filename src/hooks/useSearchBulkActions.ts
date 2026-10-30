@@ -877,17 +877,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const selectedBulkCurrency = payScopedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, payScopedReports, selectedTransactions, selectedBulkCurrency);
 
-    const onlyShowPayElsewhere = useMemo(() => {
+    const hasMultipleCurrencies = useMemo(() => {
         const selectedCurrencies =
             payScopedReports.length > 0
                 ? payScopedReports.map((report) => report.currency).filter(Boolean)
                 : Object.values(selectedTransactions)
                       .map((transaction) => transaction.currency)
                       .filter(Boolean);
-        if (new Set(selectedCurrencies).size > 1) {
-            return true;
-        }
+        return new Set(selectedCurrencies).size > 1;
+    }, [payScopedReports, selectedTransactions]);
 
+    const onlyShowPayElsewhere = useMemo(() => {
         const firstPolicyID = payScopedPolicyIDs.at(0);
         const selectedPolicy = firstPolicyID ? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${firstPolicyID}`] : undefined;
         const transactionsByReportID = getTransactionsByReportID(currentSearchResults?.data ?? {});
@@ -936,8 +936,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionReportIDs,
         payScopedReportIDs,
         bankAccountList,
-        payScopedReports,
-        selectedTransactions,
         currentUserPersonalDetails.login,
         currentUserPersonalDetails.accountID,
     ]);
@@ -969,6 +967,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
         onlyShowPayElsewhere: onlyShowPayElsewhere || areAllMatchingItemsSelected,
+        hasMultipleCurrencies,
         shouldShowPayViaABAOption,
     });
 

@@ -50,6 +50,7 @@ type UseBulkPayOptionProps = {
     currency: string | undefined;
     formattedAmount: string;
     onlyShowPayElsewhere: boolean;
+    hasMultipleCurrencies?: boolean;
 
     /** Whether the selection can be paid via ABA, i.e. it's from a single workspace that can pay via ABA */
     shouldShowPayViaABAOption?: boolean;
@@ -73,6 +74,7 @@ function useBulkPayOptions({
     currency,
     formattedAmount,
     onlyShowPayElsewhere,
+    hasMultipleCurrencies = false,
     shouldShowPayViaABAOption = false,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
@@ -147,9 +149,19 @@ function useBulkPayOptions({
             : undefined;
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
+    const payViaABAOption = {
+        ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
+        // The file is downloaded straight from the API, which can't be queued for when the user is back online
+        disabled: isOffline,
+        additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA},
+    };
+
     let bulkPayButtonOptions;
     if (onlyShowPayElsewhere) {
         bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+    } else if (hasMultipleCurrencies) {
+        // An ABA file pays every report in AUD, so it still works when the reports are in different currencies
+        bulkPayButtonOptions = [...(shouldShowPayViaABAOption && isExpenseReport ? [payViaABAOption] : []), paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
     } else if (!selectedReportID || !selectedPolicyID) {
         bulkPayButtonOptions = undefined;
     } else {
@@ -209,12 +221,7 @@ function useBulkPayOptions({
         }
 
         if (shouldShowPayViaABAOption && isExpenseReport) {
-            bulkPayButtonOptions.push({
-                ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
-                // The file is downloaded straight from the API, which can't be queued for when the user is back online
-                disabled: isOffline,
-                additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA},
-            });
+            bulkPayButtonOptions.push(payViaABAOption);
         }
 
         if (shouldShowPayElsewhereOption) {
