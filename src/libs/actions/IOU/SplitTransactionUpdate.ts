@@ -1037,6 +1037,8 @@ function updateSplitTransactions({
             // per-transaction arithmetic. It now honours a real `0`, which the old truthiness check dropped.
             newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)),
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
+            // New splits inherit the source expense's hold, so a held expense's change in total is all held spend
+            isReportTotalChangeOnHold: isCreationOfSplits && isTransactionOnHold,
             isSplitExpense: true,
             isReverseSplitOperation,
             currentReportActionID: !isReverseSplitOperation ? currentReportAction?.reportActionID : undefined,
