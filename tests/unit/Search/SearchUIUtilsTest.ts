@@ -16684,12 +16684,12 @@ describe('hasFilterContentValuesChanged', () => {
 });
 
 describe('getDatePresets', () => {
-    it('does not offer never for anyApproval', () => {
-        // Given anyApproval, which always matches an approval action
+    it('offers never for anyApproval', () => {
+        // Given anyApproval, where Auth matches never against reports with no approve or forward action
         // When presets are requested
         const presets = SearchUIUtils.getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, false);
 
-        // Then only the common date presets are returned, without never
+        // Then the common date presets are returned along with never, so users can search for expenses that were never approved
         expect(presets).toEqual([
             CONST.SEARCH.DATE_PRESETS.THIS_WEEK,
             CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
@@ -16704,8 +16704,8 @@ describe('getDatePresets', () => {
             CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS,
             CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS,
             CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
+            CONST.SEARCH.DATE_PRESETS.NEVER,
         ]);
-        expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
     });
 });
 

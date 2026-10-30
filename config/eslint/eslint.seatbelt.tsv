@@ -825,7 +825,7 @@
 "../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/index.tsx"	"@typescript-eslint/no-deprecated/NavigationContent"	1
 "../../src/libs/Navigation/PlatformStackNavigation/navigationOptions/animation/withAnimation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/libs/Navigation/PlatformStackNavigation/ScreenLayout.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/Navigation/useNavigateTo3DSAuthorizationChallenge.ts"	"rulesdir/no-onyx-loading-status"	1
+"../../src/libs/Navigation/useNavigateToForcedTransactionReview.ts"	"rulesdir/no-onyx-loading-status"	1
 "../../src/libs/NetSuiteUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Network/enhanceParameters.ts"	"no-restricted-syntax"	1
 "../../src/libs/Network/index.ts"	"no-restricted-syntax"	1

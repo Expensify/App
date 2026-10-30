@@ -531,8 +531,8 @@ describe('useColumnResize', () => {
         // When its edge is clicked, with the pointer wobbling less than the click slop
         act(() => {
             getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
-            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 100 + CONST.TABLES.COLUMN_RESIZE.DRAG_SLOP}));
-            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100 + CONST.TABLES.COLUMN_RESIZE.DRAG_SLOP}));
+            getHandleProps().onPointerMove?.(createPointerEvent(handleElement, {clientX: 100 + CONST.RESIZE_HANDLE.DRAG_SLOP}));
+            getHandleProps().onPointerUp?.(createPointerEvent(handleElement, {clientX: 100 + CONST.RESIZE_HANDLE.DRAG_SLOP}));
         });
 
         // Then the column stays put while a second click may still come, since moving the edge now would send that click to the heading

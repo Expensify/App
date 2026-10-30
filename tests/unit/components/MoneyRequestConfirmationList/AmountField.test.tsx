@@ -44,11 +44,21 @@ jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
 });
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({title}: {title?: string}) => <Text>{`Read-only amount: ${title ?? ''}`}</Text>;
+    return ({title, interactive = true}: {title?: string; interactive?: boolean}) => (
+        <>
+            <Text>{`Read-only amount: ${title ?? ''}`}</Text>
+            {interactive && <Text>Opens amount page</Text>}
+        </>
+    );
 });
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({value}: {value?: string}) => <Text>{`Read-only amount: ${value ?? ''}`}</Text>;
+    return ({value, isInteractive = true}: {value?: string; isInteractive?: boolean}) => (
+        <>
+            <Text>{`Read-only amount: ${value ?? ''}`}</Text>
+            {isInteractive && <Text>Opens amount page</Text>}
+        </>
+    );
 });
 let mockTransactionSlice: {transactionID: string; amount: number; currency: string; isAmountMissing: boolean; isAmountSet?: boolean; isScanning?: boolean} = {
     transactionID: '1',
@@ -277,6 +287,28 @@ describe('AmountField while the receipt is scanning', () => {
         // Then the amount shows as the read-only row with the scanning status, since the editable input would show the receipt's placeholder zero amount
         expect(screen.getByText('Read-only amount: Scanning…')).toBeOnTheScreen();
         expect(screen.queryByText('Enter zero')).not.toBeOnTheScreen();
+    });
+
+    it('does not offer the scanning amount row as a control when a tracked scan is moved to someone', () => {
+        // Given a tracked scan expense moved to someone, whose receipt is still scanning and whose scan fields can't be entered inline
+        // When the confirmation page renders its amount field
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.SUBMIT}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <AmountField
+                    {...amountFieldProps}
+                    formattedAmount="Scanning…"
+                />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the row has no caret and no press, since SmartScan sets the amount and the user can't edit it until the scan finishes
+        expect(screen.getByText('Read-only amount: Scanning…')).toBeOnTheScreen();
+        expect(screen.queryByText('Opens amount page')).not.toBeOnTheScreen();
     });
 
     it('keeps the editable input on a fresh scan where the user can enter the amount instead of waiting for SmartScan', () => {
