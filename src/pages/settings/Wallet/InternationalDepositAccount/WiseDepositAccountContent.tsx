@@ -72,7 +72,10 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     };
 
     const refreshForm = (inputID: string, value: FormValue) => {
-        const answers: Record<string, unknown> = {...draftValues, [inputID]: value};
+        const schemaKeys = new Set(schema && 'pages' in schema ? schema.pages.flatMap((page) => page.content.map((item) => item.key)) : []);
+        const isCurrentField = (key: string) => schemaKeys.has(key) || schemaKeys.has(key.split('.').at(0) ?? key);
+        const answers: Record<string, unknown> = Object.fromEntries(Object.entries(draftValues ?? {}).filter(([key]) => isCurrentField(key)));
+        answers[inputID] = value;
         const currency = typeof answers.currency === 'string' ? answers.currency : wiseBankAccountFields?.currency;
         getWiseBankAccountFields(selectedCountry, currency, answers);
     };
