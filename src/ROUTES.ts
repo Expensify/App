@@ -1259,6 +1259,14 @@ const DYNAMIC_ROUTES = {
         path: 'rule-date-match-type',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
+    RULES_AMOUNT_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-amount-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_AMOUNT_MATCH_TYPE_FROM_EXPENSE: {
+        path: 'rule-amount-match-type',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
     RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE: {
         path: 'rule-merchant-type-to-match',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
@@ -4659,6 +4667,14 @@ const ROUTES = {
     RULES_DATE_MATCH_TYPE: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/date-match-type',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/date-match-type` as const,
+    },
+    RULES_AMOUNT_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/amount-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/amount-to-match` as const,
+    },
+    RULES_AMOUNT_MATCH_TYPE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/amount-match-type',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/amount-match-type` as const,
     },
     RULES_MERCHANT_TYPE_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-type-to-match',

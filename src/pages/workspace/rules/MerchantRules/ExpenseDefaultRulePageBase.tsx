@@ -140,6 +140,8 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         MERCHANT_RULE_INPUT_IDS.DATE_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.DATE_MATCH_TYPE,
         MERCHANT_RULE_INPUT_IDS.MERCHANT_TYPES_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.AMOUNT_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.AMOUNT_MATCH_TYPE,
     ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -348,6 +350,21 @@ function ExpenseDefaultRulePageBase({
         }
         return translate('search.filters.date.on', dateToMatch);
     };
+    const amountToMatch = form?.amountToMatch;
+    const amountMatchType = form?.amountMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+    const getAmountToMatchDisplayName = () => {
+        if (!amountToMatch) {
+            return undefined;
+        }
+        const formattedAmount = convertToDisplayString(Number(amountToMatch), policy?.outputCurrency);
+        if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
+            return translate('search.filters.amount.greaterThan', formattedAmount);
+        }
+        if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
+            return translate('search.filters.amount.lessThan', formattedAmount);
+        }
+        return translate('search.filters.amount.equalTo', formattedAmount);
+    };
     const taxRatesToMatch = form?.taxRatesToMatch ?? [];
     // Blank rather than the raw ID once a rate is gone from the workspace.
     const taxRatesToMatchDisplayName = taxRatesToMatch.length > 0 ? taxRatesToMatch.map((externalID) => getTaxRateDisplayName(policy, externalID) || externalID).join(', ') : undefined;
@@ -440,9 +457,15 @@ function ExpenseDefaultRulePageBase({
         if (hasDuplicate) {
             // A duplicate does not have to match on a merchant, so the prompt names the first condition the two share.
             const duplicateCondition =
-                [form.merchantToMatch, categoriesToMatchDisplayName, tagsToMatchDisplayName, currenciesToMatchDisplayName, taxRatesToMatchDisplayName, getDateToMatchDisplayName()].find(
-                    Boolean,
-                ) ?? '';
+                [
+                    form.merchantToMatch,
+                    categoriesToMatchDisplayName,
+                    tagsToMatchDisplayName,
+                    currenciesToMatchDisplayName,
+                    taxRatesToMatchDisplayName,
+                    getDateToMatchDisplayName(),
+                    getAmountToMatchDisplayName(),
+                ].find(Boolean) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
                 prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', duplicateCondition),
@@ -537,6 +560,13 @@ function ExpenseDefaultRulePageBase({
                     title: getDateToMatchDisplayName(),
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_DATE_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Calendar,
+                },
+                {
+                    key: 'amountToMatch',
+                    description: translate('iou.amount'),
+                    title: getAmountToMatchDisplayName(),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_AMOUNT_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
                 },
                 {
                     key: 'currenciesToMatch',

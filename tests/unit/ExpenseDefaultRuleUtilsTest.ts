@@ -31,6 +31,7 @@ const REIMBURSABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 const BILLABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE;
 const SUBMITTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 const DATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
+const AMOUNT = CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT;
 const MERCHANT_TYPE = 'merchantType';
 const {LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 
@@ -293,6 +294,24 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(rule?.filters).toEqual({left: DATE, operator: EQUAL_TO, right: '2026-01-15'});
         });
 
+        it('compares the expense amount with the operator the picker chose', () => {
+            // Given a form matching on expenses over an amount
+            const rule = buildExpenseDefaultRule({amountToMatch: '3000', amountMatchType: GREATER_THAN, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the amount carries the chosen operator rather than defaulting to an equality match
+            expect(rule?.filters).toEqual({left: AMOUNT, operator: GREATER_THAN, right: '3000'});
+        });
+
+        it('defaults an unset amount match type to matching the amount itself', () => {
+            // Given a form with an amount but no match type, which is what the picker leaves behind
+            const rule = buildExpenseDefaultRule({amountToMatch: '3000', category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the amount is compared for equality, which is the Equal to option the picker preselects
+            expect(rule?.filters).toEqual({left: AMOUNT, operator: EQUAL_TO, right: '3000'});
+        });
+
         it('builds a rule that matches on a submitter alone', () => {
             // Given a form whose only condition is who submitted the expense
             const rule = buildExpenseDefaultRule({submittersToMatch: ['12345', '67890'], category: 'Coffee'}, policy);
@@ -476,6 +495,7 @@ describe('ExpenseDefaultRuleUtils', () => {
             ['a boolean condition whose value is neither yes nor no', {filters: {left: REIMBURSABLE, operator: EQUAL_TO, right: 'true'}}],
             ['a boolean condition carrying more than one value', {filters: {left: BILLABLE, operator: EQUAL_TO, right: ['yes', 'no']}}],
             ['a date range, which needs two comparisons on one field', {filters: {left: DATE, operator: CONST.SEARCH.SYNTAX_OPERATORS.RANGE, right: '2026-01-01'}}],
+            ['an amount range, which needs two comparisons on one field', {filters: {left: AMOUNT, operator: CONST.SEARCH.SYNTAX_OPERATORS.RANGE, right: '3000'}}],
             ['a filter on a field the form has no input for', {filters: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, operator: EQUAL_TO, right: '5812'}}],
             ['an operator the form has no control for', {filters: {left: FIELD.MERCHANT, operator: GREATER_THAN, right: 'Starbucks'}}],
             ['a list of merchants, which the form has one input for', {filters: {left: FIELD.MERCHANT, operator: OR, right: ['Starbucks', 'Costa']}}],

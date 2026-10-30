@@ -65,6 +65,12 @@ type ExpenseDefaultFormValues = {
     /** Whether the expense date has to fall on (`eq`), before (`lt`) or after (`gt`) `dateToMatch` */
     dateMatchType?: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
+    /** The amount an expense is compared against, as positive whole cents */
+    amountToMatch?: string;
+
+    /** Whether the expense amount has to equal (`eq`), exceed (`gt`) or stay under (`lt`) `amountToMatch` */
+    amountMatchType?: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+
     /** The merchant the expense is renamed to */
     merchant?: string;
 
@@ -123,6 +129,7 @@ const CONDITION = {
     BILLABLE: CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
     SUBMITTER: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
     DATE: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+    AMOUNT: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
     // The rules engine matches merchant categories on its own key, which search has no equivalent for.
     MERCHANT_TYPE: 'merchantType',
 } as const;
@@ -143,6 +150,9 @@ const SUPPORTED_MERCHANT_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTA
  * `getEditableConditions` rejects, so a stored range stays read-only for now.
  */
 const SUPPORTED_DATE_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>([EQUAL_TO, LOWER_THAN, GREATER_THAN]);
+
+/** Amount comparisons the editor can represent, which are the equal to/greater than/less than the picker offers. */
+const SUPPORTED_AMOUNT_MATCH_TYPES = new Set<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>([EQUAL_TO, LOWER_THAN, GREATER_THAN]);
 
 /**
  * The form key each action field reads back into, which makes reading a rule the mirror of writing one.
@@ -330,6 +340,11 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.DATE, operator: formValues.dateMatchType ?? EQUAL_TO, right: dateToMatch});
     }
 
+    const amountToMatch = formValues.amountToMatch?.trim();
+    if (amountToMatch) {
+        comparisons.push({left: CONDITION.AMOUNT, operator: formValues.amountMatchType ?? EQUAL_TO, right: amountToMatch});
+    }
+
     const [firstComparison, ...rest] = comparisons;
     if (!firstComparison) {
         return undefined;
@@ -376,6 +391,18 @@ function haveSameDateCondition(first: Partial<ExpenseDefaultFormValues>, second:
     return !firstDate || (first.dateMatchType ?? EQUAL_TO) === (second.dateMatchType ?? EQUAL_TO);
 }
 
+/** Compares the amount condition, whose match type only tells two rules apart when they both match on an amount. */
+function haveSameAmountCondition(first: Partial<ExpenseDefaultFormValues>, second: Partial<ExpenseDefaultFormValues>): boolean {
+    const firstAmount = first.amountToMatch?.trim() ?? '';
+    const secondAmount = second.amountToMatch?.trim() ?? '';
+
+    if (firstAmount !== secondAmount) {
+        return false;
+    }
+
+    return !firstAmount || (first.amountMatchType ?? EQUAL_TO) === (second.amountMatchType ?? EQUAL_TO);
+}
+
 /** Whether two rules match on the same expenses, which is what makes one a duplicate of the other. */
 function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Partial<ExpenseDefaultFormValues>): boolean {
     const firstMerchant = first.merchantToMatch?.trim().toLowerCase() ?? '';
@@ -399,7 +426,8 @@ function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Pa
         first.billableToMatch === second.billableToMatch &&
         haveSameConditionValues(first.submittersToMatch, second.submittersToMatch) &&
         haveSameConditionValues(first.merchantTypesToMatch, second.merchantTypesToMatch) &&
-        haveSameDateCondition(first, second)
+        haveSameDateCondition(first, second) &&
+        haveSameAmountCondition(first, second)
     );
 }
 
@@ -494,6 +522,8 @@ type EditableConditions = Pick<
     | 'merchantTypesToMatch'
     | 'dateToMatch'
     | 'dateMatchType'
+    | 'amountToMatch'
+    | 'amountMatchType'
 >;
 
 /**
@@ -531,6 +561,15 @@ function getConditionFromLeaf(leaf: RuleFilterComparison): EditableConditions | 
             return undefined;
         }
         return {dateToMatch, dateMatchType: leaf.operator};
+    }
+
+    if (leaf.left === CONDITION.AMOUNT) {
+        const amountToMatch = values.at(0);
+        // The form has a single amount input, so only one value round-trips.
+        if (values.length !== 1 || !amountToMatch || !SUPPORTED_AMOUNT_MATCH_TYPES.has(leaf.operator)) {
+            return undefined;
+        }
+        return {amountToMatch, amountMatchType: leaf.operator};
     }
 
     if (leaf.operator !== EQUAL_TO) {
