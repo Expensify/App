@@ -661,6 +661,7 @@ export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOURepo
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
 export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './ChangeReportPolicyAndInviteSubmitterParams';
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
+export type {default as UndeleteTransactionsParams} from './UndeleteTransactionsParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
 export type {default as SetPolicyWorkArrangementParams} from './SetPolicyWorkArrangementParams';

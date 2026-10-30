@@ -19,7 +19,6 @@
                 ".github/actions/javascript/**/*.ts",
                 "tests/globals.d.ts",
                 ".storybook/**/*.{js,ts,tsx}",
-                "metro.config.js",
                 "config/babel/oxcJestTransformer.js",
                 "react-native.config.js",
                 "rock.config.mjs",
@@ -45,8 +44,7 @@
                 "web/cloudflare-worker/**",
                 "src/libs/actions/connections/FinancialForce.ts",
                 "src/libs/actions/connections/ZohoBooks.ts",
-                "src/libs/actions/connections/Digits.ts",
-                "src/setup/telemetry/noopExpoUpdates.ts"
+                "src/libs/actions/connections/Digits.ts"
             ],
             "rsbuild": {
                 "config": ["config/rsbuild/rsbuild.config.ts", ".storybook/rsbuild.config.ts"]
@@ -89,7 +87,7 @@
         "diff-so-fancy",
         "@babel/plugin-proposal-class-properties"
     ],
-    "ignoreBinaries": ["metro-symbolicate", "mkcert", "openssl", "xdg-open"],
+    "ignoreBinaries": ["mkcert", "openssl", "xdg-open"],
     "ignoreIssues": {
         "config/oxlint/ruleNames.mjs": ["exports"]
     }
