@@ -11,7 +11,6 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import {getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
 import Pusher from '@libs/Pusher';
 import {requestPusherReinitialize} from '@libs/requestPusherReinitialize';
 
@@ -149,6 +148,11 @@ type WithActivePolicyID = {
     activePolicyID: OnyxEntry<string>;
 };
 
+type WithRouteAfterSwitch = {
+    // Where navigation starts over once the switch completes. Defaults to the Settings tab, where accounts are usually switched.
+    routeAfterSwitch?: Route;
+};
+
 type DisconnectParams = WithStashedCredentials & WithStashedSession;
 
 const DISCONNECT_RESULT = {
@@ -186,13 +190,13 @@ type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDe
 type IsConnectedAsDelegateParams = WithDelegatedAccess;
 
 // Connect as delegate
-type ConnectParams = WithEmail & WithDelegatedAccess & WithCredentials & WithSession & WithActivePolicyID;
+type ConnectParams = WithEmail & WithDelegatedAccess & WithCredentials & WithSession & WithActivePolicyID & WithRouteAfterSwitch;
 
 /**
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, credentials, session, activePolicyID}: ConnectParams) {
+function connect({email, delegatedAccess, credentials, session, activePolicyID, routeAfterSwitch = ROUTES.SETTINGS}: ConnectParams) {
     if (isConnectedAsDelegate({delegatedAccess})) {
         Log.info('[Delegate] Already connected as a delegate, skipping connect');
         return;
@@ -275,9 +279,6 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID}:
             }
             const restrictedToken = response.restrictedToken;
             const policyID = activePolicyID;
-
-            // Agents can't open most Settings screens, so copiloting into one starts over from Home instead
-            const routeAfterSwitch = getPersonalDetailByLogin(email)?.isCustomAgent ? ROUTES.HOME : ROUTES.SETTINGS;
 
             return SequentialQueue.waitForIdle()
                 .then(() => {

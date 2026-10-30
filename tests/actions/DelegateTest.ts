@@ -23,6 +23,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {DelegatedAccess} from '@src/types/onyx/Account';
 
@@ -497,17 +498,12 @@ describe('actions/Delegate', () => {
     });
 
     describe('connect navigation reset', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
+        const agentEmail = 'agent_3@expensify.ai';
+        const agentAccountID = 3;
 
-        it('starts navigation over from Home when copiloting into an agent', async () => {
-            // Given an owner whose agent is known as a custom agent, since agents can't open most Settings screens
-            const agentEmail = 'agent_3@expensify.ai';
-            const agentAccountID = 3;
+        beforeEach(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[agentAccountID]: {accountID: agentAccountID, login: agentEmail, isCustomAgent: true}});
             jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
-            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
             jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
                 jsonCode: CONST.JSON_CODE.SUCCESS,
                 restrictedToken: 'agentRestrictedToken',
@@ -516,6 +512,40 @@ describe('actions/Delegate', () => {
                 email: agentEmail,
             });
             jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockResolvedValue(undefined);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        function getLandingTabName(resetState: Parameters<typeof navigationRef.resetRoot>[0]) {
+            const tabNavigatorState = resetState?.routes.at(resetState.index ?? -1)?.state;
+            return tabNavigatorState?.routes.at(tabNavigatorState.index ?? -1)?.name;
+        }
+
+        it('starts navigation over from the route the caller passes', async () => {
+            // Given an owner copiloting from an agent page, which asks to land on Home because the agent can't use its own Agents pages
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+
+            // When the owner copilots into the agent with Home as the landing route
+            await connect({
+                email: agentEmail,
+                delegatedAccess: undefined,
+                credentials: {},
+                session: {accountID: 1, email: 'owner@test.com'},
+                activePolicyID: undefined,
+                routeAfterSwitch: ROUTES.HOME,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the app starts again from Home rather than the Settings tab
+            expect(resetRootSpy).toHaveBeenCalledTimes(1);
+            expect(getLandingTabName(resetRootSpy.mock.calls.at(0)?.at(0))).toBe(SCREENS.HOME);
+        });
+
+        it('lands on the Settings tab by default, even when copiloting into an agent', async () => {
+            // Given an owner switching into an agent from the account switcher, which passes no landing route
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
             // When the owner copilots into the agent
             await connect({
@@ -527,11 +557,9 @@ describe('actions/Delegate', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the app starts again from Home rather than the Settings tab
+            // Then the app lands on the Settings tab like any other copilot switch
             expect(resetRootSpy).toHaveBeenCalledTimes(1);
-            const resetState = resetRootSpy.mock.calls.at(0)?.at(0);
-            const tabNavigatorState = resetState?.routes.at(resetState.index ?? -1)?.state;
-            expect(tabNavigatorState?.routes.at(tabNavigatorState.index ?? -1)?.name).toBe(SCREENS.HOME);
+            expect(getLandingTabName(resetRootSpy.mock.calls.at(0)?.at(0))).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
         });
     });
     /* eslint-enable rulesdir/no-multiple-api-calls */
