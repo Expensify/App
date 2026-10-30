@@ -3826,11 +3826,13 @@ function getWorkspaceFrequencyUpdateMessage(translate: LocalizedTranslate, actio
  * Builds the message for a category visibility change, e.g. "set Bob Sterling to only see the "Meals" and "Fuel" categories".
  * Lists that are too long to read inline show a count, and when shouldShowFullList is true (the action is shown at the top of its thread),
  * those lists are returned in full instead.
+ * Pass personalDetails from a subscription so member names update when their details load or change.
  */
 function getCategoryVisibilityUpdateMessage(
     translate: LocalizedTranslate,
     action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY>,
     shouldShowFullList: boolean,
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ): string | undefined {
     const {categoryNames, accountIDs, hadRestriction, reason} = getOriginalMessage(action) ?? {};
     if (!Array.isArray(categoryNames) || !Array.isArray(accountIDs)) {
@@ -3841,7 +3843,7 @@ function getCategoryVisibilityUpdateMessage(
     const getQuotedCategoryNames = () => categoryNames.map((name) => translate('workspaceActions.quotedCategoryName', getDecodedCategoryName(name)));
     const getMemberNames = () => {
         const hiddenTranslation = translate('common.hidden');
-        return accountIDs.map((accountID) => getDisplayNameForParticipant({accountID, formatPhoneNumber, hiddenTranslation}));
+        return accountIDs.map((accountID) => getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation}));
     };
 
     if (shouldShowFullList) {
@@ -3890,7 +3892,13 @@ function getCategoryVisibilityUpdateMessage(
     return message;
 }
 
-function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action: ReportAction, policy?: OnyxEntry<Policy>, shouldShowFullList = false): string {
+function getWorkspaceCategoryUpdateMessage(
+    translate: LocalizedTranslate,
+    action: ReportAction,
+    policy?: OnyxEntry<Policy>,
+    shouldShowFullList = false,
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
+): string {
     const {categoryName, oldValue, newName, oldName, updatedField, newValue, currency} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
@@ -3989,7 +3997,7 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
     }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY)) {
-        const categoryVisibilityMessage = getCategoryVisibilityUpdateMessage(translate, action, shouldShowFullList);
+        const categoryVisibilityMessage = getCategoryVisibilityUpdateMessage(translate, action, shouldShowFullList, personalDetails);
         if (categoryVisibilityMessage) {
             return categoryVisibilityMessage;
         }

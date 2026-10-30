@@ -8612,6 +8612,25 @@ describe('ReportActionsUtils', () => {
                 expect(actual).toBe('set Bob Sterling to only see the "Meals" and "Fuel" categories');
             });
 
+            it('uses the personal details passed in, so the row shows names from the component subscription', () => {
+                // Given Bob's details as the component's subscription returns them, with a newer name than the cache
+                const action = buildSetCategoryVisibilityAction({
+                    categoryNames: ['Meals'],
+                    accountIDs: [BOB_ACCOUNT_ID],
+                    hadRestriction: false,
+                    reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+                });
+                const subscribedPersonalDetails: PersonalDetailsList = {
+                    [BOB_ACCOUNT_ID]: {accountID: BOB_ACCOUNT_ID, displayName: 'Robert Sterling', login: 'bob@example.com'},
+                };
+
+                // When the message is built with those details
+                const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action, undefined, false, subscribedPersonalDetails);
+
+                // Then it uses the subscribed name, so a name change shows without waiting for an unrelated render
+                expect(actual).toBe('set Robert Sterling to only see the "Meals" category');
+            });
+
             it.each([
                 [CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DELETED, 'deleted'],
                 [CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED, 'disabled'],

@@ -5,6 +5,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from '@libs/AgentRuleChangeLogUtils';
 import {getCleanedTagName} from '@libs/PolicyUtils';
@@ -34,6 +35,7 @@ import {
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getMccGroupCategoryMessage,
+    getOriginalMessage,
     getOverLimitForwardsToUpdateMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -98,6 +100,7 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    isActionOfType,
 } from '@libs/ReportActionsUtils';
 import {getPolicyChangeLogCopyMessage, getUpdateEmployeeDisplayNameMessage, getWorkspaceNameUpdatedMessage} from '@libs/ReportUtils';
 import {getAddExpensifyCardRuleMessage, getRemoveExpensifyCardRuleMessage, getUpdateExpensifyCardRuleMessage} from '@libs/SpendRuleChangeLogUtils';
@@ -121,11 +124,12 @@ type ResolverFn = (
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     dateFnsLocale: LocaleContextProps['dateFnsLocale'],
     isThreadReportParentAction: boolean,
+    personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
 ) => PolicyChangeLogMessageResult;
 
 // Reusable resolvers for action types that share the same handler
-const categoryResolver: ResolverFn = (translate, action, policy, convertToDisplayString, dateFnsLocale, isThreadReportParentAction) =>
-    getWorkspaceCategoryUpdateMessage(translate, action, policy, isThreadReportParentAction);
+const categoryResolver: ResolverFn = (translate, action, policy, convertToDisplayString, dateFnsLocale, isThreadReportParentAction, personalDetails) =>
+    getWorkspaceCategoryUpdateMessage(translate, action, policy, isThreadReportParentAction, personalDetails);
 const taxResolver: ResolverFn = (translate, action) => getWorkspaceTaxUpdateMessage(translate, action);
 const tagModificationResolver: ResolverFn = (translate, action) => getCleanedTagName(getWorkspaceTagUpdateMessage(translate, action));
 const copySettingsResolver: ResolverFn = (translate, action) => ({
@@ -327,13 +331,15 @@ function PolicyChangeLogContent({action, policyID, isThreadReportParentAction = 
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const categoryVisibilityAccountIDs = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY) ? getOriginalMessage(action)?.accountIDs : undefined;
+    const [personalDetails] = usePersonalDetailsByIDs(categoryVisibilityAccountIDs);
 
     const resolver = POLICY_CHANGE_LOG_RESOLVERS[action.actionName];
     if (!resolver) {
         return null;
     }
 
-    const message = resolver(translate, action, policy, convertToDisplayString, dateFnsLocale, isThreadReportParentAction);
+    const message = resolver(translate, action, policy, convertToDisplayString, dateFnsLocale, isThreadReportParentAction, personalDetails);
 
     if (typeof message === 'object') {
         return (
