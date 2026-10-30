@@ -333,6 +333,7 @@ type ShouldShow = (args: {
     transactions?: OnyxCollection<Transaction>;
     moneyRequestReport?: OnyxEntry<ReportType>;
     moneyRequestPolicy?: OnyxEntry<Policy>;
+    moneyRequestReportOwnerLogin: string | undefined;
     isHarvestReport?: boolean;
     currentUserAccountID: number;
     rules: OnyxCollection<Rule>;
@@ -733,12 +734,31 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.unhold',
         icon: 'Stopwatch',
-        shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction, currentUserAccountID, rules}) => {
+        shouldShow: ({
+            type,
+            moneyRequestReport,
+            moneyRequestAction,
+            moneyRequestPolicy,
+            areHoldRequirementsMet,
+            iouTransaction,
+            currentUserAccountID,
+            rules,
+            moneyRequestReportOwnerLogin,
+        }) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
             }
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
-            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID, rules).canUnholdRequest;
+            return canHoldUnholdReportAction(
+                moneyRequestReport,
+                moneyRequestAction,
+                holdReportAction,
+                iouTransaction,
+                moneyRequestPolicy,
+                currentUserAccountID,
+                rules,
+                moneyRequestReportOwnerLogin,
+            ).canUnholdRequest;
         },
         onPress: (
             closePopover,
@@ -800,12 +820,31 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
         icon: 'Stopwatch',
-        shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction, currentUserAccountID, rules}) => {
+        shouldShow: ({
+            type,
+            moneyRequestReport,
+            moneyRequestAction,
+            moneyRequestPolicy,
+            areHoldRequirementsMet,
+            iouTransaction,
+            currentUserAccountID,
+            rules,
+            moneyRequestReportOwnerLogin,
+        }) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
             }
             const holdReportAction = getReportAction(moneyRequestAction?.childReportID, `${iouTransaction?.comment?.hold ?? ''}`);
-            return canHoldUnholdReportAction(moneyRequestReport, moneyRequestAction, holdReportAction, iouTransaction, moneyRequestPolicy, currentUserAccountID, rules).canHoldRequest;
+            return canHoldUnholdReportAction(
+                moneyRequestReport,
+                moneyRequestAction,
+                holdReportAction,
+                iouTransaction,
+                moneyRequestPolicy,
+                currentUserAccountID,
+                rules,
+                moneyRequestReportOwnerLogin,
+            ).canHoldRequest;
         },
         onPress: (
             closePopover,
