@@ -1217,6 +1217,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Jahr' : `Jahr ${year}`),
             increase: (percentage: string) => `Um ${percentage} gestiegen`,
             decrease: (percentage: string) => `Um ${percentage} gesunken`,
+            dailyAverage: 'Tagesdurchschnitt',
+            weeklyAverage: 'Wöchentlicher Durchschnitt',
+            monthlyAverage: 'Monatlicher Durchschnitt',
+            quarterlyAverage: 'Quartalsdurchschnitt',
+            yearlyAverage: 'Jährlicher Durchschnitt',
+            allSpenderAverage: 'Durchschnitt aller Zahlenden',
+            allMerchantAverage: 'Durchschnitt über alle Händler',
+            allCategoryAverage: 'Durchschnitt aller Kategorien',
+            averageValue: (amount: string) => `${amount} durchschnittl.`,
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
@@ -6687,7 +6696,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             selectCards: 'Karten auswählen',
             fromOtherWorkspaces: 'Aus anderen Workspaces',
             addWorkEmail: 'Fügen Sie Ihre Arbeits-E-Mail hinzu',
-            addWorkEmailDescription: 'Bitte fügen Sie Ihre Arbeits-E-Mail hinzu, um vorhandene Feeds aus anderen Workspaces zu nutzen.',
+            addWorkEmailDescription:
+                'Bitte fügen Sie Ihre Arbeits-E-Mail-Adresse hinzu und legen Sie sie als primäre Kontaktmethode fest, um vorhandene Feeds aus anderen Workspaces zu nutzen.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kartendaten konnten nicht geladen werden',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7582,6 +7592,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             confirmWorkflows: {
                 continue: 'Ohne Mitglieder fortfahren',
                 description: 'Das Kopieren von Workflows ohne Mitglieder kopiert keine Genehmigungs-Workflows. Einreichungs- und Zahlungseinstellungen werden trotzdem kopiert.',
+            },
+            confirmMembers: {
+                title: 'Mitglieder kopieren',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Sind Sie sicher, dass Sie die Mitglieder von ${targetWorkspaceName} durch die Mitglieder dieses Arbeitsbereichs ersetzen möchten?`,
+                    other: `Sind Sie sicher, dass Sie die Mitglieder von ${count} Arbeitsbereichen durch die Mitglieder dieses Arbeitsbereichs ersetzen möchten?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Kopieren läuft ...',
@@ -9276,7 +9293,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     missingData: 'Expensify hat diese Information nicht.',
                     retroactive: 'Regeln gelten nur für neue Aktivitäten.',
                     historyLimit: 'Regeln können nicht so weit zurückblicken.',
-                    tryThisInstead: 'Versuchen Sie es stattdessen damit',
+                    useSuggestion: 'Vorschlag verwenden',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Probieren Sie stattdessen den Vorschlag unten aus:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `„${suggestedPrompt}“`,
+                    createAnyway: 'Trotzdem erstellen',
                 },
             },
             expenseDefaultsTable: {
@@ -9659,6 +9679,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noOrganizationsFound: 'Keine Organisationen gefunden',
             noOrganizationsFoundDescription: 'Bitte fügen Sie eine Organisation in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
             multiLocationNotSupported: 'Organisationen mit mehreren Standorten werden noch nicht unterstützt',
+            importDescription: 'Wählen Sie aus, welche Kodierungskonfigurationen aus Zoho Books importiert werden sollen.',
+            accountTypesDescription: 'Ihre Zoho Books-Konten werden als Kategorien importiert.',
+            enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
+            enableNewAccountsDescription: 'Neue Zoho Books-Konten werden als Kategorien verfügbar sein.',
+            reportingTagsImport: 'Alle Zoho Books-Berichts-Tags werden als Tags importiert',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
@@ -10524,6 +10549,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `aktualisierte „Verhindern, dass nicht erstattungsfähige Berichte als bezahlt markiert werden“ auf „${newValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“ (zuvor „${oldValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“)`,
+        addedExpensifyCardFeed: (feedName: string) => `„${feedName}“-Expensify-Kartenfeed hinzugefügt`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

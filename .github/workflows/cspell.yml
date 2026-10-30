@@ -3,10 +3,11 @@ name: Spell check
 on:
   pull_request:
     types: [opened, synchronize]
-    branches: [main]
+    branches: [main, staging]
 
 jobs:
   spellcheck:
+    if: github.actor != 'os-botify[bot]'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
