@@ -48,8 +48,8 @@ function ReportDetailsColumnsPage() {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS | typeof SCREENS.REPORT_SETTINGS.FIELDS>>();
     const reportID = route.params.reportID;
     const isExpenseView = route.name === SCREENS.REPORT_SETTINGS.FIELDS;
-    const [reportDetailsColumns, {status: tableColumnsStatus}] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
-    const [expenseFields, {status: expenseFieldsStatus}] = useOnyx(ONYXKEYS.NVP_EXPENSE_FIELDS);
+    const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
+    const [expenseFields] = useOnyx(ONYXKEYS.NVP_EXPENSE_FIELDS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     // Selector keeps re-renders scoped to this report's transactions. We intentionally return undefined
@@ -63,17 +63,14 @@ function ReportDetailsColumnsPage() {
         },
     });
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
     // The vendor column only exists for workspaces with the vendor feature, so hide it when this report's workspace lacks it.
-    const isVendorColumnAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    const isVendorColumnAvailable = hasVendorFeature(policy, isVendorMatchingBetaEnabled ?? false);
+    const isVendorAvailabilityLoading = isVendorMatchingBetaEnabled === undefined && !isVendorColumnAvailable && hasVendorFeature(policy, true);
     const isColumnAvailable = (column: SearchCustomColumnIds) =>
         (!isExpenseView || column !== CONST.SEARCH.TABLE_COLUMNS.RECEIPT) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
-
-    // Wait for transactions to load before rendering. ColumnsSettingsList snapshots
-    // currentColumns in useState on mount and does not sync prop updates, so we must
-    // pass the final value on first render.
-    const isLoading = !reportTransactions || tableColumnsStatus === 'loading' || (isExpenseView && expenseFieldsStatus === 'loading');
 
     const rawSavedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
     const savedColumns = rawSavedColumns.filter((column) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
@@ -120,12 +117,14 @@ function ReportDetailsColumnsPage() {
         Navigation.goBack();
     };
 
-    if (isLoading) {
+    if (!reportTransactions || isVendorAvailabilityLoading) {
         return null;
     }
 
     return (
         <ColumnsSettingsList
+            // Remount when stored preferences or workspace availability change the initial selection.
+            key={JSON.stringify(currentColumns)}
             titleKey={isExpenseView ? 'search.customizeFields' : 'search.columns'}
             allColumns={allColumns}
             defaultSelectedColumns={isExpenseView ? EXPENSE_DEFAULT_FIELDS : REPORT_DETAILS_DEFAULT_COLUMNS}

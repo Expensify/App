@@ -1334,6 +1334,8 @@ const ONYXKEYS = {
         POLICY_TAG_NAME_FORM_DRAFT: 'policyTagNameFormDraft',
         WORKSPACE_NEW_TAX_FORM: 'workspaceNewTaxForm',
         WORKSPACE_NEW_TAX_FORM_DRAFT: 'workspaceNewTaxFormDraft',
+        WORKSPACE_SUBMISSION_FREQUENCY_FORM: 'workspaceSubmissionFrequencyForm',
+        WORKSPACE_SUBMISSION_FREQUENCY_FORM_DRAFT: 'workspaceSubmissionFrequencyFormDraft',
         WORKSPACE_TAX_NAME_FORM: 'workspaceTaxNameForm',
         WORKSPACE_TAX_CODE_FORM: 'workspaceTaxCodeForm',
         WORKSPACE_TAX_CODE_FORM_DRAFT: 'workspaceTaxCodeFormDraft',
@@ -1448,8 +1450,6 @@ const ONYXKEYS = {
         SPEND_RULE_FORM_DRAFT: 'spendRuleFormDraft',
         ADD_DOMAIN_MEMBER_FORM: 'addDomainMemberForm',
         ADD_DOMAIN_MEMBER_FORM_DRAFT: 'addDomainMemberFormDraft',
-        ADD_WORK_EMAIL_FORM: 'addWorkEmailForm',
-        ADD_WORK_EMAIL_FORM_DRAFT: 'addWorkEmailFormDraft',
         EDIT_DOMAIN_GROUP_NAME_FORM: 'editDomainGroupNameForm',
         EDIT_DOMAIN_GROUP_NAME_FORM_DRAFT: 'editDomainGroupNameFormDraft',
         SPEND_RULE_MAX_AMOUNT_FORM: 'spendRuleMaxAmountForm',
@@ -1565,6 +1565,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS]: FormTypes.AdditionalDetailStepForm;
     [ONYXKEYS.FORMS.POLICY_TAG_NAME_FORM]: FormTypes.PolicyTagNameForm;
     [ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM]: FormTypes.WorkspaceNewTaxForm;
+    [ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM]: FormTypes.WorkspaceSubmissionFrequencyForm;
     [ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM]: FormTypes.PolicyCreateDistanceRateForm;
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM]: FormTypes.PolicyDistanceRateEditForm;
     [ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_NAME_EDIT_FORM]: FormTypes.PolicyDistanceRateNameEditForm;
@@ -1629,7 +1630,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM]: FormTypes.FlagForReviewRuleMaxAmountForm;
     [ONYXKEYS.FORMS.SPEND_RULE_FORM]: FormTypes.SpendRuleForm;
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
-    [ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM]: FormTypes.AddWorkEmailForm;
     [ONYXKEYS.FORMS.EDIT_DOMAIN_GROUP_NAME_FORM]: FormTypes.DomainGroupEditNameForm;
     [ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM]: FormTypes.SpendRuleMaxAmountForm;
     [ONYXKEYS.FORMS.SPEND_RULE_MERCHANT_EDIT_FORM]: FormTypes.SpendRuleMerchantEditForm;

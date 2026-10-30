@@ -1,8 +1,9 @@
-import {render} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
 
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
 import getMoneyRequestViewFields from '@libs/getMoneyRequestViewFields';
@@ -15,16 +16,20 @@ import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
+import {Button, View} from 'react-native';
+
+import createMock from '../../../utils/createMock';
 
 jest.mock('@components/ColumnsSettingsList', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1})));
 jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@hooks/usePermissions', () => jest.fn());
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {isHybridApp: jest.fn(() => false)},
@@ -42,6 +47,11 @@ let mockSavedColumns: string[] | undefined;
 let mockExpenseFields: string | undefined;
 let mockExpenseFieldsStatus: 'loading' | 'loaded' = 'loaded';
 let mockReportTransactions: Transaction[] = [];
+let mockReport: Report | undefined;
+let mockPolicy: Policy | undefined;
+let mockReportStatus: 'loading' | 'loaded' = 'loaded';
+let mockPolicyStatus: 'loading' | 'loaded' = 'loaded';
+let mockVendorBeta: boolean | undefined = false;
 
 function renderColumns(savedColumns?: string[], expenseFields?: string) {
     mockSavedColumns = savedColumns;
@@ -67,15 +77,36 @@ jest.mocked(useOnyx).mockImplementation((key) => {
             return [mockExpenseFields, {status: mockExpenseFieldsStatus}];
         case ONYXKEYS.COLLECTION.TRANSACTION:
             return [mockReportTransactions, {status: 'loaded'}];
+        case `${ONYXKEYS.COLLECTION.REPORT}report-1`:
+            return [mockReport, {status: mockReportStatus}];
+        case `${ONYXKEYS.COLLECTION.POLICY}policy-1`:
+            return [mockPolicy, {status: mockPolicyStatus}];
         default:
             return [undefined, {status: 'loaded'}];
     }
 });
 
+function MockPicker(props: Parameters<typeof ColumnsSettingsList>[0]) {
+    const [selection] = React.useState(props.currentColumns);
+    return (
+        <Button
+            title="Save fields"
+            onPress={() => props.onSave(selection)}
+        />
+    );
+}
+
 beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(ColumnsSettingsList).mockImplementation(() => <View />);
     mockExpenseFieldsStatus = 'loaded';
     mockReportTransactions = [];
+    mockReport = undefined;
+    mockPolicy = undefined;
+    mockReportStatus = 'loaded';
+    mockPolicyStatus = 'loaded';
+    mockVendorBeta = false;
+    jest.mocked(usePermissions).mockImplementation(() => ({isBetaEnabled: () => mockVendorBeta ?? false, isBetaEnabledOrUnknown: () => mockVendorBeta}));
     jest.mocked(useRoute).mockReturnValue({key: 'columns', name: SCREENS.REPORT_SETTINGS.COLUMNS, params: {reportID: 'report-1'}});
 });
 
@@ -146,25 +177,38 @@ it('shows the same initial selection as the expense view', () => {
     expect(props.currentColumns).toContain(ATTENDEES);
 });
 
-it('waits for saved expense fields before mounting the picker', () => {
-    // Given a stored selection that has not loaded and a picker that captures its selection on mount.
+it.each(['preference', 'report', 'policy', 'beta'] as const)('preserves Vendor when %s data loads after the expense preference', (pendingData) => {
+    // Given a saved Vendor selection whose workspace availability is not known yet.
+    const savedFields = [TOTAL_AMOUNT, VENDOR, DESCRIPTION];
+    const report: Report = {reportID: 'report-1', policyID: 'policy-1'};
+    const connection = pendingData === 'beta' ? CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL : CONST.POLICY.CONNECTIONS.NAME.XERO;
+    const policy = createMock<Policy>({id: 'policy-1', connections: {[connection]: {config: {isConfigured: true}}}});
+    mockExpenseFields = pendingData === 'preference' ? undefined : JSON.stringify(savedFields);
+    mockReport = pendingData === 'report' ? undefined : report;
+    mockPolicy = pendingData === 'policy' ? undefined : policy;
+    mockReportStatus = pendingData === 'report' ? 'loading' : 'loaded';
+    mockPolicyStatus = pendingData === 'policy' ? 'loading' : 'loaded';
+    mockVendorBeta = pendingData === 'beta' ? undefined : false;
     jest.mocked(useRoute).mockReturnValue({key: 'fields', name: SCREENS.REPORT_SETTINGS.FIELDS, params: {reportID: 'report-1'}});
-    mockSavedColumns = undefined;
-    mockExpenseFields = undefined;
-    mockExpenseFieldsStatus = 'loading';
+    jest.mocked(ColumnsSettingsList).mockImplementation(MockPicker);
     const {rerender} = render(<ReportDetailsColumnsPage />);
-    expect(ColumnsSettingsList).not.toHaveBeenCalled();
 
-    // When the stored preference becomes available.
-    const savedFields = [TOTAL_AMOUNT, DESCRIPTION];
+    // When the report, workspace and applicable beta finish loading.
     mockExpenseFields = JSON.stringify(savedFields);
-    mockExpenseFieldsStatus = 'loaded';
+    mockReport = report;
+    mockPolicy = policy;
+    mockReportStatus = 'loaded';
+    mockPolicyStatus = 'loaded';
+    mockVendorBeta = true;
     rerender(<ReportDetailsColumnsPage />);
-
-    // Then the picker starts with the user's selection rather than retaining temporary defaults.
     const props = jest.mocked(ColumnsSettingsList).mock.calls.at(-1)?.at(0);
+    fireEvent.press(screen.getByText('Save fields'));
+
+    // Then the first selection includes Vendor and saving without edits cannot erase it.
     expect(props?.currentColumns).toEqual(savedFields);
     expect(setNameValuePair).not.toHaveBeenCalled();
+    expect(setReportDetailsColumns).not.toHaveBeenCalled();
+    expect(Navigation.goBack).toHaveBeenCalledTimes(1);
 });
 
 it('adds an expense field without hiding existing editors or changing the table', () => {
