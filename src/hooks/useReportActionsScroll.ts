@@ -513,7 +513,7 @@ function useReportActionsScroll({
         initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
         initialScrollIndex = renderedVisibleReportActions.length - 1;
-        initialScrollIndexParams = {viewOffset: windowHeight};
+        initialScrollIndexParams = {viewPosition: 1, viewOffset: windowHeight};
     }
 
     return {
