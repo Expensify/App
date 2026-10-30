@@ -790,7 +790,6 @@ function clearSessionNavigationState() {
 function resetForSessionChange(route: Route) {
     clearSessionNavigationState();
 
-    // Not ready when connecting from a deep link, because the navigator mounts only after the switch
     if (!navigationRef.isReady()) {
         return;
     }

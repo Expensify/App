@@ -27,8 +27,6 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 const shouldShowNotFoundPage = !isSwitchingToDelegator && isAgent === true;
 
                 const redirectAgentAway = useCallback(() => {
-                    // While copiloting into an agent, the session flips to the agent before the switch resets navigation.
-                    // Redirecting then would race that reset, so the reset alone decides where the agent lands.
                     if (isAgent !== true || isSwitchingToDelegator) {
                         return;
                     }

@@ -149,7 +149,6 @@ type WithActivePolicyID = {
 };
 
 type WithRouteAfterSwitch = {
-    // Where navigation starts over once the switch completes. Defaults to the Settings tab, where accounts are usually switched.
     routeAfterSwitch?: Route;
 };
 
