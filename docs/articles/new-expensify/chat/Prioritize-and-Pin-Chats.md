@@ -47,10 +47,11 @@ Learn more about [what the #admins room is for](/articles/new-expensify/chat/Exp
 
 To adjust how chats are sorted in your inbox:
 
-1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Account > Preferences**.
-2. Click or tap **Priority mode**.
-3. Select either **#focus** or **Most recent**.
-4. Click or tap **Save**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Preferences**.
+3. Select **Priority mode**.
+4. Select either **#focus** or **Most recent**.
+5. Select **Save**.
 
 **Note:** Choose **#focus** for a distraction-free inbox with only unread and pinned chats, or stick with **Most recent** to see everything chronologically. The change is applied only after you tap **Save**.
 

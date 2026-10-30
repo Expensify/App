@@ -34,24 +34,26 @@ When you select **New agent**, the **New agent** screen opens. From here you can
 
 **To build a custom agent from scratch:**
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Agents**.
-2. Select **New agent**.
-3. Select **Build custom agent**.
-4. Review the auto-generated profile image and display name. If needed, you can edit these later.
-5. Select **Write custom instructions** and describe what you want the agent to do.
-6. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
-7. Select **Create agent**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Agents**.
+3. Select **New agent**.
+4. Select **Build custom agent**.
+5. Review the auto-generated profile image and display name. If needed, you can edit these later.
+6. Select **Write custom instructions** and describe what you want the agent to do.
+7. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
+8. Select **Create agent**.
 
 **To start from a template:**
 
 To learn what each template does, see [Use Agent Templates](/articles/new-expensify/ai-agents/Use-Agent-Templates).
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Agents**.
-2. Select **New agent**.
-3. Under **Or start with a template:**, find the template you want, then select **Add**.
-4. Review the pre-filled instructions and edit them if needed.
-5. Review the auto-generated profile image and display name. If needed, you can edit these later.
-6. Select **Create agent**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Agents**.
+3. Select **New agent**.
+4. Under **Or start with a template:**, find the template you want, then select **Add**.
+5. Review the pre-filled instructions and edit them if needed.
+6. Review the auto-generated profile image and display name. If needed, you can edit these later.
+7. Select **Create agent**.
 
 After you select **Create agent**, you're taken directly to a direct message (DM) with the new agent, where its welcome message appears once it arrives. The new agent also appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
 
@@ -89,8 +91,9 @@ Agent instructions use the same natural-language prompting concepts as agent rul
 
 To open a direct conversation with an agent:
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Agents**.
-2. Find the agent you want to message, then select **Chat**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Agents**.
+3. Find the agent you want to message, then select **Chat**.
 
 ---
 
@@ -100,8 +103,9 @@ Each agent is its own Expensify account with a profile, inbox, chats, and activi
 
 Use Copilot to see what the agent has done, review its activity, and inspect any actions it has taken on reports.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Agents**.
-2. Find the agent in the list and select **Copilot**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Agents**.
+3. Find the agent in the list and select **Copilot**.
 
 [Learn more about Copilot](/articles/new-expensify/settings/Act-as-a-Copilot).
 
@@ -111,11 +115,12 @@ Use Copilot to see what the agent has done, review its activity, and inspect any
 
 You can edit an agent's instructions at any time.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Agents**.
-2. Find the agent you want to change, then select **Edit**.
-3. Select **Write custom instructions**.
-4. Enter the new instructions you want the agent to follow.
-5. Select **Save**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Agents**.
+3. Find the agent you want to change, then select **Edit**.
+4. Select **Write custom instructions**.
+5. Enter the new instructions you want the agent to follow.
+6. Select **Save**.
 
 ---
 
@@ -123,16 +128,18 @@ You can edit an agent's instructions at any time.
 
 Deleting an agent closes its Expensify account.
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Agents**.
-2. Find the agent you want to remove, then select **Edit**.
-3. Select **Delete agent**.
-4. Confirm the deletion.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Agents**.
+3. Find the agent you want to remove, then select **Edit**.
+4. Select **Delete agent**.
+5. Confirm the deletion.
 
 You can also delete an agent while [Copiloting into its account](#how-to-copilot-into-an-agents-account):
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Security**.
-2. Select **Close account**.
-3. In the **Delete agent?** confirmation, select **Delete**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Security**.
+3. Select **Close account**.
+4. In the **Delete agent?** confirmation, select **Delete**.
 
 Deleting the agent from the **Security** page also ends the Copilot session and returns you to your own account. This step requires an internet connection.
 
@@ -156,12 +163,13 @@ You can select several agents from the **Agents** list and delete them together.
 
 **On mobile:**
 
-1. In the navigation tabs on the bottom, select **Account > Agents**.
-2. Long-press an agent, then select **Select** to enter selection mode.
-3. Select each additional agent you want to delete.
-4. Select the button that shows the number of agents selected (for example, **2 selected**).
-5. Select **Delete agents**.
-6. Select **Delete** to confirm.
+1. Select your profile icon.
+2. Select **Agents**.
+3. Long-press an agent, then select **Select** to enter selection mode.
+4. Select each additional agent you want to delete.
+5. Select the button that shows the number of agents selected (for example, **2 selected**).
+6. Select **Delete agents**.
+7. Select **Delete** to confirm.
 
 The selected agents are deleted and you stay on the **Agents** list. Deleting agents can't be undone.
 

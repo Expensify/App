@@ -39,10 +39,11 @@ The Workspace owner can make changes to the **Auto-renew**, and **Auto-increase 
 
 ## How to increase your Annual subscription size
 
-1. In the navigation tabs (on the left on web, at the bottom on mobile), go to **Account > Subscription**.
-2. Choose **Subscription settings**.
-3. In the **Subscription size** field, enter the number of seats you want to increase to.
-4. Confirm the new Annual subscription details.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Subscription**.
+3. Choose **Subscription settings**.
+4. In the **Subscription size** field, enter the number of seats you want to increase to.
+5. Confirm the new Annual subscription details.
 
 **Note:** You can increase your subscription size during an Annual subscription term, but you can't decrease it until the current term ends. Increasing your subscription size starts a new 12-month term, and you can't lower the size again until that term ends.
 
@@ -52,9 +53,10 @@ For more details, see [Learn About Plan and Subscription Management](/articles/n
 
 ## How to enable or disable Auto-increase annual seats
 
-1. In the navigation tabs (on the left on web, at the bottom on mobile), go to **Account > Subscription**.
-2. Choose **Subscription settings**.
-3. Enable or disable **Auto-increase annual seats**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Subscription**.
+3. Choose **Subscription settings**.
+4. Enable or disable **Auto-increase annual seats**.
 
 While it's enabled, any month your active members exceed your subscription size, your size increases automatically to cover them and a new 12-month subscription begins at the higher size.
 
@@ -62,9 +64,10 @@ While it's enabled, any month your active members exceed your subscription size,
 
 ## How to disable Auto-renew
 
-1. In the navigation tabs (on the left on web, at the bottom on mobile), go to **Account > Subscription**.
-2. Choose **Subscription settings**.
-3. Disable **Auto-renew** and confirm your choice.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Subscription**.
+3. Choose **Subscription settings**.
+4. Disable **Auto-renew** and confirm your choice.
 
 Your Annual subscription stays active until the renewal date shown on the page. After that, your workspace continues on Pay-per-use billing.
 

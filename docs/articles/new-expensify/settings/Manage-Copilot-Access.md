@@ -39,30 +39,33 @@ A Copilot cannot:
 
 ## How to add a Copilot
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Copilot**.
-2. In the **Copilot: Delegated access** section, select **Add a copilot**.
-3. Search for the member by name or email address.
-4. On the **Access level** screen, choose:
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Copilot**.
+3. In the **Copilot: Delegated access** section, select **Add a copilot**.
+4. Search for the member by name or email address.
+5. On the **Access level** screen, choose:
    * **Full** — Grants access to all available actions.
    * **Limited** — Allows a Copilot to manage expenses and reports, but prevents approval and payment-related actions, including approvals, payments, rejections, and holds.
-5. Select **Add a copilot**.
+6. Select **Add a copilot**.
 
 ## How to change a Copilot's access level
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Copilot**.
-2. In the **Copilot: Delegated access** section, locate the Copilot.
-3. Select the three dots **(⋮)**.
-4. Select **Change access level**.
-5. Choose **Full** or **Limited**.
-6. Confirm your selection.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Copilot**.
+3. In the **Copilot: Delegated access** section, locate the Copilot.
+4. Select the three dots **(⋮)**.
+4. Select **More (⋮)**.
+6. Choose **Full** or **Limited**.
+7. Confirm your selection.
 
 ## How to remove a Copilot
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account > Copilot**.
-2. In the **Copilot: Delegated access** section, locate the Copilot.
-3. Select the three dots **(⋮)**.
-4. Select **Remove copilot**.
-5. Confirm the removal.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Copilot**.
+3. In the **Copilot: Delegated access** section, locate the Copilot.
+4. Select the three dots **(⋮)**.
+4. Select **More (⋮)**.
+6. Confirm the removal.
 
 If you're offline when you confirm the removal, Expensify queues the change and finishes it the next time you're connected.
 

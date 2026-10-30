@@ -44,7 +44,7 @@ Your 3D Secure one-time passcodes are sent to the phone number listed in your Ex
 
 To update your phone number:
 
-1. Choose **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Profile**.
 3. Select **Phone number**.
 4. Enter your updated phone number and choose **Save**.

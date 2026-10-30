@@ -29,7 +29,7 @@ This helps you save time and keep your expense reporting consistent.
 
 To find Expense Rules: 
 
-1. Click **Account** in the navigation tabs (on the left on web, and at the bottom on mobile)
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 2. Select **Expense Rules**
 
 ---

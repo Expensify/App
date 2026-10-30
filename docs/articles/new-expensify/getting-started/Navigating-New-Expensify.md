@@ -35,9 +35,11 @@ The navigation tabs include:
 - **Home**
 - **Inbox**
 - **Spend**
-- **Insights** (web only)
+- **Insights**
 - **Workspaces**
-- **Account**
+- **Account** (web only)
+
+On mobile, **Account** isn't in the navigation tabs. Select your profile icon to open it.
 
 ---
 
@@ -90,7 +92,7 @@ From **Spend**, you can:
 
 ---
 
-## What the Insights tab on web is used for
+## What the Insights tab is used for
 
 **Insights** shows charts of your spending, such as **Spend over time**, **Top categories**, **Top merchants**, and **Top spenders**.
 
@@ -121,7 +123,7 @@ Learn how to [create and set up a company workspace](/articles/new-expensify/get
 
 ## What Account is used for
 
-**Account** contains personal and account-level settings. Select **Account** to open it.
+**Account** contains personal and account-level settings. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 
 From **Account**, you can manage:
 
@@ -148,9 +150,10 @@ Use Account for personal settings and billing.
 
 Workspace admins on a paid plan may have dedicated support contacts assigned to their account, such as an account manager, partner manager, or account executive. These contacts appear directly on the **Help** page so you can quickly start a conversation with them.
 
-1. Select **Account > Help**.
-2. Below **Concierge**, look for your assigned support contacts.
-3. Select a contact to open a direct message with them.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Help**.
+3. Below **Concierge**, look for your assigned support contacts.
+4. Select a contact to open a direct message with them.
 
 If a support contact has a scheduling link set up, a **Book a call** button also appears next to them here. This works for your account manager, partner manager, and guide. Learn [how to book a call with your support contact](#how-to-book-a-call-with-your-support-contact) below.
 
@@ -269,9 +272,13 @@ In the navigation tabs (on the left on web, on the bottom on mobile), select **W
 
 ## Where do I update my personal profile or billing information?
 
-Personal information is managed under **Account** in the navigation tabs (on the left on web, on the bottom on mobile).
+Personal information is managed under **Account**. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
 
 Then select **Profile** to update your personal information, or **Subscription** to manage billing.
+
+## Where did Account go on mobile?
+
+On mobile, **Account** is no longer in the navigation tabs. Select your profile icon to open it.
 
 ## What does the green Scan button do?
 

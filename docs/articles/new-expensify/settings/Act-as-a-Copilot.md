@@ -34,16 +34,18 @@ Some actions may be restricted if you've been granted Limited Access.
 
 ## How to switch to a Copilot account
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated access** section, choose the account you want to access.
-3. Select **Switch**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Copilot**.
+3. In the **Copilot: Delegated access** section, choose the account you want to access.
+4. Select **Switch**.
 
 ## How to remove yourself as a Copilot
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Account** > **Copilot**.
-2. In the **Copilot: Delegated access** section, choose the account you want to remove yourself from. 
-3. Select **Remove my copilot access**.
-4. Select **Remove access**.
+1. On web, select **Account** in the navigation tabs. On mobile, select your profile icon.
+2. Select **Copilot**.
+3. In the **Copilot: Delegated access** section, choose the account you want to remove yourself from. 
+4. Select **Remove my copilot access**.
+5. Select **Remove access**.
 
 Once removed, you can no longer access that account unless the account owner grants access again.
 
@@ -66,7 +68,7 @@ Web:
 
 Mobile:
 
-1. In the navigation tabs on the bottom, select **Account**.
+1. Select your profile icon.
 2. Next to your name and email address, select **Switch**.
 3. Select your name.
 
