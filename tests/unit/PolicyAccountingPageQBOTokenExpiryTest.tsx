@@ -9,6 +9,7 @@ import type TextComponent from '@components/Text';
 import DateUtils from '@libs/DateUtils';
 
 import PolicyAccountingPage from '@pages/workspace/accounting/PolicyAccountingPage';
+import ConnectionsAccountingPage from '@pages/workspace/connections/ConnectionsAccountingPage';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -85,13 +86,20 @@ jest.mock('@components/Section', () => ({__esModule: true, default: ({children}:
 jest.mock('@components/CollapsibleSection', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/ActivityIndicator', () => ({__esModule: true, default: () => null}));
 
-// The real menu only renders its entries inside a popover once pressed. Rendering their labels inline lets the tests
+// The real menus only render their entries inside a popover once pressed. Rendering their labels inline lets the tests
 // read which credentials entry the page offers without driving the popover.
 jest.mock('@components/ThreeDotsMenu', () => {
     const {default: MockText} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
     return {
         __esModule: true,
         default: ({menuItems}: {menuItems: PopoverMenuItem[]}) => menuItems.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>),
+    };
+});
+jest.mock('@components/Header/primitives/HeaderThreeDotsMenu', () => {
+    const {default: MockText} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
+    return {
+        __esModule: true,
+        default: ({items}: {items: PopoverMenuItem[]}) => items.map((menuItem) => <MockText key={menuItem.text}>{`${OVERFLOW_MENU_ITEM_PREFIX}${menuItem.text}`}</MockText>),
     };
 });
 
@@ -102,8 +110,13 @@ jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
 
 // The real `withPolicyConnections` HOC reads `policy` from Onyx and strips it from the component's public props. It is
 // mocked to an identity wrapper above, so the component under test takes `policy` directly.
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the HOC that would inject `policy` is mocked out, so it is passed as a prop here
-const PolicyAccountingPageUnderTest = PolicyAccountingPage as unknown as React.ComponentType<{policy: Policy}>;
+// The Accounting page and the Connections accounting panel share the connected integration's logic, so both are covered.
+const PAGES_UNDER_TEST = [
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the HOC that would inject `policy` is mocked out, so it is passed as a prop here
+    {pageName: 'PolicyAccountingPage', PageUnderTest: PolicyAccountingPage as unknown as React.ComponentType<{policy: Policy}>},
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the HOC that would inject `policy` is mocked out, so it is passed as a prop here
+    {pageName: 'ConnectionsAccountingPage', PageUnderTest: ConnectionsAccountingPage as unknown as React.ComponentType<{policy: Policy}>},
+];
 
 /**
  * A healthy QBO connection (synced, no error) whose refresh token expires at the given time. `data` is populated so the
@@ -138,16 +151,16 @@ function formatExpiryDate(expiryDate: Date): string {
     return DateUtils.formatWithUTCTimeZone(expiryDate.toISOString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT, undefined);
 }
 
-async function renderPage(policy: Policy) {
+async function renderPage(PageUnderTest: React.ComponentType<{policy: Policy}>, policy: Policy) {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <PolicyAccountingPageUnderTest policy={policy} />
+            <PageUnderTest policy={policy} />
         </ComposeProviders>,
     );
     await waitForBatchedUpdates();
 }
 
-describe('PolicyAccountingPage QBO refresh token expiry warning', () => {
+describe.each(PAGES_UNDER_TEST)('$pageName QBO refresh token expiry warning', ({PageUnderTest}) => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         IntlStore.load(CONST.LOCALES.EN);
@@ -162,7 +175,7 @@ describe('PolicyAccountingPage QBO refresh token expiry warning', () => {
     it('should warn with the expiry date and offer to reconnect when the token expires within the warning window', async () => {
         // Given a healthy QBO connection whose refresh token expires in a few days
         const expiryDate = addDays(new Date(), 3);
-        await renderPage(buildQBOPolicy(expiryDate));
+        await renderPage(PageUnderTest, buildQBOPolicy(expiryDate));
 
         // Then the connection row explains when the connection will expire
         expect(screen.getByText(`Your QuickBooks Online connection expires on ${formatExpiryDate(expiryDate)}.`, {exact: false})).toBeOnTheScreen();
@@ -182,7 +195,7 @@ describe('PolicyAccountingPage QBO refresh token expiry warning', () => {
     it('should say the connection expired when the token is past its expiry but no sync has failed yet', async () => {
         // Given a QBO connection whose refresh token lapsed yesterday while the last sync still reads as successful
         const expiryDate = subDays(new Date(), 1);
-        await renderPage(buildQBOPolicy(expiryDate));
+        await renderPage(PageUnderTest, buildQBOPolicy(expiryDate));
 
         // Then the row says the connection already expired and still offers to reconnect
         expect(screen.getByText(`Your QuickBooks Online connection expired on ${formatExpiryDate(expiryDate)}.`, {exact: false})).toBeOnTheScreen();
@@ -191,7 +204,7 @@ describe('PolicyAccountingPage QBO refresh token expiry warning', () => {
 
     it('should not warn while the token is still far from expiring', async () => {
         // Given a healthy QBO connection whose refresh token is valid well past the warning window
-        await renderPage(buildQBOPolicy(addDays(new Date(), CONST.POLICY.CONNECTIONS.QBO_REFRESH_TOKEN_EXPIRY_WARNING_DAYS + 30)));
+        await renderPage(PageUnderTest, buildQBOPolicy(addDays(new Date(), CONST.POLICY.CONNECTIONS.QBO_REFRESH_TOKEN_EXPIRY_WARNING_DAYS + 30)));
 
         // Then no expiry warning is shown and the overflow menu offers no credentials entry, as a healthy QBO connection
         // has nothing to re-enter
@@ -203,7 +216,7 @@ describe('PolicyAccountingPage QBO refresh token expiry warning', () => {
 
     it('should leave the authentication error in charge once a sync has already failed on the expired token', async () => {
         // Given a QBO connection whose token lapsed and whose last sync already failed to authenticate
-        await renderPage(buildQBOPolicy(subDays(new Date(), 1), true));
+        await renderPage(PageUnderTest, buildQBOPolicy(subDays(new Date(), 1), true));
 
         // Then the standard authentication error is shown instead of a second, redundant expiry warning
         expect(screen.queryByText('Your QuickBooks Online connection', {exact: false})).not.toBeOnTheScreen();
@@ -213,7 +226,7 @@ describe('PolicyAccountingPage QBO refresh token expiry warning', () => {
     it('should not warn a member who can only read the accounting settings', async () => {
         // Given a QBO connection whose refresh token expires in a few days, viewed by a member without write access to accounting
         mockCanWriteAccounting = false;
-        await renderPage(buildQBOPolicy(addDays(new Date(), 3)));
+        await renderPage(PageUnderTest, buildQBOPolicy(addDays(new Date(), 3)));
 
         // Then no expiry warning or Reconnect link is shown, since reconnecting is a write action this member cannot take
         expect(screen.queryByText('Your QuickBooks Online connection', {exact: false})).not.toBeOnTheScreen();

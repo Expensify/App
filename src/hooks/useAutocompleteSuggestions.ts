@@ -19,7 +19,7 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -152,7 +152,7 @@ function useAutocompleteSuggestions({
 
     if (!autocomplete && ranges.length > 0) {
         const lastRange = ranges.at(ranges.length - 1);
-        if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(lastRange.key)) {
+        if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.some((key) => key === lastRange.key)) {
             const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
             const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
 
@@ -179,7 +179,8 @@ function useAutocompleteSuggestions({
             .map((range) => range.value.toLowerCase()),
     );
 
-    const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeFilter = parsedQuery?.ranges?.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
 
     switch (autocompleteKey) {
@@ -303,6 +304,11 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
+            // `in:` only works for types that support it (chat, task). A bare `in:` with no explicit type resolves to `type:chat`, so keep suggesting in that case.
+            if (typeFilter && !isFilterSupported(CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, currentType)) {
+                return getEmptyArray<AutocompleteItemData>();
+            }
+
             // If autocompleteValue is empty or just whitespace and we have already completed keys,
             // return empty array to hide suggestion list (consistent with group-by behavior)
             if (!autocompleteValue.trim() && alreadyAutocompletedKeys.size > 0) {
@@ -546,7 +552,9 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD: {
             const filteredValues = BOOLEAN_VALUES.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(value)).sort();
 
             return filteredValues.map((value) => ({
@@ -571,10 +579,10 @@ function useAutocompleteSuggestions({
                 new Set(
                     policyIdRanges
                         .map((range) => {
-                            const baseKey = getSubstitutionMapKey(range.key, range.value);
+                            const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
                             const index = keyValueCount.get(baseKey) ?? 0;
                             keyValueCount.set(baseKey, index + 1);
-                            const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
+                            const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
                             return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
                         })
                         .filter(Boolean),
@@ -652,6 +660,7 @@ function useAutocompleteSuggestions({
                 mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             }));
         }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
@@ -663,7 +672,7 @@ function useAutocompleteSuggestions({
                 .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(datePreset.toLowerCase()))
                 .sort()
                 .slice(0, 10);
-            return filteredDatePresets.map((datePreset) => ({filterKey: autocompleteKey, text: datePreset}));
+            return filteredDatePresets.map((datePreset) => ({filterKey: getUserFriendlyKey(autocompleteKey), text: datePreset}));
         }
         default: {
             return [];

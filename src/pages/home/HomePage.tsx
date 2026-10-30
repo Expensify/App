@@ -1,6 +1,7 @@
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
-import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
+import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
+import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,17 +9,20 @@ import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import openHomePage from '@libs/actions/HomePage';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ComponentRef} from 'react';
@@ -43,9 +47,16 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
+    const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.HOME);
+    const tabRootScrollProps = useTabRootScrollProps([styles.homePageContentContainer, !shouldScrollMainHeader && pageGutter], {
+        hasBottomSafeAreaPadding: true,
+        hasOfflineIndicatorPadding: true,
+    });
     const {translate} = useLocalize();
+    const triggerScrollEvent = useScrollEventEmitter();
     useDocumentTitle(translate('common.home'));
     const {isOffline} = useNetwork({onReconnect: openHomePage});
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -132,6 +143,14 @@ function HomePage() {
         </>
     );
 
+    const topBar = (
+        <TopBar
+            breadcrumbLabel={translate('common.home')}
+            shouldShowLoadingBar={isForYouLoading}
+            shouldDisplayHelpButton
+        />
+    );
+
     return (
         <View
             ref={receiptDropTargetRef}
@@ -146,26 +165,24 @@ function HomePage() {
                     shouldShowOfflineIndicatorInWideScreen
                     testID="HomePage"
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
-                    bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
-                    bottomContentStyle={styles.overflowVisible}
+                    {...tabRootScreenWrapperProps}
                 >
-                    <TopBar
-                        breadcrumbLabel={translate('common.home')}
-                        shouldShowLoadingBar={isForYouLoading}
-                        shouldDisplayHelpButton
-                    />
+                    {!shouldScrollMainHeader && topBar}
                     <ScrollView
                         style={styles.homePageScrollView}
-                        contentContainerStyle={[styles.homePageContentContainer, pageGutter]}
+                        {...tabRootScrollProps}
+                        onScroll={triggerScrollEvent}
+                        scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
+                        {shouldScrollMainHeader && topBar}
                         {!shouldUseNarrowLayout && (
                             <View style={styles.centeredContentWidthLimiter}>
                                 <QuickCreationActionsBar />
                             </View>
                         )}
-                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{homeLayout}</View>
+                        <View style={[styles.homePageMainLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}>{homeLayout}</View>
                     </ScrollView>
                     <PortalHost name="suggestions" />
                 </ScreenWrapper>

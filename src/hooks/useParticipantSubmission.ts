@@ -342,7 +342,6 @@ function useParticipantSubmission({
         if (isInvoice) {
             selectedReportID.current = firstParticipantReportID && isInvoiceRoomWithID(firstParticipantReportID) ? firstParticipantReportID : generateReportID();
         } else {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             selectedReportID.current = firstParticipantReportID || generateReportID();
         }
     };

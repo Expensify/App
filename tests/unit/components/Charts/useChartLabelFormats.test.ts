@@ -2,6 +2,7 @@ import {renderHook} from '@testing-library/react-native';
 
 import useChartLabelFormats from '@components/Charts/hooks/useChartLabelFormats';
 import type {ChartDataPoint, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 
 let mockNumberFormat = (n: number, options?: Intl.NumberFormatOptions) => n.toLocaleString('en-US', options);
 
@@ -12,8 +13,8 @@ jest.mock('@hooks/useLocalize', () =>
 );
 
 const SAMPLE_DATA: ChartDataPoint[] = [
-    {label: 'Jan', total: 100},
-    {label: 'Feb', total: 200},
+    {label: 'Jan', values: {[CHART_SERIES_KEY.PRIMARY]: 100}},
+    {label: 'Feb', values: {[CHART_SERIES_KEY.PRIMARY]: 200}},
 ];
 
 beforeEach(() => {

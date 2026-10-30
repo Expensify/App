@@ -60,6 +60,17 @@ jest.mock('@libs/PolicyUtils', () => ({
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
+type ReceiptAuditAction = {
+    reportActionID: string;
+    created: string;
+    originalMessage: {receiptAdded?: boolean; receiptRemoved?: boolean};
+};
+
+/** Narrows the untyped values of an Onyx report actions update, so the audit actions can be inspected field by field. */
+function isReceiptAuditAction(action: unknown): action is ReceiptAuditAction {
+    return typeof action === 'object' && action !== null && 'originalMessage' in action;
+}
+
 OnyxUpdateManager();
 
 describe('actions/IOU/Receipt', () => {
@@ -255,6 +266,61 @@ describe('actions/IOU/Receipt', () => {
                 const updatedSnapshot = await getSearchSnapshot(snapshotHash);
                 expect(updatedSnapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.receipt?.source).toBe(source);
             });
+        });
+
+        it('should clear the previous reservation dates when a new receipt replaces the old one', async () => {
+            // Given an expense whose SmartScanned hotel receipt has reservation dates
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {...OLD_RECEIPT, hotelReservationStartDate: '2026-10-01', hotelReservationEndDate: '2026-10-04'},
+            });
+
+            // When the user replaces it with a different receipt
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the old dates are gone, so the per-night limit check and hint don't use them for the new receipt
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.hotelReservationStartDate).toBeUndefined();
+            expect(updatedTransaction?.receipt?.hotelReservationEndDate).toBeUndefined();
+        });
+
+        it('should keep the reservation dates when the same receipt is cropped or rotated', async () => {
+            // Given an expense whose SmartScanned hotel receipt has reservation dates
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {...OLD_RECEIPT, hotelReservationStartDate: '2026-10-01', hotelReservationEndDate: '2026-10-04'},
+            });
+
+            // When the user crops or rotates that receipt
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                isSameReceipt: true,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the dates stay, because the receipt is still the same stay
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.hotelReservationStartDate).toBe('2026-10-01');
+            expect(updatedTransaction?.receipt?.hotelReservationEndDate).toBe('2026-10-04');
         });
 
         it('should optimistically set pending field for receipt', async () => {
@@ -582,10 +648,12 @@ describe('actions/IOU/Receipt', () => {
         });
 
         it('should store isSameReceipt and receiptState in the receipt error retry params', async () => {
+            // Given an expense with a receipt
             const writeSpy = mockApiWrite();
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
 
             try {
+                // When the receipt is cropped or rotated, which passes isSameReceipt and the current scan state
                 replaceReceipt({
                     isVendorMatchingBetaEnabled: false,
                     transaction,
@@ -601,6 +669,7 @@ describe('actions/IOU/Receipt', () => {
                 });
                 await waitForBatchedUpdates();
 
+                // Then the receipt error stores both, which a retry needs to stay a same-receipt update
                 const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
                 const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
                 const receiptError: Partial<ReceiptError> | undefined = Object.values(transactionFailure.value.errors ?? {}).at(0);
@@ -667,13 +736,16 @@ describe('actions/IOU/Receipt', () => {
             }
         });
 
-        it('should reuse the failed "added a receipt" action on retry and clear its error', async () => {
+        it('should reuse the failed audit actions on retry and clear their errors', async () => {
+            // Given a retry of an upload whose "removed a receipt" and "added a receipt" actions failed and kept an error
             const failedActionID = '1234567890';
+            const failedRemovedActionID = '1234567891';
             const threadReport = {...createRandomReport(2, undefined), reportID: 'replaceReceiptRetryThreadReportID'};
             const transaction = await setupTransactionWithSnapshot(transactionID, {receipt: OLD_RECEIPT});
             const writeSpy = mockApiWrite();
 
             try {
+                // When replaceReceipt is called again with that action's ID
                 replaceReceipt({
                     isVendorMatchingBetaEnabled: false,
                     transaction,
@@ -685,18 +757,29 @@ describe('actions/IOU/Receipt', () => {
                     currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
                     transactionThreadReport: threadReport,
                     receiptAddedReportActionID: failedActionID,
+                    receiptRemovedReportActionID: failedRemovedActionID,
                 });
                 await waitForBatchedUpdates();
 
+                // Then the same actions are sent and overwritten without their errors, and their IDs are stored again for another retry
                 const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
                 const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.reportID}`, Onyx.METHOD.MERGE, true);
                 const transactionFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, Onyx.METHOD.MERGE, true);
                 const receiptError: Partial<ReceiptError> | undefined = Object.values(transactionFailure.value.errors ?? {}).at(0);
+                const auditActions = Object.values(threadActionsUpdate.value).filter(isReceiptAuditAction);
+                const addedActions = auditActions.filter((action) => !!action.originalMessage.receiptAdded);
+                const removedActions = auditActions.filter((action) => !!action.originalMessage.receiptRemoved);
                 expect(parameters.reportActionID).toBe(failedActionID);
-                expect(Object.keys(threadActionsUpdate.value)).toEqual([failedActionID]);
+                expect(addedActions).toHaveLength(1);
+                expect(addedActions.at(0)?.reportActionID).toBe(failedActionID);
+                // The receipt already has a file, so the retry still audits the removal alongside the reused addition.
+                expect(removedActions).toHaveLength(1);
+                expect(removedActions.at(0)?.reportActionID).toBe(failedRemovedActionID);
+                expect(parameters.receiptRemovedReportActionID).toBe(failedRemovedActionID);
                 expect(threadActionsUpdate.value[failedActionID]).toEqual(expect.objectContaining({errors: null}));
+                expect(threadActionsUpdate.value[failedRemovedActionID]).toEqual(expect.objectContaining({errors: null}));
                 expect(JSON.parse(typeof receiptError?.retryParams === 'string' ? receiptError.retryParams : '')).toEqual(
-                    expect.objectContaining({receiptAddedReportActionID: failedActionID}),
+                    expect.objectContaining({receiptAddedReportActionID: failedActionID, receiptRemovedReportActionID: failedRemovedActionID}),
                 );
             } finally {
                 writeSpy.mockRestore();
@@ -713,7 +796,7 @@ describe('actions/IOU/Receipt', () => {
                 ...createRandomTransaction(1),
                 transactionID,
                 reportID: expenseReportID,
-                receipt: OLD_RECEIPT,
+                receipt: {},
             };
 
             const threadReport = {
@@ -753,7 +836,8 @@ describe('actions/IOU/Receipt', () => {
 
                 // And the thread receives the action, attributed to the copilot so the actor does not change once the server responds
                 const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, Onyx.METHOD.MERGE, true);
-                expect(Object.values(threadActionsUpdate.value).at(0)).toEqual(
+                const optimisticAction = Object.values(threadActionsUpdate.value).at(0);
+                expect(optimisticAction).toEqual(
                     expect.objectContaining({
                         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                         delegateAccountID,
@@ -762,12 +846,137 @@ describe('actions/IOU/Receipt', () => {
                     }),
                 );
 
+                // The expense held no receipt, so there is nothing to audit as removed
+                expect(Object.values(threadActionsUpdate.value)).toHaveLength(1);
+
                 // And a failed upload restores the timestamps the thread had before
                 const threadReportFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, Onyx.METHOD.MERGE, true);
                 expect(threadReportFailure.value).toEqual({
                     lastVisibleActionCreated: previousThreadTime,
                     lastReadTime: previousThreadTime,
                 });
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should audit a swap as a removal followed by an addition', async () => {
+            // Given an expense whose receipt is already stored server-side, so it has a receiptID
+            const expenseReportID = 'replaceReceiptReplacementExpenseReportID';
+            const threadReportID = 'replaceReceiptReplacementThreadReportID';
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: expenseReportID,
+                receipt: {...OLD_RECEIPT, receiptID: 1234},
+            };
+
+            const threadReport = {
+                ...createRandomReport(2, undefined),
+                reportID: threadReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
+            await waitForBatchedUpdates();
+
+            const writeSpy = mockApiWrite();
+            try {
+                // When the receipt is replaced with a different one
+                replaceReceipt({
+                    isVendorMatchingBetaEnabled: false,
+                    transaction,
+                    file: createFile(),
+                    source,
+                    transactionPolicy: undefined,
+                    transactionPolicyTagList: undefined,
+                    transactionReport: undefined,
+                    delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: threadReport,
+                });
+                await waitForBatchedUpdates();
+
+                // Then the thread gets both messages, so the swap reads the same as removing and re-adding by hand
+                const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                const auditActions = Object.values(threadActionsUpdate.value).filter(isReceiptAuditAction);
+                expect(auditActions).toHaveLength(2);
+
+                const removedAction = auditActions.find((action) => !!action.originalMessage.receiptRemoved);
+                const addedAction = auditActions.find((action) => !!action.originalMessage.receiptAdded);
+                expect(removedAction).toBeDefined();
+                expect(addedAction).toBeDefined();
+
+                // And the removal is stamped earlier, because the two are built in the same millisecond and
+                // would otherwise sort on their random reportActionIDs
+                expect(removedAction?.created.localeCompare(addedAction?.created ?? '')).toBeLessThan(0);
+
+                // And both IDs reach the server so the actions it writes reconcile with these
+                expect(parameters).toEqual(
+                    expect.objectContaining({
+                        reportActionID: addedAction?.reportActionID,
+                        receiptRemovedReportActionID: removedAction?.reportActionID,
+                    }),
+                );
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should audit a swap of a receipt that was added offline and has no receiptID yet', async () => {
+            // Given a receipt that exists only on this device, with a file but no receipt ID yet
+            const expenseReportID = 'replaceReceiptOfflineExpenseReportID';
+            const threadReportID = 'replaceReceiptOfflineThreadReportID';
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: expenseReportID,
+                receipt: OLD_RECEIPT,
+            };
+
+            const threadReport = {
+                ...createRandomReport(2, undefined),
+                reportID: threadReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
+            await waitForBatchedUpdates();
+
+            const writeSpy = mockApiWrite();
+            try {
+                // When that receipt is replaced before it has been stored server-side
+                replaceReceipt({
+                    isVendorMatchingBetaEnabled: false,
+                    transaction,
+                    file: createFile(),
+                    source,
+                    transactionPolicy: undefined,
+                    transactionPolicyTagList: undefined,
+                    transactionReport: undefined,
+                    delegateAccountID: undefined,
+                    currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    transactionThreadReport: threadReport,
+                });
+                await waitForBatchedUpdates();
+
+                // Then "removed a receipt" shows right away, and its ID is sent so the server message matches it
+                const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                const auditActions = Object.values(threadActionsUpdate.value).filter(isReceiptAuditAction);
+                expect(auditActions).toHaveLength(2);
+
+                const removedAction = auditActions.find((action) => !!action.originalMessage.receiptRemoved);
+                const addedAction = auditActions.find((action) => !!action.originalMessage.receiptAdded);
+                expect(removedAction).toBeDefined();
+                expect(addedAction).toBeDefined();
+                expect(parameters).toEqual(
+                    expect.objectContaining({
+                        reportActionID: addedAction?.reportActionID,
+                        receiptRemovedReportActionID: removedAction?.reportActionID,
+                    }),
+                );
             } finally {
                 writeSpy.mockRestore();
             }
@@ -804,9 +1013,31 @@ describe('actions/IOU/Receipt', () => {
             lastReadTime: '2024-01-01 00:00:00',
         };
 
+        const threadReportID = 'detachReceiptThreadReportID';
+        const previousThreadTime = '2024-01-01 00:00:00';
+        const threadReport = {
+            ...createRandomReport(2, undefined),
+            reportID: threadReportID,
+            lastVisibleActionCreated: previousThreadTime,
+            lastReadTime: previousThreadTime,
+        };
+
+        const baseParams = {
+            transaction,
+            transactionPolicy: undefined,
+            transactionPolicyTagList: undefined,
+            transactionViolations: undefined,
+            transactionReport: undefined,
+            isVendorMatchingBetaEnabled: false,
+            transactionThreadReport: undefined,
+            delegateAccountID: undefined,
+            currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+        };
+
         const seedOnyx = async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, policyTagList);
             await waitForBatchedUpdates();
@@ -815,7 +1046,7 @@ describe('actions/IOU/Receipt', () => {
         it('should do nothing when transactionID is undefined', async () => {
             const transactionsBefore = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
 
-            detachReceipt(undefined, undefined, undefined, undefined, undefined, false, undefined);
+            detachReceipt({...baseParams, transaction: undefined});
             await waitForBatchedUpdates();
 
             const transactionsAfter = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -828,7 +1059,7 @@ describe('actions/IOU/Receipt', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transaction, undefined, undefined, undefined, undefined, false, undefined);
+                detachReceipt(baseParams);
                 await waitForBatchedUpdates();
 
                 const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -844,20 +1075,59 @@ describe('actions/IOU/Receipt', () => {
             }
         });
 
-        it('should create an optimistic report action and update report timestamps', async () => {
+        it('should audit the removal on the transaction thread', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
             await seedOnyx();
 
-            detachReceipt(transaction, undefined, undefined, undefined, report, false, undefined);
+            try {
+                // When a receipt is removed from an expense that already has a thread
+                detachReceipt({...baseParams, transactionReport: report, transactionThreadReport: threadReport});
+                await waitForBatchedUpdates();
+
+                // Then the message lands on the thread next to "added a receipt", rather than on the expense
+                // report, where the backend only records it for a manager or a submitted report
+                const [, parameters, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+                const threadActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                const optimisticAction = Object.values(threadActionsUpdate.value).find(isReceiptAuditAction);
+                expect(optimisticAction).toEqual(
+                    expect.objectContaining({
+                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                        originalMessage: expect.objectContaining({receiptRemoved: true}),
+                    }),
+                );
+
+                // And its ID reaches the server so the action it writes reconciles with this one
+                expect(parameters).toEqual(expect.objectContaining({receiptRemovedReportActionID: optimisticAction?.reportActionID}));
+
+                // And the thread timestamps move to it, then roll back if the request fails
+                const threadReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                expect(threadReportUpdate.value.lastVisibleActionCreated).toBe(optimisticAction?.created);
+
+                const threadReportFailure = getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, Onyx.METHOD.MERGE, true);
+                expect(threadReportFailure.value).toEqual({
+                    lastVisibleActionCreated: previousThreadTime,
+                    lastReadTime: previousThreadTime,
+                });
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should leave the expense report untouched, since the backend may not record the removal there', async () => {
+            await seedOnyx();
+
+            // When a receipt is removed
+            detachReceipt({...baseParams, transactionReport: report, transactionThreadReport: threadReport});
             await waitForBatchedUpdates();
 
-            // Then a new report action should be created on the report
+            // Then nothing is shown optimistically on the expense report, because whether the backend writes
+            // its MANAGER_DETACH_RECEIPT action depends on who is acting and whether the report was submitted
             const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-            const actions = Object.values(reportActions ?? {});
-            expect(actions.length).toBeGreaterThan(0);
+            expect(Object.values(reportActions ?? {})).toHaveLength(0);
 
-            // And the report timestamps should be updated
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-            expect(updatedReport?.lastVisibleActionCreated).not.toBe('2024-01-01 00:00:00');
+            expect(updatedReport?.lastVisibleActionCreated).toBe('2024-01-01 00:00:00');
         });
 
         it('should call API.write with DETACH_RECEIPT command and correct params', async () => {
@@ -866,10 +1136,10 @@ describe('actions/IOU/Receipt', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transaction, undefined, undefined, undefined, undefined, false, undefined);
+                detachReceipt(baseParams);
                 await waitForBatchedUpdates();
 
-                expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DETACH_RECEIPT, expect.objectContaining({transactionID}), expect.anything(), expect.anything());
+                expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DETACH_RECEIPT, expect.objectContaining({transactionID}), expect.anything());
             } finally {
                 writeSpy.mockRestore();
             }
@@ -878,7 +1148,7 @@ describe('actions/IOU/Receipt', () => {
         it('should compute violations when policy is paid group', async () => {
             await seedOnyx();
 
-            detachReceipt(transaction, policy, policyTagList, undefined, undefined, false, undefined);
+            detachReceipt({...baseParams, transactionPolicy: policy, transactionPolicyTagList: policyTagList});
             await waitForBatchedUpdates();
 
             const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);

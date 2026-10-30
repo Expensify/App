@@ -15,7 +15,7 @@ import type {Dimensions} from '@src/types/utils/Layout';
 import type Nullable from '@src/types/utils/Nullable';
 
 // eslint-disable-next-line no-restricted-imports
-import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AnimatableNumericValue, Animated, ColorValue, DimensionValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
@@ -52,6 +52,7 @@ import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewSty
 import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
+import getSearchNarrowHeaderHeight from './getSearchNarrowHeaderHeight';
 import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
@@ -68,6 +69,7 @@ type GetReportTableColumnStylesParams = {
     isApprovedColumnWide?: boolean;
     isPostedColumnWide?: boolean;
     isExportedColumnWide?: boolean;
+    isPaidColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
     isWithdrawnColumnWide?: boolean;
     isActionColumnWide?: boolean;
@@ -380,7 +382,6 @@ function getBackgroundColorAndFill(backgroundColor: string, fill: string): SVGAv
  * Helper method to return eReceipt color code
  */
 function getEReceiptColorCode(transaction: OnyxEntry<Transaction>): EReceiptColorName {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = transaction?.parentTransactionID || transaction?.transactionID;
     if (!transactionID) {
         return CONST.ERECEIPT_COLORS.YELLOW;
@@ -514,11 +515,12 @@ function getZoomSizingStyle({imageSize, containerSize, zoomScale, isZoomed, isLo
 }
 
 /**
- * Returns a style with width set to the specified number
+ * Returns a style with width set to the specified number, or on web to a CSS expression like `calc()`
  */
-function getWidthStyle(width: number): ViewStyle & ImageStyle {
+function getWidthStyle(width: number | string): ViewStyle & ImageStyle {
     return {
-        width,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
+        width: width as DimensionValue,
     };
 }
 
@@ -569,7 +571,7 @@ function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscape
 /**
  * Returns a style for text color
  */
-function getTextColorStyle(color: string): TextColorStyle {
+function getTextColorStyle(color: string) {
     return {
         color,
     };
@@ -913,11 +915,12 @@ function getMinimumHeight(minHeight: number): ViewStyle {
 }
 
 /**
- * Get minimum width as style
+ * Get minimum width as style, or on web a CSS expression like `calc()`
  */
-function getMinimumWidth(minWidth: number): ViewStyle & ImageStyle {
+function getMinimumWidth(minWidth: number | string): ViewStyle & ImageStyle {
     return {
-        minWidth,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- `DimensionValue` can't type CSS expressions like `calc()`, which react-native-web passes through
+        minWidth: minWidth as DimensionValue,
     };
 }
 
@@ -1229,7 +1232,7 @@ function getMenuItemIconStyle(compactMode: boolean): ViewStyle {
 /**
  * Returns color style
  */
-function getColorStyle(color: string): TextColorStyle {
+function getColorStyle(color: ColorValue): TextColorStyle {
     return {color};
 }
 
@@ -1458,6 +1461,7 @@ const staticStyleUtils = {
     positioning,
     searchHeaderDefaultOffset,
     combineStyles,
+    getSearchNarrowHeaderHeight,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAmountInputFontSize,
@@ -1888,6 +1892,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getMentionTextColor: (isOurMention: boolean): string => (isOurMention ? theme.ourMentionText : theme.mentionText),
 
+    /** Returns the color of a change in spend, red when it went up and green when it went down */
+    getSpendChangeColor: (isIncrease: boolean): string => (isIncrease ? theme.danger : theme.successHover),
+
     /**
      * Generate the wrapper styles for the mini ReportActionContextMenu.
      */
@@ -1991,6 +1998,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             isApprovedColumnWide,
             isPostedColumnWide,
             isExportedColumnWide,
+            isPaidColumnWide,
             isDateColumnWide,
             isDateColumnCreated,
             isTaxAmountColumnWide,
@@ -2041,6 +2049,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
                 columnWidth = {...getWidthStyle(isApprovedColumnWide ? variables.w102 : variables.w62)};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.PAID:
+                columnWidth = {...getWidthStyle(isPaidColumnWide ? variables.w102 : variables.w62)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.FIRST_APPROVED:
                 // Fixed width: wide enough for both the long "First approved" header and a past-year date, so no year-based widening is needed.
                 columnWidth = {...getWidthStyle(variables.w102)};
@@ -2058,6 +2069,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 };
                 break;
             }
+            case CONST.SEARCH.TABLE_COLUMNS.START_DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.END_DATE:
+                columnWidth = {...getWidthStyle(variables.w102)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
                 columnWidth = {
@@ -2117,6 +2132,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
+            case CONST.SEARCH.TABLE_COLUMNS.HELD:
+            case CONST.SEARCH.TABLE_COLUMNS.DECLINED:
                 columnWidth = {...getWidthStyle(variables.w80)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.MCC:
@@ -2525,9 +2542,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
         overflow: 'visible',
-        marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
-        paddingBottom: safeAreaPaddingBottom,
-        backgroundColor: theme.appBG,
+        marginTop: -(variables.floatingTabBarHeight + variables.floatingTabBarBottomInset + safeAreaPaddingBottom),
+        paddingBottom: variables.floatingTabBarBottomInset + safeAreaPaddingBottom,
     }),
 
     getStyleWithEnvSafeAreaPadding: (style: ViewStyle): ViewStyle => ({

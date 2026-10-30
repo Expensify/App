@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -37,6 +38,7 @@ function CopyPolicySettingsConfirmPage() {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
 
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [copyPolicySettingsState, copyPolicySettingsMetadata] = useOnyx(ONYXKEYS.COPY_POLICY_SETTINGS);
@@ -92,7 +94,7 @@ function CopyPolicySettingsConfirmPage() {
             Navigation.navigate(ROUTES.POLICY_COPY_SETTINGS_UPGRADE.getRoute(sourcePolicyID));
             return;
         }
-        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules);
+        copyPolicySettings(sourcePolicy, targetPolicies, parts, allPolicyCategories, allPolicyTags, allRules, isOffline);
         Navigation.dismissModal();
     };
 

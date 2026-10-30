@@ -26,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type Beta from '@src/types/onyx/Beta';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -169,6 +170,51 @@ describe('WorkspaceMoreFeaturesPage', () => {
         jest.clearAllMocks();
     });
 
+    describe('Distance rates toggle', () => {
+        it('locks Distance rates and explains why while home and office commuter exclusions are enabled', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        id: POLICY_ID,
+                        areDistanceRatesEnabled: true,
+                        commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                    }),
+                );
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await findLockedSwitch('workspace.moreFeatures.distanceRates.subtitle'));
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.distanceRates.commuterExclusionsOnTitle'))).toBeOnTheScreen();
+                expect(screen.getByText(TestHelper.translateLocal('workspace.moreFeatures.distanceRates.disableLockedByCommuterExclusionsPrompt'))).toBeOnTheScreen();
+                expect(screen.getByText(TestHelper.translateLocal('common.buttonConfirm'))).toBeOnTheScreen();
+            });
+        });
+
+        it('keeps Distance rates available to re-enable when commuter exclusions remain active', async () => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`,
+                    buildPolicy({
+                        id: POLICY_ID,
+                        areDistanceRatesEnabled: false,
+                        commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE},
+                    }),
+                );
+            });
+
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+
+            await expect(findUnlockedSwitch('workspace.moreFeatures.distanceRates.subtitle')).resolves.toBeOnTheScreen();
+        });
+    });
+
     describe('Workflows toggle', () => {
         it('locks the Workflows switch when the workspace has a Smart-Limit Expensify Card', async () => {
             await TestHelper.signInWithTestUser();
@@ -307,6 +353,8 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             hasAccountingConnectionsMock.mockReturnValue(true);
             await act(async () => {
+                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
+                await Onyx.merge(ONYXKEYS.BETAS, []);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
@@ -320,6 +368,8 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             hasAccountingConnectionsMock.mockReturnValue(true);
             await act(async () => {
+                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
+                await Onyx.merge(ONYXKEYS.BETAS, []);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
@@ -388,6 +438,8 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await TestHelper.signInWithTestUser();
             useIsUberConnectedMock.mockReturnValue(true);
             await act(async () => {
+                // The test user is on the 'all' beta, which includes the unified Connections beta that hides this toggle
+                await Onyx.merge(ONYXKEYS.BETAS, []);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
             });
 
@@ -405,6 +457,39 @@ describe('WorkspaceMoreFeaturesPage', () => {
 
             expect(navigateSpy).not.toHaveBeenCalled();
             expect(navigateToConciergeChatSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Integrate section', () => {
+        const renderWithBetas = async (betas: Beta[]) => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.BETAS, betas);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
+            });
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const accountingSwitchQuery = () =>
+            screen.queryByRole(CONST.ROLE.SWITCH, {name: new RegExp(escapeRegExp(TestHelper.translateLocal('workspace.moreFeatures.connections.subtitle')), 'i')});
+
+        it('shows the Accounting toggle without the unified Connections beta', async () => {
+            // Given a workspace
+            // When More Features renders without the beta
+            await renderWithBetas([]);
+
+            // Then the integration features can still be turned on here, since their pages are only reachable once they are on
+            expect(accountingSwitchQuery()).toBeOnTheScreen();
+        });
+
+        it('hides the integration toggles with the unified Connections beta', async () => {
+            // Given a workspace
+            // When More Features renders with the beta
+            await renderWithBetas([CONST.BETAS.UNIFIED_CONNECTIONS]);
+
+            // Then the toggles are gone, because Connections turns each feature on as its first integration connects
+            expect(accountingSwitchQuery()).toBeNull();
         });
     });
 

@@ -1,9 +1,8 @@
 ---
 title: Add Approvals
 description: Require report approvals in your Expensify workspace, including setting approval thresholds and over-limit approvers.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, reassign approver, automatic approver reassignment, change approver workflow, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, import workflows, import approval workflows, bulk approval workflows, spreadsheet import, multiple approval paths, multiple approvers, shared approver, audit team approver, forward to different approver, approval path per submitter, edit approvals in Expensify Classic]
+keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, remove limit, remove approval limit, reassign approver, automatic approver reassignment, change approver workflow, approval workflow change message, admins room system message, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, import workflows, import approval workflows, bulk approval workflows, spreadsheet import, approval limit format, multiple approval paths, multiple approvers, shared approver, audit team approver, forward to different approver, approval path per submitter, edit approvals in Expensify Classic]
 internalScope: Audience is Workspace Admins and People Admins, covers enabling approvals and building default, custom, and multi-path approval workflows in New Expensify, does not cover Category and Tag approver setup or connecting a bank account.
-keywords: [New Expensify, approvals, report approvals, approving reports, approval workflow, workspace workflows, approver, final approver, approval chain, approval threshold, approval limit, over-limit approval, report amount limit, dollar limit approver, remove limit, remove approval limit, reassign approver, automatic approver reassignment, change approver workflow, approval workflow change message, admins room system message, automatic approval, approval audit, category approver, tag approver, category rules, tag rules, invite member to approval workflow, invite new user approval workflow, import workflows, import approval workflows, bulk approval workflows, spreadsheet import]
 ---
 
 Each Expensify workspace can be configured to require additional approvals for reports before payments are authorized. When approvals are enabled, admins can set a default approval workflow for all members or create custom workflows for individual members.
@@ -101,11 +100,13 @@ Instead of adding workflows one member at a time, you can set up multiple member
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
 2. Select **Workflows**.
-4. Select **More**, then choose **Import workflows**.
-5. Drag and drop your file or click **Upload File** to browse.
-6. Map each column in your file to a member field, then complete the import.
+3. Select **More**, then choose **Import workflows**.
+4. Drag and drop your file or click **Upload File** to browse.
+5. Map each column in your file to a member field, then complete the import.
 
-To route each member's expenses through the right approvers, map the **Submit to**, **Forward to**,**Approval limit** and **Over limit forward to** columns. These fields set up each member's approval workflow, which you can review under **Workflows** after the import completes.
+To route each member's expenses through the right approvers, map the **Submit to**, **Forward to**, **Approval limit**, and **Over limit forward to** columns. These fields set up each member's approval workflow, which you can review under **Workflows** after the import completes.
+
+**Approval limit format:** Enter the **Approval limit** as an amount in your workspace currency, not in cents. For example, `500` sets a $500 limit. Currency symbols, currency codes, commas, and spaces are allowed, so `$1,234.56` also works. If any value isn't a valid amount, the import stops and shows the error "Approval limits must be valid amounts for the workspace currency."
 
 **Note:** The **Submit to**, **Forward to**, **Over limit forward to**, and **Approval limit** fields are only available on the Control plan. If your workspace isn't on the Control plan, you'll be prompted to upgrade before the import can finish.
 

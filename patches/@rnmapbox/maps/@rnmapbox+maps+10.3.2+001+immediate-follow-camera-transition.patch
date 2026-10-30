@@ -125,6 +125,18 @@ index c8e61a0..d3e50b9 100644
      followUserMode: followUserMode,
      followZoomLevel: followZoomLevel,
      followPitch: followPitch,
+diff --git a/node_modules/@rnmapbox/maps/lib/module/specs/RNMBXCameraNativeComponent.ts b/node_modules/@rnmapbox/maps/lib/module/specs/RNMBXCameraNativeComponent.ts
+index 79fb0d0..acd20c1 100644
+--- a/node_modules/@rnmapbox/maps/lib/module/specs/RNMBXCameraNativeComponent.ts
++++ b/node_modules/@rnmapbox/maps/lib/module/specs/RNMBXCameraNativeComponent.ts
+@@ -28,6 +28,7 @@ export interface NativeProps extends ViewProps {
+   userTrackingMode?: OptionalProp<Int32>;
+ 
+   followUserLocation?: OptionalProp<boolean>;
++  followUserLocationUseImmediateTransition?: OptionalProp<boolean>;
+   followUserMode?: OptionalProp<string>;
+   followZoomLevel?: OptionalProp<Double>;
+   followPitch?: OptionalProp<Double>;
 diff --git a/node_modules/@rnmapbox/maps/src/components/Camera.tsx b/node_modules/@rnmapbox/maps/src/components/Camera.tsx
 index c8e61a0..d3e50b9 100644
 --- a/node_modules/@rnmapbox/maps/src/components/Camera.tsx

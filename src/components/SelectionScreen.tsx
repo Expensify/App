@@ -144,6 +144,12 @@ function SelectionScreen<T = string>({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
+    // Searchable selectors pin the selected option to the top upstream (in useSelectionListSearch or the caller's own
+    // search logic). These anti-jump list props keep that pinned row visible: mount-scroll is off because the pinned
+    // row is already at the top, and maintaining scroll position is disabled so clearing the search returns to the top.
+    // This only applies to searchable selectors.
+    const isSearchableList = !!(shouldShowTextInput ?? textInputOptions?.label);
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -179,7 +185,9 @@ function SelectionScreen<T = string>({
                         shouldShowTextInput={shouldShowTextInput}
                         listFooterContent={listFooterContent}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
-                        shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
+                        shouldUpdateFocusedIndex={isSearchableList || shouldUpdateFocusedIndex}
+                        shouldScrollToFocusedIndexOnMount={!isSearchableList}
+                        disableMaintainingScrollPosition={isSearchableList}
                         alternateNumberOfSupportedLines={2}
                         titleNumberOfLines={titleNumberOfLines}
                         addBottomSafeAreaPadding

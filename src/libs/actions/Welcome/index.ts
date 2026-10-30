@@ -108,8 +108,13 @@ function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | unde
     });
 }
 
-async function clearOnboardingShouldValidate(onboardingValues: Onboarding | undefined) {
-    await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {...onboardingValues, shouldValidate: undefined});
+async function resetOnboardingWorkEmailValidation(onboardingValues: Onboarding | undefined) {
+    await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {
+        ...onboardingValues,
+        shouldValidate: undefined,
+        isMergeAccountStepCompleted: undefined,
+        isMergeAccountStepSkipped: undefined,
+    });
 }
 
 function setOnboardingShouldValidate(shouldValidate: boolean) {
@@ -312,7 +317,7 @@ export {
     createJoinWorkspaceOnboardingContent,
     setOnboardingShouldValidate,
     updateOnboardingValuesAndNavigation,
-    clearOnboardingShouldValidate,
+    resetOnboardingWorkEmailValidation,
     setOnboardingUserReportedIntegration,
     setOnboardingAccountingEnabled,
     setOnboardingInterestedFeaturesMap,

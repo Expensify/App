@@ -29,6 +29,8 @@ type Overrides = {
     shouldScrollToFocusedIndex?: boolean;
     shouldDebounceScrolling?: boolean;
     initialFocusedIndex?: number;
+    shouldAllowArrowUpToSearchInput?: boolean;
+    onArrowUpToSearchInput?: () => void;
 };
 
 function renderKeyboardFocus(overrides: Overrides = {}) {
@@ -97,6 +99,44 @@ describe('useSelectionListKeyboardFocus', () => {
             capturedConfig.onFocusedIndexChange?.(5, true);
             expect(debouncedScrollToIndex).toHaveBeenCalledWith(5);
             expect(scrollToIndex).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('onArrowUpToSearchInput', () => {
+        it('is called when ArrowUp moves the focused index to the search input', () => {
+            // Given a list that lets ArrowUp leave the first row for the search input
+            const onArrowUpToSearchInput = jest.fn();
+            renderKeyboardFocus({shouldAllowArrowUpToSearchInput: true, onArrowUpToSearchInput});
+
+            // When an arrow-key move sets the focused index to -1
+            capturedConfig.onFocusedIndexChange?.(-1, true);
+
+            // Then the list is told to move DOM focus to the search input, since a Tab-focused row would otherwise keep it
+            expect(onArrowUpToSearchInput).toHaveBeenCalledTimes(1);
+        });
+
+        it('is not called when the focused index is cleared without an arrow key', () => {
+            // Given a list that lets ArrowUp leave the first row for the search input
+            const onArrowUpToSearchInput = jest.fn();
+            renderKeyboardFocus({shouldAllowArrowUpToSearchInput: true, onArrowUpToSearchInput});
+
+            // When the focused index is cleared externally, for example by pressing the search input
+            capturedConfig.onFocusedIndexChange?.(-1, false);
+
+            // Then focus is left alone, because the search input already holds it
+            expect(onArrowUpToSearchInput).not.toHaveBeenCalled();
+        });
+
+        it('is not called when the list does not opt in', () => {
+            // Given a list that keeps the default ArrowUp behavior
+            const onArrowUpToSearchInput = jest.fn();
+            renderKeyboardFocus({onArrowUpToSearchInput});
+
+            // When an arrow-key move sets the focused index to -1
+            capturedConfig.onFocusedIndexChange?.(-1, true);
+
+            // Then DOM focus is not moved, preserving existing behavior for other lists
+            expect(onArrowUpToSearchInput).not.toHaveBeenCalled();
         });
     });
 

@@ -170,7 +170,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
     }, [action, reportID]);
 
     useEffect(() => {
-        composerFocusKeepFocusOn(composerRef.current as HTMLElement, isFocused, modal, onyxInputFocused);
+        composerFocusKeepFocusOn(composerRef.current, isFocused, modal, onyxInputFocused);
     }, [isFocused, modal, onyxInputFocused]);
 
     useEffect(

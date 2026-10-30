@@ -168,7 +168,7 @@ The outdated row is removed from the report. The expense itself is not deleted �
 # FAQ
 
 ## Why can't I action a pending expense? 
-Expensify Card expenses show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels). Only posted expenses can be approved. 
+Expensify Card expenses, and expenses from cards connected through Plaid, show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels). Only posted expenses can be approved. 
 
 ## Why can’t I see Bypass approvers?
 Only Workspace admins can bypass the prescribed approval workflow. If **Prevent Self-Approval** is enabled, an admin cannot bypass approvals to approve their own report. 

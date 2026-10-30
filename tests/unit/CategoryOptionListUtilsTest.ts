@@ -1458,4 +1458,21 @@ describe('CategoryOptionListUtils', () => {
 
         expect(rows.every((row) => row.alternateText === undefined)).toBe(true);
     });
+
+    it('groups categories into Recent and All sections once the count reaches a custom searchInputThreshold', () => {
+        // Given fewer enabled categories than the default limit, but as many as the custom threshold
+        const categories: PolicyCategories = {
+            Food: makeCategory('Food', '5000'),
+            Travel: makeCategory('Travel', '6000'),
+            Lodging: makeCategory('Lodging', '7000'),
+        };
+
+        // When building sections with the default threshold and with a threshold matching the category count
+        const defaultSections = getCategoryListSections({categories, recentlyUsedCategories: ['Food'], localeCompare, translate: translateLocal});
+        const customSections = getCategoryListSections({categories, recentlyUsedCategories: ['Food'], localeCompare, translate: translateLocal, searchInputThreshold: 3});
+
+        // Then the default keeps a single untitled list, while the custom threshold splits it so the list matches the visible search input
+        expect(defaultSections.map((section) => section.title)).toEqual(['']);
+        expect(customSections.map((section) => section.title)).toEqual([translateLocal('common.recent'), translateLocal('common.all')]);
+    });
 });

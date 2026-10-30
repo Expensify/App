@@ -84,7 +84,6 @@ jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
 
 jest.mock('@userActions/IOU/ReportWorkflow', () => ({
     __esModule: true,
-    canIOUBePaid: jest.fn(() => true),
     approveMoneyRequest: jest.fn(),
 }));
 
@@ -95,6 +94,7 @@ jest.mock('@libs/ReportUtils', () => {
     return {
         ...actual,
         __esModule: true,
+        canIOUBePaid: jest.fn(() => true),
         hasHeldExpensesFromTransactions: jest.fn(() => false),
         hasUpdatedTotal: jest.fn(() => true),
         hasViolations: jest.fn(() => false),

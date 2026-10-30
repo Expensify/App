@@ -4,6 +4,7 @@ import Tooltip from '@components/Tooltip';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {formatReportLastMessageText} from '@libs/ReportUtils';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 
 import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -28,6 +29,7 @@ function DisplayNamesWithToolTip({
     renderAdditionalText,
     forwardedFSClass,
     accessibilityLabel,
+    isSelectable = false,
 }: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
@@ -73,6 +75,8 @@ function DisplayNamesWithToolTip({
             ref={containerRef}
             testID="DisplayNamesWithToolTip"
             fsClass={forwardedFSClass}
+            selectable={isSelectable}
+            dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
         >
             {shouldUseFullTitle
                 ? formatReportLastMessageText(fullTitle)
@@ -89,6 +93,7 @@ function DisplayNamesWithToolTip({
                               textStyles={textStyles}
                               childRefs={childRefs}
                               forwardedFSClass={forwardedFSClass}
+                              isSelectable={isSelectable}
                           />
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                           {shouldAddEllipsis && index === displayNamesWithTooltips.length - 1 && <Text style={textStyles}>...</Text>}

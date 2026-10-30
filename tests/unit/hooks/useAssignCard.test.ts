@@ -355,4 +355,64 @@ describe('useAssignCard', () => {
             );
         });
     });
+
+    describe('assignCard function - default transaction start date', () => {
+        it.each([CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV_CLASSIC])('should default to "From the beginning" for %s CSV feeds', (feedBankName) => {
+            // Given a CSV-uploaded feed, where we assume admins only include the transactions they want imported
+            const csvFeed: CompanyCardFeedWithDomainID = `${feedBankName}#${workspaceAccountID}`;
+            const csvFeedData: CombinedCardFeeds = {
+                [csvFeed]: {
+                    liabilityType: 'corporate',
+                    pending: false,
+                    domainID: workspaceAccountID,
+                    customFeedName: 'CSV cards',
+                    feed: feedBankName,
+                },
+            };
+            jest.mocked(useCardFeeds).mockReturnValue([csvFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: csvFeed,
+                    policyID: mockPolicyID,
+                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                }),
+            );
+
+            // When the admin starts assigning a card from that feed
+            result.current.assignCard('CSV card 1234', 'CSV card 1234');
+
+            // Then the start date defaults to "From the beginning" so every transaction in the file imports
+            expect(setAssignCardStepAndData).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    cardToAssign: expect.objectContaining({
+                        dateOption: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+                        startDate: '',
+                    }),
+                }),
+            );
+        });
+
+        it('should not seed a start date for direct feeds', () => {
+            // Given a direct bank feed, which can return months of history
+            jest.mocked(useCardFeeds).mockReturnValue([mockDirectFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: mockDirectFeed,
+                    policyID: mockPolicyID,
+                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                }),
+            );
+
+            // When the admin starts assigning a card from that feed
+            result.current.assignCard('Chase Checking 0000', 'Chase Checking 0000');
+
+            // Then no start date is seeded, so the later steps keep defaulting to today
+            expect(setAssignCardStepAndData).toHaveBeenCalledTimes(1);
+            const {cardToAssign} = jest.mocked(setAssignCardStepAndData).mock.calls.at(0)?.[0] ?? {};
+            expect(cardToAssign?.dateOption).toBeUndefined();
+            expect(cardToAssign?.startDate).toBeUndefined();
+        });
+    });
 });

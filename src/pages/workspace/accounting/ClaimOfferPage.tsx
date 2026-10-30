@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,12 +26,14 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import {AccountingContextProvider, useAccountingActions} from './AccountingContext';
@@ -58,21 +61,17 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle']);
     const integrations = policy?.receiptPartners;
     const {isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
 
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
     const syncingAccountingIntegration = accountingIntegrations.find((integrationName) => integrationName === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
 
-    const isConnectedToIntegration = useMemo(() => {
-        if (integration === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-            return connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
-        }
-        if (integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER) {
-            return isUberConnected;
-        }
-        return false;
-    }, [connectedIntegration, integration, isUberConnected]);
+    const isConnectedToIntegration =
+        integration === CONST.POLICY.CONNECTIONS.NAME.XERO
+            ? connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO
+            : integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER && isUberConnected;
 
     const integrationConfig: Record<IntegrationType, IntegrationConfig> = {
         xero: {
@@ -95,6 +94,10 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             connectionName: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
             featureName: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             onConnect: () => {
+                // Connections offers Uber before Receipt partners is on, so the feature is turned on as Uber connects
+                if (isUnifiedConnectionsBetaEnabled) {
+                    enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
+                }
                 openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
             },
         },
@@ -144,7 +147,10 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            featureName={config.featureName}
+            // Connections shows offers whether or not their feature is on, so only the write access check applies there
+            featureName={isUnifiedConnectionsBetaEnabled ? undefined : config.featureName}
+            policyFeature={isUnifiedConnectionsBetaEnabled ? CONST.POLICY.POLICY_FEATURE.MORE_FEATURES : undefined}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!config}
         >
             <ScreenWrapper

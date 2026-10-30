@@ -7,7 +7,6 @@ import Navigation from '@libs/Navigation/Navigation';
 function PreMountBufferPage() {
     return (
         <FullscreenLoadingIndicator
-            shouldUseGoBackButton
             onGoBack={Navigation.recoverFromPreMountBuffer}
             extraLoadingContext={{context: 'PreMountBufferPage'}}
         />

@@ -1,0 +1,2 @@
+# Source maps are uploaded to Sentry at build time and must not be publicly served.
+*.map

@@ -29,7 +29,7 @@ import {domainMemberSettingsSelector, isAdminSelector} from '@src/selectors/Doma
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import SamlConfigurationDetailsSectionContent from './Saml/SamlConfigurationDetailsSectionContent';
@@ -57,26 +57,23 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     useDomainDocumentTitle(domainName, 'domain.saml');
     const doesDomainExist = !!domain;
 
-    const samlFeatures: FeatureListItem[] = useMemo(
-        () => [
-            {
-                icon: illustrations.OpenSafe,
-                translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
-            },
-            {
-                icon: illustrations.ShieldYellow,
-                translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
-            },
-            {
-                icon: illustrations.LockClosed,
-                translationKey: 'domain.samlFeatureList.onePasswordForAnything',
-            },
-        ],
-        [illustrations.OpenSafe, illustrations.ShieldYellow, illustrations.LockClosed],
-    );
+    const samlFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.OpenSafe,
+            translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
+        },
+        {
+            icon: illustrations.ShieldYellow,
+            translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
+        },
+        {
+            icon: illustrations.LockClosed,
+            translationKey: 'domain.samlFeatureList.onePasswordForAnything',
+        },
+    ];
 
     if (isLoadingOnyxValue(domainResults, domainSettingsResults)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
 
     return (

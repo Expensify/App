@@ -6,6 +6,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
 
 import CONST from '@src/CONST';
@@ -39,17 +40,39 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
             )}
             <View style={[styles.flexColumn, styles.gap1, styles.flex1]}>
                 <View style={[styles.flexRow, styles.gap2]}>
+                    <View style={styles.flex1}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.lh20, styles.flex1]}
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {item.reportName ?? ''}
+                        </Text>
+                    </View>
                     <Text
-                        numberOfLines={2}
-                        style={[styles.lh20, styles.flex1]}
+                        style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
                     >
-                        {item.reportName ?? ''}
+                        {amountText}
                     </Text>
-                    <Text style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}>{amountText}</Text>
                 </View>
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <Text style={[styles.mutedNormalTextLabel, styles.flex1]}>{formattedDate}</Text>
-                    <Text style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}>{expenseCountText}</Text>
+                    <Text
+                        style={[styles.mutedNormalTextLabel, styles.flex1]}
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
+                    >
+                        {formattedDate}
+                    </Text>
+                    <Text
+                        style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
+                    >
+                        {expenseCountText}
+                    </Text>
                 </View>
             </View>
         </View>

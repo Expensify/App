@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
@@ -54,22 +54,18 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
     const [rangeText, setRangeText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(dateFnsLocale, value[CONST.SEARCH.DATE_MODIFIERS.RANGE], value[CONST.SEARCH.DATE_MODIFIERS.AFTER], value[CONST.SEARCH.DATE_MODIFIERS.BEFORE]),
     );
-    const syncedRangeText = useMemo(
-        () =>
-            getDateRangeDisplayValueFromFormValue(
-                dateFnsLocale,
-                value[CONST.SEARCH.DATE_MODIFIERS.RANGE],
-                value[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-                value[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-            ),
-        [value, dateFnsLocale],
+    const syncedRangeText = getDateRangeDisplayValueFromFormValue(
+        dateFnsLocale,
+        value[CONST.SEARCH.DATE_MODIFIERS.RANGE],
+        value[CONST.SEARCH.DATE_MODIFIERS.AFTER],
+        value[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
     );
     const displayedRangeText = selectedDateModifier ? rangeText : syncedRangeText;
     const selectedDateModifierTitle = getDateModifierTitle(selectedDateModifier, '', translate);
 
-    const updateRangeText = useCallback(() => {
+    const updateRangeText = () => {
         setRangeText(searchDatePresetFilterBaseRef.current?.getRangeDisplayText() ?? '');
-    }, []);
+    };
 
     // Widen the popover when Range is selected, reset when not
     useEffect(() => {
@@ -80,20 +76,20 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
         }
     }, [selectedDateModifier, setPopoverWidth]);
 
-    const clearSelection = useCallback(() => {
+    const clearSelection = () => {
         setSelectedDateModifier(null);
         setShouldShowRangeError(false);
-    }, []);
+    };
 
-    const handleBackPress = useCallback(() => {
+    const handleBackPress = () => {
         if (searchDatePresetFilterBaseRef.current && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
             searchDatePresetFilterBaseRef.current.restoreRangeToEntrySnapshot();
             updateRangeText();
         }
         clearSelection();
-    }, [clearSelection, selectedDateModifier, updateRangeText]);
+    };
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         if (!searchDatePresetFilterBaseRef.current) {
             return;
         }
@@ -112,7 +108,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
         const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
         onChange(dateValues);
         closeOverlay();
-    }, [closeOverlay, onChange, selectedDateModifier]);
+    };
 
     const maxPopupHeight = Math.round(windowHeight * 0.875);
 

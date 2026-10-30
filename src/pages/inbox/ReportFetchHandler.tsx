@@ -64,6 +64,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {deepEqual} from 'fast-equals';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
@@ -77,6 +78,7 @@ const defaultReportMetadata = {
 
 const defaultReportLoadingState = {
     hasOnceLoadedReportActions: false,
+    isCreatingSupportTicket: false,
     isLoadingInitialReportActions: true,
     isLoadingOlderReportActions: false,
     hasLoadingOlderReportActionsError: false,
@@ -123,12 +125,16 @@ function ReportFetchHandler() {
     const hiddenPreMountFetchedRouteRef = useRef<Pick<ReportScreenRoute, 'key' | 'params'> | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
     const [isPreMountedDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
+    const isPendingReportCreation = !!reportLoadingState.isCreatingSupportTicket;
     const isReportActionsLoaded = useIsReportActionsLoaded(reportIDFromRoute);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -190,9 +196,8 @@ function ReportFetchHandler() {
 
         // isPendingCreationFromRoute means reportIDFromRoute is a client-generated ID that doesn't exist
         // on the server yet. Calling openReport for it would 403 and show the not-found page instead.
-        // Once the real submit creates the report under this ID, reportOnyx?.reportID becomes truthy
-        // and normal fetching resumes.
-        if (isPendingCreationFromRoute && !reportOnyx?.reportID) {
+        // Wait until the report exists locally and is no longer optimistic before fetching it.
+        if (isPendingCreationFromRoute && (!reportOnyx?.reportID || isPendingReportCreation)) {
             return;
         }
 
@@ -259,6 +264,7 @@ function ReportFetchHandler() {
             currentUserAccountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot: reportOnyx?.policyID && fullPolicySnapshotLastModified ? {policyID: reportOnyx.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         });
     });
 
@@ -279,6 +285,7 @@ function ReportFetchHandler() {
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
     });
 
@@ -356,11 +363,12 @@ function ReportFetchHandler() {
     }, [report?.reportID, prevReportID, reportIDFromRoute, isInPreloadedTab]);
 
     useEffect(() => {
-        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
+        // `reportActions` is the same list `transactionThreadReportID` above is derived from, so both checks agree on which actions the report has
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction, undefined, reportActions)) {
             return;
         }
         navigation.setParams({reportActionID: ''});
-    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
+    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport, reportActions]);
 
     // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're
     // signed in. On success the backend shares the report and sets them as manager; on failure the ReportNotFoundGuard
@@ -387,15 +395,16 @@ function ReportFetchHandler() {
         navigation.setParams({secureKey: undefined});
     }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
-    // isPendingCreation is only needed before the report exists. Clear it from the route params once it
+    // isPendingCreation is only needed before the report exists on the server. Clear it from the route params once it
     // does, so a copied URL, restored navigation state, or reload doesn't carry the stale flag and skip
-    // fetching again later.
+    // fetching again later. A support-ticket request is lost on reload, so its RAM-only guard also resets
+    // and lets OpenReport discover whether the server created the ticket.
     useEffect(() => {
-        if (!isPendingCreationFromRoute || !reportOnyx?.reportID) {
+        if (!isPendingCreationFromRoute || !reportOnyx?.reportID || isPendingReportCreation) {
             return;
         }
         navigation.setParams({isPendingCreation: undefined});
-    }, [isPendingCreationFromRoute, reportOnyx?.reportID, navigation]);
+    }, [isPendingCreationFromRoute, reportOnyx?.reportID, isPendingReportCreation, navigation]);
 
     // A restored or shared route can carry isPendingCreation with no submit behind it. The owning submit writes the
     // report row within the dismiss transition budget (about 2s) after this screen gains focus, so a focused screen
@@ -703,8 +712,10 @@ function ReportFetchHandler() {
             iouReport: report,
             transaction,
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
     }, [
+        fullPolicySnapshotLastModified,
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,

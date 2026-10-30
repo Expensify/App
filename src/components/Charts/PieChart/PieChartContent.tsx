@@ -1,22 +1,22 @@
-import ActivityIndicator from '@components/ActivityIndicator';
-import ChartTooltip from '@components/Charts/components/ChartTooltip';
-import {TOOLTIP_BAR_GAP, useChartLabelFormats, useTooltipData} from '@components/Charts/hooks';
+import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
+import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
+import {CHART_GESTURE_TOUCH_ACTION, TOOLTIP_BAR_GAP, useChartLabelFormats, useTouchPinnedTooltip} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
-import {findSliceAtPosition, processDataIntoSlices} from '@components/Charts/utils';
-import VictoryTheme from '@components/Charts/VictoryTheme';
+import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
+import {hasRoomForSideLegend} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
+import {GestureDetector, PointerType, useCompetingGestures, useHoverGesture, useTapGesture} from 'react-native-gesture-handler';
+import Animated, {useDerivedValue, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN, scheduleOnUI} from 'react-native-worklets';
 import {Pie, PolarChart} from 'victory-native';
 
 import PaddedPieSlice from './PaddedPieSlice';
@@ -32,15 +32,25 @@ type PieChartProps = ChartProps & {
 
     /** Whether to draw the slice legend below the donut */
     shouldShowLegend?: boolean;
+
+    /** Whether the legend sits beside the donut when the card is wide enough (one row per slice) and stacks beneath it when it isn't, instead of the default wrapping row below the donut. */
+    shouldUseResponsiveLegend?: boolean;
 };
 
-function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true}: PieChartProps) {
+type PieChartContentProps = PieChartProps & {
+    /** Null until the card has been measured. */
+    chartWidth: number | null;
+};
+
+type PieChartCanvasProps = Omit<PieChartProps, 'isLoading'> & {
+    chartWidth: number;
+};
+
+function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, shouldUseResponsiveLegend = false, chartWidth}: PieChartCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const theme = useTheme();
     const {translate} = useLocalize();
-    const [canvasWidth, setCanvasWidth] = useState(0);
-    const [canvasHeight, setCanvasHeight] = useState(0);
-    const [activeSliceIndex, setActiveSliceIndex] = useState(-1);
     const [isHoveringOverPie, setIsHoveringOverPie] = useState(false);
 
     // Shared values for hover state
@@ -49,31 +59,49 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const cursorY = useSharedValue(0);
     const tooltipPosition = useSharedValue({x: 0, y: 0});
 
-    const handleLayout = (event: LayoutChangeEvent) => {
-        setCanvasWidth(event.nativeEvent.layout.width);
-        setCanvasHeight(event.nativeEvent.layout.height);
-    };
+    /** Data index of the slice under the cursor or the last touch tap, resolved on the UI thread together with the tooltip position */
+    const matchedIndex = useSharedValue(-1);
+    const isTooltipActive = useDerivedValue(() => matchedIndex.get() >= 0);
 
-    // Calculate pie geometry
-    const radius = Math.min(canvasWidth, canvasHeight) / 2;
+    const canvasHeight = CHART_CONTENT_MIN_HEIGHT;
+
+    // Side by side when the legend keeps at least its minimum width next to a square donut. Otherwise stacked.
+    const isLegendSideBySide = shouldUseResponsiveLegend && shouldShowLegend && hasRoomForSideLegend(chartWidth);
+    const donutWidth = isLegendSideBySide ? canvasHeight : chartWidth;
+
+    const radius = Math.min(donutWidth, canvasHeight) / 2;
     const innerRadius = radius * VictoryTheme.pie.innerRadiusRatio;
-    const pieGeometry = {radius, innerRadius, centerX: canvasWidth / 2, centerY: canvasHeight / 2};
+    const pieGeometry = {radius, innerRadius, centerX: donutWidth / 2, centerY: canvasHeight / 2};
 
     // Slices are sorted by absolute value (largest first) for color assignment,
     // so slice indices don't match the original data array. We map back via
     // originalIndex so the tooltip can display the original (possibly negative) value.
-    const processedSlices = processDataIntoSlices(data, pieGeometry);
-    const activeOriginalDataIndex = activeSliceIndex >= 0 ? (processedSlices.at(activeSliceIndex)?.originalIndex ?? -1) : -1;
+    const [{key: primarySeriesKey}] = series;
+    const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
 
     const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
-    const tooltipData = useTooltipData(activeOriginalDataIndex, data, formatValue);
 
-    // Handle hover state updates
-    const updateActiveSlice = (x: number, y: number) => {
+    /** Data index of the slice at the given point, or -1 when the point is outside the slices */
+    const findDataIndexAt = (x: number, y: number) => {
+        'worklet';
+
         const {centerX, centerY} = pieGeometry;
         const sliceIndex = findSliceAtPosition(x, y, centerX, centerY, radius, innerRadius, processedSlices);
-        setActiveSliceIndex(sliceIndex);
-        setIsHoveringOverPie(sliceIndex >= 0);
+        return sliceIndex >= 0 ? (processedSlices.at(sliceIndex)?.originalIndex ?? -1) : -1;
+    };
+
+    const hoverAt = (x: number, y: number) => {
+        'worklet';
+
+        cursorX.set(x);
+        cursorY.set(y);
+        tooltipPosition.set({x, y: y - TOOLTIP_BAR_GAP});
+        const dataIndex = findDataIndexAt(x, y);
+        const wasOverPie = matchedIndex.get() >= 0;
+        matchedIndex.set(dataIndex);
+        if (wasOverPie !== dataIndex >= 0) {
+            scheduleOnRN(setIsHoveringOverPie, dataIndex >= 0);
+        }
     };
 
     // Handle slice press callback
@@ -91,38 +119,71 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
         }
     };
 
+    /** The page scrolling moves the pie under a still cursor without any hover event, so the hovered slice is checked again at the cursor's new position */
+    const handleChartMoved = (deltaX: number, deltaY: number) => {
+        'worklet';
+
+        if (!isHovering.get()) {
+            return;
+        }
+        hoverAt(cursorX.get() - deltaX, cursorY.get() - deltaY);
+    };
+
+    const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
+
+    const {setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
+        matchedIndex.set(-1);
+        setIsHoveringOverPie(false);
+    });
+
     // Hover gesture
-    const hoverGesture = () =>
-        Gesture.Hover()
-            .onBegin((e) => {
-                'worklet';
+    const hoverGesture = useHoverGesture({
+        // @ts-expect-error -- touchAction is internal in Gesture Handler 3 config types, see CHART_GESTURE_TOUCH_ACTION
+        touchAction: CHART_GESTURE_TOUCH_ACTION,
+        onBegin: (e) => {
+            'worklet';
 
-                isHovering.set(true);
-                cursorX.set(e.x);
-                cursorY.set(e.y);
-                tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
-                scheduleOnRN(updateActiveSlice, e.x, e.y);
-            })
-            .onUpdate((e) => {
-                'worklet';
+            if (e.pointerType === PointerType.TOUCH) {
+                return;
+            }
+            isHovering.set(true);
+            scheduleOnRN(setIsTouchPinned, false);
+            hoverAt(e.x, e.y);
+        },
+        onUpdate: (e) => {
+            'worklet';
 
-                cursorX.set(e.x);
-                cursorY.set(e.y);
-                tooltipPosition.set({x: e.x, y: e.y - TOOLTIP_BAR_GAP});
-                scheduleOnRN(updateActiveSlice, e.x, e.y);
-            })
-            .onEnd(() => {
-                'worklet';
+            if (e.pointerType === PointerType.TOUCH) {
+                return;
+            }
+            hoverAt(e.x, e.y);
+        },
+        onDeactivate: (e) => {
+            'worklet';
 
-                isHovering.set(false);
-                scheduleOnRN(setActiveSliceIndex, -1);
-                scheduleOnRN(setIsHoveringOverPie, false);
-            });
+            if (e.pointerType === PointerType.TOUCH) {
+                return;
+            }
+            isHovering.set(false);
+            matchedIndex.set(-1);
+            scheduleOnRN(setIsHoveringOverPie, false);
+        },
+    });
 
     // Tap gesture for click/tap navigation
-    const tapGesture = () =>
-        Gesture.Tap().onEnd((e) => {
+    const tapGesture = useTapGesture({
+        // @ts-expect-error -- touchAction is internal in Gesture Handler 3 config types, see CHART_GESTURE_TOUCH_ACTION
+        touchAction: CHART_GESTURE_TOUCH_ACTION,
+        onFinalize: onTapFinalize,
+        onDeactivate: (e) => {
             'worklet';
+
+            // Touch taps show the slice tooltip instead of drilling in, and the next touch anywhere on the screen hides it
+            if (e.pointerType === PointerType.TOUCH) {
+                hoverAt(e.x, e.y);
+                scheduleOnRN(setIsTouchPinned, matchedIndex.get() >= 0);
+                return;
+            }
 
             const {centerX, centerY} = pieGeometry;
             const sliceIndex = findSliceAtPosition(e.x, e.y, centerX, centerY, radius, innerRadius, processedSlices);
@@ -130,103 +191,133 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
             if (sliceIndex >= 0) {
                 scheduleOnRN(handleSlicePress, sliceIndex);
             }
-        });
+        },
+    });
 
     // Combined gestures - Race allows both hover and tap to work independently
-    const combinedGesture = Gesture.Race(hoverGesture(), tapGesture());
+    const combinedGesture = useCompetingGestures(hoverGesture, tapGesture);
 
-    const renderLegendItem = (slice: PieSlice) => {
+    const highlightSlice = (slice: PieSlice) => {
+        tooltipPosition.set(slice.tooltipPosition);
+        matchedIndex.set(slice.originalIndex);
+    };
+    const clearSliceHighlight = () => {
+        matchedIndex.set(-1);
+    };
+
+    // One legend entry: a color dot plus the slice name, wired to drive the tooltip on hover.
+    // The responsive variant gives each slice its own row with the dot aligned to the first line. The default variant is an inline item for the wrapping row below the donut.
+    // `getPieChartLoadingHeight` reserves the wrapping row as one line of normal-size text, so the label has to keep that size.
+    const renderLegendEntry = (slice: PieSlice, isResponsiveRow: boolean) => {
+        const dot = <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />;
         return (
             <View
                 key={`legend-${slice.originalIndex}`}
-                style={[styles.flexRow, styles.alignItemsCenter]}
-                onMouseEnter={() => {
-                    tooltipPosition.set(slice.tooltipPosition);
-                    setActiveSliceIndex(slice.ordinalIndex);
-                }}
-                onMouseLeave={() => {
-                    setActiveSliceIndex(-1);
-                }}
+                style={isResponsiveRow ? styles.pieChartLegendRow : [styles.flexRow, styles.alignItemsCenter]}
+                onMouseEnter={() => highlightSlice(slice)}
+                onMouseLeave={clearSliceHighlight}
             >
-                <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />
-                <Text style={[styles.textNormal, styles.ml2]}>{slice.label}</Text>
+                {isResponsiveRow ? <View style={styles.pieChartLegendDotColumn}>{dot}</View> : dot}
+                <Text style={[styles.textNormal, StyleUtils.getColorStyle(theme.icon), isResponsiveRow ? styles.flex1 : styles.ml2]}>{slice.label}</Text>
             </View>
         );
     };
 
-    if (isLoading) {
+    const donut = (
+        <GestureDetector
+            gesture={combinedGesture}
+            touchAction="pan-y"
+        >
+            <Animated.View
+                style={[styles.chartContent, shouldUseResponsiveLegend && StyleUtils.getWidthStyle(donutWidth), isHoveringOverPie && styles.cursorPointer]}
+                onTouchStart={onChartTouchStart}
+            >
+                {processedSlices.length > 0 && (
+                    <PolarChart
+                        explicitSize={{width: donutWidth, height: canvasHeight}}
+                        data={processedSlices}
+                        labelKey="label"
+                        valueKey="value"
+                        colorKey="color"
+                    >
+                        <Pie.Chart
+                            startAngle={VictoryTheme.pie.startAngle}
+                            innerRadius={`${VictoryTheme.pie.innerRadiusRatio * 100}%`}
+                        >
+                            {({slice}) => (
+                                <PaddedPieSlice
+                                    slice={slice}
+                                    padAngle={VictoryTheme.pie.padAngle}
+                                />
+                            )}
+                        </Pie.Chart>
+                    </PolarChart>
+                )}
+
+                {processedSlices.length > 0 && (
+                    <View
+                        pointerEvents="none"
+                        style={styles.pieChartCenterLabel}
+                    >
+                        <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
+                        <Text
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                            style={[styles.textHeadlineH1, styles.textAlignCenter]}
+                        >
+                            {formatValue(data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0))}
+                        </Text>
+                    </View>
+                )}
+
+                {/* Tooltip */}
+                <ChartTooltipLayer
+                    matchedIndex={matchedIndex}
+                    isTooltipActive={isTooltipActive}
+                    data={data}
+                    series={series}
+                    formatValue={formatValue}
+                    chartWidth={donutWidth}
+                    initialTooltipPosition={tooltipPosition}
+                    onChartMoved={onChartMoved}
+                    onDismiss={dismissTooltip}
+                />
+            </Animated.View>
+        </GestureDetector>
+    );
+
+    // `getPieChartLoadingHeight` rebuilds the height of both layouts below from the same theme values, so update it with any change to their structure or spacing.
+    if (shouldUseResponsiveLegend) {
         return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
+            <View style={isLegendSideBySide ? styles.pieChartResponsiveRow : styles.pieChartResponsiveColumn}>
+                {donut}
+                {shouldShowLegend && (
+                    <View style={isLegendSideBySide ? styles.pieChartLegendSide : styles.pieChartLegendBelow}>{processedSlices.map((slice) => renderLegendEntry(slice, true))}</View>
+                )}
             </View>
         );
     }
 
-    if (data.length === 0) {
+    return (
+        <>
+            {donut}
+            {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendEntry(slice, false))}</View>}
+        </>
+    );
+}
+
+function PieChartContent({isLoading = false, chartWidth, ...canvasProps}: PieChartContentProps) {
+    useReportChartLoading(isLoading);
+
+    if (isLoading || chartWidth === null) {
         return null;
     }
 
     return (
-        <>
-            <GestureDetector
-                gesture={combinedGesture}
-                touchAction="pan-y"
-            >
-                <Animated.View
-                    style={[styles.chartContent, isHoveringOverPie && styles.cursorPointer]}
-                    onLayout={handleLayout}
-                >
-                    {processedSlices.length > 0 && (
-                        <PolarChart
-                            data={processedSlices}
-                            labelKey="label"
-                            valueKey="value"
-                            colorKey="color"
-                        >
-                            <Pie.Chart
-                                startAngle={VictoryTheme.pie.startAngle}
-                                innerRadius={`${VictoryTheme.pie.innerRadiusRatio * 100}%`}
-                            >
-                                {({slice}) => (
-                                    <PaddedPieSlice
-                                        slice={slice}
-                                        padAngle={VictoryTheme.pie.padAngle}
-                                    />
-                                )}
-                            </Pie.Chart>
-                        </PolarChart>
-                    )}
-
-                    {processedSlices.length > 0 && (
-                        <View
-                            pointerEvents="none"
-                            style={styles.pieChartCenterLabel}
-                        >
-                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
-                            <Text
-                                numberOfLines={1}
-                                adjustsFontSizeToFit
-                                style={[styles.textHeadlineH1, styles.textAlignCenter]}
-                            >
-                                {formatValue(data.reduce((sum, point) => sum + point.total, 0))}
-                            </Text>
-                        </View>
-                    )}
-
-                    {/* Tooltip */}
-                    {activeSliceIndex >= 0 && !!tooltipData && (
-                        <ChartTooltip
-                            label={tooltipData.label}
-                            amount={tooltipData.amount}
-                            percentage={tooltipData.percentage}
-                            chartWidth={canvasWidth}
-                            initialTooltipPosition={tooltipPosition}
-                        />
-                    )}
-                </Animated.View>
-            </GestureDetector>
-            {shouldShowLegend && <View style={styles.pieChartLegendContainer}>{processedSlices.map((slice) => renderLegendItem(slice))}</View>}
-        </>
+        <PieChartCanvas
+            {...canvasProps}
+            chartWidth={chartWidth}
+        />
     );
 }
 

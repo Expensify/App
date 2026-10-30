@@ -96,7 +96,7 @@ You’ve changed jobs or lost access to the email inbox tied to your Expensify l
 
 ## Unblock your email address
 
-If you see a banner that says "We're having trouble emailing you", it means Expensify emails are temporarily suspended for your email address.
+If you see "We can't send you email notifications" under **Time sensitive** on **Home**, it means Expensify emails are temporarily suspended for your email address.
 
 **Common Cause**
 Expensify tried to email you but it bounced, either because it was not a real email address or the incoming mail server rejected it. 
@@ -104,7 +104,7 @@ Expensify tried to email you but it bounced, either because it was not a real em
 **What to do**
 1. Confirm the primary email address on your Expensify account is a real email account that can accept incoming emails.
 2. Confirm with your IT team or email server that Expensify emails are not being blocked. 
-3. Click the link in the banner to unblock your email. 
+3. On **Home**, click **Fix**, then click **I've completed the above steps** to unblock your email. 
 
 If you see errors like "mimecast", "blacklist", or "SMTP errors": 
 - Share the error message with your IT team.

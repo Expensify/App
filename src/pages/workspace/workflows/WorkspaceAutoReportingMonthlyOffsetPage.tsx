@@ -1,161 +1,36 @@
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-
-import useInitialSelection from '@hooks/useInitialSelection';
-import useLocalize from '@hooks/useLocalize';
-import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
-
-import Navigation from '@libs/Navigation/Navigation';
+import {setDraftValues} from '@libs/actions/FormActions';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canEditWorkspaceSettings, goBackFromInvalidPolicy, isGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
-import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 
-import {setWorkspaceAutoReportingMonthlyOffset} from '@userActions/Policy/Policy';
-
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import INPUT_IDS from '@src/types/form/WorkspaceSubmissionFrequencyForm';
 
-import type {ValueOf} from 'type-fest';
+import React from 'react';
 
-import React, {useCallback, useMemo, useState} from 'react';
-
-const DAYS_OF_MONTH = 28;
+import AutoReportingDayOfMonthPicker from './AutoReportingDayOfMonthPicker';
+import useSubmissionFrequencyDraft from './useSubmissionFrequencyDraft';
 
 type WorkspaceAutoReportingMonthlyOffsetProps = WithPolicyOnyxProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET>;
 
-type AutoReportingOffsetKeys = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>;
-
-type WorkspaceAutoReportingMonthlyOffsetPageItem = {
-    text: string;
-    keyForList: string;
-    value: string;
-    isSelected: boolean;
-    isNumber?: boolean;
-};
-
 function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoReportingMonthlyOffsetProps) {
-    const {translate, toLocaleOrdinal} = useLocalize();
-    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
-    const policyID = policy?.id;
-    const offset = policy?.autoReportingOffset ?? 1;
-    const [userSelectedOffset, setUserSelectedOffset] = useState<number | AutoReportingOffsetKeys | undefined>();
-    const selectedOffset = userSelectedOffset ?? offset;
-    // Freeze the day selected when the page opened so it stays pinned to the top for the whole open/focus cycle, even as the live selection changes.
-    const initialOffset = useInitialSelection(selectedOffset, {resetOnFocus: true});
-    const [searchText, setSearchText] = useState('');
-    const trimmedText = searchText.trim().toLowerCase();
-
-    const daysOfMonth: WorkspaceAutoReportingMonthlyOffsetPageItem[] = Array.from({length: DAYS_OF_MONTH}, (value, index) => {
-        const day = index + 1;
-
-        return {
-            text: toLocaleOrdinal(day),
-            keyForList: day.toString(), // we have to cast it as string for <ListItem> to work
-            value: day.toString(),
-            isSelected: day === selectedOffset,
-            isNumber: true,
-        };
-    }).concat([
-        {
-            keyForList: 'lastDayOfMonth',
-            value: 'lastDayOfMonth',
-            text: translate('workflowsPage.frequencies.lastDayOfMonth'),
-            isSelected: selectedOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
-            isNumber: false,
-        },
-        {
-            keyForList: 'lastBusinessDayOfMonth',
-            value: 'lastBusinessDayOfMonth',
-            text: translate('workflowsPage.frequencies.lastBusinessDayOfMonth'),
-            isSelected: selectedOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH,
-            isNumber: false,
-        },
-    ]);
-
-    // Pin the frozen initial day to the top of the full list before search filtering, so it stays pinned while searching.
-    const orderedDaysOfMonth = moveInitialSelectionToTop(daysOfMonth, [String(initialOffset)]);
-    const filteredDaysOfMonth = orderedDaysOfMonth.filter((dayItem) => dayItem.text.toLowerCase().includes(trimmedText));
-
-    const onSelectDayOfMonth = (item: WorkspaceAutoReportingMonthlyOffsetPageItem) => {
-        setUserSelectedOffset(item.isNumber ? parseInt(item.keyForList, 10) : (item.keyForList as AutoReportingOffsetKeys));
-    };
-
-    const saveDayOfMonth = useCallback(() => {
-        if (!policyID) {
-            return;
-        }
-        setWorkspaceAutoReportingMonthlyOffset(policyID, selectedOffset, policy?.autoReportingOffset, getReviewWorkspaceSettingsTaskCompletion());
-        Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policyID));
-    }, [policyID, policy?.autoReportingOffset, selectedOffset, getReviewWorkspaceSettingsTaskCompletion]);
-
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveDayOfMonth,
-            isDisabled: selectedOffset === offset,
-        }),
-        [saveDayOfMonth, translate, selectedOffset, offset],
-    );
-    const textInputOptions = useMemo(
-        () => ({
-            label: translate('workflowsPage.submissionFrequencyDateOfMonth'),
-            value: searchText,
-            onChangeText: setSearchText,
-            headerMessage: searchText.trim() && !filteredDaysOfMonth.length ? translate('common.noResultsFound') : '',
-        }),
-        [searchText, filteredDaysOfMonth.length, setSearchText, translate],
-    );
+    const {offset} = useSubmissionFrequencyDraft(policy);
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={route.params.policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
-        >
-            <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
-                testID="WorkspaceAutoReportingMonthlyOffsetPage"
-            >
-                <FullPageNotFoundView
-                    onBackButtonPress={goBackFromInvalidPolicy}
-                    onLinkPress={goBackFromInvalidPolicy}
-                    shouldShow={isEmptyObject(policy) || !canEditWorkspaceSettings(policy) || isPendingDeletePolicy(policy) || !isGroupPolicy(policy)}
-                    subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                    addBottomSafeAreaPadding
-                >
-                    <HeaderWithBackButton
-                        title={translate('workflowsPage.submissionFrequency')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(policy?.id))}
-                    />
-
-                    <SelectionList
-                        data={filteredDaysOfMonth}
-                        ListItem={SingleSelectListItem}
-                        onSelectRow={onSelectDayOfMonth}
-                        textInputOptions={textInputOptions}
-                        confirmButtonOptions={confirmButtonOptions}
-                        initiallyFocusedItemKey={String(initialOffset)}
-                        shouldSingleExecuteRowSelect
-                        shouldScrollToFocusedIndexOnMount={false}
-                        shouldUpdateFocusedIndex
-                        disableMaintainingScrollPosition
-                        addBottomSafeAreaPadding
-                        showScrollIndicator
-                    />
-                </FullPageNotFoundView>
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+        <AutoReportingDayOfMonthPicker
+            policy={policy}
+            routePolicyID={route.params.policyID}
+            testID="WorkspaceAutoReportingMonthlyOffsetPage"
+            selectedOffset={offset}
+            shouldShowMonthlyOnlyEntries
+            onSave={(newOffset) => {
+                setDraftValues(ONYXKEYS.FORMS.WORKSPACE_SUBMISSION_FREQUENCY_FORM, {[INPUT_IDS.OFFSET]: String(newOffset)});
+            }}
+        />
     );
 }
 

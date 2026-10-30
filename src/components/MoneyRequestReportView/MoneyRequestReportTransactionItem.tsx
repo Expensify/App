@@ -5,7 +5,10 @@ import {PressableWithFeedback} from '@components/Pressable';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useRowHighlightAnimation from '@hooks/useRowHighlightAnimation';
@@ -13,11 +16,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 
+import {getCardDescription} from '@libs/CardUtils';
 import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
-import {getTransactionRejectErrorKey, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
+import {getTransactionRejectErrorKey, getVisibleReportRowViolations, isSelectableReportTransaction} from '@libs/MoneyRequestReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -25,6 +30,7 @@ import variables from '@styles/variables';
 import {clearError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 import type {Errors, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 
@@ -36,10 +42,11 @@ import React, {useEffect, useRef, useState} from 'react';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
-    transaction: TransactionWithOptionalHighlight;
+    /** ID of the transaction this row renders. The row reads the transaction, its card and its violations itself, so a write to one transaction re-renders only its row. */
+    transactionID: string;
 
-    /** Pre-filtered violations for this transaction. Computed once at the parent so each row doesn't subscribe to Onyx individually. */
-    violations: TransactionViolations;
+    /** Login of the report owner, used to filter the violations the current user can see */
+    reportOwnerLogin: string | undefined;
 
     /** Report to which the transaction belongs */
     report: Report;
@@ -89,7 +96,12 @@ type MoneyRequestReportTransactionItemProps = {
 
 // `shouldBeHighlighted` is omitted: the highlight animation is computed by the outer component (so its timeline
 // survives the narrow↔wide swap) and reaches the body as `animatedHighlightStyle`.
-type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransactionItemProps, 'shouldBeHighlighted'> & {
+type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransactionItemProps, 'transactionID' | 'reportOwnerLogin' | 'shouldBeHighlighted'> & {
+    transaction: TransactionWithOptionalHighlight;
+
+    /** Violations of this transaction the current user can see */
+    violations: TransactionViolations;
+
     /** Inline-edit values from `useTransactionInlineEdit`. Undefined on narrow layouts where the hook is skipped. */
     inlineEdit?: InlineEditValues;
 
@@ -129,11 +141,17 @@ function MoneyRequestReportTransactionItemBody({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
-    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
-
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowPress} = useCopyableTextRowPress();
+
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
+    // Keep this ref local so React Compiler can prove the after-render event mutations are safe.
+    const wasEditingOnMouseDownRef = useRef(false);
+    const wasEditingOnPressInRef = useRef(false);
+    const wasTouchStartOnCopyableTextRef = useRef(false);
+
     const shouldUseMediumNarrowLayout = isMediumScreenWidth && !shouldScrollHorizontally;
     const shouldUseNarrowTransactionRow = shouldUseNarrowLayout || shouldUseMediumNarrowLayout;
     let transactionRowStyle: StyleProp<ViewStyle> = [styles.ph3, styles.noBorderRadius];
@@ -162,14 +180,78 @@ function MoneyRequestReportTransactionItemBody({
     const transactionErrors: Errors | TranslationKeyErrors = rejectErrorKey ? rejectError : getLatestErrorMessageField({errors: messageErrors});
     const hasTransactionErrors = Object.keys(transactionErrors).length > 0;
 
+    // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
+    // FlashList ignores size changes of 1px or less, so a border that appears later would be covered by the next row.
+    const lastRowBorderStyle = isLastItem && styles.borderTransparent;
+
     const dismissTransactionError = () => {
         clearError(transaction.transactionID);
     };
 
-    // On narrow layouts `inlineEdit` is undefined (the parent skips the hook). The fallback ref
-    // keeps the press handler shape identical without ever being mutated on narrow.
-    const fallbackEditingOnMouseDownRef = useRef(false);
-    const wasEditingOnMouseDownRef = inlineEdit?.wasEditingOnMouseDownRef ?? fallbackEditingOnMouseDownRef;
+    const handleMouseDown = (e?: React.MouseEvent) => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+        const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+
+        if (!isEditingCell && !isCopyableTarget) {
+            e?.preventDefault();
+        }
+    };
+
+    const handleHoverIn = () => setShouldDisableHoverStyle(false);
+
+    const handlePress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = () => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
+        // Prevent row press from firing while a cell is being inline-edited (e.g. pressing Space would otherwise open the expense)
+        // See https://github.com/Expensify/App/issues/88646 for more details
+        if (isEditingCell) {
+            return;
+        }
+        // If a cell was being edited when the user tapped the row, suppress navigation
+        // so the second tap doesn't immediately open the transaction detail.
+        if (wasEditingOnMouseDownRef.current || wasEditingOnPressInRef.current) {
+            wasEditingOnMouseDownRef.current = false;
+            wasEditingOnPressInRef.current = false;
+            return;
+        }
+        handleOnPress(transaction.transactionID);
+    };
+
+    const handleTouchStart: React.ComponentProps<typeof PressableWithFeedback>['onTouchStart'] = (event) => {
+        const isCopyableTextTouchStart = isPressStartOnCopyableText(event);
+        wasTouchStartOnCopyableTextRef.current = markTouchStartOnCopyableText(event, isCopyableTextTouchStart);
+    };
+
+    const handlePressIn: React.ComponentProps<typeof PressableWithFeedback>['onPressIn'] = () => {
+        wasEditingOnPressInRef.current = isEditingCell;
+        // Selection only needs to be blocked for touch interactions; desktop mouse selection is handled by onMouseDown.
+        if (!canUseTouchScreen()) {
+            return;
+        }
+
+        // Let copyable values use native long-press/drag selection instead of applying the global selection blocker.
+        if (wasTouchStartOnCopyableTextRef.current) {
+            return;
+        }
+
+        // Preserve the existing row behavior for non-copyable touch targets.
+        ControlSelection.block();
+    };
+
+    const handlePressableLongPress = () => {
+        // Let touch-web long presses on copyable values complete native text selection without opening row actions.
+        if (wasTouchStartOnCopyableTextRef.current) {
+            return;
+        }
+        handleLongPress(transaction.transactionID);
+    };
+
+    const handlePressOut = () => {
+        wasTouchStartOnCopyableTextRef.current = false;
+        ControlSelection.unblock();
+    };
 
     useEffect(() => {
         if (!wasRecentlyEditingCell) {
@@ -177,20 +259,6 @@ function MoneyRequestReportTransactionItemBody({
         }
         queueMicrotask(() => setShouldDisableHoverStyle(true));
     }, [wasRecentlyEditingCell]);
-
-    const handleMouseDown = (e?: React.MouseEvent) => {
-        wasEditingOnMouseDownRef.current = isEditingCell;
-
-        if (!isEditingCell) {
-            e?.preventDefault();
-        }
-    };
-
-    const handleHoverIn = () => setShouldDisableHoverStyle(false);
-
-    // The last row keeps its bottom border but hides it, so the row height stays the same when a row is added below it.
-    // FlashList ignores size changes of 1px or less, so a border that appears later would be covered by the next row.
-    const lastRowBorderStyle = isLastItem && styles.borderTransparent;
 
     return (
         <OfflineWithFeedback
@@ -201,24 +269,12 @@ function MoneyRequestReportTransactionItemBody({
         >
             <PressableWithFeedback
                 key={transaction.transactionID}
-                onPress={() => {
-                    // Prevent row press from firing while a cell is being inline-edited (e.g. pressing Space would otherwise open the expense)
-                    // See https://github.com/Expensify/App/issues/88646 for more details
-                    if (isEditingCell) {
-                        return;
-                    }
-                    // If a cell was being edited when the user tapped the row, suppress navigation
-                    // so the second tap doesn't immediately open the transaction detail.
-                    if (wasEditingOnMouseDownRef.current) {
-                        wasEditingOnMouseDownRef.current = false;
-                        return;
-                    }
-                    handleOnPress(transaction.transactionID);
-                }}
+                onPress={handlePress}
                 accessibilityLabel={translate('iou.viewDetails')}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_TRANSACTION_ITEM}
                 role={CONST.ROLE.BUTTON}
                 isNested
+                shouldAllowTextSelection
                 id={transaction.transactionID}
                 style={[
                     styles.transactionListItemStyle,
@@ -227,19 +283,13 @@ function MoneyRequestReportTransactionItemBody({
                         : styles.noBorderRadius,
                 ]}
                 hoverStyle={[isSelectable && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                dataSet={COPYABLE_ROW_DATA_SET}
                 onMouseDown={handleMouseDown}
+                onTouchStart={handleTouchStart}
                 onHoverIn={handleHoverIn}
-                onPressIn={() => {
-                    wasEditingOnMouseDownRef.current = wasEditingOnMouseDownRef.current || isEditingCell;
-                    if (canUseTouchScreen()) {
-                        ControlSelection.block();
-                    }
-                }}
-                onPressOut={() => ControlSelection.unblock()}
-                onLongPress={() => {
-                    handleLongPress(transaction.transactionID);
-                }}
+                onPressIn={handlePressIn}
+                onPressOut={handlePressOut}
+                onLongPress={handlePressableLongPress}
                 disabled={!isSelectable}
                 wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && [StyleUtils.getSelectedBorderBottomStyle(isSelected), lastRowBorderStyle]]}
             >
@@ -314,12 +364,39 @@ function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyReques
     );
 }
 
-function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionItemProps) {
-    const {shouldBeHighlighted} = props;
+function MoneyRequestReportTransactionItem({
+    transactionID,
+    reportOwnerLogin,
+    shouldBeHighlighted,
+    report,
+    policy,
+    policyCategories,
+    policyTagLists,
+    isSelectionModeEnabled,
+    toggleTransaction,
+    handleOnPress,
+    handleLongPress,
+    isSelected,
+    dateColumnSize,
+    postedColumnSize,
+    amountColumnSize,
+    taxAmountColumnSize,
+    columns,
+    onArrowRightPress,
+    nonPersonalAndWorkspaceCards,
+    isLastItem,
+    shouldScrollHorizontally,
+    transactionThreadReportID,
+}: MoneyRequestReportTransactionItemProps) {
+    const {translate} = useLocalize();
+    const {email, accountID} = useCurrentUserPersonalDetails();
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {shouldUseNarrowLayout} = useResponsiveLayoutOnWideRHP();
-    // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
-    const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !props.shouldScrollHorizontally);
+
+    const [rawTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [rawViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+    const cardID = rawTransaction?.cardID;
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (cardID ? cardList?.[cardID] : undefined)});
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.
@@ -329,19 +406,43 @@ function MoneyRequestReportTransactionItem(props: MoneyRequestReportTransactionI
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });
 
-    if (isNarrowLayout) {
-        return (
-            <MoneyRequestReportTransactionItemBody
-                {...props}
-                animatedHighlightStyle={animatedHighlightStyle}
-                shouldSkipDeferRBR
-            />
-        );
+    if (!rawTransaction) {
+        return null;
     }
 
+    // Mirrors the layout check inside TransactionItemRow so the narrow body never pays for useTransactionInlineEdit.
+    const isNarrowLayout = shouldUseNarrowLayout || (isMediumScreenWidth && !shouldScrollHorizontally);
+
+    // The search API pre-resolves the card name, local Onyx transactions carry the raw one
+    const resolvedCardName = card ? getCardDescription(card, translate) : undefined;
+    const transaction = resolvedCardName && resolvedCardName !== rawTransaction.cardName ? {...rawTransaction, cardName: resolvedCardName} : rawTransaction;
+    const violations = getVisibleReportRowViolations(transaction, rawViolations, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, reportOwnerLogin, policy);
+
+    // Every prop is passed explicitly so React Compiler can reuse the body element, and skip the body, while nothing this row shows has changed
+    const Body = isNarrowLayout ? MoneyRequestReportTransactionItemBody : MoneyRequestReportTransactionItemWithInlineEdit;
     return (
-        <MoneyRequestReportTransactionItemWithInlineEdit
-            {...props}
+        <Body
+            transaction={transaction}
+            violations={violations}
+            report={report}
+            policy={policy}
+            policyCategories={policyCategories}
+            policyTagLists={policyTagLists}
+            isSelectionModeEnabled={isSelectionModeEnabled}
+            toggleTransaction={toggleTransaction}
+            handleOnPress={handleOnPress}
+            handleLongPress={handleLongPress}
+            isSelected={isSelected}
+            dateColumnSize={dateColumnSize}
+            postedColumnSize={postedColumnSize}
+            amountColumnSize={amountColumnSize}
+            taxAmountColumnSize={taxAmountColumnSize}
+            columns={columns}
+            onArrowRightPress={onArrowRightPress}
+            nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
+            isLastItem={isLastItem}
+            shouldScrollHorizontally={shouldScrollHorizontally}
+            transactionThreadReportID={transactionThreadReportID}
             animatedHighlightStyle={animatedHighlightStyle}
             shouldSkipDeferRBR
         />

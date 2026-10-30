@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {isControlPolicyOnlyRole} from '@libs/PolicyUtils/permissions';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -29,7 +30,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED>;
 
@@ -76,7 +77,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     // checks if all required columns are mapped and no column is mapped more than once
     // returns found errors or empty object if both conditions are met
-    const validate = useCallback(() => {
+    const validate = () => {
         const columns = Object.values(spreadsheet?.columns ?? {});
         let errors: Record<string, string | null> = {};
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
@@ -103,7 +104,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
 
         return errors;
-    }, [containsHeader, currency, currencySymbol, getCurrencyDecimals, requiredColumns, spreadsheet?.columns, spreadsheet?.data, translate]);
+    };
 
     const closeImportPageAndModal = () => {
         setIsClosing(true);
@@ -135,12 +136,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
         const membersRolesColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.ROLE);
 
-        const controlPolicyOnlyRoles = [CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN];
         const hasControlPolicyOnlyRole =
             membersRolesColumn !== -1 &&
             spreadsheet?.data?.at(membersRolesColumn)?.some((role, index) => {
                 const memberRole = containsHeader ? spreadsheet?.data?.at(membersRolesColumn)?.at(index + 1) : (role ?? '');
-                return controlPolicyOnlyRoles.some((controlPolicyOnlyRole) => controlPolicyOnlyRole === memberRole);
+                return isControlPolicyOnlyRole(memberRole);
             });
         const controlPolicyColumns = [
             CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO,

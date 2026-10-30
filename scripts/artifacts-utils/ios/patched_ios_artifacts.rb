@@ -323,9 +323,12 @@ module PatchedIOSArtifacts
     end
 
     def self.resolve(is_hybrid)
+        react_native_path = File.join(NEW_DOT_ROOT, 'node_modules/react-native')
+        require_relative File.join(react_native_path, 'sdks/hermes-engine/hermes-utils.rb')
+        hermes_version_file = hermestag_file(react_native_path)
         cmd = [
             'bun', File.join(NEW_DOT_ROOT, 'scripts/artifacts-utils/resolve-artifacts.ts'),
-            '--platform=ios', "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}"
+            '--platform=ios', "--hybrid=#{is_hybrid}", "--new-dot-root=#{NEW_DOT_ROOT}", "--hermes-version-file=#{hermes_version_file}"
         ]
         # stdout is pure JSON; the resolver logs to stderr.
         output = IO.popen(cmd, chdir: NEW_DOT_ROOT, &:read)

@@ -1,16 +1,18 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import UserPills from '@components/UserPills';
 
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {enrichAndSortAttendees} from '@libs/AttendeeUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAttendeesListDisplayString} from '@libs/TransactionUtils';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -21,6 +23,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
@@ -39,9 +42,9 @@ type AttendeeFieldProps = {
 };
 
 function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {shouldUseDropdownRows} = useExpenseFormLayout();
-    const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetailsList = usePersonalDetails();
     const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
@@ -56,7 +59,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee
             ? `${translate('iou.attendees')} · ${formattedAmountPerAttendee} ${translate('common.perPerson')}`
             : translate('iou.attendees');
-    const attendeesAccessibilityLabel = `${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees) : ''}`;
+    const attendeesAccessibilityLabel = `${translate('iou.attendees')}, ${Array.isArray(iouAttendees) ? getAttendeesListDisplayString(iouAttendees, formatPhoneNumber) : ''}`;
     const attendeePills = Array.isArray(iouAttendees) ? (
         <UserPills
             users={iouAttendees.map((a) => ({
@@ -94,21 +97,27 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     }
 
     return (
-        <MenuItemWithTopDescription
-            key="attendees"
-            shouldShowRightIcon={!isReadOnly}
+        <MenuItem.Root
+            onPress={isReadOnly ? undefined : callFunctionIfActionIsAllowed(openAttendeePage, false, session)}
             accessibilityLabel={attendeesAccessibilityLabel}
-            description={attendeesDescription}
-            descriptionTextStyle={styles.textLabelSupportingNormal}
-            titleComponent={attendeePills}
-            style={[styles.moneyRequestMenuItem]}
-            titleStyle={styles.flex1}
-            onPress={openAttendeePage}
-            interactive={!isReadOnly}
-            brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            errorText={shouldDisplayAttendeesError ? translate(formError as TranslationPaths) : ''}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItemField.Content name={attendeesDescription}>{attendeePills}</MenuItemField.Content>
+                {(shouldDisplayAttendeesError || !isReadOnly) && (
+                    <MenuItem.Trailing>
+                        {shouldDisplayAttendeesError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        {!isReadOnly && <MenuItem.Chevron />}
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+            {shouldDisplayAttendeesError && (
+                <MenuItem.HelpText
+                    isError
+                    message={translate(formError as TranslationPaths)}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 
