@@ -4,6 +4,7 @@ import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchColumnType} from '@components/Search/types';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 
@@ -5997,7 +5998,7 @@ function canEditMoneyRequest(
 }
 
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function getNextApproverAccountID(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isUnapproved = false, currentUserEmail?: string) {
+function getNextApproverAccountID(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isUnapproved = false, currentUserEmail?: string, personalDetailsByLogins?: PersonalDetailsByLogin) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(report?.policyID);
     const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail ?? '';
@@ -6033,7 +6034,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, rules: OnyxCollecti
         return undefined;
     }
 
-    return getAccountIDsByLogins([nextApproverEmail]).at(0);
+    return getAccountIDsByLogins([nextApproverEmail], personalDetailsByLogins).at(0);
 }
 
 function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<Policy>): boolean {
@@ -8938,7 +8939,7 @@ function buildOptimisticCreatedReportForUnapprovedAction(
     originalReportID: string | undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS> {
     const createdTime = DateUtils.getDBTime();
-    const actor = getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]).at(0);
+    const actor = CONST.ACCOUNT_ID.CONCIERGE;
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS,
@@ -9250,7 +9251,7 @@ function buildOptimisticReportPreview(
 function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOUReportAction, transactionID: string, optimisticReportActionID?: string): ReportAction {
     const currentTime = DateUtils.getDBTime();
     const targetEmail = CONST.EMAIL.CONCIERGE;
-    const actorAccountID = getAccountIDsByLogins([targetEmail]).at(0);
+    const actorAccountID = CONST.ACCOUNT_ID.CONCIERGE;
     const reportActionID = optimisticReportActionID ?? rand64();
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER,
