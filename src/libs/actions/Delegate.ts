@@ -75,7 +75,7 @@ function clearOnyxForDelegateTransition(extraSeeds?: OnyxMultiSetInput): Promise
 /**
  * Navigation state belongs to the account it was built for, so drop it on a delegate-access transition like we do on sign-out.
  * Otherwise screens of the previous account stay mounted (e.g. their workspace chat in the Inbox tab) and show "not found".
- * The fresh navigation state lands on the Settings tab, where accounts are switched.
+ * The fresh navigation state lands on the Settings tab, where accounts are usually switched.
  */
 function resetNavigationForDelegateTransition() {
     clearPreservedNavigatorStates();
@@ -282,7 +282,6 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID}:
                 Onyx.update(failureData);
                 return;
             }
-            resetNavigationForDelegateTransition();
             const restrictedToken = response.restrictedToken;
             const policyID = activePolicyID;
 
@@ -293,6 +292,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID}:
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    resetNavigationForDelegateTransition();
                     Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
