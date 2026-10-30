@@ -94,33 +94,48 @@ describe('actions/Travel', () => {
     });
 
     describe('searchFlights', () => {
-        it('sends the legs and filters as JSON, shows loading, then stores the results the server returns', async () => {
-            // Given the server returns one flight row for the first leg
+        it('shows flight schedules while prices load, then replaces them with the priced results', async () => {
+            // Given the schedule search answers right away and the priced search answers later
+            const scheduleItineraries = [{itineraryID: 'UA368@2027-01-21T23:30:00', flights: []}];
             const itineraries = [{itineraryID: 'flight_1', flights: [], fares: []}];
-            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 200, searchID: SEARCH_ID, legIndex: 0, itineraries});
+            let resolvePricedSearch: (response: {jsonCode: number; searchID: string; legIndex: number; itineraries: typeof itineraries}) => void = () => {};
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 200, itineraries: scheduleItineraries}).mockReturnValueOnce(
+                new Promise((resolve) => {
+                    resolvePricedSearch = resolve;
+                }),
+            );
 
             // When the traveler searches a round trip with a nonstop filter
             const searchRequest = searchFlights(POLICY_ID, ROUND_TRIP_LEGS, {maxStops: 0});
             await waitForBatchedUpdates();
 
-            // Then the first leg is requested with no previous search, and the key shows loading until it returns
-            expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS, {
+            // Then both searches are sent with the same parameters, and the schedules show while prices load
+            const parameters = {
                 policyID: POLICY_ID,
                 legs: JSON.stringify(ROUND_TRIP_LEGS),
                 filters: JSON.stringify({maxStops: 0}),
                 searchID: '',
                 selectedFareID: '',
                 legIndex: 0,
-            });
+            };
+            expect(mockMakeRequestWithSideEffects).toHaveBeenNthCalledWith(1, SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHT_SCHEDULES, parameters);
+            expect(mockMakeRequestWithSideEffects).toHaveBeenNthCalledWith(2, SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS, parameters);
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH)).toMatchObject({scheduleItineraries, isLoading: true});
+
+            // When the priced results arrive
+            resolvePricedSearch({jsonCode: 200, searchID: SEARCH_ID, legIndex: 0, itineraries});
             await searchRequest;
             await waitForBatchedUpdates();
+
+            // Then they replace the schedules
             const flightSearch = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH);
             expect(flightSearch).toMatchObject({query: {policyID: POLICY_ID, legs: ROUND_TRIP_LEGS}, searchID: SEARCH_ID, legIndex: 0, itineraries, isLoading: false});
+            expect(flightSearch?.scheduleItineraries).toBeUndefined();
         });
 
         it('carries the previous search and picked fare to the return leg and shows an error when the request fails', async () => {
-            // Given the server rejects the request
-            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 517, message: '517 Spotnana error'});
+            // Given both searches fail
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 517, message: '517 Spotnana error'}).mockResolvedValueOnce({jsonCode: 517, message: '517 Spotnana error'});
 
             // When the return leg is searched
             await searchFlights(POLICY_ID, ROUND_TRIP_LEGS, {}, 1, SEARCH_ID, FARE_ID);
@@ -134,6 +149,30 @@ describe('actions/Travel', () => {
             const flightSearch = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH);
             expect(flightSearch?.isLoading).toBe(false);
             expect(flightSearch).toHaveProperty('errors');
+        });
+
+        it('ignores results from a search the traveler has since replaced', async () => {
+            // Given a first search whose priced results arrive after the traveler starts a second search
+            let resolveFirstSearch: (response: {jsonCode: number; searchID: string; itineraries: Array<{itineraryID: string; flights: []}>}) => void = () => {};
+            mockMakeRequestWithSideEffects
+                .mockResolvedValueOnce({jsonCode: 500})
+                .mockReturnValueOnce(
+                    new Promise((resolve) => {
+                        resolveFirstSearch = resolve;
+                    }),
+                )
+                .mockResolvedValueOnce({jsonCode: 500})
+                .mockResolvedValueOnce({jsonCode: 200, searchID: 'second-search', itineraries: []});
+            const firstSearch = searchFlights(POLICY_ID, ROUND_TRIP_LEGS);
+            await searchFlights(POLICY_ID, ROUND_TRIP_LEGS, {maxStops: 0});
+
+            // When the first search's results arrive
+            resolveFirstSearch({jsonCode: 200, searchID: 'first-search', itineraries: [{itineraryID: 'stale', flights: []}]});
+            await firstSearch;
+            await waitForBatchedUpdates();
+
+            // Then the second search's results stay
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH)).toMatchObject({searchID: 'second-search', itineraries: [], query: {filters: {maxStops: 0}}});
         });
     });
 

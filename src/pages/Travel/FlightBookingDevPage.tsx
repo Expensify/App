@@ -163,6 +163,25 @@ function FlightBookingDevPage({route}: FlightBookingDevPageProps) {
                         <Text key={fare.fareID}>{`Leg ${index + 1} picked: ${fare.fareName} ${fare.cabin} ${formatCents(fare.total, fare.currency)}`}</Text>
                     ))}
 
+                    {!flightCheckout && !flightSearch?.itineraries && !!flightSearch?.scheduleItineraries && (
+                        <>
+                            <Text style={[styles.textStrong, styles.mv3]}>{`Leg ${(flightSearch.legIndex ?? 0) + 1}: ${flightSearch.scheduleItineraries.length} flights, pricing…`}</Text>
+                            {flightSearch.scheduleItineraries.map((itinerary) => (
+                                <Text
+                                    key={itinerary.itineraryID}
+                                    style={styles.mb2}
+                                >
+                                    {itinerary.flights
+                                        .map(
+                                            (flight) =>
+                                                `${flight.flightNumber} ${flight.origin.code} ${flight.departureTime.slice(11, 16)} → ${flight.destination.code} ${flight.arrivalTime.slice(11, 16)}`,
+                                        )
+                                        .join(' | ')}
+                                </Text>
+                            ))}
+                        </>
+                    )}
+
                     {!flightCheckout && !!flightSearch?.itineraries && (
                         <>
                             <Text style={[styles.textStrong, styles.mv3]}>{`Leg ${(flightSearch.legIndex ?? 0) + 1} results: ${flightSearch.itineraries.length} flights`}</Text>
@@ -179,7 +198,7 @@ function FlightBookingDevPage({route}: FlightBookingDevPageProps) {
                                             )
                                             .join(' | ')}
                                     </Text>
-                                    {itinerary.fares.map((fare) => (
+                                    {(itinerary.fares ?? []).map((fare) => (
                                         <View
                                             key={fare.fareID}
                                             style={[styles.flexRow, styles.alignItemsCenter, styles.mt1]}

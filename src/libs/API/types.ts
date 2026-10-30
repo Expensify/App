@@ -1986,6 +1986,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     SEARCH_TRAVEL_AIRPORTS: 'SearchTravelAirports',
     GET_FLIGHT_FARE_RULES: 'GetFlightFareRules',
     SEARCH_FLIGHTS: 'SearchFlights',
+    SEARCH_FLIGHT_SCHEDULES: 'SearchFlightSchedules',
     START_FLIGHT_CHECKOUT: 'StartFlightCheckout',
 } as const;
 
@@ -1995,6 +1996,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_TRAVEL_AIRPORTS]: Parameters.SearchTravelAirportsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_FLIGHT_FARE_RULES]: Parameters.GetFlightFareRulesParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS]: Parameters.SearchFlightsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHT_SCHEDULES]: Parameters.SearchFlightsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.START_FLIGHT_CHECKOUT]: Parameters.StartFlightCheckoutParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SUPPORTAL_REASON]: Parameters.GetSupportalReasonParams;

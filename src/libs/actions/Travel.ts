@@ -116,35 +116,60 @@ function searchTravelAirports(policyID: string, query: string): Promise<TravelAi
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_TRAVEL_AIRPORTS, {policyID, query}).then((response) => response?.airports ?? []);
 }
 
+// Each search gets a number so responses from a search the traveler has since replaced are ignored
+let latestFlightSearchNumber = 0;
+
 /**
  * Searches one leg of a flight search. The first leg is searched with an empty searchID; each later leg passes the
  * previous leg's searchID and the fare picked from it. The results replace travelFlightSearch.
+ *
+ * The priced search takes over ten seconds, so the flight schedules for the same leg are fetched alongside it and
+ * shown, without prices, until the priced results arrive.
  */
 function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: FlightSearchFilters = {}, legIndex = 0, searchID = '', selectedFareID = '') {
+    latestFlightSearchNumber += 1;
+    const flightSearchNumber = latestFlightSearchNumber;
+    const isCurrentSearch = () => flightSearchNumber === latestFlightSearchNumber;
+    let hasPricedResults = false;
     Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {query: {policyID, legs, filters}, legIndex, isLoading: true});
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the server returns the results instead of writing Onyx, so they are stored here
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS, {
-        policyID,
-        legs: JSON.stringify(legs),
-        filters: JSON.stringify(filters),
-        searchID,
-        selectedFareID,
-        legIndex,
-    })
+    const parameters = {policyID, legs: JSON.stringify(legs), filters: JSON.stringify(filters), searchID, selectedFareID, legIndex};
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the server returns the schedules instead of writing Onyx, so they are stored here
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHT_SCHEDULES, parameters)
         .then((response) => {
+            if (!isCurrentSearch() || hasPricedResults || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+                return;
+            }
+            Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {scheduleItineraries: response.itineraries});
+        })
+        .catch(() => {
+            // The priced search shows its own error, and schedules are only a preview of it
+        });
+
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-multiple-api-calls -- the schedules and the priced results come from separate searches that run in parallel, and the server returns them instead of writing Onyx
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS, parameters)
+        .then((response) => {
+            if (!isCurrentSearch()) {
+                return;
+            }
             if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                 throw new Error(response?.message ?? 'Flight search failed');
             }
+            hasPricedResults = true;
             Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {
                 searchID: response.searchID,
                 legIndex: response.legIndex,
                 itineraries: response.itineraries,
+                scheduleItineraries: null,
                 filterOptions: response.filterOptions,
                 isLoading: false,
             });
         })
         .catch(() => {
+            if (!isCurrentSearch()) {
+                return;
+            }
             Onyx.merge(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
         });
 }

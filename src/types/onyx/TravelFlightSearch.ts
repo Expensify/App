@@ -123,7 +123,9 @@ type FlightItinerary = {
 
     /** Flight segments in order */
     flights: FlightSegment[];
-    fares: FlightFare[];
+
+    /** Fares sold for these flights. Schedule rows, shown while prices load, have none */
+    fares?: FlightFare[];
 };
 
 /** Values present in the results, for the filter menus */
@@ -155,6 +157,9 @@ type TravelFlightSearch = {
 
     /** One entry per flight row */
     itineraries?: FlightItinerary[];
+
+    /** Flight rows without fares, shown until the priced itineraries arrive */
+    scheduleItineraries?: FlightItinerary[] | null;
 
     /** Values present in the results, for the filter menus */
     filterOptions?: FlightSearchFilterOptions;
