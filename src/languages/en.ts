@@ -607,6 +607,28 @@ const translations = {
         concierge: {
             greeting: 'Hi there, how can I help?',
             showHistory: 'Show history',
+            subtitle: 'Your personal AI assistant',
+            welcomeDescription: 'Concierge can answer questions, update expenses, and more.',
+            viewChatHistory: 'View chat history',
+            hideChatHistory: 'Hide chat history',
+            askNewQuestion: 'Ask a new question',
+            newChat: 'New chat',
+            composerPlaceholders: {
+                spendLastMonth: 'How much did I spend last month?',
+                topExpenses: 'Show me my top expenses this month',
+                spendDrivers: 'What drove my spend last quarter?',
+                travelSpendChange: 'How did my travel spend change from last month?',
+                topSpender: 'Who spent the most this month?',
+                missingCategory: 'Which expenses are missing a category?',
+                awaitingApproval: 'Which reports are waiting on my approval?',
+                notReimbursed: "What haven't I been reimbursed for yet?",
+                unsubmitted: 'Which of my expenses are still unsubmitted?',
+                leftToPay: "What's left to pay this month?",
+                createExpense: 'Create an expense for a $30 lunch',
+                combineExpenses: 'Combine all my open expenses into one report',
+                exportPdf: 'Export my last report to PDF',
+                exportCsv: 'Give me a CSV of my expenses over $50',
+            },
         },
         vacationDelegate: 'Vacation delegate',
         expensifyLogo: 'Expensify logo',
@@ -1325,6 +1347,15 @@ const translations = {
             label: 'Compare',
             previousPeriod: 'Previous period',
             average: 'Average',
+            dailyAverage: 'Daily average',
+            weeklyAverage: 'Weekly average',
+            monthlyAverage: 'Monthly average',
+            quarterlyAverage: 'Quarterly average',
+            yearlyAverage: 'Yearly average',
+            allSpenderAverage: 'All-spender average',
+            allMerchantAverage: 'All-merchant average',
+            allCategoryAverage: 'All-category average',
+            averageValue: (amount: string) => `${amount} avg`,
             dayLabel: (day?: number) => (day === undefined ? 'Day' : `Day ${day}`),
             weekLabel: (week?: number) => (week === undefined ? 'Week' : `Week ${week}`),
             monthLabel: (month?: number) => (month === undefined ? 'Month' : `Month ${month}`),
@@ -2402,6 +2433,28 @@ const translations = {
             [CONST.NEXT_STEP.ETA_KEY.LAST_DAY_OF_MONTH]: 'on the last day of the month',
             [CONST.NEXT_STEP.ETA_KEY.END_OF_TRIP]: 'at the end of your trip',
         },
+        scheduleEta: {
+            weekly: {
+                monday: 'on Monday',
+                tuesday: 'on Tuesday',
+                wednesday: 'on Wednesday',
+                thursday: 'on Thursday',
+                friday: 'on Friday',
+                saturday: 'on Saturday',
+                sunday: 'on Sunday',
+            },
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `on the ${firstDay} and ${secondDay} of each month`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `on the ${firstDay} and the last day of each month`,
+            monthlyLastWeekday: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'on the last Monday of the month',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'on the last Tuesday of the month',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'on the last Wednesday of the month',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'on the last Thursday of the month',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'on the last Friday of the month',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'on the last Saturday of the month',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'on the last Sunday of the month',
+            },
+        },
     },
     profilePage: {
         profile: 'Profile',
@@ -3190,6 +3243,18 @@ const translations = {
             confirmTestTransactions: 'Please confirm test transactions',
             accountRequiresAttention: 'This account requires attention',
             unlock: 'Unlock',
+            plaidBrokenReconnect: 'Fix your Plaid connection for a more accurate Expensify Card limit',
+            plaidConnectForLimit: 'Connect to Plaid for a more accurate Expensify Card limit',
+            connect: 'Connect',
+        },
+        linkPlaid: {
+            title: 'Connect to Plaid',
+            successHeading: 'Successful connection',
+            successDescription: 'Thanks for connecting to Plaid!',
+            failureHeading: 'Unsuccessful connection',
+            failureDescription: '<muted-text>Please try again or <concierge-link>reach out to Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Wrong bank account',
+            wrongAccountDescription: 'Please select the matching bank account in Plaid.',
         },
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
@@ -3355,6 +3420,65 @@ const translations = {
         submissionFrequency: 'Submissions',
         submissionFrequencyDescription: 'Choose a custom schedule for submitting expenses.',
         submissionFrequencyDateOfMonth: 'Date of month',
+        submitFrequency: 'Submit frequency',
+        submitOn: 'Submit on',
+        dayOfTheWeek: 'Day of the week',
+        dayOfTheMonth: 'Day of the month',
+        firstSubmission: 'First submission',
+        secondSubmission: 'Second submission',
+        submissionDatesOrderError: 'The first submission date must be before the second submission date',
+        daysOfWeek: {
+            monday: 'Monday',
+            tuesday: 'Tuesday',
+            wednesday: 'Wednesday',
+            thursday: 'Thursday',
+            friday: 'Friday',
+            saturday: 'Saturday',
+            sunday: 'Sunday',
+        },
+        frequencySummary: {
+            weekly: {
+                monday: 'Weekly on Mondays',
+                tuesday: 'Weekly on Tuesdays',
+                wednesday: 'Weekly on Wednesdays',
+                thursday: 'Weekly on Thursdays',
+                friday: 'Weekly on Fridays',
+                saturday: 'Weekly on Saturdays',
+                sunday: 'Weekly on Sundays',
+            },
+            twiceAMonth: ({firstDay, secondDay}: {firstDay: string; secondDay: string}) => `Twice a month on the ${firstDay} and ${secondDay}`,
+            twiceAMonthAndLastDay: ({firstDay}: {firstDay: string}) => `Twice a month on the ${firstDay} and the last day`,
+            monthly: ({day}: {day: string}) => `Monthly on the ${day}`,
+            monthlyOffset: {
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH]: 'Monthly on the last day',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH]: 'Monthly on the last business day',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH]: 'Monthly on the last Monday',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH]: 'Monthly on the last Tuesday',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH]: 'Monthly on the last Wednesday',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH]: 'Monthly on the last Thursday',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH]: 'Monthly on the last Friday',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH]: 'Monthly on the last Saturday',
+                [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH]: 'Monthly on the last Sunday',
+            },
+        },
+        frequencyRowDescription: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: "Expenses are submitted as soon as they're created",
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Reports are submitted after two days with no expenses',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Reports stay in draft until a member submits them',
+        },
+        frequencyHelperText: {
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: 'Expenses submit immediately after creation.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Reports submit automatically each day, based on the <a href="${timezoneLink}">workspace timezone</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Reports submit automatically each week, based on the <a href="${timezoneLink}">workspace timezone</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Reports submit automatically twice a month, based on the <a href="${timezoneLink}">workspace timezone</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: ({timezoneLink}: {timezoneLink: string}) =>
+                `Reports submit automatically each month, based on the <a href="${timezoneLink}">workspace timezone</a>.`,
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'Reports submit after two full days with no new expenses.',
+            [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: 'Reports stay in draft until a member submits them.',
+        },
         disableApprovalPromptDescription: 'Disabling approvals will erase all existing approval workflows.',
         addApprovalsTitle: 'Approvals',
         accessibilityLabel: ({members, approvers}: {members: string; approvers: string}) => `expenses from ${members}, and the approver is ${approvers}`,
@@ -3376,6 +3500,8 @@ const translations = {
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         collectEmployeeBankDetails: 'Collect employee bank details',
         collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
+        businessBankAccountCountries: 'Business bank account countries',
+        businessBankAccountCountriesDescription: 'Employees in these countries provide local transfer details. Everyone else provides international wire details.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>A custom approval workflow is enabled on this workspace. To review or change this workflow, please reach out to your <account-manager-link>Account Manager</account-manager-link> or <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -3394,6 +3520,13 @@ const translations = {
             daily: 'Daily',
             lastDayOfMonth: 'Last day of the month',
             lastBusinessDayOfMonth: 'Last business day of the month',
+            lastMondayOfMonth: 'Last Monday',
+            lastTuesdayOfMonth: 'Last Tuesday',
+            lastWednesdayOfMonth: 'Last Wednesday',
+            lastThursdayOfMonth: 'Last Thursday',
+            lastFridayOfMonth: 'Last Friday',
+            lastSaturdayOfMonth: 'Last Saturday',
+            lastSundayOfMonth: 'Last Sunday',
             ordinals: {
                 /* eslint-disable @typescript-eslint/naming-convention */
                 '1': 'First',
@@ -3413,6 +3546,7 @@ const translations = {
         approverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver or delete this workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver.',
         overLimitApproverNotWorkspaceMember: 'The additional approver for reports over the limit is no longer a workspace member. Choose a new additional approver.',
+        overLimitApproverInWorkflow: 'The additional approver for reports over the limit is already an approver in this workflow. Choose a different additional approver.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
         emptyContent: {
@@ -3424,7 +3558,6 @@ const translations = {
     },
     workflowsDelayedSubmissionPage: {
         autoReportingFrequencyErrorMessage: "Submission frequency couldn't be changed. Please try again or contact support.",
-        monthlyOffsetErrorMessage: "Monthly frequency couldn't be changed. Please try again or contact support.",
     },
     workflowsCurrencyConversionFeesPage: {
         title: 'Currency conversion fees',
@@ -5278,6 +5411,11 @@ const translations = {
             workspaceStatus: 'Workspace status',
             findDomain: 'Find domain',
             findRoom: 'Find room',
+            emptyRoomsTitle: 'No rooms to show',
+            emptyRoomsSubtitle: 'Rooms in this workspace will appear here.',
+            emptyRoomsArchivedTitle: 'These rooms are archived',
+            emptyRoomsArchivedSubtitle: (workspaceOverviewURL: string) =>
+                `<muted-text><centered-text><a href="${workspaceOverviewURL}">Unarchive this workspace</a> to use them again.</centered-text></muted-text>`,
             edit: 'Edit workspace',
             enabled: 'Enabled',
             disabled: 'Disabled',
@@ -6852,6 +6990,15 @@ const translations = {
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
+            organizationSelectDescription: "Choose the organization in Zoho Books that you'd like to import data from.",
+            noOrganizationsFound: 'No organizations found',
+            noOrganizationsFoundDescription: 'Please add an organization in Zoho Books and sync the connection again',
+            multiLocationNotSupported: "Multi-location organizations aren't supported yet",
+            importDescription: 'Choose which coding configurations to import from Zoho Books.',
+            accountTypesDescription: 'Your Zoho Books accounts will import as categories.',
+            enableNewAccountsTitle: 'Enable newly imported accounts',
+            enableNewAccountsDescription: 'New Zoho Books accounts will be available as categories.',
+            reportingTagsImport: 'All Zoho Books reporting tags import as tags',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
@@ -7014,7 +7161,7 @@ const translations = {
             selectCards: 'Select cards',
             fromOtherWorkspaces: 'From other workspaces',
             addWorkEmail: 'Add your work email',
-            addWorkEmailDescription: 'Please add your work email in order to use existing feeds from other workspaces.',
+            addWorkEmailDescription: 'Please add your work email and set it as your primary contact method in order to use existing feeds from other workspaces.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
                 workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
@@ -7902,6 +8049,13 @@ const translations = {
                 continue: 'Continue without members',
                 description: 'Copying Workflows without Members will not copy approval workflows. Submission and payment settings will still be copied.',
             },
+            confirmMembers: {
+                title: 'Copy members',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Are you sure you want to replace the members of ${targetWorkspaceName} with the members from this workspace?`,
+                    other: `Are you sure you want to replace the members of ${count} workspaces with the members from this workspace?`,
+                }),
+            },
             upgrade: {
                 title: 'Some features require a Control plan',
                 description: ({workspaceName, features}: {workspaceName: string; features: string}) =>
@@ -8401,6 +8555,8 @@ const translations = {
                             return 'Syncing Campfire data';
                         case 'campfireSyncConnection':
                             return 'Initializing connection to Campfire';
+                        case 'zohoBooksSyncTitle':
+                            return 'Syncing Zoho Books data';
                         case 'zohoBooksSyncConnection':
                             return 'Initializing connection to Zoho Books';
                         case 'campfireSyncImportData':
@@ -8817,6 +8973,9 @@ const translations = {
             nameIsRequiredError: "You'll need to give your workspace a name",
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
+            timezoneInputLabel: 'Timezone',
+            timezoneInputHelpText: 'Your timezone is used for automatic report submission',
+            timezoneErrorMessage: "Timezone couldn't be changed. Please try again or contact support.",
             currencyInputDisabledText: (currency: string) => `The default currency can't be changed because this workspace is linked to a ${currency} bank account.`,
             save: 'Save',
             genericFailureMessage: 'An error occurred while updating the workspace. Please try again.',
@@ -9522,7 +9681,10 @@ const translations = {
                     missingData: "Expensify doesn't have that information.",
                     retroactive: 'Rules only apply to new activity.',
                     historyLimit: "Rules can't look back that far.",
-                    tryThisInstead: 'Try this instead',
+                    useSuggestion: 'Use suggestion',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Try the suggestion below instead:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `"${suggestedPrompt}"`,
+                    createAnyway: 'Create anyway',
                 },
             },
             expenseDefaultsTable: {
@@ -9828,7 +9990,7 @@ const translations = {
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
                 suggestionsTab: 'Suggested',
-                writeTab: 'Edit',
+                writeTab: 'Custom',
                 findSuggestion: 'Find a rule',
                 emptySuggestionsTitle: 'No suggestions available',
                 emptySuggestionsSubtitle: 'Try writing your own rule.',
@@ -10095,6 +10257,7 @@ const translations = {
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `removed ${fieldType} Report Field "${fieldName}"`,
         addedCardFeed: (feedName: string) => `added card feed "${feedName}"`,
+        addedExpensifyCardFeed: (feedName: string) => `added "${feedName}" Expensify Card feed`,
         removedCardFeed: (feedName: string) => `removed card feed "${feedName}"`,
         renamedCardFeed: (newName: string, oldName: string) => `renamed card feed to "${newName}" (previously "${oldName}")`,
         assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `assigned ${email} ${feedName ? `"${feedName}" ` : ''}company card ending in ${cardLastFour}`,
@@ -10689,6 +10852,15 @@ const translations = {
         screenShareRequest: 'Expensify is inviting you to a screen share',
     },
     search: {
+        trip: {
+            tripName: 'Trip name',
+            traveler: 'Traveler',
+            status: {
+                upcoming: 'Upcoming',
+                done: 'Done',
+                canceled: 'Canceled',
+            },
+        },
         tabs: {
             expenseReports: 'Expense reports',
             reports: 'Reports',
@@ -11124,6 +11296,10 @@ const translations = {
         genericUpdateReportFieldFailureMessage: 'Unexpected error updating the field. Please try again later.',
         genericUpdateReportNameEditFailureMessage: 'Unexpected error renaming the report. Please try again later.',
         noActivityYet: 'No activity yet',
+        collapsedSystemMessages: () => ({
+            one: 'show 1 update',
+            other: (count: number) => `show ${count} updates`,
+        }),
         connectionSettings: 'Connection Settings',
         actions: {
             type: {
