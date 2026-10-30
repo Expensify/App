@@ -12,6 +12,7 @@ import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import * as IOUUtils from '@libs/IOUUtils';
+import * as IsReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import * as SubmitWithDismissFirst from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
@@ -1557,6 +1558,173 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(iouReportID)), {timeout: 2000});
                 expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(chatReportID));
             } finally {
+                jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('pre-mounts the picked workspace chat when the expense was moved away from the route workspace chat', async () => {
+            // Given a global create from the Inbox, where the route was seeded with the default workspace chat and the
+            // "To" picker (only editable from global create) then moved the expense to another workspace chat.
+            // The route still points at the default chat, so the screen can't resolve a report and has to rely on the participant.
+            const routeWorkspaceChatReportID = 'route-workspace-chat';
+            const pickedWorkspaceChatReportID = 'picked-workspace-chat';
+            const transactionID = 'tx-picked-workspace';
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+            const isReportTopmostSplitNavigatorSpy = jest.spyOn(IsReportTopmostSplitNavigator, 'default').mockReturnValue(true);
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${routeWorkspaceChatReportID}`, {
+                        reportID: routeWorkspaceChatReportID,
+                        policyID: 'route-policy',
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${pickedWorkspaceChatReportID}`, {
+                        reportID: pickedWorkspaceChatReportID,
+                        policyID: POLICY_ID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                        transactionID,
+                        reportID: pickedWorkspaceChatReportID,
+                        amount: 1000,
+                        isAmountSet: true,
+                        currency: 'USD',
+                        merchant: 'Test',
+                        created: '2025-01-15',
+                        isFromGlobalCreate: true,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                        participants: [{accountID: 0, reportID: pickedWorkspaceChatReportID, policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID,
+                                                reportID: routeWorkspaceChatReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+
+                // When the screen renders and resolves the pre-mount destination
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the picked workspace chat - where the expense lands - is pre-inserted, so dismissing reveals it
+                // directly instead of flashing the screen underneath before navigating there
+                await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(pickedWorkspaceChatReportID)), {
+                    timeout: 2000,
+                });
+                expect(Navigation.preInsertFullscreenUnderRHP).not.toHaveBeenCalledWith(expect.stringContaining(routeWorkspaceChatReportID));
+            } finally {
+                isReportTopmostSplitNavigatorSpy.mockRestore();
+                jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+            }
+        });
+
+        it('pre-mounts the workspace chat picked on the receipt being viewed when there are multiple receipts', async () => {
+            // Given a global create with two receipts, where the first one is still on the default workspace chat the route
+            // was seeded with and the "To" picker moved only the second one to another workspace chat. The picker writes to the
+            // receipt being viewed, so the route's (first) transaction no longer reflects where the expenses are submitted.
+            const routeWorkspaceChatReportID = 'route-workspace-chat';
+            const pickedWorkspaceChatReportID = 'picked-workspace-chat';
+            const firstTransactionID = 'tx-first-receipt';
+            const secondTransactionID = 'tx-second-receipt';
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+            const isReportTopmostSplitNavigatorSpy = jest.spyOn(IsReportTopmostSplitNavigator, 'default').mockReturnValue(true);
+            const baseTransaction = {
+                amount: 1000,
+                isAmountSet: true,
+                currency: 'USD',
+                merchant: 'Test',
+                created: '2025-01-15',
+                isFromGlobalCreate: true,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+            };
+
+            try {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${routeWorkspaceChatReportID}`, {
+                        reportID: routeWorkspaceChatReportID,
+                        policyID: 'route-policy',
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${pickedWorkspaceChatReportID}`, {
+                        reportID: pickedWorkspaceChatReportID,
+                        policyID: POLICY_ID,
+                        type: CONST.REPORT.TYPE.CHAT,
+                        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${firstTransactionID}`, {
+                        ...baseTransaction,
+                        transactionID: firstTransactionID,
+                        reportID: routeWorkspaceChatReportID,
+                        participants: [{accountID: 0, reportID: routeWorkspaceChatReportID, policyID: 'route-policy', isPolicyExpenseChat: true, selected: true}],
+                    });
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`, {
+                        ...baseTransaction,
+                        transactionID: secondTransactionID,
+                        reportID: pickedWorkspaceChatReportID,
+                        participants: [{accountID: 0, reportID: pickedWorkspaceChatReportID, policyID: POLICY_ID, isPolicyExpenseChat: true, selected: true}],
+                    });
+                });
+
+                render(
+                    <OnyxListItemProvider>
+                        <HTMLProviderWrapper>
+                            <CurrentUserPersonalDetailsProvider>
+                                <LocaleContextProvider>
+                                    <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                        route={{
+                                            key: 'Money_Request_Step_Confirmation',
+                                            name: 'Money_Request_Step_Confirmation',
+                                            params: {
+                                                action: CONST.IOU.ACTION.CREATE,
+                                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                                transactionID: firstTransactionID,
+                                                reportID: routeWorkspaceChatReportID,
+                                            },
+                                        }}
+                                        navigation={mockNavigation}
+                                    />
+                                </LocaleContextProvider>
+                            </CurrentUserPersonalDetailsProvider>
+                        </HTMLProviderWrapper>
+                    </OnyxListItemProvider>,
+                );
+                await waitForBatchedUpdatesWithAct();
+                jest.mocked(Navigation.preInsertFullscreenUnderRHP).mockClear();
+
+                // When the user moves on to the second receipt, the one whose workspace was changed
+                const [, nextReceiptButton] = screen.getAllByRole(CONST.ROLE.BUTTON, {name: CONST.ROLE.BUTTON});
+                fireEvent.press(nextReceiptButton);
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the workspace chat picked for that receipt - where the expenses land - is pre-inserted, rather than the
+                // first receipt's workspace chat, which would leave the user in a workspace the expenses were not submitted to
+                await waitFor(() => expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(pickedWorkspaceChatReportID)), {
+                    timeout: 2000,
+                });
+            } finally {
+                isReportTopmostSplitNavigatorSpy.mockRestore();
                 jest.mocked(getIsNarrowLayout).mockReturnValue(false);
             }
         });
