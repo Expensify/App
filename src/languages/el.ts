@@ -967,6 +967,10 @@ const translations: TranslationDeepObject<typeof en> = {
             isReportDeleted
                 ? `δημιούργησε αυτήν την αναφορά για τυχόν δεσμευμένες δαπάνες από τη διαγεγραμμένη αναφορά #${reportID}`
                 : `δημιούργησε αυτήν την αναφορά για όλες τις δεσμευμένες δαπάνες από την αναφορά <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForPartialApproval: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
+            isReportDeleted
+                ? `δημιούργησε αυτήν την αναφορά για τις δαπάνες που απομένουν προς έλεγχο από τη διαγεγραμμένη αναφορά #${reportID}`
+                : `δημιούργησε αυτήν την αναφορά για τις δαπάνες που απομένουν προς έλεγχο από την αναφορά <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Ειδοποιήστε όλους σε αυτή τη συνομιλία',

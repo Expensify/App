@@ -952,6 +952,10 @@ const translations: TranslationDeepObject<typeof en> = {
             isReportDeleted
                 ? `a créé cette note de frais pour toutes les dépenses retenues de la note de frais supprimée n°${reportID}`
                 : `a créé cette note de frais pour toutes les dépenses retenues provenant de <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForPartialApproval: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
+            isReportDeleted
+                ? `a créé cette note de frais pour les dépenses restant à examiner de la note de frais supprimée n°${reportID}`
+                : `a créé cette note de frais pour les dépenses restant à examiner de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifier tout le monde dans cette conversation',

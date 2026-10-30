@@ -3806,6 +3806,16 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
+        it('should describe the unapproved expenses after partial approval', () => {
+            // Given a report split because only selected expenses were approved
+            // When the new report's system message is built
+            const result = getCreatedReportForUnapprovedTransactionsMessage('123456', 'Original Report', false, translateLocal, true);
+
+            // Then the submitter sees why the remaining expenses need review
+            expect(result).toContain('expenses left for review');
+            expect(result).not.toContain('held expenses');
+        });
+
         it('should return the correct message with a valid report ID and report name when report is not deleted', () => {
             const reportID = '67890';
             const reportName = 'Original Report';

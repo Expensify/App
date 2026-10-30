@@ -940,6 +940,10 @@ const translations: TranslationDeepObject<typeof en> = {
             isReportDeleted
                 ? `削除されたレポート #${reportID} に保留されていた経費のためにこのレポートを作成しました`
                 : `<a href="${reportUrl}">${reportName}</a> の保留中経費すべてに対してこのレポートを作成しました`,
+        createdReportForPartialApproval: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
+            isReportDeleted
+                ? `削除されたレポート #${reportID} の未審査の経費のためにこのレポートを作成しました`
+                : `<a href="${reportUrl}">${reportName}</a> の未審査の経費のためにこのレポートを作成しました`,
     },
     mentionSuggestions: {
         hereAlternateText: 'この会話の全員に通知',
