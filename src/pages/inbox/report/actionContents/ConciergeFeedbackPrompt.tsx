@@ -1,6 +1,7 @@
 import type {Emoji} from '@assets/emojis/types';
 
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
@@ -24,6 +25,7 @@ import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -39,14 +41,29 @@ type ConciergeFeedbackPromptProps = {
     /** Whether to show the generic feedback prompt alongside the thumbs */
     shouldShowPrompt?: boolean;
 
+    /** Custom prompt text shown alongside the thumbs */
+    promptText?: string;
+
     /** Whether the thumbs should remain available after the user rates the action */
     shouldPersistAfterRating?: boolean;
 
     /** Whether hovering a thumb should show its tooltip */
     shouldShowTooltips?: boolean;
 
+    /** Tooltip text for the positive feedback option */
+    positiveTooltipText?: string;
+
+    /** Tooltip text for the negative feedback option */
+    negativeTooltipText?: string;
+
     /** Whether to place only the thumbs inline with surrounding content */
     shouldRenderInline?: boolean;
+
+    /** Whether a selected thumb should use the standard selected reaction bubble */
+    shouldRenderSelectedReactionBubble?: boolean;
+
+    /** Whether to hide the unselected thumb after the user rates the action */
+    shouldHideUnselectedThumbAfterRating?: boolean;
 };
 
 /** A reaction can be stored under the emoji name or under its hexcode, so both keys are read */
@@ -90,28 +107,39 @@ type ConciergeFeedbackThumbProps = {
 
     /** Whether the current user selected this rating */
     isSelected: boolean;
+
+    /** Whether a selected thumb should use the standard selected reaction bubble */
+    shouldRenderSelectedReactionBubble: boolean;
 };
 
-function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress, shouldShowTooltip, isSelected}: ConciergeFeedbackThumbProps) {
+function ConciergeFeedbackThumb({emoji, label, accessibilityLabel, onPress, shouldShowTooltip, isSelected, shouldRenderSelectedReactionBubble}: ConciergeFeedbackThumbProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    const thumb = (
-        <PressableWithFeedback
-            style={[styles.conciergeFeedbackThumb, isSelected && StyleUtils.getBackgroundColorStyle(theme.reactionActiveBackground), styles.userSelectNone]}
-            hoverStyle={styles.conciergeFeedbackThumbHovered}
-            pressStyle={styles.conciergeFeedbackThumbHovered}
-            onPress={onPress}
-            accessibilityLabel={accessibilityLabel}
-            role={CONST.ROLE.BUTTON}
-            pressDimmingValue={1}
-            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-            sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
-        >
-            <Text style={styles.conciergeFeedbackThumbEmoji}>{emoji.code}</Text>
-        </PressableWithFeedback>
-    );
+    const thumb =
+        isSelected && shouldRenderSelectedReactionBubble ? (
+            <EmojiReactionBubble
+                emojiCodes={[emoji.code]}
+                count={1}
+                hasUserReacted
+                onPress={onPress}
+            />
+        ) : (
+            <PressableWithFeedback
+                style={[styles.conciergeFeedbackThumb, isSelected && StyleUtils.getBackgroundColorStyle(theme.reactionActiveBackground), styles.userSelectNone]}
+                hoverStyle={styles.conciergeFeedbackThumbHovered}
+                pressStyle={styles.conciergeFeedbackThumbHovered}
+                onPress={onPress}
+                accessibilityLabel={accessibilityLabel}
+                role={CONST.ROLE.BUTTON}
+                pressDimmingValue={1}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                sentryLabel={CONST.SENTRY_LABEL.CONCIERGE_FEEDBACK.THUMB}
+            >
+                <Text style={styles.conciergeFeedbackThumbEmoji}>{emoji.code}</Text>
+            </PressableWithFeedback>
+        );
 
     return shouldShowTooltip ? <Tooltip text={label}>{thumb}</Tooltip> : thumb;
 }
@@ -120,10 +148,16 @@ function ConciergeFeedbackPrompt({
     action,
     reportID,
     shouldShowPrompt = true,
+    promptText,
     shouldPersistAfterRating = false,
     shouldShowTooltips = true,
+    positiveTooltipText,
+    negativeTooltipText,
     shouldRenderInline = false,
+    shouldRenderSelectedReactionBubble = false,
+    shouldHideUnselectedThumbAfterRating = false,
 }: ConciergeFeedbackPromptProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -136,21 +170,53 @@ function ConciergeFeedbackPrompt({
     const thumbsDown = findEmojiByName('-1');
 
     const thumbsUpReactedAt = getReactedAtTimestamp(thumbsUp, reactions, currentUserAccountID);
+    const thumbsDownReactedAt = getReactedAtTimestamp(thumbsDown, reactions, currentUserAccountID);
 
-    // The reaction that was already there when this row mounted is an old rating, so only a reaction that lands while the row is open is acknowledged
+    // Either rating starts the acknowledgement window, and the zero fallback keeps an unanswered survey undefined.
+    const latestReactionTimestamp = Math.max(thumbsUpReactedAt ?? 0, thumbsDownReactedAt ?? 0) || undefined;
+
+    // Regular Concierge feedback preserves its debounced thumbs-up acknowledgement.
     const [mountedWithThumbsUpReactedAt] = useState(thumbsUpReactedAt);
-    const hasJustReacted = thumbsUpReactedAt !== undefined && thumbsUpReactedAt !== mountedWithThumbsUpReactedAt;
+    const hasJustReactedWithThumbsUp = thumbsUpReactedAt !== undefined && thumbsUpReactedAt !== mountedWithThumbsUpReactedAt;
+    const hasSettledAfterThumbsUpReaction = useDebouncedValue(hasJustReactedWithThumbsUp, THANKS_VISIBLE_DURATION_MS);
+    const isRegularThankMessageDisplayed = hasJustReactedWithThumbsUp && !hasSettledAfterThumbsUpReaction;
 
-    // The debounced copy catches up once the window has passed, which is what takes the acknowledgement back down
-    const hasSettledAfterReacting = useDebouncedValue(hasJustReacted, THANKS_VISIBLE_DURATION_MS);
-    const isDisplayedThankMessage = hasJustReacted && !hasSettledAfterReacting;
+    // A survey accepts either rating, so its acknowledgement restarts when the selected reaction changes.
+    const [mountedWithLatestReactionTimestamp] = useState(latestReactionTimestamp);
+    const debouncedLatestReactionTimestamp = useDebouncedValue(latestReactionTimestamp, THANKS_VISIBLE_DURATION_MS);
+    const isSurveyThankMessageDisplayed =
+        latestReactionTimestamp !== undefined && latestReactionTimestamp !== mountedWithLatestReactionTimestamp && latestReactionTimestamp !== debouncedLatestReactionTimestamp;
+
+    const isDisplayedThankMessage = shouldPersistAfterRating ? isSurveyThankMessageDisplayed : isRegularThankMessageDisplayed;
 
     const rate = (emoji: Emoji) => {
         // Skin tone is ignored on compare so a user whose preferred tone changed toggles their existing reaction instead of adding a second one
         toggleEmojiReaction(reportID, action, emoji, reactions, preferredSkinTone, currentUserAccountID, reportActions, true, true, emoji.name === thumbsUp.name ? thumbsDown : thumbsUp);
     };
 
-    const hasRated = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID) || hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
+    const hasReactedWithThumbsUp = hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID);
+    const hasReactedWithThumbsDown = hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID);
+    const hasRated = hasReactedWithThumbsUp || hasReactedWithThumbsDown;
+    const shouldHideUnselectedThumbs = shouldHideUnselectedThumbAfterRating && hasRated;
+
+    const getFeedbackThumb = (emoji: Emoji, isSelected: boolean) => (
+        <ConciergeFeedbackThumb
+            emoji={emoji}
+            label={emoji.name === thumbsUp.name ? (positiveTooltipText ?? translate('common.yes')) : (negativeTooltipText ?? translate('common.no'))}
+            accessibilityLabel={translate(emoji.name === thumbsUp.name ? 'concierge.feedback.useful' : 'concierge.feedback.notUseful')}
+            onPress={callFunctionIfActionIsAllowed(() => rate(emoji), false, session)}
+            shouldShowTooltip={shouldShowTooltips}
+            isSelected={isSelected}
+            shouldRenderSelectedReactionBubble={shouldRenderSelectedReactionBubble}
+        />
+    );
+
+    const feedbackThumbs = (
+        <View style={styles.flexRow}>
+            {(!shouldHideUnselectedThumbs || hasReactedWithThumbsUp) && getFeedbackThumb(thumbsUp, hasReactedWithThumbsUp)}
+            {(!shouldHideUnselectedThumbs || hasReactedWithThumbsDown) && getFeedbackThumb(thumbsDown, hasReactedWithThumbsDown)}
+        </View>
+    );
 
     // The acknowledgement comes from the reaction, so removing it from the reaction row brings the prompt back right away
     if (!shouldPersistAfterRating && isDisplayedThankMessage) {
@@ -161,29 +227,23 @@ function ConciergeFeedbackPrompt({
         return null;
     }
 
-    const feedbackThumbs = (
-        <View style={styles.flexRow}>
-            <ConciergeFeedbackThumb
-                emoji={thumbsUp}
-                label={translate('common.yes')}
-                accessibilityLabel={translate('concierge.feedback.useful')}
-                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsUp))}
-                shouldShowTooltip={shouldShowTooltips}
-                isSelected={hasReactedWithEmoji(thumbsUp, reactions, currentUserAccountID)}
-            />
-            <ConciergeFeedbackThumb
-                emoji={thumbsDown}
-                label={translate('common.no')}
-                accessibilityLabel={translate('concierge.feedback.notUseful')}
-                onPress={callFunctionIfActionIsAllowed(() => rate(thumbsDown))}
-                shouldShowTooltip={shouldShowTooltips}
-                isSelected={hasReactedWithEmoji(thumbsDown, reactions, currentUserAccountID)}
-            />
-        </View>
-    );
+    if (shouldPersistAfterRating && hasRated) {
+        return (
+            <View style={[styles.flexColumn, styles.alignItemsStart, styles.gap2, shouldRenderInline ? styles.mtn1 : styles.mt2]}>
+                {shouldRenderInline && shouldShowPrompt && <Text style={styles.textSupporting}>{promptText ?? translate('concierge.feedback.prompt')}</Text>}
+                {isDisplayedThankMessage && <Text style={styles.textLabelSupporting}>{translate('concierge.feedback.thanks')}</Text>}
+                {feedbackThumbs}
+            </View>
+        );
+    }
 
     if (shouldRenderInline) {
-        return feedbackThumbs;
+        return (
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mtn1, styles.mbn1]}>
+                {shouldShowPrompt && <Text style={[styles.textSupporting, styles.flexShrink1]}>{promptText ?? translate('concierge.feedback.prompt')}</Text>}
+                {feedbackThumbs}
+            </View>
+        );
     }
 
     return (
@@ -191,7 +251,7 @@ function ConciergeFeedbackPrompt({
             layout="horizontal"
             style={styles.alignItemsCenter}
         >
-            {shouldShowPrompt && <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{translate('concierge.feedback.prompt')}</Text>}
+            {shouldShowPrompt && <Text style={[styles.textLabelSupporting, styles.flexShrink1]}>{promptText ?? translate('concierge.feedback.prompt')}</Text>}
             {feedbackThumbs}
         </ActionableItemButtons>
     );

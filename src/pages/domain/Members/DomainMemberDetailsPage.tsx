@@ -22,6 +22,7 @@ import {
     closeUserAccount,
     setTwoFactorAuthExemptEmailForDomain,
 } from '@libs/actions/Domain';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import {requestUnlockAccount} from '@libs/actions/User';
 import {getLatestError} from '@libs/ErrorUtils';
 
@@ -45,12 +46,14 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {requiresTwoFactorAuthSelector} from '@selectors/Account';
 import {accountLockSelector, domainMemberSettingsSelector, domainNameSelector, selectSecurityGroupForAccount, vacationDelegateSelector} from '@selectors/Domain';
-import React, {useCallback, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
 
 function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -62,7 +65,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
 
-    const securityGroupSelector = useCallback((domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain), [accountID]);
+    const securityGroupSelector = (domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain);
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: securityGroupSelector,
     });
@@ -165,10 +168,14 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 </OfflineWithFeedback>
                 <VacationDelegateMenuItem
                     vacationDelegate={vacationDelegate}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID))}
+                    timezone={personalDetails?.timezone?.selected}
+                    onPress={() => {
+                        clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
+                        Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));
+                    }}
                     pendingAction={domainPendingActions?.member?.[memberLogin]?.vacationDelegate}
                     errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.vacationDelegateErrors)}
-                    onCloseError={() => clearVacationDelegateError(domainAccountID, accountID, memberLogin, vacationDelegate?.previousDelegate)}
+                    onCloseError={() => clearVacationDelegateError(domainAccountID, accountID, memberLogin, vacationDelegate?.previousDelegate, vacationDelegate?.previousClearAfter)}
                 />
                 {!!domainSettings?.twoFactorAuthRequired && (
                     <ToggleSettingOptionRow
@@ -215,7 +222,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 ) : (
                     <MenuItem.Root
                         key="ReportSuspiciousActivity"
-                        onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)))}
+                        onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), false, session)}
                     >
                         <MenuItem.Row>
                             <MenuItem.Leading>

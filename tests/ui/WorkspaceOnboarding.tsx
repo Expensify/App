@@ -37,6 +37,7 @@ import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -556,7 +557,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should continue the Join Workspace flow to personal details after an empty lookup', async () => {
+    it.each([false, true])('should continue the Join Workspace flow to personal details after an empty lookup (hasDefaultPolicy: %s)', async (hasDefaultPolicy) => {
         // Given a validated Join Workspace user whose workspace lookup is in progress.
         const requestID = 'join-accessible-policies-request';
         await TestHelper.signInWithTestUser();
@@ -571,6 +572,17 @@ describe('OnboardingWorkspaces Page', () => {
                     validatedDate: '2026-09-12 00:00:00',
                 },
             });
+            if (hasDefaultPolicy) {
+                // An existing workspace can remain accessible after merging into a work account.
+                await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, 'existing-policy');
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}existing-policy`, {
+                    id: 'existing-policy',
+                    name: 'Existing workspace',
+                    owner: VALIDATED_EMAIL,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                });
+            }
             await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
             await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: true, requestID});
         });
@@ -587,6 +599,8 @@ describe('OnboardingWorkspaces Page', () => {
         await waitFor(() => {
             expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
         });
+        expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+        expect(navigate).toHaveBeenCalledTimes(1);
         expect(screen.queryByTestId('BaseOnboardingWorkspaces')).not.toBeOnTheScreen();
 
         unmount();
@@ -677,6 +691,40 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should complete onboarding with the default policy after an empty lookup outside the Join Workspace flow', async () => {
+        // Given a user with an existing workspace who is looking around rather than joining a company workspace.
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.LOOKING_AROUND);
+            await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, 'existing-policy');
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}existing-policy`, {
+                id: 'existing-policy',
+                name: 'Existing workspace',
+                owner: VALIDATED_EMAIL,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: true});
+        });
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When no joinable workspaces are returned, the existing default workspace is still available.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the default-policy fallback still completes onboarding for other intents.
+        expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
+        expect(mockCompleteOnboarding).toHaveBeenCalledWith(expect.objectContaining({engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should collect a name before completing onboarding after joining a workspace', async () => {
         const policyID = 'joined-policy-id';
         await TestHelper.signInWithTestUser();
@@ -738,6 +786,141 @@ describe('OnboardingWorkspaces Page', () => {
         // Then onboarding completes instead of trying to reopen the personal-details step.
         expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
         expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should complete onboarding without reopening the name step when joining empties the workspace list', async () => {
+        // Given a validated Join Workspace user who already saved a name and has a single joinable workspace
+        const policyID = 'joined-policy-id';
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {firstName: 'Test', lastName: 'User'});
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                [`1_${VALIDATED_EMAIL}`]: {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: VALIDATED_EMAIL,
+                    validatedDate: '2026-09-12 00:00:00',
+                },
+            });
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false});
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                [policyID]: {
+                    policyID,
+                    policyName: 'Joined workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When Join now is pressed and the join's Onyx update removes the workspace before this screen loses focus
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the emptied list neither starts another lookup nor sends the user back to the name step
+        expect(mockGetAccessiblePolicies).not.toHaveBeenCalled();
+        expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it.each([false, true])('should complete onboarding with the saved name when a Join Workspace lookup comes back empty (hasDefaultPolicy: %s)', async (hasDefaultPolicy) => {
+        // Given a validated Join Workspace user who already saved a name, such as one whose onboarding restarted on
+        // this screen after the joined workspace dropped out of the list
+        const requestID = 'join-accessible-policies-request';
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {firstName: 'Test', lastName: 'User'});
+            await Onyx.set(ONYXKEYS.LOGINS, {
+                [`1_${VALIDATED_EMAIL}`]: {
+                    partnerID: CONST.PARTNER_ID.EXPENSIFY,
+                    partnerUserID: VALIDATED_EMAIL,
+                    validatedDate: '2026-09-12 00:00:00',
+                },
+            });
+            if (hasDefaultPolicy) {
+                // An existing workspace can remain accessible after merging into a work account.
+                await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, 'existing-policy');
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}existing-policy`, {
+                    id: 'existing-policy',
+                    name: 'Existing workspace',
+                    owner: VALIDATED_EMAIL,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                });
+            }
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {});
+            await Onyx.set(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: true, requestID});
+        });
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the lookup finishes with no joinable workspaces
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {loading: false, requestID});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then onboarding completes with the saved name, the same as pressing Continue on the name step
+        expect(mockCompleteOnboarding).toHaveBeenCalledTimes(1);
+        expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+            expect.objectContaining({
+                engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                firstName: 'Test',
+                lastName: 'User',
+            }),
+        );
+        expect(navigate).not.toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should collect a name after joining when the saved personal details have no first name', async () => {
+        // Given a Join Workspace user whose personal details form holds only a last name
+        const policyID = 'joined-policy-id';
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {lastName: 'User'});
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                [policyID]: {
+                    policyID,
+                    policyName: 'Joined workspace',
+                    policyOwner: 'owner@example.com',
+                    employeeCount: 1,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.CORPORATE,
+                },
+            });
+        });
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user joins the workspace
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
+
+        // Then the name step opens to collect the missing first name
+        expect(mockCompleteOnboarding).not.toHaveBeenCalled();
+        expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -1010,11 +1193,79 @@ describe('OnboardingWorkspaces Page', () => {
             );
         });
 
+        // Then skipping still lands on Expenses, but onboarding doesn't open the side panel next to it
+        expect((await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL))?.open).toBeFalsy();
+
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should complete onboarding without passing the joined workspace policyID and open Spend > Expenses in the admins room', async () => {
+    it('should not set RHP_ADMINS_ROOM when joining a Submit workspace with the Join Workspace intent', async () => {
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+
+        await TestHelper.signInWithTestUser();
+
+        // Given a joinable auto-join Submit workspace with the JOIN_WORKSPACE purpose (not EMPLOYER)
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
+                firstName: 'Test',
+                lastName: 'User',
+            });
+            await Onyx.set(ONYXKEYS.JOINABLE_POLICIES, {
+                submitPolicyID: {
+                    policyID: 'submit-policy-id',
+                    policyName: 'Submit Workspace',
+                    policyOwner: 'owner@test.com',
+                    employeeCount: 4,
+                    hasPendingAccess: false,
+                    automaticJoiningEnabled: true,
+                    policyType: CONST.POLICY.TYPE.SUBMIT,
+                },
+            });
+        });
+
+        const onyxSetSpy = jest.spyOn(Onyx, 'set');
+        onyxSetSpy.mockClear();
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses "Join Now"
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('workspace.workspaceList.joinNow')));
+
+        await waitFor(() => {
+            expect(mockJoinAccessiblePolicy.mock.calls.at(0)?.at(0)).toBe('submit-policy-id');
+        });
+
+        // Then onboarding completes with JOIN_WORKSPACE but does not set the RHP_ADMINS_ROOM variant
+        await waitFor(() => {
+            expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE,
+                }),
+            );
+        });
+
+        const rhpVariantCalls = onyxSetSpy.mock.calls.filter(([key]) => key === ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT);
+        expect(rhpVariantCalls).not.toContainEqual([ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM]);
+
+        // Then navigation does not go to the Expenses search route
+        expect(navigate).not.toHaveBeenCalledWith(
+            ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
+        );
+
+        onyxSetSpy.mockRestore();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should complete onboarding without passing the joined workspace policyID and open Spend > Expenses with the side panel closed', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(({afterTransition} = {}) => afterTransition?.());
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -1071,6 +1322,10 @@ describe('OnboardingWorkspaces Page', () => {
                 ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}),
             );
         });
+
+        // Then auto-joining a Submit workspace still lands on Expenses and stores the rhpAdminsRoom variant,
+        // but onboarding doesn't open the side panel
+        expect((await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL))?.open).toBeFalsy();
 
         onyxSetSpy.mockRestore();
         unmount();

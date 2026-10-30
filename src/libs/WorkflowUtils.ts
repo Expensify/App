@@ -11,6 +11,7 @@ import type {BankAccountList} from '@src/types/onyx';
 import type {ApprovalWorkflowOnyx, Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -233,6 +234,11 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     const hrAdvancedModeFinalApproverEmail = getHRAdvancedModeFinalApprover(policy);
 
     for (const employee of Object.values(employees)) {
+        // The type doesn't allow it, but `employeeList` can hold a null entry at runtime, so skip it rather than crash
+        if (!employee) {
+            continue;
+        }
+
         const {email, submitsTo, pendingAction} = employee;
         if (!email) {
             continue;
@@ -344,6 +350,75 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
     availableMembers.sort((a, b) => localeCompare(a.displayName ?? a.email, b.displayName ?? b.email));
 
     return {approvalWorkflows: sortedApprovalWorkflows, usedApproverEmails: [...usedApproverEmails], availableMembers};
+}
+
+/**
+ * The workflows a workspace actually enforces. Only the advanced approval modes run more than one workflow, so under
+ * every other mode the default workflow is the only one in force and the rest are inert. They can still be derived
+ * from `employeeList`, because downgrading a workspace leaves each member's `submitsTo` in place.
+ */
+function getEnforcedApprovalWorkflows(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
+    if (
+        isMultipleApproversBetaEnabled ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
+        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
+        isHRAdvancedMode(policy)
+    ) {
+        return approvalWorkflows;
+    }
+
+    return approvalWorkflows.filter((workflow) => workflow.isDefault);
+}
+
+/**
+ * The enforced workflows seen from a member's side. A member left on an inert workflow by a downgrade submits to the
+ * default approver like everyone else, so they move onto the default workflow rather than ending up on no workflow.
+ */
+function getEnforcedApprovalWorkflowsForMembers(approvalWorkflows: ApprovalWorkflow[], policy: OnyxEntry<Policy>, isMultipleApproversBetaEnabled: boolean): ApprovalWorkflow[] {
+    const enforcedApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, isMultipleApproversBetaEnabled);
+    if (enforcedApprovalWorkflows.length === approvalWorkflows.length) {
+        return enforcedApprovalWorkflows;
+    }
+
+    const membersOfInertWorkflows = approvalWorkflows.filter((workflow) => !workflow.isDefault).flatMap((workflow) => workflow.members);
+
+    return enforcedApprovalWorkflows.map((workflow) => (workflow.isDefault ? {...workflow, members: [...workflow.members, ...membersOfInertWorkflows]} : workflow));
+}
+
+/**
+ * Map every workflow member's email to the first approver of the workflow they belong to.
+ * A member who approves their own expenses maps to themselves, matching what the Workflows tab shows.
+ */
+function getFirstApproverByMemberEmail(approvalWorkflows: ApprovalWorkflow[]): Record<string, Approver> {
+    const firstApproverByMemberEmail: Record<string, Approver> = {};
+
+    for (const workflow of approvalWorkflows) {
+        const firstApprover = workflow.approvers.at(0);
+
+        if (!firstApprover?.email) {
+            continue;
+        }
+
+        for (const member of workflow.members) {
+            if (!member.email) {
+                continue;
+            }
+
+            firstApproverByMemberEmail[member.email] = firstApprover;
+        }
+    }
+
+    return firstApproverByMemberEmail;
+}
+
+/** Whether any approval workflow in the workspace has more than one approver */
+function hasMultiLevelApprovalWorkflow(approvalWorkflows: ApprovalWorkflow[]): boolean {
+    return approvalWorkflows.some((workflow) => workflow.approvers.length > 1);
+}
+
+/** Label for a member's first approver: "1st approver" when their workflow has more than one level, "Approver" otherwise. */
+function getFirstApproverLabel(isMultiLevelWorkflow: boolean, translate: LocaleContextProps['translate'], toLocaleOrdinalWithWords: LocaleContextProps['toLocaleOrdinalWithWords']): string {
+    return isMultiLevelWorkflow ? `${toLocaleOrdinalWithWords(1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
 }
 
 type ConvertApprovalWorkflowToPolicyEmployeesParams = {
@@ -488,10 +563,12 @@ function convertApprovalWorkflowToPolicyEmployees({
     // which will set the submitsTo field to the default approver email on backend.
     if (membersToRemove) {
         for (const {email} of membersToRemove) {
+            const existing = updatedEmployeeList[email];
             updatedEmployeeList[email] = {
-                ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+                ...(existing ?? {email}),
                 submitsTo: defaultApprover,
                 pendingAction,
+                pendingFields: {...existing?.pendingFields, submitsTo: pendingAction},
             };
         }
     }
@@ -504,10 +581,12 @@ function convertApprovalWorkflowToPolicyEmployees({
                 continue;
             }
 
+            const existing = updatedEmployeeList[email];
             updatedEmployeeList[email] = {
-                ...(updatedEmployeeList[email] ? updatedEmployeeList[email] : {email}),
+                ...(existing ?? {email}),
                 forwardsTo: '',
                 pendingAction,
+                pendingFields: {...existing?.pendingFields, forwardsTo: pendingAction},
             };
         }
     }
@@ -818,7 +897,8 @@ function mergeWorkflowMembersWithAvailableMembers(workflowMembers: Member[], all
  */
 function includesEveryWorkspaceMember(memberEmails: Array<string | null | undefined>, employeeList: PolicyEmployeeList | undefined): boolean {
     const memberEmailSet = new Set(memberEmails);
-    const workspaceMembers = Object.values(employeeList ?? {}).filter((employee) => !!employee.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    // `employeeList` can hold a null entry at runtime, so read it optionally
+    const workspaceMembers = Object.values(employeeList ?? {}).filter((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     return workspaceMembers.length > 0 && workspaceMembers.every((employee) => memberEmailSet.has(employee.email));
 }
 
@@ -830,6 +910,10 @@ function buildComparison(left: RuleFilterComparison['left'], operator: ValueOf<t
 
 function buildAnd(left: RuleFilter['left'], right: RuleFilter['right']): RuleFilter {
     return {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right};
+}
+
+function buildOr(left: RuleFilter['left'], right: RuleFilter['right']): RuleFilter {
+    return {operator: CONST.SEARCH.SYNTAX_OPERATORS.OR, left, right};
 }
 
 function buildSubmitterFilter(memberEmails: string[]): RuleFilterComparison {
@@ -856,15 +940,15 @@ function buildApproveActions(): ApprovalWorkflowActions {
     return toIndexMap([{name: CONST.RULES.ACTIONS.APPROVE_REPORT}]);
 }
 
+function getWorkflowMemberEmails(members: Member[]): string[] {
+    return members.map((member) => member.email).filter((email): email is string => !!email);
+}
+
 /**
  * Build the AST rule chain for a single `ApprovalWorkflow`: a `ReportSubmit` rule forwarding members'
  * reports to the first approver, plus a `ReportApprove` rule per approver describing the next hop
  * (forward to the next approver, approve if last, or split on the approver's over-limit target).
  */
-function getWorkflowMemberEmails(members: Member[]): string[] {
-    return members.map((member) => member.email).filter((email): email is string => !!email);
-}
-
 function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): ApprovalWorkflowRule[] {
     const memberEmails = getWorkflowMemberEmails(approvalWorkflow.members);
     const approvers = approvalWorkflow.approvers;
@@ -879,77 +963,77 @@ function buildApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow): Approva
     }
 
     const fromComparison = buildSubmitterFilter(memberEmails);
-    const rules: ApprovalWorkflowRule[] = [];
+    const rules: ApprovalWorkflowRule[] = [{triggers: buildSubmitTriggers(), filters: fromComparison, actions: buildForwardActions(firstApproverEmail)}];
+    const approverEmails = new Set(approvers.map((approver) => approver.email));
 
-    /**
-     * An approver's approval limit decides who holds the report at that position, not where it goes afterwards: a
-     * report over the limit is received by `overLimitForwardsTo` *instead of* the approver, and then carries on to the
-     * next approver as normal. So each position has one or two people who can hold it, and the hop into the position
-     * is what branches on the amount.
-     */
-    const holdersAtPosition = approvers.map((approver) => {
-        const hasLimitSplit = !!approver.approvalLimit && approver.approvalLimit > 0 && !!approver.overLimitForwardsTo;
-        return {
-            underLimitEmail: approver.email,
-            overLimitEmail: hasLimitSplit ? approver.overLimitForwardsTo : undefined,
-            limit: hasLimitSplit ? approver.approvalLimit : undefined,
-        };
-    });
+    // Each approver's approval limit and over-limit approver, for the approvers whose limit routes anything.
+    const limitSplits = approvers.map((approver) =>
+        !!approver.email && !!approver.approvalLimit && approver.approvalLimit > 0 && !!approver.overLimitForwardsTo
+            ? {approvalLimit: approver.approvalLimit, overLimitApproverEmail: approver.overLimitForwardsTo}
+            : undefined,
+    );
 
-    /** The rules routing a report into `position`, from either submission or the approvers at the position before. */
-    const buildRulesIntoPosition = (position: number): ApprovalWorkflowRule[] => {
-        const holders = holdersAtPosition.at(position);
-        if (!holders?.underLimitEmail) {
-            return [];
-        }
+    // For each over-limit approver who isn't one of this workflow's approvers, the lowest limit among the approvers
+    // already handled that send them reports. Any report over it has already been through them.
+    const lowestEarlierLimits = new Map<string, number>();
 
-        const isFirstPosition = position === 0;
-        const triggers = isFirstPosition ? buildSubmitTriggers() : buildApproveTriggers();
-
-        // Everyone who can hold the previous position routes onward the same way, so each of them needs a rule.
-        const previousHolders = isFirstPosition ? [undefined] : [holdersAtPosition.at(position - 1)?.underLimitEmail, holdersAtPosition.at(position - 1)?.overLimitEmail];
-
-        const rulesIntoPosition: ApprovalWorkflowRule[] = [];
-        for (const previousHolderEmail of previousHolders) {
-            if (!isFirstPosition && !previousHolderEmail) {
-                continue;
-            }
-
-            const source = previousHolderEmail ? buildAnd(fromComparison, buildToComparison(previousHolderEmail)) : fromComparison;
-
-            if (holders.overLimitEmail == null || holders.limit == null) {
-                rulesIntoPosition.push({triggers, filters: source, actions: buildForwardActions(holders.underLimitEmail)});
-                continue;
-            }
-
-            const underAmount = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, holders.limit);
-            const overAmount = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, holders.limit);
-
-            rulesIntoPosition.push({triggers, filters: buildAnd(source, underAmount), actions: buildForwardActions(holders.underLimitEmail)});
-            rulesIntoPosition.push({triggers, filters: buildAnd(source, overAmount), actions: buildForwardActions(holders.overLimitEmail)});
-        }
-
-        return rulesIntoPosition;
-    };
-
-    for (let position = 0; position < holdersAtPosition.length; position++) {
-        rules.push(...buildRulesIntoPosition(position));
-    }
-
-    // Whoever holds the last position finalizes the report.
-    const lastHolders = holdersAtPosition.at(-1);
-    for (const lastHolderEmail of [lastHolders?.underLimitEmail, lastHolders?.overLimitEmail]) {
-        if (!lastHolderEmail) {
+    // An approver's approval limit adds their `overLimitForwardsTo` after them: once they approve a report over the
+    // limit, it goes to the over-limit approver, and from there on down the workflow as it would have gone otherwise.
+    for (const [index, approver] of approvers.entries()) {
+        if (!approver.email) {
             continue;
         }
+
+        const nextApproverEmail = approvers.at(index + 1)?.email;
+        const source = buildAnd(fromComparison, buildToComparison(approver.email));
+        const actions = nextApproverEmail ? buildForwardActions(nextApproverEmail) : buildApproveActions();
+        const limitSplit = limitSplits.at(index);
+
+        if (!limitSplit) {
+            rules.push({triggers: buildApproveTriggers(), filters: source, actions});
+            continue;
+        }
+
+        const {approvalLimit, overLimitApproverEmail} = limitSplit;
+        const withinLimit = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, approvalLimit);
+        const overLimit = buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, approvalLimit);
+
+        // When an earlier approver sends reports over a lower limit to the same over-limit approver, those reports have
+        // already been through them, so only the ones still within that limit go to them from here. Reading the rules
+        // back takes this approver's limit from the first amount comparison of each rule, so it goes before that one.
+        const isWorkflowApprover = approverEmails.has(overLimitApproverEmail);
+        const earlierLimit = isWorkflowApprover ? undefined : lowestEarlierLimits.get(overLimitApproverEmail);
+        const goesToOverLimitApprover =
+            earlierLimit === undefined
+                ? overLimit
+                : buildAnd(overLimit, buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, earlierLimit));
+        const skipsOverLimitApprover =
+            earlierLimit === undefined
+                ? withinLimit
+                : buildOr(withinLimit, buildComparison(CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, earlierLimit));
+
+        rules.push({triggers: buildApproveTriggers(), filters: buildAnd(source, skipsOverLimitApprover), actions});
+        rules.push({triggers: buildApproveTriggers(), filters: buildAnd(source, goesToOverLimitApprover), actions: buildForwardActions(overLimitApproverEmail)});
+
+        // An over-limit approver who is also one of this workflow's approvers carries on from their own step.
+        if (isWorkflowApprover) {
+            continue;
+        }
+
+        lowestEarlierLimits.set(overLimitApproverEmail, Math.min(earlierLimit ?? approvalLimit, approvalLimit));
+
+        // The over-limit approver only gets reports over the limit, so where they send them next only depends on the
+        // amount when other approvers send them reports too.
+        const isSharedOverLimitApprover = limitSplits.some((otherLimitSplit, otherIndex) => otherIndex !== index && otherLimitSplit?.overLimitApproverEmail === overLimitApproverEmail);
+        const toOverLimitApprover = buildAnd(fromComparison, buildToComparison(overLimitApproverEmail));
         rules.push({
             triggers: buildApproveTriggers(),
-            filters: buildAnd(fromComparison, buildToComparison(lastHolderEmail)),
-            actions: buildApproveActions(),
+            filters: isSharedOverLimitApprover ? buildAnd(toOverLimitApprover, goesToOverLimitApprover) : toOverLimitApprover,
+            actions,
         });
     }
 
-    // Different approvers may share an `overLimitForwardsTo`, which would emit identical terminal rules.
+    // An approver listed more than once would emit the same rule more than once.
     const seen = new Set<string>();
     const dedupedRules = rules.filter((rule) => {
         const serializedRule = JSON.stringify(sortObjectKeysDeep(rule));
@@ -1317,39 +1401,40 @@ function getForwardApprover(rule: ApprovalWorkflowRule): string | undefined {
  * we fall back to the older `submitsTo` field on the employee.
  */
 function resolveFirstApprover(submitter: string, rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList): string | undefined {
-    const firstPosition = resolvePositionHolders(submitter, rules, undefined);
-    if (firstPosition?.underLimitEmail) {
-        return firstPosition.underLimitEmail;
+    const submission = resolveApprovalHop(submitter, rules, undefined);
+    if (submission?.nextEmail) {
+        return submission.nextEmail;
     }
     return employees[submitter]?.submitsTo;
 }
 
-/** Who can hold one position in a submitter's approval chain. */
-type PositionHolders = {
-    /** Who holds the position for a report under the limit, or for any report when there is no limit. */
-    underLimitEmail?: string;
+/** Where the rules send a submitter's report from one step of their approval chain. */
+type ApprovalHop = {
+    /**
+     * Who receives the report next, or who receives it within the approval limit when there is one. Undefined when the
+     * rules approve the report here.
+     */
+    nextEmail?: string;
 
-    /** Who holds it instead once the report reaches the limit. */
+    /** Who receives the report next instead once it is over the approval limit. */
     overLimitEmail?: string;
 
-    /** The limit that decides between the two. */
+    /** The approval limit of whoever approves the report at this step. */
     approvalLimit?: number;
-
-    /** True when the routing rules approve the report at this point rather than passing it on. */
-    isTerminal: boolean;
 };
 
 /**
- * Read who holds the position a report reaches from `sourceApprover` — or from submission when `sourceApprover` is
- * undefined.
+ * Read where the rules send a report once `sourceApprover` approves it, or once it is submitted when `sourceApprover`
+ * is undefined.
  *
- * An approval limit belongs to the position it guards, not to the approver before it: the rules routing into a
- * position carry the amount split, so a report at or over the limit is received by `overLimitEmail` *instead of*
- * `underLimitEmail`. Returns undefined when no rule covers this step, so callers can fall back to `employeeList`.
+ * An approval limit belongs to the approver whose rules split on the amount: once they approve a report over the
+ * limit, it goes to `overLimitEmail` instead of `nextEmail`. Returns undefined when no rule covers this step, so
+ * callers can fall back to `employeeList`.
  */
-function resolvePositionHolders(submitter: string, rules: Record<string, ApprovalWorkflowRule>, sourceApprover: string | undefined): PositionHolders | undefined {
-    const holders: PositionHolders = {isTerminal: false};
+function resolveApprovalHop(submitter: string, rules: Record<string, ApprovalWorkflowRule>, sourceApprover: string | undefined): ApprovalHop | undefined {
+    const hop: ApprovalHop = {};
     let didMatchRule = false;
+    let doesApproveReport = false;
 
     for (const rule of Object.values(rules)) {
         if (!extractSubmitterEmails(rule).includes(submitter)) {
@@ -1368,23 +1453,19 @@ function resolvePositionHolders(submitter: string, rules: Record<string, Approva
 
         didMatchRule = true;
 
-        if (isApproveReportRule(rule)) {
-            holders.isTerminal = true;
-            continue;
-        }
-
         const amountLeaf = getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT);
-        const isOverLimitBranch =
-            !!amountLeaf && (amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO || amountLeaf.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
+        const isOverLimitBranch = amountLeaf?.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN;
 
         if (amountLeaf && typeof amountLeaf.right === 'number') {
-            holders.approvalLimit = holders.approvalLimit ?? amountLeaf.right;
+            hop.approvalLimit = hop.approvalLimit ?? amountLeaf.right;
         }
 
         if (isOverLimitBranch) {
-            holders.overLimitEmail = getForwardApprover(rule) ?? holders.overLimitEmail;
+            hop.overLimitEmail = getForwardApprover(rule) ?? hop.overLimitEmail;
+        } else if (isApproveReportRule(rule)) {
+            doesApproveReport = true;
         } else {
-            holders.underLimitEmail = getForwardApprover(rule) ?? holders.underLimitEmail;
+            hop.nextEmail = getForwardApprover(rule) ?? hop.nextEmail;
         }
     }
 
@@ -1392,12 +1473,16 @@ function resolvePositionHolders(submitter: string, rules: Record<string, Approva
         return undefined;
     }
 
-    // A limit only means anything when both halves of the split are known.
-    if (!holders.overLimitEmail) {
-        holders.approvalLimit = undefined;
+    if (doesApproveReport) {
+        hop.nextEmail = undefined;
     }
 
-    return holders;
+    // A limit only means anything when both halves of the split are known.
+    if (!hop.overLimitEmail) {
+        hop.approvalLimit = undefined;
+    }
+
+    return hop;
 }
 
 type BuildApproverChainFromRulesParams = {
@@ -1414,57 +1499,41 @@ type BuildApproverChainFromRulesParams = {
  * Any step the rules don't cover falls back to the legacy `employeeList` fields.
  */
 function buildApproverChainFromRules({submitter, rules, employees, personalDetailsByEmail}: BuildApproverChainFromRulesParams): Approver[] {
-    // Walk the positions forward first: an approver's own row needs to name the next position's holder, which is only
-    // known once that position has been read.
-    const positions: PositionHolders[] = [];
+    const approvers: Approver[] = [];
     const seenEmails = new Set<string>();
-    let sourceApprover: string | undefined;
-    let isFirstPosition = true;
+    const submission = resolveApprovalHop(submitter, rules, undefined);
+    let email = submission ? submission.nextEmail : employees[submitter]?.submitsTo;
 
-    while (true) {
-        const holders = resolvePositionHolders(submitter, rules, sourceApprover);
+    while (email) {
+        const isCircularReference = seenEmails.has(email);
+        const employee: PolicyEmployee | undefined = employees[email];
+        const hop = resolveApprovalHop(submitter, rules, email);
 
         // Nothing covers this step, so fall back to the legacy employeeList fields for it.
-        const fallbackEmail = isFirstPosition ? employees[submitter]?.submitsTo : employees[sourceApprover ?? '']?.forwardsTo;
-        const nextEmail = holders?.isTerminal ? undefined : (holders?.underLimitEmail ?? (holders ? undefined : fallbackEmail));
-        if (!nextEmail) {
-            break;
-        }
+        const forwardsTo = hop ? hop.nextEmail : employee?.forwardsTo;
+        const overLimitForwardsTo = hop ? hop.overLimitEmail : employee?.overLimitForwardsTo;
 
-        const fallbackEmployee: PolicyEmployee | undefined = employees[nextEmail];
-        positions.push({
-            isTerminal: false,
-            underLimitEmail: nextEmail,
-            overLimitEmail: holders?.overLimitEmail ?? (holders ? undefined : fallbackEmployee?.overLimitForwardsTo),
-            approvalLimit: holders?.approvalLimit ?? (holders ? undefined : (fallbackEmployee?.approvalLimit ?? undefined)),
-        });
-
-        if (seenEmails.has(nextEmail)) {
-            break;
-        }
-        seenEmails.add(nextEmail);
-        sourceApprover = nextEmail;
-        isFirstPosition = false;
-    }
-
-    return positions.map((position, index) => {
-        const email = position.underLimitEmail ?? '';
-        const employee: PolicyEmployee | undefined = employees[email];
-        const isCircularReference = positions.findIndex((other) => other.underLimitEmail === email) !== index;
-
-        return {
+        approvers.push({
             email,
-            forwardsTo: isCircularReference ? undefined : positions.at(index + 1)?.underLimitEmail,
+            forwardsTo: isCircularReference ? undefined : forwardsTo,
             avatar: personalDetailsByEmail[email]?.avatar,
             displayName: personalDetailsByEmail[email]?.displayName ?? email,
             isCircularReference,
-            approvalLimit: position.approvalLimit ?? null,
-            overLimitForwardsTo: position.overLimitEmail,
-            overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(position.overLimitEmail, personalDetailsByEmail),
+            approvalLimit: (hop ? hop.approvalLimit : employee?.approvalLimit) ?? null,
+            overLimitForwardsTo,
+            overLimitForwardsToDisplayName: getOverLimitForwardsToDisplayName(overLimitForwardsTo, personalDetailsByEmail),
             pendingAction: employee?.pendingAction,
             errors: employee?.errors,
-        };
-    });
+        });
+
+        if (isCircularReference) {
+            break;
+        }
+        seenEmails.add(email);
+        email = forwardsTo;
+    }
+
+    return approvers;
 }
 
 /** Structural identity of a chain — used to fold submitters with identical chains into one workflow. */
@@ -1539,6 +1608,82 @@ function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule>
  */
 function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
     return !isEmptyObject(getApprovalWorkflowRulesForPolicy(rulesCollection, policyID));
+}
+
+/**
+ * Map every member whose approver is mid-change to that change's pending state.
+ *
+ * A change lands on the policy's employee list or, under the `MULTIPLE_APPROVERS` beta, on the approval workflow
+ * rules, so a surface showing a member's approver has to read whichever one the save went to.
+ *
+ * @param approvalWorkflows the workflows being shown, used to reach the first approver each member submits to.
+ * @param rules the policy's rules, or nothing when the beta is off and the employee list holds the approver.
+ */
+function getApproverPendingActionByMemberEmail(
+    policy: OnyxEntry<Policy>,
+    approvalWorkflows: ApprovalWorkflow[],
+    rules: NonNullable<OnyxCollection<Rule>> | undefined,
+): Record<string, PendingAction> {
+    const pendingActionByMemberEmail: Record<string, PendingAction> = {};
+    const employees = policy?.employeeList ?? {};
+
+    // Turning approvals on or off rewrites who every member submits to, so the whole column is mid-change. The members
+    // themselves are never marked, the policy is, so this is the only signal that the change is in flight.
+    const approvalModePendingAction = policy?.pendingFields?.approvalMode;
+    if (approvalModePendingAction) {
+        for (const email of Object.keys(employees)) {
+            pendingActionByMemberEmail[email] = approvalModePendingAction;
+        }
+    }
+
+    for (const employee of Object.values(employees)) {
+        const pendingAction = employee.pendingFields?.submitsTo;
+        if (!employee.email || !pendingAction) {
+            continue;
+        }
+
+        pendingActionByMemberEmail[employee.email] ??= pendingAction;
+    }
+
+    // A change anywhere up the chain lands on the `forwardsTo` of whichever approver precedes it, leaving every
+    // submitter's `submitsTo` alone. It still changes what their row shows, since the label follows how deep their
+    // chain runs, so every approver of the chain counts.
+    for (const workflow of approvalWorkflows) {
+        const pendingAction = workflow.approvers.reduce<PendingAction | undefined>((found, approver) => found ?? employees[approver.email]?.pendingFields?.forwardsTo, undefined);
+        if (!pendingAction) {
+            continue;
+        }
+
+        for (const member of workflow.members) {
+            if (!member.email) {
+                continue;
+            }
+
+            pendingActionByMemberEmail[member.email] ??= pendingAction;
+        }
+    }
+
+    for (const rule of Object.values(rules ?? {})) {
+        if (!rule?.pendingAction || !isApprovalWorkflowRule(rule)) {
+            continue;
+        }
+
+        for (const submitter of extractSubmitterEmails(rule)) {
+            pendingActionByMemberEmail[submitter] ??= rule.pendingAction;
+        }
+    }
+
+    // A member's approver is only ever changed, never taken away, since deleting the workflow they are on falls them
+    // back to the default approver. Passing DELETE through would strike the name out as though it were going away.
+    for (const [email, pendingAction] of Object.entries(pendingActionByMemberEmail)) {
+        if (pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
+        pendingActionByMemberEmail[email] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    }
+
+    return pendingActionByMemberEmail;
 }
 
 /**
@@ -1656,6 +1801,11 @@ function convertApprovalWorkflowRulesToWorkflows({
     const availableMembers: Member[] = [];
 
     for (const employee of Object.values(employees)) {
+        // The type doesn't allow it, but `employeeList` can hold a null entry at runtime, so skip it rather than crash
+        if (!employee) {
+            continue;
+        }
+
         const {email, submitsTo, pendingAction} = employee;
         if (!email) {
             continue;
@@ -1839,8 +1989,9 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
         const hasNonMemberRoute =
             isNonMemberApprover(policy, getHRFinalApprover(policy) ?? getDefaultApprover(policy)) ||
             Object.values(policy?.employeeList ?? {}).some(
+                // `employeeList` can hold a null entry at runtime, so read it optionally
                 (employee) =>
-                    isNonMemberApprover(policy, employee.submitsTo) || isNonMemberApprover(policy, employee.forwardsTo) || isNonMemberApprover(policy, employee.overLimitForwardsTo),
+                    isNonMemberApprover(policy, employee?.submitsTo) || isNonMemberApprover(policy, employee?.forwardsTo) || isNonMemberApprover(policy, employee?.overLimitForwardsTo),
             );
         if (!hasNonMemberRoute) {
             return false;
@@ -1889,14 +2040,20 @@ export {
     extractSubmitterEmails,
     getApprovalLimitDescription,
     getApprovalWorkflowRulesForPolicy,
+    getFirstApproverByMemberEmail,
+    getEnforcedApprovalWorkflows,
+    getEnforcedApprovalWorkflowsForMembers,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
     filterRulesForPolicy,
+    getApproverPendingActionByMemberEmail,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
     getWorkflowMemberEmails,
     hasApprovalWorkflowRules,
     hasApprovalWorkflowWithNonMemberApprover,
+    hasMultiLevelApprovalWorkflow,
+    getFirstApproverLabel,
     hasRuleBasedDefaultWorkflow,
     includesEveryWorkspaceMember,
     isApprovalWorkflowLockedByIntegration,

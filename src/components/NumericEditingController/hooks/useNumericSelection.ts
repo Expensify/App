@@ -33,6 +33,8 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
     const willSelectionBeRestoredAfterInvalidInput = useRef(false);
     // Forward-delete removes the next character, so the caret offset stays.
     const forwardDeletePressedRef = useRef(false);
+    // Pause selection updates during long-press actions to prevent native selection echoes from moving the caret.
+    const shouldUpdateSelectionRef = useRef(true);
 
     const collapse = () => {
         setSelection(collapseSelection);
@@ -73,6 +75,10 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
         forwardDeletePressedRef.current = isForwardDeleteKeyPress(event);
     };
 
+    const setShouldUpdateSelection = (shouldUpdate: boolean) => {
+        shouldUpdateSelectionRef.current = shouldUpdate;
+    };
+
     // Restores the last valid caret after a rejected edit.
     const rejectEdit = () => {
         // React Native syncs against its last reported position, so ignore this event.
@@ -106,6 +112,11 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
             return;
         }
 
+        // Checked after the guards so a paused edit's native echo still clears them and cannot swallow the next caret move.
+        if (!shouldUpdateSelectionRef.current) {
+            return;
+        }
+
         // iOS may report selection before the text renders, so use pending bounds.
         const maxSelection = pendingDisplayLengthRef.current ?? displayText.length;
         pendingDisplayLengthRef.current = undefined;
@@ -131,6 +142,7 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
         pendingDisplayLengthRef.current = undefined;
         willSelectionBeUpdatedManually.current = false;
         willSelectionBeRestoredAfterInvalidInput.current = false;
+        shouldUpdateSelectionRef.current = true;
     }, [isFocused]);
 
     return {
@@ -142,6 +154,7 @@ function useNumericSelection({displayText}: UseNumericSelectionParams) {
         handleKeyPress,
         rejectEdit,
         handleNativeSelectionChange,
+        setShouldUpdateSelection,
     };
 }
 

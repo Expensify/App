@@ -1,5 +1,7 @@
 import {render} from '@testing-library/react-native';
 
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {openPolicyInitialPage} from '@libs/actions/Policy/Policy';
 
 import {WorkspaceInitialPage} from '@pages/workspace/WorkspaceInitialPage';
@@ -44,7 +46,7 @@ jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => new Proxy({}, {get: () => 'icon'}),
 }));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
-jest.mock('@hooks/useNetwork', () => jest.fn());
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}));
 jest.mock('@hooks/usePolicyConnectionsPrefetch', () => jest.fn());
@@ -67,7 +69,8 @@ jest.mock('@hooks/useWorkspaceAccountID', () => jest.fn());
 jest.mock('@components/BlockingViews/FullPageNotFoundView', () => (props: {children: React.ReactNode; shouldShow: boolean}) => mockFullPageNotFoundView(props));
 jest.mock('@components/HeaderWithBackButton', () => jest.fn());
 jest.mock('@components/HighlightableMenuItem', () => jest.fn());
-jest.mock('@components/Navigation/TabBarBottomContent', () => jest.fn());
+jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps', () => () => ({}));
+jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScrollProps', () => () => ({}));
 jest.mock(
     '@components/OfflineWithFeedback',
     () =>
@@ -96,7 +99,11 @@ describe('WorkspaceInitialPage', () => {
 
     it('waits for route params before fetching policy data', () => {
         const props = createMock<React.ComponentProps<typeof WorkspaceInitialPage>>({route: {params: undefined}});
-        render(<WorkspaceInitialPage {...props} />);
+        render(
+            <OnyxListItemProvider>
+                <WorkspaceInitialPage {...props} />
+            </OnyxListItemProvider>,
+        );
 
         expect(openPolicyInitialPage).not.toHaveBeenCalled();
     });

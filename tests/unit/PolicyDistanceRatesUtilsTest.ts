@@ -2,6 +2,7 @@ import {
     getDistanceExpenseTypeForPolicy,
     getDistanceRateNameError,
     getDistanceRateValueError,
+    getDistanceRateValueErrorMessage,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
@@ -316,6 +317,16 @@ describe('PolicyDistanceRatesUtils', () => {
         it('should accept a positive rate with up to four decimal places', () => {
             expect(getDistanceRateValueError('0.67', toLocaleDigit)).toBeUndefined();
             expect(getDistanceRateValueError('0.6700', toLocaleDigit)).toBeUndefined();
+        });
+    });
+
+    describe('getDistanceRateValueErrorMessage', () => {
+        it('uses the same copy as the distance rate edit form', () => {
+            // Given the two reasons a distance rate amount can be rejected
+            // When the table toast and the edit form ask for the message
+            // Then each reason maps to the form's copy, so the two surfaces cannot drift
+            expect(getDistanceRateValueErrorMessage(translateLocal, CONST.INPUT_VALIDATION_ERRORS.INVALID)).toBe(translateLocal('common.error.invalidRateError'));
+            expect(getDistanceRateValueErrorMessage(translateLocal, CONST.INPUT_VALIDATION_ERRORS.TOO_LOW)).toBe(translateLocal('common.error.lowRateError'));
         });
     });
 });
