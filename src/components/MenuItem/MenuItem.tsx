@@ -27,6 +27,7 @@ import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAc
 import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -54,6 +55,7 @@ import variables from '@styles/variables';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -65,6 +67,7 @@ import type {AccessibilityState, GestureResponderEvent, ImageStyle, Role, StyleP
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
@@ -586,6 +589,7 @@ function MenuItem({
     titleAccessibilityRole,
     shouldIgnoreCompactStyle = false,
 }: MenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark', 'NewWindow']);
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -854,7 +858,7 @@ function MenuItem({
                     >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction, session) : onPressAction}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
