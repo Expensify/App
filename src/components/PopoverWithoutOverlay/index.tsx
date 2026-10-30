@@ -12,7 +12,7 @@ import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import type PopoverWithoutOverlayProps from './types';
@@ -81,27 +81,14 @@ function PopoverWithoutOverlay({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
-    const modalPaddingStyles = useMemo(
-        () =>
-            StyleUtils.getModalPaddingStyles({
-                shouldAddBottomSafeAreaMargin,
-                shouldAddTopSafeAreaMargin,
-                shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
-                shouldAddTopSafeAreaPadding,
-                modalContainerStyle,
-                insets,
-            }),
-        [
-            StyleUtils,
-            enableEdgeToEdgeBottomSafeAreaPadding,
-            insets,
-            modalContainerStyle,
-            shouldAddBottomSafeAreaMargin,
-            shouldAddBottomSafeAreaPadding,
-            shouldAddTopSafeAreaMargin,
-            shouldAddTopSafeAreaPadding,
-        ],
-    );
+    const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
+        shouldAddBottomSafeAreaMargin,
+        shouldAddTopSafeAreaMargin,
+        shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
+        modalContainerStyle,
+        insets,
+    });
 
     if (!isVisible) {
         return null;

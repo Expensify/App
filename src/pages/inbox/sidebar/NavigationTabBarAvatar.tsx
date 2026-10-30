@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type NavigationTabBarAvatarProps = {
@@ -30,7 +30,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {status} = useAccountTabIndicatorStatus();
 
-    const accountAccessibilityState = useMemo(() => ({selected: isSelected}), [isSelected]);
+    const accountAccessibilityState = {selected: isSelected};
 
     return (
         <PressableWithFeedback

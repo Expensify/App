@@ -73,7 +73,7 @@ jest.mock('@libs/getPlatform', () => jest.fn());
 const mockedGetPlatform = jest.mocked(getPlatform);
 
 type AccountMergeUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>, {onyxMethod: typeof Onyx.METHOD.MERGE}>;
-type AccountMergeValue = Pick<NonNullable<AccountMergeUpdate['value']>, 'isLoading' | 'errors' | 'twoFactorAuthSecretKey'>;
+type AccountMergeValue = Pick<NonNullable<AccountMergeUpdate['value']>, 'isLoading' | 'errors' | 'twoFactorAuthSecretKey' | 'recoveryCodes'>;
 type AccountMergeObjectUpdate = Omit<AccountMergeUpdate, 'value'> & {value: AccountMergeValue};
 
 function isAccountMergeUpdate(value: unknown): value is AccountMergeObjectUpdate {
@@ -101,6 +101,54 @@ beforeEach(() => {
 });
 
 describe('Session', () => {
+    describe('callFunctionIfActionIsAllowed', () => {
+        test('blocks a non-anonymous action for a passed anonymous session even when the stored session is signed in', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@example.com'});
+            await waitForBatchedUpdates();
+            const callback = jest.fn();
+
+            // When the action is wrapped for an anonymous session passed by the caller
+            const result = SessionUtil.callFunctionIfActionIsAllowed(callback, false, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+
+            // Then the passed session decides: the callback is replaced by the sign-in redirect
+            expect(result).not.toBe(callback);
+        });
+
+        test('allows an anonymous action for a passed anonymous session', () => {
+            // Given an action that anonymous users are allowed to perform, and an anonymous session from the caller
+            const callback = jest.fn();
+
+            // When an action that anonymous users may perform is wrapped for an anonymous session
+            const result = SessionUtil.callFunctionIfActionIsAllowed(callback, true, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+
+            // Then the original callback is returned untouched
+            expect(result).toBe(callback);
+        });
+    });
+
+    describe('isAnonymousUser', () => {
+        test('returns true for a passed anonymous session even when the stored session is not anonymous', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@example.com', authTokenType: undefined});
+            await waitForBatchedUpdates();
+
+            // When the check is made against an anonymous session passed by the caller
+            // Then the passed session decides the result, not the stored one
+            expect(SessionUtil.isAnonymousUser({authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS})).toBe(true);
+        });
+
+        test('returns false for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+
+            // When the check is made against a signed-in session passed by the caller
+            // Then the passed session decides the result, not the stored one
+            expect(SessionUtil.isAnonymousUser({email: 'user@example.com'})).toBe(false);
+        });
+    });
+
     describe('isSupportalSession', () => {
         test('returns true when the session uses a support auth token', async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
@@ -800,6 +848,28 @@ describe('Session', () => {
         });
     });
 
+    describe('toggleTwoFactorAuth', () => {
+        test('disable success data clears the pending secret and recovery codes', () => {
+            // Given a user turning 2FA off after an unfinished setup kept its secret locally
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // When the disable request is sent
+            SessionUtil.toggleTwoFactorAuth(false, '123456');
+
+            // Then success clears the secret and recovery codes so a later setup cannot reuse them
+            const [command, , onyxData] = TestHelper.getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(command).toBe(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH);
+            const accountSuccess = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountSuccess)) {
+                throw new Error('Expected a typed account success update');
+            }
+            expect(accountSuccess.value.recoveryCodes).toBeNull();
+            expect(accountSuccess.value.twoFactorAuthSecretKey).toBeNull();
+
+            writeSpy.mockRestore();
+        });
+    });
+
     describe('replaceTwoFactorDevice', () => {
         test('sets isLoading and clears errors optimistically for both steps', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
@@ -848,6 +918,33 @@ describe('Session', () => {
     });
 
     describe('validateTwoFactorAuth', () => {
+        test('success data clears the secret and recovery codes even if the setup screen is already gone', () => {
+            // Given a validation request that can finish after the user has closed the setup panel
+            const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+
+            // When the user submits the authenticator code
+            SessionUtil.validateTwoFactorAuth('123456', false);
+
+            // Then success drops both the secret and the recovery codes, because the success screen will not run cleanup
+            const onyxData = makeRequestSpy.mock.calls.at(0)?.[2] ?? {};
+            const accountSuccess = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountSuccess)) {
+                throw new Error('Expected a typed account success update');
+            }
+            expect(accountSuccess.value.recoveryCodes).toBeNull();
+            expect(accountSuccess.value.twoFactorAuthSecretKey).toBeNull();
+
+            // And a failed code drops the saved codes so reopening setup can fetch a fresh secret, while the QR stays for a retry
+            const accountFailure = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountFailure)) {
+                throw new Error('Expected a typed account failure update');
+            }
+            expect(accountFailure.value.recoveryCodes).toBeNull();
+            expect(accountFailure.value).not.toHaveProperty('twoFactorAuthSecretKey');
+
+            makeRequestSpy.mockRestore();
+        });
+
         test('forced onboarding path updates auth token before clearing Onyx without openApp', async () => {
             // Given a user completing forced-onboarding 2FA while the success screen remains open.
             const makeRequestSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
