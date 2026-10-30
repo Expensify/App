@@ -558,6 +558,7 @@ describe('useAdvancedSearchFilters', () => {
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID,
                     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
                 ]);
