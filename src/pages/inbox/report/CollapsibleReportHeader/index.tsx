@@ -11,8 +11,9 @@ import KeyboardUtils from '@src/utils/keyboard';
 
 import type {ViewStyle} from 'react-native';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 
 import type {CollapsibleReportHeaderProps} from './types';
 
@@ -25,12 +26,15 @@ import type {CollapsibleReportHeaderProps} from './types';
  */
 function MobileWebCollapsibleReportHeader({children}: CollapsibleReportHeaderProps) {
     const styles = useThemeStyles();
-    const collapsibleHeader = useCollapsibleHeader();
+    const collapsibleHeader = useCollapsibleHeader({shouldMeasureWhileCollapsed: true});
     const {naturalHeight, animatedHeight, isFocusedSV, isInLandscapeModeSV} = collapsibleHeader;
     const {scrollMetricsSV, collapsedHeaderHeightSV} = useActionListContext();
 
-    const isKeyboardOpen = useSharedValue(false);
+    const isKeyboardOpen = useSharedValue(KeyboardUtils.isKeyboardVisible());
     useEffect(() => KeyboardUtils.subscribeKeyboardVisibilityChange((isVisible) => isKeyboardOpen.set(isVisible)), [isKeyboardOpen]);
+
+    // Mirrors the hide state for `inert`, which keeps the offscreen header's buttons out of the tab order and screen readers.
+    const [isHidden, setIsHidden] = useState(false);
 
     const anchorOffset = useSharedValue(0);
     const isHiddenByScroll = useSharedValue(false);
@@ -87,16 +91,27 @@ function MobileWebCollapsibleReportHeader({children}: CollapsibleReportHeaderPro
 
     useAnimatedReaction(
         // Wait for the header's first measurement.
-        () => (naturalHeight.get() === -1 ? null : shouldHide.get()),
-        (hide, previousHide) => {
-            if (hide === null || hide === previousHide) {
+        () => (naturalHeight.get() === -1 ? null : {hide: shouldHide.get(), height: naturalHeight.get()}),
+        (current, previous) => {
+            if (current === null) {
                 return;
             }
 
-            if (hide) {
-                collapseHeaderTo(animatedHeight, 0);
-            } else {
-                restoreHeaderTo(animatedHeight, naturalHeight.get());
+            if (current.hide) {
+                if (previous?.hide !== true) {
+                    collapseHeaderTo(animatedHeight, 0);
+                    scheduleOnRN(setIsHidden, true);
+                }
+                return;
+            }
+
+            // The header can change size while hidden, then a restore already running would stop at the old height.
+            const hasResizedDuringRestore = current.height !== previous?.height && animatedHeight.get() < current.height;
+            if (previous?.hide !== false || hasResizedDuringRestore) {
+                restoreHeaderTo(animatedHeight, current.height);
+            }
+            if (previous?.hide === true) {
+                scheduleOnRN(setIsHidden, false);
             }
         },
     );
@@ -110,7 +125,15 @@ function MobileWebCollapsibleReportHeader({children}: CollapsibleReportHeaderPro
     const slotStyle = useAnimatedStyle<ViewStyle>(() => ({height: collapsedHeaderHeightSV.get() > 0 ? 0 : 'auto', zIndex: 1}));
 
     return (
-        <CollapsibleHeaderView collapsibleHeader={{...collapsibleHeader, outerStyle: slotStyle, innerStyle: [styles.appBG, collapsibleHeader.innerStyle]}}>{children}</CollapsibleHeaderView>
+        <CollapsibleHeaderView collapsibleHeader={{...collapsibleHeader, outerStyle: slotStyle, innerStyle: [styles.appBG, collapsibleHeader.innerStyle]}}>
+            {/* aria-hidden does not remove the mounted controls from the tab order. */}
+            <div
+                inert={isHidden}
+                style={styles.dContents}
+            >
+                {children}
+            </div>
+        </CollapsibleHeaderView>
     );
 }
 

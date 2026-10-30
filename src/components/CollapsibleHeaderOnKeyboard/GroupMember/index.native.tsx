@@ -19,9 +19,11 @@ function CollapsibleHeaderOnKeyboardGroupMember({children}: CollapsibleHeaderOnK
     const memberID = useId();
     // `onLayout` only reports a height when it changes, so the last reported one is kept here to re-register with.
     const reportedNaturalHeightRef = useRef(-1);
-    const collapsibleHeader = useCollapsibleHeader((height) => {
-        reportedNaturalHeightRef.current = height;
-        group?.setMemberNaturalHeight(memberID, height);
+    const collapsibleHeader = useCollapsibleHeader({
+        onNaturalHeightChange: (height) => {
+            reportedNaturalHeightRef.current = height;
+            group?.setMemberNaturalHeight(memberID, height);
+        },
     });
     const {naturalHeight, animatedHeight, isFocusedSV, isInLandscapeModeSV} = collapsibleHeader;
 

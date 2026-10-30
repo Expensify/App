@@ -1,6 +1,7 @@
 import FlashList from '@components/FlashList';
 
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
@@ -218,6 +219,7 @@ function MoneyRequestReportUnifiedList({
     // tableOffsetTop is the height of everything above the table region (the report-fields header).
     // Seed with the window height (a safe over-estimate) so the nested list windows against a non-zero viewport on the
     // first paint — otherwise a height of 0 renders the transactions area blank until onLayout corrects it next frame.
+    const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     const isMobileWebLandscape = useIsMobileWebLandscape();
     const [viewportHeight, setViewportHeight] = useState(windowHeight);
@@ -432,7 +434,9 @@ function MoneyRequestReportUnifiedList({
             onScroll={handleScroll}
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
-            contentContainerStyle={contentContainerStyle}
+            // Chrome's scroll anchoring would scroll by the height CollapsedReportHeaderSpacer adds above the rows, undoing the
+            // header hand-over. It doesn't help with rows above the viewport, which FlashList moves by rewriting their top.
+            contentContainerStyle={[contentContainerStyle, isMobileWebLandscape && styles.overflowAnchorNone]}
             ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined}
             ListFooterComponent={
                 <>

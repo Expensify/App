@@ -27,6 +27,10 @@ export default {
         overscrollBehavior: 'none',
     },
 
+    overflowAnchorNone: {
+        overflowAnchor: 'none',
+    },
+
     overscrollBehaviorXNone: {
         overscrollBehaviorX: 'none',
     },

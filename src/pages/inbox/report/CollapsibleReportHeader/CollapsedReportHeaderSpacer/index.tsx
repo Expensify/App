@@ -9,7 +9,8 @@ import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
 
 /**
  * Pads the oldest end of a report list by the space the collapsed header gave up, so the header slides in over it.
- * Disable FlashList's maintainVisibleContentPosition on a non-inverted list, it scrolls the padding back out of view.
+ * Disable FlashList's maintainVisibleContentPosition and Chrome's scroll anchoring (overflow-anchor) on a non-inverted
+ * list, both scroll the padding back out of view.
  */
 function MobileWebCollapsedReportHeaderSpacer() {
     const {collapsedHeaderHeightSV} = useActionListContext();

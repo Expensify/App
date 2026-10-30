@@ -42,10 +42,15 @@ function restoreHeaderTo(animatedHeight: SharedValue<number>, naturalHeight: num
     animatedHeight.set(withTiming(naturalHeight, {duration: RESTORE_DURATION}));
 }
 
+type UseCollapsibleHeaderOptions = {
+    onNaturalHeightChange?: (height: number) => void;
+    shouldMeasureWhileCollapsed?: boolean;
+};
+
 /**
  * Measurement and animated styles shared by `CollapsibleHeaderOnKeyboard` and `CollapsibleHeaderOnKeyboardGroupMember`.
  */
-function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void): CollapsibleHeader {
+function useCollapsibleHeader({onNaturalHeightChange, shouldMeasureWhileCollapsed = false}: UseCollapsibleHeaderOptions = {}): CollapsibleHeader {
     const {isFocused, isInLandscapeMode, isFocusedSV, isInLandscapeModeSV} = useCollapsibleScreenState();
     const prevIsFocused = usePrevious(isFocused);
     // JS ref guards against re-measurement when the Reanimated.View fires onLayout with height=0
@@ -68,6 +73,14 @@ function useCollapsibleHeader(onNaturalHeightChange?: (height: number) => void):
             naturalHeightRef.current = height;
             naturalHeight.set(height);
             animatedHeight.set(height);
+            onNaturalHeightChange?.(height);
+            return;
+        }
+
+        // Leave animatedHeight alone, so the header stays collapsed at its new size.
+        if (shouldMeasureWhileCollapsed && naturalHeightRef.current !== -1 && animatedHeight.get() < naturalHeightRef.current && height !== naturalHeightRef.current) {
+            naturalHeightRef.current = height;
+            naturalHeight.set(height);
             onNaturalHeightChange?.(height);
             return;
         }

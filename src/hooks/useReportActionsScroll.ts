@@ -32,6 +32,7 @@ import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useEffectEvent, useState} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useIsMobileWebLandscape from './useIsMobileWebLandscape';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -167,6 +168,7 @@ function useReportActionsScroll({
     const reportScrollManager = useReportScrollManager();
     const {scrollOffsetRef, syncScrollSharedValues, getListRef} = useActionListContext();
     const {windowHeight} = useWindowDimensions();
+    const isMobileWebLandscape = useIsMobileWebLandscape();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const backTo = route?.params?.backTo;
@@ -513,7 +515,7 @@ function useReportActionsScroll({
         initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
         initialScrollIndex = renderedVisibleReportActions.length - 1;
-        initialScrollIndexParams = {viewPosition: 1, viewOffset: windowHeight};
+        initialScrollIndexParams = isMobileWebLandscape ? {viewPosition: 1, viewOffset: windowHeight} : {viewOffset: windowHeight};
     }
 
     return {
