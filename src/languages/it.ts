@@ -7161,12 +7161,15 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 unassignCard: 'Rimuovi carta',
                 unassignCards: 'Rimuovi carte',
                 unassign: 'Rimuovi assegnazione',
-                unassignCardDescription: 'La rimozione dell’assegnazione di questa carta eliminerà tutte le transazioni non inviate.',
-                unassignCardsDescription: 'La rimozione dell’assegnazione eliminerà tutte le transazioni non inviate dalle carte selezionate.',
+                unassignCardDescription:
+                    'La rimozione dell’assegnazione di questa carta eliminerà definitivamente tutte le sue transazioni non inviate, incluse le transazioni non rendicontate e quelle nei report in bozza. Questa azione non può essere annullata.',
+                unassignCardsDescription:
+                    'La rimozione dell’assegnazione eliminerà definitivamente tutte le transazioni non inviate dalle carte selezionate, incluse le transazioni non rendicontate e quelle nei report in bozza. Questa azione non può essere annullata.',
                 assignCard: 'Assegna carta',
                 removeCard: 'Rimuovi carta',
                 remove: 'Rimuovi',
-                removeCardDescription: 'La rimozione di questa carta eliminerà tutte le transazioni non inviate.',
+                removeCardDescription:
+                    'La rimozione di questa carta eliminerà definitivamente tutte le sue transazioni non inviate, incluse le transazioni non rendicontate e quelle nei report in bozza. Questa azione non può essere annullata.',
                 cardFeedName: 'Nome feed carta',
                 cardFeedNameDescription: 'Dai al feed della carta un nome univoco, così puoi distinguerlo dagli altri.',
                 cardFeedTransaction: 'Elimina transazioni',

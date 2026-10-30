@@ -294,7 +294,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                             onPress={() => {
                                 showConfirmModal({
                                     shouldSetModalVisibility: false,
-                                    title: translate('workspace.moreFeatures.companyCards.unassignCard'),
+                                    title: translate('common.areYouSure'),
                                     prompt: translate('workspace.moreFeatures.companyCards.unassignCardDescription'),
                                     confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
                                     cancelText: translate('common.cancel'),

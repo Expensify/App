@@ -7057,11 +7057,14 @@ ${amount} para ${merchant} - ${date}`,
                 unassignCard: 'Desasignar tarjeta',
                 unassignCards: 'Desasignar tarjetas',
                 unassign: 'Desasignar',
-                unassignCardDescription: 'Desasignar esta tarjeta eliminará todas las transacciones no enviadas.',
-                unassignCardsDescription: 'Desasignar eliminará todas las transacciones no enviadas de las tarjetas seleccionadas.',
+                unassignCardDescription:
+                    'Desasignar esta tarjeta eliminará permanentemente todas sus transacciones no enviadas, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.',
+                unassignCardsDescription:
+                    'Desasignar eliminará permanentemente todas las transacciones no enviadas de las tarjetas seleccionadas, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.',
                 removeCard: 'Eliminar tarjeta',
                 remove: 'Eliminar',
-                removeCardDescription: 'Eliminar esta tarjeta eliminará todas las transacciones no enviadas.',
+                removeCardDescription:
+                    'Eliminar esta tarjeta eliminará permanentemente todas sus transacciones no enviadas, incluidas las transacciones no reportadas y las que están en informes en borrador. Esta acción no se puede deshacer.',
                 assignCard: 'Asignar tarjeta',
                 cardFeedName: 'Nombre del feed de tarjeta',
                 cardFeedNameDescription: 'Dale al feed de tarjeta un nombre único para que puedas distinguirlo de los demás.',

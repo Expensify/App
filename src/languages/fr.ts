@@ -7217,11 +7217,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 unassignCard: 'Retirer l’assignation de la carte',
                 unassignCards: 'Retirer l’assignation des cartes',
                 unassign: "Retirer l'assignation",
-                unassignCardDescription: "Retirer l'assignation de cette carte supprimera toutes les transactions non soumises.",
-                unassignCardsDescription: "Retirer l'assignation supprimera toutes les transactions non soumises des cartes sélectionnées.",
+                unassignCardDescription:
+                    "Retirer l'assignation de cette carte supprimera définitivement toutes ses transactions non soumises, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.",
+                unassignCardsDescription:
+                    "Retirer l'assignation supprimera définitivement toutes les transactions non soumises des cartes sélectionnées, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.",
                 removeCard: 'Supprimer la carte',
                 remove: 'Supprimer',
-                removeCardDescription: 'La suppression de cette carte effacera toutes les transactions non soumises.',
+                removeCardDescription:
+                    'La suppression de cette carte effacera définitivement toutes ses transactions non soumises, y compris les transactions non déclarées et celles figurant sur des brouillons de notes de frais. Cette action est irréversible.',
                 assignCard: 'Assigner une carte',
                 cardFeedName: 'Nom du flux de carte',
                 cardFeedNameDescription: 'Donnez au flux de carte un nom unique afin de pouvoir le distinguer des autres.',

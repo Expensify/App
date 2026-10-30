@@ -7058,11 +7058,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 unassignCard: 'カードの割り当てを解除',
                 unassignCards: 'カードの割り当てを解除',
                 unassign: '割り当てを解除',
-                unassignCardDescription: 'このカードの割り当てを解除すると、未送信の取引はすべて削除されます。',
-                unassignCardsDescription: '割り当てを解除すると、選択したカードの未送信の取引はすべて削除されます。',
+                unassignCardDescription:
+                    'このカードの割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、このカードの未送信の取引はすべて完全に削除されます。この操作は元に戻せません。',
+                unassignCardsDescription:
+                    '割り当てを解除すると、未報告の取引や下書きレポート内の取引を含む、選択したカードの未送信の取引はすべて完全に削除されます。この操作は元に戻せません。',
                 removeCard: 'カードを削除',
                 remove: '削除',
-                removeCardDescription: 'このカードを削除すると、未送信のすべての取引が削除されます。',
+                removeCardDescription: 'このカードを削除すると、未報告の取引や下書きレポート内の取引を含む、このカードの未送信の取引はすべて完全に削除されます。この操作は元に戻せません。',
                 assignCard: 'カードを割り当てる',
                 cardFeedName: 'カードフィード名',
                 cardFeedNameDescription: '他のカードフィードと区別できるように、一意の名前を付けてください。',

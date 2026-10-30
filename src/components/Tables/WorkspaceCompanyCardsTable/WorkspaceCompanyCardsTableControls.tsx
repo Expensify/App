@@ -113,7 +113,7 @@ function WorkspaceCompanyCardsTableControls({
 
         const {action} = await showConfirmModal({
             shouldSetModalVisibility: false,
-            title: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
+            title: translate('common.areYouSure'),
             prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
