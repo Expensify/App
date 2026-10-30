@@ -1,12 +1,11 @@
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScrollView from '@components/ScrollView';
-import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
+import ListSearchBar from '@components/SearchBar/ListSearchBar';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -143,30 +142,17 @@ function FilterList({
 }: FilterListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const noResultsFoundText = translate('common.noResultsFound');
     const shouldShowNoResultsFound = filters.length === 0 && !headerContent;
-
-    useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldShowNoResultsFound, searchValue);
 
     return (
         <View style={[styles.flex1, style]}>
-            <CompactSearchBar
+            <ListSearchBar
                 label={translate('search.filters.searchFilters')}
-                inputValue={searchValue}
+                searchValue={searchValue}
                 onChangeText={onSearchValueChange}
-                style={[styles.mb3, styles.mw100]}
+                shouldShowNoResultsFound={shouldShowNoResultsFound}
                 ref={searchInputRef}
             />
-            {shouldShowNoResultsFound && (
-                <View style={[styles.ph5, styles.pb5]}>
-                    <Text
-                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                        aria-hidden
-                    >
-                        {noResultsFoundText}
-                    </Text>
-                </View>
-            )}
             <ScrollView
                 contentContainerStyle={[contentContainerStyle]}
                 showsVerticalScrollIndicator={false}
