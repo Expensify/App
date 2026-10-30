@@ -2086,6 +2086,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.TRAVEL.DYNAMIC_WORKSPACE_CONFIRMATION]: DYNAMIC_ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.path,
                         [SCREENS.TRAVEL.DYNAMIC_VERIFY_ACCOUNT]: DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.path,
                         [SCREENS.TRAVEL.ENABLE]: {path: ROUTES.TRAVEL_ENABLE.route, exact: true},
+                        [SCREENS.TRAVEL.FLIGHT_BOOKING_DEV]: {path: ROUTES.TRAVEL_FLIGHT_BOOKING_DEV.route, exact: true},
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: {

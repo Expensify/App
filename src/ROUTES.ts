@@ -4623,6 +4623,10 @@ const ROUTES = {
 
         getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/upgrade/workspace/confirmation`, backTo),
     },
+    TRAVEL_FLIGHT_BOOKING_DEV: {
+        route: 'travel/flights/:policyID',
+        getRoute: (policyID: string) => `travel/flights/${policyID}` as const,
+    },
     TRAVEL_ENABLE: {
         route: 'travel/enable/:policyID/:subPage?/:action?',
         getRoute: (policyID: string, subPage?: string, action?: 'edit') => {
