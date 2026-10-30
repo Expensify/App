@@ -30,4 +30,4 @@ function getHoldMenuAmounts(
     };
 }
 
-export {getHoldMenuAmounts};
+export default getHoldMenuAmounts;

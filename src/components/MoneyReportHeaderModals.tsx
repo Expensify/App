@@ -9,7 +9,7 @@ import useReportPDFDownloadModal from '@hooks/useReportPDFDownloadModal';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getHoldMenuAmounts} from '@libs/HoldMenuUtils';
+import getHoldMenuAmounts from '@libs/HoldMenuUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';

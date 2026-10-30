@@ -16,7 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
-import {getHoldMenuAmounts} from '@libs/HoldMenuUtils';
+import getHoldMenuAmounts from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';

@@ -1,4 +1,4 @@
-import {getHoldMenuAmounts} from '@libs/HoldMenuUtils';
+import getHoldMenuAmounts from '@libs/HoldMenuUtils';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses} from '@libs/ReportUtils';
 
 import {createRandomReport} from '../utils/collections/reports';

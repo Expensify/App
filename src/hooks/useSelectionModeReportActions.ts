@@ -3,7 +3,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {getHoldMenuAmounts} from '@libs/HoldMenuUtils';
+import getHoldMenuAmounts from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton, isEveryReportTransactionSelected} from '@libs/MoneyRequestReportUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
