@@ -9,8 +9,8 @@ import * as Network from '@libs/Network';
 import {getDuplicateRequestCount, setLoadTestParameters} from '@libs/Network/LoadTestState';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
-import {setHasRadio} from '@libs/NetworkState';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {setHasRadio} from '@libs/NetworkState';
 import RequestThrottle from '@libs/RequestThrottle';
 
 import CONFIG from '@src/CONFIG';
