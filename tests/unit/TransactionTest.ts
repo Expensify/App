@@ -71,13 +71,7 @@ function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
 }
 
 function isChangeTransactionsReportParams(value: unknown): value is ChangeTransactionsReportParams {
-    return (
-        isRecord(value) &&
-        typeof value.reportID === 'string' &&
-        typeof value.transactionList === 'string' &&
-        typeof value.transactionIDToReportActionAndThreadData === 'string' &&
-        (value.transactionIDToUpdatedCustomUnitRateID === undefined || typeof value.transactionIDToUpdatedCustomUnitRateID === 'string')
-    );
+    return isRecord(value) && typeof value.reportID === 'string' && typeof value.transactionList === 'string' && typeof value.transactionIDToReportActionAndThreadData === 'string';
 }
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
@@ -1944,6 +1938,9 @@ describe('Transaction', () => {
         });
 
         it('should auto-select a valid distance rate when moving a distance expense with an invalid P2P rate to a workspace', async () => {
+            // Given a distance expense with a P2P rate, which no workspace has, and a workspace with one valid rate
+            // The spy calls through so the optimistic data still lands in Onyx
+            const mockAPIWrite = jest.spyOn(API, 'write');
             const policyID = '100';
             const validRateID = 'valid_rate_1';
             const transaction = generateTransaction({
@@ -2002,6 +1999,7 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
+            // When the expense moves to a report on that workspace
             changeTransactionsReport({
                 isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
@@ -2019,9 +2017,16 @@ describe('Transaction', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then the optimistic transaction uses the workspace rate, so the UI shows the right amount right away
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
             expect(updatedTransaction?.comment?.customUnit?.defaultP2PRate).toBeUndefined();
+
+            // And the request does not send the locally picked rate, because the backend selects the rate itself
+            const [, parameters] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+            expect(parameters).not.toHaveProperty('transactionIDToUpdatedCustomUnitRateID');
+
+            mockAPIWrite.mockRestore();
         });
 
         it('should auto-select a valid distance rate when the current rate is disabled on the destination workspace', async () => {
@@ -2919,6 +2924,33 @@ describe('Transaction', () => {
 
             // And the new expense is sent with the trip's route alternative
             expect(TransactionUtils.getSelectedRouteDistance(transaction)).toBe(200);
+        });
+
+        it('converts routeDistanceMeters into the destination distanceUnit', async () => {
+            // Given a prior trip of 22.8 km (22800 meters)
+            const transactionID = 'txn-select-reusable-route-converted';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, generateTransaction({transactionID, reportID: '1'}));
+            const route: ReusableDistanceRoute = {
+                transactionID: 'source-transaction',
+                inserted: '2026-10-01 12:00:00',
+                distance: 22.8,
+                routeDistanceMeters: 22800,
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                },
+            };
+
+            // When the trip is reused in a workspace using miles
+            await selectReusableRoute(transactionID, route, undefined, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            // Then the draft converts the trip's route distance in meters to the destination unit
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(transaction?.isReusedRoute).toBe(true);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(14.17);
+            expect(transaction?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(22800);
         });
     });
 

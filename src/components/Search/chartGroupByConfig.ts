@@ -16,6 +16,9 @@ import type {
 } from './SearchList/ListItem/types';
 import type {GroupedItem, SearchGroupBy} from './types';
 
+/** The dates a time bucket covers */
+type ChartBucketRange = {start: string; end: string};
+
 type ChartGroupByConfig = {
     /** Name of the icon rendered next to the chart title */
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
@@ -36,7 +39,7 @@ type ChartGroupByConfig = {
     getFilterQuery: (item: GroupedItem) => string;
 
     /** Returns the dates a time-based group covers, as yyyy-MM-dd strings */
-    getDateRange?: (item: GroupedItem) => {start: string; end: string} | undefined;
+    getDateRange?: (item: GroupedItem) => ChartBucketRange | undefined;
 };
 
 /**
@@ -132,6 +135,12 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
         },
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined),
     },
+    [CONST.SEARCH.GROUP_BY.APPROVER]: {
+        titleIconName: 'Users',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ? (item.formattedApprover ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ? `${CONST.SEARCH.GROUP_BY.APPROVER}:${item.accountID}` : ''),
+    },
 };
 
 export default CHART_GROUP_BY_CONFIG;
+export type {ChartBucketRange};

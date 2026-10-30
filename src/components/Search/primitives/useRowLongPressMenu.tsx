@@ -13,7 +13,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import CONST from '@src/CONST';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type UseRowLongPressMenuParams = {
@@ -67,32 +67,29 @@ function useRowLongPressMenu({shouldPreventLongPressRow, isSmallScreenWidth, isM
         toggle(item, itemTransactions);
     };
 
-    const handleLongPressRow = useCallback(
-        (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
-            const currentRoute = navigationRef.current?.getCurrentRoute();
-            if (currentRoute && route.key !== currentRoute.key) {
-                return;
-            }
+    const handleLongPressRow = (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => {
+        const currentRoute = navigationRef.current?.getCurrentRoute();
+        if (currentRoute && route.key !== currentRoute.key) {
+            return;
+        }
 
-            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                return;
-            }
+        if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return;
+        }
 
-            setLongPressedItem(item);
-            setLongPressedItemTransactions(itemTransactions);
-            setIsModalVisible(true);
-        },
-        [route.key, shouldPreventLongPressRow, isSmallScreenWidth],
-    );
+        setLongPressedItem(item);
+        setLongPressedItemTransactions(itemTransactions);
+        setIsModalVisible(true);
+    };
 
-    const turnOnSelectionMode = useCallback(() => {
+    const turnOnSelectionMode = () => {
         turnOnMobileSelectionMode();
         setIsModalVisible(false);
 
         if (longPressedItem) {
             toggle(longPressedItem, longPressedItemTransactions);
         }
-    }, [longPressedItem, toggle, longPressedItemTransactions]);
+    };
 
     const onLongPressRow = isMobileSelectionModeEnabled ? handleLongPressRowInMobileSelectionMode : handleLongPressRow;
 

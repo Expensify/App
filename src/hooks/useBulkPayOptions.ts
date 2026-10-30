@@ -23,7 +23,7 @@ import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {areInvoicesEnabledSelector} from '@selectors/Policy';
+import {areInvoicesEnabledSelector, policyDefaultBankAccountIDSelector} from '@selectors/Policy';
 import truncate from 'lodash/truncate';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
@@ -83,6 +83,7 @@ function useBulkPayOptions({
     const chatReport = liveChatReport ?? selectedChatReport;
     const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
     const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
+    const [defaultBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyID}`, {selector: policyDefaultBankAccountIDSelector});
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
     const activeAdminPolicies = useActiveAdminPolicies();
@@ -127,7 +128,7 @@ function useBulkPayOptions({
             }));
     };
 
-    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency);
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods, currency, defaultBankAccountID);
     const businessBankAccountOptions =
         shouldShowBusinessBankAccountOptions && businessBankAccountOptionList.length
             ? businessBankAccountOptionList.map((account) => ({

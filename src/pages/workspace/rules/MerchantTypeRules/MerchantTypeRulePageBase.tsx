@@ -34,6 +34,7 @@ import type {MerchantTypeRuleForm} from '@src/types/form/MerchantTypeRuleForm';
 import INPUT_IDS from '@src/types/form/MerchantTypeRuleForm';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -52,6 +53,7 @@ function getValidationError(form: MerchantTypeRuleForm | null | undefined, trans
 }
 
 function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRulePageBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Lock']);
@@ -84,12 +86,12 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
         setDraftMerchantTypeRule(getMerchantTypeRuleFormFromMccGroup(groupID, currentCategory));
     }, [currentCategory, groupID]);
 
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -179,7 +181,11 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.merchantRules.thenApplyFollowingDefaults')}</Text>
                     <MenuItem.Root
-                        onPress={canWriteRules ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(policyID, groupID))) : undefined}
+                        onPress={
+                            canWriteRules
+                                ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(policyID, groupID)), false, session)
+                                : undefined
+                        }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_CATEGORY}
                     >
                         <MenuItem.Row>

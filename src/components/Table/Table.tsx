@@ -19,13 +19,13 @@ import {canMeasureText} from '@libs/measureTextWidth';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
-import type {ColumnWidthOverrides} from '@src/types/onyx/TableColumnWidths';
+import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {TableListMetadata} from './buildTableListData';
@@ -34,6 +34,7 @@ import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
 import {getDataVisibleIndices, getListIndex, getTableListMetadata, rendersColumnHeader} from './buildTableListData';
+import ColumnResizeContext from './columnResize/ColumnResizeContext';
 import getMeasureWidthRef from './columnResize/getMeasureWidthRef';
 import useColumnResize from './columnResize/useColumnResize';
 import useStoredColumnWidths from './columnResize/useStoredColumnWidths';
@@ -44,6 +45,7 @@ import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
 import {shouldUseTableSemantics} from './tableAccessibility';
 import {doesBodyRenderWhenEmpty} from './TableBody';
+import TableBulkActionBar from './TableBulkActionBar';
 import TableContext from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
@@ -146,8 +148,8 @@ function createTableHandle<DataType extends TableData, ColumnKey extends string 
 }
 
 type TableContentProps<DataType extends TableData, ColumnKey extends string, FilterKey extends string> = TableProps<DataType, ColumnKey, FilterKey> & {
-    /** Stored dragged widths for this table's `columnResizingID`. */
-    columnWidthOverrides?: ColumnWidthOverrides;
+    /** Layout the last drag saved for this `columnResizingID`. */
+    storedTableColumnWidths?: StoredTableColumnWidths;
 };
 
 function TableContent<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>({
@@ -171,7 +173,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     shouldPreserveSelectionOnSearchAndFilter,
     shouldFooterRenderAsLastRow,
     columnResizingID,
-    columnWidthOverrides,
+    storedTableColumnWidths,
     onRowSelectionChange,
     onSearchStringChange,
     onSortingChange,
@@ -279,7 +281,7 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     // static tracks and never measure the table.
     const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
 
-    // Dragged widths are applied by the dynamic sizing resolver, so resizing requires it.
+    // The saved layout is applied by the dynamic sizing resolver, so resizing requires it.
     const {isBetaEnabled} = usePermissions();
     const isColumnResizingEnabled = isDynamicSizingEnabled && !!columnResizingID && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
 
@@ -290,8 +292,11 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         scrollWidth: dynamicScrollWidth,
         rowWidth: dynamicRowWidth,
         resizableColumnKeys,
+        getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
+        getStoredTableColumnWidths,
+        getTargetColumnWidth,
     } = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
@@ -300,14 +305,17 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         // In the wide layout the checkbox column is rendered whenever selection is enabled.
         hasSelectionColumn: !!selectionEnabled,
         isColumnResizingEnabled,
-        columnWidthOverrides,
+        storedTableColumnWidths,
     });
 
     const columnResize = useColumnResize({
         columnResizingID: isColumnResizingEnabled ? columnResizingID : undefined,
         resizableColumnKeys,
+        getResizedColumnWidths,
         resolvedColumnWidths,
         dragMinWidths,
+        getStoredTableColumnWidths,
+        getTargetColumnWidth,
         columnGap: styles.gap3.gap,
     });
 
@@ -354,18 +362,20 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
     const isColumnHeaderHiddenInNarrowLayout = shouldUseNarrowTableLayout && !title;
     const canStickColumnHeaderInScroller = canUseCssPositionSticky();
 
-    const tableListMetadata = useMemo(
-        () =>
-            getTableListMetadata({
-                listHeaderElement,
-                listHeaderComponent: listProps.ListHeaderComponent,
-                hasColumnHeaderElement,
-                hasRows,
-                isColumnHeaderHiddenInNarrowLayout,
-                canStickColumnHeaderInScroller,
-            }),
-        [listHeaderElement, listProps.ListHeaderComponent, hasColumnHeaderElement, hasRows, isColumnHeaderHiddenInNarrowLayout, canStickColumnHeaderInScroller],
-    );
+    // The bar is only ever a wide layout affordance, since the narrow one selects rows through its own header. Whether
+    // it is on screen is decided here rather than in the bar, because the list has to reserve the space it floats over
+    // and the two must not disagree about when that is.
+    const hasBulkActionBarChild = childrenArray.some((child) => React.isValidElement(child) && child.type === TableBulkActionBar);
+    const isBulkActionBarVisible = hasBulkActionBarChild && !shouldUseNarrowLayout && selectedKeys.length > 0;
+
+    const tableListMetadata = getTableListMetadata({
+        listHeaderElement,
+        listHeaderComponent: listProps.ListHeaderComponent,
+        hasColumnHeaderElement,
+        hasRows,
+        isColumnHeaderHiddenInNarrowLayout,
+        canStickColumnHeaderInScroller,
+    });
     /**
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
@@ -434,7 +444,6 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         dynamicGridTemplateColumns,
         scrollWidth: dynamicScrollWidth,
         rowWidth: dynamicRowWidth,
-        columnResize,
         tableWidth: contentWidth,
         filterConfig: filters,
         activeFilters: currentFilters,
@@ -449,6 +458,8 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         tableListMetadata,
         isEmptyResult,
         isDefaultViewEmpty,
+        selectedKeys,
+        isBulkActionBarVisible,
         shouldUseNarrowTableLayout,
         shouldFooterRenderAsLastRow,
         selectionEnabled,
@@ -469,51 +480,53 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
 
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>
-            <TableSemanticContainer
-                isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
-                title={title}
-                rowCount={processedData.length}
-                columnCount={semanticColumnCount}
-                rendersBodyWhenEmpty={rendersBodyWhenEmpty}
-                shouldUseDynamicColumns={shouldUseDynamicColumns}
-                hasHeaderRow={rendersColumnHeader(tableListMetadata)}
-                // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
-                // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
-                scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
-                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
-                // Stored widths differ from the static tracks, so a resizable table can't paint before it's measured.
-                measureWidthRef={isColumnResizingEnabled ? getMeasureWidthRef(setTableWidth) : undefined}
-                onScopeElement={columnResize?.setScopeElement}
-            >
-                {renderedChildren}
-            </TableSemanticContainer>
+            <ColumnResizeContext.Provider value={columnResize}>
+                <TableSemanticContainer
+                    isEnabled={isTableSemanticsEnabled && !tableListMetadata.hasPageHeader}
+                    title={title}
+                    rowCount={processedData.length}
+                    columnCount={semanticColumnCount}
+                    rendersBodyWhenEmpty={rendersBodyWhenEmpty}
+                    shouldUseDynamicColumns={shouldUseDynamicColumns}
+                    hasHeaderRow={rendersColumnHeader(tableListMetadata)}
+                    // Only tables without a page header scroll here. With one, an ancestor scroller would drag the
+                    // in-list filter bar sideways, so their list scrolls horizontally itself (see `TableBody`).
+                    scrollWidth={hasPageHeader ? undefined : dynamicScrollWidth}
+                    onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
+                    // Stored widths differ from the static tracks, so a resizable table can't paint before it's measured.
+                    measureWidthRef={isColumnResizingEnabled ? getMeasureWidthRef(setTableWidth) : undefined}
+                    onScopeElement={columnResize?.setScopeElement}
+                >
+                    {renderedChildren}
+                </TableSemanticContainer>
 
-            <Modal
-                shouldPreventScrollOnFocus
-                isVisible={!!mobileSelectionModalRowKey}
-                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
-                restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
-                onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
-                enableEdgeToEdgeBottomSafeAreaPadding
-                onModalHide={() => {
-                    if (mobileSelectionModalRowKeyRef.current) {
-                        return;
-                    }
-                    releaseBackgroundInputFocusSuppressionRef.current?.();
-                    releaseBackgroundInputFocusSuppressionRef.current = null;
-                    setShouldSubmitMobileSelection(false);
-                    setShouldSkipMobileSelectionFocusRestore(false);
-                }}
-            >
-                <View style={bottomSafeAreaPaddingStyle}>
-                    <MenuItemAction
-                        icon={icons.CheckSquare}
-                        title={translate('common.select')}
-                        onPress={handleMobileSelectionPress}
-                        testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
-                    />
-                </View>
-            </Modal>
+                <Modal
+                    shouldPreventScrollOnFocus
+                    isVisible={!!mobileSelectionModalRowKey}
+                    type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                    restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
+                    onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    onModalHide={() => {
+                        if (mobileSelectionModalRowKeyRef.current) {
+                            return;
+                        }
+                        releaseBackgroundInputFocusSuppressionRef.current?.();
+                        releaseBackgroundInputFocusSuppressionRef.current = null;
+                        setShouldSubmitMobileSelection(false);
+                        setShouldSkipMobileSelectionFocusRestore(false);
+                    }}
+                >
+                    <View style={bottomSafeAreaPaddingStyle}>
+                        <MenuItemAction
+                            icon={icons.CheckSquare}
+                            title={translate('common.select')}
+                            onPress={handleMobileSelectionPress}
+                            testID={CONST.SELECTION_LIST_WITH_MODAL_TEST_ID}
+                        />
+                    </View>
+                </Modal>
+            </ColumnResizeContext.Provider>
         </TableContext.Provider>
     );
 }
@@ -521,12 +534,12 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
 function TableWithStoredColumnWidths<DataType extends TableData, ColumnKey extends string = string, FilterKey extends string = string>(
     props: TableProps<DataType, ColumnKey, FilterKey> & {columnResizingID: string},
 ) {
-    const columnWidthOverrides = useStoredColumnWidths(props.columnResizingID);
+    const storedTableColumnWidths = useStoredColumnWidths(props.columnResizingID);
 
     return (
         <TableContent
             {...props}
-            columnWidthOverrides={columnWidthOverrides}
+            storedTableColumnWidths={storedTableColumnWidths}
         />
     );
 }

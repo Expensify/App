@@ -47,7 +47,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from '
 import type {ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
-import {format} from 'date-fns';
+import {format, parseJSON} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
 import isEmpty from 'lodash/isEmpty';
@@ -77,8 +77,8 @@ import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getRepo
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
 import {getWorkArrangementLabel} from './WorkArrangementUtils';
+import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspaceDisplayUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
-import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspacesSettingsUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;
@@ -97,6 +97,28 @@ type MemberChangeMessageRoomReferenceElement = {
 } & MessageElementBase;
 
 type MemberChangeMessageElement = MessageTextElement | MemberChangeMessageUserMentionElement | MemberChangeMessageRoomReferenceElement;
+
+type SystemMessageRun = {
+    /** IDs of every canonical action represented by this run, in chronological order. */
+    reportActionIDs: string[];
+
+    /** Oldest action supplies the normal actor header and timestamp in either list direction. */
+    earliestReportAction: ReportAction;
+
+    /** Whether every member action is currently present in the displayed action list. */
+    isExpanded: boolean;
+};
+
+type SystemMessageDisplayState = {
+    /** Actions that map one-to-one to rendered rows in the money-request audit list. */
+    displayReportActions: ReportAction[];
+
+    /** Collapsible runs keyed by the first action that represents the run. */
+    runsByAnchorReportActionID: Map<string, SystemMessageRun>;
+
+    /** Displayed row index for every canonical action, including members of collapsed runs. */
+    reportActionIDToDisplayIndex: Map<string, number>;
+};
 
 function isPolicyExpenseChat(report: OnyxInputOrEntry<Report>): boolean {
     return report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT || !!(report && typeof report === 'object' && 'isPolicyExpenseChat' in report && report.isPolicyExpenseChat);
@@ -183,6 +205,210 @@ const MEMBER_CHANGE_ARRAY = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY,
+]);
+
+// This list is intentionally independent from every POLICY_CHANGE_LOG constant and from the content-router resolver map.
+// New policy actions must opt in here after they are confirmed to be passive audit content.
+const SYSTEM_POLICY_CHANGE_LOG_ACTION_TYPES = new Set<ReportActionName>([
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EXPENSIFY_CARD_RULE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_ACCOUNTING,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CATEGORIES,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CODING_RULES,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_CURRENCY,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_DISTANCE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_EMPLOYEES,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_HR,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_INVOICES,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_OVERVIEW,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_PER_DIEM,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RECEIPT_PARTNERS,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_REPORT_FIELDS,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_RULES,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAGS,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TAXES,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TIME_TRACKING,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_TRAVEL,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.COPY_WORKFLOWS,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_APPROVER_RULE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_SUB_RATE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_TAGS,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INDIVIDUAL_BUDGET_NOTIFICATION,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SHARED_BUDGET_NOTIFICATION,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVER_RULE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EXPENSIFY_CARD_RULE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_ENABLED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_NAME,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED,
+    CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE,
+]);
+
+const SIMPLE_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
+    CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED,
+    CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+    CONST.REPORT.ACTIONS.TYPE.HOLD,
+    CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT,
+    CONST.REPORT.ACTIONS.TYPE.UNHOLD,
+    CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD,
+    CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED,
+    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+    CONST.REPORT.ACTIONS.TYPE.REOPENED,
+    CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
+    CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
+    CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION,
+    CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION,
+    CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED,
+    CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
+    CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES,
+    CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE,
+    CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL,
+    CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION,
+]);
+
+const SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
+    CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+    CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+    CONST.REPORT.ACTIONS.TYPE.MOVED,
+    CONST.REPORT.ACTIONS.TYPE.RENAMED,
+    CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+    CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+    CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
+    CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+    CONST.REPORT.ACTIONS.TYPE.REROUTE,
+    CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER,
+    CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN,
+    CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED,
+    CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+    CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
+    CONST.REPORT.ACTIONS.TYPE.CARD_DEACTIVATED,
+    CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM,
+    CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MATCH_VENDOR,
+    CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE,
+    CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE,
+    CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+    CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS,
+    CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+    CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION,
+    CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+    CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+]);
+
+const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
+    CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
+    CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
+    CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+    CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
+    CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
+    CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED,
+    CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
 ]);
 
 const deprecatedOldDotReportActions = new Set<ReportActionName>([
@@ -427,6 +653,154 @@ function isMovedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportActi
 
 function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>> {
     return reportAction?.actionName ? POLICY_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
+}
+
+function isApprovalFlowAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return (
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
+        isMarkAsClosedAction(reportAction) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED) ||
+        isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED)
+    );
+}
+
+function isSimpleMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    return !!reportAction && (SIMPLE_MESSAGE_ACTION_TYPES.has(reportAction.actionName) || isUnapprovedAction(reportAction) || isRejectedAction(reportAction));
+}
+
+/**
+ * Whether an action is system-generated audit-trail content eligible for collapse classification.
+ * Structural previews and interactive/actionable rows are deliberately excluded so new action types opt in explicitly.
+ */
+function isSystemMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction {
+    if (!reportAction || reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL) {
+        return false;
+    }
+
+    return (
+        isApprovalFlowAction(reportAction) ||
+        isPayAction(reportAction) ||
+        isSimpleMessageAction(reportAction) ||
+        isOldDotReportAction(reportAction) ||
+        isMemberChangeAction(reportAction) ||
+        SYSTEM_POLICY_CHANGE_LOG_ACTION_TYPES.has(reportAction.actionName) ||
+        SYSTEM_MESSAGE_ACTION_TYPES.has(reportAction.actionName)
+    );
+}
+
+/**
+ * Whether a system message may be hidden inside an expandable run.
+ * Error/status actions remain standalone so their feedback and recovery controls stay visible.
+ */
+function isCollapsibleSystemMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction {
+    return (
+        isSystemMessageAction(reportAction) &&
+        !reportAction.pendingAction &&
+        !reportAction.error &&
+        isEmpty(reportAction.errors) &&
+        !hasReasoning(reportAction) &&
+        !reportAction.childVisibleActionCount &&
+        !NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES.has(reportAction.actionName)
+    );
+}
+
+/**
+ * Creates a displayed report-action list while retaining a lookup from every canonical action to its rendered row.
+ * A run stays expanded when pagination extends it as long as any prior member ID remains in expandedReportActionIDs.
+ */
+function getSystemMessageDisplayState(
+    reportActions: ReportAction[],
+    expandedReportActionIDs: ReadonlySet<string>,
+    forceExpandedReportActionIDs: readonly string[] = [],
+): SystemMessageDisplayState {
+    const displayReportActions: ReportAction[] = [];
+    const runsByAnchorReportActionID = new Map<string, SystemMessageRun>();
+    const reportActionIDToDisplayIndex = new Map<string, number>();
+    const forcedExpandedIDs = new Set(forceExpandedReportActionIDs.filter(Boolean));
+    // Build the same oldest-first, bounded runs for the ascending and inverted audit lists.
+    // CREATED is always logically oldest, even when its timestamp is later than other actions.
+    const firstAction = reportActions.at(0);
+    const lastAction = reportActions.at(-1);
+    const isNewestFirst = !!firstAction && !!lastAction && isNewerReportAction(firstAction, lastAction);
+    const chronologicalActions = isNewestFirst ? reportActions.toReversed() : reportActions;
+
+    const appendAction = (reportAction: ReportAction) => {
+        reportActionIDToDisplayIndex.set(reportAction.reportActionID, displayReportActions.length);
+        displayReportActions.push(reportAction);
+    };
+
+    for (let index = 0; index < chronologicalActions.length; ) {
+        const reportAction = chronologicalActions.at(index);
+        if (!reportAction) {
+            index++;
+            continue;
+        }
+
+        // Database timestamps are UTC even when they omit the timezone suffix.
+        const earliestTime = parseJSON(reportAction.created).getTime();
+        const actorAccountID = getReportActionActorAccountID(reportAction, undefined, undefined);
+        if (!isCollapsibleSystemMessageAction(reportAction) || !actorAccountID || !Number.isFinite(earliestTime)) {
+            appendAction(reportAction);
+            index++;
+            continue;
+        }
+
+        let runEndIndex = index + 1;
+        while (runEndIndex < chronologicalActions.length) {
+            const nextAction = chronologicalActions.at(runEndIndex);
+            if (!isCollapsibleSystemMessageAction(nextAction)) {
+                break;
+            }
+            const elapsedTime = parseJSON(nextAction.created).getTime() - earliestTime;
+            if (
+                !Number.isFinite(elapsedTime) ||
+                elapsedTime < 0 ||
+                elapsedTime > CONST.REPORT.ACTIONS.MAX_SYSTEM_MESSAGE_COLLAPSE_TIME ||
+                Number(getReportActionActorAccountID(nextAction, undefined, undefined)) !== Number(actorAccountID) ||
+                getDelegateAccountIDFromReportAction(nextAction) !== getDelegateAccountIDFromReportAction(reportAction) ||
+                getHumanAgentAccountIDFromReportAction(nextAction) !== getHumanAgentAccountIDFromReportAction(reportAction)
+            ) {
+                break;
+            }
+            runEndIndex++;
+        }
+
+        const runActions = chronologicalActions.slice(index, runEndIndex);
+        if (runActions.length === 1) {
+            appendAction(reportAction);
+            index = runEndIndex;
+            continue;
+        }
+
+        const reportActionIDs = runActions.map((action) => action.reportActionID);
+        const isExpanded = reportActionIDs.some((reportActionID) => expandedReportActionIDs.has(reportActionID) || forcedExpandedIDs.has(reportActionID));
+        const anchorAction = (isNewestFirst ? runActions.at(-1) : reportAction) ?? reportAction;
+        runsByAnchorReportActionID.set(anchorAction.reportActionID, {reportActionIDs, earliestReportAction: reportAction, isExpanded});
+
+        if (isExpanded) {
+            for (const runAction of runActions) {
+                appendAction(runAction);
+            }
+        } else {
+            const anchorDisplayIndex = displayReportActions.length;
+            displayReportActions.push(anchorAction);
+            for (const reportActionID of reportActionIDs) {
+                reportActionIDToDisplayIndex.set(reportActionID, anchorDisplayIndex);
+            }
+        }
+
+        index = runEndIndex;
+    }
+
+    if (isNewestFirst) {
+        displayReportActions.reverse();
+        for (const [reportActionID, index] of reportActionIDToDisplayIndex) {
+            reportActionIDToDisplayIndex.set(reportActionID, displayReportActions.length - 1 - index);
+        }
+    }
+
+    return {displayReportActions, runsByAnchorReportActionID, reportActionIDToDisplayIndex};
 }
 
 function isAddCommentAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> {
@@ -1355,6 +1729,12 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    // Queued-for-export is a backend bookkeeping action with no user-facing message. Hide it explicitly so a future
+    // backend change that adds message text does not surface it in chat. Matches Auth's Report::HIDDEN_ACTIONS.
+    if (actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT) {
+        return false;
+    }
+
     // Hide automatic TAKE_CONTROL actions created by OldDot's auto-pay workflow.
     // When automaticAction is true and there are no mentionedAccountIDs, this indicates
     // the TAKE_CONTROL was a side effect of auto-pay rather than a manual approver change.
@@ -1800,27 +2180,44 @@ function isOlderReportAction(a: ReportAction, b: ReportAction): boolean {
 }
 
 /**
- * Returns the ID of the newest Concierge comment that can show the feedback prompt.
+ * Returns the ID of the author's newest comment that can show the feedback prompt.
  * The comment has to be in Onyx because the Concierge greeting and the streaming draft are built on the client and cannot hold a reaction.
  *
  * @param sortedVisibleReportActions - visible report actions sorted newest first
  * @param persistedReportActionIDs - IDs of the report actions stored in Onyx
+ * @param authorAccountID - Concierge or a custom agent
  */
-function getLatestConciergeFeedbackActionID(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: string[]): string | undefined {
-    const latestConciergeComment = sortedVisibleReportActions.find(isConciergeFeedbackCandidate);
+function getLatestConciergeFeedbackActionID(
+    sortedVisibleReportActions: ReportAction[],
+    persistedReportActionIDs: string[],
+    authorAccountID: number = CONST.ACCOUNT_ID.CONCIERGE,
+): string | undefined {
+    const latestComment = sortedVisibleReportActions.find((action) => action.actorAccountID === authorAccountID && isConciergeFeedbackCandidate(action));
 
-    if (!latestConciergeComment || !persistedReportActionIDs.includes(latestConciergeComment.reportActionID)) {
+    if (!latestComment || !persistedReportActionIDs.includes(latestComment.reportActionID)) {
         return undefined;
     }
 
-    return latestConciergeComment.reportActionID;
+    return latestComment.reportActionID;
 }
 
-/** Whether the comment can carry the inline feedback prompt, which needs a Concierge comment the server knows about */
+/**
+ * Returns the IDs of the comments that show the feedback prompt: the newest comment of Concierge and the newest comment of each custom agent.
+ *
+ * @param sortedVisibleReportActions - visible report actions sorted newest first
+ * @param persistedReportActionIDs - IDs of the report actions stored in Onyx
+ * @param customAgentAccountIDs - accountIDs of the custom agents that wrote in the report
+ */
+function getFeedbackPromptActionIDs(sortedVisibleReportActions: ReportAction[], persistedReportActionIDs: string[], customAgentAccountIDs: number[]): string[] {
+    return [CONST.ACCOUNT_ID.CONCIERGE, ...customAgentAccountIDs]
+        .map((authorAccountID) => getLatestConciergeFeedbackActionID(sortedVisibleReportActions, persistedReportActionIDs, authorAccountID))
+        .filter((reportActionID): reportActionID is string => !!reportActionID);
+}
+
+/** Whether the comment can carry the inline feedback prompt, which needs a comment the server knows about */
 function isConciergeFeedbackCandidate(action: ReportAction): boolean {
     return (
         isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
-        action.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE &&
         !isDeletedAction(action) &&
         !isWhisperAction(action) &&
         // A failed comment does not exist on the server, so a reaction on it cannot be saved
@@ -1829,19 +2226,19 @@ function isConciergeFeedbackCandidate(action: ReportAction): boolean {
 }
 
 /**
- * Returns the ID of the newest Concierge comment in a report that can show the feedback prompt.
+ * Returns the ID of the author's newest comment in a report that can show the feedback prompt.
  * Reading the report's own actions is what lets a thread decide about the message it hangs off, which lives in the parent report.
  */
-function getLatestConciergeFeedbackActionIDFromReportActions(reportActions: OnyxEntry<ReportActions>): string | undefined {
-    let latestConciergeComment: ReportAction | undefined;
+function getLatestConciergeFeedbackActionIDFromReportActions(reportActions: OnyxEntry<ReportActions>, authorAccountID: number = CONST.ACCOUNT_ID.CONCIERGE): string | undefined {
+    let latestComment: ReportAction | undefined;
 
     for (const action of Object.values(reportActions ?? {})) {
-        if (isConciergeFeedbackCandidate(action) && (!latestConciergeComment || action.created > latestConciergeComment.created)) {
-            latestConciergeComment = action;
+        if (action.actorAccountID === authorAccountID && isConciergeFeedbackCandidate(action) && (!latestComment || action.created > latestComment.created)) {
+            latestComment = action;
         }
     }
 
-    return latestConciergeComment?.reportActionID;
+    return latestComment?.reportActionID;
 }
 
 /**
@@ -1968,6 +2365,13 @@ function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticI
 
 function isPayAction(reportAction: OnyxInputOrEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+}
+
+/**
+ * Expense payments waiting for a bank account or wallet use a separate status message. Direct-send payments still render.
+ */
+function shouldHidePayAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>, isWaitingOnBankAccount: boolean): boolean {
+    return isWaitingOnBankAccount && isPayAction(reportAction) && !isSentMoneyReportAction(reportAction);
 }
 
 /**
@@ -2397,7 +2801,6 @@ function getMessageOfOldDotLegacyAction(legacyAction: PartialReportAction) {
     }
     if (legacyAction?.message.length !== 0) {
         // Sometime html can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return legacyAction?.message?.map((element) => getTextFromHtml(element?.html || element?.text)).join('') ?? '';
     }
     return '';
@@ -2415,6 +2818,10 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
     switch (actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
             const {oldValue, newValue, fieldName} = originalMessage;
+            if (!newValue) {
+                // A cleared field has no new value to show, so it must never fall through to `set {field} to ""`
+                return oldValue ? translate('report.actions.type.changeFieldRemoved', oldValue, fieldName) : translate('report.actions.type.changeFieldCleared', fieldName);
+            }
             if (!oldValue) {
                 return translate('report.actions.type.changeFieldEmpty', newValue, fieldName);
             }
@@ -2676,6 +3083,12 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT)) {
+        const message = getWorkspaceRulesDocumentUpdatedMessage(translate, action);
+        const linkedMessage = getWorkspaceRulesDocumentUpdatedMessage(translate, action, true);
+        return [{text: message, html: `<muted-text>${linkedMessage}</muted-text>`, type: 'COMMENT'}];
+    }
+
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED)) {
         const message = translate('iou.retracted');
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
@@ -2853,8 +3266,7 @@ function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): stri
         return getReportActionText(reportAction);
     }
     // Sometime html can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text)}`, '') ?? '';
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text, reportAction.reportActionID)}`, '') ?? '';
 }
 
 function getAgentPromptUpdatedMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
@@ -2908,6 +3320,13 @@ function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportActio
  */
 function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
     return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === reportAction?.actorAccountID;
+}
+
+/**
+ * Check if the current user authored the action. For report previews, the author is the last actor on the child report.
+ */
+function isReportActionFromCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
+    return currentUserAccountID === (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction?.actorAccountID);
 }
 
 /**
@@ -3211,7 +3630,27 @@ function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<Repor
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
 }
 
-function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: LocalizedTranslate, field: string | undefined, oldValue: unknown, newValue: unknown, rawEmail: string): string {
+type PolicyChangeLogApprovalLimitContext = {
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+
+    /** Currency of the approval limit saved on the action. Older actions don't have it, so they use the server message */
+    currency?: string;
+
+    /** The member's approval limit after the change, saved on the action */
+    limit?: number;
+
+    /** The member's approval limit before the change, saved on the action */
+    previousLimit?: number;
+};
+
+function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
+    translate: LocalizedTranslate,
+    field: string | undefined,
+    oldValue: unknown,
+    newValue: unknown,
+    rawEmail: string,
+    approvalLimitContext: PolicyChangeLogApprovalLimitContext,
+): string {
     if (!field) {
         return '';
     }
@@ -3225,12 +3664,51 @@ function buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate: Localiz
         return translate(translationKey, email, stringNewValue, stringOldValue);
     }
 
-    const newRole = translate('workspace.common.roleName', stringNewValue).toLowerCase();
-    const oldRole = translate('workspace.common.roleName', stringOldValue).toLowerCase();
-    return translate('report.actions.type.updateRole', email, oldRole, newRole);
+    if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.ROLE) {
+        const newRole = translate('workspace.common.roleName', stringNewValue).toLowerCase();
+        const oldRole = translate('workspace.common.roleName', stringOldValue).toLowerCase();
+        return translate('report.actions.type.updateRole', email, oldRole, newRole);
+    }
+
+    const newApprover = stringNewValue ? formatPhoneNumber(stringNewValue) : '';
+    const previousApprover = stringOldValue ? formatPhoneNumber(stringOldValue) : undefined;
+
+    if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.SUBMITS_TO) {
+        // An empty submitsTo (for example, a blank Submit To value in a member import) sends the member's reports to the default approver
+        return buildSubmitsToMessage(translate, {members: email, approver: newApprover, previousApprover, isDefaultApprover: !newApprover});
+    }
+
+    if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.FORWARDS_TO) {
+        return buildForwardsToMessage(translate, {approver: email, forwardsTo: newApprover, previousForwardsTo: previousApprover});
+    }
+
+    const {convertToDisplayString, currency, limit, previousLimit} = approvalLimitContext;
+
+    if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT) {
+        if (!currency || typeof limit !== 'number' || typeof previousLimit !== 'number') {
+            return '';
+        }
+        return buildApprovalLimitMessage(translate, {member: email, limit, previousLimit, currency, convertToDisplayString});
+    }
+
+    if (field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO) {
+        // A removal only shows the previous limit and a change only shows the new one, so only that limit needs to be saved on the action
+        const hasLimitToShow = newApprover ? typeof limit === 'number' : typeof previousLimit === 'number';
+        if (!currency || !hasLimitToShow) {
+            return '';
+        }
+        return buildOverLimitForwardsToMessage(translate, {member: email, approver: newApprover, previousApprover, limit, previousLimit, currency, convertToDisplayString});
+    }
+
+    // We don't have dedicated copy for this field, so the caller falls back to the server-provided message instead of guessing
+    return '';
 }
 
-function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>): string {
+function getPolicyChangeLogUpdateEmployee(
+    translate: LocalizedTranslate,
+    reportAction: OnyxInputOrEntry<ReportAction>,
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+): string {
     if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
         return '';
     }
@@ -3239,20 +3717,45 @@ function getPolicyChangeLogUpdateEmployee(translate: LocalizedTranslate, reportA
     const email = originalMessage?.email ?? '';
     const fieldChanges = originalMessage?.fields;
 
-    if (Array.isArray(fieldChanges) && fieldChanges.length > 0) {
-        const messages = fieldChanges
-            .map((fieldChange) => {
-                if (!fieldChange || typeof fieldChange !== 'object') {
-                    return '';
-                }
-                return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email);
-            })
-            .filter(Boolean);
+    // Use the currency and limits saved on the action, so the message doesn't change when the workspace currency or member limit changes later
+    const approvalLimitContext: PolicyChangeLogApprovalLimitContext = {
+        convertToDisplayString,
+        currency: originalMessage?.currency,
+        limit: originalMessage?.limit,
+        previousLimit: originalMessage?.previousLimit,
+    };
 
-        return messages.join(', ');
+    if (Array.isArray(fieldChanges) && fieldChanges.length > 0) {
+        const hasOverLimitForwardsToChange = fieldChanges.some((fieldChange) => fieldChange?.field === CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO);
+
+        // The overLimitForwardsTo message already includes the limit, so the approvalLimit change is folded into it instead of being shown twice
+        const fieldChangesToShow = hasOverLimitForwardsToChange
+            ? fieldChanges.filter((fieldChange) => fieldChange?.field !== CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT)
+            : fieldChanges;
+        const messages = fieldChangesToShow.map((fieldChange) => {
+            if (!fieldChange || typeof fieldChange !== 'object') {
+                return '';
+            }
+            return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, fieldChange.field, fieldChange.oldValue, fieldChange.newValue, email, approvalLimitContext);
+        });
+
+        if (messages.every(Boolean)) {
+            return messages.join(', ');
+        }
+
+        // At least one field has no dedicated copy, so prefer the server message to avoid dropping or misreporting a change
+        return getReportActionText(reportAction) || messages.filter(Boolean).join(', ');
     }
 
-    return buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(translate, originalMessage?.field, originalMessage?.oldValue, originalMessage?.newValue, email);
+    const message = buildPolicyChangeLogUpdateEmployeeSingleFieldMessage(
+        translate,
+        originalMessage?.field,
+        originalMessage?.oldValue,
+        originalMessage?.newValue,
+        email,
+        approvalLimitContext,
+    );
+    return message || getReportActionText(reportAction);
 }
 
 function getPolicyChangeLogEmployeeLeftMessage(
@@ -3281,6 +3784,12 @@ function getWorkspaceDescriptionUpdatedMessage(translate: LocalizedTranslate, ac
     const message =
         typeof oldDescription === 'string' && newDescription ? translate('workspaceActions.updateWorkspaceDescription', newDescription, oldDescription) : getReportActionText(action);
     return message;
+}
+
+function getWorkspaceRulesDocumentUpdatedMessage(translate: LocalizedTranslate, action: ReportAction, shouldLinkToOverview = false) {
+    const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT) ? getOriginalMessage(action) : undefined;
+    const overviewURL = shouldLinkToOverview && originalMessage?.policyID ? `${environmentURL}/${ROUTES.WORKSPACE_OVERVIEW.getRoute(originalMessage.policyID)}` : undefined;
+    return translate('workspaceActions.updateRulesDocument', !!originalMessage?.isReplacement, overviewURL);
 }
 
 function getWorkspaceCurrencyUpdateMessage(translate: LocalizedTranslate, action: ReportAction) {
@@ -3573,7 +4082,7 @@ function getWorkspaceCustomUnitRateImportedMessage(translate: LocalizedTranslate
 }
 
 function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, action: ReportAction): string {
-    const {customUnitName, rateName, rate, currency, unit, startDate, endDate} =
+    const {customUnitName, rateName, rate, currency, unit, startDate, endDate, taxClaimablePercentage, taxRateName} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE>) ?? {};
 
     if (rateName && rate !== undefined && currency && unit) {
@@ -3581,17 +4090,20 @@ function getWorkspaceCustomUnitRateAddedMessage(translate: LocalizedTranslate, d
         const formattedRate = `${convertAmountToDisplayString(rate, currency)}/${unitLabel}`;
         const formattedStartDate = startDate ? DateUtils.formatToReadableString(startDate, dateFnsLocale) : undefined;
         const formattedEndDate = endDate ? DateUtils.formatToReadableString(endDate, dateFnsLocale) : undefined;
+        const taxReclaimableSuffix =
+            taxClaimablePercentage !== undefined && taxRateName
+                ? translate('workspaceActions.addCustomUnitRateTaxReclaimableSuffix', `${convertAmountToDisplayString(rate * taxClaimablePercentage, currency)}/${unitLabel}`, taxRateName)
+                : '';
 
+        let addedRateMessage = translate('workspaceActions.addCustomUnitRateWithAmount', rateName, formattedRate);
         if (formattedStartDate && formattedEndDate) {
-            return translate('workspaceActions.addCustomUnitRateWithAmountAndDates', rateName, formattedRate, formattedStartDate, formattedEndDate);
+            addedRateMessage = translate('workspaceActions.addCustomUnitRateWithAmountAndDates', rateName, formattedRate, formattedStartDate, formattedEndDate);
+        } else if (formattedStartDate) {
+            addedRateMessage = translate('workspaceActions.addCustomUnitRateWithAmountAndStartDate', rateName, formattedRate, formattedStartDate);
+        } else if (formattedEndDate) {
+            addedRateMessage = translate('workspaceActions.addCustomUnitRateWithAmountAndEndDate', rateName, formattedRate, formattedEndDate);
         }
-        if (formattedStartDate) {
-            return translate('workspaceActions.addCustomUnitRateWithAmountAndStartDate', rateName, formattedRate, formattedStartDate);
-        }
-        if (formattedEndDate) {
-            return translate('workspaceActions.addCustomUnitRateWithAmountAndEndDate', rateName, formattedRate, formattedEndDate);
-        }
-        return translate('workspaceActions.addCustomUnitRateWithAmount', rateName, formattedRate);
+        return `${addedRateMessage}${taxReclaimableSuffix}`;
     }
 
     if (customUnitName && rateName) {
@@ -4039,7 +4551,7 @@ type ForwardsToOriginalMessage = {
 };
 
 function formatMemberListWithAnd(members: Array<{email: string; name: string}>): string {
-    const emails = members.map((m) => Str.removeSMSDomain(m.email));
+    const emails = members.map((m) => formatPhoneNumber(m.email));
 
     if (emails.length === 1) {
         return emails.at(0) ?? '';
@@ -4067,6 +4579,87 @@ function getDefaultApproverUpdateMessage(translate: LocalizedTranslate, action: 
     return translate('workspaceActions.changedDefaultApprover', {newApprover, previousApprover});
 }
 
+type SubmitsToMessageParams = {
+    members: string;
+
+    /** Formatted email of the new approver, empty when the reports go to the default approver without a known email */
+    approver: string;
+    previousApprover?: string;
+    isDefaultApprover: boolean;
+    wasDefaultApprover?: boolean;
+};
+
+function buildSubmitsToMessage(translate: LocalizedTranslate, {isDefaultApprover, ...params}: SubmitsToMessageParams): string {
+    if (isDefaultApprover) {
+        return translate('workspaceActions.changedSubmitsToDefault', params);
+    }
+    return translate('workspaceActions.changedSubmitsToApprover', params);
+}
+
+type ForwardsToMessageParams = {
+    approver: string;
+
+    /** Formatted email of the new forwardsTo approver, empty when it was removed */
+    forwardsTo: string;
+    previousForwardsTo?: string;
+};
+
+function buildForwardsToMessage(translate: LocalizedTranslate, {approver, forwardsTo, previousForwardsTo}: ForwardsToMessageParams): string {
+    if (!forwardsTo) {
+        return translate('workspaceActions.removedForwardsTo', {approver, previousForwardsTo});
+    }
+    return translate('workspaceActions.changedForwardsTo', {approver, forwardsTo, previousForwardsTo});
+}
+
+type ApprovalLimitMessageParams = {
+    member: string;
+    limit: number;
+    previousLimit: number;
+    currency: string;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+};
+
+function buildApprovalLimitMessage(translate: LocalizedTranslate, {member, limit, previousLimit, currency, convertToDisplayString}: ApprovalLimitMessageParams): string {
+    return translate('workspaceActions.changedApprovalLimit', {
+        member,
+        limit: convertToDisplayString(limit, currency),
+        previousLimit: convertToDisplayString(previousLimit, currency),
+    });
+}
+
+type OverLimitForwardsToMessageParams = {
+    member: string;
+
+    /** Formatted email of the new over-limit approver, empty when it was removed */
+    approver: string;
+    previousApprover?: string;
+    limit?: number;
+    previousLimit?: number;
+    currency: string;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+};
+
+function buildOverLimitForwardsToMessage(
+    translate: LocalizedTranslate,
+    {member, approver, previousApprover, limit, previousLimit, currency, convertToDisplayString}: OverLimitForwardsToMessageParams,
+): string {
+    const formattedPreviousLimit = convertToDisplayString(previousLimit ?? 0, currency);
+
+    if (!approver) {
+        return translate('workspaceActions.removedOverLimitForwardsTo', {member, previousApprover, previousLimit: formattedPreviousLimit});
+    }
+
+    // Only mention the previous limit when it changed together with the approver
+    const didLimitChange = !!previousApprover && typeof limit === 'number' && typeof previousLimit === 'number' && limit !== previousLimit;
+    return translate('workspaceActions.changedOverLimitForwardsTo', {
+        member,
+        approver,
+        limit: convertToDisplayString(limit ?? 0, currency),
+        previousApprover,
+        previousLimit: didLimitChange ? formattedPreviousLimit : undefined,
+    });
+}
+
 function getSubmitsToUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO>) as SubmitsToOriginalMessage | undefined;
 
@@ -4074,26 +4667,12 @@ function getSubmitsToUpdateMessage(translate: LocalizedTranslate, action: Report
         return getReportActionText(action);
     }
 
-    const members = formatMemberListWithAnd(originalMessage.members ?? []);
-    const isDefaultApprover = originalMessage.isDefaultApprover ?? false;
-    const wasDefaultApprover = originalMessage.wasDefaultApprover ?? false;
-    const approverEmail = originalMessage.approver ? formatPhoneNumber(originalMessage.approver.email) : '';
-    const previousApproverEmail = originalMessage.previousApprover ? formatPhoneNumber(originalMessage.previousApprover.email) : undefined;
-
-    if (isDefaultApprover) {
-        return translate('workspaceActions.changedSubmitsToDefault', {
-            members,
-            approver: approverEmail,
-            previousApprover: previousApproverEmail,
-            wasDefaultApprover,
-        });
-    }
-
-    return translate('workspaceActions.changedSubmitsToApprover', {
-        members,
-        approver: approverEmail,
-        previousApprover: previousApproverEmail,
-        wasDefaultApprover,
+    return buildSubmitsToMessage(translate, {
+        members: formatMemberListWithAnd(originalMessage.members ?? []),
+        approver: originalMessage.approver ? formatPhoneNumber(originalMessage.approver.email) : '',
+        previousApprover: originalMessage.previousApprover ? formatPhoneNumber(originalMessage.previousApprover.email) : undefined,
+        isDefaultApprover: originalMessage.isDefaultApprover ?? false,
+        wasDefaultApprover: originalMessage.wasDefaultApprover ?? false,
     });
 }
 
@@ -4104,15 +4683,11 @@ function getForwardsToUpdateMessage(translate: LocalizedTranslate, action: Repor
         return getReportActionText(action);
     }
 
-    const approvers = formatMemberListWithAnd(originalMessage.approvers ?? []);
-    const forwardsToEmail = originalMessage.forwardsTo ? formatPhoneNumber(originalMessage.forwardsTo.email) : '';
-    const previousForwardsTo = originalMessage.previousForwardsTo ? formatPhoneNumber(originalMessage.previousForwardsTo.email) : undefined;
-
-    if (!forwardsToEmail) {
-        return translate('workspaceActions.removedForwardsTo', {approver: approvers, previousForwardsTo});
-    }
-
-    return translate('workspaceActions.changedForwardsTo', {approver: approvers, forwardsTo: forwardsToEmail, previousForwardsTo});
+    return buildForwardsToMessage(translate, {
+        approver: formatMemberListWithAnd(originalMessage.approvers ?? []),
+        forwardsTo: originalMessage.forwardsTo ? formatPhoneNumber(originalMessage.forwardsTo.email) : '',
+        previousForwardsTo: originalMessage.previousForwardsTo ? formatPhoneNumber(originalMessage.previousForwardsTo.email) : undefined,
+    });
 }
 
 function getOverLimitForwardsToUpdateMessage(translate: LocalizedTranslate, action: ReportAction, convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString']): string {
@@ -4121,23 +4696,14 @@ function getOverLimitForwardsToUpdateMessage(translate: LocalizedTranslate, acti
     }
 
     const originalMessage = getOriginalMessage(action) ?? {};
-    const currency = originalMessage.currency ?? CONST.CURRENCY.USD;
-    const member = formatPhoneNumber(originalMessage.member?.email ?? '');
-    const previousApprover = originalMessage.previousOverLimitForwardsTo ? formatPhoneNumber(originalMessage.previousOverLimitForwardsTo.email) : undefined;
-    const previousLimit = convertToDisplayString(originalMessage.previousLimit ?? 0, currency);
-    const didLimitChange =
-        !!previousApprover && typeof originalMessage.limit === 'number' && typeof originalMessage.previousLimit === 'number' && originalMessage.limit !== originalMessage.previousLimit;
-
-    if (!originalMessage.overLimitForwardsTo) {
-        return translate('workspaceActions.removedOverLimitForwardsTo', {member, previousApprover, previousLimit});
-    }
-
-    return translate('workspaceActions.changedOverLimitForwardsTo', {
-        member,
-        approver: formatPhoneNumber(originalMessage.overLimitForwardsTo.email),
-        limit: convertToDisplayString(originalMessage.limit ?? 0, currency),
-        previousApprover,
-        previousLimit: didLimitChange ? previousLimit : undefined,
+    return buildOverLimitForwardsToMessage(translate, {
+        member: formatPhoneNumber(originalMessage.member?.email ?? ''),
+        approver: originalMessage.overLimitForwardsTo ? formatPhoneNumber(originalMessage.overLimitForwardsTo.email) : '',
+        previousApprover: originalMessage.previousOverLimitForwardsTo ? formatPhoneNumber(originalMessage.previousOverLimitForwardsTo.email) : undefined,
+        limit: originalMessage.limit,
+        previousLimit: originalMessage.previousLimit,
+        currency: originalMessage.currency ?? CONST.CURRENCY.USD,
+        convertToDisplayString,
     });
 }
 
@@ -4147,16 +4713,17 @@ function getApprovalLimitUpdateMessage(translate: LocalizedTranslate, action: Re
     }
 
     const originalMessage = getOriginalMessage(action) ?? {};
-    const currency = originalMessage.currency ?? CONST.CURRENCY.USD;
 
     if (typeof originalMessage.limit !== 'number' || typeof originalMessage.previousLimit !== 'number') {
         return getReportActionText(action);
     }
 
-    return translate('workspaceActions.changedApprovalLimit', {
+    return buildApprovalLimitMessage(translate, {
         member: formatPhoneNumber(originalMessage.member?.email ?? ''),
-        limit: convertToDisplayString(originalMessage.limit, currency),
-        previousLimit: convertToDisplayString(originalMessage.previousLimit, currency),
+        limit: originalMessage.limit,
+        previousLimit: originalMessage.previousLimit,
+        currency: originalMessage.currency ?? CONST.CURRENCY.USD,
+        convertToDisplayString,
     });
 }
 
@@ -4414,7 +4981,13 @@ function getAddedCardFeedMessage(translate: LocalizedTranslate, reportAction: On
     }
     const originalMessage = getOriginalMessage(reportAction);
     const feedName = originalMessage?.feedName;
-    return feedName ? translate('workspaceActions.addedCardFeed', feedName) : getReportActionText(reportAction);
+    if (!feedName) {
+        return getReportActionText(reportAction);
+    }
+    if (originalMessage?.feedType === CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD) {
+        return translate('workspaceActions.addedExpensifyCardFeed', feedName);
+    }
+    return translate('workspaceActions.addedCardFeed', feedName);
 }
 
 function getRemovedCardFeedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
@@ -4581,7 +5154,8 @@ function getDemotedFromWorkspaceMessage(translate: LocalizedTranslate, reportAct
     const originalMessage = getOriginalMessage(reportAction);
     const policyName = originalMessage?.policyName ?? translate('workspace.common.workspace');
     const oldRole = translate('workspace.common.roleName', originalMessage?.oldRole).toLowerCase();
-    return translate('workspaceActions.demotedFromWorkspace', policyName, oldRole);
+    const newRole = translate('workspace.common.roleName', originalMessage?.newRole).toLowerCase();
+    return translate('workspaceActions.demotedFromWorkspace', policyName, oldRole, newRole);
 }
 
 function getUpdatedAuditRateMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
@@ -4841,6 +5415,28 @@ function getDeletedOfficeLocationMessage(translate: LocalizedTranslate, reportAc
         return getReportActionText(reportAction);
     }
     return translate('workspaceActions.officeLocation.removed', {name: getOriginalMessage(reportAction)?.name ?? ''});
+}
+
+function getUpdatedEmployeeOfficeLocationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION)) {
+        return getReportActionText(reportAction);
+    }
+    const {name, email, officeID, officeName, oldOfficeID, oldOfficeName} = getOriginalMessage(reportAction) ?? {};
+
+    // An office logged without a name is the primary office, which a member follows when none is assigned to them or
+    // the assigned one was removed
+    const describeOfficeLocation = (loggedOfficeID: string | undefined, loggedOfficeName: string | undefined) => {
+        if (loggedOfficeID === CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID) {
+            return translate('workspaceActions.officeLocation.companyAddress');
+        }
+        return loggedOfficeName ? translate('workspaceActions.officeLocation.quotedName', {name: loggedOfficeName}) : translate('workspaceActions.officeLocation.primaryOffice');
+    };
+
+    return translate('workspaceActions.officeLocation.changedMemberOfficeLocation', {
+        displayName: name ?? (email ? formatPhoneNumber(email) : ''),
+        officeLocation: describeOfficeLocation(officeID, officeName),
+        previousOfficeLocation: describeOfficeLocation(oldOfficeID, oldOfficeName),
+    });
 }
 
 function getUpdatedProhibitedExpensesMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
@@ -5475,6 +6071,7 @@ export {
     getDismissedViolationMessageText,
     getFirstVisibleReportActionID,
     getLatestConciergeFeedbackActionID,
+    getFeedbackPromptActionIDs,
     getLatestConciergeFeedbackActionIDFromReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
@@ -5513,6 +6110,7 @@ export {
     getReportActionMessage,
     getReportActionMessageText,
     getReportActionText,
+    getSystemMessageDisplayState,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     isCardBrokenConnectionAction,
@@ -5525,11 +6123,13 @@ export {
     isActionOfType,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
+    isActionableJoinRequestPendingReportAction,
     getActionableJoinRequestPendingReportAction,
     isActionableMentionWhisper,
     isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
+    isApprovalFlowAction,
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
     isResolvedConciergeCategoryOptions,
@@ -5561,6 +6161,7 @@ export {
     isMoneyRequestAction,
     isOldDotReportAction,
     isPayAction,
+    shouldHidePayAction,
     isPendingRemove,
     getModerationFlagState,
     isReimbursementDeQueuedOrCanceledAction,
@@ -5570,6 +6171,7 @@ export {
     isReportPreviewAction,
     isReversedTransaction,
     isSentMoneyReportAction,
+    isSimpleMessageAction,
     isSplitBillAction,
     isTaskAction,
     isMovedAction,
@@ -5605,6 +6207,7 @@ export {
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,
+    isReportActionFromCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
@@ -5622,6 +6225,7 @@ export {
     getPolicyChangeLogEmployeeLeftMessage,
     getRenamedAction,
     isCardIssuedAction,
+    isCollapsibleSystemMessageAction,
     getCardIssuedMessage,
     getRemovedConnectionMessage,
     getFilteredReportActionsForReportView,
@@ -5669,6 +6273,7 @@ export {
     getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getWorkspaceDescriptionUpdatedMessage,
+    getWorkspaceRulesDocumentUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceCustomUnitSubRateDeletedMessage,
     getWorkspaceCustomUnitRateImportedMessage,
@@ -5681,6 +6286,7 @@ export {
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getWorkspaceTagUpdateMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
@@ -5740,6 +6346,7 @@ export {
     getHarvestCreatedExpenseReportMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
     isOriginalReportDeleted,
+    isSystemMessageAction,
     isSystemUserMentioned,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
