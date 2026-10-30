@@ -759,6 +759,7 @@ function cancelPayment(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
+                stateNum: expenseReport.stateNum,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
                 canCancelReimbursement: expenseReport.canCancelReimbursement,

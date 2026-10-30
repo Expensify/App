@@ -211,7 +211,12 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
     };
 
     if (isBillReport(moneyRequestReport) || isInvoiceReport) {
-        return <BillPaymentButton report={moneyRequestReport} />;
+        return (
+            <BillPaymentButton
+                report={moneyRequestReport}
+                isDisabled={isDisabled}
+            />
+        );
     }
 
     return (

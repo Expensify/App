@@ -1575,7 +1575,7 @@ function Search({
     }
     const searchTableHeader = !shouldShowTableHeader ? undefined : (
         // Match the rows' trailing arrow spacing so the header columns line up with them.
-        <View style={[searchTablePaddingRightStyle, styles.flex1]}>
+        <View style={[searchTablePaddingRightStyle, styles.flex1, styles.alignSelfStretch]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
                 columns={columnsToShow}

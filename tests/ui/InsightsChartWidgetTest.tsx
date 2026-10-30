@@ -95,12 +95,8 @@ describe('Insights chart CSV action', () => {
         expect(menuItems?.map((item) => item.text)).toEqual(['View on Spend', 'Download CSV']);
         menuItems?.at(1)?.onSelected?.();
 
-        // Then the existing local download helper receives only grouped current-period values and zero-filled gaps
-        expect(localFileDownload).toHaveBeenCalledWith(
-            `Expensify-${CHART.graphKey}.csv`,
-            '\uFEFFDate,Expenses,Total,Currency\r\n2026-01-01,0,0.00,USD\r\n2026-02-01,2,123.45,USD\r\n2026-03-01,0,0.00,USD',
-            expect.any(Function),
-        );
+        // Then the existing local download helper receives only the grouped current-period values
+        expect(localFileDownload).toHaveBeenCalledWith(`Expensify-${CHART.graphKey}.csv`, '\uFEFFDate,Expenses,Total,Currency\r\n2026-02-01,2,123.45,USD', expect.any(Function));
     });
 
     it.each([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.EMPTY, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE])(

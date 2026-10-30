@@ -325,6 +325,15 @@ function GroupHeader({
                         {...commonProps}
                     />
                 );
+            case CONST.SEARCH.GROUP_BY.APPROVER:
+                return (
+                    <MemberListItemHeader
+                        member={groupItem}
+                        nameColumn={CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER}
+                        {...commonProps}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                    />
+                );
             default:
                 return null;
         }
