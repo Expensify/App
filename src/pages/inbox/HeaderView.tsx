@@ -378,6 +378,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !shouldMirrorSidePanelHeader;
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !shouldMirrorSidePanelHeader;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !shouldMirrorSidePanelHeader;
+    const shouldGroupConciergeActions = shouldShowTalkToHuman && shouldStackCallAction && shouldShowOnBoardingHelpDropdownButton && !shouldShowEarlyDiscountBanner;
     const hasActiveScheduledCall = !!latestScheduledCall && !isScheduledCallPast && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
     // Not gated on !shouldUseNarrowLayout like the side-panel case: isInNarrowPaneModal makes
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
@@ -557,9 +558,15 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
                 {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newConciergeChatButton}</View>}
-                {shouldShowCallAction && shouldStackCallAction && <View style={[styles.ph5, styles.pb3]}>{callActionButton}</View>}
+                {shouldGroupConciergeActions && (
+                    <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.ph5, styles.pb3]}>
+                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.mw100]}>{callActionButton}</View>
+                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.mw100]}>{onboardingHelpDropdownButton}</View>
+                    </View>
+                )}
+                {shouldShowCallAction && shouldStackCallAction && !shouldGroupConciergeActions && <View style={[styles.ph5, styles.pb3]}>{callActionButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
-                    {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
+                    {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && !shouldGroupConciergeActions && (
                         <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>
                     )}
                     {!isLoading && !isConciergeChat && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
