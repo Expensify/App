@@ -29,12 +29,15 @@ function sanitizeName(name: string): string {
 /**
  *  Check if the string would be empty if all invisible characters were removed.
  */
-function isEmptyString(value: string): boolean {
+function isEmptyString(value: string | number): boolean {
+    // Tooltip text can be a number, such as a withdrawal ID, and replaceAll exists only on strings.
+    const stringValue = typeof value === 'string' ? value : String(value);
+
     // We implemented a custom emoji on this Unicode Private Use Area (PUA) code point
     // so we should not remove it.
     // Temporarily replace \uE100 with a placeholder
     const PLACEHOLDER = '<<KEEP_E100>>';
-    let transformed = value.replaceAll('\uE100', PLACEHOLDER);
+    let transformed = stringValue.replaceAll('\uE100', PLACEHOLDER);
 
     // \p{C} matches all 'Other' characters
     // \p{Z} matches all separators (spaces etc.)

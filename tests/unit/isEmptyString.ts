@@ -99,4 +99,21 @@ describe('libs/StringUtils.isEmptyString', () => {
         // Combinations of blank-rendering characters
         expect(StringUtils.isEmptyString('\u3164\u2800 \u115f')).toBe(true);
     });
+    it('coerces numeric values before checking emptiness', () => {
+        // Given a withdrawal ID stored as a number by the backend
+        const withdrawalID = 66660;
+
+        // When the tooltip empty check runs on that number
+        const isWithdrawalIDEmpty = StringUtils.isEmptyString(withdrawalID);
+
+        // Then a real ID stays non-empty, because the check casts it to a string instead of calling replaceAll on a number
+        expect(isWithdrawalIDEmpty).toBe(false);
+
+        // Given numeric zero, which is the string "0" after the cast
+        // When the same check runs
+        const isZeroEmpty = StringUtils.isEmptyString(0);
+
+        // Then zero stays non-empty, because "0" is visible text
+        expect(isZeroEmpty).toBe(false);
+    });
 });
