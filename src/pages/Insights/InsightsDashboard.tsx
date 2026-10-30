@@ -200,9 +200,9 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     );
 }
 
-/** Checks whether any stored response said the account has expenses. */
-function hasStoredResponseWithExpenses(dashboards: OnyxCollection<InsightsDashboardRecord>): boolean {
-    return Object.values(dashboards ?? {}).some((dashboard) => dashboard?.hasResults === true);
+/** Checks whether GetInsights has responded for any dashboard or filters. */
+function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboardRecord>): boolean {
+    return Object.values(dashboards ?? {}).some(hasDashboardResponse);
 }
 
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
@@ -244,7 +244,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
-    const [isKnownToHaveExpenses = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: hasStoredResponseWithExpenses});
+    const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: hasStoredDashboardResponse});
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
@@ -262,7 +262,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         isDashboardLoaded: hasDashboardResponse(dashboard),
     }));
     const [headlineChart, ...supportingCharts] = charts;
-    const state = getDashboardState(dashboard, isOffline, charts, isKnownToHaveExpenses);
+    const state = getDashboardState(dashboard, isOffline, charts, hasLoadedBefore);
 
     const tabSelector =
         accessibleDashboards.length > 1 ? (

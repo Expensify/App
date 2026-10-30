@@ -36,7 +36,7 @@ function hasDashboardResponse(dashboard: OnyxEntry<InsightsDashboard>): boolean 
 }
 
 /** Resolves the page's state from the dashboard record and the snapshot of every chart on screen. */
-function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[], isKnownToHaveExpenses = false): InsightsDashboardState {
+function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[], hasLoadedBefore = false): InsightsDashboardState {
     const chartStates = charts.map(({snapshot, queryJSON}) => {
         const isLoaded = isSearchDataLoaded(snapshot, queryJSON) && isEmptyObject(snapshot?.errors);
         const data = snapshot?.data;
@@ -56,8 +56,8 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
     }
-    // Until an account is known to have expenses, waits for GetInsights, whose response may replace the charts with the no-expenses state
-    if (!hasDashboardResponse(dashboard) && !hasChartWithRows && !isKnownToHaveExpenses && !(isOffline && hasLoadedChart)) {
+    // On the first load, waits for GetInsights, whose response may replace the charts with the no-expenses state
+    if (!hasDashboardResponse(dashboard) && !hasChartWithRows && !hasLoadedBefore && !(isOffline && hasLoadedChart)) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
     }
     if (hasChartWithRows) {

@@ -138,8 +138,8 @@ describe('getDashboardState', () => {
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.LOADING);
     });
 
-    it('keeps loading a new account until GetInsights responds when every chart loaded empty', () => {
-        // Given no GetInsights response yet, an account not yet known to have expenses, and every chart already loaded empty by a Search request
+    it('keeps loading on the first load until GetInsights responds when every chart loaded empty', () => {
+        // Given no GetInsights response for any dashboard or filters yet, and every chart already loaded empty by a Search request
         // When the page's state is resolved
         const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
 
@@ -147,8 +147,8 @@ describe('getDashboardState', () => {
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.LOADING);
     });
 
-    it('keeps loading a new account until GetInsights responds when one chart loaded empty and the other has not loaded', () => {
-        // Given no GetInsights response yet, an account not yet known to have expenses, an empty headline chart, and a supporting chart with no data
+    it('keeps loading on the first load until GetInsights responds when one chart loaded empty and the other has not loaded', () => {
+        // Given no GetInsights response for any dashboard or filters yet, an empty headline chart, and a supporting chart with no data
         // When the page's state is resolved
         const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, undefined));
 
@@ -165,17 +165,17 @@ describe('getDashboardState', () => {
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
     });
 
-    it('draws the charts while loading new filters once the account is known to have expenses', () => {
-        // Given an account a stored response said has expenses, and new filters with no response or data yet
+    it('draws the charts while loading new filters once Insights has loaded before', () => {
+        // Given a stored response for other filters, and new filters with no response or data yet
         // When the page's state is resolved
         const state = getDashboardState(undefined, false, makeCharts(undefined, undefined), true);
 
-        // Then the charts show their own loading instead of the page spinner, since the response can't say the account has no expenses
+        // Then the charts show their own loading instead of the page spinner
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
     });
 
-    it('says the filters matched nothing without waiting on the response once the account is known to have expenses', () => {
-        // Given an account a stored response said has expenses, and new filters whose charts all loaded empty before their response
+    it('says the filters matched nothing without waiting on the response once Insights has loaded before', () => {
+        // Given a stored response for other filters, and new filters whose charts all loaded empty before their response
         // When the page's state is resolved
         const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS), true);
 
