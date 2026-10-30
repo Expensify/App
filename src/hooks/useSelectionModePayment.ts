@@ -42,6 +42,7 @@ import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePaymentOptions from './usePaymentOptions';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
@@ -83,6 +84,7 @@ function useSelectionModePayment({
 }: UseSelectionModePaymentParams) {
     const {translate, localeCompare} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -315,6 +317,7 @@ function useSelectionModePayment({
 
     const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             event,
             iouPaymentType,

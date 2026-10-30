@@ -847,6 +847,7 @@ const CONST = {
         PRODUCT_UPDATE_SEPTEMBER_2026: 'productUpdateSeptember2026',
     },
     BANK_ACCOUNT: {
+        PLAID_WRONG_ACCOUNT_ERROR_FIELD: 'plaidWrongAccount',
         BENEFICIAL_OWNER_INFO_STEP: {
             BENEFICIAL_OWNER_DATA: {
                 BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
@@ -1459,17 +1460,12 @@ const CONST = {
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
-        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
-        INSIGHTS_PAGE: 'insightsPage',
-        INSIGHTS_COMPARE: 'insightsCompare',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
-        PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
-        SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -1750,7 +1746,6 @@ const CONST = {
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     FORMATTED_EXAMPLE_PHONE_NUMBER: '+1-(201)-867-5309',
     CONCIERGE_CHAT_NAME: 'Concierge',
-    CONCIERGE_SESSION_EXPIRATION_MS: 2 * 3600 * 1000, // 2 hours
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
@@ -2143,6 +2138,7 @@ const CONST = {
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 UNDELETED_TRANSACTION: 'UNDELETEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                QUEUED_FOR_EXPORT: 'QUEUEDFOREXPORT',
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
@@ -3372,6 +3368,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
+    ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX: /^file_\d+$/,
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
@@ -10055,11 +10052,23 @@ const CONST = {
     RESIZE_HANDLE: {
         /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
         INDICATOR_WIDTH: 2,
+
+        /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
+        DRAG_SLOP: 3,
     },
 
     RHP_RESIZE: {
         /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
         HANDLE_HIT_WIDTH: 12,
+
+        /** How close, in px, a drag has to come to the default width to snap onto it. */
+        SNAP_THRESHOLD: 20,
+
+        /** Width of the line while the edge is pressed or dragged. */
+        ACTIVE_INDICATOR_WIDTH: 3,
+
+        /** Width of the line while a drag is held on the default width. */
+        SNAPPED_INDICATOR_WIDTH: 5,
 
         /** Narrowest the single RHP can be dragged, in px. */
         MIN_WIDTH: 380,
@@ -10114,9 +10123,6 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
-
-            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
-            DRAG_SLOP: 3,
 
             /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
             DOUBLE_CLICK_INTERVAL: 150,
@@ -10585,6 +10591,9 @@ const CONST = {
         REPORT_PICKER_MODAL: {
             BACK_BUTTON: 'ReportPickerModal-BackButton',
         },
+        ATTENDEE_PICKER_MODAL: {
+            BACK_BUTTON: 'AttendeePickerModal-BackButton',
+        },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
             MONTH_PICKER: 'CalendarPicker-MonthPicker',
@@ -10814,6 +10823,7 @@ const CONST = {
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
                 AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
+                BUSINESS_BANK_ACCOUNT_COUNTRIES: 'WorkspaceWorkflows-BusinessBankAccountCountries',
                 APPROVALS_EDIT_SAVE: 'WorkspaceWorkflows-ApprovalsEditSave',
                 APPROVAL_EDITOR_MEMBERS: 'WorkspaceWorkflows-ApprovalEditorMembers',
                 APPROVAL_EDITOR_APPROVER: 'WorkspaceWorkflows-ApprovalEditorApprover',

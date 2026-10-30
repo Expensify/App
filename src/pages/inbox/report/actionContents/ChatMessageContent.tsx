@@ -86,6 +86,7 @@ function ChatMessageContent({
             <AttachmentContext.Provider value={attachmentContextValue}>
                 {isEditingInline ? (
                     <ReportActionItemMessageEdit
+                        key={action.reportActionID}
                         action={action}
                         reportID={reportID}
                         originalReportID={originalReportID}

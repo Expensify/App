@@ -3,7 +3,7 @@ name: Check Contributor+ checklist heading
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths:
       - 'contributingGuides/CONTRIBUTOR_PLUS_CHECKLIST.md'
       - 'scripts/checkContributorPlusChecklistHeading.sh'
@@ -19,6 +19,7 @@ concurrency:
 jobs:
   check:
     name: Check Contributor+ checklist heading
+    if: github.actor != 'os-botify[bot]'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout
