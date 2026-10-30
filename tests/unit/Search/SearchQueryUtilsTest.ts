@@ -318,6 +318,244 @@ describe('SearchQueryUtils', () => {
             expect(getSearchRootParamsFromRootState(undefined)?.q).toBe(buildSearchQueryString());
         });
 
+        it('walks back to an older tab navigator that still holds the Search state when the newest one has none', () => {
+            // Given the Search tab was used in the first tab navigator, and a second tab navigator was pushed from the
+            // side panel (e.g. "Go to room") without ever visiting Search
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [searchRootRoute(CHAT_QUERY)]}}],
+                        },
+                    },
+                    {
+                        key: 'tab-2',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {index: 0, routes: [{key: 'reports-nav-2', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
+                    },
+                ],
+            };
+
+            // When the query is resolved, with and without the default-query fallback
+            // Then both get the older tab navigator's query, because the still-mounted Spend page keeps showing it
+            expect(getSearchRootParamsFromRootState(rootState, false)?.q).toBe(CHAT_QUERY);
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(CHAT_QUERY);
+        });
+
+        it('prefers the newest tab navigator with Search state over an older one', () => {
+            // Given two tab navigators that both have live Search state, with a different query in each
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [
+                                {
+                                    key: 'search-nav-1',
+                                    name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                    state: {index: 0, routes: [searchRootRoute('sortBy:date sortOrder:desc type:expense')]},
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        key: 'tab-2',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-2', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [searchRootRoute(CHAT_QUERY)]}}],
+                        },
+                    },
+                ],
+            };
+
+            // When the query is resolved
+            const searchRootParams = getSearchRootParamsFromRootState(rootState);
+
+            // Then the newest one wins, because it is the Search page the user sees, like the tab bar's `getLastRoute`
+            expect(searchRootParams?.q).toBe(CHAT_QUERY);
+        });
+
+        it('consults the preserved state of an older, non-focused tab navigator', () => {
+            // Given an older tab navigator whose nested state was dropped from the live tree, so its Search state
+            // only lives in the preserved-state map, and a newer tab navigator without Search state
+            const preservedSearchNavigatorState: NavigationState = {
+                key: 'search-nav-1',
+                index: 0,
+                routeNames: [SCREENS.SEARCH.ROOT],
+                routes: [searchRootRoute(CHAT_QUERY)],
+                type: 'stack',
+                stale: false,
+            };
+            const preservedTabState: NavigationState = {
+                key: 'tab-1',
+                index: 0,
+                routeNames: [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR],
+                routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: preservedSearchNavigatorState}],
+                type: 'stack',
+                stale: false,
+            };
+            setPreservedNavigatorState('tab-1', preservedTabState);
+
+            const rootState = {
+                index: 1,
+                routes: [
+                    {key: 'tab-1', name: NAVIGATORS.TAB_NAVIGATOR},
+                    {
+                        key: 'tab-2',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {index: 0, routes: [{key: 'reports-nav-2', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
+                    },
+                ],
+            };
+
+            // When the query is resolved
+            const searchRootParams = getSearchRootParamsFromRootState(rootState);
+
+            // Then the preserved query is returned, because preserved state is as current as live state
+            expect(searchRootParams?.q).toBe(CHAT_QUERY);
+        });
+
+        it('ignores the nested route params of an older tab navigator whose Search navigator is not mounted', () => {
+            // Given an older tab navigator that only has the nested route params it was first opened with, and a
+            // newer tab navigator without Search state
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, params: {screen: SCREENS.SEARCH.ROOT, params: {q: CHAT_QUERY}}},
+                    },
+                    {
+                        key: 'tab-2',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {index: 0, routes: [{key: 'reports-nav-2', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
+                    },
+                ],
+            };
+
+            // When the query is resolved, with and without the default-query fallback
+            // Then the older params are skipped, because the user may have changed the query since, so they can be stale
+            expect(getSearchRootParamsFromRootState(rootState, false)).toBeUndefined();
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(buildSearchQueryString());
+        });
+
+        it('prefers the nested route params of the newest tab navigator over the Search state of an older one', () => {
+            // Given an older tab navigator with live Search state, and a newer one that only has nested route params
+            // because its Search navigator has not mounted yet
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [searchRootRoute(CHAT_QUERY)]}}],
+                        },
+                    },
+                    {
+                        key: 'tab-2',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {
+                            screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                            params: {screen: SCREENS.SEARCH.ROOT, params: {q: 'sortBy:date sortOrder:desc type:expense'}},
+                        },
+                    },
+                ],
+            };
+
+            // When the query is resolved
+            const searchRootParams = getSearchRootParamsFromRootState(rootState);
+
+            // Then the newest tab navigator's params win, because they describe the Search page being opened
+            expect(searchRootParams?.q).toBe('sortBy:date sortOrder:desc type:expense');
+        });
+
+        it('returns undefined instead of the canned query when no tab navigator has Search state and the fallback is disabled', () => {
+            // Given two tab navigators and neither has Search state, e.g. after the Spend navigator was dropped
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {index: 0, routes: [{key: 'reports-nav-1', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
+                    },
+                    {
+                        key: 'tab-2',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {index: 0, routes: [{key: 'workspace-nav-2', name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}]},
+                    },
+                ],
+            };
+
+            // When the reactive reader disables the default-query fallback
+            // Then it gets undefined, so it can keep the last real query instead of overwriting it with the default
+            expect(getSearchRootParamsFromRootState(rootState, false)).toBeUndefined();
+
+            // And imperative callers keep getting the default query
+            expect(getSearchRootParamsFromRootState(rootState)?.q).toBe(buildSearchQueryString());
+        });
+
+        it('does not walk past a mounted Search navigator that has no usable Search root params', () => {
+            // Given an older tab navigator with a real query, and a newer one whose mounted Search navigator has a
+            // root route without params
+            const rootState = {
+                index: 1,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-1', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [searchRootRoute(CHAT_QUERY)]}}],
+                        },
+                    },
+                    {
+                        key: 'tab-2',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 0,
+                            routes: [{key: 'search-nav-2', name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [{key: 'search-root-2', name: SCREENS.SEARCH.ROOT}]}}],
+                        },
+                    },
+                ],
+            };
+
+            // When the query is resolved
+            const searchRootParams = getSearchRootParamsFromRootState(rootState);
+
+            // Then it is undefined, because the newest Search navigator is the one shown and the older query would be wrong
+            expect(searchRootParams).toBeUndefined();
+        });
+
+        it('still returns nested route params when the fallback is disabled and the Search navigator is not mounted', () => {
+            // Given a cold boot where the Search tab exists only as nested route params
+            const rootState = {
+                index: 0,
+                routes: [
+                    {
+                        key: 'tab-1',
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        params: {screen: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, params: {screen: SCREENS.SEARCH.ROOT, params: {q: CHAT_QUERY}}},
+                    },
+                ],
+            };
+
+            // When the default-query fallback is disabled
+            // Then the real query from the route params is still returned
+            expect(getSearchRootParamsFromRootState(rootState, false)?.q).toBe(CHAT_QUERY);
+        });
+
         it('returns undefined when a mounted Search navigator has no usable Search root params', () => {
             // The provider keeps its own `?? buildSearchQueryString()` fallback for this case; the resolver
             // must not invent a query, so that `getCurrentSearchQueryJSON` callers still see `undefined`.

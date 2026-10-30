@@ -3317,6 +3317,7 @@ ${amount} voor ${merchant} - ${date}`,
         approverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur of verwijder deze workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur.',
         overLimitApproverNotWorkspaceMember: 'De extra fiatteur voor rapporten boven de limiet is geen lid meer van de workspace. Kies een nieuwe extra fiatteur.',
+        overLimitApproverInWorkflow: 'De extra fiatteur voor rapporten boven de limiet is al een fiatteur in deze workflow. Kies een andere extra fiatteur.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> keurt al rapporten goed voor <strong>${name2}</strong>. Kies een andere fiatteur om een cirkelstroom te voorkomen.`,
         emptyContent: {
@@ -7536,6 +7537,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 continue: 'Doorgaan zonder leden',
                 description: 'Workflows kopiëren zonder leden zal goedkeuringsworkflows niet kopiëren. Instellingen voor indienen en betalen worden nog steeds gekopieerd.',
             },
+            confirmMembers: {
+                title: 'Leden kopiëren',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Weet je zeker dat je de leden van ${targetWorkspaceName} wilt vervangen door de leden van deze werkruimte?`,
+                    other: `Weet je zeker dat je de leden van ${count} werkruimtes wilt vervangen door de leden van deze werkruimte?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Kopie wordt gemaakt...',
                 copyInProgressDescription: 'Je kunt wachten tot het proces is voltooid, of Concierge kan je laten weten wanneer het klaar is.',
@@ -9211,7 +9219,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     missingData: 'Expensify heeft die informatie niet.',
                     retroactive: 'Regels zijn alleen van toepassing op nieuwe activiteit.',
                     historyLimit: 'Regels kunnen niet zo ver terugkijken.',
-                    tryThisInstead: 'Probeer dit in plaats daarvan',
+                    useSuggestion: 'Suggestie gebruiken',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Probeer in plaats daarvan de suggestie hieronder:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `‘${suggestedPrompt}’`,
+                    createAnyway: 'Toch maken',
                 },
             },
             expenseDefaultsTable: {
@@ -10462,6 +10473,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `heeft "Voorkom dat niet-vergoedbare rapporten als betaald worden gemarkeerd" bijgewerkt naar "${newValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}" (voorheen "${oldValue === 'true' ? 'Ingeschakeld' : 'Uitgeschakeld'}")`,
+        addedExpensifyCardFeed: (feedName: string) => `"${feedName}" Expensify Kaart-feed toegevoegd`,
     },
     roomMembersPage: {
         memberNotFound: 'Lid niet gevonden.',

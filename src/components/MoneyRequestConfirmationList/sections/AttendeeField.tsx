@@ -23,6 +23,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
@@ -41,6 +42,7 @@ type AttendeeFieldProps = {
 };
 
 function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, action, iouType, reportID, formError}: AttendeeFieldProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetailsList = usePersonalDetails();
@@ -96,7 +98,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
 
     return (
         <MenuItem.Root
-            onPress={isReadOnly ? undefined : callFunctionIfActionIsAllowed(openAttendeePage)}
+            onPress={isReadOnly ? undefined : callFunctionIfActionIsAllowed(openAttendeePage, false, session)}
             accessibilityLabel={attendeesAccessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
         >
