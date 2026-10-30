@@ -28,6 +28,7 @@ import type {
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1183,6 +1184,36 @@ function getCachedSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQue
 /** Parses {@link query} (and optionally {@link rawQuery}) into JSON. Repeated calls share the same cached object identity for referential stability. */
 function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQueryString): Readonly<SearchQueryJSON> | undefined {
     return getCachedSearchQueryJSON(query, rawQuery);
+}
+
+/** Checks query forms that Auth rejects, including queries typed directly into the search input. */
+function getSearchQueryError(queryJSON: Readonly<SearchQueryJSON>): TranslationPaths | undefined {
+    // Auth only allows grouping expense, invoice, and trip searches. Other types must be searched without grouping.
+    if (
+        queryJSON.groupBy &&
+        (!VALID_GROUP_BYS.has(queryJSON.groupBy.toLowerCase()) ||
+            ![CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP].some((type) => type === queryJSON.type))
+    ) {
+        return 'search.searchResults.unsupportedGrouping';
+    }
+
+    for (const filter of queryJSON.flatFilters) {
+        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD && filter.filters.length > CONST.SEARCH.MAX_KEYWORD_TOKENS) {
+            return 'search.searchResults.tooManyKeywords';
+        }
+        if (filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS && !isFilterSupported(filter.key, queryJSON.type)) {
+            return 'search.searchResults.unsupportedFilter';
+        }
+        if (
+            filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID &&
+            [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE].some((type) => type === queryJSON.type) &&
+            filter.filters.some(({value}) => String(value) === CONST.REPORT.UNREPORTED_REPORT_ID)
+        ) {
+            return 'search.searchResults.invalidReportID';
+        }
+    }
+
+    return undefined;
 }
 
 /**
@@ -3278,6 +3309,7 @@ export {
     isSearchBeforeViolationsSnapshotStarted,
     isFilterSupported,
     buildSearchQueryJSON,
+    getSearchQueryError,
     buildSearchQueryString,
     buildQueryStringWithResetFilters,
     buildUserReadableQueryString,

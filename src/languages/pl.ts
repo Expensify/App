@@ -10578,6 +10578,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         appliedFilters: 'Zastosowane filtry',
         resetFilters: 'Resetuj filtry',
         searchResults: {
+            tooManyKeywords: 'Twoje wyszukiwanie zawiera zbyt wiele słów kluczowych. Użyj maksymalnie 50 słów kluczowych i spróbuj ponownie.',
+            unsupportedGrouping: 'Wybierz obsługiwane grupowanie. Aby znaleźć raporty wydatków, użyj type:expense-report.',
+            invalidReportID: 'Wpisz prawidłowy identyfikator raportu. Aby znaleźć niezgłoszone wydatki, użyj status:unreported.',
+            unsupportedFilter: 'Filtr is nie jest obsługiwany w tym wyszukiwaniu. Aby znaleźć niezgłoszone wydatki, użyj status:unreported.',
             emptyResults: {
                 title: 'Brak danych do wyświetlenia',
                 subtitle: `Spróbuj zmienić kryteria wyszukiwania lub utworzyć coś za pomocą przycisku +.`,

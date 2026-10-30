@@ -10668,6 +10668,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         appliedFilters: 'Filtres appliqués',
         resetFilters: 'Réinitialiser les filtres',
         searchResults: {
+            tooManyKeywords: 'Votre recherche contient trop de mots-clés. Utilisez 50 mots-clés ou moins et réessayez.',
+            unsupportedGrouping: 'Choisissez un regroupement pris en charge. Pour trouver des notes de frais, utilisez type:expense-report.',
+            invalidReportID: 'Saisissez un identifiant de rapport valide. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
+            unsupportedFilter: 'Le filtre is ne peut pas être utilisé pour cette recherche. Pour trouver les dépenses non déclarées, utilisez status:unreported.',
             emptyResults: {
                 title: 'Rien à afficher',
                 subtitle: `Essayez de modifier vos critères de recherche ou de créer quelque chose avec le bouton +.`,

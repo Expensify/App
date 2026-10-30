@@ -10178,6 +10178,10 @@ ${reportName}`,
         appliedFilters: '已应用的筛选条件',
         resetFilters: '重置筛选条件',
         searchResults: {
+            tooManyKeywords: '搜索关键词过多。请使用不超过50个关键词，然后重试。',
+            unsupportedGrouping: '请选择支持的分组方式。如需查找费用报告，请使用 type:expense-report。',
+            invalidReportID: '请输入有效的报告ID。如需查找未归入报告的费用，请使用 status:unreported。',
+            unsupportedFilter: '此搜索不支持 is 筛选条件。如需查找未归入报告的费用，请使用 status:unreported。',
             emptyResults: {
                 title: '暂无内容',
                 subtitle: `请尝试调整搜索条件，或使用 “+” 按钮创建新项目。`,

@@ -1457,7 +1457,7 @@ function Search({
             },
             [CONST.SEARCH.FAILURE_KIND.INVALID_QUERY]: {
                 title: errorTitle,
-                subtitle: translate('errorPage.wrongTypeSubtitle'),
+                subtitle: translate(searchResults.search.errorTranslationKey ?? 'errorPage.wrongTypeSubtitle'),
             },
             [CONST.SEARCH.FAILURE_KIND.FAILED]: {
                 title: errorTitle,
