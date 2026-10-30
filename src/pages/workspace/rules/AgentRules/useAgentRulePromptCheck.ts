@@ -124,6 +124,8 @@ function useAgentRulePromptCheck({policyID, formID, formRef, checkedPrompt, save
     const trySuggestedPrompt = (suggestedPrompt: string) => {
         Log.info('[GenerateRule] Tried the suggested description', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
         formRef.current?.resetForm({[PROMPT_INPUT_ID]: suggestedPrompt});
+
+        // Start the check after the reset, so that a text change from the reset cannot stop it
         startCheck(suggestedPrompt);
     };
 

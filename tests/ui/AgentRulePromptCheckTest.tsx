@@ -100,8 +100,25 @@ jest.mock('@components/Form/FormProvider', () => {
         Pressable: React.ComponentType<{accessibilityLabel?: string; onPress?: () => void; children?: React.ReactNode}>;
         Text: React.ComponentType<{children?: React.ReactNode}>;
     }>('react-native');
-    return ({children, onSubmit, submitButtonText}: {children: React.ReactNode; onSubmit: (values: {prompt: string}) => void; submitButtonText: string}) =>
-        ReactModule.createElement(
+    // `resetForm` also reports a text change, so that a test fails when a reset can stop the check that follows it
+    return ({
+        children,
+        onSubmit,
+        submitButtonText,
+        ref,
+    }: {
+        children: React.ReactNode;
+        onSubmit: (values: {prompt: string}) => void;
+        submitButtonText: string;
+        ref?: React.Ref<{resetForm: (values: {prompt: string}) => void}>;
+    }) => {
+        ReactModule.useImperativeHandle(ref, () => ({
+            resetForm: (values: {prompt: string}) => {
+                mockPrompt = values.prompt;
+                mockOnPromptChange?.(values.prompt);
+            },
+        }));
+        return ReactModule.createElement(
             ReactModule.Fragment,
             null,
             children,
@@ -111,6 +128,7 @@ jest.mock('@components/Form/FormProvider', () => {
                 ReactModule.createElement(Text, null, submitButtonText),
             ),
         );
+    };
 });
 
 const POLICY_ID = 'policy1';
