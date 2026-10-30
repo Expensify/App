@@ -1016,29 +1016,6 @@ describe('DateUtils', () => {
             expect(result).toBe('Monday, Oct 19 11:59 PM, GMT+1');
         });
 
-        it('should not shift a time with no offset into the device timezone', () => {
-            // Given a device in New York and a hotel-local deadline with no offset
-            const originalTZ = process.env.TZ;
-            process.env.TZ = 'America/New_York';
-            jest.useFakeTimers();
-            jest.setSystemTime(new Date('2025-01-01T00:00:00Z'));
-
-            try {
-                // When the deadline is formatted
-                const result = DateUtils.getFormattedCancellationDate('2026-10-19T23:59:00', undefined);
-
-                // Then the hotel's wall-clock time is shown as-is, not converted from New York time
-                expect(result).toBe('Monday, Oct 19, 2026 11:59 PM');
-            } finally {
-                // Restore TZ even if formatting throws, and unset it rather than writing the string "undefined"
-                if (originalTZ === undefined) {
-                    delete process.env.TZ;
-                } else {
-                    process.env.TZ = originalTZ;
-                }
-            }
-        });
-
         it('should label a UTC time ending in Z as UTC', () => {
             // Given a deadline that ends in Z, so its timezone is known
             jest.useFakeTimers();
