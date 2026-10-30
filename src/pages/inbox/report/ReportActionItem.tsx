@@ -694,6 +694,7 @@ function ReportActionItem({
                                                                 isOnSearch={isOnSearch}
                                                                 setIsPaymentMethodPopoverActive={setIsPaymentMethodPopoverActive}
                                                                 isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
+                                                                isThreadReportParentAction={isThreadReportParentAction}
                                                             />
                                                             {Permissions.canUseLinkPreviews() && !isHidden && (action.linkMetadata?.length ?? 0) > 0 && (
                                                                 <View style={hasDraft ? styles.chatItemReactionsDraftRight : {}}>

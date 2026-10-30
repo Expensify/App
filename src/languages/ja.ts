@@ -9780,6 +9780,25 @@ ${reportName}`,
             return `「${categoryName}」カテゴリの明細付きレシートを${newValue}に変更しました（以前は${oldValue}）`;
         },
         setCategoryName: (oldName: string, newName: string) => `カテゴリ名を「${oldName}」から「${newName}」に変更しました`,
+        setCategoryVisibility: (members: string, categories: string) => `${members}が${categories}のみを表示できるように設定しました`,
+        changedCategoryVisibility: (members: string, categories: string) => `${members}が${categories}のみを表示できるように変更しました`,
+        clearedCategoryVisibility: (members: string) => `${members}がすべてのカテゴリを表示できるように変更しました`,
+        quotedCategoryName: (categoryName: string) => `「${categoryName}」`,
+        oneCategory: (categoryName: string) => `カテゴリ${categoryName}`,
+        someCategories: (categoryList: string) => `カテゴリ${categoryList}`,
+        everyone: '全員',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 件のカテゴリ',
+            other: `${count} 件のカテゴリ`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 人のメンバー',
+            other: `${count} 人のメンバー`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `カテゴリ: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `メンバー: ${memberList}`,
+        categoryVisibilityReasonDeleted: '。唯一のカテゴリが削除されたためです。必要に応じてカテゴリの表示設定を更新してください。',
+        categoryVisibilityReasonDisabled: '。唯一のカテゴリが無効化されたためです。必要に応じてカテゴリの表示設定を更新してください。',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `カテゴリ「${categoryName}」から説明のヒント「${oldValue}」を削除しました`;

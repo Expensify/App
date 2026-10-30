@@ -9976,6 +9976,25 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `hat die Positionenbelege der Kategorie „${categoryName}“ auf ${newValue} geändert (zuvor ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `hat die Kategorie „${oldName}“ in „${newName}“ umbenannt`,
+        setCategoryVisibility: (members: string, categories: string) => `hat ${members} so eingestellt, dass sie nur ${categories} sehen`,
+        changedCategoryVisibility: (members: string, categories: string) => `hat ${members} so geändert, dass sie nur ${categories} sehen`,
+        clearedCategoryVisibility: (members: string) => `hat ${members} so geändert, dass sie alle Kategorien sehen`,
+        quotedCategoryName: (categoryName: string) => `„${categoryName}“`,
+        oneCategory: (categoryName: string) => `die Kategorie ${categoryName}`,
+        someCategories: (categoryList: string) => `die Kategorien ${categoryList}`,
+        everyone: 'alle',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 Kategorie',
+            other: `${count} Kategorien`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 Mitglied',
+            other: `${count} Mitglieder`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Kategorien: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Mitglieder: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', da ihre einzige Kategorie gelöscht wurde. Aktualisiere bei Bedarf ihre Kategoriesichtbarkeit.',
+        categoryVisibilityReasonDisabled: ', da ihre einzige Kategorie deaktiviert wurde. Aktualisiere bei Bedarf ihre Kategoriesichtbarkeit.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `hat den Beschreibungshinweis „${oldValue}“ aus der Kategorie „${categoryName}“ entfernt`;
