@@ -3103,6 +3103,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
         beforeEach(() => {
             appendSpy = jest.spyOn(FormData.prototype, 'append');
+            jest.mocked(fileDownload).mockResolvedValue();
         });
 
         afterEach(() => {
@@ -3127,10 +3128,63 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 false,
                 expect.any(FormData),
                 CONST.NETWORK.METHOD.POST,
-                onDownloadFailed,
+                expect.any(Function),
                 undefined,
                 false,
             );
+        });
+
+        it('shows the reports as paid once their ABA file has downloaded', async () => {
+            // Given two approved reports
+            for (const reportID of ['123', '456']) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            }
+
+            // When their ABA file downloads
+            await payViaABA({...payViaABAParams, reportIDs: ['123', '456'], onDownloadFailed: jest.fn()});
+            await waitForBatchedUpdates();
+
+            // Then they're shown as paid straight away, since the backend only sends the file once it has paid them
+            for (const reportID of ['123', '456']) {
+                const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            }
+        });
+
+        it('shows the report as paid in Search results once its ABA file has downloaded', async () => {
+            // Given an approved report that's in Search results, which rows read instead of the report itself
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}123` as const;
+            const approvedReport = {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+            await Onyx.set(reportKey, approvedReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}1`, {data: {[reportKey]: approvedReport}});
+
+            // When its ABA file downloads
+            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed: jest.fn()});
+            await waitForBatchedUpdates();
+
+            // Then its Search row is shown as paid too, so the Pay button doesn't reappear there
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}1`);
+            expect(snapshot?.data?.[reportKey]).toMatchObject({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        });
+
+        it('leaves the report unpaid when its ABA file fails to download', async () => {
+            // Given an approved report whose ABA file will fail to download
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            jest.mocked(fileDownload).mockImplementationOnce((...args) => {
+                const onDownloadFailedArgument = args[7];
+                onDownloadFailedArgument?.();
+                return Promise.resolve();
+            });
+            const onDownloadFailed = jest.fn();
+
+            // When it's paid via ABA
+            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed});
+            await waitForBatchedUpdates();
+
+            // Then the user is told the download failed, and the report isn't shown as paid since the backend didn't pay it
+            expect(onDownloadFailed).toHaveBeenCalled();
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
+            expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
         });
 
         it('downloads one ABA file for several reports, named with the date', () => {

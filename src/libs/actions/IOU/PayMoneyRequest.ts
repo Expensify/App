@@ -1049,7 +1049,37 @@ function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
 
     // Matches the file names Classic gives ABA files
     const fileName = reportIDs.length === 1 ? `ABA_Report_${reportIDs.at(0)}.aba` : `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`;
-    return fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed, undefined, false);
+    let hasDownloadFailed = false;
+    const handleDownloadFailed = (error?: HttpsError) => {
+        hasDownloadFailed = true;
+        onDownloadFailed(error);
+    };
+    return fileDownload(
+        translate,
+        getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}),
+        fileName,
+        '',
+        false,
+        formData,
+        CONST.NETWORK.METHOD.POST,
+        handleDownloadFailed,
+        undefined,
+        false,
+    ).then(() => {
+        if (hasDownloadFailed) {
+            return;
+        }
+
+        // A successful download means the reports are paid, so we mark them as paid now to stop the Pay button
+        // reappearing before the BE's pusher updates arrive.
+        Onyx.update(
+            reportIDs.map((reportID) => ({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
+            })),
+        );
+    });
 }
 
 function markReportPaymentReceived(
