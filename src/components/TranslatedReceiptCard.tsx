@@ -34,7 +34,7 @@ function TranslatedReceiptRowContent({row, hasTopGap}: TranslatedReceiptRowConte
         return (
             <Text
                 variant={isHeading ? 'pageHeader' : 'label'}
-                style={[!isHeading && styles.textSupporting, hasTopGap && styles.mt2, row.align === CONST.RECEIPT.TRANSLATION_ROW_ALIGN.CENTER && styles.textAlignCenter]}
+                style={[!isHeading && styles.textSupporting, hasTopGap && styles.mt2, !row.isOriginal && row.align === CONST.RECEIPT.TRANSLATION_ROW_ALIGN.CENTER && styles.textAlignCenter]}
             >
                 {row.text}
             </Text>
