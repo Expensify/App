@@ -3818,7 +3818,7 @@ const translations = {
         },
         testSection: {
             title: 'Test preferences',
-            offlineMessage: "You're offline. Report history may be outdated.",
+            subtitle: 'Settings to help debug and test the app on staging.',
         },
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
         muteAllSounds: 'Mute all sounds from Expensify',
