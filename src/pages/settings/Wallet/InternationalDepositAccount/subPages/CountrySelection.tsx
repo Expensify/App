@@ -1,3 +1,4 @@
+import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -20,7 +21,14 @@ function CountrySelection({isEditing, onNext, onMove, formValues, fieldsMap}: Cu
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const [selectedCountry, setSelectedCountry] = useState(formValues.bankCountry || '');
 
+    const defaultExpensePolicy = useDefaultExpensePolicy();
+    const isDefaultWorkspacePayingWithABAFiles = !!defaultExpensePolicy?.reimbursement?.countries?.[CONST.COUNTRY.AU]?.additionalData?.isForABA;
+
     const onCountrySelected = () => {
+        if (selectedCountry === CONST.COUNTRY.AU && isDefaultWorkspacePayingWithABAFiles) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_ABA_BANK_ACCOUNT.getRoute());
+            return;
+        }
         if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {
             if (isUserValidated) {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT_ENTRY_POINT.path, ROUTES.SETTINGS_WALLET));

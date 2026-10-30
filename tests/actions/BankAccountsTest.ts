@@ -1,6 +1,8 @@
 import {
     clearPersonalBankAccount,
     connectBankAccountWithPlaid,
+    createDepositABAAccount,
+    createWithdrawalABAAccount,
     enableGlobalReimbursementsForUSDBankAccount,
     initiateBankAccountUnlock,
     openPersonalBankAccountSetupView,
@@ -368,6 +370,94 @@ describe('actions/BankAccounts', () => {
             // Then the draft is kept
             const draft = await getOnyxValue(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
             expect(draft?.businessRegistrationIncorporationNumber).toBe('123456789');
+        });
+    });
+
+    describe('createWithdrawalABAAccount', () => {
+        const parameters = {
+            bsbNumber: '062-000',
+            accountNumber: '12345678',
+            bankUserIdentificationNumber: '123456',
+            companyName: 'Acme Pty Ltd',
+            shouldIncludeSelfBalancingTransaction: true,
+            policyID: POLICY_ID,
+        };
+
+        test('clears the form draft after success so the success page can show', async () => {
+            // Given a draft filled in for an ABA withdrawal account
+            await Onyx.set(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM_DRAFT, {companyName: 'Acme Pty Ltd'});
+
+            // When the request succeeds
+            createWithdrawalABAAccount(parameters);
+            await waitForBatchedUpdates();
+
+            // Then the draft is cleared and the form reports success
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CREATE_WITHDRAWAL_ABA_ACCOUNT, 1);
+            expect(await getOnyxValue(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM_DRAFT)).toBeUndefined();
+            const form = await getOnyxValue(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM);
+            expect(form?.isSuccess).toBe(true);
+            expect(form?.isLoading).toBe(false);
+        });
+
+        test('keeps the form draft and shows an error when the request fails so the user can retry', async () => {
+            // Given a draft filled in for an ABA withdrawal account
+            await Onyx.set(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM_DRAFT, {companyName: 'Acme Pty Ltd'});
+            mockFetch.fail?.();
+
+            // When the request fails
+            createWithdrawalABAAccount(parameters);
+            await waitForBatchedUpdates();
+
+            // Then the draft is kept and the form has an error to show above the submit button
+            const draft = await getOnyxValue(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM_DRAFT);
+            expect(draft?.companyName).toBe('Acme Pty Ltd');
+            const form = await getOnyxValue(ONYXKEYS.FORMS.ABA_WITHDRAWAL_ACCOUNT_FORM);
+            expect(form?.isSuccess).toBe(false);
+            expect(Object.keys(form?.errors ?? {})).toHaveLength(1);
+        });
+    });
+
+    describe('createDepositABAAccount', () => {
+        const parameters = {
+            bsbNumber: '062-000',
+            accountNumber: '12345678',
+            firstName: 'Jane',
+            lastName: 'Citizen',
+            billingAddress: '1 George St',
+            city: 'Sydney',
+        };
+
+        test('clears the form draft after success so the success page can show', async () => {
+            // Given a draft filled in for an ABA deposit account
+            await Onyx.set(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM_DRAFT, {firstName: 'Jane'});
+
+            // When the request succeeds
+            createDepositABAAccount(parameters);
+            await waitForBatchedUpdates();
+
+            // Then the draft is cleared and the form reports success
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.CREATE_DEPOSIT_ABA_ACCOUNT, 1);
+            expect(await getOnyxValue(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM_DRAFT)).toBeUndefined();
+            const form = await getOnyxValue(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM);
+            expect(form?.isSuccess).toBe(true);
+            expect(form?.isLoading).toBe(false);
+        });
+
+        test('keeps the form draft and shows an error when the request fails so the user can retry', async () => {
+            // Given a draft filled in for an ABA deposit account
+            await Onyx.set(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM_DRAFT, {firstName: 'Jane'});
+            mockFetch.fail?.();
+
+            // When the request fails
+            createDepositABAAccount(parameters);
+            await waitForBatchedUpdates();
+
+            // Then the draft is kept and the form has an error to show above the submit button
+            const draft = await getOnyxValue(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM_DRAFT);
+            expect(draft?.firstName).toBe('Jane');
+            const form = await getOnyxValue(ONYXKEYS.FORMS.ABA_DEPOSIT_ACCOUNT_FORM);
+            expect(form?.isSuccess).toBe(false);
+            expect(Object.keys(form?.errors ?? {})).toHaveLength(1);
         });
     });
 

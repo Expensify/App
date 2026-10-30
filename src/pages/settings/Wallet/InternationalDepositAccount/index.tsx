@@ -1,5 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useLoadDepositAccountSetup from '@hooks/useLoadDepositAccountSetup';
 import useOnyx from '@hooks/useOnyx';
 
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -28,6 +29,9 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const [country, countryMetadata] = useOnyx(ONYXKEYS.COUNTRY);
     const [isAccountLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: isLoadingPersonalBankAccountSelector});
     const backTo = route.params?.backTo;
+
+    // Load each workspace's withdrawal accounts so that we can determine whether to show the ABA form
+    useLoadDepositAccountSetup();
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
 

@@ -2658,6 +2658,15 @@ const ROUTES = {
         },
     },
     SETTINGS_BANK_ACCOUNT_PURPOSE: 'settings/wallet/bank-account-purpose',
+    SETTINGS_ADD_ABA_BANK_ACCOUNT: {
+        route: 'settings/wallet/add-aba-bank-account/:subPage?',
+        getRoute: (subPage?: string) => {
+            if (!subPage) {
+                return 'settings/wallet/add-aba-bank-account' as const;
+            }
+            return `settings/wallet/add-aba-bank-account/${subPage}` as const;
+        },
+    },
     SETTINGS_ENABLE_PAYMENTS: {
         route: 'settings/wallet/enable-payments/:page?/:subPage?/:action?',
         getRoute: ({page, subPage, action}: {page?: EnablePaymentsPageType; subPage?: EnablePaymentsSubPageType; action?: 'edit'} = {}) => {
