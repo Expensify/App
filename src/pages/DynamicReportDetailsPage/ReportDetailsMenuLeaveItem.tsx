@@ -24,7 +24,7 @@ import {leaveGroupChat, leaveRoom} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 
@@ -43,7 +43,9 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [personalDetails] = useAllPersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
@@ -73,6 +75,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
                 conciergeReportID,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 personalDetails,
                 lastAccessedReportID,
             );
@@ -80,7 +83,17 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin, isPolicyGuest);
-        leaveRoom(report, currentUserAccountID, conciergeReportID, introSelected, isSelfTourViewed, personalDetails, isWorkspaceMemberLeavingWorkspaceRoom, lastAccessedReportID);
+        leaveRoom(
+            report,
+            currentUserAccountID,
+            conciergeReportID,
+            introSelected,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            personalDetails,
+            isWorkspaceMemberLeavingWorkspaceRoom,
+            lastAccessedReportID,
+        );
     };
 
     const showLastMemberLeavingModal = async () => {

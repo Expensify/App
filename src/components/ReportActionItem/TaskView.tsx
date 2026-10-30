@@ -46,7 +46,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -66,7 +66,9 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const personalDetails = usePersonalDetails();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     useEffect(() => {
@@ -136,6 +138,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 accountID,
                                 introSelected,
                                 isSelfTourViewed,
+                                hasCompletedGuidedSetupFlow,
                                 report?.ownerAccountID ? (personalDetails?.[report.ownerAccountID] ?? undefined) : undefined,
                                 currentUserPersonalDetails,
                                 (personalDetails ? Object.values(personalDetails).find((detail) => detail?.login === CONST.EMAIL.CONCIERGE) : undefined) ?? undefined,

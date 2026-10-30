@@ -5330,6 +5330,7 @@ function navigateToConciergeChatAndDeleteReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
     conciergePersonalDetail: OnyxEntry<PersonalDetails>,
@@ -5351,8 +5352,7 @@ function navigateToConciergeChatAndDeleteReport(
         currentUserAccountID,
         isSelfTourViewed,
         delegateAccountID,
-        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-        hasCompletedGuidedSetupFlow: undefined,
+        hasCompletedGuidedSetupFlow,
         shouldDismissModal: false,
         linkToOptions: {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
         conciergePersonalDetails: personalDetails,
@@ -5382,6 +5382,7 @@ function clearCreateChatError(
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
     conciergePersonalDetail: OnyxEntry<PersonalDetails>,
@@ -5406,6 +5407,7 @@ function clearCreateChatError(
         currentUserAccountID,
         introSelected,
         isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
         reportOwnerPersonalDetail,
         currentUserPersonalDetail,
         conciergePersonalDetail,
@@ -5649,6 +5651,7 @@ function navigateToMostRecentReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     lastAccessedReportID?: string,
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
@@ -5672,14 +5675,13 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
-        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
         navigateToConciergeChat({
             conciergeReportID,
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
             delegateAccountID,
-            hasCompletedGuidedSetupFlow: undefined,
+            hasCompletedGuidedSetupFlow,
             conciergePersonalDetails: personalDetails,
             shouldDismissModal: false,
             linkToOptions: {forceReplace: true},
@@ -5727,6 +5729,7 @@ function leaveGroupChat(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     lastAccessedReportID?: string,
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
@@ -5781,7 +5784,17 @@ function leaveGroupChat(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.revealRouteBeforeDismissingModal(getReportRouteForCurrentContext({reportID}));
     } else {
-        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, personalDetails, lastAccessedReportID, delegateAccountID);
+        navigateToMostRecentReport(
+            report,
+            conciergeReportID,
+            currentUserAccountID,
+            introSelected,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            personalDetails,
+            lastAccessedReportID,
+            delegateAccountID,
+        );
     }
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
@@ -5793,6 +5806,7 @@ function leaveRoom(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     isWorkspaceMemberLeavingWorkspaceRoom = false,
     lastAccessedReportID?: string,
@@ -5909,7 +5923,17 @@ function leaveRoom(
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, personalDetails, lastAccessedReportID, delegateAccountID);
+    navigateToMostRecentReport(
+        report,
+        conciergeReportID,
+        currentUserAccountID,
+        introSelected,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
+        personalDetails,
+        lastAccessedReportID,
+        delegateAccountID,
+    );
 }
 
 function buildInviteToRoomOnyxData(
