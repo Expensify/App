@@ -8,8 +8,9 @@ import {setHasRadio} from '@libs/NetworkState';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormPage} from '@src/types/onyx';
 
-import type {OnyxKey} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey, OnyxValue} from 'react-native-onyx';
 
+import {isSavingWiseOnboardingPageSelector} from '@selectors/ReimbursementAccount';
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../utils/TestHelper';
@@ -33,16 +34,8 @@ const BUSINESS_PAGE: DynamicFormPage = {
     content: [{key: 'description', type: 'text', required: true}],
 };
 
-/** Whether any page save is still running, the way the page reads it */
-function hasPendingSave(reimbursementAccount: unknown) {
-    if (typeof reimbursementAccount !== 'object' || reimbursementAccount === null || !('wiseOnboardingPendingSaves' in reimbursementAccount)) {
-        return false;
-    }
-    return Object.values(reimbursementAccount.wiseOnboardingPendingSaves ?? {}).some(Boolean);
-}
-
-function readOnyxValue(key: OnyxKey) {
-    return new Promise<unknown>((resolve) => {
+function readOnyxValue<TKey extends OnyxKey>(key: TKey) {
+    return new Promise<OnyxEntry<OnyxValue<TKey>>>((resolve) => {
         const connection = Onyx.connectWithoutView({
             key,
             callback: (value) => {
@@ -132,7 +125,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         expect(writeSpy).not.toHaveBeenCalled();
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
-        expect(hasPendingSave(reimbursementAccount)).toBe(false);
+        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
         expect(reimbursementAccount).toHaveProperty('errors');
     });
 
@@ -155,7 +148,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         // Then the save no longer runs, but the page is still unsaved, since nothing says Wise has it, so Confirm stays blocked until it saves
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
-        expect(hasPendingSave(reimbursementAccount)).toBe(false);
+        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
     });
 
     it('keeps the flow saving while a page with an SSN is still saving after another page saves', async () => {
@@ -175,7 +168,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
 
         // Then a save is still running, so the confirmation page waits for the representative page instead of letting the user through
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(hasPendingSave(reimbursementAccount)).toBe(true);
+        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(true);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
     });
@@ -192,7 +185,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
-        expect(hasPendingSave(reimbursementAccount)).toBe(false);
+        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
     });
 
     it('keeps a page unsaved when the server rejects it and clears it once it saves', async () => {

@@ -7,9 +7,9 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useWiseOnboardingSaveStatus from '@hooks/useWiseOnboardingSaveStatus';
 
 import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {getSavedFileAnswers} from '@libs/getWiseOnboardingPageParams';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -47,12 +47,6 @@ const businessAccountSelector = (reimbursementAccount: OnyxEntry<ReimbursementAc
     data: reimbursementAccount?.achData ? pick(reimbursementAccount.achData, WISE_BUSINESS_ACCOUNT_KEYS) : undefined,
 });
 
-const saveErrorSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => getLatestErrorMessage(reimbursementAccount);
-
-const isSavingPageSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => Object.values(reimbursementAccount?.wiseOnboardingPendingSaves ?? {}).some(Boolean);
-
-const hasUnsavedPageSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => Object.values(reimbursementAccount?.wiseOnboardingUnsavedPages ?? {}).some(Boolean);
-
 /** The business details we collect before Wise's own page: the representative, the business, and a confirmation of both */
 function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
@@ -62,9 +56,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draft, draftMetadata] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
-    const [saveError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: saveErrorSelector});
-    const [isSavingPage] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: isSavingPageSelector});
-    const [hasUnsavedPage] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: hasUnsavedPageSelector});
+    const {isSaving, saveError} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
 
     const {translate} = useLocalize();
@@ -135,7 +127,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const savedDocuments = businessAccount?.data?.bankAccountID === bankAccountID ? businessAccount.data.wise?.documents : undefined;
     const [draftedSavedDocuments, setDraftedSavedDocuments] = useState(savedDocuments);
     const [haveSavedDocumentsChanged, setHaveSavedDocumentsChanged] = useState(false);
-    if (!isSavingPage && !deepEqual(savedDocuments, draftedSavedDocuments)) {
+    if (!isSaving && !deepEqual(savedDocuments, draftedSavedDocuments)) {
         setDraftedSavedDocuments(savedDocuments);
         setHaveSavedDocumentsChanged(true);
     }
@@ -187,13 +179,12 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
             onPageSubmit={(page, answers, sensitiveAnswers) => saveWiseOnboardingPage(bankAccountID, page, answers, sensitiveAnswers)}
-            // A later page's save clears the shared error, so a page that is still unsaved shows the generic one
-            submitError={saveError || (hasUnsavedPage && !isSavingPage ? translate('common.genericErrorMessage') : undefined)}
+            submitError={saveError}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}
             onSubmit={() => {
                 // A page that is still saving or did not save would leave Wise without it, so the user stays on the confirmation page
-                if (isSavingPage || saveError || hasUnsavedPage) {
+                if (isSaving || saveError) {
                     return;
                 }
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path));
