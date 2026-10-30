@@ -19,7 +19,7 @@ import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type AddressValues = {
@@ -125,34 +125,31 @@ function AddressStepImpl({
         setDraftValues(formID, {[inputFieldsIDs.country]: defaultValues.country});
     }, [defaultValues.country, formID, inputFieldsIDs.country, shouldAllowCountryChange]);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
-            const errors = getFieldRequiredErrors(values, stepFields, translate);
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            const street = getStringFormValue(values, inputFieldsIDs.street);
-            const streetError = getInvalidAddressErrorTranslationPath(street);
-            if (street && streetError) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.street] = translate(streetError);
-            }
+        const street = getStringFormValue(values, inputFieldsIDs.street);
+        const streetError = getInvalidAddressErrorTranslationPath(street);
+        if (street && streetError) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[inputFieldsIDs.street] = translate(streetError);
+        }
 
-            const zipCode = getStringFormValue(values, inputFieldsIDs.zipCode);
-            const selectedCountry = (inputFieldsIDs.country ? getStringFormValue(values, inputFieldsIDs.country) : defaultValues.country) as Country | '';
-            const shouldValidateSelectedCountryZip = shouldDisplayCountrySelector && !!inputFieldsIDs.country;
+        const zipCode = getStringFormValue(values, inputFieldsIDs.zipCode);
+        const selectedCountry = (inputFieldsIDs.country ? getStringFormValue(values, inputFieldsIDs.country) : defaultValues.country) as Country | '';
+        const shouldValidateSelectedCountryZip = shouldDisplayCountrySelector && !!inputFieldsIDs.country;
 
-            if (zipCode && shouldValidateSelectedCountryZip && !isValidZipCodeForCountry(zipCode, selectedCountry)) {
-                const zipCodeSamples = getCountryZipRegexDetails(selectedCountry)?.samples;
-                // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.zipCode] = translate('privatePersonalDetails.error.incorrectZipFormat', zipCodeSamples);
-            } else if (zipCode && shouldValidateZipCodeFormat && !isValidZipCode(zipCode)) {
-                // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
-            }
+        if (zipCode && shouldValidateSelectedCountryZip && !isValidZipCodeForCountry(zipCode, selectedCountry)) {
+            const zipCodeSamples = getCountryZipRegexDetails(selectedCountry)?.samples;
+            // @ts-expect-error type mismatch to be fixed
+            errors[inputFieldsIDs.zipCode] = translate('privatePersonalDetails.error.incorrectZipFormat', zipCodeSamples);
+        } else if (zipCode && shouldValidateZipCodeFormat && !isValidZipCode(zipCode)) {
+            // @ts-expect-error type mismatch to be fixed
+            errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
+        }
 
-            return errors;
-        },
-        [defaultValues.country, inputFieldsIDs.country, inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
-    );
+        return errors;
+    };
 
     return (
         <FormProvider

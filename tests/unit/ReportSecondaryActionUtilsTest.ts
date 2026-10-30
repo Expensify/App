@@ -176,118 +176,6 @@ describe('getSecondaryAction', () => {
         ).toEqual(result);
     });
 
-    it('includes TOGGLE_SINGLE_EXPENSE_VIEW right before VIEW_DETAILS on a report with one expense', () => {
-        // Given a report that holds exactly one expense
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [transaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then the option to switch views is offered, just before "View details"
-        const toggleIndex = result.indexOf(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-        expect(toggleIndex).toBeGreaterThan(-1);
-        expect(result.at(toggleIndex + 1)).toBe(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a report with more than one expense', () => {
-        // Given a report with two expenses, which always uses the table view
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const firstTransaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-        const secondTransaction = createMock<Transaction>({transactionID: '2', reportID: REPORT_ID});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [firstTransaction, secondTransaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on an empty report', () => {
-        // Given a report with no expenses
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-    });
-
-    it('does not include TOGGLE_SINGLE_EXPENSE_VIEW on a "Pay someone" report', () => {
-        // Given a "Pay someone" report, whose one expense comes from a pay action with IOUDetails
-        const report = createMock<Report>({reportID: REPORT_ID});
-        const policy = createMock<Policy>({});
-        const transaction = createMock<Transaction>({transactionID: '1', reportID: REPORT_ID});
-        const sentMoneyAction = createMock<ReportAction>({
-            reportActionID: '1',
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUTransactionID: '1', IOUDetails: {amount: 100, comment: '', currency: CONST.CURRENCY.USD}},
-        });
-
-        // When the More menu actions are computed
-        const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
-            report,
-            chatReport,
-            reportTransactions: [transaction],
-            originalTransaction: createMock<Transaction>({}),
-            violations: {},
-            bankAccountList: {},
-            policy,
-            reportActions: [sentMoneyAction],
-            rules: undefined,
-            cardList: undefined,
-        });
-
-        // Then there's no option to switch views, because the report has no expense thread for a table row to open
-        expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
-    });
-
     it('includes DOWNLOAD_RECEIPTS when at least one transaction has a receipt', () => {
         const report = createMock<Report>({});
         const policy = createMock<Policy>({});
@@ -963,6 +851,7 @@ describe('getSecondaryAction', () => {
                 enabled: true,
             },
             type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const TRANSACTION_ID = 'TRANSACTION_ID';
@@ -4337,6 +4226,7 @@ describe('getSecondaryAction', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: createMock<Transaction>({}),
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5176,6 +5066,44 @@ describe('getSecondaryAction', () => {
         });
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
     });
+
+    it('passes the report actions it was given to canEditFieldOfMoneyRequest when checking MOVE_EXPENSE', () => {
+        // Given a single-expense report whose IOU action is found in the passed report actions
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: originalMessageR14932.IOUTransactionID,
+        });
+        const reportActions = [actionR14932];
+        const canEditFieldOfMoneyRequestSpy = jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+
+        // When building the secondary actions for the report
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transaction],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy: createMock<Policy>({}),
+            reportActions,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the same report actions reach canEditFieldOfMoneyRequest, so the forwarded-since-last-submit check inside
+        // canEditMoneyRequest reads this report's own history instead of the module-level Onyx cache
+        expect(canEditFieldOfMoneyRequestSpy).toHaveBeenCalledWith(expect.objectContaining({reportAction: actionR14932, fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT, reportActions}));
+        expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+    });
 });
 
 describe('getReportAccountingExportActions', () => {
@@ -5607,6 +5535,39 @@ describe('getReportAccountingExportActions', () => {
 });
 
 describe('getSecondaryTransactionThreadActions', () => {
+    it('passes the parent report actions it was given to the delete check', () => {
+        // Given a transaction thread whose parent report's actions are handed to the function
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            policyID: POLICY_ID,
+        });
+        const parentReportActions = {[actionR14932.reportActionID]: actionR14932};
+        const canDeleteMoneyRequestReportSpy = jest.spyOn(ReportUtils, 'canDeleteMoneyRequestReport').mockReturnValue(true);
+
+        // When building the thread's secondary actions
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            parentReportActions,
+            reportTransaction: createMock<Transaction>({transactionID: originalMessageR14932.IOUTransactionID}),
+            reportAction: actionR14932,
+            originalTransaction: createMock<Transaction>({}),
+            policy: createMock<Policy>({}),
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the delete check receives the parent's full action list, so the check for a forward since the last submit inside
+        // isAwaitingFirstLevelApproval reads the parent report's own history rather than the module-level Onyx cache
+        expect(canDeleteMoneyRequestReportSpy.mock.calls.at(0)?.[2]).toEqual([actionR14932]);
+        expect(result).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
+        canDeleteMoneyRequestReportSpy.mockRestore();
+    });
+
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -5631,6 +5592,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 parentReport: report,
+                parentReportActions: undefined,
                 reportTransaction: createMock<Transaction>({}),
                 reportAction: undefined,
                 originalTransaction: createMock<Transaction>({}),
@@ -5663,6 +5625,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5691,6 +5654,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5708,6 +5672,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5737,6 +5702,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: createMock<Transaction>({}),
             reportAction: undefined,
             originalTransaction: createMock<Transaction>({}),
@@ -5798,6 +5764,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: undefined,
             reportTransaction: transaction,
             reportAction: undefined,
             originalTransaction,
@@ -5809,6 +5776,92 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(true);
+    });
+
+    it('keeps SPLIT for a per diem split expense once the parent report was forwarded, so the menu still offers Edit splits', async () => {
+        // Given a per diem split expense on a processing report owned by an admin who submits to the manager, whose parent actions
+        // show the report was forwarded after that submit. Delete is hidden for a forwarded report, so Split must stay to reach Edit splits
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: MANAGER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        });
+        const transaction = createMock<Transaction>({
+            transactionID: SPLIT_TRANSACTION_ID,
+            reportID: REPORT_ID,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            amount: 10,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            comment: {
+                originalTransactionID: ORIGINAL_TRANSACTION_ID,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        });
+        const originalTransaction = createMock<Transaction>({
+            transactionID: ORIGINAL_TRANSACTION_ID,
+            amount: 20,
+            merchant: 'Merchant',
+            created: '2025-01-01',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                },
+            },
+        });
+        const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            employeeList: {
+                [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: MANAGER_EMAIL},
+            },
+        });
+        const iouAction = createMock<ReportAction>({
+            reportActionID: 'iou',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: EMPLOYEE_ACCOUNT_ID,
+            created: '2026-04-21 16:00:00',
+            originalMessage: {IOUTransactionID: SPLIT_TRANSACTION_ID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 10, currency: CONST.CURRENCY.USD},
+        });
+        const submittedAction = createMock<ReportAction>({reportActionID: 'submitted', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'});
+        const forwardedAction = createMock<ReportAction>({reportActionID: 'forwarded', actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'});
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [MANAGER_ACCOUNT_ID]: {accountID: MANAGER_ACCOUNT_ID, login: MANAGER_EMAIL}});
+        await waitForBatchedUpdates();
+
+        // When building the thread's secondary actions
+        const result = getSecondaryTransactionThreadActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            parentReport: report,
+            parentReportOwnerLogin: EMPLOYEE_EMAIL,
+            parentReportActions: {
+                [iouAction.reportActionID]: iouAction,
+                [submittedAction.reportActionID]: submittedAction,
+                [forwardedAction.reportActionID]: forwardedAction,
+            },
+            reportTransaction: transaction,
+            reportAction: iouAction,
+            originalTransaction,
+            policy,
+            isChatReportArchived: false,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then the split and delete checks agree on the forward: Delete is hidden and Split is offered instead of neither
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(true);
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DELETE)).toBe(false);
     });
 
     it('should not include CHANGE_WORKSPACE option for exported report', async () => {
@@ -5900,6 +5953,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -5963,6 +6017,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: survivingSplit,
             reportAction: actionR14932,
             originalTransaction,
@@ -6011,6 +6066,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6059,6 +6115,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6110,6 +6167,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: report,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6141,6 +6199,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: selfDMReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6173,6 +6232,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 currentUserLogin: EMPLOYEE_EMAIL,
                 currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
                 parentReport: createMock<Report>({chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}),
+                parentReportActions: {[actionR14932.reportActionID]: actionR14932},
                 reportTransaction: createMock<Transaction>({}),
                 reportAction: actionR14932,
                 originalTransaction: createMock<Transaction>({}),
@@ -6243,6 +6303,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: transactionThreadReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6275,6 +6336,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport: nonExpenseReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6308,6 +6370,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),
@@ -6346,6 +6409,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
             parentReport,
+            parentReportActions: {[actionR14932.reportActionID]: actionR14932},
             reportTransaction: transaction,
             reportAction: actionR14932,
             originalTransaction: createMock<Transaction>({}),

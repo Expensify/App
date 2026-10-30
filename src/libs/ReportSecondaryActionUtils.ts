@@ -8,6 +8,7 @@ import type {
     Policy,
     Report,
     ReportAction,
+    ReportActions,
     ReportMetadata,
     ReportNameValuePairs,
     Rule,
@@ -19,7 +20,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
-import {isSingleTransactionReport} from './MoneyRequestReportUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
@@ -52,7 +52,6 @@ import {
     hasPendingDEWApprove,
     hasPendingDEWSubmit,
     isPayAction,
-    isSentMoneyReportAction,
 } from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
@@ -1214,6 +1213,7 @@ function getSecondaryReportActions({
                 outstandingReportsByPolicyID,
                 reportNameValuePairs: moveExpenseReportNameValuePairs,
                 transaction,
+                reportActions,
                 rules,
             });
             const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);
@@ -1227,12 +1227,6 @@ function getSecondaryReportActions({
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
-    }
-
-    // Reports with more than one expense always use the table view, so the switch only applies to single-expense reports.
-    // "Pay someone" reports always use the expense view, because their expense is the report itself.
-    if (isSingleTransactionReport(report, reportTransactions) && !reportActions?.some(isSentMoneyReportAction)) {
-        options.push(CONST.REPORT.SECONDARY_ACTIONS.TOGGLE_SINGLE_EXPENSE_VIEW);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS);
@@ -1272,6 +1266,7 @@ function getSecondaryTransactionThreadActions({
     currentUserAccountID,
     parentReport,
     parentReportOwnerLogin,
+    parentReportActions,
     reportTransaction,
     reportAction,
     originalTransaction,
@@ -1295,6 +1290,8 @@ function getSecondaryTransactionThreadActions({
      * See https://github.com/Expensify/App/issues/66413.
      */
     parentReportOwnerLogin?: string;
+    /** Actions of the parent report, so the delete check can see whether it was forwarded since its last submit */
+    parentReportActions: OnyxEntry<ReportActions>;
     reportTransaction: Transaction;
     reportAction: ReportAction | undefined;
     originalTransaction: OnyxEntry<Transaction>;
@@ -1326,12 +1323,16 @@ function getSecondaryTransactionThreadActions({
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
+    // The split check predicts whether Delete will offer "Edit splits", so it has to read the same parent history as the Delete check below.
+    // Otherwise a forward since the last submit hides Delete while the split check still expects Delete to cover editing, and the menu offers neither.
+    const parentReportActionsList = Object.values(parentReportActions ?? {});
+
     if (
         isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, rules, parentReportOwnerLogin, policy, grandParentReport) &&
         !shouldShowEditSplitInDeleteAction(
             parentReport,
             [reportTransaction],
-            reportAction ? [reportAction] : [],
+            parentReportActionsList,
             originalTransaction,
             currentUserAccountID,
             policy,
@@ -1390,7 +1391,7 @@ function getSecondaryTransactionThreadActions({
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);
 
-    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, parentReportOwnerLogin, policy, cardList, reportAction ? [reportAction] : [])) {
+    if (isDeleteAction(parentReport, [reportTransaction], currentUserAccountID, rules, parentReportOwnerLogin, policy, cardList, parentReportActionsList)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE);
     }
 

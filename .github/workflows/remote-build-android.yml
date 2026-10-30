@@ -90,6 +90,23 @@ jobs:
           role-duration-seconds: 21600
           aws-region: us-east-1
 
+      - name: Get Java version
+        id: get-java-version
+        uses: ./.github/actions/composite/getJavaVersion
+
+      - name: Setup Java
+        # v5.2.0
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+        with:
+          distribution: adopt
+          java-version: ${{ steps.get-java-version.outputs.version }}
+          cache: gradle
+
+      - name: Block compromised Java certificates
+        uses: Expensify/GitHub-Actions/block-compromised-java-certificates@b70c378d6cfae84f6844379eef3568cb33ea9680
+        with:
+          restrict-gradle: 'true'
+
       - name: Rock Remote Build - Android
         # rock v3
         uses: callstackincubator/android@1a7d52dfe3ca195ccbe5ad2f06c15f2fc3835115
@@ -98,6 +115,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
+          # Java is installed and protected before Rock can run Gradle.
+          setup-java: false
           variant: ${{ matrix.variant }}
           rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false

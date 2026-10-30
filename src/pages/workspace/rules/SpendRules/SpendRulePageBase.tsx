@@ -55,7 +55,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type SpendRulePageBaseProps = {
@@ -102,7 +102,7 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     const isNewRule = currentRuleID === ROUTES.NEW;
     const isEditingRule = currentRuleID !== ROUTES.NEW;
     const existingRule = isEditingRule ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
-    const existingFormValues = useMemo(() => getSpendRuleFormValuesFromCardRule(existingRule), [existingRule]);
+    const existingFormValues = getSpendRuleFormValuesFromCardRule(existingRule);
 
     const [isErrorVisible, setIsErrorVisible] = useState(false);
     const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => !hasSpendRuleMerchantRestrictions(isNewRule ? spendRuleForm : existingFormValues));

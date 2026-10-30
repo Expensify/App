@@ -21,7 +21,7 @@ function getTableColumnWidths(): Promise<TableColumnWidths | undefined> {
     });
 }
 
-describe('setTableColumnWidths', () => {
+describe('TableColumnWidths actions', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -56,5 +56,23 @@ describe('setTableColumnWidths', () => {
             columnWidths: {name: 400, taxRate: 776},
             resizedColumnKeys: ['taxCode', 'name'],
         });
+    });
+
+    it('clears one table layout and leaves the others', async () => {
+        // Given layouts stored for two tables
+        const layout = {availableColumnsWidth: 1176, columnWidths: {name: 400, taxRate: 776}, resizedColumnKeys: ['name']};
+        setTableColumnWidths(TABLE_ID, layout);
+        setTableColumnWidths('workspaceCategories', layout);
+        await waitForBatchedUpdates();
+
+        // When the last dragged column of one table is reset
+        setTableColumnWidths(TABLE_ID, null);
+        await waitForBatchedUpdates();
+
+        // Then only that table loses its layout, so it is sized from its content again while the other keeps its widths
+        const tableColumnWidths = await getTableColumnWidths();
+
+        expect(tableColumnWidths?.[TABLE_ID]).toBeUndefined();
+        expect(tableColumnWidths?.workspaceCategories).toEqual(layout);
     });
 });

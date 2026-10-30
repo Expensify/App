@@ -694,9 +694,13 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                // Import, export, and advanced screens are added in later releases.
-                onImportPagePress: () => null,
-                subscribedImportSettings: [],
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_IMPORT.getRoute(policyID)),
+                subscribedImportSettings: [
+                    CONST.ZOHO_BOOKS_CONFIG.ENABLE_NEW_CATEGORIES,
+                    CONST.ZOHO_BOOKS_CONFIG.SYNC_TAX_RATES,
+                    ...(policy?.connections?.zohoBooks?.data?.reportingTags?.map((reportingTag) => `${CONST.ZOHO_BOOKS_CONFIG.FIELD_MAPPING_PREFIX}${reportingTag.id}`) ?? []),
+                ],
+                // Export and advanced screens are added in later releases.
                 onExportPagePress: () => null,
                 subscribedExportSettings: [],
                 onAdvancedPagePress: () => null,
@@ -733,7 +737,19 @@ function getAccountingIntegrationData(
                     CONST.BUSINESS_CENTRAL_CONFIG.DEFAULT_VENDOR_ID,
                     CONST.BUSINESS_CENTRAL_CONFIG.NON_REIMBURSABLE_ACCOUNT,
                     CONST.BUSINESS_CENTRAL_CONFIG.PAYMENT_METHOD_CODE,
+                    CONST.BUSINESS_CENTRAL_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                    ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.BUSINESS_CENTRAL_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
                 ],
+                externalSubscribedExportSettingsPendingAction: getCardsCustomExportPendingAction(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT,
+                ),
+                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportInErrorFields(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT,
+                ),
                 onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_ADVANCED.getRoute(policyID)),
                 subscribedAdvancedSettings: [
                     CONST.BUSINESS_CENTRAL_CONFIG.AUTO_SYNC,

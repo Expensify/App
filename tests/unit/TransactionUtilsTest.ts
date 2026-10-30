@@ -15,7 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
-import type {Routes} from '../../src/types/onyx/Transaction';
+import type {Routes, TransactionCustomUnit} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -406,9 +406,124 @@ describe('TransactionUtils', () => {
             expect(categoryTaxValue).toBe('10%');
         });
 
+        describe('distance expenses', () => {
+            const distanceRateID = 'DISTANCE_RATE_ID';
+
+            function buildDistancePolicy(category: string, taxEnabled: boolean, rateTaxRateExternalID?: string, isRateTaxDisabled = false): Policy {
+                return {
+                    ...createRandomPolicy(0),
+                    taxRates: {
+                        ...CONST.DEFAULT_TAX,
+                        taxes: {
+                            ...CONST.DEFAULT_TAX.taxes,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            id_TAX_RATE_2: {name: 'Tax Rate 2', value: '8%', isDisabled: isRateTaxDisabled},
+                        },
+                    },
+                    rules: {expenseRules: createCategoryTaxExpenseRules(category, 'id_TAX_RATE_1')},
+                    customUnits: {
+                        DISTANCE_CUSTOM_UNIT: {
+                            attributes: {taxEnabled, unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            customUnitID: 'DISTANCE_CUSTOM_UNIT',
+                            enabled: true,
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            rates: {
+                                [distanceRateID]: {
+                                    attributes: {taxRateExternalID: rateTaxRateExternalID},
+                                    currency: 'USD',
+                                    customUnitRateID: distanceRateID,
+                                    enabled: true,
+                                    name: 'Test rate',
+                                    rate: 67,
+                                    subRates: [],
+                                },
+                            },
+                        },
+                    },
+                };
+            }
+
+            function buildDistanceTransaction(): Transaction {
+                const transaction = generateTransaction();
+                return {
+                    ...transaction,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                    comment: {...transaction.comment, customUnit: {customUnitRateID: distanceRateID}},
+                };
+            }
+
+            it('should apply the category rule when distance tax tracking is on and the rate has no tax rate of its own', () => {
+                // Given a policy whose distance rates track tax, where the selected rate has no tax rate of its own
+                const category = 'Advertising';
+                const fakePolicy = buildDistancePolicy(category, true);
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+
+                // Then the category rule fills the slot the rate left empty, rather than the workspace default
+                expect(categoryTaxCode).toBe('id_TAX_RATE_1');
+                expect(categoryTaxValue).toBe('5%');
+            });
+
+            it('should keep the rate tax rate when distance tax tracking is on and the rate has its own tax rate', () => {
+                // Given a policy whose distance rates track tax, where the selected rate carries its own tax rate
+                const category = 'Advertising';
+                const fakePolicy = buildDistancePolicy(category, true, 'id_TAX_RATE_2');
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(
+                    category,
+                    buildDistanceTransaction(),
+                    fakePolicy,
+                    getCurrencyDecimalsLocal,
+                );
+
+                // Then the category rule is skipped, because the rate's own tax rate takes precedence over it
+                expect(categoryTaxCode).toBeUndefined();
+                expect(categoryTaxAmount).toBeUndefined();
+                expect(categoryTaxValue).toBeUndefined();
+            });
+
+            it('should apply the category rule when the rate points at a tax rate that was disabled', () => {
+                // Given a distance rate that still points at a tax rate the admin has since disabled
+                const category = 'Advertising';
+                const fakePolicy = buildDistancePolicy(category, true, 'id_TAX_RATE_2', true);
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+
+                // Then the rate counts as having no tax rate, so the category rule applies no matter which of the two the user picked first
+                expect(categoryTaxCode).toBe('id_TAX_RATE_1');
+                expect(categoryTaxValue).toBe('5%');
+            });
+
+            it('should fall back to the workspace default when the category rule points at a disabled tax rate', () => {
+                // Given a category rule pointing at a tax rate the admin has since disabled, on a rate with no tax rate of its own
+                const category = 'Advertising';
+                const fakePolicy: Policy = {
+                    ...buildDistancePolicy(category, true),
+                    taxRates: {
+                        ...CONST.DEFAULT_TAX,
+                        taxes: {
+                            ...CONST.DEFAULT_TAX.taxes,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            id_TAX_RATE_1: {name: 'Tax Rate 1', value: '5%', isDisabled: true},
+                        },
+                    },
+                };
+
+                // When retrieving the tax from the associated category
+                const {categoryTaxCode, categoryTaxValue} = TransactionUtils.getCategoryTaxDetails(category, buildDistanceTransaction(), fakePolicy, getCurrencyDecimalsLocal);
+
+                // Then the rule is skipped, because the expense cannot carry a tax rate the user is no longer offered
+                expect(categoryTaxCode).toBe('id_TAX_EXEMPT');
+                expect(categoryTaxValue).toBe('0%');
+            });
+        });
+
         describe('should return undefined tax', () => {
-            it('if the transaction type is distance', () => {
-                // Given a policy with tax expense rules associated with a category
+            it('if the transaction type is distance and distance tax tracking is disabled', () => {
+                // Given a policy with tax expense rules associated with a category, and no distance rates tracking tax
                 const category = 'Advertising';
                 const fakePolicy: Policy = {
                     ...createRandomPolicy(0),
@@ -516,6 +631,32 @@ describe('TransactionUtils', () => {
             // When resolving the default tax code for a distance expense on that rate
             // Then no tax code is returned, because none of them can be picked
             expect(TransactionUtils.getDefaultTaxCode(policy, distanceTransaction)).toBeUndefined();
+        });
+
+        it('taxes only the reimbursable distance when a commuter exclusion applies', () => {
+            // Given a 30 mile trip on a taxed rate, where the workspace excludes 10 miles as a commute
+            const policy = buildDistancePolicy({rateTaxCode: 'id_TAX_RATE_1'});
+            const buildTrip = (customUnit: TransactionCustomUnit): Transaction => ({
+                ...distanceTransaction,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: RATE_ID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, ...customUnit},
+                },
+            });
+
+            // When computing the tax for the full trip, the excluded trip, and a trip of only the reimbursable part
+            const fullTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 30}), RATE_ID, getCurrencyDecimalsLocal);
+            const excludedTrip = TransactionUtils.getDistanceRateTaxUpdates(
+                policy,
+                buildTrip({quantity: 30, commuterExclusion: 10, reimbursableDistance: 20}),
+                RATE_ID,
+                getCurrencyDecimalsLocal,
+            );
+            const shortTrip = TransactionUtils.getDistanceRateTaxUpdates(policy, buildTrip({quantity: 20}), RATE_ID, getCurrencyDecimalsLocal);
+
+            // Then the commute is left out of the tax, so the expense is taxed as if it were only the reimbursable 20 miles
+            expect(excludedTrip.taxAmount).toBe(shortTrip.taxAmount);
+            expect(excludedTrip.taxAmount).toBeLessThan(fullTrip.taxAmount);
         });
 
         it('makes getDistanceRateTaxUpdates drop the disabled tax rate', () => {
@@ -5460,47 +5601,6 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('doesReportKeepExpensesAfterMerge', () => {
-        const DISCARDED_TRANSACTION_ID = '1';
-        const OTHER_TRANSACTION_ID = '2';
-
-        it('returns true when another expense stays on the report', () => {
-            // Given a report with the discarded expense and another active expense
-            const reportTransactions = [
-                {...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID},
-                {...createRandomTransaction(2), transactionID: OTHER_TRANSACTION_ID},
-            ];
-
-            // When the merge discards one of them, Then the report still has the other one
-            expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(true);
-        });
-
-        it('returns false when the merge discards the only expense on the report', () => {
-            // Given a report whose only expense is the one being discarded
-            const reportTransactions = [{...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID}];
-
-            // When the merge discards it, Then the report has no expenses left, so going back to it would show "Not here"
-            expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(false);
-        });
-
-        it('returns false when the only other expense is already pending deletion', () => {
-            // Given a report with the discarded expense and another expense that is already being deleted
-            const reportTransactions = [
-                {...createRandomTransaction(1), transactionID: DISCARDED_TRANSACTION_ID},
-                {...createRandomTransaction(2), transactionID: OTHER_TRANSACTION_ID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            ];
-
-            // When the merge discards the first one, Then the pending delete doesn't count, so the report has no expenses left
-            expect(TransactionUtils.doesReportKeepExpensesAfterMerge(reportTransactions, new Set([DISCARDED_TRANSACTION_ID]))).toBe(false);
-        });
-
-        it('returns true when the report transactions are not loaded', () => {
-            // Given no transactions loaded for the report, so we can't tell whether it would be emptied
-            // When the merge runs, Then the report is treated as keeping expenses, so the app goes back to it as before
-            expect(TransactionUtils.doesReportKeepExpensesAfterMerge([], new Set([DISCARDED_TRANSACTION_ID]))).toBe(true);
-        });
-    });
-
     describe('buildNewTransactionAfterReviewingDuplicates', () => {
         it('preserves the kept transaction tax amount when the selected tax code matches the existing tax code', () => {
             const duplicatedTransaction = generateTransaction({
@@ -6286,6 +6386,18 @@ describe('hasAllManuallyEnteredScanFields', () => {
         expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL, ...values}))).toBe(false);
         expect(TransactionUtils.hasAllManuallyEnteredScanFields(generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE, ...values}))).toBe(false);
     });
+
+    it('does not need the merchant when the destination does not require one', () => {
+        // Given a Scan draft with the amount and date entered but no merchant
+        const transaction = generateScanDraft({isAmountSet: true, isCreatedSet: true});
+
+        // When it goes to a P2P chat or self DM, where the manual flow doesn't require a merchant either
+        const result = TransactionUtils.hasAllManuallyEnteredScanFields(transaction, false);
+
+        // Then it counts as complete, so it is submitted as entered instead of being scanned over
+        expect(result).toBe(true);
+        expect(TransactionUtils.hasAllManuallyEnteredScanFields(transaction, true)).toBe(false);
+    });
 });
 
 describe('isFailedScanAmountPlaceholder for zero-amount Scans', () => {
@@ -6377,6 +6489,29 @@ describe('hasAnyManuallyEnteredScanField / isPartiallyEnteredScanExpense', () =>
     it('holds no surface to the rule unless it actually offers the three fields', () => {
         // Splits, moved tracked expenses and test receipts carry the same flags without ever having shown them.
         expect(TransactionUtils.isPartiallyEnteredScanExpense(generateScanDraft({isAmountSet: true}), false)).toBe(false);
+    });
+
+    it('does not block a P2P Scan whose merchant is left blank', () => {
+        // Given a Scan draft with the amount and date entered but no merchant (#101147)
+        const transaction = generateScanDraft({isAmountSet: true, isCreatedSet: true});
+
+        // When the destination doesn't require a merchant
+        const result = TransactionUtils.isPartiallyEnteredScanExpense(transaction, true, false);
+
+        // Then the expense isn't partially filled, while a workspace chat still requires the merchant
+        expect(result).toBe(false);
+        expect(TransactionUtils.isPartiallyEnteredScanExpense(transaction, true, true)).toBe(true);
+    });
+
+    it('still requires the amount and date of a P2P Scan once one field is entered', () => {
+        // Given a Scan draft with only the merchant entered
+        const transaction = generateScanDraft({isMerchantSet: true});
+
+        // When the destination doesn't require a merchant
+        const result = TransactionUtils.isPartiallyEnteredScanExpense(transaction, true, false);
+
+        // Then the amount and date are still all-or-nothing
+        expect(result).toBe(true);
     });
 });
 
