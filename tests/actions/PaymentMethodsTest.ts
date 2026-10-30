@@ -1,4 +1,6 @@
-import {makeDefaultPaymentMethod} from '@libs/actions/PaymentMethods';
+import {makeDefaultPaymentMethod, openPaymentMethodsOnce} from '@libs/actions/PaymentMethods';
+import * as API from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,6 +88,39 @@ describe('actions/PaymentMethods', () => {
             // Then the Members page goes back to the account the backend still has as the default
             const paymentsOn = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_MEMBER_BANK_ACCOUNTS}${PAYMENTS_ON_POLICY_ID}`);
             expect(paymentsOn?.[ACCOUNT_ID]).toEqual(previousBankAccount);
+        });
+    });
+
+    describe('openPaymentMethodsOnce', () => {
+        it('only loads the reimbursement details the first time it is called', () => {
+            // Given several Pay buttons that each ask for the reimbursement details as they show
+            const readSpy = jest.spyOn(API, 'read');
+
+            // When they all ask for them
+            openPaymentMethodsOnce();
+            openPaymentMethodsOnce();
+
+            // Then they're only requested once, since one request loads them for every workspace
+            expect(readSpy).toHaveBeenCalledTimes(1);
+            expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.OPEN_PAYMENT_METHODS, null, expect.anything());
+            readSpy.mockRestore();
+        });
+
+        it('loads the reimbursement details again once Onyx has been cleared', async () => {
+            // Given the reimbursement details were loaded, then Onyx was cleared, e.g. by "Clear cache and restart"
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const readSpy = jest.spyOn(API, 'read');
+            openPaymentMethodsOnce();
+            await waitForBatchedUpdates();
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+
+            // When a Pay button asks for them again
+            openPaymentMethodsOnce();
+
+            // Then they're requested again, since the cleared data needs loading again
+            expect(readSpy).toHaveBeenCalledTimes(2);
+            readSpy.mockRestore();
         });
     });
 });

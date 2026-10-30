@@ -68,7 +68,7 @@ import {
 import {isPending} from '@libs/TransactionUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {openPaymentMethods} from '@userActions/PaymentMethods';
+import {openPaymentMethods, openPaymentMethodsOnce} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -465,8 +465,18 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
+    const shouldLoadABAData = secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY) && shouldLoadPayViaABAData(policy);
+
+    // Loads the Pay via ABA data as soon as Pay is in the menu, so the option is there when the menu first opens
+    useEffect(() => {
+        if (!shouldLoadABAData) {
+            return;
+        }
+        openPaymentMethodsOnce();
+    }, [shouldLoadABAData]);
+
     const handleOptionsMenuShow = () => {
-        if (!secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY) || !shouldLoadPayViaABAData(policy)) {
+        if (!shouldLoadABAData) {
             return;
         }
         openPaymentMethods();

@@ -46,7 +46,7 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {clearPersonalBankAccount, pressLockedBankAccount} from '@userActions/BankAccounts';
-import {openPaymentMethods} from '@userActions/PaymentMethods';
+import {openPaymentMethods, openPaymentMethodsOnce} from '@userActions/PaymentMethods';
 import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -60,7 +60,7 @@ import type {TupleToUnion} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {View} from 'react-native';
 
 import type SettlementButtonProps from './types';
@@ -557,8 +557,18 @@ function SettlementButton({
         customText = translate('iou.settlePayment', formattedAmount);
     }
 
+    const shouldLoadABAData = shouldLoadPayViaABAData(policy);
+
+    // Loads the Pay via ABA data as soon as the button shows, so the option is there when the menu first opens
+    useEffect(() => {
+        if (!shouldLoadABAData) {
+            return;
+        }
+        openPaymentMethodsOnce();
+    }, [shouldLoadABAData]);
+
     const handlePaymentOptionsShow = () => {
-        if (shouldLoadPayViaABAData(policy)) {
+        if (shouldLoadABAData) {
             openPaymentMethods();
         }
         onPaymentOptionsShow?.();

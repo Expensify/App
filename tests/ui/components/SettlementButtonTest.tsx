@@ -14,7 +14,7 @@ import {createWorkspace} from '@libs/actions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {openPaymentMethods} from '@userActions/PaymentMethods';
+import {openPaymentMethods, openPaymentMethodsOnce} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -133,6 +133,7 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
 jest.mock('@userActions/PaymentMethods', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/PaymentMethods'),
     openPaymentMethods: jest.fn(),
+    openPaymentMethodsOnce: jest.fn(),
 }));
 
 const mockVerifyAccountAndResume = jest.fn();
@@ -436,6 +437,31 @@ describe('SettlementButton', () => {
             expect(onPaymentOptionsShow).toHaveBeenCalledTimes(1);
         });
 
+        it('loads the payment methods as soon as the button shows on an AUD policy', async () => {
+            // Given an expense report on an AUD policy, which can be paid via ABA
+            const expenseReport = createExpenseReport({currency: CONST.CURRENCY.AUD});
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy({outputCurrency: CONST.CURRENCY.AUD}),
+            });
+
+            // When the Pay button shows
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        currency={CONST.CURRENCY.AUD}
+                        iouReport={expenseReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the payment methods start loading before the options open, so the ABA option is there when they do
+            expect(openPaymentMethodsOnce).toHaveBeenCalledTimes(1);
+        });
+
         it('does not load the payment methods when the options open on a non-AUD policy', async () => {
             // Given an expense report on a USD policy, which can't be paid via ABA
             const expenseReport = createExpenseReport();
@@ -462,6 +488,7 @@ describe('SettlementButton', () => {
 
             // Then nothing is loaded, since there's no ABA option to show
             expect(openPaymentMethods).not.toHaveBeenCalled();
+            expect(openPaymentMethodsOnce).not.toHaveBeenCalled();
         });
 
         it('does not show wallet option for expense reports (subtitle shows bank account)', async () => {
