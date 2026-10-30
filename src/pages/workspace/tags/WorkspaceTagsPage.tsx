@@ -553,43 +553,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const getHeaderButtons = () => {
-        if (!canWriteTags && secondaryActions.length === 0) {
-            return null;
-        }
-
+    const getBulkActionOptions = () => {
         const selectedTagsObject = selectedTagKeys.map((key) => policyTagLists.at(0)?.tags?.[key]);
-
-        // Without selection there are no bulk actions, so keep the normal header even if selection mode lingered from elsewhere.
-        if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
-            const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
-            return (
-                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-                    {hasPrimaryActions && (
-                        <Button
-                            variant={CONST.BUTTON_VARIANT.SUCCESS}
-                            onPress={navigateToCreateTagPage}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
-                            style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        >
-                            <Button.Icon src={expensifyIcons.Plus} />
-                            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
-                        </Button>
-                    )}
-                    {secondaryActions.length > 0 && (
-                        <ButtonWithDropdownMenu
-                            onPress={() => {}}
-                            shouldAlwaysShowDropdownMenu
-                            customText={translate('common.more')}
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
-                            options={secondaryActions}
-                            isSplitButton={false}
-                            wrapperStyle={isInLandscapeMode || hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
-                        />
-                    )}
-                </View>
-            );
-        }
 
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
@@ -680,6 +645,46 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
+        return options;
+    };
+
+    const getHeaderButtons = () => {
+        if (!canWriteTags && secondaryActions.length === 0) {
+            return null;
+        }
+
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        if (!canWriteTags || !isSelectionEnabled || !shouldUseNarrowLayout || !isMobileSelectionModeEnabled) {
+            const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
+            return (
+                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
+                    {hasPrimaryActions && (
+                        <Button
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            onPress={navigateToCreateTagPage}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
+                            style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
+                        >
+                            <Button.Icon src={expensifyIcons.Plus} />
+                            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
+                        </Button>
+                    )}
+                    {secondaryActions.length > 0 && (
+                        <ButtonWithDropdownMenu
+                            onPress={() => {}}
+                            shouldAlwaysShowDropdownMenu
+                            customText={translate('common.more')}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.MORE_DROPDOWN}
+                            options={secondaryActions}
+                            isSplitButton={false}
+                            wrapperStyle={isInLandscapeMode || hasPrimaryActions ? styles.flexGrow0 : styles.flexGrow1}
+                        />
+                    )}
+                </View>
+            );
+        }
+
         return (
             <ButtonWithDropdownMenu
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -688,7 +693,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 isSplitButton={false}
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
-                options={options}
+                options={getBulkActionOptions()}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedTagKeys.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DROPDOWN}
@@ -826,6 +831,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         emptyState={tagsTableEmptyState}
                         onRowSelectionChange={setSelectedTagKeys}
                         headerComponent={hasVisibleTags ? headerContent : undefined}
+                        bulkActionOptions={canWriteTags && isSelectionEnabled ? getBulkActionOptions() : undefined}
                     />
                 )}
             </ScreenWrapper>

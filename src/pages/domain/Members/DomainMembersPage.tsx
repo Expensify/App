@@ -232,7 +232,9 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const hasSettingsErrors = hasDomainMembersSettingsErrors(domainErrors);
     const getHeaderButtons = () => {
-        return (shouldUseNarrowLayout ? canSelectMultiple : selectedMembers.length > 0) ? (
+        // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+        // page's own buttons no matter what is selected.
+        return shouldUseNarrowLayout && canSelectMultiple ? (
             <ButtonWithDropdownMenu<DomainMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 shouldAlwaysShowDropdownMenu
@@ -347,6 +349,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 isItemInFilter={isItemInFilter}
                 shouldShowGroupFilter={shouldShowGroupFilter}
                 shouldShowGroupColumn={shouldShowGroupColumn}
+                bulkActionOptions={getBulkActionsButtonOptions()}
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         clearSelectedMembers();

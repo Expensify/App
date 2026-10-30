@@ -73,7 +73,10 @@ function ExpenseRulesPage() {
 
     const canSelectMultiple = !shouldUseNarrowLayout || isMobileSelectionModeEnabled;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-    const isInSelectionMode = shouldUseNarrowLayout ? canSelectMultiple : selectedRules.length > 0;
+
+    // The wide layout offers the bulk actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const isInSelectionMode = shouldUseNarrowLayout && canSelectMultiple;
 
     const navigateToNewRulePage = () => {
         clearDraftRule();
@@ -248,6 +251,7 @@ function ExpenseRulesPage() {
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
                     headerComponent={hasRules ? expenseRulesSubtitle : undefined}
+                    bulkActionOptions={headerDropdownOptions}
                 />
             )}
         </ScreenWrapper>

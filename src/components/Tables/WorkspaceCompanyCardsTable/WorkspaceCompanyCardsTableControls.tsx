@@ -1,34 +1,22 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Table from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {unassignWorkspaceCompanyCard} from '@libs/actions/CompanyCards';
-import navigateToCardTransactions from '@libs/CardNavigationUtils';
-import {formatMaskedCardName} from '@libs/CardUtils';
-import escapeCsvField from '@libs/escapeCsvField';
-import localFileDownload from '@libs/localFileDownload';
-import Navigation from '@libs/Navigation/Navigation';
-
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
-import {format, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
+import type {WorkspaceCompanyCardBulkActionType} from './useWorkspaceCompanyCardsBulkActions';
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
-type WorkspaceCompanyCardBulkActionType = 'editTransactionStartDate' | 'unassign' | 'viewTransactions' | 'exportCSV';
+import useWorkspaceCompanyCardsBulkActions from './useWorkspaceCompanyCardsBulkActions';
 
 type WorkspaceCompanyCardsTableControlsProps = {
     policyID: string;
@@ -44,6 +32,9 @@ type WorkspaceCompanyCardsTableControlsProps = {
 
     /** Whether the narrow-layout selection mode is active */
     isSelectionModeEnabled: boolean;
+
+    /** The card rows the actions apply to */
+    selectedCards: WorkspaceCompanyCardTableItemData[];
 };
 
 function WorkspaceCompanyCardsTableControls({
@@ -54,153 +45,27 @@ function WorkspaceCompanyCardsTableControls({
     canWriteCompanyCards,
     clearCardSelection,
     isSelectionModeEnabled,
+    selectedCards,
 }: WorkspaceCompanyCardsTableControlsProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
-    const {translate, getLocalDateFromDatetime} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Export', 'MoneySearch', 'RemoveMembers']);
-    const {processedData, shouldUseNarrowTableLayout} = useTableContext<WorkspaceCompanyCardTableItemData>();
+    const {translate} = useLocalize();
+    const {shouldUseNarrowTableLayout} = useTableContext<WorkspaceCompanyCardTableItemData>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const selectedCards = processedData.filter((card) => card.selected && !card.disabled);
-    const selectedAssignedCards = selectedCards.filter((card) => card.isAssigned && !!card.assignedCard);
-    const isOnlyAssignedCardsSelected = selectedCards.length > 0 && selectedAssignedCards.length === selectedCards.length;
-    const isSingleAssignedCard = selectedAssignedCards.length === 1;
-
-    const exportSelectedCardsToCSV = () => {
-        if (selectedCards.length === 0) {
-            return;
-        }
-
-        const header = [
-            translate('common.email'),
-            translate('workspace.expensifyCard.name'),
-            translate('workspace.moreFeatures.companyCards.cardNumber'),
-            translate('workspace.moreFeatures.companyCards.transactionStartDate'),
-            translate('workspace.moreFeatures.companyCards.lastUpdated'),
-            translate('workspace.moreFeatures.companyCards.assignedCards'),
-        ]
-            .map(escapeCsvField)
-            .join(',');
-
-        const rows = selectedCards.map((card) => {
-            const assignedCard = card.assignedCard;
-            const transactionStartDate = assignedCard?.scrapeMinDate ? format(parseISO(assignedCard.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : '';
-            const lastUpdated = assignedCard?.lastScrape ? format(getLocalDateFromDatetime(assignedCard.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING) : '';
-
-            return [
-                card.isAssigned ? (card.cardholder?.login ?? '') : 'unassigned',
-                card.isAssigned ? (card.customCardName ?? '') : '',
-                formatMaskedCardName(card.cardName),
-                card.isAssigned ? transactionStartDate : '',
-                card.isAssigned ? lastUpdated : '',
-                translate(card.isAssigned ? 'common.yes' : 'common.no'),
-            ]
-                .map(escapeCsvField)
-                .join(',');
-        });
-
-        const csvContent = [header, ...rows].join('\r\n');
-        const safePolicySegment = policyID.replaceAll(/[^\dA-Za-z-_]/g, '') || 'workspace';
-        localFileDownload(`CompanyCards_${safePolicySegment}.csv`, csvContent, translate);
-    };
-
-    const confirmBulkUnassign = async () => {
-        if (!bankName || selectedAssignedCards.length === 0) {
-            return;
-        }
-
-        const {action} = await showConfirmModal({
-            shouldSetModalVisibility: false,
-            title: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
-            prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
-            confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-        });
-
-        if (action !== ModalActions.CONFIRM) {
-            return;
-        }
-
-        for (const card of selectedAssignedCards) {
-            if (!card.assignedCard) {
-                continue;
-            }
-            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bankName, card.assignedCard);
-        }
-        clearCardSelection();
-    };
-
-    const viewSelectedCardTransactions = () => {
-        const selectedCardIDs = selectedAssignedCards.map((card) => card.assignedCard?.cardID).filter((cardID): cardID is number => cardID !== undefined);
-        if (selectedCardIDs.length === 0) {
-            return;
-        }
-
-        navigateToCardTransactions(selectedCardIDs.join(','));
-        clearCardSelection();
-    };
-
-    const editSelectedCardTransactionStartDates = () => {
-        if (!feedName) {
-            return;
-        }
-
-        const selectedCardIDs = selectedAssignedCards
-            .map((card) => card.assignedCard?.cardID)
-            .filter((cardID): cardID is number => cardID !== undefined)
-            .map(String);
-        const [selectedCardID] = selectedCardIDs;
-        if (!selectedCardID) {
-            return;
-        }
-
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute(policyID, feedName, selectedCardIDs));
-    };
-
-    const getBulkActionOptions = (): Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> => {
-        const options: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [];
-
-        if (isOnlyAssignedCardsSelected) {
-            if (canWriteCompanyCards) {
-                options.push({
-                    icon: icons.RemoveMembers,
-                    text: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCard' : 'workspace.moreFeatures.companyCards.unassignCards'),
-                    value: 'unassign',
-                    shouldSkipFocusRestore: !!bankName,
-                    onSelected: confirmBulkUnassign,
-                });
-            }
-            options.push({
-                icon: icons.MoneySearch,
-                text: translate('workspace.common.viewTransactions'),
-                value: 'viewTransactions',
-                onSelected: viewSelectedCardTransactions,
-            });
-            if (canWriteCompanyCards) {
-                options.push({
-                    icon: icons.CalendarSolid,
-                    text: translate('workspace.moreFeatures.companyCards.bulkUpdateTransactionStartDate'),
-                    value: 'editTransactionStartDate',
-                    onSelected: editSelectedCardTransactionStartDates,
-                });
-            }
-        }
-
-        options.push({
-            icon: icons.Export,
-            text: translate('workspace.expensifyCard.exportAsCSV'),
-            value: 'exportCSV',
-            onSelected: exportSelectedCardsToCSV,
-        });
-
-        return options;
-    };
+    const getBulkActionOptions = useWorkspaceCompanyCardsBulkActions({
+        policyID,
+        domainOrWorkspaceAccountID,
+        bankName,
+        feedName,
+        canWriteCompanyCards,
+        clearCardSelection,
+        selectedCards,
+    });
 
     const hasSelectedCards = selectedCards.length > 0;
-    const shouldShowBulkActions = shouldUseNarrowLayout ? isSelectionModeEnabled : hasSelectedCards;
+    // The wide layout offers these actions in the floating bar over the table instead, so the filter bar stays put
+    // no matter what is selected.
+    const shouldShowBulkActions = shouldUseNarrowLayout && isSelectionModeEnabled;
 
     return (
         <>
@@ -225,7 +90,7 @@ function WorkspaceCompanyCardsTableControls({
             )}
             {/* The filter bar must stay mounted while rows are selected: unmounting it resets the search string
                 (TableSearchBar clears it on unmount), which would immediately clear the selection that was just made. */}
-            <View style={hasSelectedCards && !shouldUseNarrowLayout && styles.dNone}>
+            <View>
                 <Table.FilterBar label={translate('workspace.companyCards.findCompanyCard')} />
             </View>
         </>
