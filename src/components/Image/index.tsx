@@ -3,12 +3,14 @@ import {useSession} from '@components/OnyxListItemProvider';
 
 import useNetwork from '@hooks/useNetwork';
 
-import {isExpiredSession} from '@libs/actions/Session';
-import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
+import reauthenticateAttachmentImages from '@libs/actions/Session/AttachmentImageReauthenticator';
+import canSendAuthTokenToURL from '@libs/canSendAuthTokenToURL';
+import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
+import type Session from '@src/types/onyx/Session';
 
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import type {ImageOnLoadEvent, ImageProps} from './types';
 
@@ -16,11 +18,30 @@ import BaseImage from './BaseImage';
 import getImageSource from './getImageSource';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
 
+type ImageState = {
+    requestID: number;
+    sourceKey: ImageProps['source'] | string;
+    source: ImageProps['source'];
+    accountID: Session['accountID'];
+    isAuthTokenRequired: boolean;
+    isOffline: boolean;
+    hasAuthToken: boolean;
+};
+
+type FailedImage = {
+    sourceKey: ImageState['sourceKey'];
+    accountID: number | undefined;
+    encryptedAuthToken: string;
+    shouldRetry: boolean;
+    retryToken?: string;
+};
+
 function Image({
     source: propsSource,
     shouldCalculateAspectRatioForWideImage = false,
     isAuthTokenRequired = false,
     onLoad,
+    onError,
     objectPosition = CONST.IMAGE_OBJECT_POSITION.INITIAL,
     style,
     loadingIconSize,
@@ -32,10 +53,45 @@ function Image({
     const isObjectPositionTop = objectPosition === CONST.IMAGE_OBJECT_POSITION.TOP;
     const session = useSession();
     const {isOffline} = useNetwork();
+    const [failedImage, setFailedImage] = useState<FailedImage>();
+    const activeRequest = useRef<number>(undefined);
+    const recoveryController = useRef<AbortController>(undefined);
+    const imageErrorCallback = useRef<(failedRequestID: number) => void>(undefined);
+    const sourceKey =
+        typeof propsSource === 'object' && propsSource !== null && 'uri' in propsSource && typeof propsSource.uri === 'string' && Object.keys(propsSource).every((key) => key === 'uri')
+            ? propsSource.uri
+            : propsSource;
+    // Build sources inside state callbacks so each request receives fresh loader input.
+    const createImageState = (nextRequestID: number): ImageState => ({
+        requestID: nextRequestID,
+        sourceKey,
+        source: getImageSource({propsSource, encryptedAuthToken: session?.encryptedAuthToken, isAuthTokenRequired}),
+        accountID: session?.accountID,
+        isAuthTokenRequired,
+        isOffline,
+        hasAuthToken: !!session?.encryptedAuthToken,
+    });
+    const [imageState, setImageState] = useState(() => createImageState(0));
+    const isCurrentFailedImage = !!failedImage && failedImage.sourceKey === sourceKey && failedImage.accountID === session?.accountID;
+
+    // Freeze successful image credentials so routine API token updates do not reload every image.
+    if (
+        imageState.sourceKey !== sourceKey ||
+        imageState.accountID !== session?.accountID ||
+        imageState.isAuthTokenRequired !== isAuthTokenRequired ||
+        imageState.isOffline !== isOffline ||
+        imageState.hasAuthToken !== !!session?.encryptedAuthToken
+    ) {
+        setFailedImage(undefined);
+        setImageState((current) => createImageState(current.requestID + 1));
+    } else if (isCurrentFailedImage && failedImage.shouldRetry && !failedImage.retryToken && session?.encryptedAuthToken && session.encryptedAuthToken !== failedImage.encryptedAuthToken) {
+        setFailedImage({...failedImage, retryToken: session.encryptedAuthToken});
+        setImageState((current) => createImageState(current.requestID + 1));
+    }
 
     const {shouldSetAspectRatioInStyle} = useContext(ImageBehaviorContext);
 
-    const aspectRatioStyle = useMemo(() => {
+    const getAspectRatioStyle = () => {
         if (!shouldSetAspectRatioInStyle || !aspectRatio) {
             return {};
         }
@@ -48,98 +104,97 @@ function Image({
         }
 
         return {aspectRatio, height: 'auto'};
-    }, [shouldSetAspectRatioInStyle, aspectRatio, imageWidthToCalculateHeight]);
+    };
+    const aspectRatioStyle = getAspectRatioStyle();
 
-    const updateAspectRatio = useCallback(
-        (width: number, height: number) => {
-            if (!isObjectPositionTop) {
-                return;
-            }
-
-            if (width > height && !shouldCalculateAspectRatioForWideImage) {
-                setAspectRatio(1);
-                return;
-            }
-
-            setAspectRatio(height ? width / height : 'auto');
-        },
-        [isObjectPositionTop, shouldCalculateAspectRatioForWideImage],
-    );
-
-    const handleLoad = useCallback(
-        (event: ImageOnLoadEvent) => {
-            const {width, height} = event.nativeEvent;
-
-            onLoad?.(event);
-            updateAspectRatio(width, height);
-        },
-        [onLoad, updateAspectRatio],
-    );
-
-    // accepted sessions are sessions of a certain criteria that we think can necessitate a reload of the images
-    // because images sources barely changes unless specific events occur like network issues (offline/online) per example.
-    // Here we target new session received less than 60s after the previous session (that could be from fresh reauthentication, the previous session was not necessarily expired)
-    // or new session after the previous session was expired (based on timestamp gap between the 2 creationDate and the freshness of the new session).
-    const isAcceptedSession = useCallback((sessionCreationDateDiff: number, sessionCreationDate: number) => {
-        return sessionCreationDateDiff < 60000 || (sessionCreationDateDiff >= CONST.SESSION_EXPIRATION_TIME_MS && new Date().getTime() - sessionCreationDate < 60000);
-    }, []);
-
-    /**
-     * trying to figure out if the current session is expired or fresh from a necessary reauthentication
-     */
-    const previousSessionAge = useRef<number | undefined>(undefined);
-
-    const validSessionAge: number | undefined = useMemo(() => {
-        // Authentication is required only for certain types of images (attachments and receipts),
-        // so we only calculate the session age for those
-        if (!isAuthTokenRequired) {
-            return undefined;
-        }
-        if (session?.creationDate) {
-            if (previousSessionAge.current) {
-                // Most likely a reauthentication happened, but unless the calculated source is different from the previous, the image won't reload
-                if (isAcceptedSession(session.creationDate - previousSessionAge.current, session.creationDate)) {
-                    return session.creationDate;
-                }
-                return previousSessionAge.current;
-            }
-            if (isExpiredSession(session.creationDate)) {
-                // reset the countdown to now so future sessions creationDate can be compared to that time
-                return new Date().getTime();
-            }
-            return session.creationDate;
-        }
-        return undefined;
-    }, [session?.creationDate, isAuthTokenRequired, isAcceptedSession]);
-    useEffect(() => {
-        if (!isAuthTokenRequired) {
+    const updateAspectRatio = (width: number, height: number) => {
+        if (!isObjectPositionTop) {
             return;
         }
-        previousSessionAge.current = validSessionAge;
-    });
 
-    /**
-     * Check if the image source is a URL - if so the `encryptedAuthToken` is appended
-     * to the source.
-     */
-    const source = useMemo(() => {
-        const resolvedImageSource = getImageSource({
-            propsSource,
-            session,
-            isAuthTokenRequired,
-            isOffline,
-        });
-
-        if (resolvedImageSource.shouldReauthenticate && session) {
-            activateReauthenticator(session);
+        if (width > height && !shouldCalculateAspectRatioForWideImage) {
+            setAspectRatio(1);
+            return;
         }
 
-        return resolvedImageSource.source;
-        // The session prop is not required, as it causes the image to reload whenever the session changes. For more information, please refer to issue #26034.
-        // but we still need the image to reload sometimes (example : when the current session is expired)
-        // by forcing a recalculation of the source (which value could indeed change) through the modification of the variable validSessionAge
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [propsSource, isAuthTokenRequired, validSessionAge, isOffline]);
+        setAspectRatio(height ? width / height : 'auto');
+    };
+
+    const handleLoad = (event: ImageOnLoadEvent) => {
+        const {width, height} = event.nativeEvent;
+
+        onLoad?.(event);
+        updateAspectRatio(width, height);
+    };
+
+    const isAuthenticatedURL =
+        isAuthTokenRequired &&
+        typeof propsSource === 'object' &&
+        propsSource !== null &&
+        'uri' in propsSource &&
+        typeof propsSource.uri === 'string' &&
+        canSendAuthTokenToURL(propsSource.uri);
+    const {source, requestID} = imageState;
+
+    useLayoutEffect(() => {
+        activeRequest.current = requestID;
+        const controller = new AbortController();
+        recoveryController.current = controller;
+        return () => {
+            activeRequest.current = undefined;
+            controller.abort();
+        };
+    }, [requestID]);
+
+    const recoverImage = (failedRequestID: number) => {
+        if (activeRequest.current !== failedRequestID) {
+            return;
+        }
+        const token = source && typeof source === 'object' && 'headers' in source ? source.headers?.[CONST.CHAT_ATTACHMENT_TOKEN_KEY] : undefined;
+        if (isOffline || !isAuthenticatedURL || !token) {
+            onError?.();
+            return;
+        }
+        if (isCurrentFailedImage) {
+            if (token !== failedImage.encryptedAuthToken) {
+                setFailedImage({...failedImage, shouldRetry: false});
+                onError?.();
+            }
+            return;
+        }
+
+        const imageFailure: FailedImage = {sourceKey, accountID: session?.accountID, encryptedAuthToken: token, shouldRetry: true};
+        setFailedImage(imageFailure);
+        forwardedProps.waitForSession?.();
+
+        // An API response may have already replaced the token used by this image.
+        if (session?.encryptedAuthToken && token !== session.encryptedAuthToken) {
+            return;
+        }
+
+        reauthenticateAttachmentImages(propsSource.uri ?? '', token, recoveryController.current?.signal)
+            .then(({wasSuccessful}) => {
+                if (wasSuccessful || activeRequest.current !== requestID) {
+                    return;
+                }
+                // A false result may start SAML; a still-mounted image must also leave its loading state.
+                setFailedImage((current) => (current === imageFailure ? {...current, shouldRetry: false} : current));
+                onError?.();
+            })
+            .catch((error: unknown) => {
+                if (activeRequest.current !== requestID) {
+                    return;
+                }
+                setFailedImage((current) => (current === imageFailure ? {...current, shouldRetry: false} : current));
+                Log.hmmm('Could not recover attachment image or receipt', {error});
+                onError?.();
+            });
+    };
+    // Expo's web loader retains its error callback while the source is unchanged.
+    useLayoutEffect(() => {
+        imageErrorCallback.current = recoverImage;
+    });
+
     useEffect(() => {
         if (!isAuthTokenRequired || source !== undefined) {
             return;
@@ -167,6 +222,7 @@ function Image({
     return (
         <BaseImage
             {...forwardedProps}
+            onError={() => imageErrorCallback.current?.(requestID)}
             onLoad={handleLoad}
             style={[style, aspectRatioStyle, shouldOpacityBeZero && {opacity: 0}]}
             source={source}
@@ -176,8 +232,4 @@ function Image({
 
 Image.displayName = 'Image';
 
-export default React.memo(
-    Image,
-    (prevProps: ImageProps, nextProps: ImageProps) =>
-        prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight && prevProps.recyclingKey === nextProps.recyclingKey,
-);
+export default Image;
