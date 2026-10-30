@@ -1,12 +1,9 @@
 import {createNewReport} from '@libs/actions/Report';
-import {hasViolations as hasViolationsUtil} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {accountIDSelector, emailSelector} from '@selectors/Session';
-import {useCallback} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -22,34 +19,29 @@ function useCreateNewReport() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const hasViolations = hasViolationsUtil(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, email ?? '');
-
-    return useCallback(
-        (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
-            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                policy,
-                isTrackIntentUser,
-                {getCurrencyDecimals, formatPhoneNumber},
-                rules,
-                false,
-                shouldDismissEmptyReportsConfirmation,
-            );
-        },
-        [currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals, formatPhoneNumber, rules],
-    );
+    return (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+        return createNewReport(
+            currentUserPersonalDetails,
+            // A new report has no expenses yet, so it can't have violations.
+            false,
+            isASAPSubmitBetaEnabled,
+            policy,
+            isTrackIntentUser,
+            {getCurrencyDecimals, formatPhoneNumber},
+            rules,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
+    };
 }
 
 export default useCreateNewReport;

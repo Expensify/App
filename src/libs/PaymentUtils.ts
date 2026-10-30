@@ -2,6 +2,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams} from '@components/KYCWall/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -59,6 +60,7 @@ type SelectPaymentTypeParams = {
     ownerLogin: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type BusinessBankAccountOption = {
@@ -140,7 +142,11 @@ function formatPaymentMethods(bankAccountList: Record<string, BankAccount>, fund
     }
 
     for (const card of Object.values(fundList)) {
-        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({bankName: card?.accountData?.bank, isCard: true, styles});
+        const {icon, iconSize, iconHeight, iconWidth, iconStyles} = getBankIcon({
+            bankName: card?.accountData?.bank,
+            isCard: true,
+            styles,
+        });
         combinedPaymentMethods.push({
             ...card,
             description: getPaymentMethodDescription(card?.accountType, card.accountData, translate),
@@ -173,9 +179,10 @@ function matchesCurrency(method: PaymentMethod, currency?: string): boolean {
 /**
  * Returns all valid business bank accounts for the pay menu.
  * Allows admins to pay with any business bank account they have access to, not only the workspace-linked one.
+ * The workspace's default bank account is listed first when it is eligible. All other accounts keep their order.
  */
-function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string): BusinessBankAccountOption[] {
-    return formattedPaymentMethods
+function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[], currency?: string, defaultBankAccountID?: number): BusinessBankAccountOption[] {
+    const options = formattedPaymentMethods
         .filter((method) => {
             if (!isAccountData(method?.accountData)) {
                 return false;
@@ -198,6 +205,13 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
             iconSize: formattedPaymentMethod?.iconSize,
             methodID: formattedPaymentMethod?.methodID,
         }));
+
+    const defaultOption = defaultBankAccountID === undefined ? undefined : options.find((option) => option.methodID === defaultBankAccountID);
+    if (!defaultOption) {
+        return options;
+    }
+
+    return [defaultOption, ...options.filter((option) => option !== defaultOption)];
 }
 
 function calculateWalletTransferBalanceFee(currentBalance: number, methodType: string): number {
@@ -236,6 +250,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         ownerLogin,
         getCurrencyDecimals,
         formatPhoneNumber,
+        personalDetailsByLogins,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -274,6 +289,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 delegateAccountID,
                 isTrackIntentUser,
                 getCurrencyDecimals,
+                personalDetailsByLogins,
             });
         }
         return;
@@ -286,7 +302,9 @@ type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, '
 type PaymentOption = PopoverMenuItem & DropdownOption<ValueOf<typeof CONST.IOU.PAYMENT_TYPE>>;
 type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType}>;
 type SecondaryActionOption = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>;
-type WorkspacePolicyPaymentOption = PopoverMenuItem & {workspacePolicy: Policy};
+type WorkspacePolicyPaymentOption = PopoverMenuItem & {
+    workspacePolicy: Policy;
+};
 
 const isSecondaryActionAPaymentOption = (item: PopoverMenuItem): item is PaymentOption => {
     if (!('value' in item)) {

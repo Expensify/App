@@ -55,6 +55,8 @@ function IOURequestStepVendor({
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [searchValue, setSearchValue] = useState('');
 
+    const [draftVendor, setDraftVendor] = useState<VendorListItem>();
+
     const {policy} = usePolicyForTransaction({
         transaction,
         reportPolicyID: report?.policyID,
@@ -100,13 +102,14 @@ function IOURequestStepVendor({
     const sortedEnabledVendors = sortVendors(enabledVendors, localeCompare);
 
     const trimmedSearch = searchValue.trim().toLowerCase();
+    const selectedVendorID = draftVendor ? draftVendor.value : currentVendorID;
     const enabledRows: VendorListItem[] = sortedEnabledVendors
         .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
         .map((vendor) => ({
             value: vendor.externalID,
             text: vendor.name,
             keyForList: vendor.externalID,
-            isSelected: vendor.externalID === currentVendorID,
+            isSelected: vendor.externalID === selectedVendorID,
             searchText: vendor.name,
         }));
 
@@ -116,7 +119,7 @@ function IOURequestStepVendor({
                   value: currentVendorID,
                   text: currentVendor?.name ?? transaction?.comment?.vendor?.name ?? '',
                   keyForList: currentVendorID,
-                  isSelected: true,
+                  isSelected: selectedVendorID === currentVendorID,
                   searchText: currentVendor?.name ?? transaction?.comment?.vendor?.name ?? '',
                   alternateText: translate('common.disabled'),
               }
@@ -131,7 +134,7 @@ function IOURequestStepVendor({
                       value: '',
                       text: translate('common.none'),
                       keyForList: 'clear-vendor',
-                      isSelected: false,
+                      isSelected: draftVendor?.keyForList === 'clear-vendor',
                       searchText: '',
                   },
               ]
@@ -163,6 +166,18 @@ function IOURequestStepVendor({
             });
         }
         navigateBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: () => {
+            if (!draftVendor) {
+                return;
+            }
+            selectVendor(draftVendor);
+        },
+        isDisabled: !draftVendor || draftVendor.value === currentVendorID,
     };
 
     const headerMessage = searchValue && data.length === 0 ? translate('common.noResultsFound') : '';
@@ -206,14 +221,15 @@ function IOURequestStepVendor({
                 return (
                     <SelectionList
                         data={data}
-                        onSelectRow={selectVendor}
+                        onSelectRow={setDraftVendor}
+                        confirmButtonOptions={confirmButtonOptions}
                         textInputOptions={{
                             label: translate('common.search'),
                             value: searchValue,
                             onChangeText: setSearchValue,
                             headerMessage,
                         }}
-                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : data.find((item) => item.isSelected)?.keyForList}
+                        initiallyFocusedItemKey={shouldShowNoneRow ? undefined : currentVendorID}
                         ListItem={SingleSelectListItem}
                         listEmptyContent={listEmptyContent}
                         shouldSingleExecuteRowSelect

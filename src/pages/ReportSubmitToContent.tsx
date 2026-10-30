@@ -51,7 +51,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceMemberItem = ListItem & {email: string; accountID?: number};
@@ -100,13 +100,19 @@ function ReportSubmitToContent({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: delegateEmailSelector,
+    });
     const delegateAccountID = useDelegateAccountID();
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {
+        selector: expensifyLoginsSelector,
+    });
     const [personalDetails] = useAllPersonalDetails();
     const submitterLogin = getLoginByAccountID(report?.ownerAccountID, personalDetails);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -132,14 +138,14 @@ function ReportSubmitToContent({
 
     const employeePersonalDetails = usePersonalDetailsByLogins([...Object.keys(policy?.employeeList ?? {}), managerEmail]);
 
-    const workspaceMembers = useMemo((): WorkspaceMemberItem[] => {
-        const employeeList = policy?.employeeList;
-        if (!employeeList) {
-            return [];
-        }
+    let workspaceMembers: WorkspaceMemberItem[];
+    const employeeList = policy?.employeeList;
+    if (!employeeList) {
+        workspaceMembers = [];
+    } else {
         const prepopulatedEmailLower = prepopulatedEmail?.trim().toLowerCase();
         const emailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails, true, false);
-        return Object.values(employeeList).flatMap((employee): WorkspaceMemberItem[] => {
+        workspaceMembers = Object.values(employeeList).flatMap((employee): WorkspaceMemberItem[] => {
             const email = employee.email?.trim();
             if (!email || employee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return [];
@@ -147,11 +153,9 @@ function ReportSubmitToContent({
             const accountID = emailsToAccountIDs[email];
             const isPrepopulatedSubmitToRecipient = !!prepopulatedEmailLower && email.toLowerCase() === prepopulatedEmailLower;
             const isCurrentUser = accountID === currentUserDetails.accountID;
-
             if (!accountID || (isCurrentUser && !isPrepopulatedSubmitToRecipient)) {
                 return [];
             }
-
             const details = personalDetails?.[accountID];
             const displayName = details?.displayName ?? details?.login ?? email;
             return [
@@ -165,67 +169,61 @@ function ReportSubmitToContent({
                 },
             ];
         });
-    }, [policy?.employeeList, employeePersonalDetails, personalDetails, managerEmail, currentUserDetails.accountID, prepopulatedEmail]);
+    }
 
-    const prepopulatedSubmitToRecipient = useMemo((): WorkspaceMemberItem | null => {
-        const email = prepopulatedEmail?.trim();
-        if (!email) {
-            return null;
-        }
-
+    let prepopulatedSubmitToRecipient: WorkspaceMemberItem | null;
+    const email = prepopulatedEmail?.trim();
+    if (!email) {
+        prepopulatedSubmitToRecipient = null;
+    } else {
         const emailLower = email.toLowerCase();
         const isAlreadyListed =
             workspaceMembers.some((member) => member.email.toLowerCase() === emailLower) || extraSubmitToRecipients.some((member) => member.email.toLowerCase() === emailLower);
-
         if (isAlreadyListed) {
-            return null;
+            prepopulatedSubmitToRecipient = null;
+        } else {
+            const details = getPersonalDetailsByID(prepopulatedAccountID, personalDetails);
+            prepopulatedSubmitToRecipient = {
+                accountID: prepopulatedAccountID,
+                text: details?.displayName ?? details?.login ?? email,
+                alternateText: email,
+                keyForList: `prepopulated:${email}`,
+                email,
+                isSelected: managerEmail.trim().toLowerCase() === emailLower,
+            };
         }
+    }
 
-        const details = getPersonalDetailsByID(prepopulatedAccountID, personalDetails);
+    const workspaceEmailSet = new Set(workspaceMembers.map((m) => m.email.toLowerCase()));
+    const extrasWithSelection = extraSubmitToRecipients.map((item) => ({
+        ...item,
+        isSelected: managerEmail.trim().toLowerCase() === item.email.trim().toLowerCase(),
+    }));
+    const extrasDeduped = extrasWithSelection.filter((item) => !workspaceEmailSet.has(item.email.toLowerCase()));
+    const members = prepopulatedSubmitToRecipient ? [prepopulatedSubmitToRecipient, ...workspaceMembers, ...extrasDeduped] : [...workspaceMembers, ...extrasDeduped];
+    const combinedSubmitToMembers = sortAlphabetically(members, 'text', localeCompare);
 
-        return {
-            accountID: prepopulatedAccountID,
-            text: details?.displayName ?? details?.login ?? email,
-            alternateText: email,
-            keyForList: `prepopulated:${email}`,
-            email,
-            isSelected: managerEmail.trim().toLowerCase() === emailLower,
-        };
-    }, [prepopulatedEmail, prepopulatedAccountID, workspaceMembers, extraSubmitToRecipients, managerEmail, personalDetails]);
-
-    const combinedSubmitToMembers = useMemo(() => {
-        const workspaceEmailSet = new Set(workspaceMembers.map((m) => m.email.toLowerCase()));
-        const extrasWithSelection = extraSubmitToRecipients.map((item) => ({
-            ...item,
-            isSelected: managerEmail.trim().toLowerCase() === item.email.trim().toLowerCase(),
-        }));
-        const extrasDeduped = extrasWithSelection.filter((item) => !workspaceEmailSet.has(item.email.toLowerCase()));
-        const members = prepopulatedSubmitToRecipient ? [prepopulatedSubmitToRecipient, ...workspaceMembers, ...extrasDeduped] : [...workspaceMembers, ...extrasDeduped];
-        return sortAlphabetically(members, 'text', localeCompare);
-    }, [workspaceMembers, extraSubmitToRecipients, managerEmail, localeCompare, prepopulatedSubmitToRecipient]);
-
-    const filteredWorkspaceMembers = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return combinedSubmitToMembers;
-        }
+    let filteredWorkspaceMembers;
+    if (!searchTerm.trim()) {
+        filteredWorkspaceMembers = combinedSubmitToMembers;
+    } else {
         const normalized = getSearchValueForPhoneOrEmail(searchTerm, countryCode);
-        return tokenizedSearch(combinedSubmitToMembers, normalized, (item) => [item.text ?? '', item.alternateText ?? '', item.email]);
-    }, [combinedSubmitToMembers, searchTerm, countryCode]);
+        filteredWorkspaceMembers = tokenizedSearch(combinedSubmitToMembers, normalized, (item) => [item.text ?? '', item.alternateText ?? '', item.email]);
+    }
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const nonWorkspaceInviteRow = useMemo((): WorkspaceMemberItem | null => {
-        const trimmed = searchTerm.trim();
-        if (!trimmed || filteredWorkspaceMembers.length !== 0) {
-            return null;
-        }
-
+    let nonWorkspaceInviteRow: WorkspaceMemberItem | null;
+    const trimmedSearchTerm = searchTerm.trim();
+    if (!trimmedSearchTerm || filteredWorkspaceMembers.length !== 0) {
+        nonWorkspaceInviteRow = null;
+    } else {
         const inviteOption = getUserToInviteOption({
             dateFnsLocale,
             convertToDisplayString,
-            searchValue: trimmed,
+            searchValue: trimmedSearchTerm,
             personalDetails,
             loginList,
             currentUserEmail: currentUserDetails.email ?? '',
@@ -236,62 +234,35 @@ function ReportSubmitToContent({
             rules,
             formatPhoneNumber,
         });
-
         if (!inviteOption?.login) {
-            return null;
+            nonWorkspaceInviteRow = null;
+        } else {
+            const {login} = inviteOption;
+            nonWorkspaceInviteRow = {
+                ...inviteOption,
+                email: login,
+                keyForList: `nonWorkspace:${login}`,
+                isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
+            };
         }
+    }
 
-        const {login} = inviteOption;
-        return {
-            ...inviteOption,
-            email: login,
-            keyForList: `nonWorkspace:${login}`,
-            isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
-        };
-    }, [
-        countryCode,
-        currentUserDetails.email,
-        searchTerm,
-        filteredWorkspaceMembers.length,
-        loginList,
-        managerEmail,
-        personalDetails,
-        dateFnsLocale,
-        convertToDisplayString,
-        rules,
-        currentUserDetails.accountID,
-        formatPhoneNumber,
-    ]);
+    const submitToSelectionData = !nonWorkspaceInviteRow ? filteredWorkspaceMembers : [nonWorkspaceInviteRow, ...filteredWorkspaceMembers];
 
-    const submitToSelectionData = useMemo(() => {
-        if (!nonWorkspaceInviteRow) {
-            return filteredWorkspaceMembers;
-        }
-        return [nonWorkspaceInviteRow, ...filteredWorkspaceMembers];
-    }, [filteredWorkspaceMembers, nonWorkspaceInviteRow]);
-
-    const selectedSubmitToMember = useMemo((): WorkspaceMemberItem | undefined => {
-        if (nonWorkspaceInviteRow?.isSelected) {
-            return nonWorkspaceInviteRow;
-        }
-        return combinedSubmitToMembers.find((item) => item.isSelected);
-    }, [combinedSubmitToMembers, nonWorkspaceInviteRow]);
+    const selectedSubmitToMember: WorkspaceMemberItem | undefined = nonWorkspaceInviteRow?.isSelected ? nonWorkspaceInviteRow : combinedSubmitToMembers.find((item) => item.isSelected);
 
     const noMatchingMembers = !!searchTerm.trim() && submitToSelectionData.length === 0;
 
-    const textInputOptions = useMemo(
-        () => ({
-            value: searchTerm,
-            label: translate('selectionList.nameEmailOrPhoneNumber'),
-            onChangeText: setSearchTerm,
-            headerMessage: noMatchingMembers ? translate('common.noResultsFound') : undefined,
-        }),
-        [searchTerm, setSearchTerm, translate, noMatchingMembers],
-    );
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        onChangeText: setSearchTerm,
+        headerMessage: noMatchingMembers ? translate('common.noResultsFound') : undefined,
+    };
 
     const hasSelectedSubmitToMember = !!selectedSubmitToMember;
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = () => {
         if (canSubmitRef && !canSubmitRef.current) {
             return;
         }
@@ -368,70 +339,33 @@ function ReportSubmitToContent({
                 }
             },
         });
-    }, [
-        hasSelectedSubmitToMember,
-        formatPhoneNumber,
-        selectedSubmitToMember?.accountID,
-        employeePersonalDetails,
-        managerEmail,
-        report,
-        reportTransactions,
-        policy,
-        currentUserDetails.accountID,
-        currentUserDetails.email,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        delegateEmail,
-        delegateAccountID,
-        submitterLogin,
-        getPersonalDetailsByLogin,
-        currentSearchQueryJSON,
-        isOffline,
-        currentSearchKey,
-        shouldCalculateTotals,
-        currentSearchResults?.search?.isLoading,
-        onDismiss,
-        onSubmitSuccess,
-        onSubmitWithManagerEmail,
-        canSubmitRef,
-        shouldDismissRHPAfterSubmit,
-        isTrackIntentUser,
-        getCurrencyDecimals,
-        rules,
-        shouldResolveAcknowledgedViolations,
-    ]);
+    };
 
-    const onSelectMember = useCallback(
-        (item: WorkspaceMemberItem) => {
-            setHasError(false);
-            setUserSelectedManagerEmail(item.email);
-            setSearchTerm('');
+    const onSelectMember = (item: WorkspaceMemberItem) => {
+        setHasError(false);
+        setUserSelectedManagerEmail(item.email);
+        setSearchTerm('');
 
-            const itemEmailLower = item.email.trim().toLowerCase();
-            const isAlreadyWorkspaceMember = workspaceMembers.some((member) => member.email.toLowerCase() === itemEmailLower);
-            if (isAlreadyWorkspaceMember) {
-                return;
+        const itemEmailLower = item.email.trim().toLowerCase();
+        const isAlreadyWorkspaceMember = workspaceMembers.some((member) => member.email.toLowerCase() === itemEmailLower);
+        if (isAlreadyWorkspaceMember) {
+            return;
+        }
+
+        setExtraSubmitToRecipients((previous) => {
+            if (previous.some((member) => member.email.toLowerCase() === itemEmailLower)) {
+                return previous;
             }
-
-            setExtraSubmitToRecipients((previous) => {
-                if (previous.some((member) => member.email.toLowerCase() === itemEmailLower)) {
-                    return previous;
-                }
-                const {isSelected, ...memberWithoutSelection} = item;
-                return [
-                    ...previous,
-                    {
-                        ...memberWithoutSelection,
-                        keyForList: item.keyForList?.startsWith('nonWorkspace:') ? item.keyForList : `nonWorkspace:${item.email}`,
-                    },
-                ];
-            });
-        },
-        [setSearchTerm, workspaceMembers],
-    );
+            const {isSelected, ...memberWithoutSelection} = item;
+            return [
+                ...previous,
+                {
+                    ...memberWithoutSelection,
+                    keyForList: item.keyForList?.startsWith('nonWorkspace:') ? item.keyForList : `nonWorkspace:${item.email}`,
+                },
+            ];
+        });
+    };
 
     // Extracted so the same error can render both here (as `SelectionList` children, shown on the non-empty state)
     // and inside `listEmptyContent` below (shown on the empty / "No results found" state). `BaseSelectionList`
@@ -445,55 +379,37 @@ function ReportSubmitToContent({
         />
     );
 
-    const listEmptyContent = useMemo(() => {
-        return (
-            <View style={[styles.flex1, styles.w100]}>
-                <BlockingView
-                    icon={lazyIllustrations.PaperAirplane}
-                    iconWidth={variables.iconSizeSuperLarge}
-                    iconHeight={variables.iconSizeSuperLarge}
-                    title={translate('iou.submitReportTo.sendExpense')}
-                    subtitle={translate('iou.submitReportTo.sendExpenseSubtitle')}
-                    subtitleStyle={styles.textSupporting}
-                    // `notFoundTextHeader` spaces the title with `marginVertical: 20`, which is wider than the 8px gap
-                    // used between a headline and its paragraph elsewhere. Only the bottom edge is narrowed here.
-                    titleStyles={styles.mb2}
-                    containerStyle={styles.pb10}
-                    contentFitImage="contain"
-                />
-                {/* Taken out of the layout flow so revealing the error can't shrink the centred BlockingView above and
+    const listEmptyContent = (
+        <View style={[styles.flex1, styles.w100]}>
+            <BlockingView
+                icon={lazyIllustrations.PaperAirplane}
+                iconWidth={variables.iconSizeSuperLarge}
+                iconHeight={variables.iconSizeSuperLarge}
+                title={translate('iou.submitReportTo.sendExpense')}
+                subtitle={translate('iou.submitReportTo.sendExpenseSubtitle')}
+                subtitleStyle={styles.textSupporting}
+                // `notFoundTextHeader` spaces the title with `marginVertical: 20`, which is wider than the 8px gap
+                // used between a headline and its paragraph elsewhere. Only the bottom edge is narrowed here.
+                titleStyles={styles.mb2}
+                containerStyle={styles.pb10}
+                contentFitImage="contain"
+            />
+            {/* Taken out of the layout flow so revealing the error can't shrink the centred BlockingView above and
                     shove the illustration upwards. The 40px `pb10` already reserves the room this occupies. */}
-                <View style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0]}>{errorContent}</View>
-            </View>
-        );
-    }, [
-        errorContent,
-        lazyIllustrations.PaperAirplane,
-        styles.b0,
-        styles.flex1,
-        styles.l0,
-        styles.mb2,
-        styles.pAbsolute,
-        styles.pb10,
-        styles.r0,
-        styles.textSupporting,
-        styles.w100,
-        translate,
-    ]);
+            <View style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0]}>{errorContent}</View>
+        </View>
+    );
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isExpenseReport(report) || isMoneyRequestReportPendingDeletion(report);
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: !keyboardActiveHeight || !isInLandscapeMode,
-            text: translate('common.confirm'),
-            onConfirm: handleSubmit,
-            // Use the taller 52px button on the narrow (mobile) layout to match our large primary CTA size;
-            // keep the compact 40px medium button on the wide/desktop popover.
-            confirmButtonSize: shouldUseNarrowLayout ? ('large' as const) : ('medium' as const),
-        }),
-        [handleSubmit, translate, keyboardActiveHeight, isInLandscapeMode, shouldUseNarrowLayout],
-    );
+    const confirmButtonOptions = {
+        showButton: !keyboardActiveHeight || !isInLandscapeMode,
+        text: translate('common.confirm'),
+        onConfirm: handleSubmit,
+        // Use the taller 52px button on the narrow (mobile) layout to match our large primary CTA size;
+        // keep the compact 40px medium button on the wide/desktop popover.
+        confirmButtonSize: shouldUseNarrowLayout ? ('large' as const) : ('medium' as const),
+    };
 
     // `flex1` fills the popover height owned by the wrapper `View` in `useReportSubmitToPopover`, so the recipient list
     // scrolls inside a constant-size popover rather than resizing it on the empty state. No bottom padding here because

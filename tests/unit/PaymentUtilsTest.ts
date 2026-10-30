@@ -157,6 +157,7 @@ describe('PaymentUtils', () => {
             isTrackIntentUser: false,
             ownerLogin: undefined,
             formatPhoneNumber,
+            personalDetailsByLogins: {},
         };
 
         beforeEach(() => {
@@ -247,6 +248,7 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                personalDetailsByLogins: {},
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
@@ -277,6 +279,7 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                personalDetailsByLogins: {},
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
@@ -530,6 +533,53 @@ describe('PaymentUtils', () => {
 
             expect(result).toHaveLength(2);
             expect(result.at(0)?.text).toBe('Valid Business');
+        });
+
+        it('moves the eligible workspace default bank account to the top and keeps the order of the other accounts', () => {
+            // Given three eligible business bank accounts where the workspace default is the second one
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'Account A', methodID: 1}),
+                createMockPaymentMethod({title: 'Account B', methodID: 2}),
+                createMockPaymentMethod({title: 'Account C', methodID: 3}),
+            ];
+
+            // When the options are built with the workspace default bank account ID
+            const result = getBusinessBankAccountOptions(methods, CONST.CURRENCY.USD, 2);
+
+            // Then the default account is listed first so admins don't pay from the wrong entity, and the rest keep their relative order
+            expect(result.map((option) => option.methodID)).toEqual([2, 1, 3]);
+        });
+
+        it('keeps the current order when the workspace default bank account is not eligible', () => {
+            // Given a workspace default bank account in a currency that doesn't match the report
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({title: 'Account A', methodID: 1}),
+                createMockPaymentMethod({
+                    title: 'EUR Account',
+                    methodID: 2,
+                    bankCurrency: 'EUR',
+                }),
+                createMockPaymentMethod({title: 'Account C', methodID: 3}),
+            ];
+
+            // When the options are built for a USD report
+            const result = getBusinessBankAccountOptions(methods, CONST.CURRENCY.USD, 2);
+
+            // Then the ineligible default account stays filtered out and the eligible accounts keep their order
+            expect(result.map((option) => option.methodID)).toEqual([1, 3]);
+        });
+
+        it('keeps the current order when the workspace has no default bank account or it is not in the list', () => {
+            // Given multiple eligible business bank accounts
+            const methods: PaymentMethod[] = [createMockPaymentMethod({title: 'Account A', methodID: 1}), createMockPaymentMethod({title: 'Account B', methodID: 2})];
+
+            // When no default bank account ID is given, or the ID doesn't match any eligible account
+            const resultWithoutDefault = getBusinessBankAccountOptions(methods, CONST.CURRENCY.USD);
+            const resultWithUnknownDefault = getBusinessBankAccountOptions(methods, CONST.CURRENCY.USD, 999);
+
+            // Then the existing order is preserved
+            expect(resultWithoutDefault.map((option) => option.methodID)).toEqual([1, 2]);
+            expect(resultWithUnknownDefault.map((option) => option.methodID)).toEqual([1, 2]);
         });
     });
 });
