@@ -154,18 +154,24 @@ function GroupHeader({
         });
     }
 
+    const subHeaderColumnWidthFlags = getGroupColumnWidthFlags(groupItem.transactions);
     const {
         isAmountColumnWide: isSubHeaderAmountColumnWide,
         isTaxAmountColumnWide: isSubHeaderTaxAmountColumnWide,
         shouldShowYear: shouldSubHeaderShowYear,
+        shouldShowYearSubmitted: shouldSubHeaderShowYearSubmitted,
+        shouldShowYearApproved: shouldSubHeaderShowYearApproved,
+        shouldShowYearPaid: shouldSubHeaderShowYearPaid,
+        shouldShowYearPosted: shouldSubHeaderShowYearPosted,
+        shouldShowYearExported: shouldSubHeaderShowYearExported,
         isActionColumnWide: isSubHeaderActionColumnWide,
-    } = getGroupColumnWidthFlags(groupItem.transactions);
+    } = subHeaderColumnWidthFlags;
 
     // Shared with TransactionGroupListExpanded so the two always agree on the table's width.
     const {minTableWidth: subHeaderMinTableWidth, shouldScrollHorizontally: shouldSubHeaderScrollHorizontally} = getGroupTableScrollLayout(
         subHeaderColumns,
         CONST.SEARCH.DATA_TYPES.EXPENSE,
-        isSubHeaderActionColumnWide,
+        subHeaderColumnWidthFlags,
         windowWidth,
         isLargeScreenWidth,
     );
@@ -337,6 +343,11 @@ function GroupHeader({
                     sortOrder={undefined}
                     sortBy={undefined}
                     shouldShowYear={shouldSubHeaderShowYear}
+                    shouldShowYearSubmitted={shouldSubHeaderShowYearSubmitted}
+                    shouldShowYearApproved={shouldSubHeaderShowYearApproved}
+                    shouldShowYearPaid={shouldSubHeaderShowYearPaid}
+                    shouldShowYearPosted={shouldSubHeaderShowYearPosted}
+                    shouldShowYearExported={shouldSubHeaderShowYearExported}
                     isAmountColumnWide={isSubHeaderAmountColumnWide}
                     isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
                     shouldShowSorting={false}

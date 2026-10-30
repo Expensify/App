@@ -438,15 +438,24 @@ Always reference the exact UI label, icon, or navigation path.
 - Capitalize a role only when quoting a UI label.
 - Do not capitalize a role to signal importance.
 
-**Role names:**
+**Workspace role names:**
 
-- workspace admin
 - workspace owner
+- workspace admin
+- auditor
+- card admin
+- people admin
+- payments admin
+- member
+- approve-only member
+- guest
+
+**Other role names:**
+
 - domain admin
 - account manager
 - account executive
 - partner manager
-- member
 
 > **Examples:**
 >
@@ -456,12 +465,15 @@ Always reference the exact UI label, icon, or navigation path.
 > - Ask your domain admin to add the domain.
 > - Chat with your account manager.
 > - Choose **Workspace admin** from the list of roles.
+> - Ask a card admin to issue the card.
+> - Choose **Payments admin** from the list of roles.
 >
 > Incorrect:
 >
 > - Only the Workspace Owner can manage the payment card.
 > - Only the Workspace owner can manage the payment card.
 > - Ask your Domain Admin to add the domain.
+> - Ask a Card Admin to issue the card.
 
 ---
 
