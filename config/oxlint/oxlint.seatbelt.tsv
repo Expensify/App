@@ -2262,6 +2262,7 @@
 "../../tests/actions/EnforceActionExportRestrictions.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOU/BuildOnyxDataForMoneyRequestTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
 "../../tests/actions/IOU/CreateDraftTransactionTest.ts"	"no-restricted-imports"	1
+"../../tests/actions/IOU/GetMoneyRequestInformationTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/actions/IOU/MoneyRequestBuilderTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/actions/IOU/MoneyRequestBuilderTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOU/MoneyRequestSettersTest.ts"	"no-restricted-imports"	1
@@ -2281,7 +2282,7 @@
 "../../tests/actions/IOUTest/RejectMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/actions/IOUTest/SplitSelfDMTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/actions/IOUTest/SplitTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../tests/actions/IOUTest/TrackExpenseTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
+"../../tests/actions/IOUTest/TrackExpenseTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
 "../../tests/actions/IOUTest/TrackExpenseTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/UpdateMoneyRequestTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/UpdateMoneyRequestVendorTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
