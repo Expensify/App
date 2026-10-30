@@ -12,7 +12,7 @@ import type UpdateBeneficialOwnersForBankAccountParams from './parameters/Update
 
 const AUTHENTICATION_COMMAND = 'Authenticate' as const;
 
-type ApiRequestType = Exclude<ValueOf<typeof CONST.API_REQUEST_TYPE>, typeof CONST.API_REQUEST_TYPE.HEAD_REQUEST>;
+type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
 const WRITE_COMMANDS = {
     IMPORT_CSV_TRANSACTIONS: 'ImportCSVTransactions',

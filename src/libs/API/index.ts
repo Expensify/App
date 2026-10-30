@@ -8,6 +8,7 @@ import {
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
+import processHeadRequest from '@libs/processHeadRequest';
 import type {HeadRequest} from '@libs/processHeadRequest';
 
 import {getOngoingRequest, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
@@ -166,7 +167,7 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand, T
 
 /** Image probes need an HTTP status and bounded authentication replay, without JSON API processing. */
 function makeHeadRequest(imageURL: string, requestOptions: Pick<HeadRequest, 'signal'> = {}): Promise<number | undefined> {
-    return processRequest({imageURL, signal: requestOptions.signal}, CONST.API_REQUEST_TYPE.HEAD_REQUEST);
+    return processHeadRequest({imageURL, signal: requestOptions.signal});
 }
 
 /**
@@ -246,7 +247,7 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
         case CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS:
             return processRequest(request, type);
         case CONST.API_REQUEST_TYPE.READ:
-            waitForWrites(command).then(() => processRequest(request, type));
+            waitForWrites(command as ReadCommand).then(() => processRequest(request, type));
             return;
         default:
             throw new Error('Unknown API request type');

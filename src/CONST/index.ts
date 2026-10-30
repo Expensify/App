@@ -6728,7 +6728,6 @@ const CONST = {
         READ: 'read',
         WRITE: 'write',
         MAKE_REQUEST_WITH_SIDE_EFFECTS: 'makeRequestWithSideEffects',
-        HEAD_REQUEST: 'headRequest',
     },
 
     ERECEIPT_COLORS: {
