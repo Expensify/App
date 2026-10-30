@@ -370,12 +370,32 @@ describe('MoneyRequestReportUtils', () => {
             expect(rowCategories).toEqual({Food: {name: 'Food', enabled: true, [glCode]: '100'}});
         });
 
-        it('should return undefined when the transaction has no category or the category is missing', () => {
-            // Given a row without a category and a row whose category is not in the policy
-            // When they build their categories
-            // Then both get undefined, the same value whatever other categories the policy has
-            expect(getReportRowPolicyCategories(policyCategories, undefined)).toBeUndefined();
-            expect(getReportRowPolicyCategories(policyCategories, 'Missing')).toBeUndefined();
+        it('should keep one category with a GL code when the transaction category has none', () => {
+            // Given a policy where only Travel has a GL code
+            const categoriesWithOneGLCode = createMock<PolicyCategories>({
+                Food: {name: 'Food', enabled: true},
+                Travel: {name: 'Travel', enabled: true, [glCode]: '200'},
+            });
+
+            // When rows without a category, with a missing category, and with Food build their categories
+            // Then each keeps Travel too, so CategoryGLCodeCell still sees that the workspace has GL codes and stays editable
+            expect(getReportRowPolicyCategories(categoriesWithOneGLCode, undefined)).toEqual({Travel: {name: 'Travel', enabled: true, [glCode]: '200'}});
+            expect(getReportRowPolicyCategories(categoriesWithOneGLCode, 'Missing')).toEqual({Travel: {name: 'Travel', enabled: true, [glCode]: '200'}});
+            expect(getReportRowPolicyCategories(categoriesWithOneGLCode, 'Food')).toEqual({
+                Food: {name: 'Food', enabled: true},
+                Travel: {name: 'Travel', enabled: true, [glCode]: '200'},
+            });
+        });
+
+        it('should return undefined when the transaction has no category and no category has a GL code', () => {
+            // Given a policy without GL codes
+            const categoriesWithoutGLCode = createMock<PolicyCategories>({
+                Food: {name: 'Food', enabled: true},
+            });
+
+            // When a row without a category builds its categories
+            // Then it gets undefined
+            expect(getReportRowPolicyCategories(categoriesWithoutGLCode, undefined)).toBeUndefined();
         });
     });
 

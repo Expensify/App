@@ -9,6 +9,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {hasAnyCategoryGLCode} from './CategoryUtils';
 import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
@@ -277,7 +278,17 @@ function getReportRowPolicy(policy: OnyxEntry<Policy>): OnyxEntry<Policy> {
 
 function getReportRowPolicyCategories(policyCategories: OnyxEntry<PolicyCategories>, category: string | undefined): PolicyCategories | undefined {
     const rowCategory = category ? policyCategories?.[category] : undefined;
-    return rowCategory && category ? {[category]: rowCategory} : undefined;
+    const rowCategories = rowCategory && category ? {[category]: rowCategory} : undefined;
+    if (hasAnyCategoryGLCode(rowCategories)) {
+        return rowCategories;
+    }
+
+    const glCodeCategory = Object.entries(policyCategories ?? {}).find(([name, policyCategory]) => hasAnyCategoryGLCode({[name]: policyCategory}));
+    if (!glCodeCategory) {
+        return rowCategories;
+    }
+    const [glCodeCategoryName, glCodePolicyCategory] = glCodeCategory;
+    return {...rowCategories, [glCodeCategoryName]: glCodePolicyCategory};
 }
 
 function getReportRowReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
