@@ -60,6 +60,7 @@ import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -79,6 +80,7 @@ type RequireFieldsRulePageBaseProps = {
 };
 
 function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: RequireFieldsRulePageBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabledOrUnknown} = usePermissions();
@@ -502,7 +504,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                     <MenuItem.Root
                         onPress={
                             canEditCategory
-                                ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)))
+                                ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)), false, session)
                                 : undefined
                         }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}
