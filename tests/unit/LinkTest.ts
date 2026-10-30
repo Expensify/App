@@ -428,7 +428,7 @@ describe('Link.openReportFromDeepLink', () => {
         await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
 
         // When the deep link is processed
-        openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, false, undefined, undefined, false, 1, {}, {});
+        openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, false, undefined, undefined, false, false, 1, {}, {});
         await waitForBatchedUpdates();
 
         // Then the generic replay is skipped entirely: nothing is navigated, no onboarding error is set
@@ -444,7 +444,7 @@ describe('Link.openReportFromDeepLink', () => {
     it('leaves a native share received while signed in to react-navigation', async () => {
         // Given a signed-in user shares a photo to the app, which react-navigation's linking already routes
         // When the deep link is processed
-        openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, true, undefined, undefined, false, 1, {}, {});
+        openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, true, undefined, undefined, false, true, 1, {}, {});
         await waitForBatchedUpdates();
 
         // Then nothing is parked, so the share is not opened a second time later on
