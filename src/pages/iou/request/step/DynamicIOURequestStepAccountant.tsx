@@ -4,6 +4,7 @@ import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRestrictedPolicyCreationModal from '@hooks/useRestrictedPolicyCreationModal';
 
 import {setMoneyRequestAccountant} from '@libs/actions/IOU/MoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
@@ -40,6 +41,7 @@ function DynamicIOURequestStepAccountant({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.path);
+    const showRestrictedPolicyCreationModal = useRestrictedPolicyCreationModal();
 
     const setAccountant = (accountant: Accountant) => {
         setMoneyRequestAccountant(transactionID, accountant, true);
@@ -48,6 +50,11 @@ function DynamicIOURequestStepAccountant({
     const navigateToNextStep = () => {
         // Sharing with an accountant involves inviting them to the workspace and that requires admin access.
         if (!hasActiveAdminPolicies) {
+            if (showRestrictedPolicyCreationModal) {
+                showRestrictedPolicyCreationModal();
+                return;
+            }
+
             createDraftWorkspaceAndNavigateToConfirmationScreen(
                 introSelected,
                 transactionID,
