@@ -7454,7 +7454,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -8790,7 +8789,7 @@ ${reportName}`,
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
                 duplicateRuleTitle: '同様のルールがすでに存在します',
-                duplicateRulePrompt: (conditionName: string) => `すでにある「${conditionName}」のルールがこのルールより優先されます。保存しますか？`,
+                duplicateRulePrompt: (conditionName: string) => `既存の「${conditionName}」のルールがこのルールより優先されます。保存しますか？`,
                 saveAnyway: 'とにかく保存',
                 applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用',
                 findRule: '加盟店ルールを検索',
@@ -8986,6 +8985,7 @@ ${reportName}`,
                     `許可された ${shownCount > 1 ? '通貨' : '通貨'}：${currencies}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
                 defaultRulesCannotBeDeleted: '既定のルールは削除できません',
                 tags: 'タグ',
+                multipleConditions: '複数の条件',
             },
             agentRules: {
                 title: 'エージェントルール',
@@ -9135,7 +9135,7 @@ ${reportName}`,
                 categoryIs: (category: string) => `カテゴリは「${category}」です`,
                 tagIs: (tag: string) => `タグは「${tag}」です`,
                 merchantContains: (merchant: string) => `店舗名に「${merchant}」を含む`,
-                merchantExactlyMatches: (merchant: string) => `マーチャントが「${merchant}」と完全に一致します`,
+                merchantExactlyMatches: (merchant: string) => `店舗名が「${merchant}」と完全に一致します`,
             },
             merchantTypeRule: {merchantType: '加盟店種別', saveRule: 'ルールを保存', confirmErrorCategory: 'カテゴリを選択してください。'},
             requireFieldsTable: {

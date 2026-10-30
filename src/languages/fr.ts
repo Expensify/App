@@ -8977,7 +8977,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
                 duplicateRuleTitle: 'Une règle similaire existe déjà',
-                duplicateRulePrompt: (conditionName: string) => `La règle existante pour « ${conditionName} » sera prioritaire sur celle-ci. Enregistrer quand même ?`,
+                duplicateRulePrompt: (conditionName: string) => `Votre règle existante pour « ${conditionName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
                 saveAnyway: 'Enregistrer quand même',
                 applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
                 findRule: 'Règle de recherche de commerçant',
@@ -9175,6 +9175,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `Autorisé ${shownCount > 1 ? 'devises' : 'devise'} : ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
                 defaultRulesCannotBeDeleted: 'Les règles par défaut ne peuvent pas être supprimées',
                 tags: 'Tags',
+                multipleConditions: 'Conditions multiples',
             },
             agentRules: {
                 title: 'Règles d’agent',
