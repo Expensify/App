@@ -1,11 +1,13 @@
 /**
- * Whether an email belongs to the Expensify team (partner or guides domain).
  * Its own file so domains.ts can use it without importing members.ts, which pulls in actions/BankAccounts.
  */
 import CONST from '@src/CONST';
 
 import {Str} from 'expensify-common';
 
+/**
+ * Whether an email belongs to the Expensify team (partner or guides domain).
+ */
 function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
