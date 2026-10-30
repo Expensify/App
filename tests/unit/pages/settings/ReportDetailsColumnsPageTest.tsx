@@ -4,6 +4,7 @@ import ColumnsSettingsList from '@components/ColumnsSettingsList';
 
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportTransactions from '@hooks/useReportTransactions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
 import getMoneyRequestViewFields from '@libs/getMoneyRequestViewFields';
@@ -30,6 +31,7 @@ jest.mock('@components/ColumnsSettingsList', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1})));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/usePermissions', () => jest.fn());
+jest.mock('@hooks/useReportTransactions', () => jest.fn());
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {isHybridApp: jest.fn(() => false)},
@@ -101,6 +103,7 @@ beforeEach(() => {
     jest.mocked(ColumnsSettingsList).mockImplementation(() => <View />);
     mockExpenseFieldsStatus = 'loaded';
     mockReportTransactions = [];
+    jest.mocked(useReportTransactions).mockImplementation(() => mockReportTransactions);
     mockReport = undefined;
     mockPolicy = undefined;
     mockReportStatus = 'loaded';

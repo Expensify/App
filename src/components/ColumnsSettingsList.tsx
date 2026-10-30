@@ -31,10 +31,9 @@ import Text from './Text';
 import TextLink from './TextLink';
 
 type ColumnsSettingsListProps = {
-    /** The translation key for the title */
+    /** Defaults to search.columns when the picker uses its standard title. */
     titleKey?: TranslationPaths;
 
-    /** All columns available for selection */
     allColumns: SearchCustomColumnIds[];
 
     /** The default set of selected columns when no customization has been applied */

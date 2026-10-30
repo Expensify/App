@@ -4,6 +4,7 @@ import type {SearchCustomColumnIds} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportTransactions from '@hooks/useReportTransactions';
 
 import {setReportDetailsColumns} from '@libs/actions/ReportLayout';
 import getMoneyRequestViewFields from '@libs/getMoneyRequestViewFields';
@@ -22,10 +23,7 @@ import {setNameValuePair} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
 import arraysEqual from '@src/utils/arraysEqual';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
@@ -52,16 +50,7 @@ function ReportDetailsColumnsPage() {
     const [expenseFields] = useOnyx(ONYXKEYS.NVP_EXPENSE_FIELDS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    // Selector keeps re-renders scoped to this report's transactions. We intentionally return undefined
-    // while the collection is loading so the caller can distinguish "loading" from "no transactions".
-    const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions: OnyxCollection<Transaction>): Transaction[] | undefined => {
-            if (!transactions) {
-                return undefined;
-            }
-            return Object.values(transactions).filter((transaction): transaction is Transaction => !!transaction && transaction.reportID === reportID);
-        },
-    });
+    const reportTransactions = useReportTransactions(reportID);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
@@ -117,7 +106,7 @@ function ReportDetailsColumnsPage() {
         Navigation.goBack();
     };
 
-    if (!reportTransactions || isVendorAvailabilityLoading) {
+    if (isVendorAvailabilityLoading) {
         return null;
     }
 
