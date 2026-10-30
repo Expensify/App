@@ -45,6 +45,8 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsPaid: '标记为已支付',
         paymentFailed: '无法支付此账单。请重试。',
         createFailed: '无法创建此账单。请重试。',
+        payBills: ({count}) => ({one: '支付 1 笔账单', other: `支付 ${count} 笔账单`}),
+        approveBills: ({count}) => ({one: '批准 1 笔账单', other: `批准 ${count} 笔账单`}),
         primaryContactHint: (domain) => `主要联系人是 ${domain} 的主要联络人，并将收到发送至此域名账单支付地址 ${domain}@expensify.cash 的账单。`,
     },
     common: {

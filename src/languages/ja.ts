@@ -45,6 +45,8 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsPaid: '支払済みにする',
         paymentFailed: 'この請求書を支払えませんでした。もう一度お試しください。',
         createFailed: 'この請求書を作成できませんでした。もう一度お試しください。',
+        payBills: ({count}) => ({one: '1件の請求書を支払う', other: `${count}件の請求書を支払う`}),
+        approveBills: ({count}) => ({one: '1件の請求書を承認', other: `${count}件の請求書を承認`}),
         primaryContactHint: (domain) => `主な連絡先は${domain}の窓口となり、このドメインの請求書支払い用アドレス${domain}@expensify.cashに送信された請求書を受け取ります。`,
     },
     common: {

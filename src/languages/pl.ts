@@ -45,6 +45,8 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsPaid: 'Oznacz jako opłacone',
         paymentFailed: 'Nie udało się opłacić tego rachunku. Spróbuj ponownie.',
         createFailed: 'Nie udało się utworzyć tego rachunku. Spróbuj ponownie.',
+        payBills: ({count}) => ({one: 'Opłać 1 rachunek', few: `Opłać ${count} rachunki`, many: `Opłać ${count} rachunków`, other: `Opłać ${count} rachunku`}),
+        approveBills: ({count}) => ({one: 'Zatwierdź 1 rachunek', few: `Zatwierdź ${count} rachunki`, many: `Zatwierdź ${count} rachunków`, other: `Zatwierdź ${count} rachunku`}),
         primaryContactHint: (domain) => `Główna osoba kontaktowa odpowiada za kontakt w domenie ${domain} i otrzyma rachunki wysłane na adres płatności tej domeny ${domain}@expensify.cash.`,
     },
     common: {
