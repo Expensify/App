@@ -15,7 +15,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -43,7 +42,7 @@ import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
-import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
+import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
@@ -152,8 +151,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                         snapshot={headlineChart.snapshot}
                         previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
                         previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
-                        averageQueryJSON={headlineChart.averageQueryJSON}
-                        averageSnapshot={headlineChart.averageSnapshot}
+                        averageTotal={headlineChart.averageTotal}
+                        isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
@@ -165,7 +164,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                 key={columnIndex}
                                 style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                             >
-                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}) => (
+                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
                                         chart={chart}
@@ -173,8 +172,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                         snapshot={snapshot}
                                         previousPeriodQueryJSON={previousPeriodQueryJSON}
                                         previousPeriodSnapshot={previousPeriodSnapshot}
-                                        averageQueryJSON={averageQueryJSON}
-                                        averageSnapshot={averageSnapshot}
+                                        averageTotal={averageTotal}
+                                        isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
                                         onRetry={onRetry}
                                     />
@@ -199,13 +198,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const {login} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
-    const {isBetaEnabled} = usePermissions();
-
-    const isCompareEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
-    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, isCompareEnabled) : undefined;
+    const query = isResolved ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
     const hash = query?.hash;
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
@@ -227,7 +223,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         onRequestConditionsChanged();
         // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket and the eligible charts are listed because the hash leaves them out, so changing them triggers a refetch while a pure Running total toggle does not.
-    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isCompareEnabled, isFocused, isOffline]);
+    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
@@ -235,15 +231,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         ? [query.headlineChart, ...query.supportingCharts]
         : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
     const snapshots = useMultipleSnapshots(
-        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
-            [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
+        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON}) =>
+            [queryJSON, previousPeriodQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
     const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
         ...chartQuery,
         snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
         previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
-        averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
+        averageTotal: dashboard?.graphs?.[chartQuery.chart.graphKey]?.average,
+        isDashboardLoaded: hasDashboardResponse(dashboard),
     }));
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts);
