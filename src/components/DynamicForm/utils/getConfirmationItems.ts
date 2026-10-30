@@ -12,11 +12,12 @@ import formatDynamicFieldValue from './formatDynamicFieldValue';
 import getContentFields from './getContentFields';
 import {getFieldLabel} from './getLocalizedText';
 import {getPageSectionName, isPageShown} from './getPageTitle';
-import getVisibleFields, {isFieldVisible} from './getVisibleFields';
+import getVisibleFields from './getVisibleFields';
 import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
 import {getListItems} from './listItems';
 import maskSensitiveValue, {getVisibleEnding} from './maskSensitiveValue';
+import {getAllFields} from './paginate';
 import summarizeListItem, {getListItemFallbackTitle} from './summarizeListItem';
 
 /** One avatar row per list entry, which opens the entry. A readonly list gets plain rows that open nothing. */
@@ -42,20 +43,25 @@ function getListItemRows(
     });
 }
 
-/** The fields a link opts out of, which show only while it is off, such as the SSN and ID document behind "I don't have a social security number". Any other field, including a link with none, opts out of nothing. */
-function getOptOutFields(field: DynamicFormField, allFields: DynamicFormField[]): DynamicFormField[] {
-    if (field.type !== 'boolean' || field.presentation !== 'link') {
-        return [];
+/**
+ * The question each opt-out link stands in for, keyed by the link, such as the SSN behind "I don't have a social security number".
+ * It is the first field that shows only while the link is off, on a page the form shows with the link off. A link that opts out of nothing is not in the map.
+ */
+function getOptedOutFieldByLink(pages: DynamicFormPage[], values: DynamicFormValues, allFields: DynamicFormField[]): Map<string, DynamicFormField> {
+    const optedOutFieldByLink = new Map<string, DynamicFormField>();
+    for (const link of allFields) {
+        if (link.type !== 'boolean' || link.presentation !== 'link') {
+            continue;
+        }
+        const valuesWithLinkOff = {...values, [link.key]: false};
+        const optedOutField = getAllFields(pages.filter((page) => isPageShown(page, valuesWithLinkOff, allFields))).find(
+            ({showWhen}) => showWhen?.key === link.key && showWhen.equals.includes('false') && !showWhen.equals.includes('true'),
+        );
+        if (optedOutField) {
+            optedOutFieldByLink.set(link.key, optedOutField);
+        }
     }
-    return allFields.filter((candidate) => candidate.showWhen?.key === field.key && candidate.showWhen.equals.includes('false'));
-}
-
-/** The question an opt-out link that is on hides, such as the SSN, so the link's row can stand in for it */
-function getOptedOutField(field: DynamicFormField, values: DynamicFormValues, allFields: DynamicFormField[]): DynamicFormField | undefined {
-    if (values[field.key] !== true) {
-        return undefined;
-    }
-    return getOptOutFields(field, allFields).find((candidate) => !isFieldVisible(candidate, values, allFields));
+    return optedOutFieldByLink;
 }
 
 /** One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit. Readonly rows open nothing. */
@@ -67,6 +73,8 @@ function getConfirmationItems(
     onEditPage: (pageIndex: number) => void,
     onEditListItem: (listKey: string, itemID: string) => void,
 ): SummaryGroup[] {
+    const optedOutFieldByLink = getOptedOutFieldByLink(pages, values, allFields);
+
     return pages.flatMap((page, pageIndex): SummaryGroup[] => {
         if (!isPageShown(page, values, allFields)) {
             return [];
@@ -74,7 +82,7 @@ function getConfirmationItems(
 
         // An opt-out link that is off has no row, since the fields it opts out of are shown and already carry the answer
         const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter(
-            (field) => values[field.key] === true || getOptOutFields(field, allFields).length === 0,
+            (field) => values[field.key] === true || !optedOutFieldByLink.has(field.key),
         );
 
         if (fields.length === 0) {
@@ -101,7 +109,7 @@ function getConfirmationItems(
                     const fieldLabel = getFieldLabel(field, translate);
                     const isMasked = isSensitiveField(field) && !!getVisibleEnding(answer);
                     const shownAnswer = isSensitiveField(field) ? maskSensitiveValue(answer) : answer;
-                    const optedOutField = getOptedOutField(field, values, allFields);
+                    const optedOutField = values[field.key] === true ? optedOutFieldByLink.get(field.key) : undefined;
 
                     return [
                         {
