@@ -2,7 +2,6 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
@@ -28,6 +27,8 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef} from 'react';
+
+import type {ActionHandledType} from './useHoldMenuSubmit';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
 import {useCurrencyListActions} from './useCurrencyList';

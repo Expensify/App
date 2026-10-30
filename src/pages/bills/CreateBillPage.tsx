@@ -41,11 +41,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {TupleToUnion} from 'type-fest';
+
 import {sessionEmailAndAccountIDSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
+
+/** Bills only take a PDF of the invoice, which never enters SmartScan */
+const BILL_ATTACHMENT_EXTENSION = 'pdf' satisfies TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>;
 
 function CreateBillPage() {
     const {translate} = useLocalize();
@@ -66,7 +71,7 @@ function CreateBillPage() {
         if (!pickedFile) {
             return;
         }
-        if (splitExtensionFromFileName(pickedFile.name ?? '').fileExtension.toLowerCase() !== CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.PDF) {
+        if (splitExtensionFromFileName(pickedFile.name ?? '').fileExtension.toLowerCase() !== BILL_ATTACHMENT_EXTENSION) {
             setFileError(translate('attachmentPicker.notAllowedExtension'));
             return;
         }
@@ -145,8 +150,8 @@ function CreateBillPage() {
                                         />
                                     </MenuItem.Leading>
                                     <MenuItem.Content>
-                                        <MenuItem.Title>{receiverDetails?.displayName ?? receiverEmail}</MenuItem.Title>
-                                        <MenuItem.Description>{receiverEmail}</MenuItem.Description>
+                                        <MenuItem.Title>{receiverDetails?.displayName ?? receiverEmail ?? ''}</MenuItem.Title>
+                                        <MenuItem.Description>{receiverEmail ?? ''}</MenuItem.Description>
                                     </MenuItem.Content>
                                 </MenuItem.Row>
                             </MenuItem.Root>
@@ -167,7 +172,7 @@ function CreateBillPage() {
                                     shouldSaveDraft
                                 />
                             </View>
-                            <AttachmentPicker acceptedFileTypes={[CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.PDF]}>
+                            <AttachmentPicker acceptedFileTypes={[BILL_ATTACHMENT_EXTENSION]}>
                                 {({openPicker}) => (
                                     <Button
                                         size={CONST.BUTTON_SIZE.LARGE}

@@ -6,6 +6,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -17,6 +18,7 @@ import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {isBillReport} from '@libs/BillPayUtils';
+import getHoldMenuAmounts from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -27,6 +29,7 @@ import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -49,7 +52,8 @@ function PayActionButton() {
 
     const {iouReportID, chatReportID, chatReport, transactions} = useReportPreviewData();
     const {isPaidAnimationRunning, isApprovedAnimationRunning} = useReportPreviewAnimationState();
-    const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide, onHoldMenuOpen} = useReportPreviewActions();
+    const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide} = useReportPreviewActions();
+    const {showHoldMenu} = useHoldMenuModal();
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
 
@@ -76,6 +80,24 @@ function PayActionButton() {
 
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions, convertToDisplayString);
 
+    // Only the pay flow opens this menu. Approve surfaces its partial/full choice in the approve dropdown instead.
+    const openHoldMenu = (paymentType: PaymentMethodType, methodID?: number) => {
+        if (!iouReport) {
+            return;
+        }
+        // Wait one frame so the current touch animation finishes before the modal opens
+        requestAnimationFrame(() => {
+            showHoldMenu({
+                reportID: iouReportID,
+                chatReportID,
+                paymentType,
+                methodID,
+                ...getHoldMenuAmounts(iouReport, shouldShowPayButton, transactions, convertToDisplayString),
+                onConfirm: startAnimation,
+            });
+        });
+    };
+
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type) {
             return;
@@ -83,7 +105,7 @@ function PayActionButton() {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            onHoldMenuOpen(type, shouldShowPayButton, methodID);
+            openHoldMenu(type, methodID);
         } else if (chatReport && iouReport) {
             const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {

@@ -165,11 +165,21 @@ describe('Bill Pay', () => {
         expect(sections.filter(isTransactionReportGroupListItemType)).toEqual([expect.objectContaining({reportID: bill.reportID, action: expectedAction})]);
     });
 
-    it('only offers payment to the authorized payer, even when another user is an admin', () => {
+    it('offers payment to the bill receiver, the reimburser, and the workspace and payments admins', () => {
+        // Given an approved bill that its receiver owns, on a policy whose reimburser is another user
         const approved = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
-        expect(canPayBill(approved, policy, 456, 'admin@example.com')).toBe(false);
-        expect(canPayBill(approved, {...policy, reimburser: undefined}, accountID, email)).toBe(true);
-        expect(canPayBill(approved, {...policy, reimburser: undefined, owner: email}, 456, 'admin@example.com')).toBe(true);
+        const memberPolicy: Policy = {...policy, role: CONST.POLICY.ROLE.USER, reimburser: 'reimburser@example.com'};
+        const otherAccountID = 456;
+
+        // When each user checks whether they can pay the bill
+        // Then the receiver, the reimburser, a workspace admin and a payments admin can pay it, as in Classic
+        expect(canPayBill(approved, memberPolicy, accountID, email)).toBe(true);
+        expect(canPayBill(approved, memberPolicy, otherAccountID, 'reimburser@example.com')).toBe(true);
+        expect(canPayBill(approved, {...memberPolicy, role: CONST.POLICY.ROLE.ADMIN}, otherAccountID, 'admin@example.com')).toBe(true);
+        expect(canPayBill(approved, {...memberPolicy, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN}, otherAccountID, 'payments@example.com')).toBe(true);
+
+        // And other members of the policy can't
+        expect(canPayBill(approved, memberPolicy, otherAccountID, 'member@example.com')).toBe(false);
     });
 
     it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
