@@ -1,5 +1,6 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
+import type FocusTrapForModalProps from '@components/FocusTrap/FocusTrapForModal/FocusTrapForModalProps';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,6 +27,9 @@ type CurrencyPickerProps = {
 
     /** Whether the picker includes an option to clear the selected currency. */
     shouldAllowEmptySelection?: boolean;
+
+    /** The button that opens the picker. When passed, focus returns to it after the picker closes. */
+    launcherRef?: FocusTrapForModalProps['launcherRef'];
 };
 
 function IOURequestStepCurrencyModal({
@@ -35,6 +39,7 @@ function IOURequestStepCurrencyModal({
     value,
     excludeCurrencies,
     shouldAllowEmptySelection = false,
+    launcherRef,
     onInputChange = () => {},
 }: CurrencyPickerProps) {
     const {translate} = useLocalize();
@@ -53,6 +58,8 @@ function IOURequestStepCurrencyModal({
             onClose={hidePickerModal}
             onModalHide={hidePickerModal}
             shouldEnableNewFocusManagement
+            shouldReturnFocus={!!launcherRef}
+            launcherRef={launcherRef}
             onBackdropPress={hidePickerModal}
             shouldUseModalPaddingStyle={false}
             shouldHandleNavigationBack

@@ -1,6 +1,6 @@
 import type {NativeEventSubscription} from 'react-native';
 
-import {useCallback, useEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 
 import CONST from './CONST';
@@ -61,14 +61,14 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
     // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
     // below). Track the pending reportID so both the initial-URL and the url-change paths stay in sync.
-    const trackPendingPublicRoomFromDeepLink = useCallback((url: string, isCurrentlyAuthenticated: boolean) => {
+    const trackPendingPublicRoomFromDeepLink = (url: string, isCurrentlyAuthenticated: boolean) => {
         const deepLinkReportID = getReportIDFromLink(url);
         if (!deepLinkReportID || isCurrentlyAuthenticated) {
             return;
         }
         pendingPublicRoomReportID.current = deepLinkReportID;
         hasRefetchedPublicRoom.current = false;
-    }, []);
+    };
 
     useEffect(() => {
         if (
@@ -228,10 +228,12 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
     // An anonymous user opening a public room via a cold deep link loads the room (OpenReport), but the
     // OpenApp that follows anonymous session creation drops it from Onyx, so it never reaches the LHN.
+    const isAnonymous = isAnonymousUser(session);
+
     // Once OpenApp settles, re-fetch the room if it went missing so it shows up in the LHN. See #92672.
     useEffect(() => {
         const reportID = pendingPublicRoomReportID.current;
-        if (!reportID || isLoadingApp || !isAnonymousUser()) {
+        if (!reportID || isLoadingApp || !isAnonymous) {
             return;
         }
         // The room made it into Onyx, so the cold-start race is over - stop tracking it.
@@ -255,7 +257,16 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });
-    }, [isLoadingApp, allReports, introSelected, conciergeChat, session?.accountID, guidedSetupAndTourStatus?.isSelfTourViewed, guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow]);
+    }, [
+        isLoadingApp,
+        isAnonymous,
+        allReports,
+        introSelected,
+        conciergeChat,
+        session?.accountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
 
     return null;
 }

@@ -17,6 +17,30 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, p
 jest.mock('@libs/Navigation/Navigation', () => ({dismissModal: jest.fn()}));
 
 describe('IOURequestStepCurrencyModal', () => {
+    it.each([true, false])('preserves optional currencies with launcher focus restoration %s', (hasLauncher) => {
+        // Given an optional currency picker with or without an explicit launcher.
+        const launcherRef = hasLauncher ? React.createRef<HTMLElement>() : undefined;
+        render(
+            <IOURequestStepCurrencyModal
+                isPickerVisible
+                hidePickerModal={jest.fn()}
+                headerText="Select a currency"
+                value="USD"
+                launcherRef={launcherRef}
+                shouldAllowEmptySelection
+            />,
+        );
+
+        // When the picker configures its modal and currency list.
+        const modalProps = jest.mocked(Modal).mock.lastCall?.[0];
+        const listProps = jest.mocked(CurrencySelectionList).mock.lastCall?.[0];
+
+        // Then focus restoration follows the launcher while Any currency remains available.
+        expect(modalProps?.launcherRef).toBe(launcherRef);
+        expect(modalProps?.shouldReturnFocus).toBe(hasLauncher);
+        expect(listProps?.shouldAllowEmptySelection).toBe(true);
+    });
+
     it.each([true, false])('closes only the picker on backdrop press with optional currency %s', (shouldAllowEmptySelection) => {
         // Given a local currency picker over a filter or money request.
         const hidePickerModal = jest.fn();

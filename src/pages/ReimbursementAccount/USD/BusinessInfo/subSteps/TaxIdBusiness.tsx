@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const COMPANY_TAX_ID_KEY = INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID;
@@ -39,18 +39,15 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubPageProps) {
         bankAccountState !== CONST.BANK_ACCOUNT.STATE.VERIFYING
     );
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
-            if (values.companyTaxID && !isValidTaxID(values.companyTaxID)) {
-                errors.companyTaxID = translate('bankAccount.error.taxID');
-            }
+        if (values.companyTaxID && !isValidTaxID(values.companyTaxID)) {
+            errors.companyTaxID = translate('bankAccount.error.taxID');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,
