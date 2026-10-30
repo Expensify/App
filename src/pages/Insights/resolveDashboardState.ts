@@ -1,3 +1,4 @@
+import {hasGroupWithExpenses} from '@libs/resolveInsightsChartData';
 import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -24,16 +25,27 @@ type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 
 type InsightsDashboardChart = InsightsChartQuery & {
     snapshot: OnyxEntry<SearchResults>;
-    averageSnapshot?: OnyxEntry<SearchResults>;
+    previousPeriodSnapshot?: OnyxEntry<SearchResults>;
+    averageTotal?: number;
+    isDashboardLoaded?: boolean;
 };
+
+/** Checks whether GetInsights has responded for the dashboard's filters, since only its response sets `inputQuery`. */
+function hasDashboardResponse(dashboard: OnyxEntry<InsightsDashboard>): boolean {
+    return !!dashboard?.inputQuery;
+}
 
 /** Resolves the page's state from the dashboard record and the snapshot of every chart on screen. */
 function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[]): InsightsDashboardState {
-    // Only a GetInsights response sets `inputQuery`.
-    const hasDashboardResponse = !!dashboard?.inputQuery;
     const chartStates = charts.map(({snapshot, queryJSON}) => {
         const isLoaded = isSearchDataLoaded(snapshot, queryJSON) && isEmptyObject(snapshot?.errors);
-        return {isLoaded, hasRows: isLoaded && Object.keys(snapshot?.data ?? {}).some(isGroupEntry)};
+        const data = snapshot?.data;
+        const groups = data
+            ? Object.keys(data)
+                  .filter(isGroupEntry)
+                  .map((key) => data[key])
+            : [];
+        return {isLoaded, hasRows: isLoaded && hasGroupWithExpenses(groups)};
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
 
@@ -43,7 +55,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
     }
-    if (!hasDashboardResponse && !hasLoadedChart) {
+    if (!hasDashboardResponse(dashboard) && !hasLoadedChart) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
     }
     if (chartStates.some(({hasRows}) => hasRows)) {
@@ -58,5 +70,5 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     return INSIGHTS_DASHBOARD_STATE.READY;
 }
 
-export {INSIGHTS_DASHBOARD_STATE, getDashboardState};
+export {INSIGHTS_DASHBOARD_STATE, getDashboardState, hasDashboardResponse};
 export type {InsightsDashboardState, InsightsDashboardChart};

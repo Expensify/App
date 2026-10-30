@@ -63,6 +63,13 @@ function clearReimbursementAccountBackup() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP, null);
 }
 
+/** Clear previous setup data and seed a bank account draft without linking it to a workspace. */
+function prepareStandaloneBankAccountSetup(currency: string, country = mapCurrencyToCountry(currency)) {
+    clearReimbursementAccount();
+    clearReimbursementAccountDraft();
+    updateReimbursementAccountDraft({country, currency});
+}
+
 /**
  * Prepares the app to set up a new bank account by marking the account change, clearing existing data,
  * and initializing draft with country and currency.
@@ -75,12 +82,7 @@ function prepareNewBankAccountSetup(currency: string, reimbursementAccountToBack
         Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP, reimbursementAccountToBackup);
     }
     Onyx.set(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT, true);
-    clearReimbursementAccount();
-    clearReimbursementAccountDraft();
-    updateReimbursementAccountDraft({
-        country: mapCurrencyToCountry(currency),
-        currency,
-    });
+    prepareStandaloneBankAccountSetup(currency);
 }
 
 /**
@@ -139,4 +141,5 @@ export {
     resetReimbursementAccount,
     cancelChangingToNewBankAccount,
     prepareNewBankAccountSetup,
+    prepareStandaloneBankAccountSetup,
 };

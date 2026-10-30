@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {delegateEmailSelector} from '@selectors/Account';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type ReportDetailsMenuMarkAsIncompleteItemProps = {
@@ -25,6 +26,7 @@ type ReportDetailsMenuMarkAsIncompleteItemProps = {
 };
 
 function ReportDetailsMenuMarkAsIncompleteItem({reportID}: ReportDetailsMenuMarkAsIncompleteItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -50,10 +52,14 @@ function ReportDetailsMenuMarkAsIncompleteItem({reportID}: ReportDetailsMenuMark
         <MenuItem
             title={translate('task.markAsIncomplete')}
             icon={expensifyIcons.Checkmark}
-            onPress={callFunctionIfActionIsAllowed(() => {
-                Navigation.goBack(navigateBackFromReportDetailsPath);
-                reopenTask(report, parentReport, currentUserAccountID, delegateEmail);
-            })}
+            onPress={callFunctionIfActionIsAllowed(
+                () => {
+                    Navigation.goBack(navigateBackFromReportDetailsPath);
+                    reopenTask(report, parentReport, currentUserAccountID, delegateEmail);
+                },
+                false,
+                session,
+            )}
             isAnonymousAction={false}
         />
     );
