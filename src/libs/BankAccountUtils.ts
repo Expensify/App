@@ -237,6 +237,13 @@ function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<Onyx
 }
 
 /**
+ * Whether the bank account row shows that global reimbursements are enabled. Only an explicit `true` counts, the same flag the backend checks before paying.
+ */
+function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
+}
+
+/**
  * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
  */
 function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
@@ -459,6 +466,7 @@ export {
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
     shouldSetUpGlobalReimbursementsBeforePaying,
+    isGlobalReimbursementsEnabled,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     getDefaultCompanyWebsite,

@@ -13,6 +13,7 @@ import {
     canLinkPlaid,
     isBankAccountPartiallySetup,
     isBankAccountEligibleForGlobalReimbursements,
+    isGlobalReimbursementsEnabled,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
@@ -318,6 +319,38 @@ describe('BankAccountUtils', () => {
             // When checking it before paying
             // Then the payment goes ahead and the backend makes the final call
             expect(shouldSetUpGlobalReimbursementsBeforePaying(bankAccount)).toBe(false);
+        });
+    });
+
+    describe('isGlobalReimbursementsEnabled', () => {
+        const buildBankAccount = (additionalData: AccountData['additionalData'], pendingAction?: BankAccount['pendingAction']): BankAccount => ({
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            pendingAction,
+            accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {currency: CONST.CURRENCY.USD, ...additionalData}},
+        });
+
+        it.each([
+            ['set up through Wise', buildBankAccount({isGlobalReimbursementEnabled: true, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE})],
+            ['set up through Corpay', buildBankAccount({isGlobalReimbursementEnabled: true, verifications: {corpay: {}}})],
+        ])('returns true for an account %s', (_label, bankAccount) => {
+            // Given an account the backend marks as set up for global reimbursements
+            // When deciding whether its row shows the globe
+            // Then it does, whatever the provider, because the flag is what payments are gated on
+            expect(isGlobalReimbursementsEnabled(bankAccount)).toBe(true);
+        });
+
+        it.each([
+            ['global reimbursements are disabled', buildBankAccount({isGlobalReimbursementEnabled: false})],
+            ['the backend did not send the flag', buildBankAccount({})],
+            ['Wise approved the business but the backend has not enabled the account yet', buildBankAccount({wise: {status: CONST.WISE.ONBOARDING_STATUS.APPROVED}})],
+            ['the account is being deleted', buildBankAccount({isGlobalReimbursementEnabled: true}, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)],
+            ['the account is unknown', undefined],
+        ])('returns false when %s', (_label, bankAccount) => {
+            // Given an account the client can't show as able to pay worldwide
+            // When deciding whether its row shows the globe
+            // Then it doesn't, so the row never claims more than the backend allows
+            expect(isGlobalReimbursementsEnabled(bankAccount)).toBe(false);
         });
     });
 

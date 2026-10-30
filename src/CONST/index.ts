@@ -10530,6 +10530,7 @@ const CONST = {
         },
         PAYMENT_METHOD_LIST_ITEM: {
             CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',
+            GLOBAL_REIMBURSEMENTS_ENABLED: 'PaymentMethodListItem-GlobalReimbursementsEnabled',
         },
         EMOJI_PICKER: {
             BUTTON: 'EmojiPicker-Button',
