@@ -1268,7 +1268,6 @@
 "../../src/pages/iou/request/step/DynamicIOURequestStepDestination.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepDistance.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepDistance.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/iou/request/step/DynamicIOURequestStepReport.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/DynamicIOURequestStepSubrate.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepSubrate.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepSubrate.tsx"	"react-hooks/set-state-in-effect"	1
