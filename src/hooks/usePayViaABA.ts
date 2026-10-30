@@ -45,14 +45,14 @@ function usePayViaABA() {
     const [isDownloadingABAFile, setIsDownloadingABAFile] = useState(false);
 
     const getDownloadFailedPrompt = (reportIDs: string[], error?: HttpsError) => {
-        if (!error?.message.includes(CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT) || reportIDs.length !== 1) {
+        if (!error?.message.includes(CONST.ERROR.MISSING_ABA_DEPOSIT_ACCOUNT)) {
             return translate('common.downloadFailedDescription');
         }
 
-        // The employee who's missing an account is the one who submitted the report
-        const report = getReportOrDraftReport(reportIDs.at(0));
+        // We can say who's missing a bank account for single reports only
+        const report = reportIDs.length === 1 ? getReportOrDraftReport(reportIDs.at(0)) : undefined;
         const name = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldFallbackToHidden: false, formatPhoneNumber});
-        return name ? translate('iou.missingABADepositAccount', {name}) : translate('common.downloadFailedDescription');
+        return name ? translate('iou.missingABADepositAccount', {name}) : translate('iou.employeesMissingABADepositAccount');
     };
 
     const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) => {

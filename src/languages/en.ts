@@ -1678,6 +1678,7 @@ const translations = {
         payElsewhere: (formattedAmount?: string) => (formattedAmount ? `Mark ${formattedAmount} as paid` : `Mark as paid`),
         payViaABA: 'Pay via ABA',
         missingABADepositAccount: ({name}: {name: string}) => `${name} doesn't have an AUD bank account. Please ask them to add one and try again.`,
+        employeesMissingABADepositAccount: "One or more employees don't have an AUD bank account. Please ask them to add one and try again.",
         confirmPaymentReceivedModalTitle: 'Confirm payment received',
         receivedPayment: 'Received payment',
         receivedPaymentReportAction: (payer?: string) => `${payer ? `${payer} ` : ''}received payment`,

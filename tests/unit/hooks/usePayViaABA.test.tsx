@@ -141,6 +141,25 @@ describe('usePayViaABA', () => {
         );
     });
 
+    it("tells the admin that someone is missing a bank account when it doesn't know who", async () => {
+        // Given several reports being paid via ABA
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+        act(() => result.current.payReportsViaABA(['123', '456'], policy));
+
+        // When the download fails because one of their submitters is missing a deposit account
+        const {onDownloadFailed} = jest.mocked(payViaABA).mock.calls.at(0)?.at(0) ?? {};
+        onDownloadFailed?.(new HttpsError({message: '402 Missing AU deposit account', status: '402'}));
+
+        // Then the admin is still told why, without a name, since the error doesn't say which report it was
+        expect(mockShowDecisionModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: translateLocal('common.downloadFailedTitle'),
+                prompt: translateLocal('iou.employeesMissingABADepositAccount'),
+            }),
+        );
+    });
+
     it('shows the locked account modal instead of downloading the ABA file', async () => {
         // Given a locked account
         mockIsAccountLocked = true;
