@@ -1392,7 +1392,7 @@ describe('actions/Report', () => {
                 hasReportActions: true,
                 reportID: REPORT_ID,
                 introSelected: TEST_INTRO_SELECTED,
-                participants: [{login: 'test@user.com'}],
+                participants: [{login: 'test@user.com', accountIDForOptimisticData: generateAccountID('test@user.com')}],
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
@@ -1517,7 +1517,7 @@ describe('actions/Report', () => {
             hasReportActions: true,
             reportID: REPORT_ID,
             introSelected: undefined,
-            participants: [{login: PARTICIPANT_LOGIN}],
+            participants: [{login: PARTICIPANT_LOGIN, accountIDForOptimisticData: PARTICIPANT_ACCOUNT_ID}],
             newReportObject: {
                 reportID: REPORT_ID,
             },
@@ -1668,7 +1668,7 @@ describe('actions/Report', () => {
                 hasReportActions: true,
                 reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                participants: [{login: 'test@user.com'}],
+                participants: [{login: 'test@user.com', accountIDForOptimisticData: generateAccountID('test@user.com')}],
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
@@ -2872,7 +2872,7 @@ describe('actions/Report', () => {
             hasReportActions: true,
             reportID: REPORT_ID,
             introSelected: TEST_INTRO_SELECTED,
-            participants: [{login: 'test@user.com'}],
+            participants: [{login: 'test@user.com', accountIDForOptimisticData: generateAccountID('test@user.com')}],
             newReportObject: {
                 parentReportID: REPORT_ID,
                 parentReportActionID: reportActionID,
@@ -6988,7 +6988,7 @@ describe('actions/Report', () => {
                 hasReportActions: true,
                 personalDetails: undefined,
                 currentUserAccountID: 1,
-                participants: [{login: 'other@test.com', accountID: 2}],
+                participants: [{login: 'other@test.com', accountID: 2, accountIDForOptimisticData: 2}],
             });
             await waitForBatchedUpdates();
 
@@ -10323,7 +10323,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with a participant that doesn't have an existing chat
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10379,7 +10380,8 @@ describe('actions/Report', () => {
             // already complete (so no onboarding OpenReport needs to be enqueued)
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10434,7 +10436,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with onboarding still pending (guided setup not yet completed)
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10482,7 +10485,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10520,7 +10524,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with introSelected
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10542,6 +10547,7 @@ describe('actions/Report', () => {
             const TEST_USER_ACCOUNT_ID = 1;
             const TEST_USER_LOGIN = 'test@user.com';
             const PARTICIPANT_LOGIN = 'participant@test.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
@@ -10551,7 +10557,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport creates a new chat with introSelected and the conciergeChat threaded through
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10588,7 +10595,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with shouldDismissModal=false
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10624,7 +10632,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with isSelfTourViewed=true
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10662,7 +10671,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with isSelfTourViewed=undefined
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10700,7 +10710,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with isSelfTourViewed=true and shouldDismissModal=false
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10738,7 +10749,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10943,7 +10955,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: true,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10965,7 +10978,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: true,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10985,7 +10999,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: true,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
