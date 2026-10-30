@@ -95,6 +95,9 @@ type BuildChartSeriesParams = {
     /** Returns whether a group's period starts after today with no expenses of its own, which a running total's count no longer shows */
     isEmptyLaterPeriod?: (item: GroupedItem) => boolean;
 
+    /** Returns whether a compared group has expenses of its own, which a running total's count no longer shows. Reads the group's count by default. */
+    hasComparedExpenses?: (item: GroupedItem) => boolean;
+
     /** Formats labels shared by paired time buckets, and the name of an average */
     translate: LocaleContextProps['translate'];
 
@@ -141,6 +144,7 @@ function buildChartSeries({
     getInProgressLabel,
     isLaterPeriod,
     isEmptyLaterPeriod,
+    hasComparedExpenses = (item) => !!item.count,
     translate,
     dateFnsLocale,
     colorScheme,
@@ -171,6 +175,7 @@ function buildChartSeries({
             return {
                 value: counterpartRange && (comparedItem ? getAmount(comparedItem) : 0),
                 percentOfTotal: comparedItem?.percentOfTotal,
+                hasExpenses: !!comparedItem && hasComparedExpenses(comparedItem),
                 bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, groupBy, translate, dateFnsLocale),
                 counterpartStart: counterpartRange?.start,
                 sortDate: bucketRange.start,
@@ -212,7 +217,13 @@ function buildChartSeries({
             isInProgress: isInProgress || isLater,
         };
 
-        return {row: {point, item}, isEmptyLaterPeriod: !!isEmptyLaterPeriod?.(item), counterpartStart: compared?.counterpartStart, sortDate: compared?.sortDate ?? ''};
+        return {
+            row: {point, item},
+            isEmptyLaterPeriod: !!isEmptyLaterPeriod?.(item),
+            hasComparedExpenses: !!compared?.hasExpenses,
+            counterpartStart: compared?.counterpartStart,
+            sortDate: compared?.sortDate ?? '',
+        };
     });
 
     /** Builds a point for a compared bucket no current bucket pairs with, like January 31 against February, which only the compared line reaches */
@@ -227,7 +238,7 @@ function buildChartSeries({
             isInProgress: false,
         };
         const row: SearchChartDataRow = {point};
-        return {row, isEmptyLaterPeriod: false, sortDate: getPositionInPrimaryPeriod(range, comparisonPeriods, timeGroupBy)};
+        return {row, isEmptyLaterPeriod: false, hasComparedExpenses: hasComparedExpenses(comparedItem), sortDate: getPositionInPrimaryPeriod(range, comparisonPeriods, timeGroupBy)};
     };
 
     const pairedStarts = new Set(pairedRows.map((pairedRow) => pairedRow.counterpartStart));
@@ -247,10 +258,14 @@ function buildChartSeries({
         return first.sortDate < second.sortDate ? -1 : 1;
     });
 
-    // Ends the chart at today, or at the last future expense, instead of drawing $0 through periods that haven't come yet.
-    const lastPlottedIndex = sortedRows.findLastIndex((sortedRow) => !!sortedRow.row.item && !sortedRow.isEmptyLaterPeriod);
-    const firstTrimmedIndex = sortedRows.findIndex((sortedRow, index) => index > lastPlottedIndex && sortedRow.isEmptyLaterPeriod);
-    const rows = (firstTrimmedIndex === -1 ? sortedRows : sortedRows.slice(0, firstTrimmedIndex)).map(({row}) => row);
+    // Ends the current line at today, or at the last future expense, instead of drawing $0 through periods that haven't come yet.
+    const lastCurrentIndex = sortedRows.findLastIndex((sortedRow) => !!sortedRow.row.item && !sortedRow.isEmptyLaterPeriod);
+    const plottedRows = sortedRows.map(({row, isEmptyLaterPeriod: isEmpty}, index) =>
+        index > lastCurrentIndex && isEmpty ? {...row, point: {...row.point, values: {...row.point.values, [CHART_SERIES_KEY.PRIMARY]: undefined}}} : row,
+    );
+    // The chart goes on through the compared period's last expense
+    const lastPlottedIndex = sortedRows.findLastIndex((sortedRow, index) => index <= lastCurrentIndex || sortedRow.hasComparedExpenses);
+    const rows = plottedRows.slice(0, lastPlottedIndex + 1);
 
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
     const primarySeries: ChartSeries = {key: CHART_SERIES_KEY.PRIMARY, label: periods && formatDates(periods.primary, dateFnsLocale)};

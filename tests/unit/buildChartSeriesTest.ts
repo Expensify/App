@@ -375,6 +375,32 @@ describe('buildChartSeries', () => {
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2400, 0]);
     });
 
+    it('keeps every compared bar of a ranking compared against the previous period', () => {
+        // Given this month's top merchants compared against the previous period
+        const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
+        const previousMonth = [merchantGroup('Person', 240000), merchantGroup('Target', 90000)];
+
+        // When the series is built for a bar chart compared against the previous period
+        const {rows} = buildChartSeries({
+            data,
+            comparison: {
+                data: previousMonth,
+                color: themeColors.green200,
+                periods: {primary: {start: '2026-10-01', end: '2026-10-31'}, comparison: {start: '2026-09-01', end: '2026-09-30'}},
+            },
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then each merchant keeps last month's bar, since a ranking has no line that ends
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([2400, 900]);
+    });
+
     it("shades each compared bar with its own bar's color", () => {
         // Given this month's top two merchants compared against last month
         const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
@@ -561,7 +587,7 @@ describe('buildChartSeries', () => {
         expect(rows.map((row) => row.point.label)).toEqual(['Q2 2026']);
     });
 
-    it('leaves out an empty later period along with its compared period', () => {
+    it('keeps the compared period through the periods after today while the current line ends at today', () => {
         // Given this year in its third quarter with nothing dated later, against last year, which spent in every quarter
         const rows = [quarterGroup(3, 300000), {...quarterGroup(4, 0), count: 0}];
         const previousRows = [quarterGroup(3, 30000, 2025), quarterGroup(4, 40000, 2025)];
@@ -580,11 +606,65 @@ describe('buildChartSeries', () => {
             isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter === 4 && !item.count,
         });
 
-        // Then the chart ends at Q3, leaving out last year's Q4 along with this year's
-        expect(model.rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300}]);
+        // Then last year's Q4 is still plotted so the user sees how last year ended, but this year's line stops at Q3
+        expect(model.rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 3000, [CHART_SERIES_KEY.COMPARISON]: 300}, {[CHART_SERIES_KEY.COMPARISON]: 400}]);
     });
 
-    it('leaves out the compared days the current period has no day for when the chart ends before them', () => {
+    it('ends the compared line at the last period the compared period has expenses in', () => {
+        // Given this year in its second quarter with nothing dated later, against last year, which had expenses only until Q3
+        const rows = [quarterGroup(2, 200000), {...quarterGroup(3, 0), count: 0}, {...quarterGroup(4, 0), count: 0}];
+        const previousRows = [quarterGroup(2, 20000, 2025), quarterGroup(3, 30000, 2025), {...quarterGroup(4, 0, 2025), count: 0}];
+
+        // When the two periods are plotted against each other
+        const model = buildChartSeries({
+            data: rows,
+            comparison: {data: previousRows, color: themeColors.green200, periods: {primary: {start: '2026-01-01', end: '2026-12-31'}, comparison: {start: '2025-01-01', end: '2025-12-31'}}},
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER && item.quarter > 2 && !item.count,
+        });
+
+        // Then the chart ends at Q3, last year's last quarter with expenses, rather than drawing its empty Q4
+        expect(model.rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 200}, {[CHART_SERIES_KEY.COMPARISON]: 300}]);
+    });
+
+    it('ends the compared running total at the last period the compared period has expenses in', () => {
+        // Given the same two years plotted as running totals, where last year's empty Q4 carries its earlier total and count forward
+        const rows = [quarterGroup(2, 200000), {...quarterGroup(3, 0), count: 0}, {...quarterGroup(4, 0), count: 0}];
+        const previousRows = [quarterGroup(2, 20000, 2025), quarterGroup(3, 30000, 2025), {...quarterGroup(4, 0, 2025), count: 0}];
+        const emptyLaterKeys = new Set(rows.filter((item) => !item.count).map((item) => item.keyForList));
+        const comparedKeysWithExpenses = new Set(previousRows.filter((item) => !!item.count).map((item) => item.keyForList));
+        const runningTotal = applyRunningTotal({
+            data: rows,
+            comparison: {data: previousRows, color: themeColors.green200, periods: {primary: {start: '2026-01-01', end: '2026-12-31'}, comparison: {start: '2025-01-01', end: '2025-12-31'}}},
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+        });
+
+        // When the series is built from the running totals, with expenses read from the rows before them
+        const model = buildChartSeries({
+            data: runningTotal.data,
+            comparison: runningTotal.comparison,
+            view: CONST.SEARCH.VIEW.LINE,
+            groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+            getLabel: CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getLabel,
+            getCurrencyDecimals,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
+            hasComparedExpenses: (item) => comparedKeysWithExpenses.has(item.keyForList),
+        });
+
+        // Then the compared line still ends at Q3, rather than staying flat through a quarter with no expenses
+        expect(model.rows.map((row) => row.point.values)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: 2000, [CHART_SERIES_KEY.COMPARISON]: 200}, {[CHART_SERIES_KEY.COMPARISON]: 500}]);
+    });
+
+    it('keeps the compared days the current period has no day for when the compared period has expenses on them', () => {
         // Given February so far plotted by day against January, with February's later days empty and January's 29th to 31st unpaired
         const {rows} = buildChartSeries({
             data: [dayGroup('2026-02-15'), {...dayGroup('2026-02-16'), total: 0, count: 0}, {...dayGroup('2026-02-28'), total: 0, count: 0}],
@@ -603,8 +683,9 @@ describe('buildChartSeries', () => {
             isEmptyLaterPeriod: (item) => item.groupedBy === CONST.SEARCH.GROUP_BY.DAY && item.day > '2026-02-15' && !item.count,
         });
 
-        // Then the chart ends at today, rather than jumping from the 15th to January's last days
-        expect(rows.map((row) => row.point.label)).toEqual(['15th']);
+        // Then January runs to its 31st, while February's line stops at today
+        expect(rows.map((row) => row.point.label)).toEqual(['15th', '16th', '28th', '29th', '30th', '31st']);
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.PRIMARY])).toEqual([1000, undefined, undefined, undefined, undefined, undefined]);
     });
 });
 
