@@ -700,8 +700,6 @@ function isCollapsibleSystemMessageAction(reportAction: OnyxInputOrEntry<ReportA
         !reportAction.error &&
         isEmpty(reportAction.errors) &&
         !hasReasoning(reportAction) &&
-        // An opened thread can show agent progress before persisted replies are counted.
-        !reportAction.childReportID &&
         !reportAction.childVisibleActionCount &&
         !NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES.has(reportAction.actionName)
     );
@@ -6106,6 +6104,7 @@ export {
     isActionOfType,
     isActionableJoinRequest,
     isActionableJoinRequestPending,
+    isActionableJoinRequestPendingReportAction,
     getActionableJoinRequestPendingReportAction,
     isActionableMentionWhisper,
     isActionableMentionInviteToSubmitExpenseConfirmWhisper,

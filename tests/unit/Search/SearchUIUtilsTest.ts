@@ -18,7 +18,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
 import Navigation from '@navigation/Navigation';
@@ -74,7 +74,11 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: globalThis.createTransactionThreadReportMock ?? (globalThis.createTransactionThreadReportMock = jest.fn()),
 }));
-jest.mock('@userActions/Search', () => ({setOptimisticDataForTransactionThreadPreview: jest.fn()}));
+jest.mock('@userActions/Search', () => ({
+    setOptimisticDataForTransactionThreadPreview: jest.fn(),
+    // shouldShowDeleteOption resolves a report's actions through this helper, so the real implementation has to stay available
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchUtils>('@userActions/Search').getReportActionsFromSearchSnapshot,
+}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;
@@ -2357,6 +2361,20 @@ describe('SearchUIUtils', () => {
         test('Should return `Submit` action for report on policy with delayed submission and no violations', () => {
             const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
+
+        test('Should not return `Submit` action when the report workspace is missing because it was deleted', () => {
+            // Given a submittable report whose workspace was deleted. Deleting a workspace removes it from the search results and
+            // leaves no archivedDate, so the only sign left is that the policy is missing.
+            const data = {...searchResults.data};
+            expect(data[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]).toBeDefined();
+            delete data[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+            // When the Search actions are computed for the report
+            const actions = SearchUIUtils.getActions(data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+
+            // Then Submit is not offered, matching the report view, because the backend rejects submissions to a deleted workspace
+            expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
         test('Should return only `View` action for the expense of a single-expense report that can be submitted', () => {
@@ -14775,7 +14793,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -14961,7 +14979,159 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined, undefined)).toBe(true);
+        });
+
+        describe('with a grouped search snapshot that carries no report actions', () => {
+            const TEST_ACCOUNT_ID = 5;
+            const TEST_APPROVER_ACCOUNT_ID = 2;
+            const TEST_OWNER_LOGIN = 'lagertha2@vikings.net';
+            const TEST_APPROVER_LOGIN = 'floki@vikings.net';
+            const TEST_REPORT_ID = '66419001';
+            const TEST_TRANSACTION_ID = '66419002';
+            const TEST_POLICY_ID = '66419003';
+            // Literal keys, because a template string in a computed key would widen to `string` and no longer match the snapshot type
+            const REPORT_KEY = `${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}` as const;
+            const TRANSACTION_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}` as const;
+            const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as const;
+            const REPORT_ACTIONS_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_REPORT_ID}` as const;
+
+            const personalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, login: TEST_OWNER_LOGIN, displayName: 'Lagertha'},
+                [TEST_APPROVER_ACCOUNT_ID]: {accountID: TEST_APPROVER_ACCOUNT_ID, login: TEST_APPROVER_LOGIN, displayName: 'Floki'},
+            };
+            // A multi-level approval chain, so the report stays at first-level approval until the approver forwards it
+            const approvalPolicy: OnyxTypes.Policy = {
+                id: TEST_POLICY_ID,
+                name: 'Advanced approval policy',
+                role: CONST.POLICY.ROLE.USER,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: '',
+                outputCurrency: CONST.CURRENCY.USD,
+                employeeList: {
+                    [TEST_OWNER_LOGIN]: {email: TEST_OWNER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: TEST_APPROVER_LOGIN},
+                },
+            };
+            const expenseReport: OnyxTypes.Report = {
+                reportID: TEST_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: TEST_POLICY_ID,
+                ownerAccountID: TEST_ACCOUNT_ID,
+                managerID: TEST_APPROVER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const transaction: OnyxTypes.Transaction = {
+                ...createRandomTransaction(Number(TEST_TRANSACTION_ID)),
+                transactionID: TEST_TRANSACTION_ID,
+                reportID: TEST_REPORT_ID,
+                bank: '',
+                managedCard: false,
+            };
+            const iouAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '66419004',
+                reportID: TEST_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_ACCOUNT_ID,
+                created: '2026-04-21 16:00:00',
+                message: [{type: 'COMMENT', html: 'expense', text: 'expense'}],
+                originalMessage: {IOUTransactionID: TEST_TRANSACTION_ID, amount: 5000, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            };
+            const submittedAction: OnyxTypes.ReportAction = {
+                reportActionID: '66419005',
+                reportID: TEST_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2026-04-21 17:00:00',
+            };
+            const forwardedAction: OnyxTypes.ReportAction = {
+                reportActionID: '66419006',
+                reportID: TEST_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2026-04-21 17:10:00',
+            };
+
+            // The grouped snapshot carries the report, the transaction and the policy, but no report actions at all
+            const currentSearchResults = createMock<OnyxTypes.SearchResults['data']>({
+                [REPORT_KEY]: expenseReport,
+                [TRANSACTION_KEY]: transaction,
+                [POLICY_KEY]: approvalPolicy,
+            });
+            const selectedTransactions = createMock<Record<string, SelectedTransactionInfo>>({
+                [TEST_TRANSACTION_ID]: {transaction, reportAction: iouAction, reportID: TEST_REPORT_ID, policyID: TEST_POLICY_ID, ownerAccountID: TEST_ACCOUNT_ID, isSelected: true},
+            });
+            const selectedReports: SelectedReports[] = [createMock<SelectedReports>({reportID: TEST_REPORT_ID, policyID: TEST_POLICY_ID, ownerAccountID: TEST_ACCOUNT_ID})];
+            const liveActionsAfterForward: OnyxCollection<OnyxTypes.ReportActions> = {
+                [REPORT_ACTIONS_KEY]: {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction},
+            };
+            const liveActionsAfterSubmit: OnyxCollection<OnyxTypes.ReportActions> = {
+                [REPORT_ACTIONS_KEY]: {[submittedAction.reportActionID]: submittedAction},
+            };
+
+            beforeEach(async () => {
+                // The approval check resolves the policy and the approver's account ID from Onyx rather than from the arguments
+                await Onyx.merge(POLICY_KEY, approvalPolicy);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: TEST_OWNER_LOGIN});
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.merge(POLICY_KEY, null);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, null);
+            });
+
+            it('hides the delete option when the live report actions show the report was forwarded since its last submit', () => {
+                // Given the live collection holds the submit and the later forward that the snapshot lacks
+                // When the submitter's selected expense is checked for the delete option
+                const canDelete = SearchUIUtils.shouldShowDeleteOption(
+                    selectedTransactions,
+                    currentSearchResults,
+                    TEST_ACCOUNT_ID,
+                    undefined,
+                    personalDetailsList,
+                    undefined,
+                    liveActionsAfterForward,
+                );
+
+                // Then delete is hidden, because the live actions show the report already left first-level approval
+                expect(canDelete).toBe(false);
+            });
+
+            it('keeps the delete option when the live report actions show no forward since the last submit', () => {
+                // Given the live collection holds only the submit
+                // When the submitter's selected expense is checked for the delete option
+                const canDelete = SearchUIUtils.shouldShowDeleteOption(
+                    selectedTransactions,
+                    currentSearchResults,
+                    TEST_ACCOUNT_ID,
+                    undefined,
+                    personalDetailsList,
+                    undefined,
+                    liveActionsAfterSubmit,
+                );
+
+                // Then delete stays available while the report is still awaiting first-level approval
+                expect(canDelete).toBe(true);
+            });
+
+            it('hides the report-level delete option when the live report actions show the report was forwarded since its last submit', () => {
+                // Given a whole report selected on a report search, with the forward only in the live collection
+                // When the selection is checked for the delete option
+                const canDelete = SearchUIUtils.shouldShowDeleteOption(
+                    {},
+                    currentSearchResults,
+                    TEST_ACCOUNT_ID,
+                    undefined,
+                    personalDetailsList,
+                    undefined,
+                    liveActionsAfterForward,
+                    selectedReports,
+                    CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                );
+
+                // Then delete is hidden for the report as well
+                expect(canDelete).toBe(false);
+            });
         });
     });
     describe('getToFieldValueForTransaction', () => {

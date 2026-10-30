@@ -2481,6 +2481,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 20,
         },
 
+        conciergeAskColumn: {
+            width: '100%',
+            maxWidth: variables.conciergeAskColumnMaxWidth,
+            alignSelf: 'center',
+        },
+
         chatItemDraft: {
             display: 'flex',
             flexDirection: 'row',
@@ -6274,6 +6280,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         twoFARequiredOverlay: {
             zIndex: 20, // must be greater than floatingCameraButton.zIndex
+        },
+
+        twoFARequiredTestToolsHost: {
+            zIndex: 22, // must be greater than twoFARequiredOverlay.zIndex
         },
 
         twoFARequiredContainer: {
