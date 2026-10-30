@@ -162,6 +162,22 @@ describe('RHPResizeHandle', () => {
         expect(readLiveWidth()).toBe('500px');
     });
 
+    it('keeps the live width when the saved width changes while another handle drags', () => {
+        // Given a modal stacked on the RHP, each with its own handle, and a drag at 500px on the modal's
+        const rhpHandle = renderHandle();
+        const modalHandle = renderHandle();
+        modalHandle.firePointer('pointerDown', 1000);
+        modalHandle.firePointer('pointerMove', 900);
+
+        // When the saved width changes underneath both, as a window resize re-clamps it
+        mockSavedWidth = 450;
+        rhpHandle.rerenderHandle();
+        modalHandle.rerenderHandle();
+
+        // Then the idle RHP handle leaves the shared live width alone, so the cards don't jump back mid-drag
+        expect(modalHandle.readLiveWidth()).toBe('500px');
+    });
+
     it('clears the live width when it unmounts mid-drag', () => {
         // Given a drag in progress at 500px
         const {firePointer, readLiveWidth, unmount} = renderHandle();

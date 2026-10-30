@@ -12,6 +12,8 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type {RefObject} from 'react';
+
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -28,6 +30,9 @@ type Drag = {
 };
 
 const SNAP: DraggedSizeSnap = {to: variables.rhpWidth, threshold: CONST.RHP_RESIZE.SNAP_THRESHOLD};
+
+/** The RHP and a modal stacked on it each mount a handle over the one live width, so an idle handle must not clear it while the other drags. */
+let lastDragRef: RefObject<Drag | null> | null = null;
 
 // DOM `div` styles, which the React Native style system can't type.
 const HANDLE_STYLE: React.CSSProperties = {
@@ -116,7 +121,7 @@ function RHPResizeHandle() {
 
     // React now renders the saved width as the fallback, so drop the live one before paint. A window resize mid-drag leaves it to the drag.
     useLayoutEffect(() => {
-        if (dragRef.current) {
+        if (lastDragRef?.current) {
             return;
         }
 
@@ -137,6 +142,7 @@ function RHPResizeHandle() {
                     if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: width, hasMovedPointer: false}))) {
                         return;
                     }
+                    lastDragRef = dragRef;
                     setIsDragging(true);
                 }}
                 {...pointerDrag.handlers}
