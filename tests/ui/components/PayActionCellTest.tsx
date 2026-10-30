@@ -175,7 +175,7 @@ describe('PayActionCell', () => {
         );
     });
 
-    it('does not call payInvoice when no chatReport prop is supplied', () => {
+    it('does not call payInvoice when no chatReport prop is supplied', async () => {
         // Given an invoice report row whose invoice chat is not loaded (no chatReport prop)
         render(
             <PayActionCell
@@ -195,6 +195,8 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
+
+        await waitForBatchedUpdates();
 
         // Then no invoice payment should happen and the drop should be logged because a fallback chat report is not safe for invoices
         expect(mockedPayInvoice).not.toHaveBeenCalled();
@@ -269,7 +271,7 @@ describe('PayActionCell', () => {
         );
     });
 
-    it('does not pay a money request and logs the reason when the chat is not loaded and no chatReportID is available', () => {
+    it('does not pay a money request and logs the reason when the chat is not loaded and no chatReportID is available', async () => {
         // Given an expense report row whose chat report is not loaded and which has no chatReportID to build a fallback from
         mockedIsInvoiceReport.mockReturnValue(false);
         mockedUseReportWithTransactionsAndViolations.mockReturnValue([{...expenseReport, chatReportID: undefined, parentReportID: undefined}, [], undefined]);
@@ -292,6 +294,8 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
+
+        await waitForBatchedUpdates();
 
         // Then no payment should happen and the drop should be logged because there is no way to resolve any chat report
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
