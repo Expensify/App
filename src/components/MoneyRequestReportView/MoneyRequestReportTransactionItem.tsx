@@ -21,10 +21,9 @@ import ControlSelection from '@libs/ControlSelection';
 import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import {
+    EMPTY_CARDS,
     getReportRowCards,
-    getReportRowPolicy,
     getReportRowPolicyCategories,
-    getReportRowReport,
     getTransactionRejectErrorKey,
     getVisibleReportRowViolations,
     isSelectableReportTransaction,
@@ -61,6 +60,12 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** ID of the report's policy */
     policyID: string | undefined;
+
+    /** Report to which the transaction belongs, without the fields rows never read */
+    report: OnyxEntry<Report>;
+
+    /** Policy to which the transaction belongs, without the fields rows never read */
+    policy: OnyxEntry<Policy>;
 
     /** Tag lists for the policy to which the transaction belongs */
     policyTagLists?: PolicyTagLists;
@@ -105,12 +110,6 @@ type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransac
 
     /** Violations of this transaction the current user can see */
     violations: TransactionViolations;
-
-    /** Report to which the transaction belongs, without the fields rows never read */
-    report: OnyxEntry<Report>;
-
-    /** Policy to which the transaction belongs, without the fields rows never read */
-    policy: OnyxEntry<Policy>;
 
     /** The transaction's category from the policy categories */
     policyCategories?: PolicyCategories;
@@ -380,14 +379,14 @@ function MoneyRequestReportTransactionItemWithInlineEdit(props: Omit<MoneyReques
     );
 }
 
-const EMPTY_ROW_CARDS: CardList = {};
-
 function MoneyRequestReportTransactionItem({
     transactionID,
     reportOwnerLogin,
     shouldBeHighlighted,
     reportID,
     policyID,
+    report,
+    policy,
     policyTagLists,
     isSelectionModeEnabled,
     toggleTransaction,
@@ -414,12 +413,10 @@ function MoneyRequestReportTransactionItem({
     const cardID = rawTransaction?.cardID;
     const category = rawTransaction?.category;
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (cardID ? cardList?.[cardID] : undefined)});
-    const [cards = EMPTY_ROW_CARDS] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (cardList) => getReportRowCards(cardList, cardID)});
+    const [cards = EMPTY_CARDS] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (cardList) => getReportRowCards(cardList, cardID)});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: (categories) => getReportRowPolicyCategories(categories, category)});
     const [fullReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [fullPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportRowReport});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: getReportRowPolicy});
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
     // component-type swap caused by browser resize.

@@ -319,6 +319,7 @@ function getReportRowCards(cards: OnyxEntry<CardList>, cardID: number | undefine
 }
 
 export {
+    EMPTY_CARDS,
     EMPTY_VIOLATIONS,
     getReportRowCards,
     getReportRowPolicy,

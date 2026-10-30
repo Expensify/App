@@ -31,7 +31,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  */
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
-import {useEffect, useRef} from 'react';
+import {useLayoutEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
 import Onyx, {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
@@ -237,7 +237,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         personalOutputCurrency: personalPolicy?.outputCurrency,
     };
     const renderedEditDataRef = useRef(renderedEditData);
-    useEffect(() => {
+    useLayoutEffect(() => {
         renderedEditDataRef.current = renderedEditData;
     });
 

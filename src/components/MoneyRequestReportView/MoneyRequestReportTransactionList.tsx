@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {CAROUSEL_SOURCE} from '@libs/actions/TransactionThreadNavigation';
+import {getReportRowPolicy, getReportRowReport} from '@libs/MoneyRequestReportUtils';
 import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
@@ -219,6 +220,8 @@ function MoneyRequestReportTransactionList({
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
+    const [rowReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {selector: getReportRowReport});
+    const [rowPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {selector: getReportRowPolicy});
 
     const reportID = report?.reportID;
     const showPendingExpensePlaceholder = useMoneyRequestReportPendingExpense(reportID, transactions);
@@ -371,6 +374,8 @@ function MoneyRequestReportTransactionList({
                         columns={columnsToShow}
                         reportID={report.reportID}
                         policyID={report.policyID}
+                        report={rowReport}
+                        policy={rowPolicy}
                         policyTagLists={policyTagLists}
                         isSelectionModeEnabled={isMobileSelectionModeEnabled}
                         toggleTransaction={toggleRowTransaction}
