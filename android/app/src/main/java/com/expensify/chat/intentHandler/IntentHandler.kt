@@ -7,6 +7,6 @@ object IntentHandlerConstants {
     const val shareObjectProperty = "shareObject"
 }
 interface IntentHandler {
-    fun handle(intent: Intent): Boolean
+    fun handle(intent: Intent, shouldLaunchActivity: Boolean = true): Boolean
     fun onCompleted()
 }
