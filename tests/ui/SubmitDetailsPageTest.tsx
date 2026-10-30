@@ -192,6 +192,8 @@ jest.mock('@components/MoneyRequestConfirmationList', () => {
 const SHARED_REPORT_ID = 'report-share-1';
 const ACCOUNT_ID = 1;
 const PARTICIPANT_ACCOUNT_ID = 2;
+// Deliberately differs from mockPositionAnswer, so a device read on open would be visible in USER_LOCATION.
+const CACHED_USER_LOCATION = {latitude: 52.2297, longitude: 21.0122};
 
 function createTestReport(): Report {
     return {
@@ -614,41 +616,43 @@ describe('SubmitDetailsPage', () => {
         }
     });
 
-    it('creates the shared expense with the position the share screen cached, without reading the device at submit', async () => {
-        // Given a shared receipt, location permission granted when the user confirms, and a position the share screen cached when it opened
+    it('creates the shared expense with the position the share root cached, without reading the device at submit', async () => {
+        // Given a shared receipt, location permission granted when the user confirms, and a position ShareRootPage cached
+        // while the user picked a recipient
         mockPositionAnswer();
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, null);
+            await Onyx.set(ONYXKEYS.USER_LOCATION, CACHED_USER_LOCATION);
         });
         renderSubmitDetailsPage();
         await waitForBatchedUpdatesWithAct();
-
-        expect(await getUserLocationFromOnyx()).toEqual({latitude: 40.7128, longitude: -74.006});
 
         // When the user confirms the share
         fireEvent.press(screen.getByTestId('mock-confirm-button'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the expense carries the cached position and confirming read the device no further
+        // Then the expense carries the cached position, and neither opening nor confirming read the device
         expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
-        expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
-        expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: CACHED_USER_LOCATION.latitude, long: CACHED_USER_LOCATION.longitude});
+        expect(getCurrentPosition).not.toHaveBeenCalled();
     });
 
-    it('caches nothing and raises nothing when the permission check fails on open', async () => {
-        // Given a device whose location permission check fails outright
-        jest.mocked(check).mockRejectedValueOnce(new Error('permission check failed'));
-        const unhandledRejection = jest.fn();
-        process.on('unhandledRejection', unhandledRejection);
+    it('leaves the cached position alone when it opens, so the location snapshot stays off the ShareExtensionOpenSubmitFlow span', async () => {
+        // Given location permission granted and a position ShareRootPage cached before the user picked a recipient
+        mockPositionAnswer();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.USER_LOCATION, CACHED_USER_LOCATION);
+        });
 
-        // When the share screen opens
+        // When the details page opens
         renderSubmitDetailsPage();
         await waitForBatchedUpdatesWithAct();
-        process.off('unhandledRejection', unhandledRejection);
 
-        // Then the screen cached no position, and the failed check never surfaced as an unhandled rejection
-        expect(await getUserLocationFromOnyx()).toBeUndefined();
-        expect(unhandledRejection).not.toHaveBeenCalled();
+        // Then it neither checks the permission nor reads the device, and the cached position survives, because a mount-time
+        // snapshot would put the main-thread location work and the USER_LOCATION re-renders inside the span
+        expect(check).not.toHaveBeenCalled();
+        expect(getCurrentPosition).not.toHaveBeenCalled();
+        expect(await getUserLocationFromOnyx()).toEqual(CACHED_USER_LOCATION);
     });
 
     // Error #11 — narrow layout race: confirm fires before scheduleWhenIdle runs pre-insert setup.
