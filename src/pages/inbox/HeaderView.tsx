@@ -54,6 +54,7 @@ import {
     chatIncludesChronos,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
+    getInvoiceReceiverPolicyID,
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getPolicyDescriptionText,
@@ -104,6 +105,7 @@ import {accountIDSelector, isPersonalDetailOptimistic} from '@selectors/Personal
 import {getStableReportSelector} from '@selectors/Report';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {latestCalendlyCallSelector} from '@selectors/ReportNameValuePairs';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {Keyboard, View} from 'react-native';
 
@@ -117,6 +119,7 @@ type HeaderViewProps = {
 };
 
 function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const parentReportAction = useParentReportAction(report, {shouldIgnoreThreadReplies: true});
 
@@ -189,6 +192,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const reportHeaderData = (!isTaskReport && !isSupportTicketReport && !isChatThread && report?.parentReportID) || isParentInvoiceAndIsTransactionThread ? parentReport : report;
     const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportAction, undefined, grandParentReportActions);
     const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
+    const [invoiceReceiverPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentNavigationReport?.parentReportID)}`, {
+        selector: getInvoiceReceiverPolicyID,
+    });
+    const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const derivedNames = useDerivedReportNamesByReportIDs([parentNavigationReport?.parentReportID, reportHeaderData?.reportID]);
     const derivedParentReportName = getReportNameFromNames(derivedNames, parentNavigationReport?.parentReportID);
     const derivedReportHeaderName = getReportNameFromNames(derivedNames, reportHeaderData?.reportID);
@@ -211,6 +218,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const parentNavigationSubtitleData = getParentNavigationSubtitle(
         parentNavigationReport,
         policy,
+        invoiceReceiverPolicy,
         conciergeReportID,
         translate,
         formatPhoneNumber,
@@ -313,7 +321,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         />
     );
 
-    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID));
+    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID), false, session);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 

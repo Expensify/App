@@ -7103,6 +7103,13 @@ const staticStyles = (theme: ThemeColors) =>
             width: 8,
             height: 8,
         },
+        chartTooltipAverageDash: {
+            width: 7,
+            height: 1,
+            borderRadius: 0.5,
+            backgroundColor: theme.text,
+            opacity: VictoryTheme.averageLine.opacity,
+        },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
