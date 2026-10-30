@@ -1248,4 +1248,69 @@ describe('useSelectedTransactionsActions', () => {
         expect(optionValues).not.toContain(HOLD);
         expect(optionValues).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     });
+
+    it('should give the delete check the report actions from the Onyx collection for an expense with no IOU action when the paginated page lacks them', async () => {
+        // Given a submitted expense report the current user owns, whose SUBMITTED and FORWARDED actions live only in the Onyx collection,
+        // and an expense on it with no IOU action anywhere
+        const transactionID = '123';
+        const session: Session = {accountID: CURRENT_USER_ACCOUNT_ID};
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        report.ownerAccountID = CURRENT_USER_ACCOUNT_ID;
+        report.managerID = 999;
+        report.stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
+        report.statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
+        transaction.managedCard = false;
+        transaction.receipt = undefined;
+        const submittedAction: ReportAction = {
+            ...createRandomReportAction(2),
+            reportActionID: 'submitted',
+            reportID: report.reportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            created: '2026-04-21 17:00:00',
+        };
+        const forwardedAction: ReportAction = {
+            ...createRandomReportAction(3),
+            reportActionID: 'forwarded',
+            reportID: report.reportID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            created: '2026-04-21 17:10:00',
+        };
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(ONYXKEYS.SESSION, session);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+            [submittedAction.reportActionID]: submittedAction,
+            [forwardedAction.reportActionID]: forwardedAction,
+        });
+
+        const canDeleteMoneyRequestReportSpy = jest.spyOn(ReportUtils, 'canDeleteMoneyRequestReport').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
+        jest.spyOn(ReportUtils, 'canDeleteTransaction').mockReturnValue(true);
+
+        // When the bulk actions are built from an empty page of report actions
+        const {result} = renderHookWithProvider(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions: [],
+                allTransactionsLength: 1,
+                session,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        // Then the delete check receives the report's actions from the collection, so a forward since the last submit is not missed
+        await waitFor(() => {
+            expect(result.current.options.map((option) => option.value)).toContain(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
+        });
+        expect(canDeleteMoneyRequestReportSpy.mock.calls.at(-1)?.[2]).toEqual(
+            expect.arrayContaining([expect.objectContaining({reportActionID: submittedAction.reportActionID}), expect.objectContaining({reportActionID: forwardedAction.reportActionID})]),
+        );
+    });
 });
