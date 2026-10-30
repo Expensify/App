@@ -40,7 +40,7 @@ function useReportScrollManager(): ReportScrollManagerData {
             return;
         }
 
-        const scrollViewRef = listRef.current.getNativeScrollRef();
+        const scrollViewRef = listRef.current.getNativeScrollRef?.();
         // Try to scroll on underlying scrollView if available, fallback to usual listRef
         if (scrollViewRef && typeof scrollViewRef.scrollToEnd === 'function') {
             scrollViewRef.scrollToEnd({animated: false});
