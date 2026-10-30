@@ -373,7 +373,12 @@ function AuthScreens() {
                         {!shouldSuppressPromotionalUI && !isVisitingSecureLink && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
-                                options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
+                                options={{
+                                    ...rootNavigatorScreenOptions.basicModalNavigator,
+                                    // OnboardingModalNavigator pads the horizontal safe area inside its own background, so the screen behind doesn't show in the side insets.
+                                    native: {},
+                                    gestureEnabled: false,
+                                }}
                                 component={OnboardingModalNavigator}
                                 listeners={{
                                     focus: () => {
