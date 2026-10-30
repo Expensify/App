@@ -624,7 +624,7 @@ function updateDigitsSettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_DIGITS_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateDigitsSyncTravelInvoicingSettlements(policyID: string, enabled: DigitsSync['syncTravelInvoicingSettlements'], oldEnabled?: DigitsSync['syncTravelInvoicingSettlements']) {
+function updateDigitsSyncTravelBillingSettlements(policyID: string, enabled: DigitsSync['syncTravelInvoicingSettlements'], oldEnabled?: DigitsSync['syncTravelInvoicingSettlements']) {
     const onyxData = prepareDigitsSyncOnyxData(policyID, CONST.DIGITS_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS, enabled, oldEnabled ?? null);
     const parameters: UpdateDigitsSyncTravelBillingSettlementsParams = {
         policyID,
@@ -633,7 +633,7 @@ function updateDigitsSyncTravelInvoicingSettlements(policyID: string, enabled: D
     write(WRITE_COMMANDS.UPDATE_DIGITS_SYNC_TRAVEL_BILLING_SETTLEMENTS, parameters, onyxData);
 }
 
-function updateDigitsTravelInvoicingSettlementsAccount(
+function updateDigitsTravelBillingSettlementsAccount(
     policyID: string,
     travelBillingSettlementsBankAccountID: DigitsSync['travelInvoicingSettlementsBankAccountID'],
     oldTravelBillingSettlementsBankAccountID?: DigitsSync['travelInvoicingSettlementsBankAccountID'],
@@ -651,7 +651,7 @@ function updateDigitsTravelInvoicingSettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateDigitsTravelInvoicingPayableAccount(
+function updateDigitsTravelBillingPayableAccount(
     policyID: string,
     travelBillingPayableAccountID: DigitsExport['travelInvoicingPayableAccountID'],
     oldTravelBillingPayableAccountID?: DigitsExport['travelInvoicingPayableAccountID'],
@@ -703,9 +703,9 @@ export {
     updateDigitsBillPaymentAccount,
     updateDigitsSyncExpensifyCardSettlements,
     updateDigitsSettlementsAccount,
-    updateDigitsSyncTravelInvoicingSettlements,
-    updateDigitsTravelInvoicingSettlementsAccount,
-    updateDigitsTravelInvoicingPayableAccount,
+    updateDigitsSyncTravelBillingSettlements,
+    updateDigitsTravelBillingSettlementsAccount,
+    updateDigitsTravelBillingPayableAccount,
     updateDigitsExportToMultipleAccounts,
     updateDigitsCardProgramAccount,
 };
