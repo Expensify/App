@@ -12987,7 +12987,7 @@ ${reportName}`,
     bulkActionBar: {label: 'Acciones en bloque', clearSelection: 'Borrar selección', loadingSelection: 'Cargando selección'},
     reportHistoryPage: {
         title: 'Historial del informe',
-        created: 'creó el informe',
+        created: 'informe creado',
         submitted: 'enviado',
         approved: 'aprobado',
         paid: 'pagado',
@@ -12996,13 +12996,14 @@ ${reportName}`,
             if (!eta) {
                 return 'para enviar automáticamente';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `para enviar automáticamente el ${eta} de cada mes` : `para enviar automáticamente ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `para enviar automáticamente el día ${eta} de cada mes` : `para enviar automáticamente ${eta}`;
         },
         toApprove: 'aprobar',
         toPay: 'pagar',
         minutesAgo: (count: number) => `hace ${count} min`,
         hoursAgo: (count: number) => `hace ${count} h`,
-        daysAgo: (count: number) => `hace ${count}d`,
+        daysAgo: (count: number) => `hace ${count} d`,
+        offlineMessage: 'Estás sin conexión. El historial de informes puede estar desactualizado.',
     },
 };
 export default translations;

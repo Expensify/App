@@ -12725,23 +12725,24 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
     },
     bulkActionBar: {label: 'Sammelaktionen', clearSelection: 'Auswahl aufheben', loadingSelection: 'Auswahl wird geladen'},
     reportHistoryPage: {
-        title: 'Berichtsverlauf',
+        title: 'Verlauf des Berichts',
         created: 'Bericht erstellt',
         submitted: 'eingereicht',
         approved: 'genehmigt',
         paid: 'bezahlt',
-        toSubmit: 'senden',
+        toSubmit: 'einreichen',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
                 return 'automatisch einreichen';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `um automatisch am ${eta} eines jeden Monats einzureichen` : `um ${eta} automatisch einzureichen`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `um automatisch am ${eta} jedes Monats einzureichen` : `um ${eta} automatisch einzureichen`;
         },
         toApprove: 'genehmigen',
         toPay: 'bezahlen',
         minutesAgo: (count: number) => `vor ${count} Min.`,
         hoursAgo: (count: number) => `vor ${count} Std.`,
         daysAgo: (count: number) => `vor ${count} Tagen`,
+        offlineMessage: 'Sie sind offline. Der Berichtverlauf ist möglicherweise veraltet.',
     },
 };
 export default translations;

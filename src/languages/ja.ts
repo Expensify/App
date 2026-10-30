@@ -12496,15 +12496,16 @@ ${reportName}`,
         toSubmit: '送信する',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return '自動で送信する';
+                return '自動送信する';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `毎月${eta}に自動送信するため` : `${eta}に自動的に提出する`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `毎月${eta}に自動で送信する` : `${eta} に自動送信する`;
         },
         toApprove: '承認する',
         toPay: '支払う',
         minutesAgo: (count: number) => `${count}分前`,
         hoursAgo: (count: number) => `${count}時間前`,
         daysAgo: (count: number) => `${count}日前`,
+        offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
     },
 };
 export default translations;

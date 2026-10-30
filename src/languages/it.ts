@@ -12680,14 +12680,14 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
     bulkActionBar: {label: 'Azioni collettive', clearSelection: 'Cancella selezione', loadingSelection: 'Caricamento selezione'},
     reportHistoryPage: {
         title: 'Cronologia report',
-        created: 'ha creato il report',
+        created: 'report creato',
         submitted: 'inviato',
         approved: 'approvato',
         paid: 'pagato',
         toSubmit: 'inviare',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'per inviare automaticamente';
+                return 'inviare automaticamente';
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `per inviare automaticamente il ${eta} di ogni mese` : `per inviare automaticamente ${eta}`;
         },
@@ -12696,6 +12696,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         minutesAgo: (count: number) => `${count} min fa`,
         hoursAgo: (count: number) => `${count} h fa`,
         daysAgo: (count: number) => `${count}g fa`,
+        offlineMessage: 'Sei offline. La cronologia dei report potrebbe non essere aggiornata.',
     },
 };
 export default translations;

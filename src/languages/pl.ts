@@ -12674,21 +12674,22 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     reportHistoryPage: {
         title: 'Historia raportu',
         created: 'utworzył raport',
-        submitted: 'wysłano',
+        submitted: 'wysłane',
         approved: 'zatwierdzone',
-        paid: 'zapłacono',
+        paid: 'opłacone',
         toSubmit: 'przesłać',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'aby automatycznie wysłać';
+                return 'aby automatycznie wysyłać';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `aby automatycznie wysyłać ${eta} każdego miesiąca` : `do automatycznego przesłania ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `aby automatycznie przesyłać ${eta} dnia każdego miesiąca` : `aby automatycznie przesłać ${eta}`;
         },
-        toApprove: 'zaakceptować',
-        toPay: 'zapłać',
+        toApprove: 'zatwierdzić',
+        toPay: 'zapłacić',
         minutesAgo: (count: number) => `${count} min temu`,
         hoursAgo: (count: number) => `${count} godz. temu`,
-        daysAgo: (count: number) => `${count}d temu`,
+        daysAgo: (count: number) => `${count} dni temu`,
+        offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
     },
 };
 export default translations;

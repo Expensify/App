@@ -12967,19 +12967,20 @@ ${reportName}`,
         created: 'δημιούργησε αναφορά',
         submitted: 'υποβλήθηκε',
         approved: 'εγκρίθηκε',
-        paid: 'πληρωμένο',
-        toSubmit: 'να υποβάλετε',
+        paid: 'εξοφλημένο',
+        toSubmit: 'υποβολή',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'για αυτόματη υποβολή';
+                return 'να υποβάλλεται αυτόματα';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `να υποβάλλεται αυτόματα στις ${eta} κάθε μήνα` : `για αυτόματη υποβολή ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `για αυτόματη υποβολή στις ${eta} κάθε μήνα` : `να υποβληθεί αυτόματα σε ${eta}`;
         },
         toApprove: 'να εγκρίνετε',
         toPay: 'να πληρώσετε',
-        minutesAgo: (count: number) => `${count}λ πριν`,
-        hoursAgo: (count: number) => `πριν από ${count} ώρες`,
+        minutesAgo: (count: number) => `πριν από ${count}λπ`,
+        hoursAgo: (count: number) => `${count} ώρες πριν`,
         daysAgo: (count: number) => `πριν από ${count}ημ.`,
+        offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
     },
 };
 export default translations;

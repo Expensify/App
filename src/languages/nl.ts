@@ -12652,13 +12652,14 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             if (!eta) {
                 return 'automatisch indienen';
             }
-            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `automatisch in te dienen op de ${eta} van elke maand` : `om automatisch in te dienen ${eta}`;
+            return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `om automatisch in te dienen op de ${eta} van elke maand` : `om automatisch in te dienen ${eta}`;
         },
         toApprove: 'goedkeuren',
         toPay: 'betalen',
         minutesAgo: (count: number) => `${count}m geleden`,
-        hoursAgo: (count: number) => `${count} uur geleden`,
-        daysAgo: (count: number) => `${count}d geleden`,
+        hoursAgo: (count: number) => `${count} u geleden`,
+        daysAgo: (count: number) => `${count} d geleden`,
+        offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
     },
 };
 export default translations;

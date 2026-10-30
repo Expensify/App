@@ -12756,21 +12756,22 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
     reportHistoryPage: {
         title: 'Historique de la note de frais',
         created: 'note de frais créée',
-        submitted: 'soumis',
+        submitted: 'Soumis',
         approved: 'approuvé',
-        paid: 'payé',
+        paid: 'Payé',
         toSubmit: 'soumettre',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {
-                return 'soumettre automatiquement';
+                return 'pour soumettre automatiquement';
             }
             return etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `pour soumettre automatiquement le ${eta} de chaque mois` : `pour soumettre automatiquement ${eta}`;
         },
         toApprove: 'approuver',
         toPay: 'payer',
         minutesAgo: (count: number) => `Il y a ${count} min`,
-        hoursAgo: (count: number) => `Il y a ${count} h`,
-        daysAgo: (count: number) => `Il y a ${count} j`,
+        hoursAgo: (count: number) => `il y a ${count} h`,
+        daysAgo: (count: number) => `il y a ${count} j`,
+        offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
     },
 };
 export default translations;
