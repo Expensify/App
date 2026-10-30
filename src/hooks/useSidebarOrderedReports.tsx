@@ -58,6 +58,9 @@ type ReportsToDisplayInLHN = Record<
         hasErrorsOtherThanFailedReceipt?: boolean;
         requiresAttention?: boolean;
         isUnreadReport?: boolean;
+
+        /** The newest visible message time, counting the hidden one-transaction thread of a single-expense report */
+        lastVisibleActionCreatedForInboxTab?: string;
     }
 >;
 

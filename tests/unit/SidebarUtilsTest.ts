@@ -4974,6 +4974,7 @@ describe('SidebarUtils', () => {
 
                 // Then the thread's new comment puts the expense report in the Unread tab, since the comment lives on the thread
                 expect(resultWithThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]?.isUnreadReport).toBe(true);
+                expect(resultWithThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]?.lastVisibleActionCreatedForInboxTab).toBe(transactionThread.lastVisibleActionCreated);
                 expect(resultWithoutThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]).toBeDefined();
                 expect(resultWithoutThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]?.isUnreadReport).toBeFalsy();
             });
@@ -5453,7 +5454,10 @@ describe('SidebarUtils', () => {
         /** The cutoff getInboxTabSummary measures against: the start of today, CONST.INBOX_TAB_STALE_UNREAD_MONTHS ago. */
         const staleCutoff = () => subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS);
 
-        type InboxTabReport = Pick<ReportsToDisplayInLHN[string], 'reportID' | 'isUnreadReport' | 'requiresAttention' | 'hasErrorsOtherThanFailedReceipt' | 'lastVisibleActionCreated'>;
+        type InboxTabReport = Pick<
+            ReportsToDisplayInLHN[string],
+            'reportID' | 'isUnreadReport' | 'requiresAttention' | 'hasErrorsOtherThanFailedReceipt' | 'lastVisibleActionCreated' | 'lastVisibleActionCreatedForInboxTab'
+        >;
 
         function buildReportsToDisplay(reports: InboxTabReport[]): ReportsToDisplayInLHN {
             return Object.fromEntries(reports.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {...createRandomReport(Number(report.reportID)), ...report}]));
@@ -5498,6 +5502,24 @@ describe('SidebarUtils', () => {
             const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 1).valueOf())}]);
 
             expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay).hasStaleUnreadReport).toBe(false);
+        });
+
+        it('does not flag a single-expense report whose old expense report has a recent comment on its transaction thread', () => {
+            // Given an unread single-expense report whose own newest message is old, but whose transaction thread just got a comment
+            const reportsToDisplay = buildReportsToDisplay([
+                {
+                    reportID: '1',
+                    isUnreadReport: true,
+                    lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 4).valueOf()),
+                    lastVisibleActionCreatedForInboxTab: DateUtils.getDBTime(),
+                },
+            ]);
+
+            // When the Inbox tab row is summarized
+            const {hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay);
+
+            // Then the report is not stale, because the unread message is the new thread comment
+            expect(hasStaleUnreadReport).toBe(false);
         });
 
         it('ignores the age of reports that are not unread', () => {
