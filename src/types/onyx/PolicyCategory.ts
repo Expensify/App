@@ -51,8 +51,8 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** If true, not providing attendees for a transaction with this category will trigger a violation */
     areAttendeesRequired?: boolean;
 
-    /** Account IDs of the members who can use this category. Null or missing means every member can use it */
-    visibleTo?: number[] | null;
+    /** The members who can use this category, keyed by accountID. Null or missing means every member can use it */
+    visibleTo?: Record<string, boolean> | null;
 }>;
 
 /** Record of policy categories, indexed by their name */

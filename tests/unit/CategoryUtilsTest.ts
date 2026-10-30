@@ -25,6 +25,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 import createMock from '../utils/createMock';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
+/** Builds a visibleTo map, keyed by accountID like the server sends it */
+const buildVisibleTo = (...accountIDs: number[]): Record<string, boolean> => Object.fromEntries(accountIDs.map((accountID) => [accountID, true]));
+
 describe(`isMissingCategory`, () => {
     it('returns true if category is undefined', () => {
         expect(isCategoryMissing(undefined)).toBe(true);
@@ -653,8 +656,8 @@ describe('getCategoryDefaultTaxRate', () => {
 describe('getMemberVisibleCategoryNames', () => {
     const policyCategories: PolicyCategories = {
         Travel: {name: 'Travel', enabled: true, visibleTo: null},
-        Meals: {name: 'Meals', enabled: true, visibleTo: [1, 2]},
-        Software: {name: 'Software', enabled: true, visibleTo: [2]},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+        Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
         Office: {name: 'Office', enabled: false},
     };
 

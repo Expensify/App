@@ -54,7 +54,7 @@ import type {ApprovalRule, CustomUnit, ExpenseRule, MccGroup} from '@src/types/o
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
 import lodashCloneDeep from 'lodash/cloneDeep';
@@ -1892,9 +1892,9 @@ function setPolicyMemberCategoryVisibility(
     memberLogins: string[],
 ) {
     const selectedCategories = new Set(categories);
-    const optimisticCategories: Record<string, Partial<PolicyCategory>> = {};
-    const successCategories: Record<string, Partial<PolicyCategory>> = {};
-    const failureCategories: Record<string, Partial<PolicyCategory>> = {};
+    const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
+    const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
 
     for (const category of Object.values(policyCategories)) {
         if (!category.enabled) {
@@ -1903,30 +1903,35 @@ function setPolicyMemberCategoryVisibility(
 
         const previousVisibleTo = category.visibleTo ?? null;
         const shouldBeVisible = selectedCategories.has(category.name);
-        let visibleTo: number[] | null;
-        if (!previousVisibleTo) {
-            visibleTo = shouldBeVisible ? null : policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID));
-        } else if (shouldBeVisible) {
-            visibleTo = Array.from(new Set([...previousVisibleTo, ...accountIDs]));
-        } else {
-            visibleTo = previousVisibleTo.filter((accountID) => !accountIDs.includes(accountID));
-        }
 
-        // Adding members only grows the list and removing them only shrinks it, so an equal length means nothing changed.
-        const isUnchanged = visibleTo === previousVisibleTo || (!!visibleTo && visibleTo.length === previousVisibleTo?.length);
-        if (isUnchanged) {
-            continue;
+        // visibleTo is merged, so an existing restriction is changed by patching only the members that move: true adds
+        // a member and null removes one. The failure patch is the inverse, so it puts back exactly what was there.
+        let optimisticVisibleTo: Record<string, boolean | null> | null;
+        let failureVisibleTo: Record<string, boolean | null> | null;
+        if (!previousVisibleTo) {
+            if (shouldBeVisible) {
+                continue;
+            }
+            optimisticVisibleTo = Object.fromEntries(policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID)).map((accountID) => [accountID, true]));
+            failureVisibleTo = null;
+        } else {
+            const changedAccountIDs = accountIDs.filter((accountID) => !!previousVisibleTo[accountID] !== shouldBeVisible);
+            if (changedAccountIDs.length === 0) {
+                continue;
+            }
+            optimisticVisibleTo = Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? true : null]));
+            failureVisibleTo = Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? null : true]));
         }
 
         optimisticCategories[category.name] = {
-            visibleTo,
+            visibleTo: optimisticVisibleTo,
             pendingFields: {visibleTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         };
         successCategories[category.name] = {
             pendingFields: {visibleTo: null},
         };
         failureCategories[category.name] = {
-            visibleTo: previousVisibleTo,
+            visibleTo: failureVisibleTo,
             pendingFields: {visibleTo: null},
         };
     }

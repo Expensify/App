@@ -119,7 +119,7 @@ function getEnabledCategoriesCount(policyCategories: PolicyCategories | undefine
  */
 function getMemberVisibleCategoryNames(policyCategories: PolicyCategories | undefined, accountID: number): string[] {
     return Object.values(policyCategories ?? {})
-        .filter((policyCategory) => policyCategory.enabled && (!policyCategory.visibleTo || policyCategory.visibleTo.includes(accountID)))
+        .filter((policyCategory) => policyCategory.enabled && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]))
         .map((policyCategory) => policyCategory.name);
 }
 

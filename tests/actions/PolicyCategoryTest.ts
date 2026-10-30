@@ -42,6 +42,9 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+/** Builds a visibleTo map, keyed by accountID like the server sends it */
+const buildVisibleTo = (...accountIDs: number[]): Record<string, boolean> => Object.fromEntries(accountIDs.map((accountID) => [accountID, true]));
+
 OnyxUpdateManager();
 describe('actions/PolicyCategory', () => {
     beforeAll(() => {
@@ -102,7 +105,7 @@ describe('actions/PolicyCategory', () => {
         const policyCategories: PolicyCategories = {
             Travel: {name: 'Travel', enabled: true, visibleTo: null},
             Meals: {name: 'Meals', enabled: true, visibleTo: null},
-            Software: {name: 'Software', enabled: true, visibleTo: [2]},
+            Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
             Office: {name: 'Office', enabled: false},
         };
 
@@ -118,9 +121,9 @@ describe('actions/PolicyCategory', () => {
             // Then Meals, open to everyone, is restricted to every other member, Software gains the member, and the
             // unchanged and disabled categories are left alone
             let updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-            expect(updatedCategories?.Meals?.visibleTo).toEqual([2, 3]);
+            expect(updatedCategories?.Meals?.visibleTo).toEqual(buildVisibleTo(2, 3));
             expect(updatedCategories?.Meals?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            expect(updatedCategories?.Software?.visibleTo).toEqual([2, 1]);
+            expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(1, 2));
             // Onyx drops null values, so a category open to everyone has no visibleTo at all
             expect(updatedCategories?.Travel?.visibleTo).toBeUndefined();
             expect(updatedCategories?.Travel?.pendingFields?.visibleTo).toBeUndefined();
@@ -153,7 +156,7 @@ describe('actions/PolicyCategory', () => {
 
             // Then Software goes back to its previous members without an error of its own, so the Categories page stays clean
             const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-            expect(updatedCategories?.Software?.visibleTo).toEqual([2]);
+            expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(2));
             expect(updatedCategories?.Software?.pendingFields?.visibleTo).toBeFalsy();
             expect(updatedCategories?.Software?.errors).toBeFalsy();
 
@@ -169,6 +172,25 @@ describe('actions/PolicyCategory', () => {
             // Then the error is gone
             updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.employeeList?.['bob@example.com']?.errorFields?.categoryVisibility).toBeFalsy();
+        });
+
+        it('removes the member from a restricted category without touching the other members', async () => {
+            // Given a category restricted to two members
+            mockFetch?.pause?.();
+            const restrictedCategories: PolicyCategories = {
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+                Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, restrictedCategories);
+
+            // When the admin takes Software away from one of them
+            setPolicyMemberCategoryVisibility(policyID, [1], ['Travel'], restrictedCategories, policyMemberAccountIDs, ['alice@example.com']);
+            await waitForBatchedUpdates();
+
+            // Then visibleTo is merged rather than replaced, so the member's key has to be deleted for them to lose access
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(2));
+            await mockFetch?.resume?.();
         });
     });
     describe('createWorkspaceCategories', () => {
