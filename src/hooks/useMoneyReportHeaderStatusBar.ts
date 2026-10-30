@@ -1,3 +1,4 @@
+import {getRetryWindow, isFailedExportToRetry} from '@libs/FailedExportRetryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -94,6 +95,7 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
     const isReportSettled = isSettledReportUtils(moneyRequestReport);
     const hasDuplicates = !isReportSettled && hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, ownerLogin, policy, allTransactionViolations, transactions);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
+    const isFailedExportToRetryReport = isFailedExportToRetry(moneyRequestReport, getRetryWindow(policy, CONST.POLICY.CONNECTIONS.FAILED_EXPORT_RETRY_DEFAULT_LOOKBACK_DAYS));
 
     const shouldShowStatusBar =
         hasAllPendingRTERViolations ||
@@ -103,7 +105,8 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
         isPayAtEndExpense ||
         hasOnlyPendingTransactions ||
         hasDuplicates ||
-        shouldShowMarkAsResolved;
+        shouldShowMarkAsResolved ||
+        isFailedExportToRetryReport;
 
     const getStatusBarType = (): StatusBarType | undefined => {
         if (shouldShowMarkAsResolved) {
@@ -142,6 +145,9 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
         }
         if (hasScanningReceipt) {
             return CONST.REPORT.STATUS_BAR_TYPE.SCANNING_RECEIPT;
+        }
+        if (isFailedExportToRetryReport) {
+            return CONST.REPORT.STATUS_BAR_TYPE.FAILED_EXPORT_TO_RETRY;
         }
         return undefined;
     };

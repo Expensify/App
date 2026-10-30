@@ -1603,6 +1603,9 @@ type OriginalMessageIntegrationMessage = {
 
         /** Whether the message is informational (the export was reconciled as already recorded in the integration) rather than an error */
         reconciled?: boolean;
+
+        /** Messages the integration returned for the export */
+        messages?: string[];
     };
 };
 

@@ -5,6 +5,7 @@ import useTheme from '@hooks/useTheme';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {isProcessingReport} from '@libs/ReportUtils';
 import {getUnsuppressibleBrokenConnectionTransactionID} from '@libs/TransactionUtils';
 
@@ -39,7 +40,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
     const {transactions: reportTransactionsMap, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Box', 'Stopwatch', 'Flag', 'CreditCardHourglass', 'ReceiptScan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Box', 'Stopwatch', 'Flag', 'CreditCardHourglass', 'ReceiptScan', 'Export']);
 
     if (!statusBarType) {
         return null;
@@ -115,6 +116,19 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
                         policy={policy}
                     />
                 }
+            />
+        );
+    }
+
+    if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.FAILED_EXPORT_TO_RETRY) {
+        const connectionName = getValidConnectedIntegration(policy);
+        if (!connectionName) {
+            return null;
+        }
+        return (
+            <MoneyRequestHeaderStatusBar
+                icon={getStatusIcon(expensifyIcons.Export)}
+                description={translate('iou.failedExportToRetry', {integrationName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]})}
             />
         );
     }

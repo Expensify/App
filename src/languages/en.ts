@@ -1119,6 +1119,13 @@ const translations = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Fix ${cardName} personal card connection` : 'Fix personal card connection'),
                 subtitle: 'Wallet',
             },
+            retryFailedExports: {
+                title: ({count, integrationName}: {count: number; integrationName: string}) => ({
+                    one: `Re-export 1 failed report to ${integrationName}`,
+                    other: `Re-export ${count} failed reports to ${integrationName}`,
+                }),
+                subtitle: ({policyName}: {policyName: string}) => policyName,
+            },
             fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Fix ${integrationName} connection`,
                 defaultSubtitle: 'Workspace',
@@ -1640,6 +1647,7 @@ const translations = {
         scanMultipleReceipts: 'Scan multiple receipts',
         scanMultipleReceiptsDescription: "Snap photos of all your receipts at once, then confirm details yourself or we'll do it for you.",
         receiptScanInProgress: 'Receipt scan in progress',
+        failedExportToRetry: ({integrationName}: {integrationName: string}) => `This report failed to export to ${integrationName}. You can export it again now.`,
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
         removeFromReport: 'Remove from report',
         moveToPersonalSpace: 'Move expenses to your personal space',
@@ -8368,6 +8376,22 @@ const translations = {
             enterCredentials: 'Enter your credentials',
             updateCredentials: 'Update credentials',
             qboConnectionExpiring: ({date}: {date: string}) => `Your QuickBooks Online connection expires on ${date}.`,
+            failedExportsToRetry: {
+                message: ({count, integrationName}: {count: number; integrationName: string}) => ({
+                    one: `1 report failed to export to ${integrationName}.`,
+                    other: `${count} reports failed to export to ${integrationName}.`,
+                }),
+                title: 'Failed exports',
+                description: ({integrationName}: {integrationName: string}) =>
+                    `These reports failed to export to ${integrationName} before its latest successful sync. Choose the reports to export again.`,
+                lookbackLabel: 'Failed in the last',
+                reportDetails: ({date, errorMessage}: {date: string; errorMessage?: string}) => (errorMessage ? `Failed ${date} · ${errorMessage}` : `Failed ${date}`),
+                exportReports: ({count}: {count: number}) => ({
+                    one: 'Export 1 report',
+                    other: `Export ${count} reports`,
+                }),
+                emptyState: 'No reports failed to export in this period.',
+            },
             qboConnectionExpired: ({date}: {date: string}) => `Your QuickBooks Online connection expired on ${date}.`,
             netSuiteOAuthMigrationRequired: 'Upgrade your NetSuite connection to OAuth 2.0 by February 2027.',
             netSuiteOAuthMigrationRequiredUrgent: 'Your NetSuite connection requires immediate upgrade to OAuth 2.0.',

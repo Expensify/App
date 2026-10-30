@@ -1028,6 +1028,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 defaultSubtitle: 'Area di lavoro',
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > Carte aziendali`,
             },
+            retryFailedExports: {
+                title: ({count, integrationName}: {count: number; integrationName: string}) => ({
+                    one: `Re-export 1 failed report to ${integrationName}`,
+                    other: `Re-export ${count} failed reports to ${integrationName}`,
+                }),
+                subtitle: ({policyName}: {policyName: string}) => policyName,
+            },
             fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Correggi connessione ${integrationName}`,
                 defaultSubtitle: 'Area di lavoro',
@@ -1501,6 +1508,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanMultipleReceipts: 'Scansiona più ricevute',
         scanMultipleReceiptsDescription: 'Scatta foto di tutte le tue ricevute in una volta sola, poi conferma i dettagli tu oppure lascia che ce ne occupiamo noi.',
         receiptScanInProgress: 'Scansione della ricevuta in corso',
+        failedExportToRetry: ({integrationName}: {integrationName: string}) => `This report failed to export to ${integrationName}. You can export it again now.`,
         receiptScanInProgressDescription: 'Scansione della ricevuta in corso. Riprova più tardi o inserisci ora i dettagli.',
         removeFromReport: 'Rimuovi dal report',
         moveToPersonalSpace: 'Sposta le spese nel tuo spazio personale',
@@ -8129,6 +8137,22 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 '<muted-text-label>La Riconciliazione continua è configurata per ogni flusso di carte. Seleziona un flusso per cambiare quello che stai configurando.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `La tua connessione a QuickBooks Online scade il ${date}.`,
+            failedExportsToRetry: {
+                message: ({count, integrationName}: {count: number; integrationName: string}) => ({
+                    one: `1 report failed to export to ${integrationName}.`,
+                    other: `${count} reports failed to export to ${integrationName}.`,
+                }),
+                title: 'Failed exports',
+                description: ({integrationName}: {integrationName: string}) =>
+                    `These reports failed to export to ${integrationName} before its latest successful sync. Choose the reports to export again.`,
+                lookbackLabel: 'Failed in the last',
+                reportDetails: ({date, errorMessage}: {date: string; errorMessage?: string}) => (errorMessage ? `Failed ${date} · ${errorMessage}` : `Failed ${date}`),
+                exportReports: ({count}: {count: number}) => ({
+                    one: 'Export 1 report',
+                    other: `Export ${count} reports`,
+                }),
+                emptyState: 'No reports failed to export in this period.',
+            },
             qboConnectionExpired: ({date}: {date: string}) => `La tua connessione a QuickBooks Online è scaduta il ${date}.`,
             netSuiteOAuthMigrationRequired: 'Aggiorna la tua connessione NetSuite a OAuth 2.0 entro febbraio 2027.',
             netSuiteOAuthMigrationRequiredUrgent: 'La tua connessione NetSuite richiede un aggiornamento immediato a OAuth 2.0.',

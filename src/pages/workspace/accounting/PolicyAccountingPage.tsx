@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
+import useFailedExportsToRetry from '@hooks/useFailedExportsToRetry';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +49,7 @@ import type {MenuItemData, PolicyAccountingPageProps} from './types';
 
 import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import ExactOnlineWaitlistRow from './ExactOnlineWaitlistRow';
+import FailedExportsRetryRow from './FailedExportsRetryRow';
 import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationOption} from './netsuite/utils';
 import useConnectedAccountingIntegration from './useConnectedAccountingIntegration';
 
@@ -89,6 +91,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         canWriteAccounting,
         showReadOnlyModal,
         overflowMenu,
+        hasAuthError,
+        credentialsActionText,
+        openCredentialsFlow,
         connectionDetails,
         qboTokenExpiryHint,
         oldDotPolicyConnectionsURL,
@@ -99,6 +104,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         ...(name === CONST.POLICY.CONNECTIONS.NAME.QBO ? [{name, isIntuitEnterpriseSuite: true}] : []),
     ]);
     const shouldShowSynchronizationError = !!synchronizationError;
+    const {integrationName: failedExportsIntegrationName, reports: failedExportsToRetry, hasFailedExportsToRetry} = useFailedExportsToRetry(policy);
+    const shouldShowFailedExportsRetryRow = !!policyID && !!connectionDetails && !!failedExportsIntegrationName && hasFailedExportsToRetry && canWriteAccounting;
 
     // `startIntegrationFlow` changes identity whenever `policy` does, which re-runs this effect. The
     // Navigation.setParams below clears newConnectionName through a navigation state update that lands in a later
@@ -213,15 +220,27 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             rightComponent = <ActivityIndicator style={[styles.popoverMenuIcon]} />;
         } else if (canWriteAccounting) {
             rightComponent = (
-                <ThreeDotsMenu
-                    shouldSelfPosition
-                    menuItems={overflowMenu}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.THREE_DOT_MENU}
-                />
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                    {hasAuthError && (
+                        <ButtonDisabledWhenOffline
+                            size={CONST.BUTTON_SIZE.SMALL}
+                            variant={CONST.BUTTON_VARIANT.DANGER}
+                            onPress={openCredentialsFlow}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.RECONNECT_BUTTON}
+                        >
+                            <Button.Text>{credentialsActionText}</Button.Text>
+                        </ButtonDisabledWhenOffline>
+                    )}
+                    <ThreeDotsMenu
+                        shouldSelfPosition
+                        menuItems={overflowMenu}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.THREE_DOT_MENU}
+                    />
+                </View>
             );
         }
 
@@ -377,18 +396,27 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                             childrenStyles={styles.pt5}
                         >
                             {!hasUnsupportedNDIntegration &&
-                                connectionsMenuItems.map((menuItem) => (
-                                    <OfflineWithFeedback
-                                        pendingAction={menuItem.pendingAction}
-                                        key={menuItem.title}
-                                        shouldDisableStrikeThrough
-                                    >
-                                        <MenuItem
-                                            brickRoadIndicator={menuItem.brickRoadIndicator}
-                                            key={menuItem.title}
-                                            {...menuItem}
-                                        />
-                                    </OfflineWithFeedback>
+                                connectionsMenuItems.map((menuItem, index) => (
+                                    <React.Fragment key={menuItem.title}>
+                                        <OfflineWithFeedback
+                                            pendingAction={menuItem.pendingAction}
+                                            shouldDisableStrikeThrough
+                                        >
+                                            <MenuItem
+                                                brickRoadIndicator={menuItem.brickRoadIndicator}
+                                                key={menuItem.title}
+                                                {...menuItem}
+                                            />
+                                        </OfflineWithFeedback>
+                                        {index === 0 && shouldShowFailedExportsRetryRow && (
+                                            <FailedExportsRetryRow
+                                                policyID={policyID}
+                                                count={failedExportsToRetry.length}
+                                                integrationName={failedExportsIntegrationName}
+                                                style={styles.pv3}
+                                            />
+                                        )}
+                                    </React.Fragment>
                                 ))}
                             {hasUnsupportedNDIntegration && hasSyncError && !!policyID && (
                                 <FormHelpMessage

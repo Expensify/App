@@ -994,6 +994,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 subtitle: ({policyName}: {policyName: string}) => `${policyName} > 公司卡片`,
             },
             fixPersonalCardConnection: {title: ({cardName}: {cardName?: string}) => (cardName ? `修复 ${cardName} 个人卡连接` : '修复个人银行卡连接'), subtitle: '钱包'},
+            retryFailedExports: {
+                title: ({count, integrationName}: {count: number; integrationName: string}) => ({
+                    one: `Re-export 1 failed report to ${integrationName}`,
+                    other: `Re-export ${count} failed reports to ${integrationName}`,
+                }),
+                subtitle: ({policyName}: {policyName: string}) => policyName,
+            },
             fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `修复 ${integrationName} 连接`,
                 defaultSubtitle: '工作区',
@@ -1449,6 +1456,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanMultipleReceipts: '扫描多张收据',
         scanMultipleReceiptsDescription: '一次性拍下所有收据的照片，然后自行确认详情，或由我们替你完成。',
         receiptScanInProgress: '收据扫描进行中',
+        failedExportToRetry: ({integrationName}: {integrationName: string}) => `This report failed to export to ${integrationName}. You can export it again now.`,
         receiptScanInProgressDescription: '收据扫描中。请稍后再查看，或立即输入详细信息。',
         removeFromReport: '从报表中移除',
         moveToPersonalSpace: '将报销移至你的个人空间',
@@ -7840,6 +7848,22 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             continuousReconciliationFeedSelection: '<muted-text-label>按卡片流水单独配置持续对账。选择一个流水以更改您正在配置的流水。</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `您的 QuickBooks Online 连接将于 ${date} 过期。`,
+            failedExportsToRetry: {
+                message: ({count, integrationName}: {count: number; integrationName: string}) => ({
+                    one: `1 report failed to export to ${integrationName}.`,
+                    other: `${count} reports failed to export to ${integrationName}.`,
+                }),
+                title: 'Failed exports',
+                description: ({integrationName}: {integrationName: string}) =>
+                    `These reports failed to export to ${integrationName} before its latest successful sync. Choose the reports to export again.`,
+                lookbackLabel: 'Failed in the last',
+                reportDetails: ({date, errorMessage}: {date: string; errorMessage?: string}) => (errorMessage ? `Failed ${date} · ${errorMessage}` : `Failed ${date}`),
+                exportReports: ({count}: {count: number}) => ({
+                    one: 'Export 1 report',
+                    other: `Export ${count} reports`,
+                }),
+                emptyState: 'No reports failed to export in this period.',
+            },
             qboConnectionExpired: ({date}: {date: string}) => `您与 QuickBooks Online 的连接已于 ${date} 过期。`,
             netSuiteOAuthMigrationRequired: '请在 2027 年 2 月前将您的 NetSuite 连接升级到 OAuth 2.0。',
             netSuiteOAuthMigrationRequiredUrgent: '您的 NetSuite 连接需要立即升级到 OAuth 2.0。',

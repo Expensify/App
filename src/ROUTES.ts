@@ -4782,6 +4782,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/claim-offer/:integration',
         getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/accounting/claim-offer/${integration}` as const,
     },
+    POLICY_ACCOUNTING_RETRY_FAILED_EXPORTS: {
+        route: 'workspaces/:policyID/accounting/retry-failed-exports',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/retry-failed-exports` as const,
+    },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
         getRoute: (policyID: string | undefined) => {

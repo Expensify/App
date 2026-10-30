@@ -1034,6 +1034,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Διόρθωση σύνδεσης προσωπικής κάρτας ${cardName}` : 'Διορθώστε τη σύνδεση προσωπικής κάρτας'),
                 subtitle: 'Πορτοφόλι',
             },
+            retryFailedExports: {
+                title: ({count, integrationName}: {count: number; integrationName: string}) => ({
+                    one: `Re-export 1 failed report to ${integrationName}`,
+                    other: `Re-export ${count} failed reports to ${integrationName}`,
+                }),
+                subtitle: ({policyName}: {policyName: string}) => policyName,
+            },
             fixPolicyConnection: {
                 title: ({integrationName}: {integrationName: string}) => `Επιδιόρθωση σύνδεσης ${integrationName}`,
                 defaultSubtitle: 'Χώρος εργασίας',
@@ -1548,6 +1555,7 @@ const translations: TranslationDeepObject<typeof en> = {
         scanMultipleReceipts: 'Σαρώστε πολλές αποδείξεις',
         scanMultipleReceiptsDescription: 'Βγάλτε φωτογραφία όλες τις αποδείξεις σας ταυτόχρονα και μετά επιβεβαιώστε οι ίδιοι τα στοιχεία ή αφήστε μας να το κάνουμε για εσάς.',
         receiptScanInProgress: 'Σάρωση απόδειξης σε εξέλιξη',
+        failedExportToRetry: ({integrationName}: {integrationName: string}) => `This report failed to export to ${integrationName}. You can export it again now.`,
         receiptScanInProgressDescription: 'Σάρωση απόδειξης σε εξέλιξη. Επιστρέψτε αργότερα ή εισαγάγετε τώρα τα στοιχεία.',
         removeFromReport: 'Αφαίρεση από αναφορά',
         moveToPersonalSpace: 'Μεταφέρετε τα έξοδα στον προσωπικό σας χώρο',
@@ -8294,6 +8302,22 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 '<muted-text-label>Η συνεχής συμφωνία είναι ρυθμισμένη ανά ροή καρτών. Επιλέξτε μια ροή για να αλλάξετε ποια ρυθμίζετε.</muted-text-label>',
             businessCentral: 'Dynamics 365 Business Central',
             qboConnectionExpiring: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online λήγει στις ${date}.`,
+            failedExportsToRetry: {
+                message: ({count, integrationName}: {count: number; integrationName: string}) => ({
+                    one: `1 report failed to export to ${integrationName}.`,
+                    other: `${count} reports failed to export to ${integrationName}.`,
+                }),
+                title: 'Failed exports',
+                description: ({integrationName}: {integrationName: string}) =>
+                    `These reports failed to export to ${integrationName} before its latest successful sync. Choose the reports to export again.`,
+                lookbackLabel: 'Failed in the last',
+                reportDetails: ({date, errorMessage}: {date: string; errorMessage?: string}) => (errorMessage ? `Failed ${date} · ${errorMessage}` : `Failed ${date}`),
+                exportReports: ({count}: {count: number}) => ({
+                    one: 'Export 1 report',
+                    other: `Export ${count} reports`,
+                }),
+                emptyState: 'No reports failed to export in this period.',
+            },
             qboConnectionExpired: ({date}: {date: string}) => `Η σύνδεσή σας με το QuickBooks Online έληξε στις ${date}.`,
             netSuiteOAuthMigrationRequired: 'Αναβαθμίστε τη σύνδεσή σας με το NetSuite σε OAuth 2.0 έως τον Φεβρουάριο 2027.',
             netSuiteOAuthMigrationRequiredUrgent: 'Η σύνδεσή σας με το NetSuite απαιτεί άμεση αναβάθμιση σε OAuth 2.0.',
