@@ -16997,3 +16997,64 @@ describe('getMatchingFilters', () => {
         expect(matchingFilters).toEqual([]);
     });
 });
+
+describe('getSelectedGroupFilterEntry', () => {
+    it.each([
+        [CONST.SEARCH.GROUP_BY.DAY, {day: '2026-09-11'}, {start: '2026-09-11', end: '2026-09-11'}],
+        [CONST.SEARCH.GROUP_BY.WEEK, {week: '2026-09-07'}, {start: '2026-09-07', end: '2026-09-13'}],
+        [CONST.SEARCH.GROUP_BY.MONTH, {year: 2026, month: 2}, {start: '2026-02-01', end: '2026-02-28'}],
+        [CONST.SEARCH.GROUP_BY.QUARTER, {year: 2026, quarter: 3}, {start: '2026-07-01', end: '2026-09-30'}],
+        [CONST.SEARCH.GROUP_BY.YEAR, {year: 2026}, {start: '2026-01-01', end: '2026-12-31'}],
+    ])('scopes a %s group by the whole date range it covers', (groupBy, group, dateRange) => {
+        // Given a time-based group as it arrives in the search snapshot
+
+        // When the filter that scopes an export to that group is built
+        const entry = SearchUIUtils.getSelectedGroupFilterEntry(groupBy, group);
+
+        // Then it is the group's inclusive date range, because the search syntax has no exact-match filter for a period
+        expect(entry).toEqual({dateRange});
+    });
+
+    it('returns no filter for a time-based group that is missing its date fields', () => {
+        // Given a month group without its month
+        const group = {year: 2026};
+
+        // When the filter that scopes an export to that group is built
+        const entry = SearchUIUtils.getSelectedGroupFilterEntry(CONST.SEARCH.GROUP_BY.MONTH, group);
+
+        // Then there is none, so the export shows an error instead of scoping to a guessed range
+        expect(entry).toBeUndefined();
+    });
+});
+
+describe('getActiveGroupSearchHashes', () => {
+    it('returns the drill-down search of a day group, scoped to that day', () => {
+        // Given a search grouped by day with one day in the snapshot
+        const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${CONST.SEARCH.GROUP_BY.DAY}`);
+        const data: OnyxTypes.SearchResults['data'] = {
+            personalDetailsList: {},
+            [`${CONST.SEARCH.GROUP_PREFIX}2026-09-11` as const]: {day: '2026-09-11', count: 1, currency: 'USD', total: 100},
+        };
+
+        // When the searches backing the visible groups are collected
+        const hashes = SearchUIUtils.getActiveGroupSearchHashes(data, queryJSON);
+
+        // Then the group's search is the ungrouped expense search limited to that day, the one opening the group runs
+        expect(hashes).toEqual([buildSearchQueryJSON('type:expense date>=2026-09-11 date<=2026-09-11')?.hash]);
+    });
+
+    it('returns the drill-down search of a month group, scoped to the whole month', () => {
+        // Given a search grouped by month with one month in the snapshot
+        const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${CONST.SEARCH.GROUP_BY.MONTH}`);
+        const data: OnyxTypes.SearchResults['data'] = {
+            personalDetailsList: {},
+            [`${CONST.SEARCH.GROUP_PREFIX}2026_9` as const]: {year: 2026, month: 9, count: 1, currency: 'USD', total: 100},
+        };
+
+        // When the searches backing the visible groups are collected
+        const hashes = SearchUIUtils.getActiveGroupSearchHashes(data, queryJSON);
+
+        // Then the group's search is the ungrouped expense search limited to September, the one opening the group runs
+        expect(hashes).toEqual([buildSearchQueryJSON('type:expense date>=2026-09-01 date<=2026-09-30')?.hash]);
+    });
+});

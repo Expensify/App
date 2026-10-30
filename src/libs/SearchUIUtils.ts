@@ -3175,7 +3175,39 @@ function getReportSections({
     return [reportIDToTransactionsValues, reportIDToTransactionsValues.length, hasDeletedTransaction];
 }
 
-function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: QueryFilterKey; value: string | number} | undefined {
+/** The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields. */
+function getGroupDateRange(groupBy: string, groupData: unknown): {start: string; end: string} | undefined {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.DAY: {
+            const day = typeof groupData === 'object' && groupData && 'day' in groupData ? groupData.day : undefined;
+            return typeof day === 'string' && day ? {start: day, end: day} : undefined;
+        }
+        case CONST.SEARCH.GROUP_BY.MONTH: {
+            const monthGroup = groupData as SearchMonthGroup;
+            return monthGroup.year && monthGroup.month ? DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month) : undefined;
+        }
+        case CONST.SEARCH.GROUP_BY.WEEK: {
+            const weekGroup = groupData as SearchWeekGroup;
+            return weekGroup.week ? DateUtils.getWeekDateRange(weekGroup.week) : undefined;
+        }
+        case CONST.SEARCH.GROUP_BY.YEAR: {
+            const yearGroup = groupData as SearchYearGroup;
+            return typeof yearGroup.year === 'number' ? DateUtils.getYearDateRange(yearGroup.year) : undefined;
+        }
+        case CONST.SEARCH.GROUP_BY.QUARTER: {
+            const quarterGroup = groupData as SearchQuarterGroup;
+            return typeof quarterGroup.year === 'number' && typeof quarterGroup.quarter === 'number' ? DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter) : undefined;
+        }
+        default:
+            return undefined;
+    }
+}
+
+/**
+ * The filter that scopes a query to one selected group. Time-based groups return a date range instead of a value,
+ * because the search syntax has no exact-match filter for a day, week, month, quarter, or year.
+ */
+function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: QueryFilterKey; value: string | number} | {dateRange: {start: string; end: string}} | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
@@ -3194,6 +3226,14 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
         case CONST.SEARCH.GROUP_BY.TAG: {
             const tag = (groupData as SearchTagGroup).tag;
             return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
+        }
+        case CONST.SEARCH.GROUP_BY.DAY:
+        case CONST.SEARCH.GROUP_BY.WEEK:
+        case CONST.SEARCH.GROUP_BY.MONTH:
+        case CONST.SEARCH.GROUP_BY.QUARTER:
+        case CONST.SEARCH.GROUP_BY.YEAR: {
+            const dateRange = getGroupDateRange(groupBy, groupData);
+            return dateRange ? {dateRange} : undefined;
         }
         default:
             return undefined;
@@ -3285,37 +3325,14 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
                 }
                 break;
             }
-            case CONST.SEARCH.GROUP_BY.DAY: {
-                if ('day' in group && typeof group.day === 'string' && group.day) {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, {start: group.day, end: group.day}).transactionsQueryJSON;
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.MONTH: {
-                const monthGroup = group as SearchMonthGroup;
-                if (monthGroup.year && monthGroup.month) {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month))?.transactionsQueryJSON;
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.WEEK: {
-                const weekGroup = group as SearchWeekGroup;
-                if (weekGroup.week) {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getWeekDateRange(weekGroup.week))?.transactionsQueryJSON;
-                }
-                break;
-            }
-            case CONST.SEARCH.GROUP_BY.YEAR: {
-                const yearGroup = group as SearchYearGroup;
-                if (typeof yearGroup.year === 'number') {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getYearDateRange(yearGroup.year))?.transactionsQueryJSON;
-                }
-                break;
-            }
+            case CONST.SEARCH.GROUP_BY.DAY:
+            case CONST.SEARCH.GROUP_BY.MONTH:
+            case CONST.SEARCH.GROUP_BY.WEEK:
+            case CONST.SEARCH.GROUP_BY.YEAR:
             case CONST.SEARCH.GROUP_BY.QUARTER: {
-                const quarterGroup = group as SearchQuarterGroup;
-                if (typeof quarterGroup.year === 'number' && typeof quarterGroup.quarter === 'number') {
-                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON;
+                const dateRange = getGroupDateRange(queryJSON.groupBy, group);
+                if (dateRange) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, dateRange).transactionsQueryJSON;
                 }
                 break;
             }
