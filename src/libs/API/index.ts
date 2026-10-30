@@ -8,6 +8,8 @@ import {
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
+import processHeadRequest from '@libs/processHeadRequest';
+import type {HeadRequest} from '@libs/processHeadRequest';
 
 import {getOngoingRequest, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 
@@ -163,6 +165,11 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand, T
     return processRequest(request, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS);
 }
 
+/** Image probes need an HTTP status and bounded authentication replay, without JSON API processing. */
+function makeHeadRequest(imageURL: string, requestOptions: Pick<HeadRequest, 'signal'> = {}): Promise<number | undefined> {
+    return processHeadRequest({imageURL, signal: requestOptions.signal});
+}
+
 /**
  * Ensure all write requests on the sequential queue have finished responding before running a command.
  * Responses from requests can overwrite the optimistic data inserted by write requests that use the same Onyx keys and haven't responded yet.
@@ -253,6 +260,7 @@ export {
     createTransitionBarrier,
     armTransitionBarrier,
     makeRequestWithSideEffects,
+    makeHeadRequest,
     read,
     paginate,
     writeWithNoDuplicatesConflictAction,

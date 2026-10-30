@@ -42,6 +42,8 @@ function sanitizeLogParams<T>(params: T, depth = 0): T {
     for (const [key, value] of Object.entries(params)) {
         if (SENSITIVE_KEYS.has(key)) {
             sanitized[key] = REDACTED;
+        } else if (key === 'imageURL' && typeof value === 'string') {
+            sanitized[key] = sanitizeUrlForLogging(value);
         } else if (value != null && typeof value === 'object') {
             sanitized[key] = sanitizeLogParams(value, depth + 1);
         } else {

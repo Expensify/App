@@ -1,6 +1,17 @@
 import sanitizeLogParams, {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 
 describe('sanitizeLogParams', () => {
+    it('redacts query credentials on image probe requests', () => {
+        // Given an image URL carrying legacy encrypted credentials
+        const request = {imageURL: 'https://www.expensify.com/receipts/image.jpg?encryptedAuthToken=secret'};
+
+        // When request logging sanitizes the image URL
+        const result = sanitizeLogParams(request);
+
+        // Then the endpoint remains identifiable without exposing the query credential
+        expect(result.imageURL).toBe('https://www.expensify.com/receipts/image.jpg?<redacted>');
+    });
+
     it('redacts wallet authentication and provisioning material from API logs', () => {
         // Given signed wallet request fields and encrypted provisioning fields can pass through the API logger.
         const params = {
