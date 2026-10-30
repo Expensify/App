@@ -14754,6 +14754,7 @@ function generateReportAttributes({
     cardList,
     currentUserLogin,
     currentUserAccountID,
+    isOffline,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -14763,6 +14764,7 @@ function generateReportAttributes({
     allTransactions: OnyxCollection<Transaction>;
     currentUserLogin: string;
     currentUserAccountID: number;
+    isOffline: boolean;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
     actionTargetReportActionID?: string;
     reports?: OnyxCollection<Report>;
@@ -14784,7 +14786,7 @@ function generateReportAttributes({
         reports,
     );
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
-    const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
+    const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList, isOffline);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;
     const {reason, actionBadge, reportAction} =
         getReasonAndReportActionThatRequiresAttention({
