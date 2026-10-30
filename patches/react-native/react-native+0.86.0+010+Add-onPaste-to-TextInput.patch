@@ -136,10 +136,10 @@ index 85e6c69..28fa2be 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index cbda377..4938504 100644
+index cbda377..673cb67 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-@@ -13,6 +13,10 @@
+@@ -13,6 +13,58 @@
  #import <React/RCTBackedTextInputDelegateAdapter.h>
  #import <React/RCTTextAttributes.h>
  
@@ -147,32 +147,68 @@ index cbda377..4938504 100644
 +#import <MobileCoreServices/UTType.h>
 +#import <UIKit/UIKit.h>
 +
++// Writes the first image representation on the pasteboard that can actually be read to a temp file and returns its
++// file URL. Reading a representation can fail (e.g. iOS returns "Operation not authorized" for a HEIC copied a while
++// before pasting), in which case dataForPasteboardType: returns nil and that representation is skipped. If none can be
++// read, the decoded UIImage is encoded instead. Returns nil when there is no readable image at all.
++static NSString *RCTWritePastedImageToTempFile(UIPasteboard *clipboard, NSString **outMIMEType)
++{
++  for (NSItemProvider *itemProvider in clipboard.itemProviders) {
++    if (![itemProvider hasItemConformingToTypeIdentifier:(NSString *)kUTTypeImage]) {
++      continue;
++    }
++    for (NSString *identifier in itemProvider.registeredTypeIdentifiers) {
++      if (!UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
++        continue;
++      }
++      NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
++      NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
++      if (MIMEType == nil || fileExtension == nil) {
++        continue;
++      }
++      NSData *fileData = [clipboard dataForPasteboardType:identifier];
++      if (fileData.length == 0) {
++        continue;
++      }
++      NSString *filePath = RCTTempFilePath(fileExtension, nil);
++      if (filePath != nil && [fileData writeToFile:filePath atomically:YES]) {
++        *outMIMEType = MIMEType;
++        return [[NSURL fileURLWithPath:filePath] absoluteString];
++      }
++    }
++    break;
++  }
++
++  UIImage *image = clipboard.image;
++  if (image == nil) {
++    return nil;
++  }
++  CGImageAlphaInfo alphaInfo = CGImageGetAlphaInfo(image.CGImage);
++  BOOL hasAlpha = alphaInfo == kCGImageAlphaFirst || alphaInfo == kCGImageAlphaLast ||
++      alphaInfo == kCGImageAlphaPremultipliedFirst || alphaInfo == kCGImageAlphaPremultipliedLast;
++  NSData *imageData = hasAlpha ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, 0.9);
++  NSString *filePath = RCTTempFilePath(hasAlpha ? @"png" : @"jpg", nil);
++  if (imageData.length == 0 || filePath == nil || ![imageData writeToFile:filePath atomically:YES]) {
++    return nil;
++  }
++  *outMIMEType = hasAlpha ? @"image/png" : @"image/jpeg";
++  return [[NSURL fileURLWithPath:filePath] absoluteString];
++}
++
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -217,7 +221,31 @@ - (void)scrollRangeToVisible:(NSRange)range
+@@ -217,7 +269,19 @@ static UIColor *defaultPlaceholderColor(void)
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
 -  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +  if (clipboard.hasImages) {
-+    for (NSItemProvider *itemProvider in clipboard.itemProviders) {
-+      if ([itemProvider hasItemConformingToTypeIdentifier:(NSString *)kUTTypeImage]) {
-+        for (NSString *identifier in itemProvider.registeredTypeIdentifiers) {
-+          if (UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
-+            NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
-+            NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
-+            NSString *filePath = RCTTempFilePath(fileExtension, nil);
-+            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
-+            NSData *fileData = [clipboard dataForPasteboardType:identifier];
-+            [fileData writeToFile:filePath atomically:YES];
-+            [_textInputDelegateAdapter didPaste:MIMEType withData:[fileURL absoluteString]];
-+            break;
-+          }
-+        }
-+        break;
-+      }
++    NSString *MIMEType = nil;
++    NSString *fileURL = RCTWritePastedImageToTempFile(clipboard, &MIMEType);
++    if (fileURL != nil) {
++      [_textInputDelegateAdapter didPaste:MIMEType withData:fileURL];
 +    }
 +  } else {
 +    if (clipboard.hasStrings && clipboard.string != nil) {
@@ -183,7 +219,7 @@ index cbda377..4938504 100644
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -309,6 +337,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -309,6 +373,10 @@ static UIColor *defaultPlaceholderColor(void)
      return NO;
    }
  
@@ -311,10 +347,10 @@ index 5d3a675..a92904d 100644
  RCT_EXPORT_SHADOW_PROPERTY(text, NSString)
  RCT_EXPORT_SHADOW_PROPERTY(placeholder, NSString)
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 052c003..6ec7e21 100644
+index 052c003..d3e4669 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-@@ -12,6 +12,10 @@
+@@ -12,6 +12,58 @@
  #import <React/RCTUtils.h>
  #import <React/UIView+React.h>
  
@@ -322,10 +358,58 @@ index 052c003..6ec7e21 100644
 +#import <MobileCoreServices/UTType.h>
 +#import <UIKit/UIKit.h>
 +
++// Writes the first image representation on the pasteboard that can actually be read to a temp file and returns its
++// file URL. Reading a representation can fail (e.g. iOS returns "Operation not authorized" for a HEIC copied a while
++// before pasting), in which case dataForPasteboardType: returns nil and that representation is skipped. If none can be
++// read, the decoded UIImage is encoded instead. Returns nil when there is no readable image at all.
++static NSString *RCTWritePastedImageToTempFile(UIPasteboard *clipboard, NSString **outMIMEType)
++{
++  for (NSItemProvider *itemProvider in clipboard.itemProviders) {
++    if (![itemProvider hasItemConformingToTypeIdentifier:(NSString *)kUTTypeImage]) {
++      continue;
++    }
++    for (NSString *identifier in itemProvider.registeredTypeIdentifiers) {
++      if (!UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
++        continue;
++      }
++      NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
++      NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
++      if (MIMEType == nil || fileExtension == nil) {
++        continue;
++      }
++      NSData *fileData = [clipboard dataForPasteboardType:identifier];
++      if (fileData.length == 0) {
++        continue;
++      }
++      NSString *filePath = RCTTempFilePath(fileExtension, nil);
++      if (filePath != nil && [fileData writeToFile:filePath atomically:YES]) {
++        *outMIMEType = MIMEType;
++        return [[NSURL fileURLWithPath:filePath] absoluteString];
++      }
++    }
++    break;
++  }
++
++  UIImage *image = clipboard.image;
++  if (image == nil) {
++    return nil;
++  }
++  CGImageAlphaInfo alphaInfo = CGImageGetAlphaInfo(image.CGImage);
++  BOOL hasAlpha = alphaInfo == kCGImageAlphaFirst || alphaInfo == kCGImageAlphaLast ||
++      alphaInfo == kCGImageAlphaPremultipliedFirst || alphaInfo == kCGImageAlphaPremultipliedLast;
++  NSData *imageData = hasAlpha ? UIImagePNGRepresentation(image) : UIImageJPEGRepresentation(image, 0.9);
++  NSString *filePath = RCTTempFilePath(hasAlpha ? @"png" : @"jpg", nil);
++  if (imageData.length == 0 || filePath == nil || ![imageData writeToFile:filePath atomically:YES]) {
++    return nil;
++  }
++  *outMIMEType = hasAlpha ? @"image/png" : @"image/jpeg";
++  return [[NSURL fileURLWithPath:filePath] absoluteString];
++}
++
  @implementation RCTUITextField {
    RCTBackedTextFieldDelegateAdapter *_textInputDelegateAdapter;
    NSDictionary<NSAttributedStringKey, id> *_defaultTextAttributes;
-@@ -180,6 +184,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
+@@ -180,6 +232,10 @@
      return NO;
    }
  
@@ -336,29 +420,17 @@ index 052c003..6ec7e21 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -263,7 +271,31 @@ - (void)scrollRangeToVisible:(NSRange)range
+@@ -263,7 +319,19 @@
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
 -  [super paste:sender];
 +  UIPasteboard *clipboard = [UIPasteboard generalPasteboard];
 +  if (clipboard.hasImages) {
-+    for (NSItemProvider *itemProvider in clipboard.itemProviders) {
-+      if ([itemProvider hasItemConformingToTypeIdentifier:(NSString *)kUTTypeImage]) {
-+        for (NSString *identifier in itemProvider.registeredTypeIdentifiers) {
-+          if (UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
-+            NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
-+            NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
-+            NSString *filePath = RCTTempFilePath(fileExtension, nil);
-+            NSURL *fileURL = [NSURL fileURLWithPath:filePath];
-+            NSData *fileData = [clipboard dataForPasteboardType:identifier];
-+            [fileData writeToFile:filePath atomically:YES];
-+            [_textInputDelegateAdapter didPaste:MIMEType withData:[fileURL absoluteString]];
-+            break;
-+          }
-+        }
-+        break;
-+      }
++    NSString *MIMEType = nil;
++    NSString *fileURL = RCTWritePastedImageToTempFile(clipboard, &MIMEType);
++    if (fileURL != nil) {
++      [_textInputDelegateAdapter didPaste:MIMEType withData:fileURL];
 +    }
 +  } else {
 +    if (clipboard.hasStrings && clipboard.string != nil) {
