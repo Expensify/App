@@ -495,6 +495,45 @@ describe('actions/Delegate', () => {
             expect((await getOnyxValue(ONYXKEYS.CREDENTIALS))?.accountID).toBe(2);
         });
     });
+
+    describe('connect navigation reset', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('starts navigation over from Home when copiloting into an agent', async () => {
+            // Given an owner whose agent is known as a custom agent, since agents can't open most Settings screens
+            const agentEmail = 'agent_3@expensify.ai';
+            const agentAccountID = 3;
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[agentAccountID]: {accountID: agentAccountID, login: agentEmail, isCustomAgent: true}});
+            jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
+                jsonCode: CONST.JSON_CODE.SUCCESS,
+                restrictedToken: 'agentRestrictedToken',
+                encryptedAuthToken: 'encrypted',
+                accountID: agentAccountID,
+                email: agentEmail,
+            });
+            jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockResolvedValue(undefined);
+
+            // When the owner copilots into the agent
+            await connect({
+                email: agentEmail,
+                delegatedAccess: undefined,
+                credentials: {},
+                session: {accountID: 1, email: 'owner@test.com'},
+                activePolicyID: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the app starts again from Home rather than the Settings tab
+            expect(resetRootSpy).toHaveBeenCalledTimes(1);
+            const resetState = resetRootSpy.mock.calls.at(0)?.at(0);
+            const tabNavigatorState = resetState?.routes.at(resetState.index ?? -1)?.state;
+            expect(tabNavigatorState?.routes.at(tabNavigatorState.index ?? -1)?.name).toBe(SCREENS.HOME);
+        });
+    });
     /* eslint-enable rulesdir/no-multiple-api-calls */
 
     describe('clearOnyxForDelegateTransition', () => {

@@ -11,6 +11,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {getPersonalDetailByLogin} from '@libs/PersonalDetailsStore';
 import Pusher from '@libs/Pusher';
 import {requestPusherReinitialize} from '@libs/requestPusherReinitialize';
 
@@ -18,6 +19,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
@@ -71,10 +73,10 @@ function clearOnyxForDelegateTransition(extraSeeds?: OnyxMultiSetInput): Promise
 
 /**
  * Navigation state belongs to the account it was built for, so drop it on a delegate-access transition like we do on sign-out.
- * The fresh navigation state lands on the Settings tab, where accounts are usually switched.
+ * By default the fresh navigation state lands on the Settings tab, where accounts are usually switched.
  */
-function resetNavigationForDelegateTransition() {
-    Navigation.resetForSessionChange(ROUTES.SETTINGS);
+function resetNavigationForDelegateTransition(route: Route = ROUTES.SETTINGS) {
+    Navigation.resetForSessionChange(route);
 }
 
 type LoadAccountAfterDelegateTransitionParams = {
@@ -274,6 +276,9 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID}:
             const restrictedToken = response.restrictedToken;
             const policyID = activePolicyID;
 
+            // Agents can't open most Settings screens, so copiloting into one starts over from Home instead
+            const routeAfterSwitch = getPersonalDetailByLogin(email)?.isCustomAgent ? ROUTES.HOME : ROUTES.SETTINGS;
+
             return SequentialQueue.waitForIdle()
                 .then(() => {
                     // Update authToken in Onyx so it persists if the further flow does not complete for any reason.
@@ -281,7 +286,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID}:
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
-                    resetNavigationForDelegateTransition();
+                    resetNavigationForDelegateTransition(routeAfterSwitch);
                     Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })

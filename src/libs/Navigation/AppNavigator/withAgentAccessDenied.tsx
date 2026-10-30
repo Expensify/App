@@ -27,7 +27,9 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 const shouldShowNotFoundPage = !isSwitchingToDelegator && isAgent === true;
 
                 const redirectAgentAway = useCallback(() => {
-                    if (isAgent !== true) {
+                    // While copiloting into an agent, the session flips to the agent before the switch resets navigation.
+                    // Redirecting then would race that reset, so the reset alone decides where the agent lands.
+                    if (isAgent !== true || isSwitchingToDelegator) {
                         return;
                     }
 
@@ -76,7 +78,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
 
                         redirectToProfile();
                     });
-                }, [isAgent]);
+                }, [isAgent, isSwitchingToDelegator]);
 
                 // Redirect on every focus (not just the initial transition from false to true) so navigating back
                 // onto a guarded screen that the split navigator keeps mounted (e.g. a stale agents route
