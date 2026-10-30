@@ -24,8 +24,14 @@ const translations: TranslationDeepObject<typeof en> = {
     billPay: {
         bill: 'Factura por pagar',
         bills: 'Facturas por pagar',
+        createBill: 'Crear factura por pagar',
+        vendorEmail: 'Correo del proveedor',
+        attachPDF: 'Adjuntar PDF',
         markAsPaid: 'Marcar como pagada',
         paymentFailed: 'No pudimos pagar esta factura. Inténtalo de nuevo.',
+        createFailed: 'No pudimos crear esta factura. Inténtalo de nuevo.',
+        primaryContactHint: (domain) =>
+            `El contacto principal es el punto de contacto de ${domain} y recibirá las facturas enviadas a la dirección de pago de facturas del dominio ${domain}@expensify.cash.`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({
