@@ -24,12 +24,6 @@ jest.mock('@components/ProductTrainingContext', () => ({
     }),
 }));
 
-// Jest resolves the iOS files and its native module mock reports liquid glass as available, so pin the solid button that web, Android and older iOS draw.
-jest.mock('expo-glass-effect', () => ({
-    ...jest.requireActual<Record<string, unknown>>('expo-glass-effect'),
-    isLiquidGlassAvailable: () => false,
-}));
-
 // useResponsiveLayout determines LHB visibility. Mock a wide layout to keep behaviour deterministic.
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);

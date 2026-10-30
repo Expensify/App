@@ -12,7 +12,7 @@ import type FloatingButtonGlassProps from './types';
 
 /**
  * iOS 26 draws liquid glass, so the floating buttons over the native tab bar are made of the same material as the bar.
- * Fixes a crash on iOS 26 builds that ship without the glass effect API: those keep the solid buttons.
+ * Some iOS 26 builds ship without the glass effect API and crash on GlassView, so those keep the solid buttons.
  */
 const isFloatingButtonGlassAvailable = isLiquidGlassAvailable() && isGlassEffectAPIAvailable();
 
@@ -33,7 +33,7 @@ function FloatingButtonGlass({tintColor, tintOpacity = variables.floatingButtonG
             style={[StyleSheet.absoluteFill, styles.floatingButtonGlass]}
             glassEffectStyle="regular"
             tintColor={glassTintColor}
-            // Fixes light glass over the dark app theme (and the other way around): the glass follows the app theme, not the system appearance.
+            // Follow the app theme, not the system appearance, so the glass matches the UI when the two differ.
             colorScheme={theme.colorScheme}
             isInteractive
         />
