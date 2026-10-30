@@ -4057,6 +4057,182 @@ describe('actions/Duplicate', () => {
             // Then the expense-added growl is not signaled
             expect(signalExpenseAddedGrowl).not.toHaveBeenCalled();
         });
+
+        it('should add every bulk-duplicated expense to the open expense report passed as targetReport', async () => {
+            // Given an open expense report on a workspace, while the workspace chat points at a different, newer report
+            const sourceChatReport: Report = {
+                ...createRandomReport(42, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: mockPolicy.id,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                iouReportID: 'newest-report',
+                hasOutstandingChildRequest: false,
+            };
+            const sourceExpenseReport: Report = {
+                ...createRandomReport(43, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: mockPolicy.id,
+                chatReportID: sourceChatReport.reportID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: 'USD',
+                errorFields: undefined,
+                pendingFields: undefined,
+            };
+            const tx1: Transaction = {...createRandomTransaction(1), transactionID: 'bulk_source_1', reportID: sourceExpenseReport.reportID, amount: -500, currency: 'USD'};
+            const tx2: Transaction = {...createRandomTransaction(2), transactionID: 'bulk_source_2', reportID: sourceExpenseReport.reportID, amount: -300, currency: 'USD'};
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_source_1`]: tx1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_source_2`]: tx2,
+            };
+
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+            await waitForBatchedUpdates();
+
+            // When both expenses are bulk duplicated with that expense report as the target
+            bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transactionIDs: ['bulk_source_1', 'bulk_source_2'],
+                allTransactions,
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: sourceExpenseReport,
+                policyTagList: {},
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then every copy is requested on the source expense report, not on the report the workspace chat points at
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            expect(requestMoneyCalls).toHaveLength(2);
+            for (const call of requestMoneyCalls) {
+                expect(call[1].iouReportID).toBe(sourceExpenseReport.reportID);
+            }
+        });
+
+        it('should keep every copy on an open expense report target when instant submit would otherwise split them', async () => {
+            // Given a workspace with instant submit, no approvals and payments off, which closes a report as soon as it is auto-submitted,
+            // and an open (for example retracted) expense report on it that already holds a reimbursable expense
+            const instantSubmitPolicy: Policy = {
+                ...mockPolicy,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+            const sourceChatReport: Report = {
+                ...createRandomReport(52, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyID: instantSubmitPolicy.id,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                iouReportID: 'newest-report',
+                hasOutstandingChildRequest: false,
+            };
+            const sourceExpenseReport: Report = {
+                ...createRandomReport(53, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: instantSubmitPolicy.id,
+                chatReportID: sourceChatReport.reportID,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: 'USD',
+                total: -800,
+                nonReimbursableTotal: 0,
+                errorFields: undefined,
+                pendingFields: undefined,
+            };
+            const tx1: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'instant_source_1',
+                reportID: sourceExpenseReport.reportID,
+                amount: -500,
+                currency: 'USD',
+                reimbursable: true,
+            };
+            const tx2: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'instant_source_2',
+                reportID: sourceExpenseReport.reportID,
+                amount: -300,
+                currency: 'USD',
+                reimbursable: true,
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}instant_source_1`]: tx1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}instant_source_2`]: tx2,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${instantSubmitPolicy.id}`, instantSubmitPolicy);
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceChatReport.reportID}`, sourceChatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}instant_source_1`, tx1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}instant_source_2`, tx2);
+            await waitForBatchedUpdates();
+
+            // When both expenses are bulk duplicated with that expense report as the target
+            bulkDuplicateExpenses({
+                isVendorMatchingBetaEnabled: false,
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transactionIDs: ['instant_source_1', 'instant_source_2'],
+                allTransactions,
+                sourcePolicyIDMap: {},
+                targetPolicy: instantSubmitPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: sourceExpenseReport,
+                policyTagList: {},
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then both copies land on the source report and only the last one lets the server auto-submit it, so the server
+            // doesn't close the report before the second copy arrives
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            expect(requestMoneyCalls.map((call) => call[1].iouReportID)).toEqual([sourceExpenseReport.reportID, sourceExpenseReport.reportID]);
+            expect(requestMoneyCalls.map((call) => call[1].shouldDeferAutoSubmit)).toEqual([true, false]);
+
+            // And the optimistic total counts both copies instead of being rebuilt from the report as it was before the first copy
+            const updatedSourceReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`);
+            expect(updatedSourceReport?.total).toBe(-1600);
+        });
     });
 
     describe('bulkDuplicateReports', () => {
