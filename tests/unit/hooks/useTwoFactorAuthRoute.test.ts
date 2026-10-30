@@ -35,7 +35,9 @@ describe('useTwoFactorAuthRoute', () => {
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
 
-        expect(result.current.getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true})).toBe(`${ROUTES.SETTINGS_SECURITY}/${DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path}`);
+        expect(result.current.getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY.getRoute(), {forceSetup: true})).toBe(
+            `${ROUTES.SETTINGS_SECURITY.route}/${DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path}`,
+        );
     });
 
     it('should return verify-account route for unvalidated accounts with forceSetup', () => {
@@ -43,6 +45,8 @@ describe('useTwoFactorAuthRoute', () => {
 
         const {result} = renderHook(() => useTwoFactorAuthRoute());
 
-        expect(result.current.getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY, {forceSetup: true})).toBe(`${ROUTES.SETTINGS_SECURITY}/${DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path}`);
+        expect(result.current.getTwoFactorAuthRoute(ROUTES.SETTINGS_SECURITY.getRoute(), {forceSetup: true})).toBe(
+            `${ROUTES.SETTINGS_SECURITY.route}/${DYNAMIC_ROUTES.TWO_FACTOR_AUTH_VERIFY_ACCOUNT.path}`,
+        );
     });
 });

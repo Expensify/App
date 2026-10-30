@@ -41,7 +41,7 @@ function DisabledPage() {
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
-                    onPress={() => quitAndNavigateBack(is2FAEnabled, ROUTES.SETTINGS_SECURITY)}
+                    onPress={() => quitAndNavigateBack(is2FAEnabled, ROUTES.SETTINGS_SECURITY.getRoute())}
                 >
                     <Button.Text>{translate('common.buttonConfirm')}</Button.Text>
                 </Button>

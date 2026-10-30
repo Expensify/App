@@ -79,7 +79,7 @@ function MergeResultPage() {
                     )}
                     <ConfirmationPage.PrimaryButton
                         text={translate('common.buttonConfirm')}
-                        onPress={onButtonPress ?? (() => Navigation.goBack(ROUTES.SETTINGS_SECURITY))}
+                        onPress={onButtonPress ?? (() => Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute()))}
                     />
                 </FixedFooter>
             </ConfirmationPage>

@@ -86,7 +86,7 @@ type TwoFactorAuthNavigatorParamList = {
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_ROOT]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY_ACCOUNT]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_VERIFY]: undefined;
-    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: {policyID?: string};
+    [SCREENS.TWO_FACTOR_AUTH.DYNAMIC_SUCCESS]: {policyID?: string; forceSetup?: string};
     [SCREENS.TWO_FACTOR_AUTH.ENABLED]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: undefined;
     [SCREENS.TWO_FACTOR_AUTH.DISABLE]: undefined;
