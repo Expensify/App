@@ -1,4 +1,5 @@
 import AvatarFromIcon from '@components/Avatar/AvatarFromIcon';
+import AvatarPressSlot from '@components/Avatar/pressable/AvatarPressSlot';
 import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -42,12 +43,14 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, backdropColor, f
                     avatar={primaryAvatar}
                     fallbackDisplayName={fallbackDisplayName}
                 >
-                    <AvatarFromIcon
-                        containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
-                        icon={primaryAvatar}
-                        size={size}
-                        testID="ReportActionAvatars-Subscript-MainAvatar"
-                    />
+                    <AvatarPressSlot avatar={primaryAvatar}>
+                        <AvatarFromIcon
+                            containerStyles={StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(size))}
+                            icon={primaryAvatar}
+                            size={size}
+                            testID="ReportActionAvatars-Subscript-MainAvatar"
+                        />
+                    </AvatarPressSlot>
                 </AvatarTooltip>
             }
             secondary={
@@ -56,12 +59,14 @@ function SubscriptAvatar({primaryAvatar, secondaryAvatar, size, backdropColor, f
                         avatar={secondaryAvatar}
                         style={styles[containerStyleKey]}
                     >
-                        <AvatarFromIcon
-                            iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(backdropColor ?? theme.componentBG)]}
-                            icon={secondaryAvatar}
-                            size={subscriptSize}
-                            testID="ReportActionAvatars-Subscript-SecondaryAvatar"
-                        />
+                        <AvatarPressSlot avatar={secondaryAvatar}>
+                            <AvatarFromIcon
+                                iconAdditionalStyles={[StyleUtils.getAvatarBorderWidth(borderWidthSize), StyleUtils.getBorderColorStyle(backdropColor ?? theme.componentBG)]}
+                                icon={secondaryAvatar}
+                                size={subscriptSize}
+                                testID="ReportActionAvatars-Subscript-SecondaryAvatar"
+                            />
+                        </AvatarPressSlot>
                     </AvatarTooltip>
                 ) : undefined
             }
