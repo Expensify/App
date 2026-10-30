@@ -59,8 +59,8 @@ function renderWidget() {
                 snapshot={undefined}
                 previousPeriodQueryJSON={undefined}
                 previousPeriodSnapshot={undefined}
-                averageQueryJSON={undefined}
-                averageSnapshot={undefined}
+                averageTotal={undefined}
+                isDashboardLoaded={undefined}
                 filters={FILTERS}
                 onRetry={jest.fn()}
             />
@@ -85,7 +85,7 @@ describe('Insights chart CSV action', () => {
         jest.mocked(useInsightsChartData).mockReturnValue({
             data: DATA,
             state: INSIGHTS_CHART_STATE.READY,
-            comparison: {data: DATA.map((item) => ({...item, total: 99999})), label: 'Average', color: '#000000'},
+            comparison: {data: DATA.map((item) => ({...item, total: 99999})), color: '#000000'},
         });
 
         // When the user selects Download CSV

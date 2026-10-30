@@ -9,13 +9,22 @@ import EmptySearchView from '@pages/Search/EmptySearchView';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Beta, Policy} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
+
+// The real button needs a navigator. These tests only care whether the empty state offers it.
+jest.mock('@components/BookTravelButton', () => {
+    const {Text} = jest.requireActual<{Text: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
+    return {
+        __esModule: true,
+        default: ({text}: {text: string}) => <Text>{text}</Text>,
+    };
+});
 
 // Wrapper component with OnyxListItemProvider
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -339,6 +348,56 @@ describe('EmptySearchView', () => {
 
             // And should show the cannot-send subtitle
             expect(screen.getByText(translateLocal('search.searchResults.emptyInvoiceResults.subtitleCannotSend'))).toBeVisible();
+        });
+    });
+    describe('type is Trip', () => {
+        const dataType = CONST.SEARCH.DATA_TYPES.TRIP;
+        const TRAVEL_POLICY_ID = 'travelPolicy';
+
+        const renderTripEmptyState = async (policy: Partial<Policy>, betas: Beta[]) => {
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, SESSION);
+                await Onyx.set(ONYXKEYS.BETAS, betas);
+                await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TRAVEL_POLICY_ID);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TRAVEL_POLICY_ID}`, {...createPolicy(), id: TRAVEL_POLICY_ID, ...policy});
+            });
+            render(
+                <Wrapper>
+                    <EmptySearchView
+                        similarSearchHash={1}
+                        type={dataType}
+                        hasResults={false}
+                    />
+                </Wrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        it('shows Book a trip once the workspace is set up for travel, before the terms are accepted', async () => {
+            // Given a TravelApproval user whose workspace is set up in Spotnana but hasn't accepted the terms yet
+            // When the travel empty state renders
+            await renderTripEmptyState({travelSettings: {spotnanaCompanyID: 'company', hasAcceptedTerms: false}}, [CONST.BETAS.TRAVEL_APPROVAL]);
+
+            // Then Book a trip shows, like the other Book travel entry points, and the button itself handles the terms
+            expect(screen.getByText(translateLocal('search.searchResults.emptyTripResults.buttonText'))).toBeOnTheScreen();
+        });
+
+        it('hides Book a trip when Travel is switched on but the workspace is not set up', async () => {
+            // Given a TravelApproval user whose workspace only has the Travel switch on
+            // When the travel empty state renders
+            await renderTripEmptyState({isTravelEnabled: true}, [CONST.BETAS.TRAVEL_APPROVAL]);
+
+            // Then Book a trip doesn't show, since there's nothing to book through yet
+            expect(screen.queryByText(translateLocal('search.searchResults.emptyTripResults.buttonText'))).not.toBeOnTheScreen();
+        });
+
+        it('keeps showing Book a trip from the Travel switch without the beta', async () => {
+            // Given a user without the TravelApproval beta whose workspace has the Travel switch on
+            // When the travel empty state renders
+            await renderTripEmptyState({isTravelEnabled: true}, []);
+
+            // Then Book a trip shows as before
+            expect(screen.getByText(translateLocal('search.searchResults.emptyTripResults.buttonText'))).toBeOnTheScreen();
         });
     });
 });

@@ -60,6 +60,10 @@ function point(label: string, total: number, percentOfTotal?: number): ChartData
 }
 
 describe('buildChartSeries', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.EN);
+    });
+
     it('turns group totals in cents into plotted values, keeping the search order', () => {
         // Given merchant groups whose totals arrive from the search as cents
         const data = [merchantGroup('Person', 480000, 12), merchantGroup('Target', 190000, 41)];
@@ -298,26 +302,26 @@ describe('buildChartSeries', () => {
     });
 
     it('plots each compared row against the group stored under the same key', () => {
-        // Given three quarters and the average the search returned for each of them, as cents, out of order
+        // Given three quarters and the compared total the search returned for each of them, as cents, out of order
         const data = [quarterGroup(1, 30000), quarterGroup(2, 60000), quarterGroup(3, 0)];
-        const averages = [quarterGroup(3, 30000), quarterGroup(1, 30000), quarterGroup(2, 30000)];
+        const compared = [quarterGroup(3, 30000), quarterGroup(1, 30000), quarterGroup(2, 30000)];
 
-        // When the series is built for a line chart compared against the average
+        // When the series is built for a line chart compared against those rows
         const {series, rows} = buildChartSeries({
             groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
             translate: translateLocal,
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
-            comparison: {data: averages, label: 'Average', color: themeColors.green200},
+            comparison: {data: compared, color: themeColors.green200},
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
             getCurrencyDecimals,
         });
 
-        // Then each point carries its own quarter's average in dollars, and the compared series is named for the tooltip
+        // Then each point carries its own quarter's compared total in dollars, drawn in the compared color
         expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([300, 300, 300]);
-        expect(series).toEqual([{key: CHART_SERIES_KEY.PRIMARY}, {key: CHART_SERIES_KEY.COMPARISON, color: themeColors.green200, label: 'Average'}]);
+        expect(series).toEqual([{key: CHART_SERIES_KEY.PRIMARY}, {key: CHART_SERIES_KEY.COMPARISON, color: themeColors.green200}]);
     });
 
     it('leaves the compared value off a group the compared rows have nothing for', () => {
@@ -331,7 +335,7 @@ describe('buildChartSeries', () => {
             dateFnsLocale: undefined,
             colorScheme: CONST.COLOR_SCHEME.LIGHT,
             data,
-            comparison: {data: [quarterGroup(1, 45000)], label: 'Average', color: themeColors.green200},
+            comparison: {data: [quarterGroup(1, 45000)], color: themeColors.green200},
             view: CONST.SEARCH.VIEW.LINE,
             getLabel,
             getCurrencyDecimals,
@@ -364,13 +368,13 @@ describe('buildChartSeries', () => {
     });
 
     it("shades each compared bar with its own bar's color", () => {
-        // Given this month's top two merchants compared against the average amounts
+        // Given this month's top two merchants compared against last month
         const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
 
         // When the series is built for a bar chart
         const {rows} = buildChartSeries({
             data,
-            comparison: {data: [merchantGroup('Person', 240000), merchantGroup('Target', 90000)], label: 'Average', color: themeColors.green200},
+            comparison: {data: [merchantGroup('Person', 240000), merchantGroup('Target', 90000)], color: themeColors.green200},
             groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
             translate: translateLocal,
             dateFnsLocale: undefined,
@@ -385,6 +389,29 @@ describe('buildChartSeries', () => {
             {[CHART_SERIES_KEY.PRIMARY]: themeColors.yellow400, [CHART_SERIES_KEY.COMPARISON]: themeColors.yellow200},
             {[CHART_SERIES_KEY.PRIMARY]: themeColors.tangerine400, [CHART_SERIES_KEY.COMPARISON]: themeColors.tangerine200},
         ]);
+    });
+
+    it('draws the average of a ranked chart as one line instead of a shaded bar per group', () => {
+        // Given this period's top merchants and the all-merchant average, as cents
+        const data = [merchantGroup('Person', 480000), merchantGroup('Target', 190000)];
+
+        // When the series is built for a bar chart compared against the average
+        const {series, rows} = buildChartSeries({
+            data,
+            comparison: {total: 43000},
+            groupBy: CONST.SEARCH.GROUP_BY.MERCHANT,
+            translate: translateLocal,
+            dateFnsLocale: undefined,
+            colorScheme: CONST.COLOR_SCHEME.LIGHT,
+            view: CONST.SEARCH.VIEW.BAR,
+            getLabel,
+            getCurrencyDecimals,
+        });
+
+        // Then every group carries the average in dollars, and the average series is marked to be drawn as a line, so no group gets a shaded bar for it
+        expect(rows.map((row) => row.point.values[CHART_SERIES_KEY.COMPARISON])).toEqual([430, 430]);
+        expect(series.at(1)).toEqual({key: CHART_SERIES_KEY.COMPARISON, label: 'All-merchant average', isAverage: true});
+        expect(rows.map((row) => row.point.seriesColors)).toEqual([{[CHART_SERIES_KEY.PRIMARY]: themeColors.yellow400}, {[CHART_SERIES_KEY.PRIMARY]: themeColors.tangerine400}]);
     });
 
     it('names each series by the period it covers when comparing periods', () => {

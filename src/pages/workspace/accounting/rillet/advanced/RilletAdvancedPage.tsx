@@ -11,7 +11,7 @@ import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBe
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {
     clearRilletErrorField,
@@ -34,13 +34,16 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
 function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -59,8 +62,8 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const travelBillingSettlementsBankAccount = rilletData?.bankAccounts?.find((bankAccount) => bankAccount.id === rilletConfig?.sync?.travelInvoicingSettlementsBankAccountID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
@@ -103,7 +106,11 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ACCOUNTING_METHOD], rilletConfig?.pendingFields)}>
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT_METHOD.getRoute(policyID)) : undefined))}
+                        onPress={callFunctionIfActionIsAllowed(
+                            () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT_METHOD.getRoute(policyID)) : undefined),
+                            false,
+                            session,
+                        )}
                     >
                         <MenuItemField.Row
                             name={translate('workspace.rillet.accountingMethods.label')}

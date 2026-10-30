@@ -32,7 +32,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT>;
@@ -77,7 +77,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         }
     }, [totalAdmins, shouldShowSuccess]);
 
-    const showUnshareErrorModal = useCallback(() => {
+    const showUnshareErrorModal = () => {
         if (isErrorModalShownRef.current) {
             return;
         }
@@ -107,7 +107,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
             isErrorModalShownRef.current = false;
             clearUnshareBankAccountErrors(Number(bankAccountID));
         });
-    }, [bankAccountID, isFocused, showConfirmModal, closeModal, styles.flexRow, styles.renderHTML, translate]);
+    };
 
     useEffect(() => {
         if (!isExpensifyCardError) {

@@ -1,7 +1,7 @@
 ---
 title: Workspace Workflows
 description: Configure your workspace approval and submission workflows to match your team's needs.
-keywords: [New Expensify, workflows, workflows tabs, submissions, approvals, payments, advanced, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, prevent self-approvals, auto-approve compliant reports, auto-pay approved reports, multiple approval paths, shared approver, forward to different approver]
+keywords: [New Expensify, workflows, workflows tabs, submissions, approvals, payments, advanced, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, prevent self-approvals, prevent marking non-reimbursable reports as paid, auto-approve compliant reports, auto-pay approved reports, multiple approval paths, shared approver, forward to different approver]
 internalScope: Audience is Workspace Admins. Covers configuring approval, submission, reimbursement, and advanced report workflows including choosing an authorized payer; does not cover connecting a bank account.
 description: Configure your workspace submission, approval, and payment workflows to match your team's needs.
 keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer, who can pay a report]
@@ -102,6 +102,7 @@ The **Advanced** tab contains workflow settings that apply to an entire expense 
 Available settings include:
 
 - **Prevent self-approvals** – Prevents workspace members from approving their own expense reports.
+- **Prevent marking non-reimbursable reports as paid** – Prevents admins from marking reports that contain only non-reimbursable expenses as paid.
 - **Auto-approve compliant reports** – Automatically approves eligible expense reports and lets you randomly audit a percentage of the remaining reports.
 - **Auto-pay approved reports** – Automatically pays approved reports under an amount you set. **Payments** must be configured first.
 

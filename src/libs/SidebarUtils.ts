@@ -14,6 +14,7 @@ import type {
     PolicyTagLists,
     ReportActions,
     ReportAttributesDerivedValue,
+    ReportMetadata,
     ReportNameValuePairs,
     Transaction,
     TransactionViolation,
@@ -764,6 +765,9 @@ function getOptionData({
     formatPhoneNumber,
     rules,
     bankAccountList,
+    reportMetadata: reportMetadataParam,
+    hasPendingJoinRequest,
+    lastActionTransaction,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -797,6 +801,15 @@ function getOptionData({
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
     bankAccountList?: OnyxEntry<BankAccountList>;
+
+    /** The report's metadata. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+
+    /** Whether the report has a pending join request. Pass it from a subscription for the same reason as `reportMetadata`. */
+    hasPendingJoinRequest?: boolean;
+
+    /** The transaction of `lastAction`. Pass it from a subscription for the same reason as `reportMetadata`. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -837,7 +850,7 @@ function getOptionData({
         isDeletedParentAction: false,
         isConciergeChat: false,
     };
-    const reportMetadata = getReportMetadata(report?.reportID);
+    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined);
     const participantAccountIDsExcludeCurrentUser = excludeParticipantsForDisplay(participantAccountIDs, report.participants ?? {}, reportMetadata, {shouldExcludeCurrentUser: true});
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
@@ -950,11 +963,12 @@ function getOptionData({
         convertToDisplayStringWithoutCurrency,
         rules,
         bankAccountList,
+        lastActionTransaction,
     });
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
 
-    if (isJoinRequestInAdminRoom(report, currentUserLogin)) {
+    if (isJoinRequestInAdminRoom(report, currentUserLogin, hasPendingJoinRequest)) {
         result.isUnread = true;
     }
 
@@ -984,20 +998,21 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    const reportIcons = getIcons(
+    const reportIcons = getIcons({
         report,
         formatPhoneNumber,
         translate,
         personalDetails,
-        personalDetail?.avatar,
-        personalDetail?.login,
-        personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        defaultIcon: personalDetail?.avatar,
+        defaultName: personalDetail?.login,
+        defaultAccountID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         policy,
         invoiceReceiverPolicy,
         isReportArchived,
-        getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
+        pendingDeleteMemberAccountIDs: getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
         conciergeReportID,
-    );
+        parentReportAction,
+    });
 
     // IOU icon trimming (single vs diagonal) is handled at the component level
     // using useReportPreviewSenderID which has access to transaction attendee data.

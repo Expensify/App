@@ -39,7 +39,7 @@ import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
@@ -128,15 +128,12 @@ function GroupHeader({
     const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {
         selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
     });
-    const transactionPreviewData: TransactionPreviewData = useMemo(
-        () => ({
-            hasParentReport: !!parentReport,
-            hasTransaction: !!oneTransaction,
-            hasParentReportAction: !!parentReportAction,
-            hasTransactionThreadReport: !!oneTransactionThreadReport,
-        }),
-        [parentReport, oneTransaction, parentReportAction, oneTransactionThreadReport],
-    );
+    const transactionPreviewData: TransactionPreviewData = {
+        hasParentReport: !!parentReport,
+        hasTransaction: !!oneTransaction,
+        hasParentReportAction: !!parentReportAction,
+        hasTransactionThreadReport: !!oneTransactionThreadReport,
+    };
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
     const snapshotData = transactionsSnapshot?.data;
@@ -157,18 +154,24 @@ function GroupHeader({
         });
     }
 
+    const subHeaderColumnWidthFlags = getGroupColumnWidthFlags(groupItem.transactions);
     const {
         isAmountColumnWide: isSubHeaderAmountColumnWide,
         isTaxAmountColumnWide: isSubHeaderTaxAmountColumnWide,
         shouldShowYear: shouldSubHeaderShowYear,
+        shouldShowYearSubmitted: shouldSubHeaderShowYearSubmitted,
+        shouldShowYearApproved: shouldSubHeaderShowYearApproved,
+        shouldShowYearPaid: shouldSubHeaderShowYearPaid,
+        shouldShowYearPosted: shouldSubHeaderShowYearPosted,
+        shouldShowYearExported: shouldSubHeaderShowYearExported,
         isActionColumnWide: isSubHeaderActionColumnWide,
-    } = getGroupColumnWidthFlags(groupItem.transactions);
+    } = subHeaderColumnWidthFlags;
 
     // Shared with TransactionGroupListExpanded so the two always agree on the table's width.
     const {minTableWidth: subHeaderMinTableWidth, shouldScrollHorizontally: shouldSubHeaderScrollHorizontally} = getGroupTableScrollLayout(
         subHeaderColumns,
         CONST.SEARCH.DATA_TYPES.EXPENSE,
-        isSubHeaderActionColumnWide,
+        subHeaderColumnWidthFlags,
         windowWidth,
         isLargeScreenWidth,
     );
@@ -340,6 +343,11 @@ function GroupHeader({
                     sortOrder={undefined}
                     sortBy={undefined}
                     shouldShowYear={shouldSubHeaderShowYear}
+                    shouldShowYearSubmitted={shouldSubHeaderShowYearSubmitted}
+                    shouldShowYearApproved={shouldSubHeaderShowYearApproved}
+                    shouldShowYearPaid={shouldSubHeaderShowYearPaid}
+                    shouldShowYearPosted={shouldSubHeaderShowYearPosted}
+                    shouldShowYearExported={shouldSubHeaderShowYearExported}
                     isAmountColumnWide={isSubHeaderAmountColumnWide}
                     isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
                     shouldShowSorting={false}

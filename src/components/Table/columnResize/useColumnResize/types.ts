@@ -1,3 +1,5 @@
+import type {ColumnWidthTarget} from '@components/Table/columnResize/getResizableColumnLayout';
+
 import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import type React from 'react';
@@ -18,8 +20,14 @@ type UseColumnResizeParams = {
     /** The narrowest width a drag may take a column to, for columns tighter than the default drag bound. */
     dragMinWidths?: Record<string, number>;
 
-    /** Layout to save when dragging `columnKey` ends, from the painted widths. `undefined` when no column is resizable. */
-    getStoredTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string) => StoredTableColumnWidths;
+    /**
+     * Layout to save from the painted widths, with `columnKey` marked resized or handed back to content sizing.
+     * `null` when no resized column is left, `undefined` when no column is resizable.
+     */
+    getStoredTableColumnWidths?: (columnWidths: Record<string, number>, columnKey: string, isResized: boolean) => StoredTableColumnWidths | null;
+
+    /** Width `target` sizes the column to, `undefined` when there's nothing to size it to. */
+    getTargetColumnWidth?: (columnKey: string, target: ColumnWidthTarget) => number | undefined;
 
     /** Gap between columns, which handles span. */
     columnGap: number;

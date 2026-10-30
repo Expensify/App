@@ -26,7 +26,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type DynamicStateSelectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_STATE>;
@@ -41,44 +41,33 @@ function DynamicStateSelectionPage({route}: DynamicStateSelectionPageProps) {
     const initialSelectedValue = useInitialSelection(currentState ?? undefined, {resetOnFocus: true});
     const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
 
-    const countryStates = useMemo(
-        () =>
-            Object.keys(COMMON_CONST.STATES).map((state) => {
-                const stateName = translate(`allStates.${state}.stateName` as TranslationPaths);
-                const stateISO = translate(`allStates.${state}.stateISO` as TranslationPaths);
-                return {
-                    value: stateISO,
-                    keyForList: stateISO,
-                    text: stateName,
-                    isSelected: currentState === stateISO,
-                    searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
-                };
-            }),
-
-        [translate, currentState],
-    );
+    const countryStates = Object.keys(COMMON_CONST.STATES).map((state) => {
+        const stateName = translate(`allStates.${state}.stateName` as TranslationPaths);
+        const stateISO = translate(`allStates.${state}.stateISO` as TranslationPaths);
+        return {
+            value: stateISO,
+            keyForList: stateISO,
+            text: stateName,
+            isSelected: currentState === stateISO,
+            searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
+        };
+    });
 
     const orderedCountryStates = moveInitialSelectionToTop(countryStates, initialSelectedValues);
     const searchResults = searchOptions(debouncedSearchValue, debouncedSearchValue ? countryStates : orderedCountryStates);
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
-    const selectCountryState = useCallback(
-        (option: Option) => {
-            Navigation.goBack(appendParam(backPath, 'state', option.value), {compareParams: false});
-        },
-        [backPath],
-    );
+    const selectCountryState = (option: Option) => {
+        Navigation.goBack(appendParam(backPath, 'state', option.value), {compareParams: false});
+    };
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage,
-            // Label can be an empty string
-            label: label || translate('common.state'),
-            value: searchValue,
-            onChangeText: setSearchValue,
-        }),
-        [headerMessage, label, searchValue, setSearchValue, translate],
-    );
+    const textInputOptions = {
+        headerMessage,
+        // Label can be an empty string
+        label: label || translate('common.state'),
+        value: searchValue,
+        onChangeText: setSearchValue,
+    };
 
     return (
         <ScreenWrapper
