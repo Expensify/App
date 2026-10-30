@@ -5,15 +5,10 @@ const defaultMockPaymentContextValue = {
     currentUserLogin: 'test@example.com',
     email: 'test@example.com',
     localCurrencyCode: 'USD',
-    introSelected: undefined,
     isASAPSubmitBetaEnabled: false,
-    isSelfTourViewed: false,
     activePolicyID: undefined,
     activePolicy: undefined,
     defaultWorkspaceName: 'Test Workspace',
-    userBillingGracePeriodEnds: undefined,
-    amountOwed: undefined,
-    ownerBillingGracePeriodEnd: undefined,
     delegateEmail: undefined,
 };
 

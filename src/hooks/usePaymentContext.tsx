@@ -3,10 +3,9 @@ import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {BankAccountList, BillingGraceEndPeriod, IntroSelected, Policy} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {createContext, useContext} from 'react';
 
@@ -23,19 +22,13 @@ type PaymentContextValue = {
     currentUserLogin: string | undefined;
     email: string | undefined;
     localCurrencyCode: string | undefined;
-    introSelected: OnyxEntry<IntroSelected>;
     isASAPSubmitBetaEnabled: boolean;
     isWiseReimbursementsBetaEnabled: boolean;
-    isSelfTourViewed: boolean;
-    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
-    amountOwed: OnyxEntry<number>;
-    ownerBillingGracePeriodEnd: OnyxEntry<number>;
     activePolicyID: string | undefined;
     activePolicy: OnyxEntry<Policy>;
     defaultWorkspaceName: string;
     delegateEmail: string | undefined;
     delegateAccountID: number | undefined;
-    bankAccountList: OnyxEntry<BankAccountList>;
 };
 
 type ReportPaymentContextValue = PaymentContextValue & {
@@ -56,17 +49,11 @@ function usePaymentContextValues(): PaymentContextValue {
     const {translate} = useLocalize();
     const {login: currentUserLogin, accountID: currentUserAccountID, email, displayName, localCurrencyCode} = useCurrentUserPersonalDetails();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const {isBetaEnabled} = usePermissions();
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
     const activePolicy = usePolicy(activePolicyID);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const defaultWorkspaceName = generateDefaultWorkspaceName(email ?? '', displayName, lastWorkspaceNumber, translate);
 
@@ -75,19 +62,13 @@ function usePaymentContextValues(): PaymentContextValue {
         currentUserLogin,
         email,
         localCurrencyCode,
-        introSelected,
         isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
         isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
-        isSelfTourViewed,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
         activePolicyID,
         activePolicy,
         defaultWorkspaceName,
         delegateEmail,
         delegateAccountID,
-        bankAccountList,
     };
 }
 

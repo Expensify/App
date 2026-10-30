@@ -25,7 +25,7 @@ import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -59,13 +59,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         currentUserAccountID,
         email,
         localCurrencyCode,
-        introSelected,
         isASAPSubmitBetaEnabled,
         isWiseReimbursementsBetaEnabled,
-        isSelfTourViewed,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
         activePolicyID,
         activePolicy,
         defaultWorkspaceName,
@@ -134,9 +129,15 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             // Only paying needs these, so read them after the guards rather than re-rendering every row when they change
-            const [conciergeReportID, rules] = await Onyx.multiGet([ONYXKEYS.CONCIERGE_REPORT_ID, ONYXKEYS.COLLECTION.RULE]);
+            const [conciergeReportID, rules, introSelected, onboarding] = await Onyx.multiGet([
+                ONYXKEYS.CONCIERGE_REPORT_ID,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.NVP_ONBOARDING,
+            ]);
             const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
             const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
+            const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
             payInvoice({
                 bankAccountList,
                 isASAPSubmitBetaEnabled,
@@ -176,9 +177,18 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             return;
         }
 
-        const [conciergeReportID, rules] = await Onyx.multiGet([ONYXKEYS.CONCIERGE_REPORT_ID, ONYXKEYS.COLLECTION.RULE]);
+        const [conciergeReportID, rules, introSelected, onboarding, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd] = await Onyx.multiGet([
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+        ]);
         const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
         const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
+        const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
         payMoneyRequest({
             bankAccountList,
             isASAPSubmitBetaEnabled,
