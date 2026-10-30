@@ -70,21 +70,56 @@ describe('getDynamicFieldErrors', () => {
         expect(errors.accountNumber).toBe(`${translateLocal('dynamicForm.error.invalidFormat', {example: '12345678'})}\n${translateLocal('dynamicForm.error.tooShort', {minLength: 8})}`);
     });
 
-    it('rejects characters a legal name cannot contain', () => {
+    it('rejects a comma or semicolon in a legal name, as the profile legal name page does', () => {
         // Given a legal name field and a name with a semicolon
-        const legalName: DynamicFormField = {
-            key: 'legalName',
-            type: 'text',
-            required: true,
-            rule: 'legalName',
-        };
+        const legalName: DynamicFormField = {key: 'legalName', type: 'text', required: true, rule: 'legalName'};
 
         // When the form is validated
         const errors = getDynamicFieldErrors([legalName], {legalName: 'Jane; Doe'}, translateLocal);
 
-        // Then the name is rejected
+        // Then the name is rejected with the profile page's message
         expect(errors).toEqual({
-            legalName: translateLocal('privatePersonalDetails.error.hasInvalidCharacter'),
+            legalName: translateLocal('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon'),
+        });
+    });
+
+    it('accepts a legal name written in a non-Latin script, as the profile legal name page does', () => {
+        // Given a legal name field and a name in Cyrillic
+        const legalName: DynamicFormField = {key: 'legalName', type: 'text', required: true, rule: 'legalName'};
+
+        // When the form is validated
+        // cspell:disable-next-line
+        const errors = getDynamicFieldErrors([legalName], {legalName: 'Євгеній'}, translateLocal);
+
+        // Then the name is accepted, so the same name works here and on the profile
+        expect(errors).toEqual({});
+    });
+
+    it('caps a legal name at the length the profile legal name allows', () => {
+        // Given a legal name field and a name one character over the profile legal name's limit
+        const legalName: DynamicFormField = {key: 'legalName', type: 'text', required: true, rule: 'legalName'};
+        const name = 'A'.repeat(CONST.LEGAL_NAME.MAX_LENGTH + 1);
+
+        // When the form is validated
+        const errors = getDynamicFieldErrors([legalName], {legalName: name}, translateLocal);
+
+        // Then the name is rejected with the character count, as on the profile legal name page
+        expect(errors).toEqual({
+            legalName: translateLocal('common.error.characterLimitExceedCounter', name.length, CONST.LEGAL_NAME.MAX_LENGTH),
+        });
+    });
+
+    it('rejects a legal name containing a reserved word, as the profile legal name page does', () => {
+        // Given a legal name field and a name that uses a reserved name
+        const legalName: DynamicFormField = {key: 'legalName', type: 'text', required: true, rule: 'legalName'};
+        const name = `Jane ${CONST.DISPLAY_NAME.RESERVED_NAMES.at(0)}`;
+
+        // When the form is validated
+        const errors = getDynamicFieldErrors([legalName], {legalName: name}, translateLocal);
+
+        // Then the name is rejected, since it could pass for an Expensify account
+        expect(errors).toEqual({
+            legalName: translateLocal('personalDetails.error.containsReservedWord'),
         });
     });
 
@@ -391,8 +426,8 @@ describe('getDynamicFieldErrors', () => {
         const emptyErrors = getDynamicFieldErrors([directors], {directors: []}, translateLocal);
         const shortErrors = getDynamicFieldErrors([directors], {directors: [{id: 'jane', firstName: ''}]}, translateLocal);
 
-        // Then the empty list is required, and the short list shows both the size and the entry's first problem, its missing name, under the item noun since the entry has no name to show
-        const missingNameError = translateLocal('dynamicForm.error.itemError', {item: 'director', error: translateLocal('common.error.fieldRequired')});
+        // Then the empty list is required, and the short list shows both the size and the entry's first problem, naming the field and the entry by its numbered noun since the entry has no name to show
+        const missingNameError = translateLocal('dynamicForm.error.itemError', {item: 'Director 1', field: 'firstName', error: translateLocal('common.error.fieldRequired')});
         expect(emptyErrors).toEqual({directors: translateLocal('common.error.fieldRequired')});
         expect(shortErrors).toEqual({directors: `${translateLocal('dynamicForm.error.tooFewItems', {min: 2})}\n${missingNameError}`});
     });
@@ -414,8 +449,8 @@ describe('getDynamicFieldErrors', () => {
         const keptErrors = getDynamicFieldErrors([directors], {...draftValues, [getListItemSensitiveKey('directors', 'jane', 'ssn')]: '123456789'}, translateLocal);
         const lostErrors = getDynamicFieldErrors([directors], draftValues, translateLocal);
 
-        // Then the list passes while the SSN is kept, and asks for it once it is lost, naming Jane so the user knows which entry to open, so a director is never submitted without one
+        // Then the list passes while the SSN is kept, and asks for it once it is lost, naming Jane and the SSN so the user knows what to fix, so a director is never submitted without one
         expect(keptErrors).toEqual({});
-        expect(lostErrors).toEqual({directors: translateLocal('dynamicForm.error.itemError', {item: 'Jane', error: translateLocal('common.error.fieldRequired')})});
+        expect(lostErrors).toEqual({directors: translateLocal('dynamicForm.error.itemError', {item: 'Jane', field: 'ssn', error: translateLocal('common.error.fieldRequired')})});
     });
 });

@@ -2,6 +2,9 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
+import type DragAndDropConsumerProps from '@components/DragAndDrop/Consumer/types';
+import DropZoneUI from '@components/DropZone/DropZoneUI';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -32,8 +35,7 @@ import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import type createMock from '../../utils/createMock';
-
+import createMock from '../../utils/createMock';
 import createMockScreenNavigation from '../../utils/createMockScreenNavigation';
 import {setupGlobalFetchMock, signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -110,6 +112,74 @@ function ConfirmationBoundary({
     );
 }
 
+type ValidationCallback = Parameters<typeof useFilesValidation>[0];
+type ValidationResult = ReturnType<typeof useFilesValidation>;
+const validators = new Map<ValidationCallback, ValidationResult['validateFiles']>();
+let selectedReceiptCallback: ValidationCallback | undefined;
+
+type ConfirmationDropConsumerProps = {
+    children: React.ReactElement;
+    onDrop: NonNullable<DragAndDropConsumerProps['onDrop']>;
+};
+
+// The renderer exposes untyped props; narrow the actual component's child and callback contract.
+function isConfirmationDropConsumerProps(value: unknown): value is ConfirmationDropConsumerProps {
+    return typeof value === 'object' && value !== null && 'children' in value && React.isValidElement(value.children) && 'onDrop' in value && typeof value.onDrop === 'function';
+}
+
+// Attribute the callback through the real confirmation drop consumer and its validator.
+// Compiler-generated function names and unrelated receipt-picker registrations are irrelevant.
+function getConfirmationReceiptCallback(): ValidationCallback {
+    if (selectedReceiptCallback) {
+        return selectedReceiptCallback;
+    }
+    const consumers = screen.UNSAFE_getAllByType(DragAndDropConsumer);
+    expect(consumers).toHaveLength(1);
+    const consumer = consumers.at(0);
+    if (!consumer) {
+        throw new Error('Expected the actual confirmation drop consumer');
+    }
+    const consumerProps: unknown = consumer.props;
+    if (!isConfirmationDropConsumerProps(consumerProps)) {
+        throw new Error('Expected the actual confirmation drop-zone child and handler');
+    }
+    expect(consumerProps.children.type).toBe(DropZoneUI);
+    const {onDrop} = consumerProps;
+    const probe = new File(['receipt attribution'], 'receipt-attribution.text', {type: 'text/plain'});
+    const item = createMock<DataTransferItem>({kind: 'file', type: 'text/plain'});
+    const items = [item];
+    const event = createMock<DragEvent>({
+        dataTransfer: {
+            files: Object.assign(createMock<FileList>({length: 1}), [probe]),
+            items: Object.assign(createMock<DataTransferItemList>({length: 1}), items),
+        },
+    });
+    // Exercise only the consumer-to-validator boundary. Do not deliver the probe to the receipt callback.
+    const url = jest.spyOn(URL, 'createObjectURL').mockReturnValue('blob:attribution');
+    try {
+        act(() => {
+            onDrop(event);
+        });
+        expect(url.mock.calls).toEqual([[probe]]);
+        expect(setMoneyRequestReceipt).not.toHaveBeenCalled();
+    } finally {
+        url.mockRestore();
+    }
+    // Other mounted receipt pickers register validators, but the confirmation consumer must select exactly one.
+    const called = [...validators.entries()].filter(([, validate]) => jest.mocked(validate).mock.calls.length > 0);
+    expect(called).toHaveLength(1);
+    const selected = called.at(0);
+    if (!selected) {
+        throw new Error('Actual confirmation consumer must select one validator');
+    }
+    const [callback, validate] = selected;
+    expect(jest.mocked(validate).mock.calls).toEqual([[[probe], items]]);
+    expect(jest.mocked(validate).mock.calls.at(0)?.[0].at(0)).toBe(probe);
+    expect(jest.mocked(validate).mock.calls.at(0)?.[1]?.at(0)).toBe(item);
+    selectedReceiptCallback = callback;
+    return callback;
+}
+
 describe('real wrapped confirmation boundaries', () => {
     setupGlobalFetchMock();
     beforeAll(() => {
@@ -117,9 +187,15 @@ describe('real wrapped confirmation boundaries', () => {
     });
     beforeEach(async () => {
         jest.clearAllMocks();
-        jest.mocked(useFilesValidation).mockReturnValue({
-            validateFiles: jest.fn<ReturnType<ReturnType<typeof useFilesValidation>['validateFiles']>, Parameters<ReturnType<typeof useFilesValidation>['validateFiles']>>(),
-            PDFValidationComponent: undefined,
+        validators.clear();
+        selectedReceiptCallback = undefined;
+        jest.mocked(useFilesValidation).mockImplementation((callback) => {
+            let validateFiles = validators.get(callback);
+            if (!validateFiles) {
+                validateFiles = jest.fn<ReturnType<ValidationResult['validateFiles']>, Parameters<ValidationResult['validateFiles']>>();
+                validators.set(callback, validateFiles);
+            }
+            return {validateFiles, PDFValidationComponent: undefined};
         });
         await act(async () => {
             await Onyx.clear();
@@ -153,7 +229,7 @@ describe('real wrapped confirmation boundaries', () => {
         render(<ConfirmationBoundary route={route} />);
         await waitForBatchedUpdatesWithAct();
         await waitFor(() => {
-            expect(jest.mocked(useFilesValidation).mock.calls.some(([callback]) => callback.name === 'setReceiptOnDrop')).toBe(true);
+            expect(getConfirmationReceiptCallback()).toEqual(expect.any(Function));
             expect(screen.queryAllByDisplayValue('Cafe').length + screen.queryAllByText('Cafe').length).toBeGreaterThan(0);
         });
         expect(screen.queryByTestId('NotFoundPage')).toBeNull();
@@ -198,7 +274,7 @@ describe('real wrapped confirmation boundaries', () => {
                 await waitForBatchedUpdatesWithAct();
                 // Then required callback registration and list content prove actual acceptance, beyond a generic Back button.
                 await waitFor(() => {
-                    expect(jest.mocked(useFilesValidation).mock.calls.some(([callback]) => callback.name === 'setReceiptOnDrop')).toBe(true);
+                    expect(getConfirmationReceiptCallback()).toEqual(expect.any(Function));
                     expect(screen.queryAllByDisplayValue('Cafe').length + screen.queryAllByText('Cafe').length).toBeGreaterThan(0);
                 });
                 expect(screen.queryByTestId('NotFoundPage')).toBeNull();
@@ -225,7 +301,7 @@ describe('real wrapped confirmation boundaries', () => {
             await waitForBatchedUpdatesWithAct();
             // Then the real canonical list and callback mount and no IOU rejection is shown.
             await waitFor(() => {
-                expect(jest.mocked(useFilesValidation).mock.calls.some(([callback]) => callback.name === 'setReceiptOnDrop')).toBe(true);
+                expect(getConfirmationReceiptCallback()).toEqual(expect.any(Function));
                 expect(screen.queryAllByDisplayValue('Cafe').length + screen.queryAllByText('Cafe').length).toBeGreaterThan(0);
             });
             expect(screen.queryByTestId('NotFoundPage')).toBeNull();
@@ -259,7 +335,8 @@ describe('real wrapped confirmation boundaries', () => {
                     expect(screen.queryByTestId('IOURequestStepConfirmation')).toBeNull();
                     expect(screen.queryAllByDisplayValue('Cafe')).toHaveLength(0);
                     expect(screen.queryAllByText('Cafe')).toHaveLength(0);
-                    expect(jest.mocked(useFilesValidation).mock.calls.some(([callback]) => callback.name === 'setReceiptOnDrop')).toBe(false);
+                    expect(useFilesValidation).not.toHaveBeenCalled();
+                    expect(screen.UNSAFE_queryAllByType(DragAndDropConsumer)).toHaveLength(0);
                     expect(url).not.toHaveBeenCalled();
                     expect(setMoneyRequestReceipt).not.toHaveBeenCalled();
                     fireEvent.press(screen.getByLabelText('Back'));
@@ -282,13 +359,8 @@ describe('real wrapped confirmation boundaries', () => {
         jest.mocked(useRoute).mockReturnValue(route);
         render(<ConfirmationBoundary route={route} />);
         await waitForBatchedUpdatesWithAct();
-        await waitFor(() => expect(jest.mocked(useFilesValidation).mock.calls.some(([callback]) => callback.name === 'setReceiptOnDrop')).toBe(true));
-        const selected = jest.mocked(useFilesValidation).mock.calls.find(([callback]) => callback.name === 'setReceiptOnDrop');
-        expect(selected).toBeDefined();
-        if (!selected) {
-            throw new Error('Expected the confirmation receipt drop callback');
-        }
-        const [callback] = selected;
+        await waitFor(() => expect(getConfirmationReceiptCallback()).toEqual(expect.any(Function)));
+        const callback = getConfirmationReceiptCallback();
         const first = new File(['first'], 'first.text', {type: 'text/plain'});
         const second = new File(['second'], 'second.text', {type: 'text/plain'});
         const blob = new Blob(['owned bytes'], {type: 'text/plain'});

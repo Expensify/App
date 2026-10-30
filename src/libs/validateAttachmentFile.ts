@@ -3,16 +3,19 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ValueOf} from 'type-fest';
 
+import canConvertDngToJpeg from './fileDownload/canConvertDngToJpeg';
 import {
     appendExtensionFromMimeType,
     cleanFileName,
     hasHeicOrHeifExtension,
+    isLabelledDng,
     isUnknownMimeType,
     isValidReceiptExtension,
     normalizeFileObject,
     splitExtensionFromFileName,
     validateImageForCorruption,
 } from './fileDownload/FileUtils';
+import hasDngFileHeader from './fileDownload/hasDngFileHeader';
 import getMimeTypeFromFileHeader from './getMimeTypeFromFileHeader';
 import snapshotPickedFile from './snapshotPickedFile';
 
@@ -39,6 +42,19 @@ async function validateAttachmentFile(file: FileObject | null, item?: DataTransf
     // Detect folders before receipt-specific extension and size checks so they retain the folder error.
     if (isDataTransferItemDirectory(item)) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED};
+    }
+
+    // The backend can't parse DNG (iPhone ProRAW / Android RAW), so on native it is flagged for conversion to JPEG (like
+    // HEIC below), which covers paths that don't go through the pickers' own conversion, e.g. sharing into the app. Web
+    // can't decode DNG, so it gets the invalid-file-type error there. This runs before the receipt extension check, which
+    // would otherwise reject the DNG before it gets a chance to be converted.
+    if (isLabelledDng(file)) {
+        return {isValid: false, error: canConvertDngToJpeg ? CONST.FILE_VALIDATION_ERRORS.DNG_IMAGE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
+    }
+
+    // Catches a DNG whose name and type don't give it away, e.g. renamed to `.jpg` or picked without an extension.
+    if (await hasDngFileHeader(file)) {
+        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE};
     }
 
     if (isValidatingReceipts && !isValidReceiptExtension(file)) {
