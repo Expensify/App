@@ -8,7 +8,7 @@ import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismis
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
-import {isScanRequest as isScanRequestTransactionUtils} from '@libs/TransactionUtils';
+import {hasAllManuallyEnteredScanFields, isScanRequest as isScanRequestTransactionUtils} from '@libs/TransactionUtils';
 
 import {resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
 
@@ -33,6 +33,13 @@ type UseSplitSubmissionParams = TransactionTaxValues & {
     transaction: OnyxEntry<Transaction>;
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
+
+    /** Whether this surface offers manual entry of the amount / merchant / date. False for test receipts and moved tracked expenses. */
+    canEnterScanFieldsManually: boolean;
+
+    /** Only a workspace chat requires a merchant, so outside of one the amount and date alone count as filled in */
+    isPolicyExpenseChat: boolean;
+
     report: OnyxEntry<Report>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
@@ -57,6 +64,8 @@ function useSplitSubmission({
     transaction,
     transactions,
     receiptFiles,
+    canEnterScanFieldsManually,
+    isPolicyExpenseChat,
     report,
     personalDetails,
     currentUserPersonalDetails,
@@ -112,6 +121,8 @@ function useSplitSubmission({
                 for (const [index, item] of scannedItems.entries()) {
                     const transactionReceiptFile = receiptFiles[item.transactionID];
                     const itemTrimmedComment = item?.comment?.comment?.trim() ?? '';
+                    // The amount, merchant and date are all-or-nothing, so they are only sent once all of them were typed in.
+                    const hasEnteredDetails = canEnterScanFieldsManually && hasAllManuallyEnteredScanFields(item, isPolicyExpenseChat);
 
                     startSplitBill({
                         getCurrencyDecimals,
@@ -127,6 +138,9 @@ function useSplitSubmission({
                         category: item.category,
                         tag: item.tag,
                         currency: item.currency,
+                        amount: hasEnteredDetails ? item.amount : undefined,
+                        merchant: hasEnteredDetails && item.isMerchantSet ? item.merchant : undefined,
+                        created: hasEnteredDetails ? item.created : undefined,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         taxValue: transactionTaxValue,

@@ -291,6 +291,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         transaction,
         transactions,
         receiptFiles,
+        canEnterScanFieldsManually,
+        isPolicyExpenseChat,
         report,
         personalDetails,
         currentUserPersonalDetails,

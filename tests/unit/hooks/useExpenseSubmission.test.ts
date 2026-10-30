@@ -1167,6 +1167,131 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockDismissModalAndOpenReportInInboxTab).not.toHaveBeenCalled();
         });
 
+        it('sends the amount, merchant and date the user typed in with StartSplitBill', async () => {
+            // Given a split scan whose amount, merchant and date were all entered on the confirmation page
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction({
+                amount: 3000,
+                merchant: 'Bakery',
+                created: '2026-09-01',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'file://receipt.jpg'},
+                isAmountSet: true,
+                isMerchantSet: true,
+                isCreatedSet: true,
+            });
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                        canEnterScanFieldsManually: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the split is submitted
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the entered values go out with StartSplitBill itself, so the split is created with them in a single request
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    amount: 3000,
+                    currency: 'USD',
+                    merchant: 'Bakery',
+                    created: '2026-09-01',
+                }),
+            );
+        });
+
+        it('sends the entered amount and date without a merchant in a 1:1 DM, where the merchant is optional', async () => {
+            // Given a split scan outside a workspace chat where only the amount and date were entered
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction({
+                amount: 3000,
+                created: '2026-09-01',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {source: 'file://receipt.jpg'},
+                isAmountSet: true,
+                isCreatedSet: true,
+            });
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                        canEnterScanFieldsManually: true,
+                        isPolicyExpenseChat: false,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the split is submitted
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the confirmation page let it through as complete, so the amount and date are sent and the merchant is left to the server
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    amount: 3000,
+                    merchant: undefined,
+                    created: '2026-09-01',
+                }),
+            );
+        });
+
+        it('leaves the scan split to SmartScan when the user did not type the details in', async () => {
+            // Given a split scan where the manual fields are offered but none of them were filled in
+            mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
+            const splitTransaction = buildTransaction({amount: 0, iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN, receipt: {source: 'file://receipt.jpg'}});
+            const receiptFiles: Record<string, Receipt> = {[TRANSACTION_ID]: {source: 'file://receipt.jpg'}};
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        receiptFiles,
+                        canEnterScanFieldsManually: true,
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the split is submitted
+            await act(async () => {
+                result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: true});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then StartSplitBill goes out without an amount, merchant or date, so SmartScan fills them in as before
+            expect(mockStartSplitBillAction).toHaveBeenCalledTimes(1);
+            expect(mockStartSplitBillAction).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    amount: undefined,
+                    merchant: undefined,
+                    created: undefined,
+                }),
+            );
+        });
+
         it('falls through to the manual split when a leftover receipt matches no transaction being submitted', async () => {
             mockResolveOptimisticSplitChatReportID.mockReturnValue({optimisticSplitChatReportID: 'optimistic-scan-chat', chatReportID: 'optimistic-scan-chat'});
             const splitTransaction = buildTransaction({transactionID: 'transaction-1'});
