@@ -22,6 +22,8 @@ import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTy
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
     billPay: {
+        bill: 'Factura por pagar',
+        bills: 'Facturas por pagar',
         payByACH: 'Pagar por ACH',
         markAsPaid: 'Marcar como pagada',
         paymentFailed: 'No pudimos pagar esta factura. Inténtalo de nuevo.',

@@ -44,6 +44,8 @@ type AllCountries = Record<Country, string>;
 
 const translations = {
     billPay: {
+        bill: 'Bill',
+        bills: 'Bills',
         payByACH: 'Pay by ACH',
         markAsPaid: 'Mark as paid',
         paymentFailed: 'We couldn’t pay this bill. Please try again.',

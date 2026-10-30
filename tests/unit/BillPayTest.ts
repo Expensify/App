@@ -2,11 +2,16 @@ import {canApproveBill, canPayBill, isBillPayReport} from '@libs/BillPayUtils';
 import {translate} from '@libs/Localize';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {canRejectReportAction, getReimbursementQueuedActionMessage} from '@libs/ReportUtils';
+import {buildSearchQueryJSON, isFilterSupported} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches} from '@libs/SearchSuggestionUtils';
+import {getDisplayValue, getSections, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
-import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
+import type {Policy, Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
 
 import createMock from '../utils/createMock';
 
@@ -121,6 +126,45 @@ describe('Bill Pay', () => {
         expect(canRejectReportAction(expenseReport, accountID, policy)).toBe(true);
     });
 
+    it.each([
+        [CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED, CONST.SEARCH.ACTION_TYPES.APPROVE],
+        [CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED, CONST.SEARCH.ACTION_TYPES.PAY],
+    ] as const)('shows the Bills table action for state %s and status %s', (stateNum, statusNum, expectedAction) => {
+        // Given an accessible bill with an approver who can pay after final approval.
+        const vendorAccountID = 456;
+        const report: Report = {...bill, stateNum, statusNum, billSenderAccountID: vendorAccountID, transactionCount: 1};
+        const transaction = createMock<Transaction>({transactionID: '300', reportID: bill.reportID, amount: 125, currency: CONST.CURRENCY.USD});
+        const data = createMock<SearchResults['data']>({
+            personalDetailsList: {
+                [accountID]: {accountID, login: email, displayName: 'Receiver'},
+                [vendorAccountID]: {accountID: vendorAccountID, login: 'billing@vendor.com', displayName: 'Vendor'},
+            },
+        });
+        data[`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`] = report;
+        data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+        data[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+
+        // When Bills builds its report row using the current workflow stage.
+        const [sections] = getSections({
+            type: CONST.SEARCH.DATA_TYPES.BILL,
+            data,
+            currentAccountID: accountID,
+            currentUserEmail: email,
+            queryJSON: buildSearchQueryJSON('type:bill'),
+            translate: <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) => translate(CONST.LOCALES.EN, key, ...parameters),
+            formatPhoneNumber: (phone) => phone,
+            convertToDisplayString: (amount) => String(amount),
+            bankAccountList: {},
+            rules: undefined,
+            conciergeReportID: undefined,
+            dateFnsLocale: undefined,
+            reportAttributesDerivedValue: {},
+        });
+
+        // Then the table offers Approve before approval and Pay only after approval.
+        expect(sections.filter(isTransactionReportGroupListItemType)).toEqual([expect.objectContaining({reportID: bill.reportID, action: expectedAction})]);
+    });
+
     it('only offers payment to the authorized payer, even when another user is an admin', () => {
         const approved = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
         expect(canPayBill(approved, policy, 456, 'admin@example.com')).toBe(false);
@@ -169,5 +213,83 @@ describe('Bill Pay', () => {
         const invoice: Report = {...bill, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 456, managerID: 789, isBillPayReport: true};
         expect(isBillPayReport(invoice, accountID)).toBe(true);
         expect(canPayBill(invoice, undefined, accountID, email)).toBe(true);
+    });
+
+    it('shows Bill as the applied Type filter', () => {
+        const translateEN = <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) => translate(CONST.LOCALES.EN, key, ...parameters);
+
+        expect(getDisplayValue(FILTER_KEYS.TYPE, {type: CONST.SEARCH.DATA_TYPES.BILL}, CONST.SEARCH.DATA_TYPES.BILL, translateEN, (a, b) => a.localeCompare(b))).toBe('Bill');
+    });
+
+    it.each([
+        FILTER_KEYS.MERCHANT,
+        FILTER_KEYS.CATEGORY,
+        FILTER_KEYS.AMOUNT_EQUAL_TO,
+        FILTER_KEYS.AMOUNT_DEBITED_EQUAL_TO,
+        FILTER_KEYS.PAID_STATUS,
+        FILTER_KEYS.ACTION,
+        FILTER_KEYS.PAYER,
+        FILTER_KEYS.TO,
+    ])('supports the %s filter for bills exactly when invoices support it', (filter) => {
+        expect(isFilterSupported(filter, CONST.SEARCH.DATA_TYPES.BILL)).toBe(isFilterSupported(filter, CONST.SEARCH.DATA_TYPES.INVOICE));
+    });
+
+    it.each([FILTER_KEYS.FOOTER_COUNT, FILTER_KEYS.FOOTER_TOTAL, FILTER_KEYS.FOOTER_CURRENCY])('keeps the %s footer setting for bills, unlike invoices', (filter) => {
+        // Spend > Bills shows totals in its footer, so a bill query must keep the footer settings
+        expect(isFilterSupported(filter, CONST.SEARCH.DATA_TYPES.BILL)).toBe(true);
+        expect(isFilterSupported(filter, CONST.SEARCH.DATA_TYPES.INVOICE)).toBe(false);
+    });
+
+    it('builds distinct Bills searches with the approver filter on Approve and the payer filter on Ready to pay', () => {
+        const searches = getSuggestedSearches(accountID);
+        const bills = buildSearchQueryJSON(searches[CONST.SEARCH.SEARCH_KEYS.BILLS].searchQuery);
+        const approval = buildSearchQueryJSON(searches[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE].searchQuery);
+        const payment = buildSearchQueryJSON(searches[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY].searchQuery);
+        expect(bills?.type).toBe(CONST.SEARCH.DATA_TYPES.BILL);
+        expect(approval?.type).toBe(CONST.SEARCH.DATA_TYPES.BILL);
+        expect(payment?.type).toBe(CONST.SEARCH.DATA_TYPES.BILL);
+        expect(searches[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE].searchQuery).toContain(`to:${accountID}`);
+        expect(searches[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY].searchQuery).toContain(`payer:${accountID}`);
+        expect(new Set([bills?.hash, approval?.hash, payment?.hash]).size).toBe(3);
+    });
+
+    it('renders the bill with the vendor and current approver emails and suppresses its invoice', () => {
+        const vendorAccountID = 456;
+        const approverAccountID = 789;
+        const approved: Report = {
+            ...bill,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            billSenderAccountID: vendorAccountID,
+            managerID: approverAccountID,
+        };
+        const data = createMock<SearchResults['data']>({
+            personalDetailsList: {
+                [accountID]: {accountID, login: email, displayName: 'Receiver'},
+                [vendorAccountID]: {accountID: vendorAccountID, login: 'billing@vendor.com', displayName: 'Vendor'},
+                [approverAccountID]: {accountID: approverAccountID, login: 'approver@receiver.com', displayName: 'Approver'},
+            },
+        });
+        data[`${ONYXKEYS.COLLECTION.REPORT}100`] = approved;
+        data[`${ONYXKEYS.COLLECTION.REPORT}200`] = {...approved, reportID: '200', type: CONST.REPORT.TYPE.INVOICE, isHiddenForBillReceiver: true};
+        data[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+        const [sections] = getSections({
+            type: CONST.SEARCH.DATA_TYPES.BILL,
+            data,
+            currentAccountID: accountID,
+            currentUserEmail: email,
+            queryJSON: buildSearchQueryJSON('type:bill'),
+            translate: <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) => translate(CONST.LOCALES.EN, key, ...parameters),
+            formatPhoneNumber: (phone) => phone,
+            convertToDisplayString: (amount) => String(amount),
+            bankAccountList: {},
+            rules: undefined,
+            conciergeReportID: undefined,
+            dateFnsLocale: undefined,
+            reportAttributesDerivedValue: {},
+        });
+        const reports = sections.filter(isTransactionReportGroupListItemType);
+        expect(reports).toHaveLength(1);
+        expect(reports.at(0)).toMatchObject({reportID: '100', formattedFrom: 'billing@vendor.com', formattedTo: 'approver@receiver.com', action: CONST.SEARCH.ACTION_TYPES.PAY});
     });
 });

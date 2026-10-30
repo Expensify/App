@@ -755,6 +755,14 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
     ]),
 };
 
+// Bills are received invoices, so they support the invoice filters. They keep the footer totals that Spend > Bills shows.
+ALLOWED_TYPE_FILTERS[CONST.SEARCH.DATA_TYPES.BILL] = new Set([
+    ...(ALLOWED_TYPE_FILTERS[CONST.SEARCH.DATA_TYPES.INVOICE] ?? []),
+    FILTER_KEYS.FOOTER_COUNT,
+    FILTER_KEYS.FOOTER_TOTAL,
+    FILTER_KEYS.FOOTER_CURRENCY,
+]);
+
 type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS> | ReportFieldKey;
 
 type HasFilterValue = ValueOf<typeof CONST.SEARCH.HAS_VALUES>;

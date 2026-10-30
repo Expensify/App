@@ -8096,6 +8096,7 @@ const CONST = {
         DATA_TYPES: {
             EXPENSE: 'expense',
             EXPENSE_REPORT: 'expense-report',
+            BILL: 'bill',
             INVOICE: 'invoice',
             TASK: 'task',
             TRIP: 'trip',
@@ -9082,6 +9083,9 @@ const CONST = {
         SEARCH_KEYS: {
             EXPENSES: 'expenses',
             REPORTS: 'reports',
+            BILLS: 'bills',
+            BILLS_APPROVE: 'billsApprove',
+            BILLS_PAY: 'billsPay',
             SUBMIT: 'submit',
             APPROVE: 'approve',
             PAY: 'pay',
