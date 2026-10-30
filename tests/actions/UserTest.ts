@@ -1,6 +1,7 @@
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import * as API from '@libs/API';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import DateUtils from '@libs/DateUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
@@ -43,6 +44,85 @@ describe('actions/User', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    describe('updateTheme', () => {
+        it('only stores the theme locally for a passed anonymous session even when the stored session is signed in', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'user@example.com'});
+            await waitForBatchedUpdates();
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write');
+
+            // When the theme is updated for an anonymous session passed by the caller
+            UserActions.updateTheme(CONST.THEME.DARK_CONTRAST, false, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+
+            // Then the passed session decides: the preference is saved locally and not sent to the server
+            expect(apiWriteSpy).not.toHaveBeenCalled();
+            expect(await getOnyxValue(ONYXKEYS.PREFERRED_THEME)).toBe(CONST.THEME.DARK_CONTRAST);
+            apiWriteSpy.mockRestore();
+        });
+
+        it('sends the theme to the server for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session with an accountID stored in Onyx, as during an anonymous-to-signed-in transition
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write');
+
+            // When the theme is updated for a signed-in session passed by the caller
+            UserActions.updateTheme(CONST.THEME.DARK_CONTRAST, false, {accountID: 1, email: 'user@example.com'});
+            await waitForBatchedUpdates();
+
+            // Then the passed session decides: the preference is saved on the server for the signed-in user
+            expect(apiWriteSpy).toHaveBeenCalledTimes(1);
+            apiWriteSpy.mockRestore();
+        });
+    });
+
+    describe('joinExactOnlineWaitlist', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('queues the signup timestamp with a rollback to the absent value', () => {
+            // Given the account has not joined the waitlist
+            const signupTimestamp = '2026-10-14 10:00:00.000';
+            const errorTimestamp = 1;
+            const getDBTime = jest.spyOn(DateUtils, 'getDBTime').mockReturnValue(signupTimestamp);
+            jest.spyOn(DateUtils, 'getMicroseconds').mockReturnValue(errorTimestamp);
+
+            // When the account joins the waitlist
+            UserActions.joinExactOnlineWaitlist();
+
+            // Then the queued request and confirmed signup share one timestamp, with the previous value restored on failure
+            expect(getDBTime).toHaveBeenCalledTimes(1);
+            expect(mockAPI.write).toHaveBeenCalledTimes(1);
+            expect(mockAPI.write).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_NAME_VALUE_PAIR,
+                {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
+                {
+                    optimisticData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNT,
+                            value: {pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, errorFields: {exactOnlineWaitlist: null}},
+                        },
+                    ],
+                    successData: [
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp},
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.ACCOUNT, value: {pendingFields: {exactOnlineWaitlist: null}}},
+                    ],
+                    failureData: [
+                        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: ''},
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.ACCOUNT,
+                            value: {pendingFields: {exactOnlineWaitlist: null}, errorFields: {exactOnlineWaitlist: {[errorTimestamp]: anyString}}},
+                        },
+                    ],
+                },
+            );
+        });
     });
 
     describe('clearContactMethod', () => {

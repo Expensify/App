@@ -11,6 +11,7 @@ import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapte
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
+import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
@@ -22,6 +23,8 @@ import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {DynamicFormContentItem, DynamicFormField, DynamicFormFieldType, DynamicFormHeading, DynamicFormSchemaField} from '@src/types/onyx';
@@ -37,6 +40,7 @@ type CapturedInputProps = {
     forwardedFSClass?: string;
     hint?: string;
     inputMode?: string;
+    maxAutoGrowHeight?: number;
     items?: Array<{value: string; label: string}>;
     optionsList?: Record<string, string>;
     renamedInputKeys?: Record<string, string>;
@@ -71,6 +75,12 @@ jest.mock('@hooks/useLocalize', () =>
 );
 
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
+
+const mockAnnouncement = jest.fn<void, [unknown, boolean, unknown]>();
+jest.mock('@hooks/useAccessibilityAnnouncement', () => ({
+    __esModule: true,
+    default: (message: unknown, shouldAnnounce: boolean, options: unknown) => mockAnnouncement(message, shouldAnnounce, options),
+}));
 
 type TestInstance = ReturnType<typeof screen.UNSAFE_getByProps>;
 
@@ -492,9 +502,9 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([homeAddress]);
 
-        // Then the user sees and can correct every part, each stored under the field key, under a heading screen reader users can jump to
+        // Then the user sees and can correct every part, each stored under the field key, with no extra heading since every part is labeled
         expect([...rendered.keys()]).toEqual(['homeAddress', 'homeAddress.city', 'homeAddress.state', 'homeAddress.zipCode', 'homeAddress.country']);
-        expect(screen.getByRole('heading', {name: 'Home address'})).toBeOnTheScreen();
+        expect(screen.queryByText('Home address')).not.toBeOnTheScreen();
     });
 
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
@@ -519,6 +529,19 @@ describe('DynamicFormFields', () => {
 
         // Then the phone keyboard opens, since the schema names the rule rather than the keyboard
         expect(rendered.get('phone')?.inputMode).toBe(CONST.INPUT_MODE.TEL);
+    });
+
+    it('caps the height a multiline text field grows to, and leaves a single-line one uncapped', () => {
+        // Given a multiline business description next to a single-line name
+        const businessDescription: DynamicFormField = {key: 'businessDescription', type: 'text', required: true, multiline: true};
+        const name: DynamicFormField = {key: 'name', type: 'text', required: true};
+
+        // When they render
+        const rendered = renderFields([businessDescription, name]);
+
+        // Then only the multiline field stops growing at the shared limit, so a long answer scrolls inside its input instead of pushing the page down
+        expect(rendered.get('businessDescription')?.maxAutoGrowHeight).toBe(variables.textInputAutoGrowMaxHeight);
+        expect(rendered.get('name')?.maxAutoGrowHeight).toBeUndefined();
     });
 
     it('asks the screen to refetch the schema only when a refreshing field changes', () => {
@@ -722,6 +745,25 @@ describe('DynamicFormFields', () => {
         expect(consent.get('acceptTerms')?.InputComponent).toBe(CheckboxWithLabel);
     });
 
+    it('asks a boolean as a link with its own wording for each answer when the schema asks for one', () => {
+        // Given an opt-out the user taps, worded differently once tapped so the second tap reads as undoing the first
+        const hasNoSSN: DynamicFormField = {
+            key: 'hasNoSSN',
+            label: "I don't have an SSN",
+            toggledLabel: 'I have an SSN',
+            type: 'boolean',
+            required: false,
+            presentation: 'link',
+        };
+
+        // When it renders
+        const rendered = renderFields([hasNoSSN, otherQuestion]);
+
+        // Then it is a link carrying both wordings, with no label drawn above it, since the link text is the question
+        expect(rendered.get('hasNoSSN')).toMatchObject({InputComponent: ToggleLinkAdapter, label: "I don't have an SSN", toggledLabel: 'I have an SSN'});
+        expect(screen.queryByText("I don't have an SSN")).not.toBeOnTheScreen();
+    });
+
     it('asks for the state only in countries the state picker covers', () => {
         // Given an address in the UK
         const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
@@ -792,5 +834,40 @@ describe('DynamicFormFields', () => {
         // Then the screen fetches the requirements once with the typed answer, and typing alone fetches nothing
         expect(onRefreshRequirements).toHaveBeenCalledWith('bankCode', '0261');
         expect(rendered.get('bankCode')?.onValueChange).toBeUndefined();
+    });
+
+    it('announces that the questions changed when an answer shows new ones', () => {
+        // Given a business number asked only of businesses, on a page answered as a person
+        const content: DynamicFormContentItem[] = [
+            {
+                key: 'type',
+                type: 'select',
+                required: true,
+                values: [
+                    {key: 'PRIVATE', label: 'Person'},
+                    {key: 'BUSINESS', label: 'Business'},
+                ],
+            },
+            {key: 'ein', type: 'text', required: true, showWhen: {key: 'type', equals: ['BUSINESS']}},
+        ];
+        const {rerender} = render(
+            <DynamicFormFields
+                content={content}
+                values={{type: 'PRIVATE'}}
+            />,
+        );
+        const isAnnouncing = () => mockAnnouncement.mock.lastCall?.[1];
+        expect(isAnnouncing()).toBe(false);
+
+        // When the answer changes to a business, which shows the business number
+        rerender(
+            <DynamicFormFields
+                content={content}
+                values={{type: 'BUSINESS'}}
+            />,
+        );
+
+        // Then the change is announced, since a screen reader user can't see a question appear
+        expect(mockAnnouncement.mock.lastCall).toEqual(['dynamicForm.questionsChanged', true, expect.objectContaining({announcementKey: 1})]);
     });
 });

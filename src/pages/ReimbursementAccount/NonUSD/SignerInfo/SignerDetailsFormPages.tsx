@@ -14,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
@@ -60,10 +60,7 @@ function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFini
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const skipPages: string[] = isUserOwner ? [SUB_PAGE_NAMES.NAME, SUB_PAGE_NAMES.DATE_OF_BIRTH, SUB_PAGE_NAMES.ADDRESS] : [];
 
-    const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: pageName, action, backTo}),
-        [policyID, backTo],
-    );
+    const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: pageName, action, backTo});
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage({
         pages,
@@ -73,7 +70,7 @@ function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFini
         skipPages,
     });
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
@@ -91,7 +88,7 @@ function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFini
         } else {
             prevPage();
         }
-    }, [buildRoute, isEditing, onBackToIsDirector, pageIndex, prevPage, skipPages]);
+    };
 
     if (isRedirecting) {
         return <FullScreenLoadingIndicator />;
