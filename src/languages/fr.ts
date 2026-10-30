@@ -509,7 +509,32 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
-        concierge: {greeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
+        concierge: {
+            greeting: 'Bonjour, comment puis-je vous aider ?',
+            showHistory: 'Afficher l’historique',
+            subtitle: 'Votre assistant IA personnel',
+            welcomeDescription: 'Concierge peut répondre à vos questions, mettre à jour vos dépenses et plus encore.',
+            viewChatHistory: 'Afficher l’historique du chat',
+            hideChatHistory: 'Masquer l’historique du chat',
+            askNewQuestion: 'Poser une nouvelle question',
+            newChat: 'Nouveau chat',
+            composerPlaceholders: {
+                spendLastMonth: 'Combien ai-je dépensé le mois dernier ?',
+                topExpenses: 'Montre-moi mes plus grosses dépenses ce mois-ci',
+                spendDrivers: 'Qu’est-ce qui a fait augmenter mes dépenses le trimestre dernier ?',
+                travelSpendChange: 'Comment mes dépenses de voyage ont-elles évolué depuis le mois dernier ?',
+                topSpender: 'Qui a le plus dépensé ce mois-ci ?',
+                missingCategory: 'Quelles dépenses n’ont pas de catégorie ?',
+                awaitingApproval: 'Quels rapports attendent mon approbation ?',
+                notReimbursed: 'Qu’est-ce qui ne m’a pas encore été remboursé ?',
+                unsubmitted: 'Lesquelles de mes dépenses ne sont pas encore soumises ?',
+                leftToPay: 'Que reste-t-il à payer ce mois-ci ?',
+                createExpense: 'Crée une dépense de 30 $ pour un déjeuner',
+                combineExpenses: 'Regroupe toutes mes dépenses ouvertes dans un seul rapport',
+                exportPdf: 'Exporte mon dernier rapport en PDF',
+                exportCsv: 'Donne-moi un CSV de mes dépenses de plus de 50 $',
+            },
+        },
         duplicateReport: 'Note de frais en double',
         approver: 'Approbateur',
         goToConcierge: 'Aller à Concierge',
@@ -1196,6 +1221,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Année' : `Année ${year}`),
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
+            dailyAverage: 'Moyenne quotidienne',
+            weeklyAverage: 'Moyenne hebdomadaire',
+            monthlyAverage: 'Moyenne mensuelle',
+            quarterlyAverage: 'Moyenne trimestrielle',
+            yearlyAverage: 'Moyenne annuelle',
+            allSpenderAverage: 'Moyenne tous dépensiers',
+            allMerchantAverage: 'Moyenne tous marchands',
+            allCategoryAverage: 'Moyenne toutes catégories',
+            averageValue: (amount: string) => `${amount} en moyenne`,
         },
         compliance: 'Conformité',
         runningTotal: 'Total cumulé',
@@ -3255,6 +3289,9 @@ ${amount} pour ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
         collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
         collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
+        businessBankAccountCountries: 'Pays des comptes bancaires professionnels',
+        businessBankAccountCountriesDescription:
+            'Les employés de ces pays fournissent des coordonnées de virement local. Tous les autres fournissent des coordonnées de virement international.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6666,7 +6703,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             selectCards: 'Sélectionner des cartes',
             fromOtherWorkspaces: "D'autres espaces de travail",
             addWorkEmail: 'Ajoutez votre adresse e-mail professionnelle',
-            addWorkEmailDescription: "Veuillez ajouter votre e-mail professionnel pour utiliser les flux existants d'autres espaces de travail.",
+            addWorkEmailDescription:
+                'Ajoutez votre adresse e-mail professionnelle et définissez-la comme méthode de contact principale afin d’utiliser les flux existants d’autres espaces de travail.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de cartes',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7575,6 +7613,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             confirmWorkflows: {
                 continue: 'Continuer sans membres',
                 description: 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
+            },
+            confirmMembers: {
+                title: 'Copier les membres',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Êtes-vous sûr de vouloir remplacer les membres de ${targetWorkspaceName} par les membres de cet espace de travail ?`,
+                    other: `Êtes-vous sûr de vouloir remplacer les membres de ${count} espaces de travail par les membres de cet espace de travail ?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Copie en cours...',
@@ -9272,7 +9317,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     missingData: 'Expensify n’a pas ces informations.',
                     retroactive: 'Les règles ne s’appliquent qu’aux nouvelles activités.',
                     historyLimit: 'Les règles ne peuvent pas remonter aussi loin dans le temps.',
-                    tryThisInstead: 'Essayez plutôt ceci',
+                    useSuggestion: 'Utiliser la suggestion',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Essayez plutôt la suggestion ci-dessous :`,
+                    quotedSuggestion: (suggestedPrompt: string) => `« ${suggestedPrompt} »`,
+                    createAnyway: 'Créer quand même',
                 },
             },
             expenseDefaultsTable: {
@@ -9655,6 +9703,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noOrganizationsFound: 'Aucune organisation trouvée',
             noOrganizationsFoundDescription: 'Veuillez ajouter une organisation dans Zoho Books et synchroniser à nouveau la connexion',
             multiLocationNotSupported: 'Les organisations multi-sites ne sont pas encore prises en charge',
+            importDescription: 'Choisissez quelles configurations de codage importer depuis Zoho Books.',
+            accountTypesDescription: 'Vos comptes Zoho Books seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Zoho Books seront disponibles en tant que catégories.',
+            reportingTagsImport: 'Tous les tags de rapport Zoho Books sont importés en tant que tags',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
@@ -10524,6 +10577,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
+        addedExpensifyCardFeed: (feedName: string) => `a ajouté le flux Carte Expensify « ${feedName} »`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',

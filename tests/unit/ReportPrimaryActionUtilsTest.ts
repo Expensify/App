@@ -3064,3 +3064,73 @@ describe('isExportAction and isPreferredExporter for todos filtering', () => {
         expect(isPreferredExporter(policy, CURRENT_USER_EMAIL)).toBe(true);
     });
 });
+
+describe('isExportAction cash-basis card-only carve-out', () => {
+    const buildCashQBOPolicy = () =>
+        createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {
+                        autoSync: {enabled: false},
+                        accountingMethod: 'CASH',
+                        export: {exporter: CURRENT_USER_EMAIL},
+                    },
+                },
+            },
+        });
+
+    const buildApprovedReport = (overrides: Partial<Report> = {}) =>
+        createMock<Report>({
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: false,
+            ...overrides,
+        });
+
+    beforeEach(() => {
+        jest.mocked(getValidConnectedIntegration).mockReturnValue(CONST.POLICY.CONNECTIONS.NAME.QBO);
+    });
+
+    it('returns true when every expense is non-reimbursable', () => {
+        // Given an approved report on a cash-basis QBO policy where every expense is non-reimbursable, so the report
+        // has nothing to pay and would never reach the paid state that cash-basis exports normally wait for
+        const policy = buildCashQBOPolicy();
+        const report = buildApprovedReport();
+        const reportTransactions = [
+            createMock<Transaction>({transactionID: 't1', reportID: '1', reimbursable: false}),
+            createMock<Transaction>({transactionID: 't2', reportID: '1', reimbursable: false}),
+        ];
+
+        // When checking whether the exporter can export it
+        // Then export is allowed while the report is only approved
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy, [], {reportTransactions})).toBe(true);
+    });
+
+    it('returns false when at least one expense is reimbursable', () => {
+        // Given an approved report on a cash-basis QBO policy with one reimbursable expense that still has to be paid
+        const policy = buildCashQBOPolicy();
+        const report = buildApprovedReport();
+        const reportTransactions = [
+            createMock<Transaction>({transactionID: 't1', reportID: '1', reimbursable: false}),
+            createMock<Transaction>({transactionID: 't2', reportID: '1', reimbursable: true}),
+        ];
+
+        // When checking whether the exporter can export it
+        // Then export is blocked, because cash-basis accounting records the report only once it is paid
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy, [], {reportTransactions})).toBe(false);
+    });
+
+    it('falls back to report totals when transactions have not hydrated yet', () => {
+        // Given an approved card-only report on a cash-basis QBO policy whose transactions have not loaded yet, so
+        // only the report totals show that nothing is reimbursable
+        const policy = buildCashQBOPolicy();
+        const report = buildApprovedReport({total: -500, nonReimbursableTotal: -500, reimbursableTotal: undefined});
+
+        // When checking whether the exporter can export it without any transactions
+        // Then export is still allowed, so the action does not flicker while the transactions load
+        expect(isExportAction(report, CURRENT_USER_EMAIL, policy, [], {})).toBe(true);
+    });
+});
