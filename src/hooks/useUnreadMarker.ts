@@ -124,8 +124,8 @@ function useUnreadMarker({
     let oldestUnreadReportActionMarker: [string, number] | undefined;
     if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
         const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
-        // Another session can have a stale lastReadTime, so the anchor may be the user's own message sent from a
-        // different device. Leave that case to the scan, which never places a fresh marker on a self-authored action.
+        // A stale lastReadTime can make a message sent by the current user on another device the pagination anchor.
+        // Use the scan result instead when the current user authored that action.
         if (visibleIndex >= 0 && !isReportActionFromCurrentUser(sortedVisibleReportActions.at(visibleIndex), currentUserAccountID)) {
             oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }

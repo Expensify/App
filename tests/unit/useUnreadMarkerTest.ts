@@ -116,7 +116,7 @@ describe('useUnreadMarker', () => {
     });
 
     it('does not use the oldestUnread anchor on first open when the current user authored the anchored action', () => {
-        // Given another session whose stale lastReadTime makes the user's own message (sent from a different device) the oldest unread
+        // Given an action from the current user that is newer than the session's lastReadTime
         const selfAction = makeAction('a', {actorAccountID: CURRENT_USER_ACCOUNT_ID});
 
         // When the chat opens before the report actions have loaded
@@ -126,13 +126,14 @@ describe('useUnreadMarker', () => {
             hasOnceLoadedReportActions: false,
         });
 
-        // Then no marker is shown, because the user has already seen their own message
+        // Then no marker is shown because the current user authored the anchor action
         expect(result.current.unreadMarkerReportActionID).toBeNull();
         expect(result.current.unreadMarkerReportActionIndex).toBe(-1);
     });
 
     it('does not use the oldestUnread anchor on first open when the current user is the last actor of the anchored report preview', () => {
-        // Given a report preview anchor whose own actor is someone else but whose latest child action came from the current user
+        // Given a report preview anchor where actorAccountID belongs to another user
+        // and childLastActorAccountID belongs to the current user
         const reportPreviewAction = makeAction('a', {
             actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             actorAccountID: OTHER_USER_ACCOUNT_ID,
