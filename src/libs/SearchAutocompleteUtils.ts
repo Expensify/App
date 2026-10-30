@@ -176,6 +176,8 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyReceiptTypeList = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
 const userFriendlyTransactionStatusList = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
+const travelTypeList = Object.values(CONST.SEARCH.TRAVEL_TYPE) as string[];
+const travelPlatformList = Object.values(CONST.SEARCH.TRAVEL_PLATFORM) as string[];
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const userFriendlyStatusList = Object.values({
@@ -269,6 +271,10 @@ function filterOutRangesWithCorrectValue(
             return receiptTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
             return transactionStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE:
+            return travelTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM:
+            return travelPlatformList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:

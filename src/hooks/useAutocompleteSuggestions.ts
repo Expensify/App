@@ -82,6 +82,8 @@ const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => get
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
 const TRANSACTION_STATUS_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
+const TRAVEL_TYPE_VALUES = Object.values(CONST.SEARCH.TRAVEL_TYPE);
+const TRAVEL_PLATFORM_VALUES = Object.values(CONST.SEARCH.TRAVEL_PLATFORM);
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
 const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
@@ -99,6 +101,19 @@ const DEFAULT_STATUS_VALUES = Object.values({
     ...CONST.SEARCH.STATUS.TRIP,
     ...CONST.SEARCH.STATUS.TASK,
 });
+
+/**
+ * Suggests the values from a fixed list that contain what the user typed and aren't already in the query.
+ * Matching ignores case because the query keeps already-entered values lowercased.
+ */
+function getFixedValueSuggestions(values: readonly string[], filterKey: UserFriendlyKey, autocompleteValue: string, alreadyAutocompletedKeys: Set<string>): AutocompleteItemData[] {
+    const lowerCaseAutocompleteValue = autocompleteValue.toLowerCase();
+
+    return values
+        .filter((value) => value.toLowerCase().includes(lowerCaseAutocompleteValue) && !alreadyAutocompletedKeys.has(value.toLowerCase()))
+        .sort()
+        .map((value) => ({filterKey, text: value}));
+}
 
 /**
  * Computes autocomplete suggestions for the search router.
@@ -448,6 +463,12 @@ function useAutocompleteSuggestions({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
                 text: receiptType,
             }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_TYPE: {
+            return getFixedValueSuggestions(TRAVEL_TYPE_VALUES, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_TYPE, autocompleteValue, alreadyAutocompletedKeys);
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRAVEL_PLATFORM: {
+            return getFixedValueSuggestions(TRAVEL_PLATFORM_VALUES, CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRAVEL_PLATFORM, autocompleteValue, alreadyAutocompletedKeys);
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
             const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(

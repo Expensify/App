@@ -99,6 +99,8 @@ autocompleteKey "key"
       / assignee
       / expenseType
       / receiptType
+      / travelType
+      / travelPlatform
       / transactionStatus
       / withdrawalType
       / withdrawalStatus
