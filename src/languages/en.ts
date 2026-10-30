@@ -9909,6 +9909,7 @@ const translations = {
                 categories: 'Categories',
                 tags: 'Tags',
                 merchants: 'Merchants',
+                multipleConditions: 'Multiple conditions',
                 currencies: 'Currencies',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',

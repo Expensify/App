@@ -5050,6 +5050,7 @@ const CONST = {
             CATEGORIES: 'categories',
             TAGS: 'tags',
             MERCHANTS: 'merchants',
+            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',

@@ -209,10 +209,6 @@ function getMerchantRulesTableData({
                 const categoryNames = categories.map(getDecodedCategoryName).join(', ');
                 const tagNames = tags.map(getCommaSeparatedTagNameWithSanitizedColons).join(', ');
 
-                // Each section lists the rules that one field alone decides. A rule matching on more than one of
-                // them reads as a merchant rule, so it stays with the merchants rather than being listed twice.
-                const isCategoryOnlyRule = categories.length > 0 && merchants.length === 0 && tags.length === 0;
-                const isTagOnlyRule = tags.length > 0 && merchants.length === 0 && categories.length === 0;
                 const hasOnlyMerchantRename = summaryFields.length === 1 && summaryFields.at(0)?.field === FIELD.MERCHANT;
                 const typeLabel = hasOnlyMerchantRename ? translate('workspace.rules.expenseDefaultsTable.rename') : translate('workspace.rules.expenseDefaultsTable.update');
 
@@ -233,7 +229,7 @@ function getMerchantRulesTableData({
                 return {
                     keyForList: ruleID,
                     ruleID,
-                    section: getExpenseDefaultSection(isCategoryOnlyRule, isTagOnlyRule),
+                    section: getExpenseDefaultSection(merchants.length > 0, categories.length > 0, tags.length > 0),
                     isRename: hasOnlyMerchantRename,
                     typeLabel,
                     conditionText: getExpenseDefaultConditionText(rule.filters, translate),
@@ -285,11 +281,21 @@ function getExpenseDefaultConditionText(filters: Rule['filters'], translate: Loc
     return conditions.join(` ${translate('common.and')} `);
 }
 
-function getExpenseDefaultSection(isCategoryOnlyRule: boolean, isTagOnlyRule: boolean): ValueOf<typeof CONST.POLICY.EXPENSE_DEFAULTS_SECTION> {
-    if (isCategoryOnlyRule) {
+/**
+ * The section a rule is listed under, which is the one field it matches on.
+ *
+ * A rule matching on more than one field belongs to no single section, so it goes under its own heading rather
+ * than being repeated in each of them. A rule matching on none of the three is one the summary can't read, and
+ * it keeps the merchants heading it has always had.
+ */
+function getExpenseDefaultSection(hasMerchants: boolean, hasCategories: boolean, hasTags: boolean): ValueOf<typeof CONST.POLICY.EXPENSE_DEFAULTS_SECTION> {
+    if ([hasMerchants, hasCategories, hasTags].filter(Boolean).length > 1) {
+        return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MULTIPLE_CONDITIONS;
+    }
+    if (hasCategories) {
         return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES;
     }
-    if (isTagOnlyRule) {
+    if (hasTags) {
         return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.TAGS;
     }
     return CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS;

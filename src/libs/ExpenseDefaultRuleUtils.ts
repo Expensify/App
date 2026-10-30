@@ -568,7 +568,7 @@ function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined):
  * Every expense default the policy has that matches on the given category, which is what category settings lists.
  *
  * A rule that also matches on a merchant or a tag is included, because it applies to the category just as much.
- * The Rules page still groups that rule with the merchants, so it is listed in one place there.
+ * The Rules page lists that rule under its own multiple conditions heading, so it is listed in one place there.
  *
  * Rules pending delete are kept, so category settings can strike one through while the delete is in flight.
  */
