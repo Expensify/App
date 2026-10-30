@@ -34,6 +34,7 @@ describe('RuleUtils', () => {
 
             // Then only that policy's rule is kept under its original key, passed through by reference so callers still see the full rule
             expect(result).toEqual({rules_1: mine});
+            expect(result.rules_1).toBe(mine);
         });
 
         it('keeps rules pending deletion, leaving that decision to the caller', () => {
