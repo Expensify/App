@@ -9,6 +9,7 @@ on:
       - 'server/**'
       - 'src/**'
       - 'tests/tooling/**'
+      - '.claude/skills/**'
       - 'tests/utils/**'
       - '.github/actions/javascript/**'
       - '.github/libs/**'

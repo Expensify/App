@@ -562,7 +562,7 @@ const config = defineConfig([
     },
 
     {
-        files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*'],
+        files: ['.github/**/*', 'scripts/**/*', 'server/**/*', 'tests/**/*', '.claude/skills/*/scripts/**/*'],
         languageOptions: {
             globals: {
                 ...globals.node,
@@ -801,7 +801,7 @@ const config = defineConfig([
         // `prompts` is not Bun code, but the Bun program is the one that owns it: `scripts`,
         // `evals` and `tests/tooling` are its callers. (The Node program lists it too, for the
         // Proposal Police GitHub Action.)
-        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts', 'prompts/**/*.ts'],
+        files: ['scripts/**/*.ts', 'tests/tooling/**/*.ts', 'server/{libs,plugins,stubs}/**/*.{ts,tsx}', 'evals/**/*.ts', 'prompts/**/*.ts', '.claude/skills/*/scripts/**/*.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tsconfig.bun.json'),
