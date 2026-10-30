@@ -41,6 +41,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {TupleToUnion} from 'type-fest';
+
 import {sessionEmailAndAccountIDSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
@@ -48,7 +50,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 /** Bills only take a PDF of the invoice, which never enters SmartScan */
-const BILL_ATTACHMENT_EXTENSION = 'pdf' satisfies (typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS)[number];
+const BILL_ATTACHMENT_EXTENSION = 'pdf' satisfies TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>;
 
 function CreateBillPage() {
     const {translate} = useLocalize();
