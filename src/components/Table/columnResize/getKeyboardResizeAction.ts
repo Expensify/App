@@ -5,7 +5,12 @@ import CONST from '@src/CONST';
 type KeyboardResizeAction = {type: 'step'; step: number} | {type: 'toggleFit'};
 
 /** `undefined` for keys a column edge leaves alone. */
-function getKeyboardResizeAction({key}: Pick<KeyboardEvent, 'key'>): KeyboardResizeAction | undefined {
+function getKeyboardResizeAction({key, altKey, ctrlKey, metaKey, shiftKey}: Pick<KeyboardEvent, 'key' | 'altKey' | 'ctrlKey' | 'metaKey' | 'shiftKey'>): KeyboardResizeAction | undefined {
+    // Modified keys belong to the browser, the OS and global shortcuts.
+    if (altKey || ctrlKey || metaKey || shiftKey) {
+        return undefined;
+    }
+
     if (key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey) {
         return {type: 'step', step: -CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP};
     }

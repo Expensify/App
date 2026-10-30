@@ -52,6 +52,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annuler',
         dismiss: 'Fermer',
         resizeColumn: ({columnName}: {columnName: string}) => `Redimensionner la colonne ${columnName}`,
+        columnWidth: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuer',
         unshare: 'Arrêter le partage',
         yes: 'Oui',

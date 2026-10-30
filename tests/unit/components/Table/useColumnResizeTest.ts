@@ -1,5 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {
     RESIZE_GRIP_HOVER_VARIABLE,
     RESIZE_INDICATOR_HEIGHT_VARIABLE,
@@ -10,8 +11,10 @@ import type UseColumnResize from '@components/Table/columnResize/useColumnResize
 import type {UseColumnResizeParams} from '@components/Table/columnResize/useColumnResize/types';
 
 import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
+import {translate} from '@libs/Localize';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 
 import type React from 'react';
 
@@ -24,6 +27,10 @@ jest.mock('@styles/utils/cursor', () => jest.requireActual<Record<string, unknow
 jest.mock('@libs/actions/TableColumnWidths', () => ({
     setTableColumnWidths: jest.fn(),
 }));
+
+// Without a LocaleContextProvider every translation is empty, so the announced widths are read in English instead.
+const mockTranslate: LocaleContextProps['translate'] = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
 
 const COLUMN_RESIZING_ID = 'testTable';
 
@@ -60,10 +67,10 @@ function createPointerEvent(handleElement: HTMLDivElement, {clientX, clientY = 0
 }
 
 /** A key press carrying only what the hook reads, aimed at the given handle, with its mocks to assert on. */
-function createKeyboardEvent(handleElement: HTMLDivElement, key: string) {
+function createKeyboardEvent(handleElement: HTMLDivElement, key: string, modifiers?: Pick<KeyboardEventInit, 'altKey' | 'ctrlKey' | 'metaKey' | 'shiftKey'>) {
     const preventDefault = jest.fn();
     const stopPropagation = jest.fn();
-    const event = {key, currentTarget: handleElement, preventDefault, stopPropagation};
+    const event = {key, ...modifiers, currentTarget: handleElement, preventDefault, stopPropagation};
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the hook only reads the fields above
     return {event: event as unknown as React.KeyboardEvent<HTMLDivElement>, preventDefault, stopPropagation};
@@ -165,6 +172,8 @@ function waitOutDoubleClick() {
 }
 
 describe('useColumnResize', () => {
+    beforeAll(() => IntlStore.load(CONST.LOCALES.EN));
+
     beforeEach(() => {
         jest.useFakeTimers();
         jest.clearAllMocks();
@@ -726,6 +735,9 @@ describe('useColumnResize', () => {
         expect(handleProps['aria-valuenow']).toBe(200);
         expect(handleProps['aria-valuemin']).toBe(CONST.TABLES.COLUMN_RESIZE.MIN_WIDTH);
         expect(handleProps['aria-valuemax']).toBeGreaterThan(200);
+
+        // And it's read out in pixels, since screen readers would otherwise announce it as a percentage of that range
+        expect(handleProps['aria-valuetext']).toBe('200 pixels');
     });
 
     it('moves a focused edge by one step per arrow key and stores the width once the key is released', () => {
@@ -888,6 +900,32 @@ describe('useColumnResize', () => {
         expect(setTableColumnWidths).not.toHaveBeenCalled();
     });
 
+    it('leaves modified keys to the browser and global shortcuts', () => {
+        // Given a 200px column whose edge has focus
+        const {handleElement, getHandleProps, readWidth} = renderColumnResize();
+        const modifiedKeys = [
+            createKeyboardEvent(handleElement, 'ArrowRight', {altKey: true}),
+            createKeyboardEvent(handleElement, 'ArrowLeft', {shiftKey: true}),
+            createKeyboardEvent(handleElement, 'Enter', {metaKey: true}),
+            createKeyboardEvent(handleElement, ' ', {ctrlKey: true}),
+        ];
+
+        // When arrows, Enter and Space are pressed with a modifier held
+        act(() => {
+            for (const {event} of modifiedKeys) {
+                getHandleProps().onKeyDown?.(event);
+            }
+        });
+
+        // Then each key keeps its usual job, e.g. Cmd+Enter or Alt+Arrow, and the column is untouched
+        for (const {preventDefault, stopPropagation} of modifiedKeys) {
+            expect(preventDefault).not.toHaveBeenCalled();
+            expect(stopPropagation).not.toHaveBeenCalled();
+        }
+        expect(readWidth(NAME_COLUMN_KEY)).toBe('');
+        expect(setTableColumnWidths).not.toHaveBeenCalled();
+    });
+
     it('shows the edge line while the edge has keyboard focus', () => {
         // Given a resizable column
         const {handleElement, getHandleProps} = renderColumnResize();
@@ -944,6 +982,7 @@ describe('useColumnResize', () => {
 
         // Then the separator's value follows the painted width, since nothing renders until the key is released
         expect(handleElement.getAttribute('aria-valuenow')).toBe(String(200 + CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP));
+        expect(handleElement.getAttribute('aria-valuetext')).toBe(`${200 + CONST.TABLES.COLUMN_RESIZE.KEYBOARD_STEP} pixels`);
     });
 
     it('keeps the edge line after dragging an edge that has keyboard focus', () => {
@@ -1004,7 +1043,8 @@ describe('useColumnResize', () => {
             getHandleProps().onPointerDown?.(createPointerEvent(handleElement, {clientX: 100}));
         });
 
-        // Then the edge takes focus without scrolling the table, so a following arrow key resizes this column
-        expect(focus).toHaveBeenCalledWith({preventScroll: true});
+        // Then the edge takes focus without scrolling the table, so a following arrow key resizes this column, and without
+        // the focus ring, which a script focus would otherwise show whenever a key was pressed earlier on the page
+        expect(focus).toHaveBeenCalledWith({preventScroll: true, focusVisible: false});
     });
 });

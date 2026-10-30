@@ -8,6 +8,7 @@ import usePointerDrag from '@components/ResizeHandle/usePointerDrag';
 import {SCROLL_EXTENT_FLOOR_VARIABLE, TABLE_COLUMN_SCROLLER_SELECTOR} from '@components/Table/columnResize/columnWidthExpressions';
 import getKeyboardResizeAction from '@components/Table/columnResize/getKeyboardResizeAction';
 
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setTableColumnWidths} from '@libs/actions/TableColumnWidths';
@@ -82,6 +83,7 @@ function useColumnResize({
     columnGap,
 }: UseColumnResizeParams): ColumnResizeController | undefined {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const dragRef = useRef<Drag | null>(null);
 
     // Stored on key release, so a held arrow doesn't store on every repeat, each store's render clearing the painted width
@@ -205,6 +207,7 @@ function useColumnResize({
 
         // Nothing renders until the key is released, so screen readers would otherwise announce the old width on each press.
         handle.setAttribute('aria-valuenow', String(steppedWidth));
+        handle.setAttribute('aria-valuetext', translate('common.columnWidth', {width: steppedWidth}));
     };
 
     /** Stores the width the arrow keys painted. Shared by key release and blur. */
@@ -337,8 +340,9 @@ function useColumnResize({
         const handle = event.currentTarget;
 
         // The drag cancels pointerdown, which would otherwise keep the press from focusing the edge for the arrow keys. Focused
-        // before the drag starts, so the edge losing focus hides its line.
-        handle.focus({preventScroll: true});
+        // before the drag starts, so the edge losing focus hides its line. A script focus inherits the last input's modality, so
+        // after any key press it would otherwise match :focus-visible and show the focus ring and line on a plain click.
+        handle.focus({preventScroll: true, focusVisible: false});
 
         pointerDrag.startDrag(event, () => {
             const pendingFitColumnKey = cancelPendingFit();
@@ -383,6 +387,8 @@ function useColumnResize({
             'aria-valuemin': Math.min(getMinWidth(columnKey), width),
             // Columns have no widest width, and a focusable separator's maximum otherwise defaults to 100.
             'aria-valuemax': Number.MAX_SAFE_INTEGER,
+            // Screen readers otherwise announce the width as a percentage of that maximum, which rounds to 0%.
+            'aria-valuetext': translate('common.columnWidth', {width}),
             /* eslint-enable @typescript-eslint/naming-convention */
             style: {...getHandleStyle(columnGap), ...styles.cursorColResize},
             ref: trackHeadingHover,

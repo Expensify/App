@@ -52,6 +52,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cancel: 'Annuleren',
         dismiss: 'Sluiten',
         resizeColumn: ({columnName}: {columnName: string}) => `Kolom ${columnName} vergroten of verkleinen`,
+        columnWidth: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Doorgaan',
         unshare: 'Delen stoppen',
         yes: 'Ja',
