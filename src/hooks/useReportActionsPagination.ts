@@ -10,7 +10,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useMemo, useState} from 'react';
+import {useState} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -24,6 +24,7 @@ type UseReportActionsPaginationResult = {
     reportActions: ReportAction[];
     allReportActions: ReportAction[];
     allReportActionIDs: string[];
+    persistedReportActionIDs: string[];
     hasOlderActions: boolean;
     hasNewerActions: boolean;
     sortedAllReportActions: ReportAction[] | undefined;
@@ -63,7 +64,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
         shouldSnapshotInitialLastReadTime: isConciergeChat,
     });
-    const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
+    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const thread = useTransactionThread({reportID, report, allReportActions, isOffline});
 
@@ -73,42 +74,38 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
 
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const reportPreviewAction = useMemo(
-        () => getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions),
-        [report?.chatReportID, report?.reportID, chatReportActions],
-    );
+    const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
-    const reportActionsToDisplay = useMemo(
-        () =>
-            getReportActionsToDisplay(
-                allReportActions,
-                lastAction,
-                report,
-                reportPreviewAction,
-                thread.transactionThreadReport,
-                shouldAddCreatedAction,
-                getCurrencyDecimals,
-                delegateAccountID,
-            ),
-        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport, getCurrencyDecimals, delegateAccountID],
+    const reportActionsToDisplay = getReportActionsToDisplay(
+        allReportActions,
+        lastAction,
+        report,
+        reportPreviewAction,
+        thread.transactionThreadReport,
+        shouldAddCreatedAction,
+        getCurrencyDecimals,
+        delegateAccountID,
     );
 
-    const reportActions = useMemo(
-        () => (reportActionsToDisplay ? getCombinedReportActions(reportActionsToDisplay, thread.transactionThreadReportID ?? null, thread.transactionThreadReportActions ?? []) : []),
-        [reportActionsToDisplay, thread.transactionThreadReportActions, thread.transactionThreadReportID],
-    );
+    const reportActions = reportActionsToDisplay
+        ? getCombinedReportActions(reportActionsToDisplay, thread.transactionThreadReportID ?? null, thread.transactionThreadReportActions ?? [])
+        : [];
 
-    const allReportActionIDs = useMemo(() => allReportActions.map((action) => action.reportActionID), [allReportActions]);
+    const allReportActionIDs = allReportActions.map((action) => action.reportActionID);
+    // A one-expense report shows the comments of its transaction thread. Onyx stores those comments under the
+    // reportID of the thread, therefore allReportActionIDs does not contain them.
+    const persistedReportActionIDs = [...allReportActionIDs, ...(thread.transactionThreadReportActions ?? []).map((action) => action.reportActionID)];
 
     return {
         reportActions,
         allReportActions,
         allReportActionIDs,
+        persistedReportActionIDs,
         hasOlderActions,
         hasNewerActions,
         sortedAllReportActions,

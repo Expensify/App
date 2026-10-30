@@ -4,6 +4,9 @@ import CONST from '@src/CONST';
 
 import type {GroupedItem, SearchGroupBy} from './types';
 
+/** The dates a time bucket covers */
+type ChartBucketRange = {start: string; end: string};
+
 type ChartGroupByConfig = {
     /** Name of the icon rendered next to the chart title */
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
@@ -24,7 +27,7 @@ type ChartGroupByConfig = {
     getFilterQuery: (item: GroupedItem) => string;
 
     /** Returns the dates a time-based group covers, as yyyy-MM-dd strings */
-    getDateRange?: (item: GroupedItem) => {start: string; end: string} | undefined;
+    getDateRange?: (item: GroupedItem) => ChartBucketRange | undefined;
 };
 
 /**
@@ -131,3 +134,4 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
 };
 
 export default CHART_GROUP_BY_CONFIG;
+export type {ChartBucketRange};

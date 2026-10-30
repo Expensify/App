@@ -1,6 +1,15 @@
 import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    SIN_45,
+    WRAPPED_LABEL_ELLIPSIS,
+} from '@components/Charts/VictoryTheme';
 
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
 
@@ -8,9 +17,10 @@ import variables from '@styles/variables';
 
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
-import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
+import {FontStyle, FontWeight, Skia, TextAlign} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
 
+import getLineRuns from './getLineRuns';
 import getPrimaryValue from './getPrimaryValue';
 
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
@@ -38,6 +48,27 @@ function buildChartParagraph(text: string, fontManager: SkTypefaceFontProvider, 
             fontStyle: {weight: FontWeight.Normal},
             fontSize,
             ...(color !== undefined ? {color: Skia.Color(color)} : {}),
+        })
+        .addText(text)
+        .pop()
+        .build();
+}
+
+/**
+ * Builds a Skia paragraph that wraps at word breaks, centers each line, and truncates anything
+ * past `maxLines` with an ellipsis. Used for bar-name labels drawn under the Home chart bars.
+ *
+ * Unlike buildChartParagraph this does not reuse the shared builder cache: the wrap/ellipsis/align
+ * paragraph style is fixed when the builder is created, so it cannot share the single-line builder.
+ * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ */
+function buildWrappedChartParagraph(text: string, fontManager: SkTypefaceFontProvider, fontSize: number, color: string, maxLines: number): SkParagraph {
+    return Skia.ParagraphBuilder.Make({maxLines, ellipsis: WRAPPED_LABEL_ELLIPSIS, textAlign: TextAlign.Center}, fontManager)
+        .pushStyle({
+            fontFamilies: VictoryTheme.fontFamilies,
+            fontStyle: {weight: FontWeight.Normal},
+            fontSize,
+            color: Skia.Color(color),
         })
         .addText(text)
         .pop()
@@ -539,6 +570,7 @@ function getYAxisLabelWidth(
 
 export {
     buildChartParagraph,
+    buildWrappedChartParagraph,
     canFontRenderText,
     getAdditionalOffset,
     measureTextWidth,
@@ -548,6 +580,7 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
+    getLineRuns,
     getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,
