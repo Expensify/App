@@ -16,6 +16,8 @@ Every agent has its own Expensify account. You can Copilot into the agent's acco
 
 When you create an agent, it's automatically added as a full-access Copilot on your own account. This gives the agent delegated access to your account so it can use your personal context and manage expenses and reports on your behalf, while continuing to operate from its own account. You can review or remove this access at any time in the **Copilot: Delegated access** section under **Account > Security**.
 
+This article covers personal agents, which you own. Workspace admins can also create company agents, which belong to a workspace or domain instead of to a person. To learn more, see [Create and Manage Company Agents](/articles/new-expensify/ai-agents/Create-and-Manage-Company-Agents).
+
 Expensify also supports agent rules, which are workspace-level AI automations enforced by RuleBot. To learn how agents work and how they differ from agent rules, see [Understand How Agents Work](/articles/new-expensify/ai-agents/Understand-How-Agents-Work).
 
 ---
@@ -72,6 +74,20 @@ After you create an agent:
 - The agent can be added to workspaces as a member and selected anywhere a workspace member can be chosen, such as approval workflows.
 
 The agent follows the instructions you provide and operates from its own Expensify account. Because it's also a Copilot on your account, it can use your personal context and take actions on your behalf. You can review or remove the agent's Copilot access at any time in the **Copilot: Delegated access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
+
+---
+
+## How to see who owns an agent
+
+Your **Agents** list under **Account > Agents** shows your personal agents and any company agents you can manage. The **Owner** column shows who owns each agent:
+
+- A person's name for a personal agent.
+- The workspace name for an agent owned by a workspace.
+- The domain name for an agent owned by a domain.
+
+On mobile, the owner appears under the agent's name. You can select the **Owner** column header to sort the list by owner.
+
+[Learn about company agents](/articles/new-expensify/ai-agents/Create-and-Manage-Company-Agents).
 
 ---
 
@@ -205,7 +221,9 @@ For details on configuring approval workflows generally, see [Learn how to add a
 
 ## Who can edit or delete an agent?
 
-Only the agent's owner can edit its instructions or delete it. The owner is the account that created the agent.
+For a personal agent, only its owner can edit its instructions or delete it. The owner is the account that created the agent.
+
+For a company agent, any admin of the workspace or domain that owns it can edit or delete it. [Learn who can manage company agents](/articles/new-expensify/ai-agents/Create-and-Manage-Company-Agents#who-can-manage-a-company-agent).
 
 ## Why can't I delete an agent?
 
@@ -213,7 +231,7 @@ If the agent is a workspace approver and has reports awaiting its approval, the 
 
 ## Does an agent have its own Expensify account?
 
-Yes. Each agent is created as a separate Expensify account with its own profile, inbox, chats, and activity history. The account that creates the agent becomes its owner and is automatically added as a full-access Copilot.
+Yes. Each agent is created as a separate Expensify account with its own profile, inbox, chats, and activity history. For a personal agent, the account that creates the agent becomes its owner and is automatically added as a full-access Copilot. A company agent is owned by a workspace or domain, and that owner's admins get full Copilot access instead.
 
 ## Are agents billed?
 
@@ -221,7 +239,7 @@ An agent is a member of any workspace it's added to and is billed as a workspace
 
 ## Can I remove myself as a Copilot from an agent I created?
 
-No. The owner is permanently added as a full-access Copilot on the agent's account so you always retain access to review and update the agent.
+No. The owner of a personal agent is permanently added as a full-access Copilot on the agent's account so you always retain access to review and update the agent.
 
 ## Can an agent be added to multiple workspaces?
 
@@ -235,7 +253,7 @@ On Collect plans, workspaces support a single approver. An agent can be used as 
 
 ## Is an agent added as a Copilot on my own account?
 
-Yes. When you create an agent, it's automatically added as a full-access Copilot on your own account, giving it delegated access to your personal context so it can manage your expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
+Yes, if it's a personal agent. Company agents aren't added as Copilots on anyone's account. When you create a personal agent, it's automatically added as a full-access Copilot on your own account, giving it delegated access to your personal context so it can manage your expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
 
 ## What can an agent do as a Copilot on my account?
 

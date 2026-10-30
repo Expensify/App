@@ -14,7 +14,9 @@ If you've been granted Copilot access and need help switching accounts or workin
 
 If you just need someone to handle approvals while you're away, [learn how to assign a vacation delegate](/articles/new-expensify/settings/Delegate-when-out-of-office).
 
-Agents can also have delegated access. When you create an agent, it's automatically added as a full-access Copilot on your account so it can act on your behalf, and it appears in your **Copilot: Delegated access** list alongside any members you've added. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents).
+Agents can also have delegated access. When you create a personal agent, it's automatically added as a full-access Copilot on your account so it can act on your behalf, and it appears in your **Copilot: Delegated access** list alongside any members you've added. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents).
+
+Company agents work differently. A company agent isn't added as a Copilot on your account when you create it. Instead, every admin of the workspace or domain that owns the agent automatically gets full Copilot access to the agent's account. This access doesn't appear in anyone's **Copilot: Delegated access** list. [Learn about company agents](/articles/new-expensify/ai-agents/Create-and-Manage-Company-Agents).
 
 ## Who can add a Copilot
 
@@ -102,7 +104,7 @@ Yes. You can add multiple Copilots to your account. You must wait one minute bet
 
 ## Why do I see an agent in my Copilot list?
 
-When you create an agent, it's automatically added as a full-access Copilot on your account so it can use your personal context and manage expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated access** section. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents).
+When you create a personal agent, it's automatically added as a full-access Copilot on your account so it can use your personal context and manage expenses and reports on your behalf. You don't need to add it by hand. Company agents aren't added to your Copilot list. You can review or remove this access at any time in the **Copilot: Delegated access** section. [Learn how to create and use agents](/articles/new-expensify/ai-agents/Create-and-Use-Agents).
 
 ## Why is a Copilot I removed still listed with a line through their name?
 
