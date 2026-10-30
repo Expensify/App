@@ -8,7 +8,10 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {clearPreservedNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import {clearLastVisitedTabPaths} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
+import navigationRef from '@libs/Navigation/navigationRef';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
@@ -17,6 +20,7 @@ import {requestPusherReinitialize} from '@libs/requestPusherReinitialize';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
@@ -66,6 +70,22 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
 /** Atomically reset Onyx for a delegate-access transition. `extraSeeds` are written in the same step as the clear. */
 function clearOnyxForDelegateTransition(extraSeeds?: OnyxMultiSetInput): Promise<void> {
     return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, extraSeeds);
+}
+
+/**
+ * Navigation state belongs to the account it was built for, so drop it on a delegate-access transition like we do on sign-out.
+ * Otherwise screens of the previous account stay mounted (e.g. their workspace chat in the Inbox tab) and show "not found".
+ * The fresh navigation state lands on the Settings tab, where accounts are switched.
+ */
+function resetNavigationForDelegateTransition() {
+    clearPreservedNavigatorStates();
+    clearLastVisitedTabPaths();
+
+    // Not ready when connecting from a deep link, because the navigator mounts only after the switch
+    if (!navigationRef.isReady()) {
+        return;
+    }
+    navigationRef.resetRoot({...getAdaptedStateFromPath(ROUTES.SETTINGS), stale: true});
 }
 
 type LoadAccountAfterDelegateTransitionParams = {
@@ -262,7 +282,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID}:
                 Onyx.update(failureData);
                 return;
             }
-            clearPreservedSearchNavigatorStates();
+            resetNavigationForDelegateTransition();
             const restrictedToken = response.restrictedToken;
             const policyID = activePolicyID;
 
@@ -363,8 +383,6 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams): Pro
                     Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
                     return restoreToStashed().then(() => DISCONNECT_RESULT.RESTORED_FROM_STASH);
                 }
-
-                clearPreservedSearchNavigatorStates();
 
                 const requesterEmail = response.requesterEmail;
                 const authToken = response.authToken;
@@ -1011,6 +1029,7 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
     })
         .then(() => {
             NetworkStore.setAuthToken(authToken ?? null);
+            resetNavigationForDelegateTransition();
             // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
             // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
             Pusher.disconnect();
