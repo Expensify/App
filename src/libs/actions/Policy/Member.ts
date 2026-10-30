@@ -1151,11 +1151,13 @@ async function importPolicyMembers(
             return getImportFailedFinalModal();
         }
 
-        // The backend puts the members it adds in the default workflow, so they can only be moved to their own workflows once they're in
+        // The backend puts the members it adds in the default workflow, so they can only be moved to their own workflows once they're in.
+        // Members whose approvers are unchanged are left out: rewriting them would take them out of their workflow's rules first, which
+        // deletes those rules once every member is out, the default workflow's included.
         importApprovalWorkflowRules({
             policy,
             rules,
-            members: members.flatMap((member) => (member.approvers ? [{email: member.email, approvers: member.approvers}] : [])),
+            members: members.flatMap((member) => (member.approvers && hasApproversChange(member) ? [{email: member.email, approvers: member.approvers}] : [])),
             addedMemberEmails: members.filter((member) => !policy.employeeList?.[member.email]).map((member) => member.email),
         });
         return importFinalModal;

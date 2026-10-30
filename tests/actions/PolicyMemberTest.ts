@@ -3,6 +3,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getPersonalDetailsOnyxDataForOptimisticUsers} from '@libs/PersonalDetailsUtils';
 import {toIndexMap} from '@libs/RuleUtils';
+import {buildApprovalWorkflowRules} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -1555,6 +1556,59 @@ describe('actions/PolicyMember', () => {
 
             // And the new approvers count as an update
             expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersUpdated');
+        });
+
+        it('leaves the approval workflow rules alone when the exported approvers are imported back unchanged', async () => {
+            // Given a rule-based default workflow where everyone submits to the owner, and a custom workflow for one member
+            const ownerEmail = 'owner@gmail.com';
+            const userEmail = 'user@gmail.com';
+            const customMemberEmail = 'custom@gmail.com';
+            const managerEmail = 'manager@gmail.com';
+            const policy = {
+                ...createRandomPolicy(1),
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [customMemberEmail]: {email: customMemberEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [managerEmail]: {email: managerEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+            };
+            const defaultWorkflowRules = buildApprovalWorkflowRules({
+                members: [ownerEmail, userEmail, managerEmail].map((email) => ({email, displayName: email})),
+                approvers: [{email: ownerEmail, displayName: ownerEmail}],
+                isDefault: true,
+            });
+            const customWorkflowRules = buildApprovalWorkflowRules({
+                members: [{email: customMemberEmail, displayName: customMemberEmail}],
+                approvers: [{email: managerEmail, displayName: managerEmail}],
+                isDefault: false,
+            });
+            const rules = Object.fromEntries(
+                [...defaultWorkflowRules, ...customWorkflowRules].map((rule, index) => [
+                    `${ONYXKEYS.COLLECTION.RULE}${index + 1}`,
+                    {...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: policy.id},
+                ]),
+            );
+
+            // When the spreadsheet exported from them is imported back without changes
+            await Member.importPolicyMembers(
+                policy,
+                [
+                    {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN, approvers: [{email: ownerEmail}]},
+                    {email: userEmail, role: CONST.POLICY.ROLE.USER, approvers: [{email: ownerEmail}]},
+                    {email: managerEmail, role: CONST.POLICY.ROLE.USER, approvers: [{email: ownerEmail}]},
+                    {email: customMemberEmail, role: CONST.POLICY.ROLE.USER, approvers: [{email: managerEmail}]},
+                ],
+                false,
+                rules,
+            );
+            await waitForBatchedUpdates();
+
+            // Then no rule is rewritten, because rewriting would take everyone out of the default workflow's rules and delete them
+            expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_APPROVAL_WORKFLOW)).toHaveLength(0);
         });
     });
 
