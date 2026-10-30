@@ -358,7 +358,12 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
             {sortButton}
 
             {/* Skipped in the sticky header's hidden twin to avoid duplicate handles. */}
-            {!isAccessibilityHidden && <ColumnResizeHandle columnKey={column.key} />}
+            {!isAccessibilityHidden && (
+                <ColumnResizeHandle
+                    columnKey={column.key}
+                    columnLabel={column.label}
+                />
+            )}
         </View>
     );
 }

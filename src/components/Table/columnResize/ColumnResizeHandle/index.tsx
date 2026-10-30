@@ -9,6 +9,7 @@ import {
 import type {ColumnResizeHandleProps} from '@components/Table/columnResize/types';
 import {useTableContext} from '@components/Table/TableContext';
 
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -48,9 +49,10 @@ const INDICATOR_STYLE: React.CSSProperties = {
  * Drag the strip over a column's right edge. Carries the grip and the indicator line, so they move with the column through drags and scrolls.
  * A plain `div` because it relies on DOM pointer capture.
  */
-function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
+function ColumnResizeHandle({columnKey, columnLabel}: ColumnResizeHandleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {columnResize} = useTableContext();
     const handleProps = columnResize?.getHandleProps(columnKey);
 
@@ -61,7 +63,10 @@ function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
     return (
         <Hoverable>
             {(isHovered) => (
-                <div {...handleProps}>
+                <div
+                    {...handleProps}
+                    aria-label={translate('common.resizeColumn', {columnName: columnLabel})}
+                >
                     <div
                         aria-hidden
                         // Takes the line's color while the handle itself is hovered, hinting that dragging grows it into the line.

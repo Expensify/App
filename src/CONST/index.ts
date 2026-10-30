@@ -7338,6 +7338,8 @@ const CONST = {
         SCROLLBAR: 'scrollbar',
         /** Use for text fields that are used for searching. */
         SEARCHBOX: 'searchbox',
+        /** Use for dividers, including focusable ones that resize the areas on either side. */
+        SEPARATOR: 'separator',
         /** Use for adjustable elements like sliders. */
         SLIDER: 'slider',
         /** Use for a button that opens a list of choices. */
@@ -10123,6 +10125,9 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
+
+            /** How far, in px, one arrow key press on a focused column edge moves it. */
+            KEYBOARD_STEP: 8,
 
             /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
             DOUBLE_CLICK_INTERVAL: 150,
