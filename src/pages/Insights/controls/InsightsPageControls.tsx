@@ -43,11 +43,7 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
     const icons = useMemoizedLazyExpensifyIcons(['Export']);
 
     const controls = (
-        <View
-            ref={captureRef ? viewRef(captureRef) : undefined}
-            collapsable={false}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, !shouldUseNarrowLayout && [styles.flexWrap, styles.flexShrink1]]}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, !shouldUseNarrowLayout && [styles.flexWrap, styles.flexShrink1]]}>
             <InsightsDateControl
                 value={filters.date}
                 onChange={(date) => onChange({date})}
@@ -68,12 +64,13 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
         </View>
     );
 
+    // Keep the idle button content in the image while preventing another export.
     const exportButton = (
         <Button
             size={CONST.BUTTON_SIZE.SMALL}
             onPress={onExport}
-            isDisabled={isExportDisabled}
-            isLoading={isExporting}
+            isDisabled={isExportDisabled || isExporting}
+            stayNormalOnDisable={isExporting}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_EXPORT}
             testID="InsightsExportButton"
         >
@@ -91,14 +88,26 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
                 style={[styles.flexGrow0, styles.flexShrink0, styles.pb5]}
                 contentContainerStyle={[styles.flexRow, styles.alignItemsCenter, styles.gap2, pageGutter]}
             >
-                {controls}
-                {exportButton}
+                <View
+                    ref={captureRef ? viewRef(captureRef) : undefined}
+                    collapsable={false}
+                    testID="InsightsCaptureControls"
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
+                >
+                    {controls}
+                    {exportButton}
+                </View>
             </ScrollView>
         );
     }
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}>
+        <View
+            ref={captureRef ? viewRef(captureRef) : undefined}
+            collapsable={false}
+            testID="InsightsCaptureControls"
+            style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap2]}
+        >
             {controls}
             {exportButton}
         </View>

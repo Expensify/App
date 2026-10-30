@@ -1,9 +1,11 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import InsightsGroupCurrencyControl from '@pages/Insights/controls/InsightsGroupCurrencyControl';
@@ -27,6 +29,7 @@ import Onyx from 'react-native-onyx';
 
 import currencyList from '../unit/currencyList.json';
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation');
@@ -79,6 +82,7 @@ describe('Insights controls', () => {
     afterEach(async () => {
         await Onyx.clear();
         jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     it('shows the page-level filters the dashboard is narrowed by', async () => {
@@ -137,6 +141,34 @@ describe('Insights controls', () => {
         expect(screen.getByTestId('InsightsExportButton')).toBeDisabled();
         fireEvent.press(screen.getByTestId('InsightsExportButton'));
         expect(onExport).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([false, true])('captures the idle Export button while exporting with narrow layout %s', async (shouldUseNarrowLayout) => {
+        // Given an export in progress on either toolbar layout
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}),
+        );
+        const onExport = jest.fn();
+        renderWithProviders(
+            <InsightsPageControls
+                filters={FILTERS}
+                defaultFilters={FILTERS}
+                onChange={jest.fn()}
+                onExport={onExport}
+                isExporting
+            />,
+        );
+
+        // When the toolbar is ready for capture
+        await waitForBatchedUpdatesWithAct();
+        const toolbar = screen.getByTestId('InsightsCaptureControls');
+        const exportButton = within(toolbar).getByTestId('InsightsExportButton');
+
+        // Then the captured subtree includes the visible label instead of a spinner and cannot start another export
+        expect(within(exportButton).getByText(/^(Export|common\.export)$/)).toBeVisible();
+        expect(exportButton).toBeDisabled();
+        fireEvent.press(exportButton);
+        expect(onExport).not.toHaveBeenCalled();
     });
 
     it('resets Group currency to the default workspace currency rather than the current one', async () => {
