@@ -7,6 +7,7 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
+import useClearDeleteTransactionNavigateBackUrlOnUnmount from '@hooks/useClearDeleteTransactionNavigateBackUrlOnUnmount';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -124,6 +125,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         });
         return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
+
+    useClearDeleteTransactionNavigateBackUrlOnUnmount(true);
 
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
