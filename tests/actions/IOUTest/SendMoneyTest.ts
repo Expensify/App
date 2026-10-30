@@ -99,6 +99,7 @@ describe('actions/IOU/SendMoney', () => {
                     recipient: {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    shouldStartTracking: true,
                 });
 
                 await waitForBatchedUpdates();

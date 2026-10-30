@@ -354,7 +354,7 @@ function useRequestMoneySubmission({
         });
     }
 
-    function createTransaction({locationPermissionGranted = false, shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
+    function createTransaction({locationPermissionGranted, shouldHandleNavigation, writeBarrier}: CreateTransactionParams) {
         const hasAnyReceiptFile = Object.values(receiptFiles).filter((receipt) => !!receipt).length > 0;
         // A zero amount means the expense came through the "Scan" flow, which needs GPS coordinates attached.
         const shouldCaptureGpsPoint = hasAnyReceiptFile && !!transaction && transaction.amount === 0 && !isSharingTrackExpense && !isCategorizingTrackExpense && locationPermissionGranted;

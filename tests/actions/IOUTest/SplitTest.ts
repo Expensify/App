@@ -43,7 +43,7 @@ import {
     updateSplitExpenseAmountField,
     updateSplitExpenseField,
 } from '@userActions/IOU/SplitExpenseItems';
-import type {UpdateSplitTransactionsParams} from '@userActions/IOU/SplitTransactionUpdate';
+import type {UpdateSplitTransactionsData} from '@userActions/IOU/SplitTransactionUpdate';
 import {getExpenseReportIDsEmptiedBySplitUpdate, updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
 
 import CONST from '@src/CONST';
@@ -12191,7 +12191,7 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false, asSelfDM
     });
 
     const reports = getTransactionAndExpenseReports(asSelfDMThread ? transactionThread.reportID : expenseReport.reportID);
-    const params: UpdateSplitTransactionsParams = {
+    const params: UpdateSplitTransactionsData = {
         allTransactionsList: allTransactions,
         allReportsList: allReports,
         reportDrafts: {},
@@ -12311,10 +12311,9 @@ describe('split save deferred write', () => {
         const remainingSplit = params.transactionData.splitExpenses.at(0);
 
         // When the reverse split is saved from the split-expenses flow
-        updateSplitTransactions({
+        updateSplitTransactionsFromSplitExpensesFlow({
             ...params,
             transactionData: {...params.transactionData, splitExpenses: remainingSplit ? [remainingSplit] : []},
-            isFromSplitExpensesFlow: true,
         });
         await waitForBatchedUpdates();
 
@@ -12322,20 +12321,22 @@ describe('split save deferred write', () => {
         expectDeferredWriteFor(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION);
     });
 
-    it('writes immediately when the caller is not the split-expenses flow', async () => {
-        // Given a direct updateSplitTransactions call, as useDeleteTransactions makes
+    it('writes immediately when the caller passes no barrier', async () => {
+        // Given a caller that does not navigate, such as useDeleteTransactions, which passes neither a barrier nor the split-expenses flag
         const {params} = await buildSplitFlowParams();
         const writeSpy = jest.spyOn(APIlib, 'write');
 
-        // When it runs outside the split-expenses flow
-        updateSplitTransactions({...params, isFromSplitExpensesFlow: false});
-        await waitForBatchedUpdates();
+        try {
+            // When the action runs
+            updateSplitTransactions(params);
+            await waitForBatchedUpdates();
 
-        // Then the write still happens, it is just not deferred behind a barrier
-        expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything());
-        expect(writeWhenReady).not.toHaveBeenCalled();
-        expect(createTransitionBarrier).not.toHaveBeenCalled();
-        writeSpy.mockRestore();
+            // Then it writes straight away instead of waiting on a transition
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything());
+            expect(writeWhenReady).not.toHaveBeenCalled();
+        } finally {
+            writeSpy.mockRestore();
+        }
     });
 });
 

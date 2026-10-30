@@ -84,7 +84,7 @@ function useSplitSubmission({
     const {policyRecentlyUsedCategories, policyRecentlyUsedTags, policyRecentlyUsedCurrencies} = recentlyUsedData;
     const splitParticipants = getSelectedParticipantsForSubmission({transaction, iouType, selectedParticipants});
 
-    function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
+    function createTransaction({shouldHandleNavigation, writeBarrier}: CreateTransactionParams) {
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         // receiptFiles can hold an entry for a transaction no longer being submitted, so the files are matched against what is actually being submitted.
         const scannedItems = transactions.filter((item) => !!receiptFiles[item.transactionID]);

@@ -479,13 +479,13 @@ function IOURequestStepConfirmationContent({
         }
 
         if (paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && paymentMethod !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-            sendMoney(paymentMethod);
+            sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true});
             return;
         }
 
         const participant = participants.at(0);
         if (!participant) {
-            sendMoney(paymentMethod);
+            sendMoney(paymentMethod, {shouldHandleNavigation: true, shouldStartTracking: true});
             return;
         }
 
@@ -496,7 +496,7 @@ function IOURequestStepConfirmationContent({
 
         // getTopmostReportId also returns a wide pre-mounted report that is still hidden, so it is trusted only without a wide pre-mount.
         if (!payDestinationReportID || (!Navigation.getPreMountedFullscreenRouteKey() && Navigation.getTopmostReportId() === payDestinationReportID)) {
-            sendMoney(paymentMethod, {resolvedReportIDs});
+            sendMoney(paymentMethod, {resolvedReportIDs, shouldHandleNavigation: true, shouldStartTracking: true});
             return;
         }
 

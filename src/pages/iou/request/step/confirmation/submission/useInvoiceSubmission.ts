@@ -70,7 +70,7 @@ function useInvoiceSubmission({
     const [senderWorkspacePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${senderWorkspaceID}`);
     const existingInvoiceReport = useParticipantsInvoiceReport(receiverAccountID, receiverType, senderWorkspaceID);
 
-    function createTransaction({shouldHandleNavigation = true, writeBarrier}: CreateTransactionParams) {
+    function createTransaction({shouldHandleNavigation, writeBarrier}: CreateTransactionParams) {
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
         const invoiceChatReport = !isEmptyObject(report) && report?.reportID ? report : existingInvoiceReport;
         const invoiceChatReportID = invoiceChatReport ? undefined : reportID;
