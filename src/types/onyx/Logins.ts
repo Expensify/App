@@ -24,6 +24,9 @@ type Login = OnyxValueWithOfflineFeedback<
         /** Whether the user validation code was sent */
         validateCodeSent?: boolean;
 
+        /** Name of the Integration Server OAuth partner (e.g. Acme) this login was issued to, only set on those logins */
+        integrationPartnerName?: string;
+
         /** Additional name-value pairs for this login */
         additionalData?: {
             /** The app version used where this account is logged in */

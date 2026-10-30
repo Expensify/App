@@ -2398,6 +2398,13 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         newContactMethod: 'Nowy sposób kontaktu',
         goBackContactMethods: 'Wróć do metod kontaktu',
+        integrationServerLogin: {
+            title: 'Integracje',
+            description: 'Jest używane przez API Integration Server.',
+            removeDescription: 'Usunięcie tego logowania cofnie dostęp API Integration Server.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Jest używane przez integrację ${partnerName}.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Usunięcie tego logowania cofnie dostęp integracji ${partnerName}.`,
+        },
         yourDefaultContactMethodRestrictedSwitch: 'To jest Twoja domyślna metoda kontaktu. Twoja firma zablokowała możliwość usuwania lub zmiany tej metody.',
     },
     pronouns: {
