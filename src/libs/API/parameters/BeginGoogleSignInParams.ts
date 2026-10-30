@@ -5,6 +5,7 @@ type BeginGoogleSignInParams = {
     token: string | null;
     preferredLocale: Locale | null;
     deviceInfo: string;
+    isAdvertisingConsentGranted?: boolean;
 } & MarketingAttribution;
 
 export default BeginGoogleSignInParams;
