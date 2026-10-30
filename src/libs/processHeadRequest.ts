@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 
 import HttpUtils from './HttpUtils';
 import Log from './Log';
-import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
+import {getEncryptedAuthToken, hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 import {getIsOffline} from './NetworkState';
 import sanitizeLogParams from './sanitizeLogParams';
 
@@ -23,14 +23,18 @@ async function processHeadRequest({imageURL, signal}: HeadRequest): Promise<numb
         }
 
         Log.info('[Network] Making HEAD request', false, sanitizeLogParams({imageURL}));
+        const encryptedAuthToken = getEncryptedAuthToken();
         const status = await HttpUtils.head(imageURL, signal);
         if (status !== CONST.HTTP_STATUS.UNAUTHORIZED || signal?.aborted || getIsOffline()) {
             return status;
         }
 
-        const result = await reauthenticate('HeadAttachment');
-        if (!result.wasSuccessful) {
-            return status;
+        // Another request may have recovered the session while this probe was in flight.
+        if (encryptedAuthToken === getEncryptedAuthToken()) {
+            const result = await reauthenticate('HeadAttachment');
+            if (!result.wasSuccessful) {
+                return status;
+            }
         }
 
         // Return the replay directly so a rejected replacement token cannot start another authentication cycle.
