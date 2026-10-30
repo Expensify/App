@@ -47,7 +47,6 @@ import Animated from 'react-native-reanimated';
 
 import type {GroupHeaderItemType, SearchListActionProps, SearchListItem, TransactionListItemType} from './types';
 
-import ApproverListItemHeader from './ApproverListItemHeader';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import DayListItemHeader from './DayListItemHeader';
@@ -322,8 +321,9 @@ function GroupHeader({
                 );
             case CONST.SEARCH.GROUP_BY.APPROVER:
                 return (
-                    <ApproverListItemHeader
-                        approver={groupItem}
+                    <MemberListItemHeader
+                        member={groupItem}
+                        nameColumn={CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER}
                         {...commonProps}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />

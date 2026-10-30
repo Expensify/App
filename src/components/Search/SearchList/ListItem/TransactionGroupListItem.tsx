@@ -60,7 +60,6 @@ import type {
     TransactionYearGroupListItemType,
 } from './types';
 
-import ApproverListItemHeader from './ApproverListItemHeader';
 import CardListItemHeader from './CardListItemHeader';
 import CategoryListItemHeader from './CategoryListItemHeader';
 import DayListItemHeader from './DayListItemHeader';
@@ -489,8 +488,9 @@ function TransactionGroupListItemImpl({
                     return null;
                 }
                 return (
-                    <ApproverListItemHeader
-                        approver={groupItem}
+                    <MemberListItemHeader
+                        member={groupItem}
+                        nameColumn={CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER}
                         onCheckboxPress={handleSelectionButtonPress}
                         isDisabled={isDisabledOrEmpty}
                         columns={columns}

@@ -3385,7 +3385,8 @@ function buildApproverGroupQuery(queryJSON: SearchQueryJSON, accountID: number):
 
 /**
  * @private
- * Organizes data into List Sections grouped by member for display, for the TransactionGroupListItemType of Search Results.
+ * Organizes data into List Sections grouped by a person for display, for the TransactionGroupListItemType of Search Results:
+ * the submitter when grouping by from, or the approver when grouping by approver.
  *
  * Do not use directly, use only via `getSections()` facade.
  */
@@ -3395,25 +3396,30 @@ function getMemberSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
-): [TransactionMemberGroupListItemType[], number, boolean] {
-    const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
+    groupBy: typeof CONST.SEARCH.GROUP_BY.FROM | typeof CONST.SEARCH.GROUP_BY.APPROVER = CONST.SEARCH.GROUP_BY.FROM,
+): [Array<TransactionMemberGroupListItemType | TransactionApproverGroupListItemType>, number, boolean] {
+    const memberSections: Record<string, TransactionMemberGroupListItemType | TransactionApproverGroupListItemType> = {};
+    const isApproverGroup = groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
+    const filterKey = isApproverGroup ? CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER : CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
 
             const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? onyxPersonalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
-            const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID) : undefined;
-
-            memberSections[key] = {
-                groupedBy: CONST.SEARCH.GROUP_BY.FROM,
+            const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, filterKey, memberGroup.accountID) : undefined;
+            const formattedName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
+            const section = {
                 transactions: [],
                 transactionsQueryJSON,
                 ...personalDetails,
                 ...memberGroup,
-                formattedFrom: temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber}),
                 keyForList: key,
             };
+
+            memberSections[key] = isApproverGroup
+                ? {...section, groupedBy: CONST.SEARCH.GROUP_BY.APPROVER, formattedApprover: formattedName}
+                : {...section, groupedBy: CONST.SEARCH.GROUP_BY.FROM, formattedFrom: formattedName};
         }
     }
 
@@ -3896,46 +3902,6 @@ function getQuarterSections(
 }
 
 /**
- * Organizes data into List Sections grouped by approver for display.
- *
- * Do not use directly, use only via `getSections()` facade.
- */
-function getApproverSections(
-    data: OnyxTypes.SearchResults['data'],
-    queryJSON: SearchQueryJSON | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    translate: LocalizedTranslate,
-    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
-): [TransactionApproverGroupListItemType[], number, boolean] {
-    const approverSections: Record<string, TransactionApproverGroupListItemType> = {};
-
-    for (const key in data) {
-        if (isGroupEntry(key)) {
-            const approverGroup = data[key];
-            if (!('accountID' in approverGroup) || !approverGroup.accountID) {
-                continue;
-            }
-
-            const personalDetails = data.personalDetailsList?.[approverGroup.accountID] ?? onyxPersonalDetailsList?.[approverGroup.accountID] ?? emptyPersonalDetails;
-            const transactionsQueryJSON = queryJSON ? buildApproverGroupQuery(queryJSON, approverGroup.accountID) : undefined;
-
-            approverSections[key] = {
-                groupedBy: CONST.SEARCH.GROUP_BY.APPROVER,
-                transactions: [],
-                transactionsQueryJSON,
-                ...personalDetails,
-                ...approverGroup,
-                formattedApprover: temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber}),
-                keyForList: key,
-            };
-        }
-    }
-
-    const approverSectionsValues = Object.values(approverSections);
-    return [approverSectionsValues, approverSectionsValues.length, hasDeletedTransactionInData(data)];
-}
-
-/**
  * Organizes data into appropriate list sections for display based on the type of search results.
  */
 function getSections({
@@ -4025,7 +3991,7 @@ function getSections({
             case CONST.SEARCH.GROUP_BY.QUARTER:
                 return getQuarterSections(data, queryJSON, dateFnsLocale);
             case CONST.SEARCH.GROUP_BY.APPROVER:
-                return getApproverSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList);
+                return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.APPROVER);
         }
     }
 
