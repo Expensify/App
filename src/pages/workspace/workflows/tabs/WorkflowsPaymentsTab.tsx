@@ -52,6 +52,7 @@ import {navigateToConciergeChat} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -168,7 +169,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const hasReimburserError = !!policy?.errorFields?.reimburser;
     // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
     const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
-    const bankConnectionStatus = getBankAccountConnectionStatus(state, bankAccountCurrency);
+    const bankConnectionStatus = getBankAccountConnectionStatus(accountData, bankAccountCurrency);
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
     const bankConnectionStatusAddon = bankConnectionStatus ? (
         <ConnectionStatusBadge
@@ -313,6 +314,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
             state: policy?.achAccount?.state,
         });
     };
+
+    const reimbursementCountryNames = Object.keys(policy?.reimbursement?.countries ?? {})
+        .filter((countryISO): countryISO is Country => countryISO in CONST.ALL_COUNTRIES)
+        .map((countryISO) => translate(`allCountries.${countryISO}`))
+        .join(', ');
 
     return (
         <WorkflowsSectionCard
@@ -465,6 +471,22 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             disabled={!canWritePayments}
                             disabledAction={withPaymentsReadOnlyFallback()}
                             showLockIcon={!canWritePayments}
+                            subMenuItems={
+                                <MenuItemSectionRoot
+                                    onPress={canWritePayments ? () => {} : undefined}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
+                                    style={styles.mt3}
+                                >
+                                    <MenuItemField.Row
+                                        name={translate('workflowsPage.businessBankAccountCountries')}
+                                        value={reimbursementCountryNames}
+                                        numberOfLinesValue={0}
+                                    >
+                                        {canWritePayments && <MenuItem.Chevron />}
+                                    </MenuItemField.Row>
+                                    <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
+                                </MenuItemSectionRoot>
+                            }
                         />
                     )}
                 </>

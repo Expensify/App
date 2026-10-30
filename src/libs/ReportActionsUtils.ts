@@ -700,8 +700,6 @@ function isCollapsibleSystemMessageAction(reportAction: OnyxInputOrEntry<ReportA
         !reportAction.error &&
         isEmpty(reportAction.errors) &&
         !hasReasoning(reportAction) &&
-        // An opened thread can show agent progress before persisted replies are counted.
-        !reportAction.childReportID &&
         !reportAction.childVisibleActionCount &&
         !NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES.has(reportAction.actionName)
     );
@@ -4970,7 +4968,13 @@ function getAddedCardFeedMessage(translate: LocalizedTranslate, reportAction: On
     }
     const originalMessage = getOriginalMessage(reportAction);
     const feedName = originalMessage?.feedName;
-    return feedName ? translate('workspaceActions.addedCardFeed', feedName) : getReportActionText(reportAction);
+    if (!feedName) {
+        return getReportActionText(reportAction);
+    }
+    if (originalMessage?.feedType === CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD) {
+        return translate('workspaceActions.addedExpensifyCardFeed', feedName);
+    }
+    return translate('workspaceActions.addedCardFeed', feedName);
 }
 
 function getRemovedCardFeedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {

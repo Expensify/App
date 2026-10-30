@@ -510,7 +510,32 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Quartal',
         vacationDelegate: 'Urlaubsvertretung',
         expensifyLogo: 'Expensify-Logo',
-        concierge: {greeting: 'Hallo, wie kann ich helfen?', showHistory: 'Verlauf anzeigen'},
+        concierge: {
+            greeting: 'Hallo, wie kann ich helfen?',
+            showHistory: 'Verlauf anzeigen',
+            subtitle: 'Dein persönlicher KI-Assistent',
+            welcomeDescription: 'Concierge kann Fragen beantworten, Ausgaben aktualisieren und mehr.',
+            viewChatHistory: 'Chatverlauf anzeigen',
+            hideChatHistory: 'Chatverlauf ausblenden',
+            askNewQuestion: 'Neue Frage stellen',
+            newChat: 'Neuer Chat',
+            composerPlaceholders: {
+                spendLastMonth: 'Wie viel habe ich letzten Monat ausgegeben?',
+                topExpenses: 'Zeig mir meine größten Ausgaben in diesem Monat',
+                spendDrivers: 'Was hat meine Ausgaben im letzten Quartal getrieben?',
+                travelSpendChange: 'Wie haben sich meine Reisekosten seit letztem Monat verändert?',
+                topSpender: 'Wer hat diesen Monat am meisten ausgegeben?',
+                missingCategory: 'Welche Ausgaben haben keine Kategorie?',
+                awaitingApproval: 'Welche Berichte warten auf meine Genehmigung?',
+                notReimbursed: 'Was wurde mir noch nicht erstattet?',
+                unsubmitted: 'Welche meiner Ausgaben sind noch nicht eingereicht?',
+                leftToPay: 'Was ist diesen Monat noch zu zahlen?',
+                createExpense: 'Erstelle eine Ausgabe über 30 $ für ein Mittagessen',
+                combineExpenses: 'Fasse alle meine offenen Ausgaben in einem Bericht zusammen',
+                exportPdf: 'Exportiere meinen letzten Bericht als PDF',
+                exportCsv: 'Gib mir eine CSV meiner Ausgaben über 50 $',
+            },
+        },
         duplicateReport: 'Duplizierten Bericht',
         approver: 'Genehmiger',
         goToConcierge: 'Zu Concierge',
@@ -1192,6 +1217,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Jahr' : `Jahr ${year}`),
             increase: (percentage: string) => `Um ${percentage} gestiegen`,
             decrease: (percentage: string) => `Um ${percentage} gesunken`,
+            dailyAverage: 'Tagesdurchschnitt',
+            weeklyAverage: 'Wöchentlicher Durchschnitt',
+            monthlyAverage: 'Monatlicher Durchschnitt',
+            quarterlyAverage: 'Quartalsdurchschnitt',
+            yearlyAverage: 'Jährlicher Durchschnitt',
+            allSpenderAverage: 'Durchschnitt aller Zahlenden',
+            allMerchantAverage: 'Durchschnitt über alle Händler',
+            allCategoryAverage: 'Durchschnitt aller Kategorien',
+            averageValue: (amount: string) => `${amount} durchschnittl.`,
         },
         compliance: 'Compliance',
         runningTotal: 'Laufende Summe',
@@ -2871,6 +2905,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bitte bestätigen Sie Testtransaktionen',
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
+            plaidBrokenReconnect: 'Beheben Sie Ihre Plaid-Verbindung für ein genaueres Limit Ihrer Expensify Karte',
+            plaidConnectForLimit: 'Mit Plaid verbinden, um ein genaueres Limit für Ihre Expensify Karte zu erhalten',
+            connect: 'Verbinden',
+        },
+        linkPlaid: {
+            title: 'Mit Plaid verbinden',
+            successHeading: 'Erfolgreiche Verbindung',
+            successDescription: 'Danke, dass Sie Plaid verbunden haben!',
+            failureHeading: 'Verbindung fehlgeschlagen',
+            failureDescription: '<muted-text>Bitte versuchen Sie es erneut oder <concierge-link>wenden Sie sich an Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Falsches Bankkonto',
+            wrongAccountDescription: 'Bitte wählen Sie das passende Bankkonto in Plaid aus.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Lassen Sie uns prüfen, ob alles stimmt',
@@ -3242,6 +3288,8 @@ ${amount} für ${merchant} – ${date}`,
         disablePaymentsPrompt:
             'Für diesen Workspace sind ein Geschäftsbankkonto oder Erstattungsländer eingerichtet. Wenn Sie Zahlungen deaktivieren, erhalten Mitglieder keine Erstattungen über Expensify, bis Sie Zahlungen wieder aktivieren.',
         disablePaymentsConfirm: 'Deaktivieren',
+        businessBankAccountCountries: 'Länder für Geschäftskonten',
+        businessBankAccountCountriesDescription: 'Mitarbeitende in diesen Ländern geben lokale Überweisungsdaten an. Alle anderen geben internationale Überweisungsdaten an.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Für diesen Workspace ist ein benutzerdefinierter Genehmigungsworkflow aktiviert. Um diesen Workflow zu überprüfen oder zu ändern, wende dich bitte an deine:n <account-manager-link>Account Manager</account-manager-link> oder an <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -6652,7 +6700,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             selectCards: 'Karten auswählen',
             fromOtherWorkspaces: 'Aus anderen Workspaces',
             addWorkEmail: 'Fügen Sie Ihre Arbeits-E-Mail hinzu',
-            addWorkEmailDescription: 'Bitte fügen Sie Ihre Arbeits-E-Mail hinzu, um vorhandene Feeds aus anderen Workspaces zu nutzen.',
+            addWorkEmailDescription:
+                'Bitte fügen Sie Ihre Arbeits-E-Mail-Adresse hinzu und legen Sie sie als primäre Kontaktmethode fest, um vorhandene Feeds aus anderen Workspaces zu nutzen.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kartendaten konnten nicht geladen werden',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7547,6 +7596,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             confirmWorkflows: {
                 continue: 'Ohne Mitglieder fortfahren',
                 description: 'Das Kopieren von Workflows ohne Mitglieder kopiert keine Genehmigungs-Workflows. Einreichungs- und Zahlungseinstellungen werden trotzdem kopiert.',
+            },
+            confirmMembers: {
+                title: 'Mitglieder kopieren',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Sind Sie sicher, dass Sie die Mitglieder von ${targetWorkspaceName} durch die Mitglieder dieses Arbeitsbereichs ersetzen möchten?`,
+                    other: `Sind Sie sicher, dass Sie die Mitglieder von ${count} Arbeitsbereichen durch die Mitglieder dieses Arbeitsbereichs ersetzen möchten?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Kopieren läuft ...',
@@ -9241,7 +9297,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     missingData: 'Expensify hat diese Information nicht.',
                     retroactive: 'Regeln gelten nur für neue Aktivitäten.',
                     historyLimit: 'Regeln können nicht so weit zurückblicken.',
-                    tryThisInstead: 'Versuchen Sie es stattdessen damit',
+                    useSuggestion: 'Vorschlag verwenden',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Probieren Sie stattdessen den Vorschlag unten aus:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `„${suggestedPrompt}“`,
+                    createAnyway: 'Trotzdem erstellen',
                 },
             },
             expenseDefaultsTable: {
@@ -9624,6 +9683,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noOrganizationsFound: 'Keine Organisationen gefunden',
             noOrganizationsFoundDescription: 'Bitte fügen Sie eine Organisation in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
             multiLocationNotSupported: 'Organisationen mit mehreren Standorten werden noch nicht unterstützt',
+            importDescription: 'Wählen Sie aus, welche Kodierungskonfigurationen aus Zoho Books importiert werden sollen.',
+            accountTypesDescription: 'Ihre Zoho Books-Konten werden als Kategorien importiert.',
+            enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
+            enableNewAccountsDescription: 'Neue Zoho Books-Konten werden als Kategorien verfügbar sein.',
+            reportingTagsImport: 'Alle Zoho Books-Berichts-Tags werden als Tags importiert',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
@@ -10489,6 +10553,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `aktualisierte „Verhindern, dass nicht erstattungsfähige Berichte als bezahlt markiert werden“ auf „${newValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“ (zuvor „${oldValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“)`,
+        addedExpensifyCardFeed: (feedName: string) => `„${feedName}“-Expensify-Kartenfeed hinzugefügt`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',

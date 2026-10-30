@@ -45,6 +45,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -2305,6 +2306,48 @@ describe('actions/Report', () => {
         expect(playSoundMock).toHaveBeenCalledWith(SOUNDS.DONE);
         expect(relevant.at(0)?.command).toBe(WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
         expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
+    });
+
+    it('should post several attachments as one action when Concierge answers in a thread', async () => {
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // Given two files sent with a caption to Concierge, which answers each question in a thread
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        const fileA: FileObject = {name: 'a.jpg', type: 'image/jpeg', uri: 'file://a.jpg'};
+        const fileB: FileObject = {name: 'b.jpg', type: 'image/jpeg', uri: 'file://b.jpg'};
+        const conciergeThreadReportID = '9001';
+
+        // When they are sent together
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT.reportID,
+            ancestors: [],
+            attachments: [fileA, fileB],
+            currentUserAccountID: 1,
+            text: 'Hello world',
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Then one request carries both files with an attachment ID for each, so Concierge reads them together
+        const requests = PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.ADD_ATTACHMENT || request.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+        expect(requests).toHaveLength(1);
+        const data = requests.at(0)?.data;
+        expect(data?.file).toEqual(fileA);
+        expect(data?.file_1).toEqual(fileB);
+        expect(String(data?.attachmentIDs).split(',')).toEqual([String(data?.attachmentID), expect.any(String)]);
+
+        // And one report action shows both files and opens the thread
+        const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT.reportID}` as const);
+        const reportAction = reportActions?.[String(data?.reportActionID)];
+        const message = Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : undefined;
+        expect(message?.html).toContain('file://a.jpg');
+        expect(message?.html).toContain('file://b.jpg');
+        expect(reportAction?.childReportID).toBe(conciergeThreadReportID);
     });
 
     it('should create attachment only actions when adding multiple attachments without a comment', async () => {

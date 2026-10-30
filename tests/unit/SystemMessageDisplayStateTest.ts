@@ -225,9 +225,9 @@ describe('system message presentation', () => {
         );
 
         it('collapses maximal runs of two or more system messages to one anchor row', () => {
-            // Given consecutive passive updates, including muted audit types
+            // Given consecutive passive updates, including muted audit types and one whose thread was opened without any replies
             const actions = [
-                systemAction('1', {childReportID: ''}),
+                systemAction('1', {childReportID: 'thread-report', childVisibleActionCount: 0, childCommenterCount: 0}),
                 makeAction('2', CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION),
                 makeAction('3', CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT),
             ];
@@ -254,13 +254,12 @@ describe('system message presentation', () => {
                 systemAction('3', {error: 'Could not update'}),
                 systemAction('3', {originalMessage: {reasoning: 'The expense was changed automatically.'}}),
                 systemAction('3', {childReportID: 'thread-report', childVisibleActionCount: 1, childCommenterCount: 1}),
-                systemAction('3', {childReportID: 'thread-report', childVisibleActionCount: 0, childCommenterCount: 0}),
             ].flatMap((boundary) => [
                 {boundary, newestFirst: false},
                 {boundary, newestFirst: true},
             ]),
         )('preserves interactive rows as run boundaries (newest first: $newestFirst): $boundary', ({boundary, newestFirst}) => {
-            // Given two eligible runs separated by interactive content, including a thread awaiting its first persisted reply
+            // Given two eligible runs separated by interactive content
             const chronologicalActions = [systemAction('1'), systemAction('2'), boundary, systemAction('4'), systemAction('5')];
             const actions = newestFirst ? chronologicalActions.toReversed() : chronologicalActions;
             // When constructing the display list in either report layout direction
