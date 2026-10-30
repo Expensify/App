@@ -36,7 +36,7 @@ function hasDashboardResponse(dashboard: OnyxEntry<InsightsDashboard>): boolean 
 }
 
 /** Resolves the page's state from the dashboard record and the snapshot of every chart on screen. */
-function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[], isKnownToHaveExpenses: boolean): InsightsDashboardState {
+function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[], isKnownToHaveExpenses = false): InsightsDashboardState {
     const chartStates = charts.map(({snapshot, queryJSON}) => {
         const isLoaded = isSearchDataLoaded(snapshot, queryJSON) && isEmptyObject(snapshot?.errors);
         const data = snapshot?.data;
