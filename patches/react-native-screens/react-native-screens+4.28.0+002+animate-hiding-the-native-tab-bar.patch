@@ -1,16 +1,17 @@
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -51,6 +51,8 @@ @implementation RNSTabsHostComponentView {
+@@ -51,6 +51,9 @@
  
    RNSTabsNavigationStateUpdateRequest *_Nullable _navStateRequest;
  
 +  UIViewPropertyAnimator *_Nullable _tabBarFadeOutAnimator;
++  BOOL _isRetryingTabBarVisibility;
 +
  #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
    UIView *_Nullable _bottomAccessoryWrapperView;
  #endif // RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
-@@ -121,6 +123,52 @@ - (void)invalidateImpl
+@@ -121,6 +124,127 @@
    });
  }
  
@@ -21,6 +22,62 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 + * in together. The bar fades out as a whole here instead and is hidden without animation once invisible. Showing it
 + * again mid-fade reverses the fade, so the bar never ends up hidden while it should be shown.
 + */
++- (nullable UINavigationController *)findStackControllerIn:(UIViewController *)controller
++{
++  if ([controller isKindOfClass:UINavigationController.class]) {
++    return (UINavigationController *)controller;
++  }
++  for (UIViewController *child in controller.childViewControllers) {
++    UINavigationController *stackController = [self findStackControllerIn:child];
++    if (stackController != nil) {
++      return stackController;
++    }
++  }
++  return nil;
++}
++
++/**
++ * A screen pushed in the selected tab's stack slides over the bar, so the bar travels with the screen it leaves, the way
++ * a screen pushed above the whole tab navigator takes the bar along. The bar moves like the outgoing screen does and
++ * fades out while the incoming screen covers it. Running in the stack's transition keeps it in step with the push, and
++ * with an interactive swipe back, including when that is cancelled.
++ */
++- (BOOL)animateTabBarAlongsideStackTransition API_AVAILABLE(ios(26.0))
++{
++  UITabBar *tabBar = _controller.tabBar;
++  UINavigationController *stackController = [self findStackControllerIn:_controller.selectedViewController];
++  id<UIViewControllerTransitionCoordinator> coordinator = stackController.transitionCoordinator;
++  if (coordinator == nil || tabBar.window == nil) {
++    return NO;
++  }
++
++  BOOL hiding = _tabBarHidden;
++  CGAffineTransform awayTransform = CGAffineTransformMakeTranslation(-tabBar.bounds.size.width * 0.3, 0);
++  if (!hiding) {
++    [_controller setTabBarHidden:NO animated:NO];
++    tabBar.transform = awayTransform;
++    tabBar.alpha = 0;
++  }
++  tabBar.userInteractionEnabled = NO;
++
++  __weak auto weakSelf = self;
++  [coordinator animateAlongsideTransition:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
++    tabBar.transform = hiding ? awayTransform : CGAffineTransformIdentity;
++    tabBar.alpha = hiding ? 0 : 1;
++  }
++      completion:^(id<UIViewControllerTransitionCoordinatorContext> _Nonnull context) {
++        auto strongSelf = weakSelf;
++        BOOL endsHidden = context.isCancelled ? !hiding : hiding;
++        tabBar.transform = CGAffineTransformIdentity;
++        tabBar.alpha = 1;
++        tabBar.userInteractionEnabled = YES;
++        if (strongSelf != nil) {
++          [strongSelf->_controller setTabBarHidden:endsHidden animated:NO];
++        }
++      }];
++  return YES;
++}
++
 +- (void)applyTabBarHiddenWithFade API_AVAILABLE(ios(26.0))
 +{
 +  if (_tabBarFadeOutAnimator != nil) {
@@ -29,6 +86,25 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
 +  }
 +
 +  UITabBar *tabBar = _controller.tabBar;
++  if (tabBar.window != nil) {
++    if ([self animateTabBarAlongsideStackTransition]) {
++      return;
++    }
++    // The stack starts its push after the host receives the prop, so its transition is looked up again one turn later.
++    if (!_isRetryingTabBarVisibility) {
++      _isRetryingTabBarVisibility = YES;
++      __weak auto weakSelf = self;
++      dispatch_async(dispatch_get_main_queue(), ^{
++        auto strongSelf = weakSelf;
++        if (strongSelf != nil) {
++          [strongSelf applyTabBarHiddenWithFade];
++          strongSelf->_isRetryingTabBarVisibility = NO;
++        }
++      });
++      return;
++    }
++  }
++
 +  // Before the bar is on screen, the first render would otherwise animate it out.
 +  if (!_tabBarHidden || tabBar.window == nil) {
 +    [_controller setTabBarHidden:_tabBarHidden animated:tabBar.window != nil];
@@ -63,7 +139,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponen
  #pragma mark - UIView methods
  
  - (void)didMoveToWindow
-@@ -242,9 +290,16 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+@@ -242,9 +366,16 @@
  
    if (newComponentProps.tabBarHidden != oldComponentProps.tabBarHidden) {
      _tabBarHidden = newComponentProps.tabBarHidden;
