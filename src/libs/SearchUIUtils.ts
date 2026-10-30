@@ -75,7 +75,6 @@ import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS, TEXT_FILTER_KEYS} fro
 import type {HasFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ViolationsSnapshot} from '@src/types/onyx/OriginalMessage';
-import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
@@ -111,10 +110,9 @@ import type {CardFeedForDisplay} from './CardFeedUtils';
 import type {SearchKey} from './SearchKeyUtils';
 import type {SearchTypeMenuItem} from './SearchSuggestionUtils';
 
-import {hasSynchronizationErrorMessage} from './actions/connections';
 import {startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {createTransactionThreadReport} from './actions/Report';
-import {setOptimisticDataForTransactionThreadPreview} from './actions/Search';
+import {getReportActionsFromSearchSnapshot, setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
@@ -138,6 +136,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getSubmitToAccountID,
     getTagGLCode,
+    getValidConnectedIntegration,
     isArchivedOrPendingDeletePolicy,
     isControlPolicy,
     isGroupPolicy,
@@ -145,6 +144,7 @@ import {
     isPolicyAdmin,
     isPolicyApprover,
     isPolicyPayer,
+    isPreferredExporter,
     isSubmitPolicy,
     isWorkspaceProvisionedForTravel,
 } from './PolicyUtils';
@@ -778,16 +778,13 @@ function getSuggestedSearchesVisibility(
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
         const isPaymentsAdmin = policy.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
-        const isExporter = policy.exporter === currentUserEmail;
+        const isExporter = !!currentUserEmail && isPreferredExporter(policy, currentUserEmail);
 
         const isSubmittedTo =
             !!currentUserEmail && Object.values(policy.employeeList ?? {}).some((employee) => employee?.submitsTo === currentUserEmail || employee?.forwardsTo === currentUserEmail);
         const isUserApprover = !!currentUserEmail && isPolicyApprover(policy, currentUserEmail);
         const isApprovalEnabled = policy.approvalMode ? policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
 
-        const hasExportError = (Object.keys(policy.connections ?? {}) as ConnectionName[]).some((connection) => {
-            return hasSynchronizationErrorMessage(policy, connection, false);
-        });
         const isPaymentEnabled = arePaymentsEnabled(policy);
         const hasVBBA = !!policy.achAccount?.bankAccountID && policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN;
         const hasReimburser = !!policy.achAccount?.reimburser;
@@ -796,7 +793,8 @@ function getSuggestedSearchesVisibility(
         const isEligibleForSubmitSuggestion = isGroupPolicyEligible;
         const isEligibleForPaySuggestion = isPaidPolicy && isPayer;
         const isPolicyEligibleForApproveSuggestion = isGroupPolicyEligible && isEligibleForApproveSuggestion(policy.approvalMode, isUserApprover, isSubmittedTo);
-        const isEligibleForExportSuggestion = isExporter && !hasExportError;
+        // A sync error does not stop the user exporting by hand, and the server still lists those reports
+        const isEligibleForExportSuggestion = isExporter && !!getValidConnectedIntegration(policy);
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
@@ -2156,7 +2154,7 @@ function getSearchReportAvatarProps(
     isReportArchived = false,
     conciergeReportID?: string,
 ) {
-    const avatarIcons = getIcons(report, formatPhoneNumber, translate, personalDetailsList, null, '', -1, policy, undefined, isReportArchived, undefined, conciergeReportID);
+    const avatarIcons = getIcons({report, formatPhoneNumber, translate, personalDetails: personalDetailsList, policy, isReportArchived, conciergeReportID});
     const hasSecondAvatar = avatarIcons.length > 1 && !!avatarIcons.at(1)?.name;
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE>;
@@ -2244,7 +2242,14 @@ function getActions(
     }
 
     const policy = getPolicyFromKey(data, report);
-    const isExportAvailable = !isTransaction && isExportAction(report, currentUserLogin, policy, reportActions);
+    const reportNVP = getReportNameValuePairsFromKey(data, report);
+    let allReportTransactions: OnyxTypes.Transaction[];
+    if (isReportEntry(key)) {
+        allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
+    } else {
+        allReportTransactions = transaction ? [transaction] : [];
+    }
+    const isExportAvailable = !isTransaction && isExportAction(report, currentUserLogin, policy, reportActions, {reportNameValuePairs: reportNVP, reportTransactions: allReportTransactions});
 
     if (isSettled(report) && !isExportAvailable) {
         return [CONST.SEARCH.ACTION_TYPES.PAID];
@@ -2267,14 +2272,6 @@ function getActions(
     }
 
     const allActions: SearchTransactionAction[] = [];
-    let allReportTransactions: OnyxTypes.Transaction[];
-    if (isReportEntry(key)) {
-        allReportTransactions = precomputedTransactionsForReport ?? getTransactionsForReport(data, report.reportID);
-    } else {
-        allReportTransactions = transaction ? [transaction] : [];
-    }
-
-    const reportNVP = getReportNameValuePairsFromKey(data, report);
 
     const isChatReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`]);
 
@@ -2520,20 +2517,16 @@ function getTaskSections(
                 // otherwise getGroupChatName treats it as "nothing is pending delete" and skips its own Onyx fallback.
                 const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
                 const parentReportPendingDeleteMemberAccountIDs = parentReportMetadata ? getPendingDeleteMemberAccountIDs(parentReportMetadata.pendingChatMembers) : undefined;
-                const icons = getIcons(
-                    parentReport,
+                const icons = getIcons({
+                    report: parentReport,
                     formatPhoneNumber,
                     translate,
                     personalDetails,
-                    null,
-                    '',
-                    -1,
                     policy,
-                    undefined,
-                    isParentReportArchived,
-                    parentReportPendingDeleteMemberAccountIDs,
+                    isReportArchived: isParentReportArchived,
+                    pendingDeleteMemberAccountIDs: parentReportPendingDeleteMemberAccountIDs,
                     conciergeReportID,
-                );
+                });
                 const parentReportIcon = icons?.at(0);
 
                 result.parentReportName = parentReportName;
@@ -5745,7 +5738,6 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
 
     switch (filterKey) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
             return commonPresets;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return [...commonPresets, CONST.SEARCH.DATE_PRESETS.NEVER, ...(hasFeed ? [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT] : [])];
@@ -7603,6 +7595,7 @@ function shouldShowDeleteOption(
     // The full list is needed because each pass below resolves a different report owner.
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>,
     cardList: OnyxEntry<OnyxTypes.CardList>,
+    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
     selectedReports: SelectedReports[] = [],
     searchDataType?: SearchDataTypes,
 ) {
@@ -7614,8 +7607,8 @@ function shouldShowDeleteOption(
               if (!fullReport) {
                   return false;
               }
-              const reportActionsData = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selectedReport.reportID}`];
-              const reportActionsArray = Object.values(reportActionsData ?? {});
+              // The delete check needs the report's whole history to see a forward since the last submit, which the snapshot alone may not carry
+              const reportActionsArray = Object.values(getReportActionsFromSearchSnapshot(selectedReport.reportID, currentSearchResults, allReportActions, true) ?? {});
               const reportTransactions: OnyxTypes.Transaction[] = [];
               const searchData = currentSearchResults ?? {};
               for (const key of Object.keys(searchData)) {
@@ -7647,16 +7640,18 @@ function shouldShowDeleteOption(
               }
               const parentReportID = transaction.reportID;
               const parentReport = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`] ?? selectedTransactions[id].report;
-              const reportActions = currentSearchResults?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
-              const parentReportAction =
-                  Object.values(reportActions ?? {}).find((action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === id) ??
-                  selectedTransactions[id].reportAction;
+              const rowReportAction = selectedTransactions[id].reportAction;
+              // Grouped searches carry no report actions in the snapshot, so the row's own IOU action is kept for the ownership check
+              const parentReportActions = Object.values({
+                  ...getReportActionsFromSearchSnapshot(parentReportID, currentSearchResults, allReportActions, true),
+                  ...(rowReportAction ? {[rowReportAction.reportActionID]: rowReportAction} : {}),
+              });
 
               const parentReportPolicy = currentSearchResults?.[`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`];
               return canDeleteMoneyRequestReport(
                   parentReport,
                   [transaction],
-                  parentReportAction ? [parentReportAction] : [],
+                  parentReportActions,
                   currentUserAccountID,
                   rules,
                   getLoginByAccountID(parentReport?.ownerAccountID, personalDetails),
@@ -7801,7 +7796,6 @@ export {
     createTypeMenuSections,
     omitInsightsPageMenuItems,
     omitTravelApprovalMenuItems,
-    SPEND_INSIGHT_KEYS,
     formatBadgeText,
     getSectionBadgeText,
     getItemBadgeText,
