@@ -1454,9 +1454,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DIGITS_BILL_PAYMENT_ACCOUNT]: Parameters.UpdateDigitsBillPaymentAccountParams;
     [WRITE_COMMANDS.UPDATE_DIGITS_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateDigitsSyncExpensifyCardSettlementsParams;
     [WRITE_COMMANDS.UPDATE_DIGITS_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDigitsSettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_DIGITS_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateDigitsSyncTravelInvoicingSettlementsParams;
-    [WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDigitsTravelInvoicingSettlementsAccountParams;
-    [WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateDigitsTravelInvoicingPayableAccountParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateDigitsSyncTravelBillingSettlementsParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDigitsTravelBillingSettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateDigitsTravelBillingPayableAccountParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_SUBSIDIARY]: Parameters.UpdateZohoBooksSubsidiaryParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_FIELD_MAPPING]: Parameters.UpdateZohoBooksFieldMappingParams;
     [WRITE_COMMANDS.UPDATE_ZOHO_BOOKS_ENABLE_NEW_CATEGORIES]: Parameters.UpdateZohoBooksEnableNewCategoriesParams;

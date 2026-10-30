@@ -18,9 +18,9 @@ import type {
     UpdateDigitsSettlementsAccountParams,
     UpdateDigitsSyncExpensifyCardSettlementsParams,
     UpdateDigitsSyncReimbursedReportsParams,
-    UpdateDigitsSyncTravelInvoicingSettlementsParams,
-    UpdateDigitsTravelInvoicingPayableAccountParams,
-    UpdateDigitsTravelInvoicingSettlementsAccountParams,
+    UpdateDigitsSyncTravelBillingSettlementsParams,
+    UpdateDigitsTravelBillingPayableAccountParams,
+    UpdateDigitsTravelBillingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
@@ -626,7 +626,7 @@ function updateDigitsSettlementsAccount(
 
 function updateDigitsSyncTravelInvoicingSettlements(policyID: string, enabled: DigitsSync['syncTravelInvoicingSettlements'], oldEnabled?: DigitsSync['syncTravelInvoicingSettlements']) {
     const onyxData = prepareDigitsSyncOnyxData(policyID, CONST.DIGITS_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS, enabled, oldEnabled ?? null);
-    const parameters: UpdateDigitsSyncTravelInvoicingSettlementsParams = {
+    const parameters: UpdateDigitsSyncTravelBillingSettlementsParams = {
         policyID,
         enabled,
     };
@@ -635,36 +635,31 @@ function updateDigitsSyncTravelInvoicingSettlements(policyID: string, enabled: D
 
 function updateDigitsTravelInvoicingSettlementsAccount(
     policyID: string,
-    travelInvoicingSettlementsBankAccountID: DigitsSync['travelInvoicingSettlementsBankAccountID'],
-    oldTravelInvoicingSettlementsBankAccountID?: DigitsSync['travelInvoicingSettlementsBankAccountID'],
+    travelBillingSettlementsBankAccountID: DigitsSync['travelInvoicingSettlementsBankAccountID'],
+    oldTravelBillingSettlementsBankAccountID?: DigitsSync['travelInvoicingSettlementsBankAccountID'],
 ) {
     const onyxData = prepareDigitsSyncOnyxData(
         policyID,
         CONST.DIGITS_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
-        travelInvoicingSettlementsBankAccountID,
-        oldTravelInvoicingSettlementsBankAccountID ?? null,
+        travelBillingSettlementsBankAccountID,
+        oldTravelBillingSettlementsBankAccountID ?? null,
     );
-    const parameters: UpdateDigitsTravelInvoicingSettlementsAccountParams = {
+    const parameters: UpdateDigitsTravelBillingSettlementsAccountParams = {
         policyID,
-        travelInvoicingSettlementsBankAccountID,
+        travelBillingSettlementsBankAccountID,
     };
     write(WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
 function updateDigitsTravelInvoicingPayableAccount(
     policyID: string,
-    travelInvoicingPayableAccountID: DigitsExport['travelInvoicingPayableAccountID'],
-    oldTravelInvoicingPayableAccountID?: DigitsExport['travelInvoicingPayableAccountID'],
+    travelBillingPayableAccountID: DigitsExport['travelInvoicingPayableAccountID'],
+    oldTravelBillingPayableAccountID?: DigitsExport['travelInvoicingPayableAccountID'],
 ) {
-    const onyxData = prepareDigitsExportOnyxData(
+    const onyxData = prepareDigitsExportOnyxData(policyID, CONST.DIGITS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID, travelBillingPayableAccountID, oldTravelBillingPayableAccountID ?? null);
+    const parameters: UpdateDigitsTravelBillingPayableAccountParams = {
         policyID,
-        CONST.DIGITS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
-        travelInvoicingPayableAccountID,
-        oldTravelInvoicingPayableAccountID ?? null,
-    );
-    const parameters: UpdateDigitsTravelInvoicingPayableAccountParams = {
-        policyID,
-        travelInvoicingPayableAccountID,
+        travelBillingPayableAccountID,
     };
     write(WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
