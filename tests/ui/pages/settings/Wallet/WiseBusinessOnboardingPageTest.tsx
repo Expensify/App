@@ -3,13 +3,13 @@ import {act, render, screen} from '@testing-library/react-native';
 import type {DynamicFormFlowProps} from '@components/DynamicForm/types';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {setHasRadio} from '@libs/NetworkState';
 
 import type {WiseBusinessAccountData} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseBusinessOnboardingPrefill';
-import {toSavedFile} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseOnboardingPageParams';
 import WiseBusinessOnboardingPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage';
 
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';

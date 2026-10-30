@@ -1,11 +1,15 @@
+import type {DynamicFormValues} from '@components/DynamicForm/types';
+
 import {makeRequestWithSideEffects, write} from '@libs/API';
 import type {UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import getWiseOnboardingPageParams from '@libs/getWiseOnboardingPageParams';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {DynamicFormPage} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
@@ -42,7 +46,7 @@ function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REI
 }
 
 /** Saves one intake page of the Wise business onboarding through the request queue. The server merges what it saved into `achData.wise`. */
-function saveWiseOnboardingPage(params: UpdateWiseOnboardingAdditionalDataParams) {
+function saveWiseOnboardingPageThroughQueue(params: UpdateWiseOnboardingAdditionalDataParams) {
     write(WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, getOnyxData(params.step, rand64()));
 }
 
@@ -61,13 +65,22 @@ function saveWiseOnboardingPageWithSensitiveAnswers(params: UpdateWiseOnboarding
     });
 }
 
-/** Saves one intake page, keeping a page with sensitive answers, such as an SSN in its inputs, out of the request queue */
-function updateWiseOnboardingAdditionalData(params: UpdateWiseOnboardingAdditionalDataParams, hasSensitiveAnswers: boolean) {
-    if (hasSensitiveAnswers) {
+/**
+ * Saves one intake page the user left with Next. A typed SSN goes in `inputs`, where the server reads it, and keeps the request out of the queue.
+ * A page whose key is not a step the server accepts is not sent, since the server would answer it with 400 Invalid step.
+ */
+function saveWiseOnboardingPage(bankAccountID: number, page: DynamicFormPage, answers: DynamicFormValues, sensitiveAnswers: DynamicFormValues) {
+    // A blank SSN keeps the one the server holds, so it is only sent when the user typed one
+    const ssn = typeof sensitiveAnswers.ssn === 'string' && sensitiveAnswers.ssn !== '' ? sensitiveAnswers.ssn : undefined;
+    const params = getWiseOnboardingPageParams(bankAccountID, page, ssn ? {...answers, ssn} : answers);
+    if (!params) {
+        return;
+    }
+    if (ssn) {
         saveWiseOnboardingPageWithSensitiveAnswers(params);
         return;
     }
-    saveWiseOnboardingPage(params);
+    saveWiseOnboardingPageThroughQueue(params);
 }
 
 /** Drops the unsaved pages of the bank account the draft held, since they say nothing about another account's saves */
@@ -83,5 +96,5 @@ function clearWiseOnboardingSaving() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingPendingSaves: null});
 }
 
-export default updateWiseOnboardingAdditionalData;
+export default saveWiseOnboardingPage;
 export {clearWiseOnboardingSaving, clearWiseOnboardingUnsavedPages};

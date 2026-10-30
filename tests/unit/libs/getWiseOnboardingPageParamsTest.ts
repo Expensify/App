@@ -1,4 +1,4 @@
-import getWiseOnboardingPageParams, {getSavedFileAnswers, toSavedFile} from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/getWiseOnboardingPageParams';
+import getWiseOnboardingPageParams, {getSavedFileAnswers, toSavedFile} from '@libs/getWiseOnboardingPageParams';
 
 import type {DynamicFormPage} from '@src/types/onyx';
 
@@ -39,19 +39,18 @@ describe('getWiseOnboardingPageParams', () => {
         const answers = {description: 'We sell bikes'};
 
         // When the page is turned into a save request
-        const {params, hasSensitiveAnswers} = getPageParams(BANK_ACCOUNT_ID, BUSINESS_PAGE, answers, {});
+        const params = getPageParams(BANK_ACCOUNT_ID, BUSINESS_PAGE, answers);
 
-        // Then the page key is the step, the answers are its inputs, nothing about files is sent, and the request may be queued
+        // Then the page key is the step, the answers are its inputs, and nothing about files is sent
         expect(params).toEqual({
             bankAccountID: BANK_ACCOUNT_ID,
             step: 'business',
             inputs: JSON.stringify(answers),
         });
-        expect(hasSensitiveAnswers).toBe(false);
     });
 
-    it('splits kept server files from new ones and sends the typed SSN in the inputs', () => {
-        // Given a resumed representative page that keeps one saved ID file, adds a new one, and has a new SSN typed
+    it('splits kept server files from new ones', () => {
+        // Given a resumed representative page that keeps one saved ID file and adds a new one
         const newFile = new File(['passport'], 'passport.jpg', {type: 'image/jpeg'});
         const answers = {
             firstName: 'Alice',
@@ -60,32 +59,29 @@ describe('getWiseOnboardingPageParams', () => {
         };
 
         // When the page is turned into a save request
-        const {params, hasSensitiveAnswers} = getPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers, {ssn: '123456789'});
+        const params = getPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers);
 
-        // Then the kept file is listed by key, the new one goes as a multipart part numbered among new files, and the SSN is in the inputs, where the
-        // server reads it, with the request flagged to stay out of the queue
+        // Then the kept file is listed by key, the new one goes as a multipart part numbered among new files, and the other answers are the inputs
         const {[FIRST_ID_DOCUMENT_PART]: sentFile, ...rest} = params;
         expect(sentFile).toBe(newFile);
         expect(rest).toEqual({
             bankAccountID: BANK_ACCOUNT_ID,
             step: 'representative',
-            inputs: JSON.stringify({firstName: 'Alice', [CITY_KEY]: 'Austin', ssn: '123456789'}),
+            inputs: JSON.stringify({firstName: 'Alice', [CITY_KEY]: 'Austin'}),
             documents: JSON.stringify({idDocument: ['kyc/1/license.jpg']}),
         });
-        expect(hasSensitiveAnswers).toBe(true);
     });
 
-    it('lists a hidden file field as empty and leaves out a blank SSN', () => {
+    it('lists a hidden file field as empty', () => {
         // Given the user said they have no SSN, which hides the SSN and the ID document
         const answers = {firstName: 'Alice', hasNoSSN: true};
 
         // When the page is turned into a save request
-        const {params, hasSensitiveAnswers} = getPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers, {ssn: ''});
+        const params = getPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers);
 
-        // Then the server is told to drop the ID files, and no SSN is sent so the stored one is kept
+        // Then the server is told to drop the ID files
         expect(params.documents).toBe(JSON.stringify({idDocument: []}));
         expect(params.inputs).toBe(JSON.stringify(answers));
-        expect(hasSensitiveAnswers).toBe(false);
     });
 
     it('leaves out a drafted entry that cannot be uploaded and keeps the files the server holds', () => {
@@ -94,7 +90,7 @@ describe('getWiseOnboardingPageParams', () => {
         const answers = {firstName: 'Alice', idDocument: [toSavedFile('kyc/1/license.jpg'), {name: 'lost.jpg', uri: 'blob:lost'}, newFile]};
 
         // When the page is turned into a save request
-        const {params} = getPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers, {});
+        const params = getPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers);
 
         // Then only the new file is sent as a part, so the server never receives "[object Object]" as a file, and the saved file is still listed,
         // so the server keeps it next to the new one
@@ -108,7 +104,7 @@ describe('getWiseOnboardingPageParams', () => {
         const answers = {firstName: 'Alice', idDocument: []};
 
         // When the page is turned into a save request
-        const {params} = getPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers, {});
+        const params = getPageParams(BANK_ACCOUNT_ID, REPRESENTATIVE_PAGE, answers);
 
         // Then the field is listed with no keys, so the server removes the file too
         expect(params.documents).toBe(JSON.stringify({idDocument: []}));
@@ -119,7 +115,7 @@ describe('getWiseOnboardingPageParams', () => {
         const page: DynamicFormPage = {key: 'ownership', content: [{key: 'description', type: 'text', required: true}]};
 
         // When the page is turned into a save request
-        const pageParams = getWiseOnboardingPageParams(BANK_ACCOUNT_ID, page, {description: 'We sell bikes'}, {});
+        const pageParams = getWiseOnboardingPageParams(BANK_ACCOUNT_ID, page, {description: 'We sell bikes'});
 
         // Then there is no request to send, so the caller can keep the page unsaved instead
         expect(pageParams).toBeUndefined();

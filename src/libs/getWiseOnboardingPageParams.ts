@@ -1,14 +1,15 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
 
-import type {UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
-import isFileUploadable from '@libs/isFileUploadable';
-
 import CONST from '@src/CONST';
 import type {DynamicFormPage} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ValueOf} from 'type-fest';
+
+import type {UpdateWiseOnboardingAdditionalDataParams} from './API/parameters';
+
+import isFileUploadable from './isFileUploadable';
 
 /** A file the server already holds, put back in the draft on resume. Its key tells it apart from a file picked on this device. */
 type WiseSavedFile = FileObject & {savedFileKey: string};
@@ -55,15 +56,9 @@ function getFiles(answer: DynamicFormValues[string]): FileObject[] {
  * The parameters of one `UpdateWiseOnboardingAdditionalData` call for a page the user left with Next.
  * Files the server holds are listed in `documents`, new ones are sent as `<field>[<index>]`, and the rest of the answers go in `inputs`.
  * Every file field of the page is listed in `documents`, so a file the user removed, or a field the answers now hide, is removed on the server too.
- * A typed SSN goes in `inputs` too, where the server reads it, and `hasSensitiveAnswers` tells the caller to keep the request out of the queue.
  * A page whose key is not a step the server accepts gets nothing, since the server would answer it with 400 Invalid step.
  */
-function getWiseOnboardingPageParams(
-    bankAccountID: number,
-    page: DynamicFormPage,
-    answers: DynamicFormValues,
-    sensitiveAnswers: DynamicFormValues,
-): {params: UpdateWiseOnboardingAdditionalDataParams; hasSensitiveAnswers: boolean} | undefined {
+function getWiseOnboardingPageParams(bankAccountID: number, page: DynamicFormPage, answers: DynamicFormValues): UpdateWiseOnboardingAdditionalDataParams | undefined {
     const step = page.key;
     if (!isWiseOnboardingStep(step)) {
         return undefined;
@@ -93,21 +88,12 @@ function getWiseOnboardingPageParams(
         }
     }
 
-    // A blank SSN keeps the one the server holds, so it is only sent when the user typed one
-    const ssn = typeof sensitiveAnswers.ssn === 'string' && sensitiveAnswers.ssn !== '' ? sensitiveAnswers.ssn : undefined;
-    if (ssn) {
-        inputs.ssn = ssn;
-    }
-
     return {
-        params: {
-            bankAccountID,
-            step,
-            inputs: JSON.stringify(inputs),
-            ...(fileFieldKeys.size > 0 ? {documents: JSON.stringify(documents)} : {}),
-            ...newFiles,
-        },
-        hasSensitiveAnswers: !!ssn,
+        bankAccountID,
+        step,
+        inputs: JSON.stringify(inputs),
+        ...(fileFieldKeys.size > 0 ? {documents: JSON.stringify(documents)} : {}),
+        ...newFiles,
     };
 }
 

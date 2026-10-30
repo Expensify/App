@@ -4,6 +4,7 @@ import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
 import {getCountryCode, resolveStateCode} from '@libs/CountryUtils';
+import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
@@ -16,7 +17,6 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import {CONST as COMMON_CONST} from 'expensify-common';
 
 import US from './forms/US';
-import {toSavedFile} from './getWiseOnboardingPageParams';
 
 /** The bank account's company details the business page shows, under the same keys, and the onboarding pages already saved to Wise */
 const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'incorporationType', 'wise'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;

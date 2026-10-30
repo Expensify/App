@@ -10,6 +10,7 @@ import usePermissions from '@hooks/usePermissions';
 
 import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getSavedFileAnswers} from '@libs/getWiseOnboardingPageParams';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -21,7 +22,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {hideBankAccountErrors, openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues} from '@userActions/FormActions';
-import updateWiseOnboardingAdditionalData, {clearWiseOnboardingSaving, clearWiseOnboardingUnsavedPages} from '@userActions/WiseOnboarding';
+import saveWiseOnboardingPage, {clearWiseOnboardingSaving, clearWiseOnboardingUnsavedPages} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,7 +39,6 @@ import React, {useEffect, useState} from 'react';
 
 import US from './forms/US';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
-import getWiseOnboardingPageParams, {getSavedFileAnswers} from './getWiseOnboardingPageParams';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
 
@@ -186,13 +186,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             shouldReplaceRoute
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
-            onPageSubmit={(page, answers, sensitiveAnswers) => {
-                const pageParams = getWiseOnboardingPageParams(bankAccountID, page, answers, sensitiveAnswers);
-                if (!pageParams) {
-                    return;
-                }
-                updateWiseOnboardingAdditionalData(pageParams.params, pageParams.hasSensitiveAnswers);
-            }}
+            onPageSubmit={(page, answers, sensitiveAnswers) => saveWiseOnboardingPage(bankAccountID, page, answers, sensitiveAnswers)}
             // A later page's save clears the shared error, so a page that is still unsaved shows the generic one
             submitError={saveError || (hasUnsavedPage && !isSavingPage ? translate('common.genericErrorMessage') : undefined)}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
