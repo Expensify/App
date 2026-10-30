@@ -75,12 +75,12 @@ type UseTransactionInlineEditReturn = {
     canEditAmount: boolean;
     canEditTag: boolean;
     transactionThreadReportID: string | undefined;
-    onEditDate: (newDate: string) => void;
-    onEditMerchant: (newMerchant: string) => void;
-    onEditDescription: (newDescription: string) => void;
-    onEditCategory: (newCategory: string) => void;
-    onEditAmount: (newAmount: number) => void;
-    onEditTag: (newTag: string) => void;
+    onEditDate: (newDate: string) => Promise<boolean>;
+    onEditMerchant: (newMerchant: string) => Promise<boolean>;
+    onEditDescription: (newDescription: string) => Promise<boolean>;
+    onEditCategory: (newCategory: string) => Promise<boolean>;
+    onEditAmount: (newAmount: number) => Promise<boolean>;
+    onEditTag: (newTag: string) => Promise<boolean>;
     /**
      * Ref that should be written in onPressIn and checked in onPress to suppress
      * row navigation when a cell edit is being dismissed.
@@ -274,29 +274,23 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         };
     };
 
-    const onEditDate = (newDate: string) => {
-        getEditParams().then((params) => editTransactionDateInline(params, newDate, renderedEditDataRef.current.personalOutputCurrency));
-    };
+    const applyEdit = (edit: (params: TransactionInlineEditParams) => void): Promise<boolean> =>
+        getEditParams().then((params) => {
+            edit(params);
+            return true;
+        });
 
-    const onEditMerchant = (newMerchant: string) => {
-        getEditParams().then((params) => showInlineEditError(editTransactionMerchantInline(translate, params, newMerchant)));
-    };
+    const onEditDate = (newDate: string) => applyEdit((params) => editTransactionDateInline(params, newDate, renderedEditDataRef.current.personalOutputCurrency));
 
-    const onEditDescription = (newDescription: string) => {
-        getEditParams().then((params) => showInlineEditError(editTransactionDescriptionInline(translate, params, newDescription)));
-    };
+    const onEditMerchant = (newMerchant: string) => applyEdit((params) => showInlineEditError(editTransactionMerchantInline(translate, params, newMerchant)));
 
-    const onEditCategory = (newCategory: string) => {
-        getEditParams().then((params) => editTransactionCategoryInline(params, newCategory));
-    };
+    const onEditDescription = (newDescription: string) => applyEdit((params) => showInlineEditError(editTransactionDescriptionInline(translate, params, newDescription)));
 
-    const onEditAmount = (newAmount: number) => {
-        getEditParams().then((params) => showInlineEditError(editTransactionAmountInline(translate, params, newAmount)));
-    };
+    const onEditCategory = (newCategory: string) => applyEdit((params) => editTransactionCategoryInline(params, newCategory));
 
-    const onEditTag = (newTag: string) => {
-        getEditParams().then((params) => editTransactionTagInline(params, newTag));
-    };
+    const onEditAmount = (newAmount: number) => applyEdit((params) => showInlineEditError(editTransactionAmountInline(translate, params, newAmount)));
+
+    const onEditTag = (newTag: string) => applyEdit((params) => editTransactionTagInline(params, newTag));
 
     return {
         ...permissions,

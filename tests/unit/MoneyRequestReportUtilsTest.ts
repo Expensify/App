@@ -400,7 +400,7 @@ describe('MoneyRequestReportUtils', () => {
     });
 
     describe('getReportRowReport', () => {
-        it('should drop the totals and last-activity fields and keep the rest', () => {
+        it('should drop the unheld totals and last-activity fields and keep the rest', () => {
             // Given a report with totals, last-activity fields and the fields a row reads
             const fullReport = createMock<Report>({
                 reportID: '1',
@@ -419,8 +419,8 @@ describe('MoneyRequestReportUtils', () => {
             // When the row builds its report
             const rowReport = getReportRowReport(fullReport);
 
-            // Then a new total or a new message can't change what the row receives, while the fields it reads stay
-            expect(rowReport).toEqual({reportID: '1', policyID: 'P1', currency: CONST.CURRENCY.USD});
+            // Then a new unheld total or a new message can't change what the row receives, while the totals the action cell and approval chain read stay
+            expect(rowReport).toEqual({reportID: '1', policyID: 'P1', currency: CONST.CURRENCY.USD, total: 1000, nonReimbursableTotal: 100});
         });
 
         it('should return undefined when the report is not loaded', () => {

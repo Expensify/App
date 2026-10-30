@@ -296,8 +296,6 @@ function getReportRowReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
         return report;
     }
     const {
-        total,
-        nonReimbursableTotal,
         unheldTotal,
         unheldNonReimbursableTotal,
         lastReadTime,
