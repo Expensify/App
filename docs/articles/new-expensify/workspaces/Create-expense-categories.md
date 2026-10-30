@@ -142,7 +142,7 @@ Everything else is created as a rule. The **Category rules** section at the bott
 2. In the **Category rules** section, click **Create new rule**.
 3. Choose what the rule should do:
    - **Flag for review** – Flag expenses in this category when the individual expense amount, or the daily category total on a report, goes above an amount you set.
-   - **Set field requirements** – Require a description, attendees, a receipt, or an itemized receipt for this category, or waive a receipt or itemized receipt requirement.
+   - **Require fields** – Require a description, attendees, a receipt, or an itemized receipt for this category, or waive a receipt or itemized receipt requirement.
    - **Apply expense defaults** – Set a default tax rate for this category ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
 4. Configure the rule and click **Save rule**.
 
@@ -173,7 +173,7 @@ To remove the hint, clear the **Hint** field and select **Save**.
 
 The hint appears as text below the **Description** field on the expense, both while creating a new expense and while editing an existing one. It shows as soon as the member selects that category, and only members who use that category see it.
 
-The hint is a reminder, not a requirement. To make a description mandatory, create a **Set field requirements** rule for the category and require a description.
+The hint is a reminder, not a requirement. To make a description mandatory, create a **Require fields** rule for the category and require a description.
 
 ---
 
