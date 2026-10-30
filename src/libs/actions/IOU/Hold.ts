@@ -59,6 +59,7 @@ function putOnHold({
     initialReportID,
     initialReport,
     transactionReport,
+    transactionReportActions,
     isOffline,
     currentUserLogin,
     currentUserAccountID,
@@ -74,6 +75,8 @@ function putOnHold({
     initialReportID: string | undefined;
     initialReport: OnyxEntry<OnyxTypes.Report>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
+    /** Actions of the transaction's report, which is the thread's parent. The hold is announced on that report instead of the thread when the thread is its only expense */
+    transactionReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -362,7 +365,7 @@ function putOnHold({
 
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST, params, {optimisticData, successData, failureData});
 
-    const currentReportID = getDisplayedReportID(reportID, isOffline);
+    const currentReportID = getDisplayedReportID(reportID, isOffline, transactionReportActions);
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
 }
 
@@ -371,6 +374,7 @@ function putTransactionsOnHold({
     allReports,
     comment,
     reportID,
+    reportActions,
     isOffline,
     currentUserLogin,
     currentUserAccountID,
@@ -385,6 +389,8 @@ function putTransactionsOnHold({
     allReports: OnyxCollection<OnyxTypes.Report>;
     comment: string;
     reportID: string;
+    /** Actions of the report identified by reportID, which every transaction being held belongs to */
+    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -409,6 +415,7 @@ function putTransactionsOnHold({
             initialReportID: childReportID,
             initialReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`],
             transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+            transactionReportActions: reportActions,
             isOffline,
             currentUserLogin,
             currentUserAccountID,

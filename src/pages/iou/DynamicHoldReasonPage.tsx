@@ -90,6 +90,8 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
             initialReportID: holdReportID,
             initialReport: report,
             transactionReport,
+            // The thread's parent is the transaction's report, so these are the actions that decide where the hold is announced
+            transactionReportActions: parentReportActions,
             isOffline,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,

@@ -1804,6 +1804,7 @@ describe('actions/Transaction', () => {
                         initialReportID: transactionThreadReportID,
                         initialReport: transactionThreadReport,
                         transactionReport,
+                        transactionReportActions: undefined,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,
