@@ -75,6 +75,7 @@
     - Fixes an issue where pasted image displays as binary text on some Android devices where rich clipboard data is stored in binary form
     - Fixes an issue where pasting from WPS Office app crashes the app on Android where its content URI is not recognized by Android `ContentResolver`
     - Fixes an issue where mentions copied from mWeb and pasted on Android are not displayed.
+    - Fixes an issue on iOS where pasting an image failed with "We couldn't process this image" when the first image representation on the pasteboard (e.g. HEIC) could not be read: unreadable representations are now skipped, the decoded `UIImage` is used as a fallback, and no file is emitted when nothing can be read.
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/45425
 - Upstream RFC: https://github.com/s77rt/discussions-and-proposals/blob/TextInput-onPaste/proposals/0000-textinput-onpaste.md
 - E/App issue:
