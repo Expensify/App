@@ -47,6 +47,7 @@ import type {
     SearchGroupBy,
     SearchPaidStatus,
     SearchQueryJSON,
+    SearchQueryString,
     SearchSortBy,
     SearchTextFilterKeys,
     SearchView,
@@ -4619,6 +4620,39 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
     }
 }
 
+/** Whether users can pick and reorder the columns of a search of this type. */
+function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: boolean): boolean {
+    return type === CONST.SEARCH.DATA_TYPES.EXPENSE || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || shouldReturnTripRooms;
+}
+
+/**
+ * Columns users can't remove. At least one column has to flex for the table to lay out, and the totals make sense in
+ * every expense table, so they always stay. A search filtering by violations also keeps the column showing them.
+ */
+function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<SearchCustomColumnIds> {
+    const requiredColumns = new Set<SearchCustomColumnIds>([
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
+    ]);
+
+    if (shouldRequireViolationsColumn) {
+        requiredColumns.add(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+    }
+
+    return requiredColumns;
+}
+
 function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -7649,6 +7683,11 @@ function navigateToSearchRHP(route: {route: string; getRoute: (backTo?: string) 
     }
 }
 
+/** Reloads the current search with a new set of columns. Only the columns change, so it's still the same search: the key carries over rather than being re-derived from the new query. */
+function navigateToSearchWithColumns(query: SearchQueryString, searchKey: SearchKey | undefined) {
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, searchKey}), {forceReplace: true});
+}
+
 function shouldShowDeleteOption(
     selectedTransactions: Record<string, SelectedTransactionInfo>,
     currentSearchResults: SearchResults['data'] | undefined,
@@ -7902,8 +7941,11 @@ export {
     getGroupTableScrollLayout,
     getCustomColumns,
     getCustomColumnDefault,
+    canEditSearchColumns,
+    getRequiredSearchColumns,
     filterValidHasValues,
     navigateToSearchRHP,
+    navigateToSearchWithColumns,
     shouldShowDeleteOption,
     getToFieldValueForTransaction,
     getSearchReportAvatarProps,

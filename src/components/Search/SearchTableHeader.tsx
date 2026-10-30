@@ -633,6 +633,9 @@ type SearchTableHeaderProps = {
 
     /** True when the action column should render in its wider variant (e.g. tasks, deleted expenses). */
     isActionColumnWide?: boolean;
+
+    /** Replaces each labelled column's heading. See `SortableTableHeader`. */
+    children?: React.ReactNode;
 };
 
 function SearchTableHeader({
@@ -655,6 +658,7 @@ function SearchTableHeader({
     groupBy,
     isExpenseReportView,
     isActionColumnWide,
+    children,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -697,6 +701,13 @@ function SearchTableHeader({
         orderedColumnConfig = orderedConfig;
     }
 
+    const sortByColumn = (columnName: SearchSortBy, order: SortOrder) => {
+        if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
+            return;
+        }
+        onSortPress(columnName, order);
+    };
+
     if (displayNarrowVersion) {
         return;
     }
@@ -726,13 +737,10 @@ function SearchTableHeader({
             isActionColumnWide={isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK}
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl3]}
-            onSortPress={(columnName, order) => {
-                if (columnName === CONST.SEARCH.TABLE_COLUMNS.COMMENTS) {
-                    return;
-                }
-                onSortPress(columnName, order);
-            }}
-        />
+            onSortPress={sortByColumn}
+        >
+            {children}
+        </SortableTableHeader>
     );
 }
 

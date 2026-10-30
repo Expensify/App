@@ -10951,6 +10951,12 @@ const translations = {
         columns: 'Columns',
         editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
+        columnMenu: {
+            openMenu: ({columnName}: {columnName: string}) => `${columnName} column options`,
+            sortAscending: 'Sort ascending',
+            sortDescending: 'Sort descending',
+            hideColumn: 'Hide column',
+        },
         groupColumns: 'Group columns',
         expenseColumns: 'Expense Columns',
         saveView: 'Save view',
