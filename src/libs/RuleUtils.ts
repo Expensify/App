@@ -1,13 +1,20 @@
 /**
  * Helpers for the `rules_` collection, which holds every kind of rule (approval workflows, expense defaults, ...)
  * under one shape. Anything reading the collection has to narrow to the kind it handles first, so those predicates
- * live here rather than in the per-kind util files, which would otherwise import each other.
+ * live here rather than in the per-kind util files, which would otherwise import each other. The policy-scoped
+ * approval workflow readers live here too, so modules that cannot import `WorkflowUtils` (it reaches the connection
+ * actions through `merge/HRUtils`) can still use them.
  */
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowAction, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ExpenseDefaultAction, ExpenseDefaultRule} from '@src/types/onyx/ExpenseDefaultRules';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
 
 /**
  * The index-keyed object shape the rules API uses for lists (`['a', 'b']` becomes `{'1': 'a', '2': 'b'}`). The
@@ -95,4 +102,58 @@ function getRuleFilterLeaves(filters: RuleFilterNode | undefined): RuleFilterCom
     return [...getRuleFilterLeaves(filters.left), ...getRuleFilterLeaves(filters.right)];
 }
 
-export {fromIndexMap, getRuleFilterLeaves, isApprovalWorkflowRule, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode, toIndexMap};
+/**
+ * Keep only the rules belonging to `policyID`, preserving the collection shape so the result can still be
+ * handed to anything that takes the whole rules collection.
+ */
+function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: string | undefined): NonNullable<OnyxCollection<Rule>> {
+    const result: NonNullable<OnyxCollection<Rule>> = {};
+    if (!rulesCollection || !policyID) {
+        return result;
+    }
+
+    for (const [onyxKey, rule] of Object.entries(rulesCollection)) {
+        if (rule?.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
+            continue;
+        }
+        result[onyxKey] = rule;
+    }
+
+    return result;
+}
+
+/**
+ * Convert the `ONYXKEYS.COLLECTION.RULE` collection into the `ruleID -> rule body` map used by the
+ * builder, reconcilers and converters, keeping only non-deleted rules scoped to `policyID`.
+ */
+function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): Record<string, ApprovalWorkflowRule> {
+    const result: Record<string, ApprovalWorkflowRule> = {};
+
+    for (const [onyxKey, rule] of Object.entries(filterRulesForPolicy(rulesCollection, policyID))) {
+        if (!rule || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isApprovalWorkflowRule(rule)) {
+            continue;
+        }
+        const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
+        result[ruleID] = {
+            triggers: toIndexMap(fromIndexMap(rule.triggers)),
+            filters: rule.filters,
+            actions: toIndexMap(fromIndexMap(rule.actions)),
+            ...(rule.isDefaultApprovalWorkflow ? {isDefaultApprovalWorkflow: true} : {}),
+        };
+    }
+
+    return result;
+}
+
+export {
+    filterRulesForPolicy,
+    fromIndexMap,
+    getApprovalWorkflowRulesForPolicy,
+    getRuleFilterLeaves,
+    isApprovalWorkflowRule,
+    isExpenseDefaultRule,
+    isRuleFilterComparison,
+    isRuleFilterNode,
+    toIndexMap,
+};
+export type {ApprovalWorkflowRulesDiff};

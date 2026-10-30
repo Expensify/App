@@ -4,7 +4,6 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {BankAccountList} from '@src/types/onyx';
@@ -26,12 +25,14 @@ import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 
+import type {ApprovalWorkflowRulesDiff} from './RuleUtils';
+
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getConnectedHRProvider, getHRAdvancedModeFinalApprover, getHRFinalApprover, isAnyHRConnected, isHRAdvancedMode, isAnyHRReadOnlyWorkflowMode} from './merge/HRUtils';
 import {getConnectedATSProvider, isAnyRecruitingReadOnlyWorkflowMode} from './merge/RecruitingUtils';
 import {rand64} from './NumberUtils';
 import {canMemberWrite, getDefaultApprover, isExpensifyTeam, isNonMemberApprover, isSubmitPolicy, shouldFilterExpensifyTeam, shouldHideDynamicExternalWorkflowPeople} from './PolicyUtils';
-import {fromIndexMap, isApprovalWorkflowRule, isRuleFilterComparison, toIndexMap} from './RuleUtils';
+import {fromIndexMap, getApprovalWorkflowRulesForPolicy, isApprovalWorkflowRule, isRuleFilterComparison, toIndexMap} from './RuleUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     members: [],
@@ -902,8 +903,6 @@ function includesEveryWorkspaceMember(memberEmails: Array<string | null | undefi
     return workspaceMembers.length > 0 && workspaceMembers.every((employee) => memberEmailSet.has(employee.email));
 }
 
-type ApprovalWorkflowRulesDiff = Record<string, ApprovalWorkflowRule | null>;
-
 function buildComparison(left: RuleFilterComparison['left'], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>, right: RuleFilterComparison['right']): RuleFilterComparison {
     return {operator, left, right};
 }
@@ -1561,49 +1560,6 @@ function hasRuleBasedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>
 }
 
 /**
- * Keep only the rules belonging to `policyID`, preserving the collection shape so the result can still be
- * handed to anything that takes the whole rules collection.
- */
-function filterRulesForPolicy(rulesCollection: OnyxCollection<Rule>, policyID: string | undefined): NonNullable<OnyxCollection<Rule>> {
-    const result: NonNullable<OnyxCollection<Rule>> = {};
-    if (!rulesCollection || !policyID) {
-        return result;
-    }
-
-    for (const [onyxKey, rule] of Object.entries(rulesCollection)) {
-        if (rule?.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policyID) {
-            continue;
-        }
-        result[onyxKey] = rule;
-    }
-
-    return result;
-}
-
-/**
- * Convert the `ONYXKEYS.COLLECTION.RULE` collection into the `ruleID -> rule body` map used by the
- * builder, reconcilers and converters, keeping only non-deleted rules scoped to `policyID`.
- */
-function getApprovalWorkflowRulesForPolicy(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): Record<string, ApprovalWorkflowRule> {
-    const result: Record<string, ApprovalWorkflowRule> = {};
-
-    for (const [onyxKey, rule] of Object.entries(filterRulesForPolicy(rulesCollection, policyID))) {
-        if (!rule || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isApprovalWorkflowRule(rule)) {
-            continue;
-        }
-        const ruleID = onyxKey.slice(ONYXKEYS.COLLECTION.RULE.length);
-        result[ruleID] = {
-            triggers: toIndexMap(fromIndexMap(rule.triggers)),
-            filters: rule.filters,
-            actions: toIndexMap(fromIndexMap(rule.actions)),
-            ...(rule.isDefaultApprovalWorkflow ? {isDefaultApprovalWorkflow: true} : {}),
-        };
-    }
-
-    return result;
-}
-
-/**
  * Whether approval workflow rules route the reports of the given policy.
  */
 function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
@@ -2039,13 +1995,11 @@ export {
     convertApprovalWorkflowToPolicyEmployees,
     extractSubmitterEmails,
     getApprovalLimitDescription,
-    getApprovalWorkflowRulesForPolicy,
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
-    filterRulesForPolicy,
     getApproverPendingActionByMemberEmail,
     getRulesSubmitterToFirstApprover,
     getRulesSubmitterToWorkflowKey,
@@ -2068,4 +2022,3 @@ export {
     reconcileApprovalWorkflowRulesForRemove,
     updateWorkflowDataOnApproverRemoval,
 };
-export type {ApprovalWorkflowRulesDiff};
