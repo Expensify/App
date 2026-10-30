@@ -11114,6 +11114,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11177,6 +11178,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Weeks',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',

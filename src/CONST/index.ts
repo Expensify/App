@@ -8220,6 +8220,7 @@ const CONST = {
             WEEK: 'week',
             YEAR: 'year',
             QUARTER: 'quarter',
+            APPROVER: 'approver',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8568,6 +8569,12 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                APPROVER: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
+                    APPROVER: this.TABLE_COLUMNS.GROUP_APPROVER,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8629,6 +8636,7 @@ const CONST = {
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -8757,6 +8765,7 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
+            GROUP_APPROVER: 'groupApprover',
             START_DATE: 'startDate',
             END_DATE: 'endDate',
             TRIP_NAME: 'tripName',
@@ -8869,6 +8878,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            APPROVER: 'approver',
             // The Spend footer's display selections. They travel as filters because that is where the backend reads
             // them from, but they never narrow the result set: only `footerTotal` changes the response, by swapping
             // which aggregate comes back as the search total.
@@ -8963,6 +8973,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitter-user-id',
             SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
+            APPROVER: 'approver',
             COLUMNS: 'columns',
             LIMIT: 'limit',
             FOOTER_COUNT: 'footer-count',
@@ -9041,6 +9052,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
+                [this.TABLE_COLUMNS.GROUP_APPROVER]: 'group-approver',
                 [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
                 [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };

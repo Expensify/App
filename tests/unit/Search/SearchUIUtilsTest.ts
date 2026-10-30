@@ -756,6 +756,38 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
     },
 };
 
+const groupedApproverAccountID = 22982540;
+const searchResultsGroupByApprover: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {
+            [groupedApproverAccountID]: {
+                accountID: groupedApproverAccountID,
+                displayName: 'Approver',
+                login: 'approver@policy.com',
+            },
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${groupedApproverAccountID}` as const]: {
+            accountID: groupedApproverAccountID,
+            count: 3,
+            currency: 'USD',
+            total: 150,
+        },
+    },
+    search: {
+        count: 3,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        total: 150,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
 const withoutReportActionErrors = <T extends OnyxTypes.ReportAction>(reportAction: T): Omit<T, 'errors'> => {
     const reportActionWithoutErrors = {...reportAction};
     delete reportActionWithoutErrors.errors;
@@ -4050,6 +4082,50 @@ describe('SearchUIUtils', () => {
             expect(categorySection.transactionsQueryJSON?.groupBy).toBeUndefined();
             expect(categorySection.transactionsQueryJSON?.limit).toBeUndefined();
             expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+        });
+
+        it('should build an approver drill-down for an approver group', () => {
+            // Given an approver-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.APPROVER} limit:10`);
+            if (!parsedQuery) {
+                throw new Error('Failed to parse approver grouped search query');
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the approver sections are built
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByApprover.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: {...parsedQuery},
+                }),
+                SearchUIUtils.isTransactionApproverGroupListItemType,
+            );
+
+            // Then the per-group query drops the grouping and limit, and filters by the approver as a syntax filter
+            const approverSection = sections.at(0);
+            if (!approverSection) {
+                throw new Error('Expected an approver group section');
+            }
+            expect(approverSection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(approverSection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(approverSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+            expect(approverSection.transactionsQueryJSON?.filters).toEqual({
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+                right: String(groupedApproverAccountID),
+            });
         });
 
         // Every date granularity drills down through the same `buildDateRangeGroupQuery` builder, so they are
@@ -16839,6 +16915,25 @@ describe('hasFilterContentValuesChanged', () => {
         if (ignored) {
             expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, ignored.at(0), ignored.at(1))).toBe(false);
         }
+    });
+});
+
+describe('getGroupBySections', () => {
+    function getGroupByValues() {
+        return SearchUIUtils.getGroupBySections(translateLocal)
+            .flatMap((section) => section.options)
+            .map((option) => option.value);
+    }
+
+    it('always offers approver grouping alongside from and card', () => {
+        // Given the Display menu group-by sections
+        // When they are built
+        const options = getGroupByValues();
+
+        // Then approver is offered with the other person groupings, with no has-filter requirement
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.FROM);
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.CARD);
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.APPROVER);
     });
 });
 
