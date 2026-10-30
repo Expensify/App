@@ -4,7 +4,6 @@ import {addComment, openReport} from '@libs/actions/Report';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMergeFieldUpdatedValues} from '@libs/MergeTransactionUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction, isActionOfType, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
 
