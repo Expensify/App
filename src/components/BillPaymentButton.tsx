@@ -83,12 +83,33 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
         }
         payBill(report, paymentMethod, bankAccountID, searchHash, currentSearchKey);
     };
-    const bankOptions = payableBankAccounts.map((bank) => ({
-        text: bank.title,
-        description: bank.description,
-        icon: icons.Bank,
-        onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, bank.bankAccountID),
-    }));
+    const canPayByACH = report?.currency === CONST.CURRENCY.USD;
+
+    // Each business bank account pays by ACH. Without one, the payer starts adding a business bank account.
+    const bankAccountOptions =
+        payableBankAccounts.length > 0
+            ? payableBankAccounts.map((bank) => ({
+                  text: bank.title,
+                  description: bank.description,
+                  value: `${bank.bankAccountID}`,
+                  icon: icons.Bank,
+                  disabled: !canPayByACH,
+                  onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, bank.bankAccountID),
+              }))
+            : [
+                  {
+                      text: translate('iou.settleBusiness'),
+                      value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                      icon: icons.Bank,
+                      disabled: !canPayByACH,
+                      onSelected: () =>
+                          Navigation.navigate(
+                              isBillReport(report) && report?.policyID
+                                  ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: report.policyID})
+                                  : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(),
+                          ),
+                  },
+              ];
 
     return (
         <OfflineWithFeedback
@@ -105,25 +126,7 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
                 // shouldAlwaysShowDropdownMenu opens the menu on every press, so the button has no action of its own
                 onPress={() => {}}
                 options={[
-                    {
-                        text: translate('billPay.payByACH'),
-                        value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
-                        icon: icons.Bank,
-                        disabled: report?.currency !== CONST.CURRENCY.USD,
-                        subMenuItems: [
-                            ...bankOptions,
-                            {
-                                text: translate('bankAccount.addBankAccount'),
-                                icon: icons.Bank,
-                                onSelected: () =>
-                                    Navigation.navigate(
-                                        isBillReport(report) && report?.policyID
-                                            ? ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: report.policyID})
-                                            : ROUTES.SETTINGS_ADD_BANK_ACCOUNT.getRoute(),
-                                    ),
-                            },
-                        ],
-                    },
+                    ...bankAccountOptions,
                     {
                         text: translate('billPay.markAsPaid'),
                         value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,

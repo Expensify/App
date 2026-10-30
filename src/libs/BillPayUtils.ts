@@ -51,8 +51,10 @@ function canPayBill(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | null,
     if (!isFinallyApproved && !isCanceledWithoutApproval) {
         return false;
     }
+
+    // As in Classic, the bill's receiver, the policy's reimburser, and the policy's admins and payments admins can pay it
     const reimburser = policy?.reimburser ?? policy?.achAccount?.reimburser;
-    return reimburser ? reimburser === email : policy?.role === CONST.POLICY.ROLE.ADMIN;
+    return report.ownerAccountID === accountID || (!!reimburser && reimburser === email) || policy?.role === CONST.POLICY.ROLE.ADMIN || policy?.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
 }
 
 export {isBillReport, isBillPayReport, canApproveBill, canPayBill};
