@@ -21,15 +21,14 @@ import {getBillable, getCategory, getDescription, getMerchant, getReimbursable, 
  * confirmation with nothing left to answer offers nothing.
  */
 function getOfferableMerchantRuleSuggestionFields(suggestion: OnyxEntry<MerchantRuleSuggestion>, confirmation: OnyxEntry<MerchantRuleSuggestionConfirmation>): MerchantRuleSuggestionField[] {
-    const transactionID = confirmation?.transactionID;
+    const transactionID = suggestion?.transactionID;
     if (!transactionID) {
         return [];
     }
 
     const editedFields = suggestion?.editedFields?.[transactionID];
-    const confirmedFields = confirmation.confirmedFields?.[transactionID];
 
-    return Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field] && !!confirmedFields?.[field]);
+    return Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field] && !!confirmation?.[field]);
 }
 
 /**
@@ -40,7 +39,7 @@ function getOfferableMerchantRuleSuggestionFields(suggestion: OnyxEntry<Merchant
  * callout on this, and a pending record would spend its entrance animation before there was anything to show.
  */
 function isMerchantRuleSuggestionLive(suggestion: OnyxEntry<MerchantRuleSuggestion>, confirmation: OnyxEntry<MerchantRuleSuggestionConfirmation>): boolean {
-    const transactionID = confirmation?.transactionID;
+    const transactionID = suggestion?.transactionID;
     if (!transactionID || suggestion?.retiredTransactionIDs?.[transactionID]) {
         return false;
     }

@@ -133,12 +133,6 @@ type Response<TKey extends OnyxKey> = {
     /** Cache key returned from GetExpensifyCardStatementPDF */
     statementKey?: string;
 
-    /**
-     * Whether an expense edit repeats one the user has made often enough for a merchant rule to be worth offering.
-     * Returned by the UpdateMoneyRequest commands, which count the edits themselves.
-     */
-    suggestNewRuleCreation?: boolean;
-
     /** Whether the ParseExpenseFilters command successfully parsed the natural-language query */
     success?: boolean;
 

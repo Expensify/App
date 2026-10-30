@@ -1,7 +1,6 @@
 import {addMiddleware} from '@libs/Request';
 
 import {
-    ConfirmMerchantRuleSuggestion,
     FailureTracking,
     FraudMonitoring,
     GlobalReimbursementPayError,
@@ -78,10 +77,6 @@ function registerMiddlewares() {
     // HandleMovedScanFailedExpenses - Retires the optimistic report built for scan-failed expenses moved on payment once the backend answers
     // with the report it created for them. Must run before SaveResponseInOnyx so its updates are applied with the response.
     addMiddleware(HandleMovedScanFailedExpenses);
-
-    // ConfirmMerchantRuleSuggestion - Lets the "Create a rule" callout appear once the backend confirms the edit is one
-    // the user keeps repeating. Must run before SaveResponseInOnyx so the suggestion is confirmed with the response.
-    addMiddleware(ConfirmMerchantRuleSuggestion);
 
     // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.
     addMiddleware(ReconcileBulkEditReportAction);

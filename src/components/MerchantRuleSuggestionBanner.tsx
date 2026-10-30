@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearMerchantRuleSuggestionFields, dismissMerchantRuleSuggestion, markMerchantRuleSuggestionSeen, retireMerchantRuleSuggestion} from '@libs/actions/MerchantRuleSuggestion';
 import {setDraftMerchantRule} from '@libs/actions/User';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -172,7 +173,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
  */
 function MerchantRuleSuggestionBanner({reportID, policyID, containerStyles, overlayStyles, isAnchoredToBottom}: MerchantRuleSuggestionBannerProps) {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
-    const [confirmation] = useOnyx(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION);
+    const [confirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION}${getNonEmptyStringOnyxID(storedSuggestion?.transactionID)}`);
     // A full-size composer leaves no room for the callout, and on narrow layouts it would sit over the button that
     // collapses the composer again. Handled inside the content rather than here, so the callout goes at once instead
     // of animating out over the composer as it grows.

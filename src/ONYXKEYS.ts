@@ -743,13 +743,6 @@ const ONYXKEYS = {
     /** Session-scoped record of the latest expense edit that could become a merchant rule, driving the "Create a rule" callout */
     RAM_ONLY_MERCHANT_RULE_SUGGESTION: 'merchantRuleSuggestion',
 
-    /**
-     * The server's verdict on those edits, and the expense it last favoured. Written from whichever tab sends the
-     * queued write, which on web is the leader rather than the one the user edited in, so this half cannot be
-     * session-scoped: a RAM-only key never reaches the tab holding the edits it answers.
-     */
-    MERCHANT_RULE_SUGGESTION_CONFIRMATION: 'merchantRuleSuggestionConfirmation',
-
     NVP_PRIVATE_CANCELLATION_DETAILS: 'nvp_private_cancellationDetails',
 
     /** Stores the information about duplicated workspace */
@@ -1090,6 +1083,12 @@ const ONYXKEYS = {
 
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
+
+        /**
+         * Auth's verdict on an expense's edits, keyed by expense then by field. A field reads true once the same value
+         * has been given to the same merchant often enough for a merchant rule to be worth offering.
+         */
+        SUGGEST_NEW_RULE_CREATION: 'suggestNewRuleCreation_',
 
         // Search Page related
         SNAPSHOT: 'snapshot_',
@@ -1752,6 +1751,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
     [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
+    [ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION]: OnyxTypes.MerchantRuleSuggestionConfirmation;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };
@@ -1994,7 +1994,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE]: boolean;
     [ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER]: boolean;
     [ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION]: OnyxTypes.MerchantRuleSuggestion;
-    [ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION]: OnyxTypes.MerchantRuleSuggestionConfirmation;
     [ONYXKEYS.DUPLICATE_WORKSPACE]: OnyxTypes.DuplicateWorkspace;
     [ONYXKEYS.COPY_POLICY_SETTINGS]: OnyxTypes.CopyPolicySettings;
     [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: string;

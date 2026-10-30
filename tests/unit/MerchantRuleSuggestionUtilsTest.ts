@@ -42,14 +42,14 @@ const buildPolicyWithTax = (taxCode: string): Policy => {
 
 const buildSuggestion = (overrides: Partial<MerchantRuleSuggestion> = {}) =>
     ({
+        transactionID: TRANSACTION_ID,
         reportIDs: {[TRANSACTION_ID]: '999'},
         editedFields: {[TRANSACTION_ID]: {category: true}},
         ...overrides,
     }) as MerchantRuleSuggestion;
 
 const buildConfirmation = (overrides: Partial<MerchantRuleSuggestionConfirmation> = {}): MerchantRuleSuggestionConfirmation => ({
-    transactionID: TRANSACTION_ID,
-    confirmedFields: {[TRANSACTION_ID]: {category: true}},
+    category: true,
     ...overrides,
 });
 
@@ -61,11 +61,11 @@ describe('isMerchantRuleSuggestionLive', () => {
         expect(isMerchantRuleSuggestionLive(undefined, undefined)).toBe(false);
     });
 
-    it('is not live until a confirmation names the expense offering', () => {
-        // Given edits recorded but no verdict yet naming which expense they earned an offer for
+    it('is not live until an edit names the expense offering', () => {
+        // Given a record holding no expense, which is how it reads before the first tracked edit
         // When the offer is checked
-        // Then it does not stand, since an expense takes the offer only once one of its edits is confirmed
-        expect(isMerchantRuleSuggestionLive(buildSuggestion(), buildConfirmation({transactionID: undefined}))).toBe(false);
+        // Then it does not stand, since there is no expense for the callout to offer on
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({transactionID: undefined}), buildConfirmation())).toBe(false);
     });
 
     it('is live once the server has confirmed an edited field', () => {
@@ -77,21 +77,16 @@ describe('isMerchantRuleSuggestionLive', () => {
 
     it('is not live while the edit is still waiting on the server', () => {
         // Given an edit recorded before its queued write has been answered
-        const confirmation = buildConfirmation({confirmedFields: undefined});
-
         // When the offer is checked
         // Then it does not stand, since only the server can say the edit repeats
-        expect(isMerchantRuleSuggestionLive(buildSuggestion(), confirmation)).toBe(false);
+        expect(isMerchantRuleSuggestionLive(buildSuggestion(), undefined)).toBe(false);
     });
 
-    it('is not live when the confirmation belongs to a different expense', () => {
-        // Given a verdict recorded against an expense other than the one offering
-        const confirmation = buildConfirmation({confirmedFields: {[OTHER_TRANSACTION_ID]: {category: true}}});
-
+    it('is not live when the server turned the edit down', () => {
+        // Given a verdict saying this edit is a one-off, which is what the server returns for a first edit
         // When the offer is checked
-        // Then it does not stand, because confirmation is keyed per expense so a late response cannot confirm the
-        // wrong one
-        expect(isMerchantRuleSuggestionLive(buildSuggestion(), confirmation)).toBe(false);
+        // Then it does not stand
+        expect(isMerchantRuleSuggestionLive(buildSuggestion(), buildConfirmation({category: false}))).toBe(false);
     });
 
     it('is not live when the only confirmed field was never edited', () => {

@@ -40,13 +40,13 @@ type TrackMerchantRuleSuggestionParams = {
  * Records an edit that could become a merchant rule, so the expense can offer to create one.
  *
  * Only the server can tell whether an edit repeats, since it alone sees the user's history, so the record starts
- * unconfirmed and `setMerchantRuleSuggestionConfirmation` promotes it when the response says the same merchant has been given
- * the same value often enough. Recording here rather than waiting keeps the workspace and expense checks at the call
- * site, where the data already is, and lets an edit made offline still offer once its queued write is sent.
+ * unconfirmed and Auth answers it in `suggestNewRuleCreation_<transactionID>`. Recording here rather than waiting
+ * keeps the workspace and expense checks at the call site, where the data already is, and lets an edit made offline
+ * still offer once its queued write is sent.
  *
  * Edits accumulate per expense until the offer is taken, so one rule can carry category, tag and tax together. Only
- * the most recently confirmed expense offers. Recorded for anyone on the workspace; `useMerchantRuleSuggestion`
- * decides who actually sees the callout.
+ * the most recently edited expense offers. Recorded for anyone on the workspace; `useMerchantRuleSuggestion` decides
+ * who actually sees the callout.
  */
 function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, policyCategories, transaction, parentReport, editedTagLevels}: TrackMerchantRuleSuggestionParams) {
     // Skip workspaces that could not hold a merchant rule, otherwise an edit made with Rules off would surface the
@@ -69,9 +69,9 @@ function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, po
         return;
     }
 
-    // Merged rather than set, so dismissals survive and `editedFields` accumulates. Nothing here says this expense is
-    // the one offering, since only a confirmation can decide that.
+    // Merged rather than set, so dismissals survive and `editedFields` accumulates.
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {
+        transactionID,
         reportIDs: {[transactionID]: reportID},
         editedFields: {[transactionID]: {[field]: true}},
         // Keyed by level so editing several levels of one tag accumulates, the same way fields do.
@@ -82,31 +82,10 @@ function trackMerchantRuleSuggestion({transactionID, field, reportID, policy, po
         seenTransactionID: null,
     });
 
-    // A fresh edit of this field answers to its own response, so an earlier confirmation of it must not stand in for
-    // one. Other fields keep theirs, which is what lets an offer earned on category survive editing the tag.
-    setMerchantRuleSuggestionConfirmation(transactionID, field, false);
-}
-
-/**
- * Records the server's verdict on one recorded edit, promoting it to an offer or taking that promotion away. Called
- * from the `ConfirmMerchantRuleSuggestion` middleware, since a queued write never returns its response to the caller.
- *
- * Keyed by expense and field rather than set on the record as a whole, so a response that lands after the user has
- * moved on to another expense cannot confirm that one.
- *
- * A verdict replaces whatever stood for that field rather than only ever adding to it. Edits of one field are sent in
- * order, so the last answer is the one that describes the value the expense now holds. Were a `false` ignored, two
- * edits of the same field made before either was answered would leave the first one's offer standing over the second
- * one's value.
- */
-function setMerchantRuleSuggestionConfirmation(transactionID: string, field: MerchantRuleSuggestionField, isConfirmed: boolean) {
-    if (!isConfirmed) {
-        Onyx.merge(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION, {confirmedFields: {[transactionID]: {[field]: null}}});
-        return;
-    }
-
-    // A confirmation is what hands an expense the offer, so it is also what ends the one before it.
-    Onyx.merge(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION, {transactionID, confirmedFields: {[transactionID]: {[field]: true}}});
+    // A fresh edit of this field answers to its own response, so an earlier verdict on it must not stand in for one
+    // until Auth replaces it. Other fields keep theirs, which is what lets an offer earned on category survive
+    // editing the tag.
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION}${transactionID}`, {[field]: false});
 }
 
 /**
@@ -145,7 +124,7 @@ function clearMerchantRuleSuggestionFields(transactionID: string) {
         editedTagLevels: {[transactionID]: null},
         reportIDs: {[transactionID]: null},
     });
-    Onyx.merge(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION, {confirmedFields: {[transactionID]: null}});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION}${transactionID}`, null);
 }
 
 /**
@@ -155,11 +134,4 @@ function retireMerchantRuleSuggestion(transactionID: string) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION, {retiredTransactionIDs: {[transactionID]: true}});
 }
 
-export {
-    trackMerchantRuleSuggestion,
-    setMerchantRuleSuggestionConfirmation,
-    dismissMerchantRuleSuggestion,
-    markMerchantRuleSuggestionSeen,
-    retireMerchantRuleSuggestion,
-    clearMerchantRuleSuggestionFields,
-};
+export {trackMerchantRuleSuggestion, dismissMerchantRuleSuggestion, markMerchantRuleSuggestionSeen, retireMerchantRuleSuggestion, clearMerchantRuleSuggestionFields};

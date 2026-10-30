@@ -17,7 +17,7 @@ type MerchantRuleSuggestionResult = {
     /** The edits that can be turned into a merchant rule, or undefined when no callout should render */
     suggestion: MerchantRuleSuggestion | undefined;
 
-    /** The expense being offered for, which the record names only once the server has confirmed one of its edits */
+    /** The expense being offered for, which is the one edited most recently */
     transactionID: string | undefined;
 
     /** The confirmed edits on that expense, which the rule is pre-seeded from */
@@ -41,10 +41,10 @@ type MerchantRuleSuggestionResult = {
  */
 function useMerchantRuleSuggestion(reportID: string | undefined, policyID: string | undefined): MerchantRuleSuggestionResult {
     const [storedSuggestion] = useOnyx(ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION);
-    const [confirmation] = useOnyx(ONYXKEYS.MERCHANT_RULE_SUGGESTION_CONFIRMATION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const offeringTransactionID = confirmation?.transactionID;
+    const offeringTransactionID = storedSuggestion?.transactionID;
+    const [confirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION}${getNonEmptyStringOnyxID(offeringTransactionID)}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(offeringTransactionID)}`);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
 

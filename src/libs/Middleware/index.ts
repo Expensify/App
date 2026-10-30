@@ -1,4 +1,3 @@
-import ConfirmMerchantRuleSuggestion from './ConfirmMerchantRuleSuggestion';
 import FailureTracking from './FailureTracking';
 import FraudMonitoring from './FraudMonitoring';
 import GlobalReimbursementPayError from './GlobalReimbursementPayError';
@@ -18,7 +17,6 @@ import SentryServerTiming from './SentryServerTiming';
 import SupportalPermission from './SupportalPermission';
 
 export {
-    ConfirmMerchantRuleSuggestion,
     ReplaceOptimisticAgentAccountID,
     HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
