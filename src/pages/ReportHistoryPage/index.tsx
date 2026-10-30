@@ -24,6 +24,8 @@ import {isGroupPolicyExpenseReport, isOpenExpenseReport} from '@libs/ReportUtils
 import type {WithReportOrNotFoundProps} from '@pages/inbox/report/withReportOrNotFound';
 import withReportOrNotFound from '@pages/inbox/report/withReportOrNotFound';
 
+import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -40,7 +42,7 @@ type ReportHistoryPageProps = WithReportOrNotFoundProps & PlatformStackScreenPro
 
 function ReportHistoryPage({report}: ReportHistoryPageProps) {
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Info']);
+    const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const {translate, dateFnsLocale} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_HISTORY.path);
@@ -87,10 +89,12 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
                     {isOffline && (
                         <Banner
                             text={translate('reportHistoryPage.offlineMessage')}
-                            icon={icons.Info}
+                            icon={icons.OfflineCloud}
+                            iconWidth={variables.iconSizeSmall}
+                            iconHeight={variables.iconSizeSmall}
                             shouldShowIcon
-                            containerStyles={[styles.mb3, styles.p4, styles.br3]}
-                            textStyles={[styles.breakWord, styles.textSupporting]}
+                            containerStyles={[styles.highlightBG, styles.mb3, styles.p4, styles.br3]}
+                            textStyles={[styles.breakWord, styles.textLabelSupporting]}
                         />
                     )}
                     {shouldShowSkeleton
