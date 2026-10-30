@@ -15,6 +15,7 @@ import {
     isTransactionEntry,
     isTransactionGroupListItemType,
     isTransactionListItemType,
+    isTripListItemType,
 } from '@libs/SearchUIUtils';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -43,6 +44,7 @@ import {
     buildShiftRangeSource,
     getSearchGroupCount,
     getSearchGroupCountByKey,
+    getSelectableRows,
     isGroupSelected,
     isRowChecked,
     mapEmptyReportToSelectedEntry,
@@ -600,7 +602,7 @@ function SearchWriteActionsProvider({
 
     // Expense-report rows are the selectable unit, so only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
-    const {items: flattenedShiftRangeItems, childrenByGroupKey, groupKeyByChildKey} = buildShiftRangeSource(renderedData, openGroupKeys, hasValidGroupBy);
+    const {items: flattenedShiftRangeItems, childrenByGroupKey, groupKeyByChildKey} = buildShiftRangeSource(getSelectableRows(renderedData), openGroupKeys, hasValidGroupBy);
     useLayoutEffect(() => {
         groupKeyByChildKeyRef.current = groupKeyByChildKey;
         childrenByGroupKeyRef.current = childrenByGroupKey;
@@ -694,7 +696,7 @@ function SearchWriteActionsProvider({
     const seedGroup = (groupKey: string) => rangeApi.seedRangeFromSelection((childKey) => groupKeyByChildKeyRef.current.get(childKey) === groupKey);
 
     const toggle: SearchRowSelectionActionsValue['toggle'] = (item, itemTransactions, shiftKey) => {
-        if (isReportActionListItemType(item) || isTaskListItemType(item)) {
+        if (isReportActionListItemType(item) || isTaskListItemType(item) || isTripListItemType(item)) {
             return;
         }
 
