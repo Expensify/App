@@ -1,4 +1,3 @@
-import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useLocalize from '@hooks/useLocalize';
@@ -24,7 +23,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
-import CompactSearchBar from './SearchBar/CompactSearchBar';
+import ListSearchBar from './SearchBar/ListSearchBar';
 import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 import Text from './Text';
 import TextLink from './TextLink';
@@ -163,9 +162,6 @@ function ColumnsSettingsList({
     const visibleTypeColumnsList = typeColumnsList.filter((column) => isLabelMatchingSearchValue(column.text, searchValue));
     const visibleGroupColumnsList = groupColumnsList.filter((column) => isLabelMatchingSearchValue(column.text, searchValue));
     const shouldShowNoResultsFound = !visibleTypeColumnsList.length && !visibleGroupColumnsList.length;
-    const noResultsFoundText = translate('common.noResultsFound');
-
-    useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldShowNoResultsFound, searchValue);
 
     const isDefaultState =
         columns.length === defaultColumns.length &&
@@ -265,23 +261,13 @@ function ColumnsSettingsList({
             <HeaderWithBackButton title={translate('search.columns')}>
                 {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
-            <CompactSearchBar
+            <ListSearchBar
                 label={translate('common.search')}
-                inputValue={searchValue}
+                searchValue={searchValue}
                 onChangeText={setSearchValue}
-                style={[styles.mb3, styles.mw100]}
+                shouldShowNoResultsFound={shouldShowNoResultsFound}
             />
             <View style={styles.flex1}>
-                {shouldShowNoResultsFound && (
-                    <View style={[styles.ph5, styles.pb5]}>
-                        <Text
-                            style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
-                            aria-hidden
-                        >
-                            {noResultsFoundText}
-                        </Text>
-                    </View>
-                )}
                 {/* The list stays mounted when nothing matches because useListKeyboardNav attaches its focus listeners to containerRef only once. */}
                 <ScrollView
                     style={styles.flex1}
