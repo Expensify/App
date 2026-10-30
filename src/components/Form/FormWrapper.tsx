@@ -120,8 +120,9 @@ function FormWrapper({
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
     const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();
-    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
-    const shouldConstrainContentHeight = isWeb && shouldConstrainWebContentHeight;
+    const platform = getPlatform();
+    const isWeb = platform === CONST.PLATFORM.WEB;
+    const shouldConstrainContentHeight = (isWeb || platform === CONST.PLATFORM.ANDROID) && shouldConstrainWebContentHeight;
 
     const onFixTheErrorsLinkPressed = () => {
         const errorFields = !isEmptyObject(errors) ? errors : (serverErrorFields ?? {});
