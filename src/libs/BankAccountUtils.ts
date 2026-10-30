@@ -221,7 +221,9 @@ function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData |
         // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
         (bankCurrency || accountData?.additionalData?.currency) === CONST.CURRENCY.USD &&
         accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        // Corpay accounts are marked by their verification, Wise accounts by the flag the backend sets once Wise approves the business
         !accountData.additionalData?.verifications?.corpay &&
+        accountData.additionalData?.isGlobalReimbursementEnabled !== true &&
         accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
     );
 }
@@ -234,6 +236,13 @@ function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<Onyx
     return (
         bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === false && isBankAccountEligibleForGlobalReimbursements(bankAccount.accountData, bankAccount.bankCurrency)
     );
+}
+
+/**
+ * Whether the bank account row shows that global reimbursements are enabled. Only an explicit `true` counts, the same flag the backend checks before paying.
+ */
+function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
 }
 
 /**
@@ -459,6 +468,7 @@ export {
     isFilterableBankAccount,
     isBankAccountEligibleForGlobalReimbursements,
     shouldSetUpGlobalReimbursementsBeforePaying,
+    isGlobalReimbursementsEnabled,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     getDefaultCompanyWebsite,

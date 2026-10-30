@@ -747,6 +747,7 @@ function WalletPage() {
                                 listItemStyle={cardPaddingHorizontal}
                                 shouldShowBankAccountSections
                                 shouldShowConnectionStatus
+                                shouldShowGlobalReimbursementsEnabled={isWiseGlobalReimbursementsEnabled}
                                 threeDotsMenuItems={threeDotMenuItems}
                             />
                         </Section>
