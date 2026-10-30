@@ -125,6 +125,8 @@ function GenericTooltip({
         TooltipSense.activate();
     };
 
+    // This must be a layout effect: it runs after BoundsObserver (a child) re-measured the target in componentDidUpdate,
+    // and React applies those bounds before paint, so the tooltip first appears at the correct position.
     useLayoutEffect(() => {
         if (!isVisible || !shouldShowInstantlyOnCommit.get()) {
             return;
