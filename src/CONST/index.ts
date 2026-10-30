@@ -11244,6 +11244,7 @@ const CONST = {
     },
 
     INSIGHTS: {
+        RANKING_LIMIT: 10,
         DASHBOARD: {
             SPEND: 'spend',
             COMPLIANCE: 'compliance',
@@ -11258,6 +11259,7 @@ const CONST = {
             TOP_MERCHANTS: 'topMerchants',
             TOP_CATEGORIES: 'topCategories',
             TOP_SPENDERS: 'topSpenders',
+            TOP_TAGS: 'topTags',
         },
     },
 

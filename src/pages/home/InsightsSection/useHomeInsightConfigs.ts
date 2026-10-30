@@ -1,5 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
+import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
@@ -16,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsGraphKey} from '@src/types/onyx';
 
 // Home only shows Spend charts, which also exist as Search menu items
-type HomeInsightGraphKey = Exclude<InsightsGraphKey, typeof CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME>;
+type HomeInsightGraphKey = Extract<InsightsGraphKey, SearchKey>;
 
 type HomeInsightChartSpec = InsightsChartSpec & {graphKey: HomeInsightGraphKey};
 
@@ -52,7 +53,7 @@ function buildInsightConfigFromChart(chart: HomeInsightChartSpec, filters: Insig
 
 /**
  * Builds the configs for the Home insights the current user should see, in display order.
- * The charts and their visibility match the Insights Spend dashboard.
+ * Home's supported charts use the Insights dashboard filters and visibility.
  */
 function useHomeInsightConfigs(): {configs: SearchTypeMenuItem[]; isResolved: boolean; shouldShowRunningTotal: boolean} {
     const [session] = useOnyx(ONYXKEYS.SESSION);

@@ -26,6 +26,7 @@ const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
     [CONST.SEARCH.GROUP_BY.FROM]: 'common.from',
     [CONST.SEARCH.GROUP_BY.MERCHANT]: 'common.merchant',
     [CONST.SEARCH.GROUP_BY.CATEGORY]: 'common.category',
+    [CONST.SEARCH.GROUP_BY.TAG]: 'common.tag',
 };
 
 function buildInsightsChartCSV({data, groupBy, dateFilterStart, currency, getCurrencyDecimals, translate, today, shouldShowRunningTotal}: BuildInsightsChartCSVParams): string {

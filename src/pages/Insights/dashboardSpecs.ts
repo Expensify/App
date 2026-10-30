@@ -2,7 +2,7 @@
 
 import type {ChartView, SearchGroupBy} from '@components/Search/types';
 
-import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders} from '@libs/SearchUIUtils';
+import {isPolicyEligibleForTopCategories, isPolicyEligibleForTopSpenders, isPolicyEligibleForTopTags} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -86,6 +86,16 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopCategories,
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
+                titleKey: 'search.tabs.topTags',
+                view: CONST.SEARCH.VIEW.BAR,
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.INSIGHTS.RANKING_LIMIT,
+                isPolicyEligible: isPolicyEligibleForTopTags,
             },
         ],
     },
