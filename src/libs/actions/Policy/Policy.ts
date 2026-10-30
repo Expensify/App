@@ -3588,6 +3588,7 @@ function buildOptimisticDuplicatePolicy(
         areInvoicesEnabled: isInvoicesFeatureSelected,
         areRulesEnabled: isRulesFeatureSelected,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
+        isCollectDepositAccountsEnabled: isWorkflowsFeatureSelected ? sourcePolicy?.isCollectDepositAccountsEnabled : false,
         areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
         areInvoiceFieldsEnabled: isInvoiceFieldsFeatureSelected ? sourcePolicy?.areInvoiceFieldsEnabled : false,
         areConnectionsEnabled: isConnectionsFeatureSelected,
