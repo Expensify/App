@@ -120,10 +120,12 @@ type ResolverFn = (
     policy: OnyxEntry<OnyxTypes.Policy>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     dateFnsLocale: LocaleContextProps['dateFnsLocale'],
+    isThreadReportParentAction: boolean,
 ) => PolicyChangeLogMessageResult;
 
 // Reusable resolvers for action types that share the same handler
-const categoryResolver: ResolverFn = (translate, action, policy) => getWorkspaceCategoryUpdateMessage(translate, action, policy);
+const categoryResolver: ResolverFn = (translate, action, policy, convertToDisplayString, dateFnsLocale, isThreadReportParentAction) =>
+    getWorkspaceCategoryUpdateMessage(translate, action, policy, isThreadReportParentAction);
 const taxResolver: ResolverFn = (translate, action) => getWorkspaceTaxUpdateMessage(translate, action);
 const tagModificationResolver: ResolverFn = (translate, action) => getCleanedTagName(getWorkspaceTagUpdateMessage(translate, action));
 const copySettingsResolver: ResolverFn = (translate, action) => ({
@@ -260,6 +262,7 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY]: categoryResolver,
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY]: categoryResolver,
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME]: categoryResolver,
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY]: categoryResolver,
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET]: (translate, action, policy) => getAddedBudgetMessage(translate, action, policy),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET]: (translate, action, policy) => getUpdatedBudgetMessage(translate, action, policy),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_BUDGET]: (translate, action, policy) => getDeletedBudgetMessage(translate, action, policy),
@@ -315,9 +318,12 @@ function isHandledPolicyChangeLogAction(action: OnyxTypes.ReportAction): boolean
 type PolicyChangeLogContentProps = {
     action: OnyxTypes.ReportAction;
     policyID: string | undefined;
+
+    /** Whether the action is shown at the top of its thread */
+    isThreadReportParentAction?: boolean;
 };
 
-function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps) {
+function PolicyChangeLogContent({action, policyID, isThreadReportParentAction = false}: PolicyChangeLogContentProps) {
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -327,7 +333,7 @@ function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps)
         return null;
     }
 
-    const message = resolver(translate, action, policy, convertToDisplayString, dateFnsLocale);
+    const message = resolver(translate, action, policy, convertToDisplayString, dateFnsLocale, isThreadReportParentAction);
 
     if (typeof message === 'object') {
         return (

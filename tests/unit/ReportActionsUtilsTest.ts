@@ -8459,6 +8459,178 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
             expect(actual).toBe('changed the "Advertising" category description to not required (previously required)');
         });
+
+        describe('category visibility', () => {
+            const BOB_ACCOUNT_ID = 1;
+            const CATHY_ACCOUNT_ID = 2;
+            const MANY_CATEGORY_NAMES = Array.from({length: 14}, (_, index) => `Category ${index + 1}`);
+            const MANY_ACCOUNT_IDS = Array.from({length: 12}, (_, index) => 100 + index);
+
+            function buildSetCategoryVisibilityAction(originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY>['originalMessage']) {
+                const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY> = {
+                    reportActionID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_VISIBILITY,
+                    created: '',
+                    originalMessage,
+                };
+                return action;
+            }
+
+            beforeEach(async () => {
+                const personalDetails: PersonalDetailsList = {
+                    [BOB_ACCOUNT_ID]: {accountID: BOB_ACCOUNT_ID, displayName: 'Bob Sterling', login: 'bob@example.com'},
+                    [CATHY_ACCOUNT_ID]: {accountID: CATHY_ACCOUNT_ID, displayName: 'Cathy Parker', login: 'cathy@example.com'},
+                };
+                for (const accountID of MANY_ACCOUNT_IDS) {
+                    personalDetails[accountID] = {accountID, displayName: `Member ${accountID}`, login: `member${accountID}@example.com`};
+                }
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                await waitForBatchedUpdates();
+            });
+
+            it('says the admin set a member to see only the listed categories when they had no restriction', () => {
+                // Given an admin restricting Bob, who had no restriction, to two categories
+                const action = buildSetCategoryVisibilityAction({
+                    categoryNames: ['Meals', 'Fuel'],
+                    accountIDs: [BOB_ACCOUNT_ID],
+                    hadRestriction: false,
+                    reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+                });
+
+                // When the message is built
+                const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+
+                // Then it uses "set" and quotes each category, so admins can tell which categories Bob now sees
+                expect(actual).toBe('set Bob Sterling to only see the "Meals" and "Fuel" categories');
+            });
+
+            it('says the admin changed a member who was already restricted', () => {
+                // Given Bob, who was already restricted, being changed to a single category
+                const action = buildSetCategoryVisibilityAction({
+                    categoryNames: ['Meals'],
+                    accountIDs: [BOB_ACCOUNT_ID],
+                    hadRestriction: true,
+                    reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+                });
+
+                // When the message is built
+                const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+
+                // Then it uses "changed" and the singular category wording
+                expect(actual).toBe('changed Bob Sterling to only see the "Meals" category');
+            });
+
+            it('says a member can see all categories when the restriction is cleared', () => {
+                // Given Bob's restriction being cleared, which Auth sends as an empty category list
+                const action = buildSetCategoryVisibilityAction({
+                    categoryNames: [],
+                    accountIDs: [BOB_ACCOUNT_ID],
+                    hadRestriction: true,
+                    reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+                });
+
+                // When the message is built
+                const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+
+                // Then it says Bob can see all categories
+                expect(actual).toBe('changed Bob Sterling to see all categories');
+            });
+
+            it('says everyone when the change applies to every member', () => {
+                // Given a restriction applied to every member, which Auth sends as an empty member list
+                const action = buildSetCategoryVisibilityAction({
+                    categoryNames: ['Meals', 'Fuel'],
+                    accountIDs: [],
+                    hadRestriction: false,
+                    reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+                });
+
+                // When the message is built
+                const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+
+                // Then it names everyone instead of listing members
+                expect(actual).toBe('set everyone to only see the "Meals" and "Fuel" categories');
+            });
+
+            it('shows a count for long category lists, and the full list at the top of the thread', () => {
+                // Given Cathy being changed to 14 categories
+                const action = buildSetCategoryVisibilityAction({
+                    categoryNames: MANY_CATEGORY_NAMES,
+                    accountIDs: [CATHY_ACCOUNT_ID],
+                    hadRestriction: true,
+                    reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+                });
+
+                // When the message is built for #admins and for the top of the thread
+                const adminsMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+                const threadMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action, undefined, true);
+
+                // Then #admins shows a count so the entry stays short, and the thread names every category
+                expect(adminsMessage).toBe('changed Cathy Parker to only see 14 categories');
+                expect(threadMessage).toBe(
+                    `Categories: ${MANY_CATEGORY_NAMES.slice(0, -1)
+                        .map((name) => `"${name}"`)
+                        .join(', ')}, and "Category 14"`,
+                );
+            });
+
+            it('shows a count for long member lists, and the full list at the top of the thread', () => {
+                // Given 12 members being restricted to one category
+                const action = buildSetCategoryVisibilityAction({
+                    categoryNames: ['Fees'],
+                    accountIDs: MANY_ACCOUNT_IDS,
+                    hadRestriction: false,
+                    reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+                });
+
+                // When the message is built for #admins and for the top of the thread
+                const adminsMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+                const threadMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action, undefined, true);
+
+                // Then #admins shows a count, and the thread names every member
+                expect(adminsMessage).toBe('set 12 members to only see the "Fees" category');
+                expect(threadMessage).toBe(
+                    `Members: ${MANY_ACCOUNT_IDS.slice(0, -1)
+                        .map((accountID) => `Member ${accountID}`)
+                        .join(', ')}, and Member 111`,
+                );
+            });
+
+            it('keeps the short message at the top of the thread when no list is long', () => {
+                // Given a change with short lists
+                const action = buildSetCategoryVisibilityAction({
+                    categoryNames: ['Meals', 'Fuel'],
+                    accountIDs: [BOB_ACCOUNT_ID],
+                    hadRestriction: false,
+                    reason: CONST.POLICY.CATEGORY_VISIBILITY.REASON.SET_BY_ADMIN,
+                });
+
+                // When the message is built for the top of the thread
+                const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action, undefined, true);
+
+                // Then it is the same as in #admins, since there is no hidden list to show
+                expect(actual).toBe('set Bob Sterling to only see the "Meals" and "Fuel" categories');
+            });
+
+            it.each([
+                [CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DELETED, 'deleted'],
+                [CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED, 'disabled'],
+            ])('explains why the restriction was cleared when the reason is %s', (reason, verb) => {
+                // Given Bob's only category being removed, which clears his restriction automatically
+                const action = buildSetCategoryVisibilityAction({
+                    categoryNames: [],
+                    accountIDs: [BOB_ACCOUNT_ID],
+                    hadRestriction: true,
+                    reason,
+                });
+
+                // When the message is built
+                const actual = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
+
+                // Then it tells the admin why, so they know to review Bob's category visibility
+                expect(actual).toBe(`changed Bob Sterling to see all categories, since their only category was ${verb}. Update their category visibility if needed.`);
+            });
+        });
     });
 
     describe('getLatestConciergeFeedbackActionID', () => {

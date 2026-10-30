@@ -9917,6 +9917,25 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             return `ha modificato le ricevute con voce di dettaglio della categoria "${categoryName}" in ${newValue} (in precedenza ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `ha rinominato la categoria "${oldName}" in "${newName}"`,
+        setCategoryVisibility: (members: string, categories: string) => `ha impostato ${members} per vedere solo ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `ha modificato ${members} per vedere solo ${categories}`,
+        clearedCategoryVisibility: (members: string) => `ha modificato ${members} per vedere tutte le categorie`,
+        quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
+        oneCategory: (categoryName: string) => `la categoria ${categoryName}`,
+        someCategories: (categoryList: string) => `le categorie ${categoryList}`,
+        everyone: 'tutti',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 categoria',
+            other: `${count} categorie`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 membro',
+            other: `${count} membri`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Categorie: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Membri: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', poiché la loro unica categoria è stata eliminata. Aggiorna la loro visibilità delle categorie se necessario.',
+        categoryVisibilityReasonDisabled: ', poiché la loro unica categoria è stata disattivata. Aggiorna la loro visibilità delle categorie se necessario.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `ha rimosso il suggerimento di descrizione "${oldValue}" dalla categoria "${categoryName}"`;

@@ -9915,6 +9915,29 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             return `zmienił(a) pozycjonowanie paragonów dla kategorii „${categoryName}” na ${newValue} (wcześniej ${oldValue})`;
         },
         setCategoryName: (oldName: string, newName: string) => `zmieniono nazwę kategorii „${oldName}” na „${newName}”`,
+        setCategoryVisibility: (members: string, categories: string) => `ustawiono, aby ${members} widzieli tylko ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `zmieniono, aby ${members} widzieli tylko ${categories}`,
+        clearedCategoryVisibility: (members: string) => `zmieniono, aby ${members} widzieli wszystkie kategorie`,
+        quotedCategoryName: (categoryName: string) => `„${categoryName}”`,
+        oneCategory: (categoryName: string) => `kategorię ${categoryName}`,
+        someCategories: (categoryList: string) => `kategorie ${categoryList}`,
+        everyone: 'wszyscy',
+        categoryCount: ({count}: {count: number}) => ({
+            one: '1 kategorię',
+            few: `${count} kategorie`,
+            many: `${count} kategorii`,
+            other: `${count} kategorii`,
+        }),
+        memberCount: ({count}: {count: number}) => ({
+            one: '1 członek',
+            few: `${count} członków`,
+            many: `${count} członków`,
+            other: `${count} członków`,
+        }),
+        categoryVisibilityCategoriesList: (categoryList: string) => `Kategorie: ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Członkowie: ${memberList}`,
+        categoryVisibilityReasonDeleted: ', ponieważ ich jedyna kategoria została usunięta. W razie potrzeby zaktualizuj ich widoczność kategorii.',
+        categoryVisibilityReasonDisabled: ', ponieważ ich jedyna kategoria została wyłączona. W razie potrzeby zaktualizuj ich widoczność kategorii.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `usunięto podpowiedź opisu „${oldValue}” z kategorii „${categoryName}”`;
