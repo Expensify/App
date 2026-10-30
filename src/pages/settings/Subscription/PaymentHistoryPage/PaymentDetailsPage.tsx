@@ -13,11 +13,11 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -39,7 +39,7 @@ import {openPaymentDetailsPage} from '@userActions/Subscription';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';
@@ -52,18 +52,16 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const [purchases] = useOnyx(ONYXKEYS.PURCHASES);
 
     const purchaseID = Number(route.params.purchaseID);
-    const isBetaOn = isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY);
 
     useEffect(() => {
-        if (!isBetaOn || isOffline) {
+        if (isOffline) {
             return;
         }
         openPaymentDetailsPage(purchaseID);
-    }, [isBetaOn, isOffline, purchaseID]);
+    }, [isOffline, purchaseID]);
 
     const purchase = purchases?.[String(purchaseID)];
     const billedToAccountID = purchase?.billedToAccountID;
@@ -72,7 +70,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
     const activeUserAccountIDs = getActiveUserAccountIDs(purchase);
     const [activeUserPersonalDetails] = usePersonalDetailsByIDs(activeUserAccountIDs);
 
-    if (!isBetaOn || (purchases !== undefined && !row)) {
+    if (purchases !== undefined && !row) {
         return <NotFoundPage />;
     }
 
@@ -97,6 +95,7 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
             login: details?.login ?? '',
             name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
             email: formatPhoneNumber(details?.login ?? ''),
+            action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID))),
         };
     });
     const hasActiveUsers = activeUsers.length > 0;

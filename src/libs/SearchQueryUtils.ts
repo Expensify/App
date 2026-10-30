@@ -110,6 +110,13 @@ type NavigationRouteLike = {
     state?: unknown;
 };
 
+/**
+ * The outcome for one tab navigator that has Search state. `params` is `undefined` when its Search navigator is
+ * mounted but has no usable root route params. Wrapping it lets that "resolved, but empty" outcome be told apart
+ * from a tab navigator with no Search state at all, which returns no resolution so the walk keeps going.
+ */
+type TabNavigatorSearchResolution = {params: SearchRootParams | undefined};
+
 // This map contains chars that match each operator
 const operatorToCharMap = {
     [CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]: ':' as const,
@@ -786,14 +793,6 @@ function getFooterSelectionFromQuery(queryJSON: SearchQueryJSON | undefined) {
         footerTotal: total && isFooterTotal(total) ? total : undefined,
         footerCurrency: currency ? currency.toUpperCase() : undefined,
     };
-}
-
-function getQueryWithoutFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return buildSearchQueryString({...queryJSON, flatFilters: queryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key))});
-}
-
-function hasFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.flatFilters.some((filter) => FOOTER_FILTER_KEYS.has(filter.key));
 }
 
 /**
@@ -1605,12 +1604,7 @@ function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is Onyx
     return !!data;
 }
 
-function getAllPolicyValues<T extends OnyxCollectionKey>(
-    policyID: Filter | undefined,
-    key: T,
-    policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-): Array<OnyxCollectionValuesMapping[T]> {
+function getAllPolicyValues<TValue>(policyID: Filter | undefined, key: OnyxCollectionKey, policyData: OnyxCollection<TValue>, policies?: OnyxCollection<OnyxTypes.Policy>): TValue[] {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
@@ -1619,16 +1613,13 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
 
     if (policyID.isNegated) {
-        return Object.keys(policyData).reduce(
-            (acc, curr) => {
-                const id = curr.replace(key, '');
-                if (!resolvedValues.includes(id) && policyData[curr]) {
-                    acc.push(policyData[curr]);
-                }
-                return acc;
-            },
-            [] as Array<OnyxCollectionValuesMapping[T]>,
-        );
+        return Object.keys(policyData).reduce<TValue[]>((acc, curr) => {
+            const id = curr.replace(key, '');
+            if (!resolvedValues.includes(id) && policyData[curr]) {
+                acc.push(policyData[curr]);
+            }
+            return acc;
+        }, []);
     }
 
     return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
@@ -1866,7 +1857,7 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
-    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
+    policyCategories: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,
@@ -2873,6 +2864,45 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
     return buildSearchQueryJSON(params.q, params.rawQuery);
 }
 
+function isTabNavigatorRoute(route: unknown): route is NavigationRouteLike {
+    return isRecord(route) && route.name === NAVIGATORS.TAB_NAVIGATOR;
+}
+
+/**
+ * Returns the Search root params a single tab navigator resolves to, or `undefined` when it has no Search state.
+ *
+ * Nested route params are only consulted when `shouldUseNestedParams` is set, which the caller does for the newest
+ * tab navigator only. For an older navigator they are the params it was first opened with, and the user may have
+ * changed the query since, so they can be stale. The live or preserved Search state is always current.
+ */
+function getSearchRootParamsFromTabNavigator(tabNavigator: NavigationRouteLike, shouldUseNestedParams: boolean): TabNavigatorSearchResolution | undefined {
+    const tabStateFromParams = getParamsState(tabNavigator.params);
+    const tabState = tabNavigator.state ?? (tabNavigator.key ? getPreservedNavigatorState(tabNavigator.key) : undefined) ?? tabStateFromParams;
+    const searchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const searchNavigatorState = searchNavigator?.state ?? (searchNavigator?.key ? getPreservedNavigatorState(searchNavigator.key) : undefined);
+
+    if (searchNavigatorState) {
+        return {params: getSearchRootParamsFromSearchNavigatorState(searchNavigatorState)};
+    }
+
+    if (!shouldUseNestedParams) {
+        return undefined;
+    }
+
+    // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
+    // neither .state nor the preserved state map will have an entry. Use nested route params when
+    // React Navigation provided them and they parse.
+    const nestedSearchRootParams =
+        getSearchRootParamsFromNestedNavigatorParams(searchNavigator?.params) ??
+        getSearchRootParamsFromNestedNavigatorParams(tabNavigator.params) ??
+        getSearchRootParamsFromTabState(tabStateFromParams);
+    if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
+        return {params: nestedSearchRootParams};
+    }
+
+    return undefined;
+}
+
 /**
  * Resolves the params of the Search root route that the app is currently showing (or would return to),
  * from a navigation state tree.
@@ -2882,36 +2912,33 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
  * still does. It also does not walk only the live tree. A non-focused tab navigator has its nested state
  * dropped from the tree, so the preserved-state map is consulted as well (see `usePreserveNavigatorState`).
  *
+ * Tab navigators are walked from newest to oldest and the first one with Search state wins, like the tab bar's
+ * `getLastRoute`. A cross-tab push such as "Go to room" adds a newer tab navigator without Search state, so the
+ * older Spend tab keeps providing the query. Only the newest one may use nested route params, since an older
+ * one's can be stale.
+ *
  * Note: the preserved-state map has no subscription, so a `useRootNavigationState` selector built on this
  * only re-reads it on navigation events. Call `getCurrentSearchQueryJSON` imperatively where you need the
  * value at an arbitrary moment (e.g. right after a delegate switch, which clears the map without navigating).
+ *
+ * Pass `shouldFallBackToDefaultQuery: false` to get `undefined` instead of the default query when no tab
+ * navigator has Search state. Reactive readers use this to keep their last real query.
  */
-function getSearchRootParamsFromRootState(rootState: unknown): SearchRootParams | undefined {
-    const lastTabNavigator = getLastRouteByName(rootState, NAVIGATORS.TAB_NAVIGATOR);
-    const tabStateFromParams = getParamsState(lastTabNavigator?.params);
-    const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
-    const lastSearchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    let lastSearchNavigatorState = lastSearchNavigator?.state;
-    if (!lastSearchNavigatorState) {
-        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator.key) : undefined;
+function getSearchRootParamsFromRootState(rootState: unknown, shouldFallBackToDefaultQuery = true): SearchRootParams | undefined {
+    const tabNavigators = (getRoutes(rootState) ?? []).filter(isTabNavigatorRoute);
+    const newestTabNavigator = tabNavigators.at(-1);
+
+    // Walk newest to oldest. `??` short-circuits, so older tab navigators are not resolved once one has Search state.
+    const resolution = tabNavigators.reduceRight<TabNavigatorSearchResolution | undefined>(
+        (found, tabNavigator) => found ?? getSearchRootParamsFromTabNavigator(tabNavigator, tabNavigator === newestTabNavigator),
+        undefined,
+    );
+
+    if (resolution) {
+        return resolution.params;
     }
 
-    const nestedSearchRootParams =
-        getSearchRootParamsFromNestedNavigatorParams(lastSearchNavigator?.params) ??
-        getSearchRootParamsFromNestedNavigatorParams(lastTabNavigator?.params) ??
-        getSearchRootParamsFromTabState(tabStateFromParams);
-
-    // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
-    // neither .state nor the preserved state map will have an entry. Use nested route params when
-    // React Navigation provided them and they parse, otherwise fall back to the default initialParams query.
-    if (!lastSearchNavigatorState) {
-        if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
-            return nestedSearchRootParams;
-        }
-        return {q: buildSearchQueryString()};
-    }
-
-    return getSearchRootParamsFromSearchNavigatorState(lastSearchNavigatorState);
+    return shouldFallBackToDefaultQuery ? {q: buildSearchQueryString()} : undefined;
 }
 
 function getCurrentSearchQueryJSON() {
@@ -3240,8 +3267,6 @@ export {
     getDefaultFooterCount,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
-    getQueryWithoutFooterSelections,
-    hasFooterSelections,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     isSearchDatePreset,
