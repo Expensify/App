@@ -2453,7 +2453,6 @@
 "../../tests/unit/hooks/useConfirmationSections.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/hooks/useConfirmationValidation.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/hooks/useDismissOnMoneyRequestReportRemoval.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../tests/unit/hooks/useExpenseSubmission.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
 "../../tests/unit/hooks/useFeedKeysWithAssignedCards.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	5
 "../../tests/unit/hooks/useFilesValidation.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
 "../../tests/unit/hooks/useFilterPendingDeleteReports.test.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	9

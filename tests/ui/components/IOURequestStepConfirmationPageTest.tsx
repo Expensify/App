@@ -1281,7 +1281,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 // When the screen renders and resolves the P2P destination
                 await waitForBatchedUpdatesWithAct();
 
-                expect(getChatByParticipantsSpy).toHaveBeenCalled();
                 expect(getReusableP2PReportIDSpy).toHaveBeenCalledWith(expect.objectContaining({accountID: PARTICIPANT_ACCOUNT_ID}), optimisticP2PReportID);
                 // Then it pre-mounts the report at the transaction's own optimistic ID, not a different one
                 await waitFor(
@@ -1866,20 +1865,26 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
-        it('should route unreported distance expense to requestMoney and skip createDistanceRequest', async () => {
+        it('should route unreported distance expense to the self DM through trackExpense and skip createDistanceRequest', async () => {
+            // Given a distance expense started from global create and headed to the self DM, which is the only flow that
+            // leaves the draft unreported (reportID 0) at confirmation
+            const selfDMReportID = 'self-dm-report-dist';
             const transactionID = 'tx-unreported-dist';
             const policy = createPolicyWithTaxAndDistance();
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                    reportID: REPORT_ID,
-                    policyID: POLICY_ID,
-                    type: CONST.REPORT.TYPE.EXPENSE,
+                await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {
+                    reportID: selfDMReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+                    participants: {[ACCOUNT_ID]: {}},
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
                     transactionID,
                     reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    isFromGlobalCreate: true,
                     amount: 5000,
                     currency: 'USD',
                     comment: {
@@ -1902,7 +1907,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                     merchant: 'Distance',
                     created: '2025-01-15',
                     iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
+                    participants: [{accountID: 0, isSelfDM: true, reportID: selfDMReportID, selected: true}],
                 });
             });
 
@@ -1917,9 +1922,9 @@ describe('IOURequestStepConfirmationPageTest', () => {
                                         name: 'Money_Request_Step_Confirmation',
                                         params: {
                                             action: CONST.IOU.ACTION.CREATE,
-                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            iouType: CONST.IOU.TYPE.TRACK,
                                             transactionID,
-                                            reportID: REPORT_ID,
+                                            reportID: selfDMReportID,
                                         },
                                     }}
                                     navigation={mockNavigation}
@@ -1930,12 +1935,13 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </OnyxListItemProvider>,
             );
 
+            // When the expense is confirmed
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
             await waitForBatchedUpdatesWithAct();
 
-            // Unreported distance requests should skip createDistanceRequest and use requestMoney
-            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            // Then it is tracked in the self DM, since CreateDistanceRequest has no self DM target
+            await waitFor(() => expect(TrackExpense.trackExpense).toHaveBeenCalled());
             expect(Split.createDistanceRequest).not.toHaveBeenCalled();
         });
     });

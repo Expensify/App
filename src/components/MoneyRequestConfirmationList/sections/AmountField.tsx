@@ -92,6 +92,7 @@ function AmountField({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
+    const currencyButtonRef = useRef<View>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
@@ -359,6 +360,7 @@ function AmountField({
                 headerText={translate('common.selectCurrency')}
                 value={effectiveCurrency}
                 onInputChange={updateCurrency}
+                launcherRef={currencyButtonRef}
             />
             {!isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
@@ -380,6 +382,7 @@ function AmountField({
                             shouldShowCurrencyButton={shouldShowAmountButtons}
                             shouldShowBigNumberPad={false}
                             onCurrencyButtonPress={showCurrencyPicker}
+                            currencyButtonRef={currencyButtonRef}
                             onFocus={() => {
                                 setIsAmountInputFocused(true);
                             }}
