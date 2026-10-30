@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {memo} from 'react';
+import React from 'react';
 
 import type {AttachmentViewProps} from '..';
 
@@ -39,7 +39,6 @@ function AttachmentViewImage({attachmentID, url, file, isAuthTokenRequired, load
             disabled={loadComplete}
             style={[styles.flex1, styles.flexRow, styles.alignSelfStretch]}
             accessibilityRole={CONST.ROLE.BUTTON}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={file?.name || translate('attachmentView.unknownFilename')}
             sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.ITEM}
         >
@@ -50,4 +49,4 @@ function AttachmentViewImage({attachmentID, url, file, isAuthTokenRequired, load
     );
 }
 
-export default memo(AttachmentViewImage);
+export default AttachmentViewImage;

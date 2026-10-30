@@ -43,7 +43,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {SafeString, Str} from 'expensify-common';
 import {Asset} from 'expo-asset';
-import React, {memo, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import AttachmentViewImage from './AttachmentViewImage';
@@ -475,7 +475,6 @@ function AttachmentView({
         <DefaultAttachmentView
             fileName={file?.name}
             shouldShowDownloadIcon={shouldShowDownloadIcon}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon || isUploading}
             containerStyles={containerStyles}
             isDeleted={isDeleted}
@@ -484,7 +483,7 @@ function AttachmentView({
     );
 }
 
-export default memo(AttachmentView);
+export default AttachmentView;
 
 export {checkIsFileImage};
 export type {AttachmentViewProps};

@@ -4,7 +4,7 @@ import type CONST from '@src/CONST';
 
 import type {ComponentRef, ReactNode, Ref, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type-only: the launcher union must cover every anchor shape popovers pass, including RN Text anchors
-import type {NativeSyntheticEvent, StyleProp, Text, View, ViewProps, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, Text, TextInput, View, ViewProps, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
@@ -141,7 +141,7 @@ type ReanimatedModalProps = ViewProps &
          * The element that opened this modal, a popover's anchor. Used only when nothing held focus at activation time,
          * which is the case for triggers that blur themselves to avoid a focus ring (the FAB, the composer "+").
          */
-        launcherRef?: RefObject<ComponentRef<typeof View> | ComponentRef<typeof Text> | HTMLElement | null>;
+        launcherRef?: RefObject<ComponentRef<typeof View> | ComponentRef<typeof Text> | ComponentRef<typeof TextInput> | HTMLElement | null>;
 
         shouldIgnoreBackHandlerDuringTransition?: boolean;
     };

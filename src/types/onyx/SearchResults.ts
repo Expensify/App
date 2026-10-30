@@ -4,6 +4,7 @@ import type {
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionReportGroupListItemType,
+    TripListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
@@ -34,9 +35,11 @@ type ListItemDataType<C extends SearchDataTypes, G extends SearchGroupBy | undef
       ? TaskListItemType[]
       : C extends typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT
         ? TransactionReportGroupListItemType[]
-        : G extends SearchGroupBy
-          ? TransactionGroupListItemType[]
-          : TransactionListItemType[];
+        : C extends typeof CONST.SEARCH.DATA_TYPES.TRIP
+          ? TripListItemType[] | TransactionListItemType[]
+          : G extends SearchGroupBy
+            ? TransactionGroupListItemType[]
+            : TransactionListItemType[];
 
 /** Model of search result state */
 type SearchResultsInfo = {
@@ -90,6 +93,9 @@ type SearchResultsInfo = {
      * Distinct from `count`, which is the number of expenses; used to label "Select all matching" on the Reports tab. */
     reportCount?: number;
 
+    /** Expense reports a to-do search's responses held since its count. Those this device listed and no longer does come off `reportCount`. */
+    countedReportIDs?: Record<string, boolean>;
+
     /** The total spend */
     total?: number;
 
@@ -102,6 +108,21 @@ type SearchResultsInfo = {
 
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
+
+/** Model of a trip room returned by a trip search sent with shouldReturnTripRooms */
+type SearchTrip = Report & {
+    /** When the trip starts */
+    startDate?: string;
+
+    /** When the trip ends */
+    endDate?: string;
+
+    /** The trip's status, worked out by the backend */
+    status?: ValueOf<typeof CONST.SEARCH.TRIP_STATUS>;
+
+    /** The account ID of the traveler, who created the trip room */
+    travelerAccountID?: number;
+};
 
 /** Model of tasks search result */
 type SearchTask = {
@@ -282,12 +303,26 @@ type SearchQuarterGroup = SearchGroupBase & {
     quarter: number;
 };
 
+/** Model of an expense in the search results */
+type SearchTransaction = Transaction & {
+    /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
+};
+
+/** Model of a report in the search results */
+type SearchReport = Report & {
+    /** Whether the expense report was ever rejected, only returned when the Rejected column is shown or sorted by */
+    declined?: boolean;
+};
+
 /** SearchResultDataType */
-type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
+type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
     Partial<Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined>> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
     Partial<PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_METADATA, ReportMetadata>> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
+    // Trip rooms returned by a trip search carry the trip's fields on top of the report
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchTrip> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, SearchReport> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
@@ -323,6 +358,9 @@ export default SearchResults;
 export type {
     ListItemDataType,
     SearchTask,
+    SearchTrip,
+    SearchTransaction,
+    SearchReport,
     SearchTransactionAction,
     SearchDataTypes,
     SearchResultsInfo,

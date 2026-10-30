@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type ReportSearchHeaderProps from './types';
@@ -14,40 +14,24 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor, isT
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    const statusContainerStyle = useMemo(() => {
-        return [isLargeScreenWidth ? styles.mt1 : styles.mt0Half, report?.shouldShowStatusAsPending && styles.offlineFeedbackPending];
-    }, [isLargeScreenWidth, styles.mt1, styles.mt0Half, report?.shouldShowStatusAsPending, styles.offlineFeedbackPending]);
+    const statusContainerStyle = [isLargeScreenWidth ? styles.mt1 : styles.mt0Half, report?.shouldShowStatusAsPending && styles.offlineFeedbackPending];
 
-    const middleContent = useMemo(() => {
-        return (
-            <AvatarWithDisplayName
-                shouldDisplayStatus
-                report={report}
-                transactions={transactions}
-                shouldUseCustomSearchTitleName
-                shouldEnableDetailPageNavigation={false}
-                shouldEnableAvatarNavigation={false}
-                avatarBorderColor={avatarBorderColor}
-                isDisplayNameSelectable={isTitleSelectable}
-                size={isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
-                customDisplayNameStyle={styles.fontWeightNormal}
-                parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
-                parentNavigationStatusContainerStyles={statusContainerStyle}
-            />
-        );
-    }, [
-        report,
-        transactions,
-        avatarBorderColor,
-        isTitleSelectable,
-        styles.fontWeightNormal,
-        styles.textLineHeightNormal,
-        styles.minHeight4,
-        styles.mt1,
-        isLargeScreenWidth,
-        styles.textMicro,
-        statusContainerStyle,
-    ]);
+    const middleContent = (
+        <AvatarWithDisplayName
+            shouldDisplayStatus
+            report={report}
+            transactions={transactions}
+            shouldUseCustomSearchTitleName
+            shouldEnableDetailPageNavigation={false}
+            shouldEnableAvatarNavigation={false}
+            avatarBorderColor={avatarBorderColor}
+            isDisplayNameSelectable={isTitleSelectable}
+            size={isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+            customDisplayNameStyle={styles.fontWeightNormal}
+            parentNavigationSubtitleTextStyles={[styles.textLineHeightNormal, styles.minHeight4, styles.mt1, !isLargeScreenWidth && styles.textMicro]}
+            parentNavigationStatusContainerStyles={statusContainerStyle}
+        />
+    );
 
     return (
         <View

@@ -144,7 +144,9 @@ import ChatGPTSquare from '@assets/images/integrationicons/chatgpt-icon-square.s
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import ClaudeSquare from '@assets/images/integrationicons/claude-icon-square.svg';
 import CursorSquare from '@assets/images/integrationicons/cursor-icon-square.svg';
+import DigitsSquare from '@assets/images/integrationicons/digits-icon-square.svg';
 import DualEntrySquare from '@assets/images/integrationicons/dualentry-icon-square.svg';
+import ExactOnlineSquare from '@assets/images/integrationicons/exact-online-icon-square.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
@@ -282,6 +284,7 @@ import UserCheck from '@assets/images/user-check.svg';
 import UserEye from '@assets/images/user-eye.svg';
 import UserLock from '@assets/images/user-lock.svg';
 import UserMinus from '@assets/images/user-minus.svg';
+import UserPencil from '@assets/images/user-pencil.svg';
 import UserPlus from '@assets/images/user-plus.svg';
 import UserSearch from '@assets/images/user-search.svg';
 import UserShield from '@assets/images/user-shield.svg';
@@ -505,6 +508,7 @@ const Expensicons = {
     ReceiptMultiple,
     RilletSquare,
     DualEntrySquare,
+    ExactOnlineSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -579,6 +583,7 @@ const Expensicons = {
     UserEye,
     UserSearch,
     CaretUpDown,
+    UserPencil,
     UserPlus,
     Feed,
     Table,
@@ -613,6 +618,7 @@ const Expensicons = {
     Contactless,
     CampfireSquare,
     ZohoBooksSquare,
+    DigitsSquare,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

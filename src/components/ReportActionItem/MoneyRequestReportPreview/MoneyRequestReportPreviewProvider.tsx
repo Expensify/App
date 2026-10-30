@@ -207,7 +207,7 @@ function MoneyRequestReportPreviewProvider({
         onOrderedTransactionsChange,
     });
 
-    const openReportFromPreview = useCallback(() => {
+    const openReportFromPreview = () => {
         if (!iouReportID) {
             return;
         }
@@ -232,13 +232,13 @@ function MoneyRequestReportPreviewProvider({
         } else {
             Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
         }
-    }, [iouReportID, isSmallScreenWidth, onCancelPendingPress]);
+    };
 
     // Only the pay flow opens this menu; approve surfaces its partial/full choice in the approve dropdown instead.
-    const onHoldMenuOpen = useCallback((paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
+    const onHoldMenuOpen = (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
         setHoldMenu({paymentType, canPay: !!canPay, methodID});
-    }, []);
-    const onHoldMenuClose = useCallback(() => setHoldMenu(null), []);
+    };
+    const onHoldMenuClose = () => setHoldMenu(null);
 
     const shouldShowCarouselArrows = !shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible;
     const buttonMaxWidth =
