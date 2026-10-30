@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {copyPolicySettings} from '@libs/actions/Policy/CopyPolicySettings';
-import {FEATURE_ROWS, isSourceProvisionedForTravel, shouldShowCopyPolicySettingsUpgradeStep} from '@libs/CopyPolicySettingsUtils';
+import {FEATURE_ROWS, shouldRequireTravelTerms, shouldShowCopyPolicySettingsUpgradeStep} from '@libs/CopyPolicySettingsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {PolicyCopySettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -57,7 +57,7 @@ function CopyPolicySettingsConfirmPage() {
 
     // Copying travel from a provisioned source re-provisions each target with its own Spotnana
     // entity, which requires accepting Expensify Travel terms. Capture that consent here.
-    const requiresTravelTermsConsent = parts.includes('travel') && isSourceProvisionedForTravel(sourcePolicy);
+    const requiresTravelTermsConsent = shouldRequireTravelTerms(sourcePolicy, parts);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
 
     useEffect(() => {

@@ -150,26 +150,32 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
     });
 
     it('keeps Merchant rules selected independently when Rules is deselected', async () => {
+        // Given both rule groups configured.
         await renderForm(true);
         expect(getRow('rules')?.isSelected).toBe(true);
         expect(getRow('codingRules')?.isSelected).toBe(true);
 
+        // When only workspace Rules is deselected.
         await pressRow('rules');
         pressContinue();
 
+        // Then merchant rules remain available independently.
         expect(getRow('codingRules')?.isSelected).toBe(true);
         expect(getSentParts()).not.toContain('rules');
         expect(getSentParts()).toContain('codingRules');
     });
 
     it('selects Merchant rules without selecting Rules', async () => {
+        // Given both rule groups initially selected.
         await renderForm(true);
+        // When Merchant rules alone is selected.
         await pressRow('rules');
         await pressRow('codingRules');
 
         await pressRow('codingRules');
         pressContinue();
 
+        // Then selecting merchant rules does not force workspace Rules on.
         expect(getRow('rules')?.isSelected).toBe(false);
         expect(getRow('codingRules')?.isSelected).toBe(true);
         expect(getSentParts()).toContain('codingRules');
@@ -177,35 +183,58 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
     });
 
     it('keeps Rules selected when only Merchant rules is deselected', async () => {
+        // Given independent workspace and merchant rules.
         await renderForm(true);
 
+        // When only Merchant rules is deselected.
         await pressRow('codingRules');
         pressContinue();
 
+        // Then workspace Rules stays selected.
         expect(getRow('rules')?.isSelected).toBe(true);
         expect(getSentParts()).toContain('rules');
         expect(getSentParts()).not.toContain('codingRules');
     });
 
     it('copies merchant rules on their own when the source has no workspace-level rules', async () => {
+        // Given a source with merchant rules only.
         await renderForm(false);
         expect(getRow('rules')).toBeUndefined();
         expect(getRow('codingRules')?.isSelected).toBe(true);
 
+        // When duplication is confirmed.
         pressContinue();
 
+        // Then no unavailable workspace Rules part is sent.
         expect(getSentParts()).not.toContain('rules');
         expect(getSentParts()).toContain('codingRules');
     });
+    it('omits source invoicing identity from the settings description', async () => {
+        // Given invoice settings tied to the source workspace's identity.
+        await renderForm(false, {areInvoicesEnabled: true, invoice: {markUp: 25, companyName: 'Source Company', companyWebsite: 'source.example.com'}});
+
+        // When the shared settings list describes Invoices.
+        const row = getRow('invoices');
+
+        // Then the row cannot promise to copy the source's billing identity.
+        expect(row).toBeDefined();
+        expect(row?.alternateText ?? '').not.toContain('Source Company');
+        expect(row?.alternateText ?? '').not.toContain('source.example.com');
+    });
+
     it('includes Time tracking and Receipt partners from the shared copy settings list', async () => {
+        // Given configured time tracking and receipt partners.
         await renderForm(false, {units: {time: {enabled: true, rate: 75}}, receiptPartners: {enabled: true}});
         expect(getRow('timeTracking')?.isSelected).toBe(true);
         expect(getRow('receiptPartners')?.isSelected).toBe(true);
+        // When duplication is confirmed.
         pressContinue();
+        // Then both available settings are included.
         expect(getSentParts()).toEqual(expect.arrayContaining(['timeTracking', 'receiptPartners']));
     });
 
     it('requires Currency with Workflows when reimbursement currencies differ', async () => {
+        // Given source reimbursement banking in another currency.
         await renderForm(false, {
             outputCurrency: 'EUR',
             achAccount: {bankAccountID: 123, accountNumber: '1234', routingNumber: '123456789', addressName: 'Test', bankName: 'Test bank', reimburser: 'test@example.com'},
@@ -215,19 +244,24 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         expect(getRow('workflows')?.isSelected).toBe(true);
         expect(getRow('currency')?.isSelected).toBe(true);
         expect(getRow('currency')?.isDisabled).toBe(true);
+        // When the required Currency selection is pressed.
         await pressRow('currency');
         pressContinue();
+        // Then Workflows keeps Currency selected for reimbursement compatibility.
         expect(getSentParts()).toEqual(expect.arrayContaining(['workflows', 'currency']));
     });
 
     it('excludes Travel when Overview is deselected and the new policy would have no address', async () => {
+        // Given a source with a Travel entity and company address.
         await renderForm(false, {
             isTravelEnabled: true,
             travelSettings: {spotnanaEntityID: 'source-entity'},
             address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
         });
         expect(getRow('travel')?.isSelected).toBe(true);
+        // When Overview is deselected.
         await pressRow('overview');
+        // Then Travel is excluded because the new workspace lacks an address.
         expect(getRow('travel')?.isSelected).toBe(false);
         expect(getRow('travel')?.isDisabled).toBe(true);
         pressContinue();
@@ -235,6 +269,7 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
     });
 
     it('requires Travel consent and sends it only after the checkbox is accepted', async () => {
+        // Given a provisioned source that requires fresh consent for the duplicate.
         await renderForm(false, {
             isTravelEnabled: true,
             travelSettings: {spotnanaEntityID: 'source-entity', spotnanaCompanyID: 'source-company'},
@@ -243,10 +278,12 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         expect(mockSelectionListProps?.confirmButtonOptions.isDisabled).toBe(true);
         pressContinue();
         expect(duplicateWorkspace).not.toHaveBeenCalled();
+        // When the user accepts the Travel terms.
         fireEvent.press(screen.getByRole('checkbox', {checked: false}));
         await waitForBatchedUpdates();
         expect(mockSelectionListProps?.confirmButtonOptions.isDisabled).toBe(false);
         pressContinue();
+        // Then the API receives explicit consent.
         expect(jest.mocked(duplicateWorkspace).mock.calls.at(0)?.[1].hasAcceptedTravelTerms).toBe(true);
     });
 });

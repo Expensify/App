@@ -224,6 +224,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 // When the shared copier builds duplicate settings.
                 const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(source, [target], ['timeTracking', 'receiptPartners'], {}, {}, {}, false, true);
                 // Then every lifecycle leaves the existing bulk-copy state alone.
+                expect(failureData.some((update) => update.key === POLICY_KEY)).toBe(false);
                 for (const update of [...optimisticData, ...successData, ...failureData]) {
                     expect(update.key).not.toBe(ONYXKEYS.COPY_POLICY_SETTINGS);
                     expect(update.key).not.toBe(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);

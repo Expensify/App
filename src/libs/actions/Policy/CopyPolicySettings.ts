@@ -3,7 +3,7 @@ import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildCopiedExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
-import {categoryHasAnyRequireFieldsRule, hasExplicitFlagAmount} from '@libs/PolicyRulesUtils';
+import {categoryHasAnyRequireFieldsRule, hasExplicitAmountLimit} from '@libs/PolicyRulesUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -258,7 +258,7 @@ function buildCategoryRulesPatch(sourceCategories: PolicyCategories, targetCateg
 
         // expenseLimitType and commentHint can be set without a rule existing, so gate on the rule predicates
         // themselves - otherwise a category carrying no rule would still patch (and force-enable) the target.
-        if (!hasExplicitFlagAmount(sourceCategory.maxExpenseAmount) && !categoryHasAnyRequireFieldsRule(sourceCategory) && !sourceCategory.commentHint) {
+        if (!hasExplicitAmountLimit(sourceCategory.maxExpenseAmount) && !categoryHasAnyRequireFieldsRule(sourceCategory) && !sourceCategory.commentHint) {
             continue;
         }
 
@@ -465,15 +465,17 @@ function buildCopyPolicySettingsData(
             },
         });
 
-        // Failure: restore the original target policy in full, surface RBR
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: policyKey,
-            value: {
-                ...targetPolicy,
-                errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
-            },
-        });
+        if (!isNewPolicy) {
+            // Failure: restore the original target policy in full, surface RBR
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: policyKey,
+                value: {
+                    ...targetPolicy,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('workspace.copyPolicySettings.error'),
+                },
+            });
+        }
 
         // Step 3: collection keys (categories / tags) — SET-level overwrite with snapshot rollback
         if (isCategoriesSelected) {

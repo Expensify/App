@@ -14,12 +14,8 @@ function isWaiveReceiptThreshold(value: number | null | undefined): boolean {
     return value === CONST.DISABLED_MAX_EXPENSE_VALUE;
 }
 
-function hasExplicitReceiptThreshold(value: number | null | undefined): value is number {
+function hasExplicitAmountLimit(value: number | null | undefined): value is number {
     return value !== null && value !== undefined && value !== CONST.DISABLED_MAX_EXPENSE_VALUE;
-}
-
-function hasCategoryReceiptOverride(value: number | null | undefined): boolean {
-    return value !== null && value !== undefined;
 }
 
 type RequireFieldsPendingFieldKey = 'areCommentsRequired' | 'areAttendeesRequired' | 'maxAmountNoReceipt' | 'maxAmountNoItemizedReceipt';
@@ -37,19 +33,11 @@ function isAttendeesRequiredForCategory(category: PolicyCategory, shouldIncludeP
 }
 
 function isReceiptRequireOverrideForCategory(category: PolicyCategory, shouldIncludePendingDeleteFields = false): boolean {
-    return (
-        hasCategoryReceiptOverride(category.maxAmountNoReceipt) &&
-        hasExplicitReceiptThreshold(category.maxAmountNoReceipt) &&
-        (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoReceipt'))
-    );
+    return hasExplicitAmountLimit(category.maxAmountNoReceipt) && (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoReceipt'));
 }
 
 function isItemizedReceiptRequireOverrideForCategory(category: PolicyCategory, shouldIncludePendingDeleteFields = false): boolean {
-    return (
-        hasCategoryReceiptOverride(category.maxAmountNoItemizedReceipt) &&
-        hasExplicitReceiptThreshold(category.maxAmountNoItemizedReceipt) &&
-        (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoItemizedReceipt'))
-    );
+    return hasExplicitAmountLimit(category.maxAmountNoItemizedReceipt) && (shouldIncludePendingDeleteFields || !isRequireFieldsFieldPendingDelete(category, 'maxAmountNoItemizedReceipt'));
 }
 
 function isReceiptWaivedForCategory(category: PolicyCategory, shouldIncludePendingDeleteFields = false): boolean {
@@ -71,16 +59,11 @@ function categoryHasAnyRequireFieldsRule(category: PolicyCategory): boolean {
     );
 }
 
-function hasExplicitFlagAmount(maxExpenseAmount: number | null | undefined): maxExpenseAmount is number {
-    return maxExpenseAmount !== null && maxExpenseAmount !== undefined && maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE;
-}
-
 export {
     getMccGroupDisplayName,
     isPendingDeleteOrUpdate,
-    hasExplicitFlagAmount,
     isWaiveReceiptThreshold,
-    hasExplicitReceiptThreshold,
+    hasExplicitAmountLimit,
     isDescriptionRequiredForCategory,
     isAttendeesRequiredForCategory,
     isReceiptRequireOverrideForCategory,

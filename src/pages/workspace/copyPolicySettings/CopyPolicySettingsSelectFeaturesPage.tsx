@@ -44,7 +44,7 @@ function CopyPolicySettingsSelectFeaturesPage() {
     const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : undefined;
     const targetPolicies = (copyPolicySettings?.targetPolicyIDs ?? []).map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]);
     const {listItems, selectableFeatures, effectiveSelectedFeatures, selectedAvailableFeatures, availablePartSet, isWorkflowsSelected, toggleFeature, toggleAll} =
-        usePolicyCopySettingsSelection(sourcePolicy, targetPolicies, copyPolicySettings?.parts ?? []);
+        usePolicyCopySettingsSelection(sourcePolicy, targetPolicies, {initialParts: copyPolicySettings?.parts ?? []});
 
     const saveAndNavigate = () => {
         if (!sourcePolicyID) {

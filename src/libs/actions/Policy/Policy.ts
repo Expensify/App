@@ -2793,6 +2793,27 @@ function buildDefaultTitleFieldList(pendingFields?: Record<string, PendingAction
     };
 }
 
+/** Shared creation defaults; selected copy settings override these for duplicates. */
+function buildDefaultPolicySettings() {
+    return {
+        autoReporting: true,
+        created: DateUtils.getDBTime(),
+        areCategoriesEnabled: true,
+        areReportFieldsEnabled: false,
+        areConnectionsEnabled: false,
+        areExpensifyCardsEnabled: false,
+        areInvoicesEnabled: false,
+        areRulesEnabled: false,
+        arePerDiemRatesEnabled: false,
+        defaultBillable: false,
+        defaultReimbursable: true,
+        disabledFields: {defaultBillable: true, reimbursable: false},
+        requiresCategory: true,
+        fieldList: buildDefaultTitleFieldList(),
+        ...buildOptimisticMccGroup().optimisticData,
+    };
+}
+
 /**
  * Generates onyx data for creating a new workspace
  *
@@ -2901,6 +2922,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
+                ...buildDefaultPolicySettings(),
                 id: policyID,
                 type: workspaceType,
                 name: policyName,
@@ -2909,7 +2931,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 ownerAccountID,
                 outputCurrency,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                autoReporting: true,
                 approver: currentUserEmailParam,
                 autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
                 approvalMode: getApprovalModeForNewWorkspace(isSubmitWorkspace, shouldEnableWorkflowsByDefault, engagementChoice),
@@ -2920,19 +2941,11 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     isTrackOnboardingChoice(engagementChoice) || type === CONST.POLICY.TYPE.SUBMIT
                         ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO
                         : CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                created: DateUtils.getDBTime(),
                 customUnits,
-                areCategoriesEnabled: true,
                 areCompanyCardsEnabled: !isSubmitWorkspace,
                 areTagsEnabled: isSubmitWorkspace,
                 areDistanceRatesEnabled,
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
-                areReportFieldsEnabled: false,
-                areConnectionsEnabled: false,
-                areExpensifyCardsEnabled: false,
-                areInvoicesEnabled: false,
-                areRulesEnabled: false,
-                arePerDiemRatesEnabled: false,
                 employeeList: {
                     ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam
                         ? {
@@ -2988,13 +3001,8 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     areReportFieldsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     customRules: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
-                defaultBillable: false,
-                defaultReimbursable: true,
-                disabledFields: {defaultBillable: true, reimbursable: false},
                 avatarURL: file?.uri,
                 originalFileName: file?.name,
-                ...optimisticMccGroupData.optimisticData,
-                requiresCategory: true,
                 fieldList: buildDefaultTitleFieldList({defaultValue: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, deletable: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
             },
         },
@@ -3521,6 +3529,7 @@ function buildOptimisticDuplicatePolicy(
 
     // Start with defaults so unselected settings and source identities are not copied.
     return {
+        ...buildDefaultPolicySettings(),
         id: targetPolicyID,
         name: policyName,
         type: sourcePolicy.type,
@@ -3530,23 +3539,18 @@ function buildOptimisticDuplicatePolicy(
         outputCurrency: localCurrency,
         approver: currentUserEmail,
         approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
-        autoReporting: true,
         harvesting: {enabled: true},
+        autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        // These amounts match Policy_Generator defaults.
         invoice: {markUp: 0},
         units: {time: {enabled: false, rate: 50}},
-        areCategoriesEnabled: true,
         areCompanyCardsEnabled: true,
         areTagsEnabled: false,
         areDistanceRatesEnabled: false,
         areWorkflowsEnabled: false,
         isCollectDepositAccountsEnabled: false,
-        areReportFieldsEnabled: false,
         areInvoiceFieldsEnabled: false,
-        areConnectionsEnabled: false,
-        areExpensifyCardsEnabled: false,
-        areInvoicesEnabled: false,
-        areRulesEnabled: false,
-        arePerDiemRatesEnabled: false,
         employeeList: {[currentUserEmail]: {email: currentUserEmail, role: CONST.POLICY.ROLE.ADMIN, submitsTo: currentUserEmail}},
         customUnits: getCustomUnitsForDuplication(sourcePolicy, parts.includes('distanceRates'), parts.includes('perDiem'), {
             distanceCustomUnitID,
@@ -3628,8 +3632,19 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
 
     const defaultOptimisticCategoriesData = buildOptimisticPolicyCategories(targetPolicyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
 
-    const newPolicy = buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID, optimisticRateIDs});
-    const sourceForCopy = {...policy, employeeList: {...policy.employeeList, ...newPolicy.employeeList}};
+    const newPolicy = {
+        ...buildOptimisticDuplicatePolicy(policy, {...options, targetPolicyID, distanceCustomUnitID, perDiemCustomUnitID, optimisticRateIDs}),
+        chatReportIDAdmins: adminsChatReportID,
+    };
+    const creatorEmail = currentUserEmail ?? '';
+    const sourceForCopy = {
+        ...policy,
+        employeeList: {
+            ...policy.employeeList,
+            // Auth preserves the new owner's approval chain while keeping them an admin.
+            [creatorEmail]: {...newPolicy.employeeList?.[creatorEmail], ...policy.employeeList?.[creatorEmail], role: CONST.POLICY.ROLE.ADMIN},
+        },
+    };
     const copyData = buildCopyPolicySettingsData(
         sourceForCopy,
         [newPolicy],
@@ -3748,19 +3763,7 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
             key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`,
             value: {
                 pendingAction: null,
-                pendingFields: {
-                    autoReporting: null,
-                    approvalMode: null,
-                    reimbursementChoice: null,
-                    name: null,
-                    outputCurrency: null,
-                    address: null,
-                    description: null,
-                    type: null,
-                    areReportFieldsEnabled: null,
-                    areInvoiceFieldsEnabled: null,
-                    rulesDocumentURL: null,
-                },
+                pendingFields: {name: null},
             },
         },
         {
@@ -3864,13 +3867,13 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
     // Default-category feedback must not recreate categories replaced by the source.
     if (!parts.includes('categories')) {
         optimisticData.push(...(defaultOptimisticCategoriesData.optimisticData ?? []));
+        successData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`, value: buildOptimisticMccGroup().successData});
         successData.push(...(defaultOptimisticCategoriesData.successData ?? []));
         failureData.push(...(defaultOptimisticCategoriesData.failureData ?? []));
     }
     optimisticData.push(...copyData.optimisticData);
     successData.push(...copyData.successData);
-    // Restore settings first so the creation error is preserved.
-    failureData.unshift(...copyData.failureData);
+    failureData.push(...copyData.failureData);
 
     // We need to clone the file to prevent non-indexable errors.
     const clonedFile = file ? createFile(file as File) : undefined;

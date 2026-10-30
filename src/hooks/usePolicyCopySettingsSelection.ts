@@ -11,7 +11,7 @@ import {
     getTimeTrackingCopySettingsDescription,
     hasCurrencyConflictWithAnyTarget,
     isCopyPolicySettingsPartEnabledOnSource,
-    isSourceProvisionedForTravel,
+    hasTravelEntity,
     isCurrencyBlockedByTargetBA,
     needsCurrencyForWorkflows,
 } from '@libs/CopyPolicySettingsUtils';
@@ -54,7 +54,14 @@ type FeatureListItem = ListItem & {
 };
 
 /** Shares settings selection between copy and duplicate. */
-function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, targetPolicies: Array<Policy | undefined>, initialParts?: readonly Part[], isNewPolicy = false) {
+function usePolicyCopySettingsSelection(
+    sourcePolicy: Policy | undefined,
+    targetPolicies: Array<Policy | undefined>,
+    {initialParts, isNewPolicy = false, newPolicyCurrency = CONST.CURRENCY.USD}: {initialParts?: readonly Part[]; isNewPolicy?: boolean; newPolicyCurrency?: string} = {},
+) {
+    const targets: Array<Policy | undefined> = isNewPolicy
+        ? [{id: '', name: '', owner: '', role: CONST.POLICY.ROLE.ADMIN, type: sourcePolicy?.type ?? CONST.POLICY.TYPE.TEAM, outputCurrency: newPolicyCurrency}]
+        : targetPolicies;
     const sourcePolicyID = sourcePolicy?.id;
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
@@ -64,12 +71,12 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
     useRulesPrefetch();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const isCodingCompatible = isNewPolicy || areAllTargetsAccountingCompatible(sourcePolicy, targetPolicies);
-    const isAccountingPartCompatible = isNewPolicy || areAllTargetsCompatibleForAccountingPart(sourcePolicy, targetPolicies);
+    const isCodingCompatible = isNewPolicy || areAllTargetsAccountingCompatible(sourcePolicy, targets);
+    const isAccountingPartCompatible = isNewPolicy || areAllTargetsCompatibleForAccountingPart(sourcePolicy, targets);
 
     // Targets without an address need Overview copied before Travel can be set up.
     const sourceHasAddress = !isEmptyObject(sourcePolicy?.address);
-    const hasTargetWithoutAddress = isSourceProvisionedForTravel(sourcePolicy) && targetPolicies.some((policy) => !isSourceProvisionedForTravel(policy) && isEmptyObject(policy?.address));
+    const hasTargetWithoutAddress = hasTravelEntity(sourcePolicy) && targets.some((policy) => !hasTravelEntity(policy) && isEmptyObject(policy?.address));
 
     const sourceEmployeePersonalDetails = usePersonalDetailsByLogins(Object.keys(sourcePolicy?.employeeList ?? {}));
     const [memberCount = 0] = useAllPersonalDetails(
@@ -97,9 +104,9 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
     const formattedAddress = !isEmptyObject(sourcePolicy) && !isEmptyObject(sourcePolicy.address) ? formatAddressToString(sourcePolicy.address) : '';
     const workflows = getWorkflowRules(sourcePolicy, translate);
     const rules = getWorkspaceRules(sourcePolicy, translate, policyCategories);
-    const shouldShowCurrency = isNewPolicy || hasCurrencyConflictWithAnyTarget(sourcePolicy, targetPolicies);
-    const currencyBlockedByBA = isCurrencyBlockedByTargetBA(sourcePolicy, targetPolicies);
-    const currencyNeededForWorkflows = needsCurrencyForWorkflows(sourcePolicy, targetPolicies);
+    const shouldShowCurrency = isNewPolicy || hasCurrencyConflictWithAnyTarget(sourcePolicy, targets);
+    const currencyBlockedByBA = isCurrencyBlockedByTargetBA(sourcePolicy, targets);
+    const currencyNeededForWorkflows = needsCurrencyForWorkflows(sourcePolicy, targets);
     const hasOverviewContent = !!formattedAddress || !!sourcePolicy?.description || !!sourcePolicy?.rulesDocumentURL;
 
     const sourceFeatureContext = {
@@ -154,20 +161,14 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
     const isWorkflowsSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
     const isOverviewSelected = selectedAvailableFeatures.includes(CONST.POLICY.POLICY_FEATURE.OVERVIEW);
 
-    const effectiveSelectedFeatures = (
-        isAccountingSelected
-            ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
-            : selectedAvailableFeatures
-    ).filter((part) => part !== 'travel' || !hasTargetWithoutAddress || (isOverviewSelected && sourceHasAddress));
-
-    const shouldIncludeCurrency = effectiveSelectedFeatures.length > 0 && !isPartIncompatible('currency') && isWorkflowsSelected && currencyNeededForWorkflows;
-    if (shouldIncludeCurrency && !effectiveSelectedFeatures.includes('currency')) {
-        effectiveSelectedFeatures.push('currency');
-    }
-
     const isTravelAddressMismatch = (part: Part): boolean => part === 'travel' && hasTargetWithoutAddress && !(isOverviewSelected && sourceHasAddress);
-
     const shouldSelectCurrency = (part: Part): boolean => part === 'currency' && isWorkflowsSelected && currencyNeededForWorkflows && !currencyBlockedByBA;
+    const baseFeatures = isAccountingSelected
+        ? Array.from(new Set<Part>([...selectedAvailableFeatures, ...CODING_PARTS_TIED_TO_CONNECTION.filter((part) => availablePartSet.has(part))]))
+        : selectedAvailableFeatures;
+    const selectedWithAddress = baseFeatures.filter((part) => !isTravelAddressMismatch(part));
+    const effectiveSelectedFeatures = shouldSelectCurrency('currency') && !selectedWithAddress.includes('currency') ? [...selectedWithAddress, 'currency' as const] : selectedWithAddress;
+
     const isFeatureDisabled = (part: Part): boolean =>
         isPartIncompatible(part) || (isAccountingSelected && isCodingPart(part)) || isTravelAddressMismatch(part) || shouldSelectCurrency(part);
 
@@ -205,12 +206,8 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
                 return getTimeTrackingCopySettingsDescription(sourcePolicy, translate);
             case 'receiptPartners':
                 return getReceiptPartnersCopySettingsDescription(sourcePolicy, translate);
-            case 'invoices': {
-                const invoiceDetails = [invoiceConfigurationText, invoiceFieldsCount ? `${invoiceFieldsCount} ${translate('workspace.common.invoiceFields').toLowerCase()}` : '']
-                    .filter(Boolean)
-                    .join(', ');
-                return invoiceDetails || undefined;
-            }
+            case 'invoices':
+                return invoiceFieldsCount ? `${invoiceFieldsCount} ${translate('workspace.common.invoiceFields').toLowerCase()}` : undefined;
             default:
                 return undefined;
         }
@@ -262,8 +259,8 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
     const isMembersPart = (part: Part) => part === CONST.POLICY.POLICY_FEATURE.MEMBERS;
 
     const confirmCopyMembers = () => {
-        const targetNames = targetPolicies.map((policy) => policy?.name).filter((name): name is string => !!name);
-        const prompt = translate('workspace.copyPolicySettings.confirmMembers.prompt', {count: targetPolicies.length, targetWorkspaceName: targetNames.at(0) ?? ''});
+        const targetNames = targets.map((policy) => policy?.name).filter((name): name is string => !!name);
+        const prompt = translate('workspace.copyPolicySettings.confirmMembers.prompt', {count: targets.length, targetWorkspaceName: targetNames.at(0) ?? ''});
 
         return showConfirmModal({
             id: 'copyPolicySettingsConfirmMembers',
@@ -280,7 +277,7 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
         if (isFeatureDisabled(part)) {
             return;
         }
-        const isSelected = (selectedFeatures ?? resolvedSelectedFeatures).includes(part);
+        const isSelected = resolvedSelectedFeatures.includes(part);
         // Copying members replaces the target workspace's existing members, so confirm before selecting it.
         if (isNewPolicy || isSelected || !isMembersPart(part)) {
             setSelectedFeatures((prev) => {
@@ -328,7 +325,6 @@ function usePolicyCopySettingsSelection(sourcePolicy: Policy | undefined, target
         policyTags,
         memberCount,
         sourceEmployeePersonalDetails,
-        currentUserPersonalDetails,
     };
 }
 

@@ -266,6 +266,7 @@ function isCurrencyBlockedByTargetBA(source: Policy | undefined, targets: Readon
 function needsCurrencyForWorkflows(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
     return (
         !!source &&
+        // Auth remaps reimbursement banking only when the source has a saved bank account ID.
         (source.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) > CONST.DEFAULT_NUMBER_ID &&
         targets.some((target) => hasDifferentCurrency(source, target) && !policyHasWithdrawalAccount(target))
     );
@@ -387,14 +388,13 @@ function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, tran
     return translate('common.enabled');
 }
 
-/**
- * Whether the source workspace already has a Spotnana entity. Copying travel from a provisioned
- * source re-provisions each target (the backend creates a fresh entity), which requires accepting
- * Expensify Travel terms - so the confirm screen must capture consent in this case. Mirrors the
- * entity check in Auth's CopyPolicySettings.
- */
-function isSourceProvisionedForTravel(policy: Policy | undefined): boolean {
+/** Matches Auth's entity check; full policy loads include the saved travel settings. */
+function hasTravelEntity(policy: Policy | undefined): boolean {
     return !!policy?.travelSettings?.spotnanaEntityID;
+}
+
+function shouldRequireTravelTerms(policy: Policy | undefined, parts: readonly Part[]): boolean {
+    return parts.includes('travel') && hasTravelEntity(policy);
 }
 
 export {
@@ -409,7 +409,8 @@ export {
     needsCurrencyForWorkflows,
     isCopyPolicySettingsPartEnabledOnSource,
     getTimeTrackingCopySettingsDescription,
-    isSourceProvisionedForTravel,
+    hasTravelEntity,
+    shouldRequireTravelTerms,
     getReceiptPartnersCopySettingsDescription,
     getCollectTargetsToUpgrade,
     shouldShowCopyPolicySettingsUpgradeStep,

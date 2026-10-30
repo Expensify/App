@@ -17,7 +17,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyCopySettingsSelection from '@hooks/usePolicyCopySettingsSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isSourceProvisionedForTravel} from '@libs/CopyPolicySettingsUtils';
+import {shouldRequireTravelTerms} from '@libs/CopyPolicySettingsUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -45,7 +45,6 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
     const [duplicatedWorkspaceAvatar, setDuplicatedWorkspaceAvatar] = useState<File | undefined>();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const localCurrency = currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
-    const targetPolicies = policy ? [{...policy, outputCurrency: localCurrency, address: undefined, achAccount: undefined, connections: undefined, travelSettings: undefined}] : [];
     const {
         listItems: featuresToCopy,
         effectiveSelectedFeatures: effectiveSelectedItems,
@@ -56,8 +55,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         policyTags,
         memberCount: totalMembers,
         sourceEmployeePersonalDetails: employeePersonalDetails,
-    } = usePolicyCopySettingsSelection(policy, targetPolicies, undefined, true);
-    const requiresTravelTermsConsent = effectiveSelectedItems.includes('travel') && isSourceProvisionedForTravel(policy);
+    } = usePolicyCopySettingsSelection(policy, [], {isNewPolicy: true, newPolicyCurrency: localCurrency});
+    const requiresTravelTermsConsent = shouldRequireTravelTerms(policy, effectiveSelectedItems);
     const [hasAcceptedTravelTerms, setHasAcceptedTravelTerms] = useState(false);
 
     const confirmDuplicate = () => {

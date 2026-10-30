@@ -33,7 +33,7 @@ import {getDecodedCategoryName} from './CategoryUtils';
 import {
     isPendingDeleteOrUpdate,
     isWaiveReceiptThreshold,
-    hasExplicitReceiptThreshold,
+    hasExplicitAmountLimit as hasExplicitReceiptThreshold,
     isDescriptionRequiredForCategory,
     isAttendeesRequiredForCategory,
     isReceiptRequireOverrideForCategory,

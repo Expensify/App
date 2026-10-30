@@ -16,7 +16,7 @@ import type {OnboardingTaskCompletionOnyxData} from './actions/Task';
 import {setPolicyCategoryMaxAmount} from './actions/Policy/Category';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertToFrontendAmountAsString} from './CurrencyUtils';
-import {hasExplicitFlagAmount} from './PolicyRulesUtils';
+import {hasExplicitAmountLimit as hasExplicitFlagAmount} from './PolicyRulesUtils';
 
 type FlagForReviewTableItem = TableData & {
     ruleID: string;
