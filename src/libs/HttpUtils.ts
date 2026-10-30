@@ -78,7 +78,8 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
 /**
- * Send an HTTP request and resolve its JSON response.
+ * Send an HTTP request, and attempt to resolve the json response.
+ * If there is a network error, we'll set the application offline.
  */
 function processHTTPRequest<TKey extends OnyxKey>(
     url: string,
@@ -88,6 +89,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
     shouldSkipPrefetch = false,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
+
     const command = url.match(APICommandRegex)?.[1];
 
     const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
@@ -304,7 +306,7 @@ async function head(url: string, signal?: AbortSignal): Promise<number> {
  * Makes XHR request
  * @param command the name of the API command
  * @param data parameters for the API command
- * @param type HTTP request method
+ * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
  */
 function xhr<TKey extends OnyxKey>(
