@@ -29,7 +29,7 @@ import React from 'react';
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
 function CreateReportMenuItem() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -58,7 +58,7 @@ function CreateReportMenuItem() {
             isASAPSubmitBetaEnabled,
             policy,
             isTrackIntentUser,
-            getCurrencyDecimals,
+            {getCurrencyDecimals, formatPhoneNumber},
             rules,
             false,
             shouldDismissEmptyReportsConfirmation,

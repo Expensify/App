@@ -288,6 +288,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     if (expenseReport) {
                         const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                         submitReport({
+                            formatPhoneNumber,
                             rules: undefined,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
@@ -428,6 +429,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
@@ -576,6 +578,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
@@ -707,6 +710,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
@@ -841,6 +845,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             const expenseReportTransactions = await getReportTransactionsFromOnyx(freshExpenseReport?.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: CARLOS_EMAIL,
@@ -1194,6 +1199,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         if (expenseReport) {
                             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                             submitReport({
+                                formatPhoneNumber,
                                 rules: undefined,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
@@ -1519,6 +1525,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         if (expenseReport) {
                             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                             submitReport({
+                                formatPhoneNumber,
                                 rules: undefined,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
@@ -1707,6 +1714,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     if (expenseReport) {
                         const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                         submitReport({
+                            formatPhoneNumber,
                             rules: undefined,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
@@ -1788,6 +1796,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Submit with amountOwed > 0 should trigger restriction
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -1923,6 +1932,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
                 const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                 submitReport({
+                    formatPhoneNumber,
                     rules: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     submitterLogin: undefined,
@@ -1960,9 +1970,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             const defaultApproverEmail = 'default-approver@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [correctManagerEmail]: {accountID: correctManagerAccountID, login: correctManagerEmail},
-                [defaultApproverEmail]: {accountID: defaultApproverAccountID, login: defaultApproverEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [correctManagerEmail]: {
+                    accountID: correctManagerAccountID,
+                    login: correctManagerEmail,
+                },
+                [defaultApproverEmail]: {
+                    accountID: defaultApproverAccountID,
+                    login: defaultApproverEmail,
+                },
             };
 
             const policy: Policy = {
@@ -1989,6 +2008,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2036,9 +2056,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             const defaultApproverEmail = 'default-approver@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [removedApproverEmail]: {accountID: removedApproverAccountID, login: removedApproverEmail},
-                [defaultApproverEmail]: {accountID: defaultApproverAccountID, login: defaultApproverEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [removedApproverEmail]: {
+                    accountID: removedApproverAccountID,
+                    login: removedApproverEmail,
+                },
+                [defaultApproverEmail]: {
+                    accountID: defaultApproverAccountID,
+                    login: defaultApproverEmail,
+                },
             };
 
             const policy: Policy = {
@@ -2078,6 +2107,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2124,9 +2154,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             const defaultApproverEmail = 'default-approver@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [correctManagerEmail]: {accountID: correctManagerAccountID, login: correctManagerEmail},
-                [defaultApproverEmail]: {accountID: defaultApproverAccountID, login: defaultApproverEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [correctManagerEmail]: {
+                    accountID: correctManagerAccountID,
+                    login: correctManagerEmail,
+                },
+                [defaultApproverEmail]: {
+                    accountID: defaultApproverAccountID,
+                    login: defaultApproverEmail,
+                },
             };
 
             const policy: Policy = {
@@ -2154,6 +2193,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2210,6 +2250,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -2269,6 +2310,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -2309,8 +2351,14 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
                 [adminEmail]: {accountID: adminAccountID, login: adminEmail},
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [previousApproverEmail]: {accountID: previousApproverAccountID, login: previousApproverEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [previousApproverEmail]: {
+                    accountID: previousApproverAccountID,
+                    login: previousApproverEmail,
+                },
             };
 
             const policy: Policy = {
@@ -2343,6 +2391,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2382,9 +2431,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             const ruleApproverEmail = 'rule-approver@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [defaultApproverEmail]: {accountID: defaultApproverAccountID, login: defaultApproverEmail},
-                [ruleApproverEmail]: {accountID: ruleApproverAccountID, login: ruleApproverEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [defaultApproverEmail]: {
+                    accountID: defaultApproverAccountID,
+                    login: defaultApproverEmail,
+                },
+                [ruleApproverEmail]: {
+                    accountID: ruleApproverAccountID,
+                    login: ruleApproverEmail,
+                },
             };
 
             const policy: Policy = {
@@ -2439,6 +2497,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -2486,8 +2545,14 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
                 [adminEmail]: {accountID: adminAccountID, login: adminEmail},
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [previousApproverEmail]: {accountID: previousApproverAccountID, login: previousApproverEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [previousApproverEmail]: {
+                    accountID: previousApproverAccountID,
+                    login: previousApproverEmail,
+                },
             };
 
             const parentReport: Report = {
@@ -2535,6 +2600,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2570,7 +2636,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             const submitterEmail = 'submitter@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
             };
 
             const parentReport: Report = {
@@ -2614,6 +2683,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             mockFetch?.pause?.();
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2653,9 +2723,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             const forwardedApproverEmail = 'forwarded-approver@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [firstApproverEmail]: {accountID: firstApproverAccountID, login: firstApproverEmail},
-                [forwardedApproverEmail]: {accountID: forwardedApproverAccountID, login: forwardedApproverEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [firstApproverEmail]: {
+                    accountID: firstApproverAccountID,
+                    login: firstApproverEmail,
+                },
+                [forwardedApproverEmail]: {
+                    accountID: forwardedApproverAccountID,
+                    login: forwardedApproverEmail,
+                },
             };
 
             const policy: Policy = {
@@ -2688,6 +2767,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             const expenseReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
@@ -2761,6 +2841,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -2828,6 +2909,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -2870,6 +2952,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -2914,9 +2997,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             const defaultApproverEmail = 'default-approver@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [correctManagerEmail]: {accountID: correctManagerAccountID, login: correctManagerEmail},
-                [defaultApproverEmail]: {accountID: defaultApproverAccountID, login: defaultApproverEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [correctManagerEmail]: {
+                    accountID: correctManagerAccountID,
+                    login: correctManagerEmail,
+                },
+                [defaultApproverEmail]: {
+                    accountID: defaultApproverAccountID,
+                    login: defaultApproverEmail,
+                },
             };
 
             const policy: Policy = {
@@ -2968,9 +3060,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             const chosenManagerEmail = 'chosen-manager@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [defaultManagerEmail]: {accountID: defaultManagerAccountID, login: defaultManagerEmail},
-                [chosenManagerEmail]: {accountID: chosenManagerAccountID, login: chosenManagerEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [defaultManagerEmail]: {
+                    accountID: defaultManagerAccountID,
+                    login: defaultManagerEmail,
+                },
+                [chosenManagerEmail]: {
+                    accountID: chosenManagerAccountID,
+                    login: chosenManagerEmail,
+                },
             };
 
             const policy: Policy = {
@@ -3035,8 +3136,14 @@ describe('actions/IOU/ReportWorkflow', () => {
             const chosenManagerEmail = 'chosen-manager@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [defaultManagerEmail]: {accountID: defaultManagerAccountID, login: defaultManagerEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [defaultManagerEmail]: {
+                    accountID: defaultManagerAccountID,
+                    login: defaultManagerEmail,
+                },
             };
 
             const policy: Policy = {
@@ -3102,8 +3209,14 @@ describe('actions/IOU/ReportWorkflow', () => {
             const defaultManagerEmail = 'default-manager@example.com';
 
             const personalDetailsByLogins: PersonalDetailsByLogin = {
-                [submitterEmail]: {accountID: submitterAccountID, login: submitterEmail},
-                [defaultManagerEmail]: {accountID: defaultManagerAccountID, login: defaultManagerEmail},
+                [submitterEmail]: {
+                    accountID: submitterAccountID,
+                    login: submitterEmail,
+                },
+                [defaultManagerEmail]: {
+                    accountID: defaultManagerAccountID,
+                    login: defaultManagerEmail,
+                },
             };
 
             const policy: Policy = {
@@ -3294,6 +3407,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -3335,6 +3449,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                formatPhoneNumber,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
@@ -3428,6 +3543,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -3472,6 +3588,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -3527,6 +3644,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const;
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4658,6 +4776,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: OnyxEntry<Policy>) => ({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            formatPhoneNumber,
             personalDetailsByLogins: {},
             expenseReport,
             expenseReportPolicy,
@@ -4748,7 +4867,10 @@ describe('actions/IOU/ReportWorkflow', () => {
             [adminEmail]: {accountID: adminAccountID, login: adminEmail},
             [managerEmail]: {accountID: managerAccountID, login: managerEmail},
             [employeeEmail]: {accountID: employeeAccountID, login: employeeEmail},
-            [seniorManagerEmail]: {accountID: seniorManagerAccountID, login: seniorManagerEmail},
+            [seniorManagerEmail]: {
+                accountID: seniorManagerAccountID,
+                login: seniorManagerEmail,
+            },
         };
 
         let expenseReport: Report;
@@ -4858,6 +4980,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4913,6 +5036,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4967,6 +5091,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // When the admin approves the report
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -4996,7 +5121,10 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         it('should mention an admin to pay expenses in optimistic next step message when admin takes control and approves', async () => {
             // Given a workspace that reimburses through Expensify (Direct)
-            const directPolicy = {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES};
+            const directPolicy = {
+                ...policy,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${directPolicy.id}`, directPolicy);
 
             // Admin takes control
@@ -5013,6 +5141,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5146,6 +5275,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report (no take control actions)
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5180,6 +5310,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5212,6 +5343,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5274,6 +5406,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5336,6 +5469,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             })
                 .then(() => {
                     approveMoneyRequest({
+                        formatPhoneNumber,
                         personalDetailsByLogins,
                         rules: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -5469,6 +5603,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const newExpenseReportID = approveMoneyRequest({
+                formatPhoneNumber,
                 personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,

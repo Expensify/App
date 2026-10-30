@@ -3688,7 +3688,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, {getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal, formatPhoneNumber}, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -3754,7 +3754,7 @@ describe('actions/Report', () => {
             type: CONST.POLICY.TYPE.TEAM,
         };
 
-        Report.createNewReport({accountID: 1234}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined, false, undefined, {
+        Report.createNewReport({accountID: 1234}, true, false, policy, false, {getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal, formatPhoneNumber}, undefined, false, undefined, {
             managedCardTransactionID,
         });
 
@@ -3776,7 +3776,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        Report.createNewReport({accountID}, true, false, policy, false, {getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal, formatPhoneNumber}, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -3813,7 +3813,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        Report.createNewReport({accountID}, true, false, policy, false, {getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal, formatPhoneNumber}, undefined);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -3847,7 +3847,15 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        const optimisticReportData = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const optimisticReportData = Report.createNewReport(
+            {accountID},
+            true,
+            false,
+            policy,
+            false,
+            {getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal, formatPhoneNumber},
+            undefined,
+        );
 
         await waitForBatchedUpdates();
         // Then the report's status should be draft.
@@ -3888,7 +3896,7 @@ describe('actions/Report', () => {
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
-        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, TestHelper.getCurrencyDecimalsLocal, undefined);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy, false, {getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal, formatPhoneNumber}, undefined);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await waitForBatchedUpdates();
@@ -4921,6 +4929,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [manualDistanceTransaction],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -4959,6 +4968,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5023,6 +5033,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5097,6 +5108,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5197,6 +5209,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [expenseTransaction, refundTransaction],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5285,6 +5298,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [audTransaction, usdTransaction],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5346,6 +5360,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5439,6 +5454,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5488,6 +5504,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5523,6 +5540,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5557,6 +5575,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5591,6 +5610,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5627,6 +5647,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -5683,6 +5704,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -6288,6 +6310,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             expect(buildOptimisticNextStep).toHaveBeenCalledWith({
                 report,
@@ -6326,6 +6349,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             expect(optimisticReportPreviewAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6357,6 +6381,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
             expect(optimisticMovedReportAction.delegateAccountID).toBe(delegateAccountID);
         });
@@ -6406,6 +6431,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                formatPhoneNumber,
             });
 
             // Find the transaction optimistic data
@@ -6474,6 +6500,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                formatPhoneNumber,
             });
 
             // Should NOT find transaction optimistic data when currencies are the same
@@ -6526,6 +6553,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [transaction],
+                formatPhoneNumber,
             });
 
             // Should NOT find transaction optimistic data when transaction matches destination currency
@@ -6591,6 +6619,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 isTrackIntentUser: false,
                 reportTransactions: [matchingTransaction, nonMatchingTransaction],
+                formatPhoneNumber,
             });
 
             // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
@@ -6659,6 +6688,7 @@ describe('actions/Report', () => {
                 reportPreviewAction,
                 isTrackIntentUser: false,
                 reportTransactions: [],
+                formatPhoneNumber,
             });
 
             const parentReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`;
@@ -6744,6 +6774,7 @@ describe('actions/Report', () => {
                 isTrackIntentUser: false,
                 reportTransactions: [unheldTransaction, heldTransaction],
                 delegateAccountID: undefined,
+                formatPhoneNumber,
             });
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
@@ -12532,14 +12563,14 @@ describe('actions/Report', () => {
         it('sets delegateAccountID when delegateAccountIDParam is provided', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat1'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou1', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, DELEGATE_ACCOUNT_ID, '', null);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, formatPhoneNumber, DELEGATE_ACCOUNT_ID, '', null);
             expect(result.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat2'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou2', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, undefined, '', null);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, formatPhoneNumber, undefined, '', null);
             expect(result.delegateAccountID).toBeUndefined();
         });
 
@@ -12553,7 +12584,7 @@ describe('actions/Report', () => {
 
             const chatReport = createMock<OnyxTypes.Report>({reportID: 'chat3'});
             const iouReport = createMock<OnyxTypes.Report>({reportID: 'iou3', ownerAccountID: 1, managerID: 2});
-            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, undefined, '', null);
+            const result = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, TestHelper.getCurrencyDecimalsLocal, formatPhoneNumber, undefined, '', null);
 
             expect(result.delegateAccountID).toBeUndefined();
         });

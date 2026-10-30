@@ -16,7 +16,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import createMockPaymentMethod from '../utils/collections/paymentMethods';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
+import {getCurrencyDecimalsLocal, formatPhoneNumber} from '../utils/TestHelper';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -156,6 +156,7 @@ describe('PaymentUtils', () => {
             delegateAccountID: undefined,
             isTrackIntentUser: false,
             ownerLogin: undefined,
+            formatPhoneNumber,
             personalDetailsByLogins: {},
         };
 
@@ -245,6 +246,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 personalDetailsByLogins: {},
                 expenseReport: params.iouReport,
@@ -275,6 +277,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                formatPhoneNumber,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 personalDetailsByLogins: {},
                 expenseReport: params.iouReport,
@@ -551,7 +554,11 @@ describe('PaymentUtils', () => {
             // Given a workspace default bank account in a currency that doesn't match the report
             const methods: PaymentMethod[] = [
                 createMockPaymentMethod({title: 'Account A', methodID: 1}),
-                createMockPaymentMethod({title: 'EUR Account', methodID: 2, bankCurrency: 'EUR'}),
+                createMockPaymentMethod({
+                    title: 'EUR Account',
+                    methodID: 2,
+                    bankCurrency: 'EUR',
+                }),
                 createMockPaymentMethod({title: 'Account C', methodID: 3}),
             ];
 

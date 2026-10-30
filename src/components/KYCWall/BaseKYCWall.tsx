@@ -86,7 +86,7 @@ function KYCWall({
     const [employeeLogin] = usePersonalDetail(ownerAccountID, loginSelector);
     const [doesSubmitterPersonalDetailExist] = usePersonalDetail(ownerAccountID, doesPersonalDetailExist);
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -211,6 +211,7 @@ function KYCWall({
                     const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail, currentUserDetails.displayName, translate);
                     const {policyID, workspaceChatReportID, adminsChatReportID} =
                         createWorkspaceFromIOUPayment({
+                            formatPhoneNumber,
                             iouReport,
                             reportPreviewAction,
                             currentUserAccountID,
@@ -306,6 +307,7 @@ function KYCWall({
             }
         },
         [
+            formatPhoneNumber,
             bankAccountList,
             getPersonalBankAccountOnSuccessFallbackRoute,
             onSelectPaymentMethod,

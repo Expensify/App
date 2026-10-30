@@ -32,7 +32,7 @@ import type {MockFetch} from '../../utils/TestHelper';
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, expectAPICommandToHaveBeenCalled, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
+import {createGlobalFetchMock, expectAPICommandToHaveBeenCalled, formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import {hasDefinedProperty, isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -1149,6 +1149,7 @@ describe('actions/IOU/Hold', () => {
                 await waitForBatchedUpdates();
                 // When the actual report-move seam selects actions linked to held transactions.
                 const result = getReportFromHoldRequestsOnyxData({
+                    formatPhoneNumber,
                     chatReport,
                     iouReport: report,
                     recipient: {accountID: 1},
@@ -1255,6 +1256,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},
@@ -1283,6 +1285,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},
@@ -1330,6 +1333,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, [threadKey]: threadReport, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},
@@ -1370,6 +1374,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},
@@ -1404,6 +1409,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},
@@ -1510,6 +1516,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},
@@ -1553,6 +1560,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},
@@ -1583,6 +1591,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},
@@ -1606,6 +1615,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},
@@ -1628,6 +1638,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
                 .then(() => {
                     const result = getReportFromHoldRequestsOnyxData({
+                        formatPhoneNumber,
                         chatReport,
                         iouReport,
                         recipient: {accountID: 1},

@@ -57,7 +57,7 @@ function SubmitActionButton() {
 }
 
 function SubmitActionButtonContent() {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -162,6 +162,7 @@ function SubmitActionButtonContent() {
 
         confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
             submitReport({
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 expenseReport: iouReport,
                 expenseReportTransactions: transactions,

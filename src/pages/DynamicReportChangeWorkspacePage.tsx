@@ -80,7 +80,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const reportTransactions = useReportTransactions(reportID);
 
@@ -187,6 +187,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         if (isExpenseReport(report) && isPolicyAdmin(policy) && report.ownerAccountID && !isPolicyMember(policy, submitterLogin)) {
             const employeeList = policy?.employeeList;
             changeReportPolicyAndInviteSubmitter({
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 report,
                 parentReport,
@@ -217,6 +218,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         }
 
         changeReportPolicy({
+            formatPhoneNumber,
             getCurrencyDecimals,
             report,
             parentReport,

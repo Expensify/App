@@ -17,7 +17,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
-import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
@@ -344,6 +344,7 @@ describe('handleActionButtonPress', () => {
 
         // When the action button is pressed
         handleActionButtonPress({
+            formatPhoneNumber,
             isWiseReimbursementsBetaEnabled: false,
             isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
@@ -380,6 +381,7 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            formatPhoneNumber,
             isWiseReimbursementsBetaEnabled: false,
             isASAPSubmitBetaEnabled: false,
             conciergeChat: undefined,
@@ -413,7 +415,12 @@ describe('handleActionButtonPress', () => {
         // Given: a report item with no held expenses so the approve action reaches getApproveActionCallback,
         // and a violations collection passed explicitly through the params.
         const allViolations: OnyxCollection<TransactionViolations> = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1049531721038862176`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1049531721038862176`]: [
+                {
+                    name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ],
         };
 
         const hasViolationsMock = jest.spyOn(ReportUtils, 'hasViolations').mockReturnValue(true);
@@ -421,6 +428,7 @@ describe('handleActionButtonPress', () => {
 
         // When: the approve action button is pressed
         handleActionButtonPress({
+            formatPhoneNumber,
             isWiseReimbursementsBetaEnabled: false,
             isASAPSubmitBetaEnabled: false,
             hash: searchHash,
@@ -463,7 +471,11 @@ describe('handleBulkPayItemSelected', () => {
     const ownerAccountID = 1;
 
     const baseParams = {
-        item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
+        item: {
+            key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            text: 'Pay elsewhere',
+            icon: () => null,
+        },
         triggerKYCFlow: jest.fn(),
         isAccountLocked: false,
         showLockedAccountModal: jest.fn(),
@@ -486,7 +498,10 @@ describe('handleBulkPayItemSelected', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         await Onyx.multiSet({
-            [ONYXKEYS.SESSION]: {email: 'owner@test.com', accountID: ownerAccountID},
+            [ONYXKEYS.SESSION]: {
+                email: 'owner@test.com',
+                accountID: ownerAccountID,
+            },
         });
     });
 
@@ -602,7 +617,11 @@ describe('handleBulkPayItemSelected', () => {
             policy,
             amountOwed: 0,
             isUserValidated: false,
-            item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
+            item: {
+                key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                text: 'Pay elsewhere',
+                icon: () => null,
+            },
         });
 
         expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
@@ -623,7 +642,11 @@ describe('handleBulkPayItemSelected', () => {
             policy,
             amountOwed: 0,
             isUserValidated: false,
-            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
+            item: {
+                key: CONST.IOU.PAYMENT_TYPE.VBBA,
+                text: 'Pay with bank account',
+                icon: () => null,
+            },
         });
 
         expect(baseParams.verifyAccountAndResume).toHaveBeenCalledTimes(1);
@@ -659,14 +682,21 @@ describe('handleBulkPayItemSelected', () => {
                 [bankAccountID]: {
                     bankCurrency: CONST.CURRENCY.USD,
                     bankCountry: CONST.COUNTRY.US,
-                    accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                    accountData: {
+                        bankAccountID,
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    },
                 },
             },
             item: {
                 key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                 text: 'Business account',
                 icon: () => null,
-                additionalData: {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT},
+                additionalData: {
+                    bankAccountID,
+                    paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                },
             },
         });
 
@@ -706,7 +736,10 @@ describe('handleBulkPayItemSelected', () => {
                 key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                 text: 'Business account',
                 icon: () => null,
-                additionalData: {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT},
+                additionalData: {
+                    bankAccountID,
+                    paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                },
             },
         });
 
@@ -730,7 +763,11 @@ describe('handleBulkPayItemSelected', () => {
             // VBBA + unvalidated user would normally route to account verification / KYC; offline must short-circuit that.
             isUserValidated: false,
             isOffline: true,
-            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
+            item: {
+                key: CONST.IOU.PAYMENT_TYPE.VBBA,
+                text: 'Pay with bank account',
+                icon: () => null,
+            },
         });
 
         expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();

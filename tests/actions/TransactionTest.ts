@@ -234,7 +234,7 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, false, getCurrencyDecimalsLocal, undefined);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy, false, {getCurrencyDecimals: getCurrencyDecimalsLocal, formatPhoneNumber}, undefined);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
@@ -246,6 +246,7 @@ describe('actions/Transaction', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
             trackExpense({
+                formatPhoneNumber,
                 isDraftChatReport: false,
                 conciergeChat: undefined,
                 report: selfDMReport,

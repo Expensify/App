@@ -104,7 +104,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
     const kycWallRef = useContext(KYCWallContext);
 
@@ -210,6 +210,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                formatPhoneNumber,
                 bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
@@ -236,6 +237,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
             });
         } else {
             payMoneyRequest({
+                formatPhoneNumber,
                 bankAccountList,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
@@ -467,6 +469,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         const runPaymentSelection = () =>
             selectPaymentType({
                 personalDetailsByLogins: getPersonalDetailsByLogin(),
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 event,
                 iouPaymentType,

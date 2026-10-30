@@ -39,7 +39,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
-import {translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
@@ -386,6 +386,7 @@ describe('SearchActions', () => {
 
         function reject(allReportsTransactionsAndViolations: ReportTransactionsAndViolationsDerivedValue | undefined) {
             return rejectMoneyRequestsOnSearch({
+                formatPhoneNumber,
                 hash: 123,
                 selectedTransactions: {tx1: {reportID}},
                 comment: 'rejecting',

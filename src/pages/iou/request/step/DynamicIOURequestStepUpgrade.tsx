@@ -64,7 +64,7 @@ function DynamicIOURequestStepUpgrade({
 }: DynamicIOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -94,7 +94,9 @@ function DynamicIOURequestStepUpgrade({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
     const createReportForCurrentUser = useCreateNewReport();
 
     // Hooks for bulk move functionality
@@ -148,12 +150,24 @@ function DynamicIOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, newPolicy, isTrackIntentUser, getCurrencyDecimals, rules);
+            const optimisticReport = createNewReport(
+                ownerPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                newPolicy,
+                isTrackIntentUser,
+                {getCurrencyDecimals, formatPhoneNumber},
+                rules,
+            );
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             const reportsForCall = {
                 ...reports,
-                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {...optimisticReport, transactionCount: 0, unheldNonReimbursableTotal: 0},
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReport.reportID}`]: {
+                    ...optimisticReport,
+                    transactionCount: 0,
+                    unheldNonReimbursableTotal: 0,
+                },
             };
 
             // Do not send all-matching query params offline because reconnecting reevaluates the query and can include newly matching expenses.
@@ -261,7 +275,15 @@ function DynamicIOURequestStepUpgrade({
                     break;
                 }
                 navigateWithMicrotask(
-                    upgradeBackTo ?? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID})),
+                    upgradeBackTo ??
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                action,
+                                iouType: CONST.IOU.TYPE.SUBMIT,
+                                transactionID,
+                                reportID,
+                            }),
+                        ),
                 );
 
                 break;
@@ -273,7 +295,10 @@ function DynamicIOURequestStepUpgrade({
     const participant = transaction?.participants?.[0];
     const adminParticipant =
         isDistanceRateUpgrade && participant?.accountID
-            ? {participant: getParticipantsOption(participant, personalDetails, translate), doesPersonalDetailExist: !!personalDetails?.[participant.accountID]}
+            ? {
+                  participant: getParticipantsOption(participant, personalDetails, translate),
+                  doesPersonalDetailExist: !!personalDetails?.[participant.accountID],
+              }
             : undefined;
 
     const onUpgrade = () => {

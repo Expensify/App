@@ -140,7 +140,7 @@ function AttachmentPickerWithMenuItems({
     const isFocused = useIsFocused();
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {calculatePopoverPosition} = usePopoverPosition();
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
@@ -196,7 +196,7 @@ function AttachmentPickerWithMenuItems({
                         isASAPSubmitBetaEnabled,
                         policy,
                         isTrackIntentUser,
-                        getCurrencyDecimals,
+                        {getCurrencyDecimals, formatPhoneNumber},
                         rules,
                         true,
                         shouldDismissEmptyReportsConfirmation,
@@ -209,7 +209,7 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, isTrackIntentUser, getCurrencyDecimals, rules, true, false);
+            createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, isTrackIntentUser, {getCurrencyDecimals, formatPhoneNumber}, rules, true, false);
         }
     };
 

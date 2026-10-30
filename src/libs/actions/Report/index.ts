@@ -4819,6 +4819,7 @@ type BuildNewReportOptimisticDataParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
     reportName?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function buildNewReportOptimisticData({
@@ -4833,6 +4834,7 @@ function buildNewReportOptimisticData({
     getCurrencyDecimals,
     rules,
     reportName,
+    formatPhoneNumber,
 }: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
@@ -4884,7 +4886,7 @@ function buildNewReportOptimisticData({
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData}, getCurrencyDecimals);
+    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData}, getCurrencyDecimals, formatPhoneNumber);
     const createReportActionMessage = [
         {
             html: message,
@@ -5067,7 +5069,6 @@ function buildNewReportOptimisticData({
         optimisticReportData,
     };
 }
-
 // Refactoring this to a params object would touch every call site and is out of scope here.
 function createNewReport(
     ownerPersonalDetails: CurrentUserPersonalDetails,
@@ -5075,12 +5076,16 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    localize: {
+        getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    },
     rules: OnyxCollection<Rule>,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
     options: {managedCardTransactionID?: string; reportName?: string} = {},
 ) {
+    const {getCurrencyDecimals, formatPhoneNumber} = localize;
     const {managedCardTransactionID, reportName} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -5098,6 +5103,7 @@ function createNewReport(
         getCurrencyDecimals,
         rules,
         reportName,
+        formatPhoneNumber,
     });
 
     if (shouldDismissEmptyReportsConfirmation) {
@@ -8324,6 +8330,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions,
     rules,
     delegateAccountID,
+    formatPhoneNumber,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8342,6 +8349,7 @@ function buildOptimisticChangePolicyData({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -8573,7 +8581,7 @@ function buildOptimisticChangePolicyData({
     // 3. Optimistically create a new REPORT_PREVIEW reportAction with the newReportPreviewActionID
     // and set it as a parent of the moved report
     const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, delegateAccountID, '', null);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, formatPhoneNumber, delegateAccountID, '', null);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 
@@ -8834,6 +8842,7 @@ function changeReportPolicy({
     reportTransactions,
     rules,
     delegateAccountID,
+    formatPhoneNumber,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8852,6 +8861,7 @@ function changeReportPolicy({
     reportTransactions: Transaction[];
     rules: OnyxCollection<Rule>;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions, policy)) {
         return;
@@ -8874,6 +8884,7 @@ function changeReportPolicy({
         reportTransactions,
         rules,
         delegateAccountID,
+        formatPhoneNumber,
     });
 
     const params = {
@@ -8912,6 +8923,7 @@ function changeReportPolicyAndInviteSubmitter({
     rules,
     personalDetailsByLogins,
     delegateAccountID,
+    formatPhoneNumber,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8932,6 +8944,7 @@ function changeReportPolicyAndInviteSubmitter({
     rules: OnyxCollection<Rule>;
     personalDetailsByLogins: PersonalDetailsByLogin;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     if (
         !report.reportID ||
@@ -8997,6 +9010,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportTransactions,
         rules,
         delegateAccountID,
+        formatPhoneNumber,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

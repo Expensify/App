@@ -732,7 +732,15 @@ function getSendInvoiceInformation({
     }
 
     // STEP 5: Build optimistic reportActions.
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, getCurrencyDecimals, delegateAccountID, trimmedComment, optimisticTransaction);
+    const reportPreviewAction = buildOptimisticReportPreview(
+        chatReport,
+        optimisticInvoiceReport,
+        getCurrencyDecimals,
+        formatPhoneNumber,
+        delegateAccountID,
+        trimmedComment,
+        optimisticTransaction,
+    );
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
