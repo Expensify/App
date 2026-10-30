@@ -970,7 +970,13 @@ function rejectMoneyRequest(params: Omit<PrepareRejectMoneyRequestDataParams, 's
     return urlToNavigateBack;
 }
 
-function markRejectViolationAsResolved(transactionID: string, isOffline: boolean, transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>, reportID?: string) {
+function markRejectViolationAsResolved(
+    transactionID: string,
+    isOffline: boolean,
+    transactionViolations: OnyxEntry<OnyxTypes.TransactionViolations>,
+    reportID: string | undefined,
+    parentReportActions: OnyxEntry<OnyxTypes.ReportActions> | OnyxTypes.ReportAction[],
+) {
     if (!reportID) {
         return;
     }
@@ -1034,7 +1040,7 @@ function markRejectViolationAsResolved(transactionID: string, isOffline: boolean
         failureData,
     });
 
-    const currentReportID = getDisplayedReportID(reportID, isOffline);
+    const currentReportID = getDisplayedReportID(reportID, isOffline, parentReportActions);
     notifyNewAction(currentReportID, undefined, true);
 }
 

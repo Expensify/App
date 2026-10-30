@@ -1,4 +1,5 @@
 import {BAR_CORNER_RADIUS, BAR_GROUP_INNER_GAP, BAR_HIT_GAP_RATIO, VERTICAL_BAR_DOMAIN_PADDING} from '@components/Charts/barChartConstants';
+import ChartAverageLine from '@components/Charts/components/ChartAverageLine';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
@@ -55,6 +56,9 @@ function VerticalBarChartCanvas({
     const StyleUtils = useStyleUtils();
 
     const seriesKeys = series.map((seriesItem) => seriesItem.key);
+    const barSeries = series.filter((seriesItem) => !seriesItem.isAverage);
+    const averageSeries = series.find((seriesItem) => seriesItem.isAverage);
+    const averageValue = averageSeries && data.at(0)?.values[averageSeries.key];
     const chartData: Array<{x: number} & Record<string, number | undefined>> = data.map((point, index) => ({
         x: index,
         ...Object.fromEntries(seriesKeys.map((key) => [key, point.values[key]])),
@@ -88,7 +92,7 @@ function VerticalBarChartCanvas({
     const chartPaddingRight = yAxisLabelWidth + GLYPH_PADDING + VictoryTheme.axis.labelGap;
     const plotBounds = getCartesianPlotBounds(chartWidth, chartPaddingRight);
     const barLayout = getBarLayout(plotBounds.width, data.length);
-    const groupedBarWidth = (barLayout.barWidth - BAR_GROUP_INNER_GAP * (series.length - 1)) / series.length;
+    const groupedBarWidth = (barLayout.barWidth - BAR_GROUP_INNER_GAP * (barSeries.length - 1)) / barSeries.length;
 
     const measurements = useChartLabelMeasurements(labelData, fontManager, variables.iconSizeExtraSmall);
 
@@ -158,7 +162,7 @@ function VerticalBarChartCanvas({
         return isWithinX && args.cursorY >= plotTop.get() && args.cursorY <= plotBottom.get();
     };
 
-    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, onTooltipDismiss, onChartTouchStart} =
+    const {customGestures, setPointPositions, matchedIndex, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved, dismissTooltip, onChartTouchStart} =
         useChartInteractions({
             handlePress: onBarPress ? handleBarPress : undefined,
             checkIsOver: checkIsOverBar,
@@ -242,6 +246,17 @@ function VerticalBarChartCanvas({
                     labelColor={theme.icon}
                     formatValue={formatCompactValue}
                 />
+                {averageValue !== undefined && (
+                    <ChartAverageLine
+                        value={averageValue}
+                        yScale={args.yScale}
+                        chartBounds={args.chartBounds}
+                        canvasHeight={args.canvasSize.height}
+                        formatValue={formatCompactValue}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontManager={fontManager}
+                    />
+                )}
             </>
         );
     };
@@ -289,7 +304,7 @@ function VerticalBarChartCanvas({
                                 color={theme.border}
                             />
                             {groupedBarWidth > 0 &&
-                                series.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesItem, seriesIndex)))}
+                                barSeries.flatMap((seriesItem, seriesIndex) => (points[seriesItem.key] ?? []).map((point) => renderBar(point, chartBounds, seriesItem, seriesIndex)))}
                         </>
                     )}
                 </CartesianChart>
@@ -302,7 +317,7 @@ function VerticalBarChartCanvas({
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
-                    onDismiss={onTooltipDismiss}
+                    onDismiss={dismissTooltip}
                 />
             </Animated.View>
         </GestureDetector>

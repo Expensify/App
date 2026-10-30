@@ -31,8 +31,18 @@ function VictoryChartCartesianInteractive() {
     const designWidth = getChartDesignWidth(undefined, chartContentStyles.width);
     const [chartWidth, setChartWidth] = useState(designWidth ?? 0);
     const coordinateScale = useVictoryChartLayoutScale();
-    const {customGestures, syncBarPositions, activeTooltipData, hasInteractiveBars, hasTooltipLabels, isTooltipActive, isCursorOverClickable, initialTooltipPosition, onChartMoved} =
-        useVictoryBarInteractions();
+    const {
+        customGestures,
+        syncBarPositions,
+        activeTooltipData,
+        hasInteractiveBars,
+        hasTooltipLabels,
+        isTooltipActive,
+        isCursorOverClickable,
+        initialTooltipPosition,
+        onChartMoved,
+        dismissTooltip,
+    } = useVictoryBarInteractions();
 
     const updateChartWidth = (event: LayoutChangeEvent) => {
         setChartWidth(event.nativeEvent.layout.width);
@@ -60,6 +70,7 @@ function VictoryChartCartesianInteractive() {
                         initialTooltipPosition={initialTooltipPosition}
                         isVisible={isTooltipActive}
                         onChartMoved={onChartMoved}
+                        onDismiss={dismissTooltip}
                     >
                         <ChartTooltipSummary
                             value={activeTooltipData.amount}

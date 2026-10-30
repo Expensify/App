@@ -16,6 +16,9 @@ type TooltipRow = {
     /** The series' color, shown as a dot before the row */
     color: string;
 
+    /** Whether the row is an average, shown with a short dash like its line instead of a dot */
+    isAverage?: boolean;
+
     /** Names the series, like "Average", or the dates the point covers in its period */
     label?: string;
 
@@ -81,7 +84,7 @@ function formatTooltipComparison(
         return undefined;
     }
 
-    const rows = series.flatMap(({key, color = VictoryTheme.colors.default, label}) => {
+    const rows = series.flatMap(({key, color = VictoryTheme.colors.default, label, isAverage}) => {
         const value = dataPoint.values[key];
         if (value === undefined) {
             return [];
@@ -89,6 +92,7 @@ function formatTooltipComparison(
         return {
             key,
             color: dataPoint.seriesColors?.[key] ?? color,
+            isAverage,
             label: dataPoint.seriesLabels?.[key] ?? label,
             value: formatAmount(value),
             note: getTooltipNote(value, dataPoint.seriesPercentOfTotal?.[key], dataPoint.seriesTotals?.[key], locale),
