@@ -11,7 +11,3 @@ abstract class Linter {
 }
 
 export default Linter;
-
-// Temporary lint probe, reverted in the next commit.
-const lintProbe: any = 1;
-export {lintProbe};
