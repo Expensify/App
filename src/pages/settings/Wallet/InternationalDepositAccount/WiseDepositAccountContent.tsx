@@ -40,14 +40,25 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const [selectedCountry, setSelectedCountry] = useState(wiseBankAccountFields?.country ?? country ?? '');
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
     const payoutType = wiseBankAccountFields?.payoutType;
+    const formCurrency = wiseBankAccountFields?.currency;
     const schema = wiseBankAccountFields?.schema;
 
     useEffect(() => {
-        if (!payoutType || draftValues?.payoutType === payoutType) {
+        if (!schema) {
             return;
         }
-        setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {payoutType});
-    }, [payoutType, draftValues?.payoutType]);
+        const seed: Record<string, string> = {};
+        if (payoutType && draftValues?.payoutType !== payoutType) {
+            seed.payoutType = payoutType;
+        }
+        if (formCurrency && draftValues?.currency !== formCurrency) {
+            seed.currency = formCurrency;
+        }
+        if (Object.keys(seed).length === 0) {
+            return;
+        }
+        setDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, seed);
+    }, [schema, payoutType, formCurrency, draftValues?.payoutType, draftValues?.currency]);
 
     const leaveFlow = () => {
         clearDraftValues(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
