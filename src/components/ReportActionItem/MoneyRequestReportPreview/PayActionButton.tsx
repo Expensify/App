@@ -1,3 +1,4 @@
+import BillPaymentButton from '@components/BillPaymentButton';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -15,6 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import {isBillReport} from '@libs/BillPayUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -142,6 +144,10 @@ function PayActionButton() {
             }
         }
     };
+
+    if (isBillReport(iouReport) || isInvoiceReportUtils(iouReport)) {
+        return <BillPaymentButton report={iouReport} />;
+    }
 
     return (
         <AnimatedSettlementButton

@@ -35,6 +35,11 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        payByACH: 'Per ACH bezahlen',
+        markAsPaid: 'Als bezahlt markieren',
+        paymentFailed: 'Diese Rechnung konnte nicht bezahlt werden. Bitte versuche es erneut.',
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 Tag`,
@@ -1612,6 +1617,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `genehmigt${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         rejectedThisReport: 'abgelehnt',
         waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein persönliches Bankkonto hinzufügt.`,
+        waitingOnVendorBankAccount: (vendorDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${vendorDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${amount} Zahlung storniert, weil ${submitterDisplayName} ihr Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
