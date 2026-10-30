@@ -36,6 +36,10 @@ function getReportChatType(report: OnyxEntry<Report>) {
     return report?.chatType;
 }
 
+function getReportType(report: OnyxEntry<Report>) {
+    return report?.type;
+}
+
 function getReportPolicyID(report: OnyxEntry<Report>) {
     return report?.policyID;
 }
@@ -71,6 +75,10 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
             if (isThread(report)) {
                 return CONST.REPORT_AVATAR_KIND.CHAT_THREAD;
             }
+            // Only a trip room missing its parent fields gets here. Legacy `isTripRoom` requires type=chat, so one without a type stays DEFAULT.
+            if (report.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
+                return CONST.REPORT_AVATAR_KIND.TRIP_ROOM;
+            }
             break;
         case undefined:
             // Legacy `getIcons` classifies chats purely off chatType, so a chat row whose `type` hasn't populated
@@ -92,7 +100,7 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
         case CONST.REPORT.CHAT_TYPE.INVOICE:
             return CONST.REPORT_AVATAR_KIND.ROOM;
         default:
-            // DM, self-DM, system, a trip room without its parent fields and anything unclassified
+            // DM, self-DM, system, a trip room without a type and anything unclassified
             return CONST.REPORT_AVATAR_KIND.DEFAULT;
     }
 }
@@ -155,6 +163,13 @@ function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'po
         return undefined;
     }
     return {policyID: report.policyID, policyName: report.policyName, oldPolicyName: report.oldPolicyName, policyAvatar: report.policyAvatar};
+}
+
+function reportTypeAndParentIDsSelector(report: OnyxEntry<Report>): Pick<Report, 'type' | 'chatReportID' | 'parentReportID'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {type: report.type, chatReportID: report.chatReportID, parentReportID: report.parentReportID};
 }
 
 const policyIDsWithEmptyReportsSelector =
@@ -319,6 +334,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         created: report.created,
         submitted: report.submitted,
         approved: report.approved,
+        paid: report.paid,
         submitterUserID: report.submitterUserID,
         submitterPayrollID: report.submitterPayrollID,
         orderDealNumbers: report.orderDealNumbers,
@@ -326,6 +342,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         debitedCurrency: report.debitedCurrency,
         creditedAmount: report.creditedAmount,
         creditedCurrency: report.creditedCurrency,
+        withdrawalIDs: report.withdrawalIDs,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,
@@ -352,7 +369,6 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         // Coerce placeholder `0` to `undefined`. The backend ships `managerID: 0` on chat reports
         // without a manager, and a later push removes the key entirely; treating both as
         // `undefined` keeps the projection stable through that reconciliation.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         managerID: report.managerID || undefined,
         supportTicketCalendarLink: report.supportTicketCalendarLink,
         ownerAccountID: report.ownerAccountID,
@@ -430,6 +446,7 @@ const reportsByIDsSelector =
 export {
     getArchiveReason,
     getReportChatType,
+    getReportType,
     groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,
@@ -441,6 +458,7 @@ export {
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
+    reportTypeAndParentIDsSelector,
     roomAvatarFieldsSelector,
     createMoveExpenseReportNVPSelector,
     createOutstandingReportsForPolicySelector,

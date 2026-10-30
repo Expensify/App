@@ -6,21 +6,24 @@ import {
     getLastFourDigits,
     getRequiredKYBDocuments,
     getWiseGlobalReimbursementsBannerBankAccountID,
+    getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     hasBankAccountAllowDebit,
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
+    canLinkPlaid,
     isBankAccountPartiallySetup,
     isBankAccountEligibleForGlobalReimbursements,
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
     PERSONAL_INFO_STEP,
+    shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
 import type {KYBVerificationResponses} from '@libs/BankAccountUtils';
 
 import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-import type {Account, BankAccountList, Session} from '@src/types/onyx';
+import type {Account, BankAccount, BankAccountList, Policy, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 
 import createMock from '../utils/createMock';
@@ -266,6 +269,13 @@ describe('BankAccountUtils', () => {
             expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {}})).toBe(false);
         });
 
+        it('returns true when only the top-level bank currency is USD', () => {
+            // Given a business account whose nested currency is missing but whose record carries bankCurrency USD
+            // When checking eligibility with that bankCurrency
+            // Then it is eligible, because bankCurrency is the required field and the nested currency is optional
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {}}, CONST.CURRENCY.USD)).toBe(true);
+        });
+
         it('returns false when the account is already set up with Corpay', () => {
             // Given a verified USD business account that already has a Corpay verification
             // When checking eligibility
@@ -282,6 +292,33 @@ describe('BankAccountUtils', () => {
                 expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, state})).toBe(false);
             },
         );
+    });
+
+    describe('shouldSetUpGlobalReimbursementsBeforePaying', () => {
+        const buildBankAccount = (additionalData: AccountData['additionalData'], type: string = CONST.BANK_ACCOUNT.TYPE.BUSINESS): BankAccount => ({
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            accountData: {type, state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {currency: CONST.CURRENCY.USD, ...additionalData}},
+        });
+
+        it('returns true when a USD business account has global reimbursements disabled', () => {
+            // Given a USD business account the backend marks as not set up for global reimbursements
+            // When checking it before paying
+            // Then onboarding should open, because the backend rejects every payment from this account
+            expect(shouldSetUpGlobalReimbursementsBeforePaying(buildBankAccount({isGlobalReimbursementEnabled: false}))).toBe(true);
+        });
+
+        it.each([
+            ['global reimbursements are already enabled', buildBankAccount({isGlobalReimbursementEnabled: true})],
+            ['the backend did not send the flag', buildBankAccount({})],
+            ['the account is personal', buildBankAccount({isGlobalReimbursementEnabled: false}, CONST.BANK_ACCOUNT.TYPE.PERSONAL)],
+            ['the account is unknown', undefined],
+        ])('returns false when %s', (_label, bankAccount) => {
+            // Given an account the client can't prove will be rejected
+            // When checking it before paying
+            // Then the payment goes ahead and the backend makes the final call
+            expect(shouldSetUpGlobalReimbursementsBeforePaying(bankAccount)).toBe(false);
+        });
     });
 
     describe('getLastFourDigits', () => {
@@ -338,15 +375,17 @@ describe('BankAccountUtils', () => {
     });
 
     describe('getBankAccountConnectionStatus', () => {
+        const accountFor = (state: string | undefined): AccountData => ({state}) as AccountData;
+
         it('maps OPEN bank accounts to Active without an RBR', () => {
-            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.OPEN)).toEqual({
+            expect(getBankAccountConnectionStatus(accountFor(CONST.BANK_ACCOUNT.STATE.OPEN))).toEqual({
                 labelKey: 'walletPage.bankAccountStatus.active',
                 tone: 'success',
             });
         });
 
         it('maps SETUP bank accounts to Incomplete with the finish action', () => {
-            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.SETUP)).toEqual({
+            expect(getBankAccountConnectionStatus(accountFor(CONST.BANK_ACCOUNT.STATE.SETUP))).toEqual({
                 labelKey: 'walletPage.bankAccountStatus.incomplete',
                 messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
                 actionKey: 'walletPage.bankAccountStatus.finish',
@@ -356,7 +395,7 @@ describe('BankAccountUtils', () => {
         });
 
         it('maps PENDING bank accounts to Pending with the confirm action', () => {
-            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING)).toEqual({
+            expect(getBankAccountConnectionStatus(accountFor(CONST.BANK_ACCOUNT.STATE.PENDING))).toEqual({
                 labelKey: 'walletPage.bankAccountStatus.pending',
                 messageKey: 'walletPage.bankAccountStatus.confirmTestTransactions',
                 actionKey: 'common.confirm',
@@ -366,7 +405,7 @@ describe('BankAccountUtils', () => {
         });
 
         it('maps VERIFYING bank accounts to Verifying with only a tooltip', () => {
-            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.VERIFYING)).toEqual({
+            expect(getBankAccountConnectionStatus(accountFor(CONST.BANK_ACCOUNT.STATE.VERIFYING))).toEqual({
                 labelKey: 'walletPage.bankAccountStatus.verifying',
                 tooltipKey: 'walletPage.bankAccountStatus.reviewingDocumentation',
                 tone: 'default',
@@ -374,7 +413,7 @@ describe('BankAccountUtils', () => {
         });
 
         it('maps LOCKED bank accounts to Locked with the unlock action', () => {
-            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.LOCKED)).toEqual({
+            expect(getBankAccountConnectionStatus(accountFor(CONST.BANK_ACCOUNT.STATE.LOCKED))).toEqual({
                 labelKey: 'common.locked',
                 messageKey: 'walletPage.bankAccountStatus.accountRequiresAttention',
                 actionKey: 'walletPage.bankAccountStatus.unlock',
@@ -385,7 +424,7 @@ describe('BankAccountUtils', () => {
         });
 
         it.each([CONST.CURRENCY.USD, undefined])('keeps the confirm action for a PENDING account in currency "%s"', (currency) => {
-            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING, currency)).toEqual(
+            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING}, currency)).toEqual(
                 expect.objectContaining({
                     labelKey: 'walletPage.bankAccountStatus.pending',
                     actionKey: 'common.confirm',
@@ -394,7 +433,7 @@ describe('BankAccountUtils', () => {
         });
 
         it.each(['GBP', 'EUR', 'AUD'])('maps a PENDING account in currency "%s" to Incomplete, since only USD accounts have test transactions', (currency) => {
-            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING, currency)).toEqual({
+            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING}, currency)).toEqual({
                 labelKey: 'walletPage.bankAccountStatus.incomplete',
                 messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
                 actionKey: 'walletPage.bankAccountStatus.finish',
@@ -406,12 +445,127 @@ describe('BankAccountUtils', () => {
         it.each([CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
             'is unaffected by a non-USD currency in state "%s"',
             (state) => {
-                expect(getBankAccountConnectionStatus(state, 'GBP')).toEqual(getBankAccountConnectionStatus(state));
+                expect(getBankAccountConnectionStatus({state}, 'GBP')).toEqual(getBankAccountConnectionStatus({state}));
             },
         );
 
         it.each([undefined, '', 'UNKNOWN'])('returns undefined for unsupported state "%s"', (state) => {
-            expect(getBankAccountConnectionStatus(state)).toBeUndefined();
+            expect(getBankAccountConnectionStatus(accountFor(state))).toBeUndefined();
+        });
+
+        it('returns undefined when accountData is undefined', () => {
+            expect(getBankAccountConnectionStatus(undefined)).toBeUndefined();
+        });
+
+        describe('Plaid Connect / Fix branches', () => {
+            const openBusinessUS: AccountData = {
+                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {country: CONST.COUNTRY.US},
+            } as AccountData;
+
+            it('returns Connect branch (requiresPlaidHandler) when card-eligible US business is OPEN with no Plaid connection', () => {
+                expect(getBankAccountConnectionStatus(openBusinessUS, CONST.CURRENCY.USD, true)).toEqual({
+                    requiresPlaidHandler: true,
+                    labelKey: 'walletPage.bankAccountStatus.active',
+                    messageKey: 'walletPage.bankAccountStatus.plaidConnectForLimit',
+                    actionKey: 'walletPage.bankAccountStatus.connect',
+                    tone: 'success',
+                    brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+                });
+            });
+
+            it('returns Fix branch (requiresPlaidHandler) when card-eligible US business is OPEN with a broken Plaid connection', () => {
+                const accountData = {
+                    ...openBusinessUS,
+                    additionalData: {
+                        ...openBusinessUS.additionalData,
+                        plaidAccountID: 'plaid-123',
+                        verifications: {externalApiResponses: {plaidAssets: {needsFixing: true}}},
+                    },
+                } as AccountData;
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)).toEqual({
+                    requiresPlaidHandler: true,
+                    labelKey: 'walletPage.bankAccountStatus.active',
+                    messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
+                    actionKey: 'common.actionBadge.fix',
+                    tone: 'danger',
+                    badgeTone: 'success',
+                    brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                });
+            });
+
+            it('falls through to plain Active when isCardEligible is false', () => {
+                expect(getBankAccountConnectionStatus(openBusinessUS, CONST.CURRENCY.USD, false)).toEqual({
+                    labelKey: 'walletPage.bankAccountStatus.active',
+                    tone: 'success',
+                });
+            });
+
+            it('falls through to plain Active for non-US country', () => {
+                const accountData = {
+                    ...openBusinessUS,
+                    additionalData: {country: 'CA'},
+                } as AccountData;
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)).toEqual({
+                    labelKey: 'walletPage.bankAccountStatus.active',
+                    tone: 'success',
+                });
+            });
+
+            it('defaults to US when country is undefined', () => {
+                const accountData = {
+                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    additionalData: {},
+                } as AccountData;
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)?.requiresPlaidHandler).toBe(true);
+            });
+
+            it('falls through to plain Active for personal accounts', () => {
+                const accountData = {
+                    type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    additionalData: {country: CONST.COUNTRY.US},
+                } as AccountData;
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)).toEqual({
+                    labelKey: 'walletPage.bankAccountStatus.active',
+                    tone: 'success',
+                });
+            });
+
+            it('does not render Connect when a plaidAccountID exists and needsFixing is false', () => {
+                const accountData = {
+                    ...openBusinessUS,
+                    additionalData: {...openBusinessUS.additionalData, plaidAccountID: 'plaid-123'},
+                } as AccountData;
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)).toEqual({
+                    labelKey: 'walletPage.bankAccountStatus.active',
+                    tone: 'success',
+                });
+            });
+        });
+    });
+
+    describe('canLinkPlaid', () => {
+        it('returns false when bank account is undefined', () => {
+            expect(canLinkPlaid(undefined, undefined)).toBe(false);
+        });
+
+        it('returns true when the top-level isExpensifyCardSettlementAccount is set', () => {
+            expect(canLinkPlaid({isExpensifyCardSettlementAccount: true, accountData: {}}, undefined)).toBe(true);
+        });
+
+        it('returns true when accountData.isExpensifyCardSettlementAccount is set', () => {
+            expect(canLinkPlaid({accountData: {isExpensifyCardSettlementAccount: true}}, undefined)).toBe(true);
+        });
+
+        it('returns true when any of the account policies is on the waitlist', () => {
+            expect(canLinkPlaid({accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}}, new Set(['B']))).toBe(true);
+        });
+
+        it('returns false when no policies match a waitlist entry and settlement flag is unset', () => {
+            expect(canLinkPlaid({accountData: {additionalData: {policyID: 'A'}, policyIDs: ['B']}}, new Set(['C']))).toBe(false);
         });
     });
 
@@ -885,6 +1039,70 @@ describe('BankAccountUtils', () => {
             // When picking the account for the Wallet banner
             // Then nothing is returned, so the banner stays hidden
             expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBeUndefined();
+        });
+    });
+
+    describe('getWorkspaceWiseGlobalReimbursementsBannerBankAccountID', () => {
+        const bankAccountID = 1;
+        const eligibleAccountData: AccountData = {
+            bankAccountID,
+            type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+            additionalData: {currency: CONST.CURRENCY.USD},
+        };
+        const policy = createMock<Policy>({
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            achAccount: {bankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+        });
+
+        it('returns the connected account when it is eligible', () => {
+            // Given a workspace reimbursing via Expensify from an eligible account the admin holds a copy of
+            const bankAccountList = createMock<BankAccountList>({[bankAccountID]: {accountData: eligibleAccountData}});
+
+            // When picking the account for the Workspace banner
+            // Then the connected account is returned, so the banner opens the intro page for it
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBe(bankAccountID);
+        });
+
+        it('returns undefined when the workspace does not reimburse via Expensify', () => {
+            // Given a workspace that tracks payments made elsewhere
+            const manualPolicy = createMock<Policy>({...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
+            const bankAccountList = createMock<BankAccountList>({[bankAccountID]: {accountData: eligibleAccountData}});
+
+            // When picking the account for the Workspace banner
+            // Then nothing is returned, since the connected account is not used to pay anyone
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(manualPolicy, bankAccountList)).toBeUndefined();
+        });
+
+        it('returns undefined when the admin does not hold a copy of the account', () => {
+            // Given an eligible connected account that is missing from the admin's bank account list
+            const bankAccountList = createMock<BankAccountList>({});
+
+            // When picking the account for the Workspace banner
+            // Then nothing is returned, since eligibility can't be checked without the account data
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
+        });
+
+        it('returns undefined when the connected account is not eligible', () => {
+            // Given a connected account that is already set up with Corpay
+            const bankAccountList = createMock<BankAccountList>({
+                [bankAccountID]: {accountData: {...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}}},
+            });
+
+            // When picking the account for the Workspace banner
+            // Then nothing is returned, so the banner never opens an intro page that would show not-found
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
+        });
+
+        it('returns undefined when the connected account is pending deletion', () => {
+            // Given an eligible connected account deleted while offline
+            const bankAccountList = createMock<BankAccountList>({
+                [bankAccountID]: {accountData: eligibleAccountData, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            });
+
+            // When picking the account for the Workspace banner
+            // Then nothing is returned, so the banner never points to an account queued for removal
+            expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
         });
     });
 });

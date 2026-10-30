@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
@@ -30,7 +30,7 @@ function SignUpWelcomeForm() {
     const [login] = useOnyx(ONYXKEYS.CREDENTIALS, {selector: (credentials) => credentials?.login});
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [marketingAttribution] = useOnyx(ONYXKEYS.MARKETING_ATTRIBUTION);
-    const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
+    const serverErrorText = account ? getLatestErrorMessage(account) : '';
     const isPhoneSignup = Str.isSMSLogin(login ?? '');
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
     const marketingSMSConsentLabel = translate('welcomeSignUpForm.marketingSMSConsent');

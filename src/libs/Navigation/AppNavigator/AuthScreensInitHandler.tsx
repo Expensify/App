@@ -30,6 +30,7 @@ import type {PusherReinitializeHandlerParams} from '@libs/requestPusherReinitial
 import {Scheduler} from '@libs/Scheduler';
 import * as SessionUtils from '@libs/SessionUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {markReportsTabPreloadDispatched} from '@libs/telemetry/reportsTabPreloadTime';
 import {getSearchParamFromUrl} from '@libs/Url';
 
 import * as App from '@userActions/App';
@@ -266,6 +267,7 @@ function AuthScreensInitHandler() {
                 }
 
                 navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR), target});
+                markReportsTabPreloadDispatched(target);
             },
             {shouldUseFallbackTimer: false},
         );

@@ -21,7 +21,6 @@ import {
     isDefaultTagName,
     isMatchingVendorListLoaded,
     isTaxTrackingEnabled,
-    isXeroActiveMatchingSource,
     resolveCurrentTaxCode,
 } from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
@@ -688,6 +687,7 @@ const ViolationsUtils = {
         distanceOriginalPolicy,
         ownerLogin: ownerLoginParam,
         isVendorMatchingBetaEnabled,
+        policyVendors: policyVendorsParam,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -704,6 +704,7 @@ const ViolationsUtils = {
         ownerLogin: string | undefined;
         /** Undefined while the account betas are still loading, which leaves the inactive vendor violation untouched */
         isVendorMatchingBetaEnabled: boolean | undefined;
+        policyVendors?: OnyxEntry<PolicyVendors>;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -812,46 +813,18 @@ const ViolationsUtils = {
                 // positive in Onyx, and rejecting it would strip a legitimate one. Leave the
                 // existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
+                const isVendorDisabled = policyVendorsParam?.[transactionVendorID]?.enabled === false;
+                const isVendorInactive = !matchedVendor || isVendorDisabled;
+                const canConfirmVendorEnabled = policyVendorsParam !== undefined && !isVendorDisabled;
 
-                // Stamp Xero-specific copy on the violation so the render site can use the
-                // "Supplier" wording the rest of the Xero UI uses; QBO/Intacct keep the default
-                // "Vendor" wording.
-                const isSupplierViolation = isXeroActiveMatchingSource(policy);
-                if (!matchedVendor && !hasInactiveVendorViolation) {
+                if (isVendorInactive && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.INACTIVE_VENDOR,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         showInReview: true,
-                        ...(isSupplierViolation ? {data: {isSupplierViolation: true}} : {}),
                     });
-                } else if (matchedVendor && hasInactiveVendorViolation) {
+                } else if (!isVendorInactive && canConfirmVendorEnabled && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
-                } else if (!matchedVendor && hasInactiveVendorViolation) {
-                    // Reconcile data.isSupplierViolation with the current active matching source.
-                    // Backfills the flag when Xero is now active (server-fired violation, or
-                    // persisted from before this code path existed). Strips a stale flag when the
-                    // workspace has switched back to QBO/Intacct as the active source — otherwise
-                    // the render layer would keep showing "Supplier" wording even though the picker
-                    // is back to "Vendor".
-                    const needsSupplierFlagReconciliation = newTransactionViolations.some(
-                        (violation) => violation.name === CONST.VIOLATIONS.INACTIVE_VENDOR && (violation.data?.isSupplierViolation === true) !== isSupplierViolation,
-                    );
-                    if (needsSupplierFlagReconciliation) {
-                        newTransactionViolations = newTransactionViolations.map((violation) => {
-                            if (violation.name !== CONST.VIOLATIONS.INACTIVE_VENDOR) {
-                                return violation;
-                            }
-                            const currentFlag = violation.data?.isSupplierViolation === true;
-                            if (currentFlag === isSupplierViolation) {
-                                return violation;
-                            }
-                            if (isSupplierViolation) {
-                                return {...violation, data: {...violation.data, isSupplierViolation: true}};
-                            }
-                            const {isSupplierViolation: stripped, ...remainingData} = violation.data ?? {};
-                            return Object.keys(remainingData).length > 0 ? {...violation, data: remainingData} : {...violation, data: undefined};
-                        });
-                    }
                 }
             } else if (!transactionVendorID && hasInactiveVendorViolation) {
                 // Vendor was cleared while the feature is still active — drop the now-stale violation.
@@ -929,7 +902,6 @@ const ViolationsUtils = {
         const isTaxRateValid = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
         const canCalculateAmountViolations = policy.outputCurrency === currency;
 
@@ -1215,7 +1187,6 @@ const ViolationsUtils = {
             message = '',
             errorIndexes = [],
             missingFields = [],
-            isSupplierViolation = false,
         } = violation.data ?? {};
 
         switch (violation.name) {
@@ -1255,7 +1226,7 @@ const ViolationsUtils = {
             case 'futureDate':
                 return translate('violations.futureDate');
             case 'inactiveVendor':
-                return translate('violations.inactiveVendor', isSupplierViolation);
+                return translate('violations.inactiveVendor');
             case 'invoiceMarkup':
                 return translate('violations.invoiceMarkup', invoiceMarkup);
             case 'maxAge':

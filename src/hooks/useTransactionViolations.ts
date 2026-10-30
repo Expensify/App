@@ -10,7 +10,6 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {loginSelector} from '@selectors/PersonalDetails';
-import {useMemo} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
@@ -29,20 +28,18 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     const policy = policyOverride ?? distanceOriginalPolicy ?? reportPolicy;
     const currentUserDetails = useCurrentUserPersonalDetails();
 
-    return useMemo(() => {
-        const syncedViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+    const syncedViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
 
-        return getVisibleTransactionViolations(
-            transaction,
-            syncedViolations,
-            currentUserDetails.email ?? '',
-            currentUserDetails.accountID,
-            iouReport,
-            ownerLogin,
-            policy,
-            shouldShowRterForSettledReport,
-        );
-    }, [transaction, transactionViolations, iouReport, ownerLogin, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID]);
+    return getVisibleTransactionViolations(
+        transaction,
+        syncedViolations,
+        currentUserDetails.email ?? '',
+        currentUserDetails.accountID,
+        iouReport,
+        ownerLogin,
+        policy,
+        shouldShowRterForSettledReport,
+    );
 }
 
 export default useTransactionViolations;

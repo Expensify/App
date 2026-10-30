@@ -23,6 +23,7 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,7 +45,7 @@ import {buildMerchantRule, canEditMerchantRule, getMerchantRuleDraftFromGenerate
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -72,7 +73,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
@@ -177,6 +178,7 @@ function MerchantRulePageBase({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     // The page is on its way out, so the rule it was editing no longer being there is expected. A category rule is
     // keyed by its category, so moving it to another category makes the one this page opened with disappear.
@@ -194,7 +196,7 @@ function MerchantRulePageBase({
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const policyTags = useMemo(() => getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>(), [policyTagsFromOnyx]);
+    const policyTags = getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>();
     const [shouldShowError, setShouldShowError] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
@@ -266,14 +268,14 @@ function MerchantRulePageBase({
     useEffect(() => () => clearDraftMerchantRule(), []);
 
     // Fetch categories and tags if they're not loaded (e.g. after cache clear)
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (policy?.areCategoriesEnabled && !policyCategories) {
             openPolicyCategoriesPage(policyID);
         }
         if (policy?.areTagsEnabled && !policyTagsFromOnyx) {
             openPolicyTagsPage(policyID);
         }
-    }, [policyID, policy?.areCategoriesEnabled, policy?.areTagsEnabled, policyCategories, policyTagsFromOnyx]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -302,9 +304,7 @@ function MerchantRulePageBase({
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
     const isVendorFeatureEnabled = hasVendorFeature(policy, isVendorMatchingBetaEnabled);
-    const isOnXero = isXeroActiveMatchingSource(policy);
-    const vendorFieldLabel = translate(isOnXero ? 'common.supplier' : 'common.vendor');
-    const unavailableLabel = translate(isOnXero ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
+    const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
     const vendorDisplayName = form?.vendorID ? getVendorRuleDisplayValue(policy, form.vendorID, unavailableLabel) : undefined;
 
     // `Expense defaults` has not been migrated to the new rules system, so a rule can only carry one condition. The
@@ -430,10 +430,10 @@ function MerchantRulePageBase({
             setIsClosing(true);
             // A move clears the old category and sets the new one as a pair, sharing one rollback.
             if (editCategoryTaxRuleFor && movedToCategory) {
-                movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID);
+                movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID, getReviewWorkspaceSettingsTaskCompletion());
             } else {
                 // The command is per-category, so a bulk selection saves one rule for each category picked.
-                setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID);
+                setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID, getReviewWorkspaceSettingsTaskCompletion());
             }
             if (isEditingCategoryTaxRule || categorySettingsBackPath) {
                 Navigation.goBack(categorySettingsBackPath);
@@ -500,7 +500,7 @@ function MerchantRulePageBase({
         }
         setIsClosing(true);
         if (editCategoryTaxRuleFor) {
-            deletePolicyCategoryTax(policy, editCategoryTaxRuleFor);
+            deletePolicyCategoryTax(policy, editCategoryTaxRuleFor, getReviewWorkspaceSettingsTaskCompletion());
         } else if (ruleID) {
             deleteRule(ruleID, existingRule);
         }
@@ -609,7 +609,7 @@ function MerchantRulePageBase({
                 isVendorFeatureEnabled
                     ? {
                           key: 'vendorID',
-                          description: vendorFieldLabel,
+                          description: translate('common.vendor'),
                           title: vendorDisplayName,
                           onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_VENDOR_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID))),
                           icon: icons.Basket,

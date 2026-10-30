@@ -42,9 +42,11 @@ import useParticipantsInvoiceReport from './useParticipantsInvoiceReport';
 import usePayChatReportActions from './usePayChatReportActions';
 import usePaymentOptions from './usePaymentOptions';
 import usePermissions from './usePermissions';
+import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useVerifyAccountAndResume from './useVerifyAccountAndResume';
 
 type HoldMenuOpenParams = {
@@ -82,6 +84,7 @@ function useSelectionModePayment({
 }: UseSelectionModePaymentParams) {
     const {translate, localeCompare} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -89,9 +92,11 @@ function useSelectionModePayment({
     const lastWorkspaceNumber = useLastWorkspaceNumber();
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
@@ -188,6 +193,7 @@ function useSelectionModePayment({
 
         if (isInvoiceReport) {
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled,
                 getCurrencyDecimals,
                 paymentMethodType: type,
@@ -213,6 +219,7 @@ function useSelectionModePayment({
             });
         } else {
             payMoneyRequest({
+                bankAccountList,
                 getCurrencyDecimals,
                 isASAPSubmitBetaEnabled,
                 paymentType: type,
@@ -230,6 +237,7 @@ function useSelectionModePayment({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
@@ -243,6 +251,7 @@ function useSelectionModePayment({
                 shouldCalculateTotals,
                 isOffline,
                 isLoading: !!currentSearchResults?.search?.isLoading,
+                shouldReturnTripRooms,
             });
         }
 
@@ -308,6 +317,7 @@ function useSelectionModePayment({
 
     const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             getCurrencyDecimals,
             event,
             iouPaymentType,

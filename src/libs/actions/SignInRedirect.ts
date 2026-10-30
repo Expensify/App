@@ -71,6 +71,12 @@ const KEYS_TO_PRESERVE_ON_SIGN_OUT: OnyxKey[] = [
     ONYXKEYS.BETA_OVERRIDES,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
+    // This device's record of having already answered the app review prompt must outlive sign-out.
+    // nvp_appReview is server-owned and its lastPrompt is only written on the first answer, so after
+    // that this record is the only proof the user responded. Clearing it means the next sign-in
+    // re-shows the prompt they just dismissed - every time, forever.
+    // The record carries the accountID it belongs to, so a different user signing in here ignores it.
+    ONYXKEYS.APP_REVIEW_LAST_PROMPT,
 ];
 
 function clearStorageAndRedirect(signOutReason: SignOutReason, errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {

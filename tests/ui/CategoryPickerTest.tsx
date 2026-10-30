@@ -24,6 +24,8 @@ jest.mock('@components/SelectionList/SelectionListWithSections', () => jest.fn((
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useAutoFocusInput', () => jest.fn(() => ({inputCallbackRef: jest.fn()})));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+// The hook sends GetPolicyCategories on mount. Under Jest, a real request reaches Expo's fetch polyfill, which throws "Request is not defined" and crashes the worker.
+jest.mock('@hooks/useLoadPolicyCategories', () => jest.fn(() => ({isLoadingPolicyCategories: false})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => ({})));
 // Returns [searchValue, debouncedSearchValue, setter]. Lets a test stand the picker up mid-search.
 let mockDebouncedSearchValue = '';

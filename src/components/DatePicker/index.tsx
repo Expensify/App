@@ -40,6 +40,7 @@ function DatePicker({
     onInputChange,
     onTouched = () => {},
     placeholder,
+    hint,
     value,
     shouldSaveDraft = false,
     formID,
@@ -244,6 +245,7 @@ function DatePicker({
                     accessibilityState={{expanded: isModalVisible}}
                     value={selectedDate}
                     placeholder={placeholder ?? translate('common.dateFormat')}
+                    hint={hint}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}

@@ -23,6 +23,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 
 import GrowlNotificationContainer from './GrowlNotificationContainer';
 import GrowlNotificationPortal from './GrowlNotificationPortal';
+import shouldUseExplicitBottomPosition from './shouldUseExplicitBottomPosition';
 
 const INACTIVE_OFFSET = CONST.GROWL.OFFSCREEN_OFFSET;
 const INACTIVE_POSITION_Y = -INACTIVE_OFFSET;
@@ -35,7 +36,7 @@ type GrowlNotificationContentProps = {
     duration: number;
     action?: GrowlAction;
 
-    /** Wide-screen anchor. Omit to keep the top anchor unless this growl has an action. */
+    /** Position where the growl is anchored */
     position?: GrowlPosition;
 
     /** Identifies this growl instance; passed back through onDismissed so the parent can ignore stale dismissals. */
@@ -67,8 +68,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
     const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
 
     // Derived live so that resizing the window flips position + slide direction during display.
-    // Narrow layouts stay at the top. The bottom-right anchor is a toast the width of the sidebar on wide screens.
-    const useBottomPosition = !shouldUseNarrowLayout && (!!action || position === CONST.GROWL.POSITION.BOTTOM_RIGHT);
+    const useBottomPosition = shouldUseExplicitBottomPosition(position) || (!!action && !shouldUseNarrowLayout);
     const inactiveY = useBottomPosition ? INACTIVE_OFFSET : INACTIVE_POSITION_Y;
 
     const types: GrowlIconTypes = {

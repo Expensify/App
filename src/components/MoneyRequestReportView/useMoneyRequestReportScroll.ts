@@ -63,6 +63,9 @@ type UseMoneyRequestReportScrollParams = {
 
     /** Completes a previously skipped mark-as-read (from `useMarkAsRead`) */
     completeSkippedMarkAsRead: () => void;
+
+    /** The report policy's cached full policy snapshot, sent when refetching the report so the server can leave out the collections the client already has */
+    fullPolicySnapshot?: {policyID: string; lastModified: number};
 };
 
 type UseMoneyRequestReportScrollResult = {
@@ -114,6 +117,7 @@ function useMoneyRequestReportScroll({
     onScrolledOverThresholdChange,
     markNewestActionAsRead,
     completeSkippedMarkAsRead,
+    fullPolicySnapshot,
 }: UseMoneyRequestReportScrollParams): UseMoneyRequestReportScrollResult {
     const reportScrollManager = useReportScrollManager();
     const {scrollOffsetRef} = useActionListContext();
@@ -303,6 +307,7 @@ function useMoneyRequestReportScroll({
                 currentUserAccountID,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                fullPolicySnapshot,
             });
             scrollToBottom();
             return;

@@ -1,5 +1,6 @@
 import getConfirmationItems from '@components/DynamicForm/utils/getConfirmationItems';
 import {getAllFields} from '@components/DynamicForm/utils/paginate';
+import type {SummaryGroupRow} from '@components/SubStepForms/ConfirmationStep';
 
 import type {DynamicFormPage} from '@src/types/onyx';
 
@@ -18,6 +19,14 @@ const pages: DynamicFormPage[] = [
     {key: 'business', title: 'Business', showWhen: {key: 'type', equals: ['BUSINESS']}, content: [{key: 'ein', type: 'text', required: true, label: 'EIN'}]},
 ];
 
+// A row may be a list heading, which has no onPress
+function pressRow(row: SummaryGroupRow | undefined) {
+    if (!row || !('onPress' in row)) {
+        return;
+    }
+    row.onPress();
+}
+
 describe('getConfirmationItems', () => {
     it('masks sensitive answers and opens the page of an editable row', () => {
         // Given answers with an SSN
@@ -26,7 +35,7 @@ describe('getConfirmationItems', () => {
 
         // When the user taps the SSN row
         const ssnRow = group.rows.find((row) => row.id === 'ssn');
-        ssnRow?.onPress();
+        pressRow(ssnRow);
 
         // Then the SSN is masked to its last four digits and the page is opened
         expect(ssnRow?.title).toBe('•••-••-1234');
@@ -40,7 +49,7 @@ describe('getConfirmationItems', () => {
 
         // When its row is tapped
         const row = group.rows.find((candidate) => candidate.id === 'country');
-        row?.onPress();
+        pressRow(row);
 
         // Then it is not editable
         expect(row).toMatchObject({shouldShowRightIcon: false});
@@ -100,8 +109,10 @@ describe('getConfirmationItems', () => {
         const onEditListItem = jest.fn();
 
         // When the confirmation sections are built and the entry row is tapped
-        const row = getConfirmationItems(directorsPages, getAllFields(directorsPages), values, translateLocal, jest.fn(), onEditListItem).at(0)?.rows.at(0);
-        row?.onPress();
+        const row = getConfirmationItems(directorsPages, getAllFields(directorsPages), values, translateLocal, jest.fn(), onEditListItem)
+            .at(0)
+            ?.rows.find((candidate) => 'kind' in candidate && candidate.kind === 'avatar');
+        pressRow(row);
 
         // Then the entry is an avatar row named by its leading text answers, and tapping it opens that entry rather than the page
         expect(row).toMatchObject({kind: 'avatar', title: 'Jane Doe'});
@@ -121,11 +132,82 @@ describe('getConfirmationItems', () => {
 
         // When the confirmation sections are built and the list row is tapped
         const row = getConfirmationItems(directorsPages, getAllFields(directorsPages), {directors: []}, translateLocal, onEditPage, onEditListItem).at(0)?.rows.at(0);
-        row?.onPress();
+        pressRow(row);
 
         // Then the list still has a row, so the user can go back and add a director from the confirmation page
         expect(row).toMatchObject({description: 'Directors', title: ''});
         expect(onEditPage).toHaveBeenCalledWith(0);
         expect(onEditListItem).not.toHaveBeenCalled();
+    });
+
+    it('names a sensitive answer by its visible ending for screen readers', () => {
+        // Given answers with an SSN, which shows as bullets and its last four digits
+        // When the confirmation sections are built
+        const [group] = getConfirmationItems(pages, getAllFields(pages), {name: 'Ada', ssn: '123451234', country: 'US'}, translateLocal, jest.fn(), jest.fn());
+
+        // Then screen readers hear the field and the digits the user can see instead of every bullet, while plain answers keep their usual reading
+        expect(group.rows.find((row) => row.id === 'ssn')).toMatchObject({accessibilityLabel: translateLocal('dynamicForm.maskedValueLabel', {label: 'SSN', ending: '1234'})});
+        expect(group.rows.find((row) => row.id === 'name')).toMatchObject({accessibilityLabel: undefined});
+    });
+
+    it('names a list above its entry rows when other answers share its section', () => {
+        // Given a page titled Business holding the company name and a labelled list of owners with one entry
+        const businessPages: DynamicFormPage[] = [
+            {
+                key: 'business',
+                title: 'Business',
+                content: [
+                    {key: 'companyName', label: 'Company name', type: 'text', required: true},
+                    {key: 'owners', label: 'Owners', type: 'list', required: true, itemFields: [{key: 'firstName', type: 'text', required: true}]},
+                ],
+            },
+        ];
+
+        // When the confirmation sections are built
+        const [group] = getConfirmationItems(
+            businessPages,
+            getAllFields(businessPages),
+            {companyName: 'Acme', owners: [{id: 'jane', firstName: 'Jane'}]},
+            translateLocal,
+            jest.fn(),
+            jest.fn(),
+        );
+
+        // Then a heading with the list's label comes before the entry, so the names are not read as more business answers
+        expect(group.rows.map((row) => ('kind' in row ? [row.kind, row.title] : [row.id]))).toEqual([['companyName'], ['label', 'Owners'], ['avatar', 'Jane']]);
+    });
+
+    it('leaves out the list heading when the list is alone in a named section', () => {
+        // Given a page titled Ownership holding only the Owners list
+        const ownersPages: DynamicFormPage[] = [
+            {
+                key: 'ownership',
+                title: 'Ownership',
+                content: [{key: 'owners', label: 'Owners', type: 'list', required: true, itemFields: [{key: 'firstName', type: 'text', required: true}]}],
+            },
+        ];
+
+        // When the confirmation sections are built
+        const [group] = getConfirmationItems(ownersPages, getAllFields(ownersPages), {owners: [{id: 'jane', firstName: 'Jane'}]}, translateLocal, jest.fn(), jest.fn());
+
+        // Then only the entry is listed, since the section heading already says what the entries are, whatever its wording
+        expect(group.rows).toHaveLength(1);
+    });
+
+    it('names a list alone in a section without a heading', () => {
+        // Given an untitled page asking only for owners, with no question to name it
+        const ownersPages: DynamicFormPage[] = [
+            {
+                key: 'owners',
+                content: [{key: 'owners', label: 'Owners', type: 'list', required: true, itemFields: [{key: 'firstName', type: 'text', required: true}]}],
+            },
+        ];
+
+        // When the confirmation sections are built
+        const [group] = getConfirmationItems(ownersPages, getAllFields(ownersPages), {owners: [{id: 'jane', firstName: 'Jane'}]}, translateLocal, jest.fn(), jest.fn());
+
+        // Then the list heading is the only name the entries get, so it is shown
+        expect(group.name).toBe('');
+        expect(group.rows.at(0)).toMatchObject({kind: 'label', title: 'Owners'});
     });
 });

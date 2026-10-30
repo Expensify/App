@@ -2,12 +2,13 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
+import type {AutoReportingOffset} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
+import {addDays, addMonths, endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfDay, startOfMonth, startOfWeek, subDays, subMonths} from 'date-fns';
 
 import {convertToDisplayStringEnLocale, convertToDisplayStringWithoutCurrencyEnLocale, isValidCurrencyCode} from './CurrencyUtils';
 import {getCurrentUserEmail} from './CurrentUserStore';
@@ -16,6 +17,7 @@ import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
+import {getAutoReportingOffsetsForFrequency, sortSemiMonthlyOffsets} from './SubmissionScheduleUtils';
 import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
 
 type FormulaPart = {
@@ -763,6 +765,39 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
 }
 
 /**
+ * Calculate twice a month reporting period, where each period ends on one of the two submission days
+ */
+function getSemiMonthlyReportingPeriod(currentDate: Date, firstOffset: AutoReportingOffset | undefined, secondOffset: AutoReportingOffset | undefined): {startDate: Date; endDate: Date} {
+    const {offset, secondOffset: sortedSecondOffset} = sortSemiMonthlyOffsets(
+        getAutoReportingOffsetsForFrequency(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY, {offset: firstOffset, secondOffset}),
+    );
+
+    // A day past the end of a short month resolves to its last day
+    const getSubmissionDate = (monthDate: Date, day: AutoReportingOffset | undefined) => {
+        const monthDays = lastDayOfMonth(monthDate).getDate();
+        return set(monthDate, {date: typeof day === 'number' ? Math.min(day, monthDays) : monthDays});
+    };
+
+    const firstSubmissionDate = getSubmissionDate(currentDate, offset);
+    const secondSubmissionDate = getSubmissionDate(currentDate, sortedSecondOffset);
+
+    let previousSubmissionDate = secondSubmissionDate;
+    let nextSubmissionDate = getSubmissionDate(addMonths(currentDate, 1), offset);
+    if (currentDate.getDate() <= firstSubmissionDate.getDate()) {
+        previousSubmissionDate = getSubmissionDate(subMonths(currentDate, 1), sortedSecondOffset);
+        nextSubmissionDate = firstSubmissionDate;
+    } else if (currentDate.getDate() <= secondSubmissionDate.getDate()) {
+        previousSubmissionDate = firstSubmissionDate;
+        nextSubmissionDate = secondSubmissionDate;
+    }
+
+    return {
+        startDate: startOfDay(addDays(previousSubmissionDate, 1)),
+        endDate: endOfDay(nextSubmissionDate),
+    };
+}
+
+/**
  * Calculate monthly reporting period for a specific day offset
  */
 function getMonthlyReportingPeriod(currentDate: Date, offsetDay: number): {startDate: Date; endDate: Date} {
@@ -847,15 +882,9 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
         }
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
-            // Semi-monthly: 1st-15th or 16th-end of month
-            const dayOfMonth = currentDate.getDate();
-            if (dayOfMonth <= 15) {
-                startDate = startOfMonth(currentDate);
-                endDate = set(currentDate, {date: 15, hours: 23, minutes: 59, seconds: 59, milliseconds: 999});
-            } else {
-                startDate = set(currentDate, {date: 16, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
-                endDate = endOfMonth(currentDate);
-            }
+            const period = getSemiMonthlyReportingPeriod(currentDate, offset, policy.autoReportingOffsetSecondSemiMonthly);
+            startDate = period.startDate;
+            endDate = period.endDate;
             break;
         }
 
@@ -971,13 +1000,10 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
 
     switch (field.toLowerCase()) {
         case 'firstname':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.firstName || personalDetails.login || '';
         case 'lastname':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.lastName || personalDetails.login || '';
         case 'fullname':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.displayName || personalDetails.login || '';
         case 'email':
             return personalDetails.login ?? '';

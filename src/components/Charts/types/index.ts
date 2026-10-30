@@ -11,8 +11,11 @@ type ChartSeries = {
     /** Color of the series' line. Left out, the chart's default color. */
     color?: string;
 
-    /** Names the series in the tooltip, like "Average" */
+    /** Names the series in the tooltip, like "Monthly average" */
     label?: string;
+
+    /** Whether the series holds an average, drawn as one horizontal dashed line across the plot */
+    isAverage?: boolean;
 };
 
 type ChartDataPoint = {
@@ -43,7 +46,7 @@ type ChartDataPoint = {
     /** Number of expenses in this point */
     count?: number;
 
-    /** Marks a time-based point whose period hasn't ended yet, so its total is still changing. Only a line chart's last point is drawn differently. */
+    /** Marks a time-based point whose period hasn't ended yet, the current one or a later one, so its total is still changing. A line chart draws these points dashed. */
     isInProgress?: boolean;
 };
 
@@ -106,4 +109,22 @@ type LabelRotation = ValueOf<typeof LABEL_ROTATIONS>;
 
 type ParagraphWithWidth = {para: SkParagraph | null; width: number};
 
-export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback};
+/** Layout for wrapped (multi-line, centered, horizontal) bar labels. Absent means single-line axis-style labels. */
+type WrappedLabelConfig = {
+    /** Pixel width of a bar's column; a wrapped label fills it, centered on the bar. */
+    columnWidth: number;
+
+    /** Maximum lines a wrapped label uses before it is truncated with an ellipsis. */
+    maxLines: number;
+
+    /** Pixel line height reserved per label line, shared so the hit box matches the painted lines. */
+    lineHeight: number;
+
+    /** Whether each label has text, so empty labels stay non-interactive in hit testing. */
+    hasLabel: boolean[];
+
+    /** Full canvas width (px), used to keep edge labels from clipping past the canvas. */
+    canvasWidth: number;
+};
+
+export type {CartesianChartProps, ChartDataPoint, ChartProps, ChartSeries, LabelRotation, ParagraphWithWidth, PieSlice, UnitPosition, UnitWithFallback, WrappedLabelConfig};

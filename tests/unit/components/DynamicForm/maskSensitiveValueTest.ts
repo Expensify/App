@@ -1,4 +1,4 @@
-import maskSensitiveValue from '@components/DynamicForm/utils/maskSensitiveValue';
+import maskSensitiveValue, {getVisibleEnding} from '@components/DynamicForm/utils/maskSensitiveValue';
 
 describe('maskSensitiveValue', () => {
     it('shows an SSN as •••-••-1234', () => {
@@ -22,5 +22,13 @@ describe('maskSensitiveValue', () => {
         expect(maskSensitiveValue('1234')).toBe('••34');
         expect(maskSensitiveValue('12')).toBe('•2');
         expect(maskSensitiveValue('1')).toBe('•');
+    });
+
+    it('gives the same ending the mask leaves visible', () => {
+        // Given an SSN and a value too short to show four characters
+        // When their visible endings are taken
+        // Then they match what the mask shows, so a screen reader names the same characters the user sees
+        expect(getVisibleEnding('123451234')).toBe('1234');
+        expect(getVisibleEnding('123')).toBe('3');
     });
 });

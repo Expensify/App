@@ -4,6 +4,23 @@ import type {MultifactorAuthenticationScenarioConfigRecord} from '@components/Mu
 import CONST from '@src/CONST';
 
 describe('MultifactorAuthentication Scenarios Config', () => {
+    it('registers native-only digital wallet authentication with inherited failure UX', () => {
+        // Given the resolved scenario registry used by the MFA provider.
+        const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as Record<string, MultifactorAuthenticationScenarioConfigRecord[keyof MultifactorAuthenticationScenarioConfigRecord]>;
+
+        // When a UK/EU card starts wallet authentication.
+        const scenario = config['ADD-TO-DIGITAL-WALLET'];
+
+        // Then native HSM authentication owns provisioning and retains the shared failure screens.
+        expect(scenario).toBeDefined();
+        expect(scenario.allowedAuthenticationMethods).toEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM]);
+        expect(scenario.action).toBeDefined();
+        expect(scenario.callback).toBeDefined();
+        expect(scenario.defaultClientFailureScreen).toBeDefined();
+        expect(scenario.defaultServerFailureScreen).toBeDefined();
+        expect(scenario.modals.cancelConfirmation).toBeDefined();
+    });
+
     it('should have all required properties for every scenario config', () => {
         const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
 

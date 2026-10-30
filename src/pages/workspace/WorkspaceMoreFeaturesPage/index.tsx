@@ -53,6 +53,7 @@ import {
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getAccountingConnectionsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 
@@ -218,7 +219,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+        Navigation.navigate(getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID));
     };
 
     const warnVendorsManagedByAccounting = async () => {

@@ -14,6 +14,11 @@ jobs:
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
+  # Left out of confirmPassingBuild's `needs` on purpose: Oxlint is a shadow gate that runs here to auto-tighten its baseline.
+  oxlint:
+    uses: ./.github/workflows/oxlint.yml
+    secrets: inherit
+
   oxfmt:
     uses: ./.github/workflows/oxfmt.yml
 

@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getFooterTotalItems} from '@libs/SearchUIUtils';
+import {getFooterCountItems, getFooterTotalItems} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -84,10 +84,7 @@ function SearchFooterPopup({
     const styles = useThemeStyles();
     const [selectedFooterFilter, setSelectedFooterFilter] = useState<SelectedFooterFilter>(null);
 
-    const countItems: Array<SingleSelectItem<SearchFooterCount>> = [
-        {text: translate('common.expenses'), value: CONST.SEARCH.FOOTER_COUNT.EXPENSES},
-        {text: translate('common.reports'), value: CONST.SEARCH.FOOTER_COUNT.REPORTS},
-    ];
+    const countItems: Array<SingleSelectItem<SearchFooterCount>> = getFooterCountItems(translate);
     const totalItems = getFooterTotalItems(translate);
 
     if (!selectedFooterFilter) {
@@ -104,9 +101,7 @@ function SearchFooterPopup({
                 )}
                 {shouldShowTotalSelector && !!totalType && (
                     <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        // Both rows re-run the search, so they are inert until the one in flight lands. The count row
-                        // stays interactive, since switching it needs no request.
+                        shouldShowRightIcon={!isTotalLoading}
                         interactive={!isTotalLoading}
                         description={translate('common.total')}
                         title={totalItems.find((item) => item.value === totalType)?.text}
@@ -115,7 +110,7 @@ function SearchFooterPopup({
                     />
                 )}
                 <MenuItemWithTopDescription
-                    shouldShowRightIcon
+                    shouldShowRightIcon={!isTotalLoading && !isOffline}
                     interactive={!isTotalLoading && !isOffline}
                     description={translate('common.currency')}
                     title={currency ?? defaultCurrency}

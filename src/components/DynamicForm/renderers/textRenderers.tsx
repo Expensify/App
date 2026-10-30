@@ -1,13 +1,15 @@
 import AmountForm from '@components/AmountForm';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
-import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
 import TextInput from '@components/TextInput';
 
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx';
@@ -55,12 +57,13 @@ function renderTextInput(
             <InputWrapper
                 InputComponent={TextInput}
                 {...inputProps}
-                label={getFieldLabel(field, translate)}
+                label={getInputLabel(field, translate)}
                 hint={getTextHint(field, translate)}
                 maxLength={field.maxLength}
                 inputMode={inputMode}
                 multiline={isMultiline}
                 autoGrowHeight={isMultiline}
+                maxAutoGrowHeight={isMultiline ? variables.textInputAutoGrowMaxHeight : undefined}
                 {...(isMultiline ? {} : getTextInputAutocorrectProps())}
             />
         ),
@@ -75,11 +78,13 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
         const isDateOfBirth = field.rule === 'dateOfBirth';
         return {
             isMenuRow: false,
+            showsDescription: true,
             input: (
                 <InputWrapper
                     InputComponent={DatePicker}
                     {...inputProps}
-                    label={getFieldLabel(field, translate)}
+                    label={getInputLabel(field, translate)}
+                    hint={getLocalizedText(translate, field.descriptionKey, field.description)}
                     placeholder={translate('common.dateFormat')}
                     // A date of birth can only be picked within the ages getDynamicFieldErrors accepts
                     minDate={isDateOfBirth ? subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE) : undefined}
@@ -97,7 +102,7 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                 <InputWrapper
                     InputComponent={AmountForm}
                     {...inputProps}
-                    label={getFieldLabel(field, translate)}
+                    label={getInputLabel(field, translate)}
                     currency={amountCurrency}
                     displayAsTextInput
                     isCurrencyPressable={false}
@@ -120,6 +125,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                             // A sensitive currency is not drafted, so the picker starts from the one kept in memory
                             defaultValue={amountCurrency}
                             label={translate('common.currency')}
+                            accessibilityLabel={`${translate('common.currency')}, ${getFieldLabel(field, translate)}`}
+                            shouldReadErrorWithLabel
                         />
                     </View>
                     {amountInput}
@@ -129,11 +136,13 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
     },
     percent: (field, {translate}, inputProps) => ({
         isMenuRow: false,
+        showsDescription: true,
         input: (
             <InputWrapper
                 InputComponent={PercentageForm}
                 {...inputProps}
-                label={getFieldLabel(field, translate)}
+                label={getInputLabel(field, translate)}
+                hint={getLocalizedText(translate, field.descriptionKey, field.description)}
             />
         ),
     }),

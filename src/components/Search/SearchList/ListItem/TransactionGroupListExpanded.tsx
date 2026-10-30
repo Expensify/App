@@ -45,11 +45,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {TransactionGroupListExpandedProps, TransactionListItemType} from './types';
@@ -97,6 +98,7 @@ function TransactionGroupListExpandedImpl({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
     const delegateAccountID = useDelegateAccountID();
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
@@ -109,31 +111,26 @@ function TransactionGroupListExpandedImpl({
 
     const visibleTransactions = isExpenseReportType ? transactions.slice(0, transactionsVisibleLimit) : transactions;
 
-    const neededReportIDs = useMemo(() => {
-        const ids = new Set<string>();
-        for (const transaction of visibleTransactions) {
-            if (transaction.reportID) {
-                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
-            }
-            if (transaction.reportAction?.childReportID) {
-                ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+    const ids = new Set<string>();
+    for (const transaction of visibleTransactions) {
+        if (transaction.reportID) {
+            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`);
+        }
+        if (transaction.reportAction?.childReportID) {
+            ids.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportAction.childReportID}`);
+        }
+    }
+    const neededReportIDs = ids;
+
+    const reportsSelector = (reports: OnyxCollection<OnyxTypes.Report>) => {
+        const result: OnyxCollection<OnyxTypes.Report> = {};
+        for (const key of Object.keys(reports ?? {})) {
+            if (neededReportIDs.has(key)) {
+                result[key] = reports?.[key];
             }
         }
-        return ids;
-    }, [visibleTransactions]);
-
-    const reportsSelector = useCallback(
-        (reports: OnyxCollection<OnyxTypes.Report>) => {
-            const result: OnyxCollection<OnyxTypes.Report> = {};
-            for (const key of Object.keys(reports ?? {})) {
-                if (neededReportIDs.has(key)) {
-                    result[key] = reports?.[key];
-                }
-            }
-            return result;
-        },
-        [neededReportIDs],
-    );
+        return result;
+    };
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
 
     const isLastTransaction = (index: number) => {
@@ -176,13 +173,29 @@ function TransactionGroupListExpandedImpl({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
 
-    const {isAmountColumnWide, isTaxAmountColumnWide, shouldShowYear: shouldShowYearForSomeTransaction, isActionColumnWide} = getGroupColumnWidthFlags(transactions);
+    const columnWidthFlags = getGroupColumnWidthFlags(transactions);
+    const {
+        isAmountColumnWide,
+        isTaxAmountColumnWide,
+        shouldShowYear: shouldShowYearForSomeTransaction,
+        shouldShowYearSubmitted,
+        shouldShowYearApproved,
+        shouldShowYearPaid,
+        shouldShowYearPosted,
+        shouldShowYearExported,
+        isActionColumnWide,
+    } = columnWidthFlags;
     const amountColumnSize = isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const submittedColumnSize = shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const approvedColumnSize = shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const paidColumnSize = shouldShowYearPaid ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const postedColumnSize = shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const exportedColumnSize = shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
     // Shared with GroupHeader so the two always agree on the table's width.
-    const {minTableWidth, shouldScrollHorizontally} = getGroupTableScrollLayout(currentColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide, windowWidth, isLargeScreenWidth);
+    const {minTableWidth, shouldScrollHorizontally} = getGroupTableScrollLayout(currentColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, columnWidthFlags, windowWidth, isLargeScreenWidth);
 
     // syncScrollKey is only set when the header is split out (wide web); otherwise this is a no-op.
     const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
@@ -230,6 +243,7 @@ function TransactionGroupListExpandedImpl({
                         delegateAccountID,
                         IOUTransactionID: transactionItem?.reportAction?.childReportID,
                         shouldNavigate: false,
+                        fullPolicySnapshotLastModifiedByPolicyID,
                     });
                     if (targetReportID) {
                         openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: transactionItem.transactionID}), event);
@@ -249,6 +263,7 @@ function TransactionGroupListExpandedImpl({
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
                     IOUTransactionID: transactionItem?.reportAction?.childReportID,
+                    fullPolicySnapshotLastModifiedByPolicyID,
                 });
                 return;
             }
@@ -336,6 +351,11 @@ function TransactionGroupListExpandedImpl({
                             sortOrder={undefined}
                             sortBy={undefined}
                             shouldShowYear={dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
+                            shouldShowYearSubmitted={shouldShowYearSubmitted}
+                            shouldShowYearApproved={shouldShowYearApproved}
+                            shouldShowYearPaid={shouldShowYearPaid}
+                            shouldShowYearPosted={shouldShowYearPosted}
+                            shouldShowYearExported={shouldShowYearExported}
                             isAmountColumnWide={amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                             isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                             shouldShowSorting={false}
@@ -398,6 +418,11 @@ function TransactionGroupListExpandedImpl({
                                     isSelected={!!transaction.isSelected}
                                     isDisabled={isTransactionPendingDelete(transaction)}
                                     dateColumnSize={dateColumnSize}
+                                    submittedColumnSize={submittedColumnSize}
+                                    approvedColumnSize={approvedColumnSize}
+                                    paidColumnSize={paidColumnSize}
+                                    postedColumnSize={postedColumnSize}
+                                    exportedColumnSize={exportedColumnSize}
                                     amountColumnSize={amountColumnSize}
                                     taxAmountColumnSize={taxAmountColumnSize}
                                     shouldShowTooltip={showTooltip}

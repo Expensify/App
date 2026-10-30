@@ -111,18 +111,21 @@ function hasSimpleNetSuiteSyncConfiguration(policy?: Policy): boolean {
     );
 }
 
+function shouldShowNetSuiteOAuthMigrationOption(policy: Policy | undefined): boolean {
+    const netsuite = policy?.connections?.netsuite;
+    return (
+        !!netsuite &&
+        netsuite.verified !== false &&
+        netsuite.config?.authType !== CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 &&
+        !!netsuite.accountID &&
+        !!netsuite.tokenID &&
+        !!netsuite.tokenSecret
+    );
+}
+
 function shouldShowNetSuiteOAuthMigrationNudge(policy: Policy | undefined, allPolicies: OnyxCollection<Policy> | undefined): boolean {
     const netsuite = policy?.connections?.netsuite;
-    if (
-        !netsuite ||
-        netsuite.verified === false ||
-        netsuite.config?.authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2 ||
-        !netsuite.accountID ||
-        !netsuite.tokenID ||
-        !netsuite.tokenSecret ||
-        !hasSimpleNetSuiteSyncConfiguration(policy) ||
-        !allPolicies
-    ) {
+    if (!netsuite || !shouldShowNetSuiteOAuthMigrationOption(policy) || !hasSimpleNetSuiteSyncConfiguration(policy) || !allPolicies) {
         return false;
     }
 
@@ -170,6 +173,7 @@ export {
     shouldHideExportForeignCurrencyAmount,
     getImportCustomFieldsSettings,
     getInitialSubPageForNetsuiteTokenInput,
+    shouldShowNetSuiteOAuthMigrationOption,
     shouldShowNetSuiteOAuthMigrationNudge,
     getNetSuiteOAuthMigrationSeverity,
 };

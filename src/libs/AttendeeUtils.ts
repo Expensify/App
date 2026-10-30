@@ -149,9 +149,9 @@ function enrichAndSortAttendees(
             return {
                 ...a,
                 accountID,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                // intentional || to fall back when personalDetails has an empty string
                 displayName: pd?.displayName || a?.displayName,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                // intentional || to fall back when personalDetails has an empty string
                 avatarUrl: freshAvatar || a?.avatarUrl,
             };
         }),

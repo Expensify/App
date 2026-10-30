@@ -57,7 +57,13 @@ function setupSentry(): void {
         tracesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        integrations,
+        // TurboModuleContext adds CPU cost to every RNSentry call on iOS, see https://github.com/Expensify/App/pull/103900
+        integrations: (defaultIntegrations) => {
+            // Read from the SDK, so the filter keeps working if Sentry renames the integration. Looked up here rather
+            // than at module load so importing this file does not call into the SDK.
+            const turboModuleContextIntegrationName = Sentry.turboModuleContextIntegration().name;
+            return [...defaultIntegrations.filter((integration) => integration.name !== turboModuleContextIntegrationName), ...integrations];
+        },
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${semanticVersion}`,
         dist: buildNumber,

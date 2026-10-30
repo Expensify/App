@@ -28,6 +28,7 @@ import {View} from 'react-native';
  *     - Else re-route to the login page
  */
 function TrackExpensePage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const {isOffline} = useNetwork();
@@ -43,12 +44,7 @@ function TrackExpensePage() {
                     return;
                 }
                 Navigation.goBack();
-                startMoneyRequest(
-                    CONST.IOU.TYPE.TRACK,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    findSelfDMReportID() || generateReportID(),
-                    draftTransactionIDs,
-                );
+                startMoneyRequest(CONST.IOU.TYPE.TRACK, findSelfDMReportID() || generateReportID(), draftTransactionIDs);
 
                 if (!hasSeenTrackTraining && !isOffline && !shouldSuppressPromotionalUI) {
                     setTimeout(() => {
@@ -56,7 +52,7 @@ function TrackExpensePage() {
                     }, CONST.ANIMATED_TRANSITION);
                 }
             });
-        });
+        }, session);
     });
 
     useEffect(

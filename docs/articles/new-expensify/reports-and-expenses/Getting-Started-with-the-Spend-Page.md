@@ -12,12 +12,12 @@ The Spend page in New Expensify gives you a full list of your reports and relate
 
 Report previews are summaries shown directly in your workspace chat in the **Inbox**. They let you quickly check a report’s status without opening it.
 
-## Visibility of Report Previews
+## Who can see report previews
 - Visible to **all members** in the workspace chat.
 - Only the **report creator** sees interactive options like **Add expense**.  
 - **Workspace admins** can approve and pay reports, as well as reject and hold reports.
 
-## Preview Details
+## What report previews show
 - Report title and status (e.g., Approved, Paid)  
 - Up to 10 expense previews with:
   - Date and category
@@ -27,7 +27,7 @@ Report previews are summaries shown directly in your workspace chat in the **Inb
 - **+X more** link if there are over 10 expenses  
 - Action button: Submit, Approve, Pay, etc., depending on the role
 
-## Preview Behavior and Updates
+## How report previews update
 
   - Updates in **real time** as expenses are added.
   - If a report is deleted, the preview is removed.
@@ -48,16 +48,16 @@ Each row represents an expense and includes:
 - Description
 - Tags (if enabled)
 
-## Available Actions on the Table
-- **Click an expense** to view or edit it in the right-hand panel  
-- **Edit a cell directly:** Hover over **date**, **merchant**, **description**, **category**, **tag**, or **amount** and click the pencil icon to edit the value inline without opening the expense details. 
+## What you can do in the report table
+- **Select an expense** to view or edit it in the right-hand panel  
+- **Edit a cell directly:** Hover over **date**, **merchant**, **description**, **category**, **tag**, or **amount** and select the edit icon to edit the value inline without opening the expense details. 
 - **Select multiple expenses** using checkboxes, then apply bulk actions such as:
   - **Move to another report:** When you need to have multiple reports or need to break up expenses across multiple weeks or months.
   - **Download:** For exporting to a CSV file for analysis or to share with your accountant.
   - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
   - **Delete:** To remove expenses from the expense report.
 
-**Note:** The selection bar appears after selecting at least one expense.
+**Note:** The selection bar appears after you select at least one expense.
 
 ## How to move expenses between reports
 
@@ -74,8 +74,8 @@ Each row represents an expense and includes:
 
 **From the expense details**
 
-1. Click the expense to edit it in the right-hand panel.
-2. Click **Move to report** from the bulk action menu.
+1. Select the expense to edit it in the right-hand panel.
+2. Select **Move to report**.
 3. In the right-hand panel, select from the following options:
    - Create report
    - An existing draft or submitted report
@@ -105,11 +105,11 @@ The total is shown in your default currency until you choose a different one.
 ### How to change the total spend currency
 
 1. On the **Spend** page, optionally select the rows you want to total using the checkboxes. Leave everything unselected to convert the whole search result.
-2. In the footer, click the currency shown next to the **Total spend** amount.
+2. In the footer, select the currency shown next to the **Total spend** amount.
 3. In the currency picker, search for and select the currency you want.
-4. Click **Apply**.
+4. Select **Apply**.
 
-The **Total spend** amount updates to show the converted value in the currency you selected. Click **Reset** in the picker to return to your default currency.
+The **Total spend** amount updates to show the converted value in the currency you selected. Select **Reset** in the picker to return to your default currency.
 
 Conversion works across the different ways you can view and select expenses:
 
@@ -132,15 +132,15 @@ The currency picker can't be opened in these cases:
 On a wide screen:
 
 1. On the **Spend** page, select **Expenses**.
-2. Click the **Amount** column header to sort from largest to smallest.
-3. Click the **Amount** column header again to reverse the order.
+2. Select the **Amount** column header to sort from largest to smallest.
+3. Select the **Amount** column header again to reverse the order.
 
 On mobile, or in a narrow browser window, the column headers aren't shown, so sort from the **Display** menu instead:
 
 1. On the **Spend** page, select **Expenses**.
-2. Tap the **Display** icon.
-3. Tap **Sort by**, select **Amount**, then tap **Apply**.
-4. To change the direction, tap the **Display** icon again, tap **Sort by**, tap **Sort order**, select **Descending** (largest to smallest) or **Ascending** (smallest to largest), then tap **Apply**.
+2. Select the **Display** icon.
+3. Select **Sort by**, choose **Amount**, then select **Apply**.
+4. To change the direction, select the **Display** icon again, select **Sort by > Sort order**, choose **Descending** (largest to smallest) or **Ascending** (smallest to largest), then select **Apply**.
 
 The **Amount** column is only sortable when your results are shown as a table. When you group your results, this column reads **Total** instead of **Amount**.
 
@@ -179,26 +179,26 @@ A -$4,000 credit therefore sorts below a $10 expense rather than next to a $4,00
 
 ## How to apply filters in New Expensify
 
-Web:
+On web:
 
-1. In the navigation tabs on the left, click **Spend**.
-2. Click **Filters**.
-3. Click **Type** and select **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
-5. Select the filters you want to apply. Available filters vary based on the selected **Type**.
+1. In the navigation tabs on the left, select **Spend**.
+2. Select **Filters**.
+3. Select **Type** and choose **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
+4. Select the filters you want to apply. Available filters vary based on the selected **Type**.
 
 Selected filter values are applied to the list immediately.
 
-Mobile:
+On mobile:
 
-1. In the navigation tabs on the bottom, tap **Spend**. 
-2. Tap the **Filters** icon next to the search box. 
-3. Tap **Type** and select **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
-4. Tap **Save**.
+1. In the navigation tabs on the bottom, select **Spend**. 
+2. Select the **Filters** icon next to the search field. 
+3. Select **Type** and choose **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
+4. Select **Save**.
 5. Select the filters you want to apply. Available filters vary based on the selected **Type**.
-6. Tap **Save** after selecting each filter.
-7. Tap **View Results**. 
+6. Select **Save** after selecting each filter.
+7. Select **View results**. 
 
-For more advanced filtering, you can enter search operators directly into the search box on the **Spend** page. [Learn how to use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
+For more advanced filtering, you can enter search operators directly into the search field on the **Spend** page. [Learn how to use search operators to filter and analyze](/articles/new-expensify/reports-and-expenses/Use-Search-Operators-to-Filter-and-Analyze).
 
 ## How filtering works on the Spend page
 
@@ -244,7 +244,10 @@ If you create a draft report and have unreported expenses in your SelfDM, a prom
 # FAQ
 
 ## Can I export reports from the Spend page?
-Yes! Choose the **Current view** option within the **Export** menu to download a CSV of exactly what you're seeing—your active filters, columns, and ordering are all preserved. You can also use a template-based export for a standard set of columns. Learn more about [exporting from the Spend page](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
+Yes! Choose the **Current view** option within the **Export** menu to download a CSV of exactly what you're seeing—your active filters, columns, and ordering are all preserved. You can also use a template-based export for a standard set of columns. Learn more about [exporting from the Spend page](/articles/new-expensify/reports-and-expenses/Search-and-Download-Expenses).
+
+## Where did the Insights on the Spend page go?
+The **Spend over time**, **Top categories**, **Top merchants**, and **Top spenders** charts moved from the **Insights** section of the Spend page to the **Insights** page. In the navigation tabs (on the left on web, on the bottom on mobile), select **Insights** to see them. For more details about insights, see [Learn About Insights](/articles/new-expensify/insights/Learn-About-Insights).
 
 ## Do smart suggestions work on mobile?
 Yes, smart suggestions also appear in the mobile Inbox and draft reports.

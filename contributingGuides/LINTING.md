@@ -153,6 +153,6 @@ The env-var names and TSV format are unchanged from the previous `eslint-seatbel
 
 - [Ratcheting errors](https://www.notion.com/blog/how-we-evolved-our-code-notions-ratcheting-system-using-custom-eslint-rules).
 - [`CONSISTENCY-5`: Justify ESLint rule disables](../.claude/skills/app-coding-standards/rules/consistency-5-justify-eslint-disable.md) — when `eslint-disable` is acceptable, and how to document it.
-- [`CLEAN-REACT-PATTERNS-0`: React Compiler compliance](../.claude/skills/app-coding-standards/rules/clean-react-0-compiler.md) — why some hook-related rules are suppressed per-file.
+- `rulesdir/no-manual-memoization` forbids `React.memo`, `useMemo`, and `useCallback` when React Compiler memoizes the file. Callbacks passed to `useFocusEffect` may retain `useCallback`, which React Navigation requires.
 - [`STYLE.md`](./STYLE.md) — the coding style rules many of our ESLint rules enforce.
 - [`REACT_COMPILER.md`](./REACT_COMPILER.md) — separate compiler-compliance CI check that runs alongside lint.

@@ -66,7 +66,6 @@ function GenericPressable({
     const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
     const routeKey = useRouteKey();
     // `||` so empty strings skip — never key off an empty prop.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const focusIdentifier = rest.id || rest.nativeID || rest.testID || undefined;
 
     useEffect(() => {
@@ -86,7 +85,6 @@ function GenericPressable({
             shouldBeDisabledByScreenReader = isScreenReaderActive;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return disabled || shouldBeDisabledByScreenReader || isExecuting;
     }, [isScreenReaderActive, enableInScreenReaderStates, disabled, isExecuting]);
 

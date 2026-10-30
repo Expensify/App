@@ -84,7 +84,7 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
     return (
         <ConnectionLayout
             displayName="NetSuiteTravelBillingConfigurationPage"
-            headerTitle="workspace.common.travelInvoicing"
+            headerTitle="workspace.common.travelBilling"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

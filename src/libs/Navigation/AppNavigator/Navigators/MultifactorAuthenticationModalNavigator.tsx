@@ -5,11 +5,12 @@ import {handleInitialScreenLayout, MFA_INITIAL_SCREEN, mfaNavigationRef, resetMf
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useTheme from '@hooks/useTheme';
-import useThemePreference from '@hooks/useThemePreference';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNavigationBaseTheme from '@libs/Navigation/getNavigationBaseTheme';
@@ -18,6 +19,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import Presentation from '@libs/Navigation/PlatformStackNavigation/navigationOptions/presentation';
 
+import enhanceCardStyleInterpolator from '@navigation/AppNavigator/enhanceCardStyleInterpolator';
 import RHP_WEB_TRANSITION_SPEC from '@navigation/AppNavigator/RHPTransitionSpec';
 import useModalCardStyleInterpolator from '@navigation/AppNavigator/useModalCardStyleInterpolator';
 
@@ -26,15 +28,17 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import viewRef from '@src/types/utils/viewRef';
 
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 
 import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '@react-navigation/core';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import getRHPFrameStyle from './getRHPFrameStyle';
+import RHPResizeHandle from './RHPResizeHandle';
 
 type Phase = 'open' | 'closing' | 'closed';
 
@@ -90,7 +94,6 @@ function MultifactorAuthenticationModalNavigator() {
     const {dispatch} = useMultifactorAuthenticationActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
-    const themePreference = useThemePreference();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -108,7 +111,7 @@ function MultifactorAuthenticationModalNavigator() {
         setPhase('closing');
     }
 
-    const navigationThemeBase = getNavigationBaseTheme(themePreference);
+    const navigationThemeBase = getNavigationBaseTheme(theme.colorScheme);
     const navigationTheme = {
         ...navigationThemeBase,
         colors: {
@@ -141,14 +144,86 @@ function MultifactorAuthenticationModalNavigator() {
         opacity: backdropProgress.get() * variables.rhpOverlayOpacity,
     }));
 
-    const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
+    const {width: singleRHPWidth} = useSingleRHPWidth();
+    const frameStyle = getRHPFrameStyle({styles, animatedWidth: variables.rhpWidth, singleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame: false});
+    const slideFromWidthInterpolator = (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}});
+    const {isBetaEnabled} = usePermissions();
+    const isResizable = isBetaEnabled(CONST.BETAS.RESIZABLE_RHP) && !shouldUseNarrowLayout;
+    const singleRHPWidthScopeRef = useRef<HTMLElement | null>(null);
+
+    const stackContentStyle = styles.singleRHPStackBox(isResizable);
 
     if (phase === 'closed') {
         return null;
     }
 
+    const stack = isStackReadyToMount && (
+        <NavigationIndependentTree>
+            <BaseNavigationContainer
+                ref={mfaNavigationRef}
+                theme={navigationTheme}
+            >
+                <Stack.Navigator
+                    screenOptions={{
+                        headerShown: false,
+                        animationTypeForReplace: 'push',
+                        animation: Animations.SLIDE_FROM_RIGHT,
+                        gestureEnabled: false,
+                        native: {contentStyle: styles.navigationScreenCardStyle},
+                        web: {
+                            presentation: Presentation.TRANSPARENT_MODAL,
+                            cardOverlayEnabled: false,
+                            cardStyle: styles.navigationScreenCardStyle,
+
+                            /**
+                             * Always use the Expensify modal interpolator (not just on Safari like RHP does).
+                             * The MFA navigator pushes the real screen from MFA_INITIAL's onLayout callback,
+                             * so when push fires, the incoming screen's measured width can still be 0.
+                             * forHorizontalIOS interpolates translateX from layouts.screen.width — if width
+                             * is 0 at push start, the slide range collapses to 0→0 and the screen appears
+                             * via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
+                             * on wide layout, so the slide range is stable regardless of layout timing.
+                             */
+                            cardStyleInterpolator: isResizable
+                                ? enhanceCardStyleInterpolator(slideFromWidthInterpolator, {cardStyle: styles.singleRHPCardInterpolatorStyles})
+                                : slideFromWidthInterpolator,
+                            transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
+                        },
+                    }}
+                >
+                    <Stack.Screen
+                        name={MFA_INITIAL_SCREEN}
+                        component={TransparentScreen}
+                        options={{
+                            animation: Animations.NONE,
+                            native: {contentStyle: {backgroundColor: 'transparent'}},
+                            web: {cardStyle: {backgroundColor: 'transparent'}},
+                        }}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE}
+                        getComponent={loadValidateCodePage}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT}
+                        getComponent={loadPromptPage}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS}
+                        getComponent={loadOutcomePage}
+                    />
+                    <Stack.Screen
+                        name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE}
+                        getComponent={loadOutcomePage}
+                    />
+                </Stack.Navigator>
+            </BaseNavigationContainer>
+        </NavigationIndependentTree>
+    );
+
     return (
         <View
+            ref={viewRef(singleRHPWidthScopeRef)}
             style={[StyleSheet.absoluteFill, styles.mfaModalNavigatorRoot]}
             pointerEvents="box-none"
         >
@@ -165,68 +240,9 @@ function MultifactorAuthenticationModalNavigator() {
                 </Animated.View>
             )}
             <View style={frameStyle}>
-                {isStackReadyToMount && (
-                    <NavigationIndependentTree>
-                        <BaseNavigationContainer
-                            ref={mfaNavigationRef}
-                            theme={navigationTheme}
-                        >
-                            <Stack.Navigator
-                                screenOptions={{
-                                    headerShown: false,
-                                    animationTypeForReplace: 'push',
-                                    animation: Animations.SLIDE_FROM_RIGHT,
-                                    gestureEnabled: false,
-                                    native: {contentStyle: styles.navigationScreenCardStyle},
-                                    web: {
-                                        presentation: Presentation.TRANSPARENT_MODAL,
-                                        cardOverlayEnabled: false,
-                                        cardStyle: styles.navigationScreenCardStyle,
-
-                                        /**
-                                         * Always use the Expensify modal interpolator (not just on Safari like RHP does).
-                                         * The MFA navigator pushes the real screen from MFA_INITIAL's onLayout callback,
-                                         * so when push fires, the incoming screen's measured width can still be 0.
-                                         * forHorizontalIOS interpolates translateX from layouts.screen.width — if width
-                                         * is 0 at push start, the slide range collapses to 0→0 and the screen appears
-                                         * via opacity only. modalCardStyleInterpolator uses a constant variables.sideBarWidth
-                                         * on wide layout, so the slide range is stable regardless of layout timing.
-                                         */
-                                        cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, enter: {kind: 'slide-from-width'}}),
-                                        transitionSpec: shouldUseNarrowLayout ? undefined : RHP_WEB_TRANSITION_SPEC,
-                                    },
-                                }}
-                            >
-                                <Stack.Screen
-                                    name={MFA_INITIAL_SCREEN}
-                                    component={TransparentScreen}
-                                    options={{
-                                        animation: Animations.NONE,
-                                        native: {contentStyle: {backgroundColor: 'transparent'}},
-                                        web: {cardStyle: {backgroundColor: 'transparent'}},
-                                    }}
-                                />
-                                <Stack.Screen
-                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE}
-                                    getComponent={loadValidateCodePage}
-                                />
-                                <Stack.Screen
-                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT}
-                                    getComponent={loadPromptPage}
-                                />
-                                <Stack.Screen
-                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS}
-                                    getComponent={loadOutcomePage}
-                                />
-                                <Stack.Screen
-                                    name={SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE}
-                                    getComponent={loadOutcomePage}
-                                />
-                            </Stack.Navigator>
-                        </BaseNavigationContainer>
-                    </NavigationIndependentTree>
-                )}
+                <View style={stackContentStyle}>{stack}</View>
             </View>
+            {isResizable && <RHPResizeHandle scopeRef={singleRHPWidthScopeRef} />}
             <CancelConfirmModal
                 isVisible={isCancelConfirmVisible}
                 onConfirm={confirmCancel}

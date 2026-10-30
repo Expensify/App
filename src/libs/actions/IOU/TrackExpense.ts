@@ -737,8 +737,15 @@ function getDeleteTrackExpenseInformation({
     if (chatReport) {
         canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
     }
-    const lastVisibleAction = getLastVisibleAction(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
-    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+    const lastVisibleAction = getLastVisibleAction(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction, undefined, undefined, currentUserAccountID);
+    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(
+        chatReport?.reportID,
+        canUserPerformWriteAction,
+        updatedReportAction,
+        undefined,
+        undefined,
+        currentUserAccountID,
+    );
 
     // STEP 4: Build Onyx data
     const optimisticData: Array<
@@ -2354,7 +2361,7 @@ function submitTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams
             // sending them would tell the backend to treat the moved expense as a 0-mile distance request and wipe the amount.
             customUnitID: isDistanceRequest ? createdWorkspaceParams?.customUnitID : undefined,
             customUnitRateID: isDistanceRequest ? (createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID) : undefined,
-            // Reached only for the submit2026 draft flow (gated in useExpenseSubmission and getTrackExpenseInformation), so a
+            // Reached only for the submit2026 draft flow (gated in IOURequestStepConfirmation and getTrackExpenseInformation), so a
             // workspace created here must be a Submit (submit2026) workspace.
             type: createdWorkspaceParams ? CONST.POLICY.TYPE.SUBMIT : undefined,
         },

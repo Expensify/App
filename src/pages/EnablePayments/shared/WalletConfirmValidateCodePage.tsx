@@ -13,15 +13,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useEffect, useRef} from 'react';
 
 import getWalletPersonalDetailsParams from './getWalletPersonalDetailsParams';
 import WalletValidateCodePrompt from './WalletValidateCodePrompt';
-
-const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 
 type WalletConfirmValidateCodePageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
@@ -42,7 +39,7 @@ function WalletConfirmValidateCodePage({route}: WalletConfirmValidateCodePagePro
     const [formData] = useOnyx(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS);
 
     // The submitted details live in the form draft, so rebuild them here and submit together with the entered code.
-    const values = getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails);
+    const values = getSubstepValues(walletAdditionalDetailsDraft, walletAdditionalDetails);
     const personalDetails = getWalletPersonalDetailsParams(values);
 
     const confirm = (validateCode: string) => {
