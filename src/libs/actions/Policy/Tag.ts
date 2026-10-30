@@ -1001,7 +1001,6 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
-                // Don't clear oldTagListKey here: successData is applied after the response's onyxData, which can move another list with the same name onto that key
                 value: {
                     [newName]: {pendingAction: null},
                 },
