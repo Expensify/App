@@ -3061,6 +3061,25 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(isVisible);
         });
 
+        it('shows a MARKED_REIMBURSED action without a comment on a bill', async () => {
+            // Given a bill marked as paid without a comment, so MarkReimbursed saved an empty message
+            const reportID = '9002';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.BILL});
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '2',
+                created: '2026-10-30 21:11:55.001',
+                message: [{type: 'COMMENT', html: '', text: ''}],
+                originalMessage: {isNewDot: true, message: ''},
+            };
+
+            // When the action's visibility is checked for the bill
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then the bill shows it, because the app writes "marked as paid" from the original message, not from the empty message
+            expect(actual).toBe(true);
+        });
+
         it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
             const reportAction = buildTakeControlActionFixture({
                 lastModified: '2025-09-29',
