@@ -5,7 +5,7 @@ import cleanupAndNavigateAfterExpenseCreate from './cleanupAndNavigateAfterExpen
 
 /**
  * Skip-confirmation cleanup dispatcher: `shouldHandleNavigation` (from `submitWithDismissFirst`) picks
- * cleanup-only vs cleanup-and-navigate. The skip-confirm analog of `useExpenseSubmission`'s `performPostBatchCleanup`.
+ * cleanup-only vs cleanup-and-navigate. The skip-confirm analog of the confirmation submission hooks' `performPostBatchCleanup`.
  */
 function cleanupAfterSkipConfirmSubmit(shouldHandleNavigation: boolean, params: CleanupAndNavigateAfterExpenseCreateParams) {
     if (shouldHandleNavigation) {
