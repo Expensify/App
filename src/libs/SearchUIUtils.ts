@@ -7473,11 +7473,17 @@ type GroupColumnWidthFlags = {
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
     shouldShowYear: boolean;
+    shouldShowYearSubmitted: boolean;
+    shouldShowYearApproved: boolean;
+    shouldShowYearPaid: boolean;
+    shouldShowYearPosted: boolean;
+    shouldShowYearExported: boolean;
     isActionColumnWide: boolean;
 };
 
 /**
- * Whether any transaction in a group needs the wide variant of the amount, tax, date, or action column.
+ * Whether any transaction in a group needs the wide variant of the amount, tax, action, or a date column (Date, Submitted,
+ * Approved, Paid, Posted, Exported). A date column is wide when one of its dates is from a past year, which adds the year.
  *
  * A group's sticky column sub-header and its transaction rows compute these from the same transactions but in two
  * separate components. Sharing this function is what keeps them from silently drifting apart, the way GroupHeader's
@@ -7487,6 +7493,11 @@ function getGroupColumnWidthFlags(transactions: TransactionListItemType[]): Grou
     let isAmountColumnWide = false;
     let isTaxAmountColumnWide = false;
     let showYear = false;
+    let shouldShowYearSubmitted = false;
+    let shouldShowYearApproved = false;
+    let shouldShowYearPaid = false;
+    let shouldShowYearPosted = false;
+    let shouldShowYearExported = false;
     let isActionColumnWide = false;
     for (const transaction of transactions) {
         if (transaction.isAmountColumnWide) {
@@ -7498,14 +7509,49 @@ function getGroupColumnWidthFlags(transactions: TransactionListItemType[]): Grou
         if (transaction.shouldShowYear) {
             showYear = true;
         }
+        if (transaction.shouldShowYearSubmitted) {
+            shouldShowYearSubmitted = true;
+        }
+        if (transaction.shouldShowYearApproved) {
+            shouldShowYearApproved = true;
+        }
+        if (transaction.shouldShowYearPaid) {
+            shouldShowYearPaid = true;
+        }
+        if (transaction.shouldShowYearPosted) {
+            shouldShowYearPosted = true;
+        }
+        if (transaction.shouldShowYearExported) {
+            shouldShowYearExported = true;
+        }
         if (transaction.isActionColumnWide || isDeletedTransaction(transaction)) {
             isActionColumnWide = true;
         }
-        if (isAmountColumnWide && isTaxAmountColumnWide && showYear && isActionColumnWide) {
+        if (
+            isAmountColumnWide &&
+            isTaxAmountColumnWide &&
+            showYear &&
+            shouldShowYearSubmitted &&
+            shouldShowYearApproved &&
+            shouldShowYearPaid &&
+            shouldShowYearPosted &&
+            shouldShowYearExported &&
+            isActionColumnWide
+        ) {
             break;
         }
     }
-    return {isAmountColumnWide, isTaxAmountColumnWide, shouldShowYear: showYear, isActionColumnWide};
+    return {
+        isAmountColumnWide,
+        isTaxAmountColumnWide,
+        shouldShowYear: showYear,
+        shouldShowYearSubmitted,
+        shouldShowYearApproved,
+        shouldShowYearPaid,
+        shouldShowYearPosted,
+        shouldShowYearExported,
+        isActionColumnWide,
+    };
 }
 
 type GroupTableScrollLayout = {
@@ -7513,6 +7559,22 @@ type GroupTableScrollLayout = {
     minTableWidth: number;
     shouldScrollHorizontally: boolean;
 };
+
+/**
+ * The width of each date column that is wide enough for the year. `getTableMinWidth` only has a narrow estimate for
+ * these columns, so a group's table would otherwise stop scrolling before the wider dates fit.
+ */
+function getWideDateColumnWidths(widthFlags: GroupColumnWidthFlags): Partial<Record<SearchColumnType, number>> {
+    const dateColumns: Array<[SearchColumnType, boolean]> = [
+        [CONST.SEARCH.TABLE_COLUMNS.DATE, widthFlags.shouldShowYear],
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, widthFlags.shouldShowYearSubmitted],
+        [CONST.SEARCH.TABLE_COLUMNS.APPROVED, widthFlags.shouldShowYearApproved],
+        [CONST.SEARCH.TABLE_COLUMNS.PAID, widthFlags.shouldShowYearPaid],
+        [CONST.SEARCH.TABLE_COLUMNS.POSTED, widthFlags.shouldShowYearPosted],
+        [CONST.SEARCH.TABLE_COLUMNS.EXPORTED, widthFlags.shouldShowYearExported],
+    ];
+    return Object.fromEntries(dateColumns.filter(([, isWide]) => isWide).map(([column]) => [column, variables.w102]));
+}
 
 /**
  * The scroll layout a group's table needs: its data columns (the group columns stripped out), its minimum width, and
@@ -7524,12 +7586,12 @@ type GroupTableScrollLayout = {
 function getGroupTableScrollLayout(
     columns: SearchColumnType[],
     type: SearchDataTypes,
-    isActionColumnWide: boolean,
+    widthFlags: GroupColumnWidthFlags,
     windowWidth: number,
     isLargeScreenWidth: boolean,
 ): GroupTableScrollLayout {
     const dataColumns = columns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX));
-    const minTableWidth = getTableMinWidth(dataColumns, type, isActionColumnWide);
+    const minTableWidth = getTableMinWidth(dataColumns, type, widthFlags.isActionColumnWide, getWideDateColumnWidths(widthFlags));
     return {dataColumns, minTableWidth, shouldScrollHorizontally: isLargeScreenWidth && minTableWidth > windowWidth};
 }
 

@@ -3335,6 +3335,8 @@ ${amount} pour ${merchant} - ${date}`,
         defaultWorkflowApproverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur.',
         overLimitApproverNotWorkspaceMember:
             'L’approbateur supplémentaire pour les notes de frais au-delà de la limite n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur supplémentaire.',
+        overLimitApproverInWorkflow:
+            'L’approbateur supplémentaire pour les notes de frais dépassant la limite est déjà un approbateur dans ce flux de travail. Choisissez un autre approbateur supplémentaire.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approuve déjà les notes de frais de <strong>${name2}</strong>. Veuillez choisir un autre approbateur pour éviter un circuit d'approbation circulaire.`,
         emptyContent: {
