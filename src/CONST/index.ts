@@ -10588,6 +10588,9 @@ const CONST = {
         TAX_PICKER_MODAL: {
             BACK_BUTTON: 'TaxPickerModal-BackButton',
         },
+        VALUE_FIELD_DROPDOWN: {
+            BACK_BUTTON: 'ValueFieldDropdown-BackButton',
+        },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
             MONTH_PICKER: 'CalendarPicker-MonthPicker',

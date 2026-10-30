@@ -541,16 +541,18 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/card-details/456/edit/limit')).toBe('/workspaces/p123/expensify-card/card-details/456/edit/limit');
     });
 
-    it('redirects legacy per diem destination step to the new start-based dynamic route (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/destination/123/456')).toBe('/create/submit/start/123/456/per-diem-destination');
+    it('redirects legacy per diem destination step to the per diem tab, where the destination is now a field of the form', () => {
+        // Given the legacy URL of the destination step, which the per diem flow no longer opens on its own
+        // When it is matched against the old routes
+        // Then it lands on the per diem tab of the create page, which holds the destination field
+        expect(getMatchingNewRoute('/create/submit/destination/123/456')).toBe('/create/submit/start/123/456/per-diem');
     });
 
     it('redirects legacy per diem destination edit step to the new confirmation-based dynamic route (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/destination/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-destination-edit');
     });
 
-    it('does not redirect the already-migrated per diem destination dynamic routes (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination')).toBe(undefined);
+    it('does not redirect the already-migrated per diem destination edit dynamic route (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
     });
 
@@ -580,33 +582,40 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/456/category/add-category?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
     });
 
-    it('redirects legacy per diem time step to the new destination-based dynamic route (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/time/123/456')).toBe('/create/submit/destination/123/456/per-diem-time');
+    it('redirects legacy per diem time step to the per diem tab, where the time is now a field of the form', () => {
+        // Given the legacy URL of the time step, which the per diem flow no longer opens on its own
+        // When it is matched against the old routes
+        // Then it lands on the per diem tab of the create page, which holds the time field
+        expect(getMatchingNewRoute('/create/submit/time/123/456')).toBe('/create/submit/start/123/456/per-diem');
     });
 
     it('redirects legacy per diem time edit step to the new confirmation-based dynamic route (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/time/123/456/edit')).toBe('/create/submit/confirmation/123/456/per-diem-time-edit');
     });
 
-    it('does not redirect the already-migrated per diem time dynamic routes (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination/per-diem-time')).toBe(undefined);
+    it('does not redirect the already-migrated per diem time edit dynamic route (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-time-edit')).toBe(undefined);
     });
 
-    it('redirects legacy per diem subrate step to the new time-based dynamic route keeping the pageIndex (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/subrate/123/456/0')).toBe('/create/submit/start/123/456/per-diem-time/per-diem-subrate/0');
+    it('redirects legacy per diem subrate step to the per diem tab, where the subrates are now fields of the form', () => {
+        // Given the legacy URL of the subrate step, which the per diem flow no longer opens on its own
+        // When it is matched against the old routes
+        // Then it lands on the per diem tab of the create page, which holds the subrate fields
+        expect(getMatchingNewRoute('/create/submit/subrate/123/456/0')).toBe('/create/submit/start/123/456/per-diem');
     });
 
-    it('redirects legacy per diem subrate step with a backToReport segment (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/subrate/123/456/789/2')).toBe('/create/submit/start/123/456/789/per-diem-time/per-diem-subrate/2');
+    it('redirects legacy per diem subrate step with a backToReport segment to the per diem tab', () => {
+        // Given the legacy subrate URL carrying a backToReport segment
+        // When it is matched against the old routes
+        // Then the backToReport segment is kept on the per diem tab route
+        expect(getMatchingNewRoute('/create/submit/subrate/123/456/789/2')).toBe('/create/submit/start/123/456/789/per-diem');
     });
 
     it('redirects legacy per diem subrate edit step to the new confirmation-based dynamic route (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/subrate/123/456/edit/2')).toBe('/create/submit/confirmation/123/456/per-diem-subrate-edit/2');
     });
 
-    it('does not redirect the already-migrated per diem subrate dynamic routes (#83850)', () => {
-        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-time/per-diem-subrate/0')).toBe(undefined);
+    it('does not redirect the already-migrated per diem subrate edit dynamic route (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-subrate-edit/2')).toBe(undefined);
     });
 
