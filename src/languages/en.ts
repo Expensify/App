@@ -3818,7 +3818,7 @@ const translations = {
     },
     reportHistoryPage: {
         title: 'Report history',
-        offlineMessage: "The report history might be outdated while you're offline.",
+        offlineMessage: "You're offline. Report history may be outdated.",
         created: 'created report',
         submitted: 'submitted',
         approved: 'approved',
