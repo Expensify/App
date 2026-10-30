@@ -387,6 +387,7 @@ jest.mock('@libs/PolicyUtils', () => {
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
         isPaidGroupPolicy,
         // isGroupPolicy delegates to the isPaidGroupPolicy mock so tests that tweak isPaidGroupPolicy still drive group-policy checks

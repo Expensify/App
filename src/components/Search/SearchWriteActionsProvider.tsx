@@ -7,10 +7,10 @@ import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canRejectReportAction} from '@libs/ReportUtils';
+import {isReportEntry} from '@libs/SearchKeyUtils';
 import {
     isGroupedItemArray,
     isReportActionListItemType,
-    isReportEntry,
     isTaskListItemType,
     isTransactionEntry,
     isTransactionGroupListItemType,
