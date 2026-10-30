@@ -2375,6 +2375,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Ενσωματώσεις',
             description: 'Χρησιμοποιείται για το Integration Server API.',
             removeDescription: 'Η αφαίρεση αυτής της σύνδεσης θα ανακαλέσει την πρόσβαση του Integration Server API.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Χρησιμοποιείται για την ενσωμάτωση ${partnerName}.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Η αφαίρεση αυτής της σύνδεσης θα ανακαλέσει την πρόσβαση της ενσωμάτωσης ${partnerName}.`,
         },
         enterSecurityCode: (contactMethod: string) => `Παρακαλούμε εισαγάγετε τον κωδικό ασφαλείας που στάλθηκε στο ${contactMethod}. Θα πρέπει να φτάσει μέσα σε ένα-δύο λεπτά.`,
     },

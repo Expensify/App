@@ -2482,6 +2482,8 @@ const translations = {
             title: 'Integrations',
             description: 'This is used for the Integration Server API.',
             removeDescription: "Removing this login will revoke the Integration Server API's access.",
+            partnerDescription: ({partnerName}: {partnerName: string}) => `This is used for the ${partnerName} integration.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Removing this login will revoke the ${partnerName} integration's access.`,
         },
     },
     // cspell:disable

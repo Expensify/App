@@ -2238,6 +2238,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '集成',
             description: '用于 Integration Server API。',
             removeDescription: '删除此登录后，将撤销 Integration Server API 的访问权限。',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `用于 ${partnerName} 集成。`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `删除此登录后，将撤销 ${partnerName} 集成的访问权限。`,
         },
         yourDefaultContactMethodRestrictedSwitch: '这是你当前的默认联系方式。你的公司已限制移除或更改它。',
     },

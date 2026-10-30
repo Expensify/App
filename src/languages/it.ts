@@ -2317,6 +2317,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Integrazioni',
             description: "Viene usato per l'API di Integration Server.",
             removeDescription: "Rimuovendo questo accesso, verrà revocato l'accesso dell'API di Integration Server.",
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Viene usato per l'integrazione con ${partnerName}.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Rimuovendo questo accesso, verrà revocato l'accesso dell'integrazione con ${partnerName}.`,
         },
         yourDefaultContactMethodRestrictedSwitch: 'Questo è il tuo metodo di contatto predefinito attuale. La tua azienda ne ha limitato la rimozione o la modifica.',
     },

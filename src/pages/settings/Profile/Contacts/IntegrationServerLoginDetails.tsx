@@ -1,6 +1,7 @@
 /**
- * Contact method details for an Integration Server API login. These logins can't be validated or set as
- * default, so the only action is removing the login, which revokes the API's access.
+ * Contact method details for an Integration Server API login, either the standard one or one issued to an OAuth
+ * partner. These logins can't be validated or set as default, so the only action is removing the login, which
+ * revokes the API's access.
  */
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -18,7 +19,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRevokeError, revokeDevice} from '@libs/actions/User';
-import {getLoginKey} from '@libs/UserUtils';
+import {getIntegrationServerLoginCopy, getLoginKey} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,6 +44,7 @@ function IntegrationServerLoginDetails({login, navigateBack}: IntegrationServerL
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
+    const {title: subHeaderTitle, removeDescription} = getIntegrationServerLoginCopy(login, translate);
 
     const removeLogin = async () => {
         if (isActingAsDelegate) {
@@ -69,11 +71,12 @@ function IntegrationServerLoginDetails({login, navigateBack}: IntegrationServerL
     return (
         <ScreenWrapper testID="IntegrationServerLoginDetails">
             <HeaderWithBackButtonAndTitle
-                title={translate('contacts.integrationServerLogin.title')}
+                subtitle={subHeaderTitle}
+                title={login?.partnerUserID}
                 onBackButtonPress={navigateBack}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <Text style={[styles.ph5, styles.mv3]}>{translate('contacts.integrationServerLogin.removeDescription')}</Text>
+                <Text style={[styles.ph5, styles.mv3]}>{removeDescription}</Text>
                 <OfflineWithFeedback
                     pendingAction={login.pendingAction}
                     errors={login.errorFields?.revoke}

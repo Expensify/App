@@ -2315,6 +2315,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Integraties',
             description: 'Dit wordt gebruikt voor de Integration Server-API.',
             removeDescription: 'Als je deze login verwijdert, wordt de toegang van de Integration Server-API ingetrokken.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Dit wordt gebruikt voor de ${partnerName}-integratie.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Als je deze login verwijdert, wordt de toegang van de ${partnerName}-integratie ingetrokken.`,
         },
         yourDefaultContactMethodRestrictedSwitch: 'Dit is je huidige standaardcontactmethode. Je bedrijf heeft beperkt dat je deze kunt verwijderen of wijzigen.',
     },

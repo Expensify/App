@@ -2231,6 +2231,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Integraciones',
             description: 'Se usa para la API de Integration Server.',
             removeDescription: 'Si eliminas este inicio de sesión, se revocará el acceso de la API de Integration Server.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Se usa para la integración con ${partnerName}.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Si eliminas este inicio de sesión, se revocará el acceso de la integración con ${partnerName}.`,
         },
     },
     pronouns: {

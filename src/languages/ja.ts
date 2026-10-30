@@ -2298,6 +2298,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: '連携',
             description: 'Integration Server API に使用されます。',
             removeDescription: 'このログインを削除すると、Integration Server API のアクセスが取り消されます。',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `${partnerName} 連携に使用されます。`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `このログインを削除すると、${partnerName} 連携のアクセスが取り消されます。`,
         },
         yourDefaultContactMethodRestrictedSwitch: 'これは現在のデフォルトの連絡方法です。会社により、これを削除または変更することは制限されています。',
     },

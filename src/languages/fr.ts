@@ -2329,6 +2329,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Intégrations',
             description: 'Utilisé pour l’API Integration Server.',
             removeDescription: 'Supprimer cet identifiant révoquera l’accès de l’API Integration Server.',
+            partnerDescription: ({partnerName}: {partnerName: string}) => `Utilisé pour l’intégration ${partnerName}.`,
+            partnerRemoveDescription: ({partnerName}: {partnerName: string}) => `Supprimer cet identifiant révoquera l’accès de l’intégration ${partnerName}.`,
         },
         yourDefaultContactMethodRestrictedSwitch: 'Ceci est votre méthode de contact par défaut actuelle. Votre entreprise a restreint sa suppression ou sa modification.',
     },
