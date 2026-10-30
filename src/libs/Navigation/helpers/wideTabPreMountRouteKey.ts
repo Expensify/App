@@ -26,6 +26,10 @@ const revealedRouteKeys = new Map<string, RevealedPreMount>();
 const preloadedRouteKeysAddedByPreMount = new Set<string>();
 let livePreloadedRouteKey: string | undefined;
 
+function createWideTabPreMountRouteKey(routeName: string): string {
+    return `${routeName}${ROUTE_KEY_INFIX}${Date.now()}`;
+}
+
 function setLiveWideTabPreMountRouteKey(key: string | undefined) {
     liveRouteKey = key;
 }
@@ -79,6 +83,11 @@ function setLiveWideTabPreMountPreloadedRouteKey(key: string | undefined) {
     }
 }
 
+/** Keeps a preload mark a cancelled pre-mount leaves on a tab, so a restored browser history entry does not drop it. */
+function keepWideTabPreMountPreloadedRouteKey(key: string) {
+    preloadedRouteKeysAddedByPreMount.delete(key);
+}
+
 /** Clears every live pre-mount key once the live pre-mount ends. */
 function clearLiveWideTabPreMountKeys() {
     setLiveWideTabPreMountRouteKey(undefined);
@@ -92,6 +101,7 @@ function isStaleWideTabPreMountPreloadedRouteKey(key: string): boolean {
 }
 
 export {
+    createWideTabPreMountRouteKey,
     setLiveWideTabPreMountRouteKey,
     isLiveWideTabPreMountRouteKey,
     setLiveWideTabPreMountTabRouteKey,
@@ -99,6 +109,8 @@ export {
     markWideTabPreMountRouteKeyRevealed,
     setRevealedWideTabPreMountModalRouteKey,
     isStaleWideTabPreMountRouteKey,
+    setLiveWideTabPreMountPreloadedRouteKey,
     isStaleWideTabPreMountPreloadedRouteKey,
+    keepWideTabPreMountPreloadedRouteKey,
     clearLiveWideTabPreMountKeys,
 };

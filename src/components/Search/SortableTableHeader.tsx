@@ -86,7 +86,10 @@ function SortableTableHeader({
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
                     const isYesNoColumn =
-                        columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.HELD;
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.HELD ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.DECLINED;
                     const isConversionAmountColumn =
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED ||
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED ||
