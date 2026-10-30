@@ -1,8 +1,9 @@
-import {getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportLayout} from '@libs/actions/ReportLayout';
+import {getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportLayout, setSingleExpenseReportView} from '@libs/actions/ReportLayout';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 jest.mock('@libs/API');
 
@@ -10,6 +11,7 @@ const mockWrite = jest.mocked(API.write);
 
 const LAYOUT_OPTION_NVP_NAME = 'expensify_layoutOption';
 const GROUP_BY_OPTION_NVP_NAME = 'expensify_groupByOption';
+const SINGLE_EXPENSE_REPORT_VIEW_NVP_NAME = 'expensify_singleExpenseReportView';
 const NAME_VALUE_PAIRS_KEY_PREFIX = 'nameValuePairs[';
 
 function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
@@ -146,5 +148,42 @@ describe('getReportLayoutSelection', () => {
     it('defaults to CATEGORY when neither NVP is set', () => {
         expect(getReportLayoutSelection(null, null)).toBe(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY);
         expect(getReportLayoutSelection(undefined, undefined)).toBe(CONST.REPORT_LAYOUT.GROUP_BY.CATEGORY);
+    });
+});
+
+describe('setSingleExpenseReportView', () => {
+    beforeEach(() => {
+        mockWrite.mockClear();
+    });
+
+    it('saves the table view on the account NVP', () => {
+        // Given a user who hasn't picked a view yet
+        // When they switch to the table view
+        setSingleExpenseReportView(CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
+
+        // Then the choice is saved on their account so it applies on every device
+        expect(mockWrite).toHaveBeenCalledTimes(1);
+        expect(mockWrite.mock.calls.at(0)?.[0]).toBe(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS);
+        expect(getWrittenNameValuePairs()).toEqual({[SINGLE_EXPENSE_REPORT_VIEW_NVP_NAME]: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE});
+    });
+
+    it('applies the new view optimistically and restores the previous view on failure', () => {
+        // Given a user who is on the table view
+        // When they switch back to the expense view
+        setSingleExpenseReportView(CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
+
+        // Then the expense view shows right away, and the table view comes back if the request fails
+        const onyxData = mockWrite.mock.calls.at(0)?.[2];
+        expect(onyxData?.optimisticData).toEqual([{onyxMethod: 'set', key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, value: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE}]);
+        expect(onyxData?.failureData).toEqual([{onyxMethod: 'set', key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, value: CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE}]);
+    });
+
+    it('clears the optimistic view on failure when no view was saved before', () => {
+        // Given a user who hasn't picked a view yet
+        // When they switch to the table view
+        setSingleExpenseReportView(CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
+
+        // Then a failed request falls back to the default view
+        expect(mockWrite.mock.calls.at(0)?.[2]?.failureData).toEqual([{onyxMethod: 'set', key: ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, value: null}]);
     });
 });

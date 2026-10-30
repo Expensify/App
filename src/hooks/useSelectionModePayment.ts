@@ -268,7 +268,8 @@ function useSelectionModePayment({
         chatReportID: chatReport?.reportID,
         formattedAmount,
         policyID: moneyRequestReport?.policyID,
-        onPress: (params: PaymentActionParams) => confirmPaymentRef.current(params),
+        // Invoice items pay from their own onSelected, so they run the same checks as the other payment options
+        onPress: (params: PaymentActionParams) => runPaymentAction(params.paymentType, true, () => confirmPaymentRef.current(params)),
         shouldHidePaymentOptions,
         shouldShowApproveButton: false,
         shouldDisableApproveButton: false,

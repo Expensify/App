@@ -9,6 +9,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openReport, setOptimisticTransactionThread} from '@libs/actions/Report';
@@ -36,6 +37,7 @@ import {findFocusedRoute, useIsFocused} from '@react-navigation/native';
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@selectors/Policy';
+import {isSentMoneyReportSelector} from '@selectors/ReportAction';
 import React, {startTransition, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -101,6 +103,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const personalDetails = usePersonalDetails();
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView();
 
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
@@ -141,18 +144,23 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
         const nextActionsReportID = isNextUnreported ? selfDMReportID : nextTransactionReportID;
         // Whether the sibling's parent report has any actions at all, which is what separates "not fetched yet"
         // from "fetched, but this expense has no creation action". Only the former is worth waiting for.
-        const hasPrevParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevActionsReportID}`] ?? {}).length;
-        const hasNextParentReportActions = !!Object.keys(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextActionsReportID}`] ?? {}).length;
+        const prevParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevActionsReportID}`];
+        const nextParentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextActionsReportID}`];
+        const hasPrevParentReportActions = !!Object.keys(prevParentReportActions ?? {}).length;
+        const hasNextParentReportActions = !!Object.keys(nextParentReportActions ?? {}).length;
+        // A "Pay someone" report keeps the expense view, even for users who picked the table view.
+        const isPrevSentMoneyReport = isSentMoneyReportSelector(prevParentReportActions);
+        const isNextSentMoneyReport = isSentMoneyReportSelector(nextParentReportActions);
         const parentActions: PrevNextParentReportActions = {prevParentReportAction: undefined, nextParentReportAction: undefined};
         if (!prevTransactionID && !nextTransactionID) {
-            return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
+            return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions, isPrevSentMoneyReport, isNextSentMoneyReport};
         }
         const parentReportIDs = new Set([currentTransaction?.reportID, prevActionsReportID, nextActionsReportID]);
         for (const parentReportID of parentReportIDs) {
             const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}` as const;
             collectParentReportActions(allReportActions?.[key], prevTransactionID, nextTransactionID, parentActions);
         }
-        return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions};
+        return {...parentActions, hasPrevParentReportActions, hasNextParentReportActions, isPrevSentMoneyReport, isNextSentMoneyReport};
     };
 
     const [reportedParentReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
@@ -241,6 +249,19 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
         return params?.backTo;
     };
 
+    /**
+     * Whether a sibling opens as its single-expense report instead of its thread. In the table view that report shows
+     * the expense as a row, with no prev/next arrows, so the sibling opens as its thread instead. A "Pay someone"
+     * report keeps the expense view either way.
+     */
+    const shouldOpenSiblingReport = (siblingTransaction: OnyxTypes.Transaction | undefined, siblingParentReport: OnyxEntry<OnyxTypes.Report>, isSiblingSentMoneyReport: boolean) => {
+        const isReported = !!siblingTransaction?.reportID && siblingTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
+        if (!isReported || !isOneTransactionReport(siblingParentReport)) {
+            return false;
+        }
+        return !shouldUseTableViewForSingleExpense || isSiblingSentMoneyReport;
+    };
+
     const resolveContext = {
         introSelected,
         conciergeChat,
@@ -265,17 +286,16 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
         siblingParentReportAction: OnyxTypes.ReportAction | undefined,
         siblingParentReport: OnyxEntry<OnyxTypes.Report>,
         siblingThreadReport: OnyxEntry<OnyxTypes.Report>,
+        isSiblingSentMoneyReport: boolean,
     ): string | undefined => {
         if (!siblingTransactionID) {
             return undefined;
         }
 
-        const isReported = !!siblingTransaction?.reportID && siblingTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
-
         // A report holding a single expense *is* that expense's view, so open it directly rather than its thread.
         // Home's "Review expenses" entry point applies the same rule, so stepping back returns the user to the
         // screen they came from.
-        if (isReported && isOneTransactionReport(siblingParentReport)) {
+        if (shouldOpenSiblingReport(siblingTransaction, siblingParentReport, isSiblingSentMoneyReport)) {
             return siblingTransaction?.reportID;
         }
 
@@ -355,6 +375,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
         siblingParentReport: OnyxEntry<OnyxTypes.Report>,
         siblingThreadReport: OnyxEntry<OnyxTypes.Report>,
         hasSiblingParentReportActions: boolean,
+        isSiblingSentMoneyReport: boolean,
     ) => {
         e?.preventDefault();
         const backTo = getBackTo();
@@ -364,18 +385,24 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
         // a creation action by being re-fetched, a descriptor-backed sibling carries its own resolution, and a
         // one-transaction report is opened directly; all three fall through to the resolver instead of waiting.
         const hasDescriptor = !!siblingTransactionID && !!siblingDescriptorsByTransactionID?.[siblingTransactionID];
-        const isSingleExpenseReport = !!siblingTransaction?.reportID && siblingTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID && isOneTransactionReport(siblingParentReport);
         if (
             !siblingParentReportAction &&
             !hasSiblingParentReportActions &&
             !hasDescriptor &&
-            !isSingleExpenseReport &&
+            !shouldOpenSiblingReport(siblingTransaction, siblingParentReport, isSiblingSentMoneyReport) &&
             stageSiblingPress(siblingTransactionID, siblingTransaction?.reportID, siblingParentReport?.policyID)
         ) {
             return;
         }
 
-        const targetReportID = resolveSiblingReportID(siblingTransactionID, siblingTransaction, siblingParentReportAction, siblingParentReport, siblingThreadReport);
+        const targetReportID = resolveSiblingReportID(
+            siblingTransactionID,
+            siblingTransaction,
+            siblingParentReportAction,
+            siblingParentReport,
+            siblingThreadReport,
+            isSiblingSentMoneyReport,
+        );
 
         // Report "0" is the unreported placeholder, not a report that can be opened. Navigating to it lands the user
         // on their self-DM (or a "not here" page), so stay put instead.
@@ -397,6 +424,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
             nextTransactionParentReport,
             nextThreadReport,
             !!reportedParentReportActions?.hasNextParentReportActions,
+            !!reportedParentReportActions?.isNextSentMoneyReport,
         );
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
@@ -408,6 +436,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
             prevTransactionParentReport,
             prevThreadReport,
             !!reportedParentReportActions?.hasPrevParentReportActions,
+            !!reportedParentReportActions?.isPrevSentMoneyReport,
         );
 
     // Replays a staged press once its parent action arrives, but only if the user is still where they pressed -

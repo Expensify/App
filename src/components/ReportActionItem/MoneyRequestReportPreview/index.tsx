@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -129,6 +130,7 @@ function MoneyRequestReportPreview({
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(iouReportID);
 
     const widthsRef = useRef<{currentWidth: number | null; currentWrapperWidth: number | null}>({currentWidth: null, currentWrapperWidth: null});
     const [widths, setWidths] = useState({currentWidth: 0, currentWrapperWidth: 0});
@@ -343,7 +345,9 @@ function MoneyRequestReportPreview({
             cascadeTimerRef.current = null;
         }
 
-        if (transactions.length <= 1) {
+        // A single-expense report shows its expense inline, so the report is the expense's view. In the table view
+        // the expense is a row instead, so it opens like an expense on a multi-expense report.
+        if (transactions.length <= 1 && !shouldUseTableViewForSingleExpense) {
             openReportFromPreview();
             return;
         }

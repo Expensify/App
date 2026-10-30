@@ -1,6 +1,9 @@
 import {render} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import useOneTransactionThreadReportID from '@hooks/useOneTransactionThreadReportID';
 
 import {init as activeClientManagerInit, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
 import {isQAServerActive} from '@libs/ApiUtils';
@@ -32,6 +35,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 const TEST_ACCOUNT_ID = 1;
 const QA_APP_KEY = 'qa-app-key';
+const TRANSACTION_THREAD_REPORT_ID = '20';
 
 jest.mock('@libs/ApiUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/ApiUtils'),
@@ -126,6 +130,11 @@ jest.mock('@selectors/Onboarding', () => ({
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
+jest.mock('@hooks/useOneTransactionThreadReportID', () => ({
+    __esModule: true,
+    default: jest.fn(() => undefined),
+}));
+
 const mockedPusherInit = jest.mocked(Pusher.init);
 const mockedGetCurrentUrl = jest.mocked(getCurrentUrl);
 const mockedIsActiveRoute = jest.mocked(Navigation.isActiveRoute);
@@ -135,13 +144,16 @@ const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 const mockedIsReady = jest.mocked(isReady);
 const mockedSubscribeToUserEvents = jest.mocked(subscribeToUserEvents);
 const mockedIsQAServerActive = jest.mocked(isQAServerActive);
+const mockedUseOneTransactionThreadReportID = jest.mocked(useOneTransactionThreadReportID);
 function renderAuthScreensInitHandler() {
     return render(
-        <LocaleContextProvider>
-            <View>
-                <AuthScreensInitHandler />
-            </View>
-        </LocaleContextProvider>,
+        <OnyxListItemProvider>
+            <LocaleContextProvider>
+                <View>
+                    <AuthScreensInitHandler />
+                </View>
+            </LocaleContextProvider>
+        </OnyxListItemProvider>,
     );
 }
 
@@ -161,6 +173,7 @@ describe('AuthScreensInitHandler', () => {
         mockedIsReady.mockReturnValue(Promise.resolve());
         mockedIsActiveRoute.mockReturnValue(false);
         mockedIsQAServerActive.mockReturnValue(false);
+        mockedUseOneTransactionThreadReportID.mockReturnValue(undefined);
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -233,6 +246,26 @@ describe('AuthScreensInitHandler', () => {
             throw new Error('Expected report attributes getter to be provided');
         }
         expect(getter()).toBeUndefined();
+    });
+
+    it.each([
+        ['expense', CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE, TRANSACTION_THREAD_REPORT_ID],
+        ['table', CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE, undefined],
+    ])('passes the right expense thread to Pusher notifications when single-expense reports use the %s view', async (_view, singleExpenseReportView, expectedThreadReportID) => {
+        // Given an open single-expense report with an expense thread. Only the expense view shows that thread's comments.
+        mockedUseOneTransactionThreadReportID.mockReturnValue(TRANSACTION_THREAD_REPORT_ID);
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, singleExpenseReportView);
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
+        await waitForBatchedUpdates();
+
+        // When the handler subscribes to user events
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the thread getter returns the thread only when its comments are shown, so in the table view they still notify
+        const getTopmostOneTransactionThreadReportID = mockedSubscribeToUserEvents.mock.calls.at(0)?.[2];
+        expect(getTopmostOneTransactionThreadReportID?.()).toBe(expectedThreadReportID);
     });
 
     it.each([

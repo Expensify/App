@@ -701,6 +701,26 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
+        it('opens the only expense on top of its report when single-expense reports use the table view', async () => {
+            // Given a single-expense report and a user who picked the table view, where the expense is a row of the report
+            mockResponsiveLayoutOverride = narrowResponsiveLayout;
+            setReportPreviewData({transactions: [mockSecondTransaction]});
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
+                await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
+            });
+
+            // When the user presses the expense in the preview
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // Then its thread opens on top of the report, as it does for an expense on a multi-expense report
+            expect(navigateSpy).toHaveBeenCalledTimes(2);
+            expect(navigateSpy).toHaveBeenNthCalledWith(1, narrowReportRoute());
+            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
+        });
+
         it('keeps the pressed expense out of the split stack on narrow layouts', async () => {
             // Deploy blocker #97183: removeScreenByKey only filters the root navigator, so a nested split screen can never be removed.
             mockResponsiveLayoutOverride = narrowResponsiveLayout;

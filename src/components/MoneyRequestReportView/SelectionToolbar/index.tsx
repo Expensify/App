@@ -3,7 +3,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useShouldShowReportBulkActionBar from '@components/MoneyRequestReportView/useShouldShowReportBulkActionBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
-import {ReportSubmitToPopoverAnchor} from '@components/ReportSubmitToPopoverAnchor';
+import {ReportSubmitToPopoverMeasurableAnchor, ReportSubmitToPopoverRoot} from '@components/ReportSubmitToPopoverAnchor';
 import BulkDuplicateHandler from '@components/Search/BulkDuplicateHandler';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
@@ -277,7 +277,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                     <View
                         style={[isInLandscapeMode ? [styles.flexRowReverse, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap6, styles.pb3, styles.ph5] : styles.flexColumn]}
                     >
-                        <ReportSubmitToPopoverAnchor reportID={reportID}>
+                        <ReportSubmitToPopoverMeasurableAnchor>
                             <SelectionDropdown
                                 hasPayInSelectionMode={hasPayInSelectionMode}
                                 chatReport={chatReport}
@@ -291,7 +291,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                                 kycWallRef={kycWallRef}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
                             />
-                        </ReportSubmitToPopoverAnchor>
+                        </ReportSubmitToPopoverMeasurableAnchor>
 
                         <SelectAllCheckbox
                             isSelectAllChecked={isSelectAllChecked}
@@ -352,12 +352,16 @@ function SelectionToolbarGate({reportID, transactions, reportActions}: Selection
         return null;
     }
 
+    // The toolbar's own hooks open the submit-to popover for bulk Submit, so its provider has to sit above the toolbar.
+    // The bulk action bar and the selection dropdown mark themselves as its anchor.
     return (
-        <SelectionToolbar
-            reportID={reportID}
-            transactions={transactions}
-            reportActions={reportActions}
-        />
+        <ReportSubmitToPopoverRoot reportID={reportID}>
+            <SelectionToolbar
+                reportID={reportID}
+                transactions={transactions}
+                reportActions={reportActions}
+            />
+        </ReportSubmitToPopoverRoot>
     );
 }
 

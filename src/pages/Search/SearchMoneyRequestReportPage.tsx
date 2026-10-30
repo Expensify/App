@@ -18,6 +18,7 @@ import usePrevious from '@hooks/usePrevious';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
@@ -25,7 +26,7 @@ import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, shouldUseMultiExpenseReportLayout} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -132,6 +133,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
@@ -194,8 +196,9 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     }
     const {snapshotTransaction, snapshotViolations} = derivedValue;
 
-    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
-    const shouldShowSuperWideRHP = visibleTransactions.length > 1;
+    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP.
+    // A single-expense report in the table view also uses the Super Wide RHP.
+    const shouldShowSuperWideRHP = shouldUseMultiExpenseReportLayout(visibleTransactions.length, shouldUseTableViewForSingleExpense);
 
     useRHPWidth(shouldShowSuperWideRHP ? 'super-wide' : 'wide');
 

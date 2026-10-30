@@ -98,6 +98,13 @@ jest.mock('@components/OnyxListItemProvider', () => ({
     usePersonalDetails: () => ({}),
 }));
 
+const mockShouldUseTableViewForSingleExpense = {value: false};
+
+jest.mock('@hooks/useSingleExpenseReportView', () => ({
+    __esModule: true,
+    default: () => ({shouldUseTableViewForSingleExpense: mockShouldUseTableViewForSingleExpense.value}),
+}));
+
 const mockIsOffline = {value: false};
 
 jest.mock('@hooks/useNetwork', () => ({
@@ -199,6 +206,7 @@ const resetMockState = () => {
     mockKeyboardShortcuts.clear();
     mockGetRootState.mockReturnValue(makeRootState('testRoute'));
     mockIsOffline.value = false;
+    mockShouldUseTableViewForSingleExpense.value = false;
 };
 
 const setupUseOnyx = () => {
@@ -302,6 +310,41 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
 
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rPrev', reportActionID: undefined, anchorTransactionID: PREV_ID}));
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith('rPrev', 'wide');
+        });
+
+        it('navigates to the thread in the table view, where the report would show the expense as a row with no arrows', () => {
+            // Given the user views single-expense reports in the table view, and the next expense already has a thread
+            mockShouldUseTableViewForSingleExpense.value = true;
+            mockState.reportActionsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {actionNext: makeIOUAction(NEXT_ID, {childReportID: 'threadNext', reportID: 'rNext'})},
+            };
+            renderNavigation();
+
+            // When the user steps to the next expense, as in the duplicate review
+            press('next-button');
+
+            // Then its thread opens, so the user stays on an expense and keeps the arrows
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'threadNext', anchorTransactionID: NEXT_ID}));
+        });
+
+        it('still opens a "Pay someone" report in the table view, as it keeps the expense view', () => {
+            // Given the user views single-expense reports in the table view, and the next expense is a "Pay someone" payment
+            mockShouldUseTableViewForSingleExpense.value = true;
+            mockState.reportActionsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {
+                    actionNext: {
+                        ...makeIOUAction(NEXT_ID, {childReportID: 'threadNext', reportID: 'rNext'}),
+                        originalMessage: {IOUTransactionID: NEXT_ID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100}},
+                    },
+                },
+            };
+            renderNavigation();
+
+            // When the user steps to it
+            press('next-button');
+
+            // Then its report opens, as it shows the expense itself
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext', anchorTransactionID: NEXT_ID}));
         });
     });
 
