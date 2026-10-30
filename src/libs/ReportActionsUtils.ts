@@ -458,9 +458,11 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
         return false;
     }
 
-    // for report actions with this type we get an empty array as message by design
+    // for report actions with this type we get an empty array as message by design. MarkReimbursed saves the payer's
+    // comment as the message, so marking a bill as paid without a comment leaves it empty.
     if (
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
