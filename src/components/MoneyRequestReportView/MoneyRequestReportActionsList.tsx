@@ -250,17 +250,18 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
         fullPolicySnapshot: report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
     });
 
-    const [editScrollRequestID, setEditScrollRequestID] = useState(0);
-    const completedEditScrollRequestIDRef = useRef(0);
+    const [scrollToNewestRequestID, setScrollToNewestRequestID] = useState(0);
+    const lastHandledScrollToNewestRequestIDRef = useRef(0);
     const requestScrollToNewestAfterEdit = () => {
         // Force a layout commit even when closing the editor leaves the row's height unchanged.
-        setEditScrollRequestID((requestID) => requestID + 1);
+        setScrollToNewestRequestID((requestID) => requestID + 1);
     };
+    // FlashList must measure the updated rows after the editor closes before scrolling to the newest action.
     const onCommitLayoutEffect = () => {
-        if (editScrollRequestID <= completedEditScrollRequestIDRef.current) {
+        if (scrollToNewestRequestID <= lastHandledScrollToNewestRequestIDRef.current) {
             return;
         }
-        completedEditScrollRequestIDRef.current = editScrollRequestID;
+        lastHandledScrollToNewestRequestIDRef.current = scrollToNewestRequestID;
         scrollToBottom();
     };
 

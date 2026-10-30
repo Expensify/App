@@ -1,0 +1,68 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index 59ecd66..432f476 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -1642,6 +1642,19 @@ function getPredictedNativeClamp(state, unresolvedAmount, totalSize) {
+   }
+   return 0;
+ }
++// Android clamps the offset to the new end while mounting a content shrink, then native MVCP adds the
++// anchor delta on top. Sync JS state to that clamp and only request the rest of the movement.
++function getAndroidNativeClampedAdjust(ctx, positionDiff) {
++  const state = ctx.state;
++  const maxScroll = Math.max(0, getContentSize(ctx) - state.scrollLength);
++  if (state.scroll <= maxScroll + MVCP_POSITION_EPSILON) {
++    return positionDiff;
++  }
++  const targetScroll = Math.min(state.scroll + positionDiff, maxScroll);
++  state.scroll = maxScroll;
++  state.scrollPending = maxScroll;
++  return targetScroll - maxScroll;
++}
+ function getProgressTowardAmount(targetDelta, nativeDelta) {
+   return targetDelta < 0 ? -nativeDelta : nativeDelta;
+ }
+@@ -1884,6 +1897,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+         now,
+         positionDiff
+       });
++      if (Platform.OS === "android" && !dataChanged && scrollTarget === void 0) {
++        positionDiff = getAndroidNativeClampedAdjust(ctx, positionDiff);
++      }
+       if (shouldQueueNativeMVCPAdjust(dataChanged, state, positionDiff, prevTotalSize, prevScroll, scrollTarget)) {
+         state.pendingNativeMVCPAdjust = {
+           amount: positionDiff,
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index 5bf1496..8262cbd 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -1621,6 +1621,19 @@ function getPredictedNativeClamp(state, unresolvedAmount, totalSize) {
+   }
+   return 0;
+ }
++// Android clamps the offset to the new end while mounting a content shrink, then native MVCP adds the
++// anchor delta on top. Sync JS state to that clamp and only request the rest of the movement.
++function getAndroidNativeClampedAdjust(ctx, positionDiff) {
++  const state = ctx.state;
++  const maxScroll = Math.max(0, getContentSize(ctx) - state.scrollLength);
++  if (state.scroll <= maxScroll + MVCP_POSITION_EPSILON) {
++    return positionDiff;
++  }
++  const targetScroll = Math.min(state.scroll + positionDiff, maxScroll);
++  state.scroll = maxScroll;
++  state.scrollPending = maxScroll;
++  return targetScroll - maxScroll;
++}
+ function getProgressTowardAmount(targetDelta, nativeDelta) {
+   return targetDelta < 0 ? -nativeDelta : nativeDelta;
+ }
+@@ -1863,6 +1876,9 @@ function prepareMVCP(ctx, dataChanged, adjustmentSource) {
+         now,
+         positionDiff
+       });
++      if (Platform.OS === "android" && !dataChanged && scrollTarget === void 0) {
++        positionDiff = getAndroidNativeClampedAdjust(ctx, positionDiff);
++      }
+       if (shouldQueueNativeMVCPAdjust(dataChanged, state, positionDiff, prevTotalSize, prevScroll, scrollTarget)) {
+         state.pendingNativeMVCPAdjust = {
+           amount: positionDiff,

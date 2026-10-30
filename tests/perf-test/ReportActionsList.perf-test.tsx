@@ -2,7 +2,6 @@ import {act, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import type Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {setHasRadio} from '@libs/NetworkState';
 
@@ -15,7 +14,9 @@ import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActions} from '@src/types/onyx';
+import type {ReportActions} from '@src/types/onyx';
+
+import type * as ReactNavigation from '@react-navigation/native';
 
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
@@ -26,13 +27,11 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-const mockedNavigate = jest.fn();
-
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    const actualNav = jest.requireActual<typeof ReactNavigation>('@react-navigation/native');
     return {
         ...actualNav,
-        useRoute: () => mockedNavigate,
+        useRoute: () => ({key: 'report', name: 'Report', params: {reportID: '1'}}),
         useIsFocused: () => true,
     };
 });
@@ -64,9 +63,20 @@ const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
 };
 
-const sortedReportActions = ReportTestUtils.getMockedSortedReportActions(500);
-const reportActions: ReportActions = Object.fromEntries(sortedReportActions.map((action: ReportAction) => [action.reportActionID, action]));
-const report = ReportTestUtils.createMockReport({reportID: REPORT_ID, lastVisibleActionCreated: sortedReportActions.at(0)?.created});
+function buildComment(index: number) {
+    const text = `Benchmark message ${index}`;
+    return ReportTestUtils.getFakeReportAction(index, {
+        actionName: index === 1 ? CONST.REPORT.ACTIONS.TYPE.CREATED : CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        actorAccountID: TEST_USER_ACCOUNT_ID,
+        created: new Date(Date.UTC(2026, 0, 1, 0, 0, index)).toISOString().replace('T', ' ').replace('Z', ''),
+        isAttachmentOnly: false,
+        message: [{type: 'COMMENT', html: text, text}],
+    });
+}
+
+const actions = Array.from({length: 500}, (_unused, index) => buildComment(index + 1));
+const reportActions: ReportActions = Object.fromEntries(actions.map((action) => [action.reportActionID, action]));
+const report = ReportTestUtils.createMockReport({reportID: REPORT_ID, lastVisibleActionCreated: actions.at(-1)?.created});
 
 beforeEach(async () => {
     // Initialize the network key for OfflineWithFeedback
@@ -81,6 +91,9 @@ beforeEach(async () => {
         // Seed the report under test: the report, its 500 actions, and a settled loading state.
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`, [
+            [CONST.PAGINATION_START_ID, ...actions.map((action) => action.reportActionID).reverse(), CONST.PAGINATION_END_ID],
+        ]);
         await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {
             isLoadingInitialReportActions: false,
             hasOnceLoadedReportActions: true,
@@ -120,10 +133,34 @@ function ReportActionsListWrapper() {
     );
 }
 
-test('[ReportActionsList] should render ReportActionsList with 500 reportActions stored', async () => {
+// LegendList's behavior mock eagerly renders the supplied data, while the previous FlashList test used
+// its virtualized implementation. Start a renderer-specific baseline instead of comparing those harnesses.
+test('[ReportActionsList] should render LegendList with 500 reportActions stored', async () => {
+    // Given a settled report whose complete 500-action page is stored in Onyx.
     const scenario = async () => {
+        // When the report list mounts, then its final comment must actually render.
         await screen.findByTestId('report-actions-list');
+        await screen.findByText('Benchmark message 500');
     };
     await waitForBatchedUpdates();
+    await measureRenders(<ReportActionsListWrapper />, {scenario});
+});
+
+test('[ReportActionsList] should render a new comment in a report with 500 stored actions', async () => {
+    // Given a mounted report with 500 stored actions.
+    let run = 0;
+    const scenario = async () => {
+        await screen.findByTestId('report-actions-list');
+        // When a new comment arrives, update the real Onyx collection and the report's latest timestamp.
+        // Reassure repeats this scenario, so every run must append a new action to the continuous chain.
+        const action = buildComment(501 + run++);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[action.reportActionID]: action});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {lastVisibleActionCreated: action.created});
+            await waitForBatchedUpdates();
+        });
+        // Then the new comment renders before this measurement completes.
+        await screen.findByText(`Benchmark message ${action.reportActionID}`);
+    };
     await measureRenders(<ReportActionsListWrapper />, {scenario});
 });

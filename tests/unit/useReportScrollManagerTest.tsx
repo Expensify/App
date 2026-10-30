@@ -1,10 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import type FlatListRefType from '@components/FlashList/types';
-
 import useReportScrollManager from '@hooks/useReportScrollManager';
 
 import {ActionListContext, useActionListContext} from '@pages/inbox/ActionListContext';
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
 
 import type {ReactNode} from 'react';
 
@@ -21,20 +20,20 @@ function buildMockListRef() {
         scrollToIndex: jest.fn(),
         scrollToOffset: jest.fn(),
         scrollToEnd: jest.fn(),
-        getNativeScrollRef: jest.fn(() => undefined),
+        getNativeScrollRef: jest.fn(() => ({scrollToEnd: jest.fn()})),
     };
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const ref = {current: methods} as unknown as FlatListRefType;
+    const ref = {current: methods} as unknown as ActionListRefType;
     return {ref, methods};
 }
 
 // Context value backed by a closure holder so registering a ref is visible to the manager's getListRef().
 function buildContextValue() {
-    let held: FlatListRefType = null;
+    let held: ActionListRefType = null;
     return {
         scrollOffsetRef: {current: 0},
         getScrollOffset: () => 0,
-        registerListRef: (ref: FlatListRefType) => {
+        registerListRef: (ref: ActionListRefType) => {
             held = ref;
         },
         getListRef: () => held,
@@ -58,28 +57,32 @@ function renderManager() {
 
 describe('useReportScrollManager', () => {
     it('resolves the list ref at call time, not at init (register AFTER the manager is created)', () => {
+        // Given a manager created before its list ref is registered.
         const {result} = renderManager();
         const {ref, methods} = buildMockListRef();
 
-        // Register only after the manager hook has already run once.
+        // When the list registers and a scroll is requested afterward.
         act(() => {
             result.current.registerListRef(ref);
         });
 
         act(() => {
-            result.current.manager.scrollToEnd();
+            result.current.manager.scrollToBottom();
         });
 
-        // The ref was resolved lazily — the method on the later-registered ref fired.
-        expect(methods.scrollToEnd).toHaveBeenCalled();
+        // Then the list handles the scroll so its virtualization and footer positioning stay active.
+        expect(methods.scrollToEnd).toHaveBeenCalledWith({animated: false});
+        expect(methods.getNativeScrollRef).not.toHaveBeenCalled();
     });
 
     it('no-ops when no ref is registered', () => {
+        // Given a manager whose list has not mounted yet.
         const {result} = renderManager();
 
+        // When any scroll command runs, then it tolerates the absent list.
         expect(() => {
             act(() => {
-                result.current.manager.scrollToEnd();
+                result.current.manager.scrollToBottom();
                 result.current.manager.scrollToIndex(3);
                 result.current.manager.scrollToOffset(100);
                 result.current.manager.scrollToIndex(1, {animated: false});
