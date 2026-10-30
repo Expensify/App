@@ -210,7 +210,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -220,7 +220,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`,
                     callback: (id) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(id);
                     },
                 });
@@ -255,7 +255,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -288,7 +288,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -345,7 +345,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.POLICY,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -358,7 +358,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -374,7 +374,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -444,7 +444,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -475,7 +475,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -508,7 +508,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -551,7 +551,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.POLICY,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -564,7 +564,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -580,7 +580,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -635,7 +635,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -708,7 +708,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -850,7 +850,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -904,7 +904,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -1004,7 +1004,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -1017,7 +1017,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -1090,7 +1090,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -1158,7 +1158,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -1194,7 +1194,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3424,7 +3424,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3452,7 +3452,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3479,7 +3479,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3507,7 +3507,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3750,7 +3750,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3768,7 +3768,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3868,7 +3868,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -3885,7 +3885,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4149,7 +4149,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4310,7 +4310,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4452,7 +4452,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4470,7 +4470,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4508,7 +4508,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4526,7 +4526,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4561,7 +4561,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4579,7 +4579,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4618,7 +4618,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(workspace);
                     },
                 });
@@ -4675,7 +4675,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.pendingAction).toBeUndefined();
                         expect(policy?.avatarURL).toBe(fakePolicy.avatarURL);
                         resolve();
@@ -4688,7 +4688,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.stateNum).toBe(fakeReport.stateNum);
                         expect(report?.statusNum).toBe(fakeReport.statusNum);
                         expect(report?.policyName).toBe(fakeReport.policyName);
@@ -4703,7 +4703,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${fakeReport.reportID}`,
                     callback: (reportNameValuePairs) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(reportNameValuePairs?.private_isArchived).toBeUndefined();
                         resolve();
                     },
@@ -4715,7 +4715,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                     callback: (reimbursementAccount) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(reimbursementAccount?.errors).not.toBeUndefined();
                         resolve();
                     },
@@ -4835,7 +4835,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
                     callback: (policyID) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyID);
                     },
                 });
@@ -4968,7 +4968,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
                     callback: (policyID) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyID);
                     },
                 });
@@ -5011,7 +5011,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID,
                     callback: (policyID) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(policyID);
                     },
                 });
@@ -5301,7 +5301,7 @@ describe('actions/Policy', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -5339,7 +5339,7 @@ describe('actions/Policy', () => {
                     key: `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}`,
                     callback: (val) => {
                         resolve(val);
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                     },
                 });
             });
@@ -5368,7 +5368,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(expectedBackendAmount);
                         expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
@@ -5384,7 +5384,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBeFalsy();
                         expect(policy?.errorFields?.maxExpenseAmountNoItemizedReceipt).toBeFalsy();
                         resolve();
@@ -5407,7 +5407,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
                     callback: (policy) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(policy?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.DISABLED_MAX_EXPENSE_VALUE);
                         expect(policy?.pendingFields?.maxExpenseAmountNoItemizedReceipt).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
                         resolve();
@@ -8657,7 +8657,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -8672,7 +8672,7 @@ describe('actions/Policy', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });

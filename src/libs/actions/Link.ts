@@ -564,7 +564,7 @@ function openReportFromDeepLink(
                     const handleDeeplinkNavigation = () => {
                         // We want to disconnect the connection so it won't trigger the deeplink again
                         // every time the data is changed, for example, when re-login.
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
 
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
@@ -615,7 +615,7 @@ function openReportFromDeepLink(
                                         if (!report?.errorFields?.notFound && !report?.reportID && !(report === undefined && CONST.REGEX.NON_NUMERIC.test(reportID))) {
                                             return;
                                         }
-                                        Onyx.disconnect(reportConnection);
+                                        reportConnection.unsubscribe();
                                         navigateHandler(report);
                                     },
                                 });
@@ -646,7 +646,7 @@ function openReportFromDeepLink(
                                         if (isLoadingReportData) {
                                             return;
                                         }
-                                        Onyx.disconnect(loadingConnection);
+                                        loadingConnection.unsubscribe();
 
                                         // The concierge route is a URL entry page that redirects itself, and on wide layouts it slides in as a
                                         // panel first, so open the chat the way the rest of the app does instead.
