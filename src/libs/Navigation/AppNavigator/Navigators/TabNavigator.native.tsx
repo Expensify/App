@@ -42,12 +42,12 @@ const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
     const {left: windowLeftInset, right: windowRightInset} = useSafeAreaInsets();
     // A guess until TabBarShapeProbe measures the bar: a column sits in a side inset of its own, while a notched phone in
     // landscape has the same inset on both sides and keeps its bar along the bottom.
     const [isTabBarVertical, setIsTabBarVertical] = useState(() => windowLeftInset !== windowRightInset);
-    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, isAccountAvatarShown, dotColors, tabLabels});
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
     const renderTabScreenLayout = (props: ScreenLayoutProps) => (
         <>
             <TabScreenHorizontalSafeArea>{bottomTabScreenLayoutWrapper(props)}</TabScreenHorizontalSafeArea>

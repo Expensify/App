@@ -116,26 +116,16 @@ export default {
     floatingTabBarGlyphBottomInset: 1,
     /** Glyph size in the iOS native tab bar. */
     iconNativeTabBarIOS: 22,
-    /** Account avatar size in the iOS native tab bar. */
-    avatarNativeTabBarIOS: 26,
+    /** Icon box size that preserves glyph and label spacing in the iOS native tab bar. */
+    nativeTabIconBoxIOS: 26,
     /** Glyph size in the iOS native tab bar in landscape, where UIKit lays the label beside a smaller icon. */
     iconNativeTabBarIOSLandscape: 18,
-    /** Account avatar size in the iOS native tab bar in landscape. */
-    avatarNativeTabBarIOSLandscape: 21,
+    /** Icon box size in the iOS native tab bar in landscape. */
+    nativeTabIconBoxIOSLandscape: 21,
     /** Radius of the status dot drawn into a native tab bar icon. */
     nativeTabIconDotRadius: 4,
     /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
     nativeTabIconDotCutout: 2,
-    /** Radius of the emoji status badge drawn into the account icon of a native tab bar. */
-    nativeTabIconEmojiStatusRadius: 6,
-    /** Size of the emoji drawn in that badge. */
-    nativeTabIconEmojiStatusFontSize: 8,
-    /** Radius of that badge on the smaller landscape avatar of the iOS native tab bar, where a full-size badge would run into the status dot. */
-    nativeTabIconEmojiStatusRadiusLandscape: 5,
-    /** Size of the emoji drawn in that landscape badge. */
-    nativeTabIconEmojiStatusFontSizeLandscape: 7,
-    /** How far the emoji status badge of an iOS native tab bar icon sits past the bottom-right corner of the avatar, as the JS badge hangs off its avatar. */
-    nativeTabIconEmojiStatusOffset: 2,
     /** Gap between the glyph and the label drawn under it, or beside it in landscape, in an iOS native tab bar icon. */
     nativeTabIconLabelGap: 6,
     /** Space between the screen edge and the first tab of the iOS 26 floating tab bar. */
@@ -175,6 +165,7 @@ export default {
     receiptPreviewWidth: 380,
     widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
+    conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
     minScanTooltipWidth: 320,

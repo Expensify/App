@@ -53,7 +53,12 @@ function GenericErrorPage({error}: {error?: Error}) {
                                     />
                                 </View>
                                 <View style={styles.mb5}>
-                                    <Text style={[styles.textHeadline]}>{translate('genericErrorPage.title')}</Text>
+                                    <Text
+                                        accessibilityRole={CONST.ROLE.HEADER}
+                                        style={[styles.textHeadline]}
+                                    >
+                                        {translate('genericErrorPage.title')}
+                                    </Text>
                                 </View>
                                 <View style={styles.mb5}>
                                     <ErrorBodyText />
