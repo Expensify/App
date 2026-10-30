@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {areCardsCustomExportInErrorFields, findMatchingCards, getCardsCustomExportPendingAction, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
@@ -19,12 +20,15 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 
 function DualEntryCardAccountPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -72,8 +76,10 @@ function DualEntryCardAccountPage({policy}: WithPolicyConnectionsProps) {
                             pendingAction={getCardsCustomExportPendingAction(cardFeeds ?? {}, cardLists ?? {}, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT, feedKey)}
                         >
                             <MenuItem.Root
-                                onPress={callFunctionIfActionIsAllowed(() =>
-                                    policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT_CARD_LIST.getRoute(policyID, feedWithDomainID)) : undefined,
+                                onPress={callFunctionIfActionIsAllowed(
+                                    () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_CARD_ACCOUNT_CARD_LIST.getRoute(policyID, feedWithDomainID)) : undefined),
+                                    false,
+                                    session,
                                 )}
                             >
                                 <MenuItemField.Row
