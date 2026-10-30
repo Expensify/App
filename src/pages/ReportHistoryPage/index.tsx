@@ -76,7 +76,7 @@ function ReportHistoryPage({report}: ReportHistoryPageProps) {
     return (
         <ScreenWrapper
             testID="ReportHistoryPage"
-            shouldShowOfflineIndicatorInWideScreen
+            shouldShowOfflineIndicator={false}
         >
             <FullPageNotFoundView shouldShow={!isGroupPolicyExpenseReport(report, policy?.type)}>
                 <HeaderWithBackButtonAndTitle
