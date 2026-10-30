@@ -14,6 +14,8 @@ import {
 
 import Navigation from '@navigation/Navigation';
 
+import {isCurrencySupportedForGlobalReimbursement} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, FundList, LastPaymentMethod} from '@src/types/onyx';
@@ -131,7 +133,7 @@ function usePaymentOptions({
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
         };
-        const canUseWallet = !isExpenseReport && !isInvoiceReport && CONST.DIRECT_REIMBURSEMENT_CURRENCIES.some((supportedCurrency) => supportedCurrency === currency);
+        const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedForGlobalReimbursement(currency);
 
         // Only show the Approve button if the user cannot pay the expense
         if (shouldHidePaymentOptions && shouldShowApproveButton) {
@@ -155,7 +157,7 @@ function usePaymentOptions({
 
         if (isInvoiceReport) {
             const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles, translate);
-            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && CONST.DIRECT_REIMBURSEMENT_CURRENCIES.some((supportedCurrency) => supportedCurrency === currency);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency);
             const getPaymentSubItems = (payAsBusiness: boolean) => {
                 const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
                 return formattedPaymentMethods

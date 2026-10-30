@@ -8,6 +8,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -41,7 +42,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {RulesTab, TableSelectionTab} from './tabs/useRulesTableBulkActions';
@@ -82,6 +83,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {pageGutter} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -97,7 +99,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {showConfirmModal} = useConfirmModal();
 
     useEffect(() => {
-        // Fetch once on mount and whenever policyID changes. setMerchantRule already updates Onyx, so refetching
+        // Fetch once on mount and whenever policyID changes. setRule already updates Onyx, so refetching
         // after a save can overwrite a newly added rule with stale data.
         openPolicyRulesPage(policyID);
         // The mount fetch is this page's own, rather than the shared hook's once per session, because this page
@@ -137,14 +139,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, requestedTab);
     }, [requestedTab]);
 
-    const clearAllTableSelection = useCallback(() => {
+    const clearAllTableSelection = () => {
         setSelectedRuleKeysByTab((prev) => (Object.keys(prev).length > 0 ? {} : prev));
         turnOffMobileSelectionMode();
-    }, []);
+    };
 
     useCleanupSelectedOptions(clearAllTableSelection);
 
-    const clearTableSelection = useCallback(() => {
+    const clearTableSelection = () => {
         if (!isTableSelectionTab(activeTab)) {
             return;
         }
@@ -157,9 +159,9 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return {...prev, [activeTab]: []};
         });
         turnOffMobileSelectionMode();
-    }, [activeTab]);
+    };
 
-    const updateTabSelectionKeys = useCallback((tab: TableSelectionTab, selectedRowKeys: string[]) => {
+    const updateTabSelectionKeys = (tab: TableSelectionTab, selectedRowKeys: string[]) => {
         setSelectedRuleKeysByTab((prev) => {
             const nextKeys = updateSelectionKeysIfChanged(prev[tab] ?? [], selectedRowKeys);
             if (prev[tab] === nextKeys) {
@@ -168,12 +170,12 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
             return {...prev, [tab]: nextKeys};
         });
-    }, []);
+    };
 
-    const handleSpendRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.CARD_RESTRICTIONS, selectedRowKeys), [updateTabSelectionKeys]);
-    const handleExpenseDefaultSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.EXPENSE_DEFAULTS, selectedRowKeys), [updateTabSelectionKeys]);
-    const handleRequireFieldsRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.REQUIRE_FIELDS, selectedRowKeys), [updateTabSelectionKeys]);
-    const handleFlagForReviewRuleSelectionChange = useCallback((selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.FLAG_FOR_REVIEW, selectedRowKeys), [updateTabSelectionKeys]);
+    const handleSpendRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.CARD_RESTRICTIONS, selectedRowKeys);
+    const handleExpenseDefaultSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.EXPENSE_DEFAULTS, selectedRowKeys);
+    const handleRequireFieldsRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.REQUIRE_FIELDS, selectedRowKeys);
+    const handleFlagForReviewRuleSelectionChange = (selectedRowKeys: string[]) => updateTabSelectionKeys(RULES_TAB.FLAG_FOR_REVIEW, selectedRowKeys);
 
     const {selectedRuleKeys, getFilteredSelectedKeys, deleteSelectedForActiveTab} = useRulesTableBulkActions({
         policyID,
@@ -359,6 +361,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             <View style={[styles.flexRow, styles.mb1, styles.w100]}>
                 <TabSelectorContextProvider activeTabKey={activeTab}>
                     <TabSelectorBase
+                        contentContainerStyles={pageGutter}
                         tabs={tabs}
                         activeTabKey={activeTab}
                         onTabPress={handleTabPress}
@@ -368,8 +371,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         </View>
     );
     // Outside the list so it stays pinned: it counts selected rows, which is useless once it scrolls away.
-    const separateLineButtons =
-        shouldDisplayButtonsInSeparateLine && !!headerButtons ? <View style={[styles.flexShrink0, styles.pl5, styles.pr5, styles.pb5, styles.w100]}>{headerButtons}</View> : null;
+    const separateLineButtons = shouldDisplayButtonsInSeparateLine && !!headerButtons ? <View style={[styles.flexShrink0, pageGutter, styles.pb5, styles.w100]}>{headerButtons}</View> : null;
     const sharedTableTabProps = {
         policyID,
         canWriteRules,

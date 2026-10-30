@@ -44,7 +44,6 @@ function GroupChatAvatar({reportID, size, containerStyle, fallbackDisplayName}: 
 
     const avatar: AvatarIcon = {
         // A group chat with no uploaded avatar stores an empty string, which has to fall through to the default avatar
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         source: report?.avatarUrl || getDefaultGroupAvatar(reportID),
         id: CONST.DEFAULT_MISSING_ID,
         type: CONST.ICON_TYPE_AVATAR,

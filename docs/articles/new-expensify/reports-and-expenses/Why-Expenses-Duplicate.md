@@ -35,14 +35,14 @@ Expensify automatically merges a SmartScanned receipt with a matching card trans
 - The transaction dates match
 - The currencies match or fall within the allowed foreign exchange tolerance
 - Only one possible match exists
-- The card transaction posts within seven days of the receipt being SmartScanned
+- The card transaction posts within seven days of the receipt being SmartScanned. For cards connected through Plaid, the pending transaction can merge before it posts.
 
 **Expenses will not automatically merge if:** 
 
 - The receipt was not SmartScanned or SmartScan did not complete
-- Expense details were edited before the card transaction posted
+- Expense details were edited before the card transaction posted (or, for cards connected through Plaid, before the pending transaction imported)
 - The amount, date, or currency differs beyond tolerance
-- The card transaction posts after seven days
+- The card transaction posts after seven days (or, for cards connected through Plaid, the pending transaction imports after seven days)
 - The foreign exchange difference exceeds five percent
 - The receipt is already matched to another expense
 - Both expenses are card transactions
@@ -94,7 +94,7 @@ If both expenses are card transactions, they cannot be merged. Instead, [delete 
 This happens when the receipt and card transaction did not merge into a single expense. This is usually due to differences in amount, date, currency, or timing.
 
 ## Why didn’t my receipt merge with my card transaction? 
-SmartScan requires a close match in amount, date, and currency. If those details differ, or if the card transaction has not posted within seven days, the expenses will not merge automatically.
+SmartScan requires a close match in amount, date, and currency. If those details differ, or if the card transaction has not posted within seven days (for cards connected through Plaid, imported as pending within seven days), the expenses will not merge automatically.
 
 ## Can uploading the same receipt twice create duplicates?
 

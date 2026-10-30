@@ -1,8 +1,11 @@
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -24,7 +27,6 @@ import type {ChatListItemProps, ReportActionListItemType} from './types';
  */
 function ChatListItem<TItem extends ListItem>({
     item,
-    isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
@@ -34,11 +36,14 @@ function ChatListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldSyncFocus,
 }: ChatListItemProps<TItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
+    const reportsParentHierarchy = useReportsParentHierarchy(reportActionItem?.reportID);
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
     const {isSelected} = useRowSelection(item.keyForList);
     const pressableStyle = [
@@ -70,7 +75,7 @@ function ChatListItem<TItem extends ListItem>({
             onDismissError={onDismissError}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
-            pressableWrapperStyle={[styles.mh5, StyleUtils.getSearchRowBackgroundStyle(isSelected), styles.br2]}
+            pressableWrapperStyle={[pageGutterMargin, StyleUtils.getSearchRowBackgroundStyle(isSelected), styles.br2]}
             hoverStyle={isSelected && styles.activeComponentBG}
         >
             <View
@@ -89,6 +94,7 @@ function ChatListItem<TItem extends ListItem>({
                     isFirstVisibleReportAction={false}
                     shouldDisplayContextMenu={false}
                     shouldShowBorder
+                    reportsParentHierarchy={reportsParentHierarchy}
                 />
             </View>
         </ListItemComposed>

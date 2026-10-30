@@ -13,14 +13,18 @@ import type {ModalProps} from './ModalContext';
 
 import {ModalActions} from './ModalContext';
 
-type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
+type ConfirmModalWrapperProps = ModalProps &
+    Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'> & {
+        /** Whether a backdrop tap should also hide the modal after running onBackdropPress. Leave it off when onBackdropPress is meant to keep the modal open */
+        shouldHideOnBackdropPress?: boolean;
+    };
 
 // This wrapper bridges the ConfirmModal API with the global modal system, providing handlers for the onConfirm and onCancel callbacks to ConfirmModal.
 // TODOS after migrating all ConfirmModal instances to use showConfirmModal:
 // - handle closeModal inside ConfirmModal
 // - remove ConfirmModalWrapper
 
-function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: ConfirmModalWrapperProps) {
+function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, onBackdropPress, shouldHideOnBackdropPress = false, ...props}: ConfirmModalWrapperProps) {
     const activeElementRole = useActiveElementRole();
     const {isOffline} = useNetwork();
     const [isVisible, setIsVisible] = useState(true);
@@ -45,6 +49,15 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: 
         setCloseAction(ModalActions.CLOSE);
         setIsVisible(false);
     };
+
+    // Hide through isVisible so a backdrop close animates out like the cancel button, instead of leaving the stack mid-tap
+    const handleBackdropPress =
+        onBackdropPress && shouldHideOnBackdropPress
+            ? () => {
+                  onBackdropPress();
+                  handleCancel();
+              }
+            : onBackdropPress;
 
     const handleModalHide = () => {
         if (isVisible) {
@@ -71,6 +84,7 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, ...props}: 
             isVisible={isVisible}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
+            onBackdropPress={handleBackdropPress}
             onModalHide={handleModalHide}
             isConfirmLoading={isConfirmLoading || props.isConfirmLoading}
         />

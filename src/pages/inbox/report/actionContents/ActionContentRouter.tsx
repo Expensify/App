@@ -5,6 +5,8 @@ import ExportIntegration from '@components/ReportActionItem/ExportIntegration';
 import IssueCardMessage from '@components/ReportActionItem/IssueCardMessage';
 import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequestReportPreview';
 import MovedTransactionAction from '@components/ReportActionItem/MovedTransactionAction';
+import SupportTicketPreview from '@components/ReportActionItem/SupportTicketPreview';
+import SupportTicketSurvey from '@components/ReportActionItem/SupportTicketSurvey';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
@@ -38,15 +40,18 @@ import {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionOfType,
+    isApprovalFlowAction,
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
+    isCreatedSupportTicketReportAction,
     isIOURequestReportAction,
     isMemberChangeAction,
     isMoneyRequestAction,
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isSimpleMessageAction,
     isTaskAction,
     isTripPreview,
 } from '@libs/ReportActionsUtils';
@@ -65,7 +70,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import React from 'react';
 
-import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
+import ApprovalFlowContent from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
@@ -86,8 +91,9 @@ import ReimbursedContent from './ReimbursedContent';
 import ReimbursementDeQueuedContent from './ReimbursementDeQueuedContent';
 import ReimbursementQueuedContent from './ReimbursementQueuedContent';
 import RemovedFromApprovalChainContent from './RemovedFromApprovalChainContent';
+import ReportActionMessageContent from './ReportActionMessageContent';
 import ReportMentionWhisperContent from './ReportMentionWhisperContent';
-import SimpleMessageContent, {isSimpleMessageAction} from './SimpleMessageContent';
+import SimpleMessageContent from './SimpleMessageContent';
 
 type ActionContentRouterProps = {
     action: OnyxTypes.ReportAction;
@@ -132,7 +138,7 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    /** Whether this is the newest comment of Concierge or of a custom agent that is eligible for the inline feedback prompt */
     isLatestConciergeFeedbackAction: boolean;
 
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
@@ -175,6 +181,7 @@ function ActionContentRouter({
     const actionOwnerReportID = originalReportID ?? reportID;
     const policyID = report?.policyID;
     const reportOwnerAccountID = report?.ownerAccountID;
+    const isSupportTicketReport = report?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
 
     if (isIOURequestReportAction(action)) {
         const moneyRequestOriginalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
@@ -213,7 +220,7 @@ function ActionContentRouter({
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
         return (
             <MoneyRequestReportPreview
-                // FlashList recycles cells, so this instance can be handed another report's props. Key forces a remount,
+                // Lists recycle cells, so this instance can be handed another report's props. Key forces a remount,
                 // or `useNewTransactions` would consider the new report's transactions as newly added on top of the old report's.
                 key={action.reportActionID}
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -241,6 +248,24 @@ function ActionContentRouter({
                 action={action}
                 isHovered={hovered}
                 policyID={policyID}
+            />
+        );
+    }
+    if (isCreatedSupportTicketReportAction(action)) {
+        return (
+            <SupportTicketPreview
+                style={displayAsGroup ? [] : [styles.mt1]}
+                action={action}
+                isHovered={hovered}
+            />
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY)) {
+        return (
+            <SupportTicketSurvey
+                action={action}
+                report={report}
+                reportID={reportID}
             />
         );
     }
@@ -303,6 +328,7 @@ function ActionContentRouter({
             <ReimbursedContent
                 action={action}
                 reportOwnerAccountID={reportOwnerAccountID}
+                originalReport={originalReport}
             />
         );
     }
@@ -316,6 +342,16 @@ function ActionContentRouter({
                 actionReportID={action.reportID}
                 action={action}
                 originalReport={originalReport}
+            />
+        );
+    }
+    if (isSupportTicketReport && (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CLOSED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED))) {
+        return (
+            <ReportActionMessageContent
+                action={action}
+                displayAsGroup={displayAsGroup}
+                reportID={reportID}
+                isSupportTicketReport={isSupportTicketReport}
             />
         );
     }

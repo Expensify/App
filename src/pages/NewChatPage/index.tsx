@@ -1,4 +1,5 @@
 import Button from '@components/Button';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,9 +13,11 @@ import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -89,8 +92,10 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const allPersonalDetails = usePersonalDetails();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {singleExecution} = useSingleExecution();
     const isSupportalSession = useIsSupportalSession();
+    const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -125,7 +130,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         setGroupDraft({participants});
     };
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, setSelectedOptions, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
         includeUserToInvite: true,
@@ -170,6 +175,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
     const headerMessage = getHeaderMessage(
+        translate,
         personalDetails.length + recentReports.length !== 0,
         !!userToInvite,
         debouncedSearchTerm.trim(),
@@ -298,13 +304,13 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
 
-        let login = '';
-
+        let participant: OptionWithKey | undefined;
         if (option?.login) {
-            login = option.login;
+            participant = option;
         } else if (latestSelectedOptions.length === 1) {
-            login = latestSelectedOptions.at(0)?.login ?? '';
+            participant = latestSelectedOptions.at(0);
         }
+        const login = participant?.login;
         if (!login) {
             Log.warn('Tried to create chat with empty login');
             return;
@@ -312,7 +318,8 @@ function NewChatPage({ref}: NewChatPageProps) {
         KeyboardUtils.dismiss().then(() => {
             singleExecution(() =>
                 navigateToAndOpenReport({
-                    userLogins: [login],
+                    login,
+                    personalDetailsByLogin: getPersonalDetailsByLogin(),
                     personalDetails: allPersonalDetails,
                     currentUserAccountID,
                     introSelected,
@@ -397,6 +404,16 @@ function NewChatPage({ref}: NewChatPageProps) {
         </>
     );
 
+    // Device contacts can't be imported in bulk on Android, so let the user pick one with the system picker
+    const importContactsButton = contactState?.pickContact ? (
+        <MenuItemNavigation
+            title={translate('contact.importContacts')}
+            icon={icons.UserPlus}
+            onPress={contactState.pickContact}
+            sentryLabel={CONST.SENTRY_LABEL.NEW_CHAT.IMPORT_CONTACTS_ITEM}
+        />
+    ) : null;
+
     const textInputOptions = {
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         hint: isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '',
@@ -426,13 +443,15 @@ function NewChatPage({ref}: NewChatPageProps) {
                 onSelectRow={selectOption}
                 shouldShowTextInput
                 textInputOptions={textInputOptions}
+                customListHeaderContent={importContactsButton}
                 canSelectMultiple
                 shouldPreventAutoScrollOnSelect
                 shouldClearInputOnSelect={false}
                 shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
-                    onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
+                    onConfirm: () => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption()),
+                    onConfirmFocusedOption: (option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
                     isFooterConfirmEnabled: selectedOptions.length > 0,
                 }}
                 footerContent={footerContent}

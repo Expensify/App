@@ -5,11 +5,11 @@ import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/Attachm
 import type {ImageLoadEventData} from 'expo-image';
 
 import {Image as ExpoImage} from 'expo-image';
-import {useCallback, useContext, useEffect, useRef} from 'react';
+import {useContext, useEffect, useRef} from 'react';
 
 import type {BaseImageProps} from './types';
 
-function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
+function BaseImage({onLoad, source, style, recyclingKey, ...props}: BaseImageProps) {
     const isLoadedRef = useRef(false);
     const attachmentContext = useContext(AttachmentStateContext);
     const {setAttachmentLoaded, isAttachmentLoaded} = attachmentContext || {};
@@ -27,30 +27,27 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
         isLoadedRef.current = false;
     }, [source]);
 
-    const imageLoadedSuccessfully = useCallback(
-        (event: ImageLoadEventData) => {
-            setAttachmentLoaded(source, true);
-            if (!onLoad) {
-                return;
-            }
-            if (isLoadedRef.current === true) {
-                return;
-            }
+    const imageLoadedSuccessfully = (event: ImageLoadEventData) => {
+        setAttachmentLoaded(source, true);
+        if (!onLoad) {
+            return;
+        }
+        if (isLoadedRef.current === true) {
+            return;
+        }
 
-            // We override `onLoad`, so both web and native have the same signature
-            const {width, height} = event.source;
-            isLoadedRef.current = true;
-            onLoad({nativeEvent: {width, height}});
-        },
-        [onLoad, setAttachmentLoaded, source],
-    );
+        // We override `onLoad`, so both web and native have the same signature
+        const {width, height} = event.source;
+        isLoadedRef.current = true;
+        onLoad({nativeEvent: {width, height}});
+    };
 
     return (
         <ExpoImage
             // Only subscribe to onLoad when a handler is provided to avoid unnecessary event registrations, optimizing performance.
             onLoad={onLoad ? imageLoadedSuccessfully : undefined}
             source={source}
-            recyclingKey={getImageRecyclingKey(source)}
+            recyclingKey={recyclingKey ?? getImageRecyclingKey(source)}
             style={style}
             {...props}
         />

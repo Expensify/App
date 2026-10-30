@@ -11,6 +11,12 @@ type VideoPlayerProps = {
     url: string;
 
     /**
+     * Original file name of the video, used to name the file saved by the player's Download action.
+     * Without it the download falls back to the raw storage key, which has no extension.
+     */
+    fileName?: string;
+
+    /**
      * Callback fired when the sourceLoad event is triggered.
      * @param event Data containing information about the video source that finished loading.
      */

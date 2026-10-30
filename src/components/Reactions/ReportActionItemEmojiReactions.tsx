@@ -1,6 +1,8 @@
 import {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
 
+import {useSession} from '@components/OnyxListItemProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -12,7 +14,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 
-import {toggleEmojiReaction} from '@userActions/EmojiReactions';
+import toggleEmojiReaction from '@userActions/EmojiReactions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 
 import CONST from '@src/CONST';
@@ -70,6 +72,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const session = useSession();
     const {isOffline} = useNetwork();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
@@ -84,7 +87,7 @@ function ReportActionItemEmojiReactions({reportAction, reportID, isEditingInline
     }
 
     const toggleReaction = (emoji: Emoji, skinTone: number, ignoreSkinToneOnCompare?: boolean) => {
-        if (isAnonymousUser()) {
+        if (isAnonymousUser(session)) {
             hideContextMenu(false);
 
             TransitionTracker.runAfterTransitions({

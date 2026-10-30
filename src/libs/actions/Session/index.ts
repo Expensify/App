@@ -1,3 +1,4 @@
+import {getFreshMarketingAttribution} from '@libs/actions/MarketingAttribution';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
 import * as API from '@libs/API';
 import type {
@@ -35,6 +36,7 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import {rand64} from '@libs/NumberUtils';
 import openExternalLink from '@libs/openExternalLink';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
@@ -56,7 +58,6 @@ import {clearCachedAttachments} from '@userActions/Attachment';
 import clearOnyxAndSeedFullReconnect from '@userActions/clearOnyxAndSeedFullReconnect';
 import {clearOnyxForDelegateTransition} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
-import {setErrorFields} from '@userActions/FormActions';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
@@ -70,10 +71,10 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
-import type {TryNewDot} from '@src/types/onyx';
+import type {Report, TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import type Session from '@src/types/onyx/Session';
@@ -252,7 +253,9 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
  */
 function signInWithSupportAuthToken(authToken: string) {
     const {optimisticData, finallyData} = getShortLivedLoginParams(true);
-    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken}, {optimisticData, finallyData});
+    // An expired support token returns a 407, and there is no session to reauthenticate. Skip the reauthentication,
+    // therefore finallyData still clears account.isLoading and the transition page can show the expired session.
+    API.read(READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN, {authToken, skipReauthentication: true}, {optimisticData, finallyData});
 
     // Record the token so the transition pages skip a duplicate sign-in for it. The Public/Auth navigator
     // swap re-mounts the transition screen mid-login, and without this the re-mounted page fires this call
@@ -328,7 +331,8 @@ function callSAMLSignOut(params: LogOutParams, authToken: string): Promise<void 
  * Checks if the account is an anonymous account.
  */
 function isAnonymousUser(sessionParam?: OnyxEntry<Session>): boolean {
-    return (sessionParam?.authTokenType ?? deprecatedSession.authTokenType) === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
+    const session = sessionParam === undefined ? deprecatedSession : sessionParam;
+    return session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
 }
 
 function hasStashedSession(stashedSessionParam: Session | undefined, stashedCredentialsParam: Credentials | undefined): boolean {
@@ -657,9 +661,9 @@ function buildOnyxDataToCleanUpAnonymousUser(): PersonalDetailsOnyxUpdate {
 
 /**
  * Creates an account for the new user and signs them into the application with the newly created account.
- *
+ * The marketing attribution captured from the landing URL is sent with the request and cleared once signup succeeds.
  */
-function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean) {
+function signUpUser(login: string | undefined, preferredLocale: Locale | undefined, hasSMSMarketingConsent?: boolean, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -673,7 +677,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
 
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT> | PersonalDetailsOnyxUpdate> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.MARKETING_ATTRIBUTION> | PersonalDetailsOnyxUpdate> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -682,6 +686,12 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
             },
         },
         onyxOperationToCleanUpAnonymousUser,
+        // The attribution is stored on the new account, so clear it to avoid sending it again on a later signup
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.MARKETING_ATTRIBUTION,
+            value: null,
+        },
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
@@ -695,7 +705,7 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo};
+        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
         if (hasSMSMarketingConsent !== undefined) {
             params.hasSMSMarketingConsent = hasSMSMarketingConsent;
         }
@@ -857,28 +867,43 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
 }
 
 /**
+ * Builds the Onyx data for a Google or Apple sign in. These can create a new account, so on success we clear the marketing
+ * attribution sent with the request, the same way signUpUser does, so it isn't sent again on a later signup.
+ */
+function getThirdPartySignInOnyxData(): OnyxData<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.MARKETING_ATTRIBUTION> {
+    const {optimisticData, successData, failureData} = signInAttemptState();
+    return {
+        optimisticData,
+        successData: [...(successData ?? []), {onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.MARKETING_ATTRIBUTION, value: null}],
+        failureData,
+    };
+}
+
+/**
  * Given an idToken from Sign in with Apple, checks the API to see if an account
  * exists for that email address and signs the user in if so.
+ * The marketing attribution captured from the landing URL is sent along, since this can create a new account.
  */
-function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: Locale | undefined) {
-    const {optimisticData, successData, failureData} = signInAttemptState();
+function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: Locale | undefined, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
+    const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo};
-        API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, {optimisticData, successData, failureData});
+        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, onyxData);
     });
 }
 
 /**
  * Shows Google sign-in process, and if an auth token is successfully obtained,
- * passes the token on to the Expensify API to sign in with
+ * passes the token on to the Expensify API to sign in with.
+ * The marketing attribution captured from the landing URL is sent along, since this can create a new account.
  */
-function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undefined) {
-    const {optimisticData, successData, failureData} = signInAttemptState();
+function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undefined, storedMarketingAttribution?: OnyxEntry<StoredMarketingAttribution>) {
+    const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo};
-        API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, {optimisticData, successData, failureData});
+        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, onyxData);
     });
 }
 
@@ -1200,6 +1225,13 @@ function clearAccountMessages() {
     });
 }
 
+/**
+ * Clears only the account errors, leaving isLoading untouched so an in-flight request keeps its pending state
+ */
+function clearAccountErrors() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errors: null});
+}
+
 function setAccountError(error: string) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {errors: ErrorUtils.getMicroSecondOnyxErrorWithMessage(error)});
 }
@@ -1408,8 +1440,21 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
     // A 2FA code is required to disable 2FA
     const params: DisableTwoFactorAuthParams = {twoFactorAuthCode};
 
+    // The secret kept for an unfinished setup is no longer valid once 2FA is turned off.
+    const disableSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                recoveryCodes: null,
+                twoFactorAuthSecretKey: null,
+            },
+        },
+    ];
+
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData: disableSuccessData, failureData});
 }
 
 function clearDisableTwoFactorAuthErrors() {
@@ -1432,7 +1477,7 @@ function updateAuthToken(authToken?: string, encryptedAuthToken?: string) {
 
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
     updateAuthToken(authToken, encryptedAuthToken);
-    openApp();
+    return openApp().then(() => API.waitForWrites(WRITE_COMMANDS.OPEN_APP));
 }
 
 function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boolean, options: ValidateTwoFactorAuthOptions = {}) {
@@ -1455,6 +1500,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
                 // Clear the secret key once we know we no longer need to show it
                 // This is necessary in case the user needs to complete the replaceTwoFactorDevice flow on this device at some point in the future - that flow uses the presence of this key to know when to navigate from one step to the next
                 twoFactorAuthSecretKey: null,
+                // The success screen is the usual place that drops recovery codes. If the user already closed
+                // the panel, that screen never mounts, so clear them here once validation has succeeded.
+                recoveryCodes: null,
             },
         },
     ];
@@ -1465,6 +1513,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                // Drop the saved codes so leaving this screen can request a fresh secret. The secret itself
+                // stays, so the QR remains and a mistyped code can be retried without leaving the page.
+                recoveryCodes: null,
             },
         },
     ];
@@ -1645,72 +1696,49 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
-/** The forms that submit a work email. Onboarding has its own, the workspace company card and Expensify card flows share one. */
-type AddWorkEmailFormID = typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM;
-
 /**
  * Adds a work email to the account.
  *
  * @param workEmail the work email to add.
- * @param formID the form that submitted the request. Its loading state and errors follow the request, so the submit button stops spinning and the failure
- * renders inline. Defaults to the onboarding form, which is where this action is called from during onboarding.
+ * @param addWorkEmailTaskReport the onboarding task report to complete once the work email is added, if any.
  */
-function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM) {
-    const isOnboardingFlow = formID === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
+function AddWorkEmail(workEmail: string, addWorkEmailTaskReport?: OnyxEntry<Report>) {
+    // Auth completes direct additions and MergeIntoAccountAndLogin completes existing-account additions. Both commands
+    // need the same client-generated action ID, but AddWorkEmail must not complete the task before a required merge.
+    const completedTaskReportActionID = addWorkEmailTaskReport ? rand64() : undefined;
 
-    const optimisticData: Array<OnyxUpdate<AddWorkEmailFormID | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = isOnboardingFlow
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
-                  value: {
-                      onboardingWorkEmail: workEmail,
-                      isLoading: true,
-                  },
-              },
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
-                  value: null,
-              },
-          ]
-        : [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
-                  value: {
-                      isLoading: true,
-                      errorFields: null,
-                  },
-              },
-          ];
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: workEmail,
+                isLoading: true,
+                completedTaskReportActionID: completedTaskReportActionID ?? null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            value: null,
+        },
+    ];
 
-    const getLoadingFinishedData = (): Array<OnyxUpdate<AddWorkEmailFormID>> =>
-        isOnboardingFlow
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
-                      value: {
-                          isLoading: false,
-                      },
-                  },
-              ]
-            : [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM,
-                      value: {
-                          isLoading: false,
-                      },
-                  },
-              ];
+    const getLoadingFinishedData = (): Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
 
     // We need to inspect the response to detect the closed-account error and surface a specific translation key, which API.write cannot do.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.ADD_WORK_EMAIL,
-        {workEmail},
+        {workEmail, completedTaskReportActionID},
         {
             optimisticData,
             successData: getLoadingFinishedData(),
@@ -1730,15 +1758,6 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
             errorTranslationKey = 'onboarding.mergeBlockScreen.workAccountClosedSubtitle';
         }
 
-        // Outside of onboarding we show the failure on the form the user is looking at, instead of writing onboarding-only state that the caller doesn't render.
-        // The backend also rejects this command with errors we have no specific copy for (e.g. a 403), so fall back to a generic message rather than showing nothing.
-        if (!isOnboardingFlow) {
-            setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
-                [ADD_WORK_EMAIL_INPUT_IDS.EMAIL]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey ?? 'common.genericErrorMessage'),
-            });
-            return;
-        }
-
         if (errorTranslationKey) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, errorTranslationKey);
             return;
@@ -1748,11 +1767,14 @@ function AddWorkEmail(workEmail: string, formID: AddWorkEmailFormID = ONYXKEYS.F
         if (response?.message === CONST.WORK_DOMAIN_CONTROLLED_ERROR || response?.title === CONST.WORK_DOMAIN_CONTROLLED_ERROR) {
             Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.domainControlledSubtitle');
         }
+        if (addWorkEmailTaskReport && response?.message === CONST.WORK_EMAIL_VALIDATED_PUBLIC_DOMAIN_ERROR) {
+            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, 'onboarding.mergeBlockScreen.validatedPublicDomainSubtitle');
+        }
         Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
     });
 }
 
-function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined) {
+function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: string, accountID: number | undefined, completedTaskReportActionID?: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1804,9 +1826,9 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
     ];
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(
+    return API.makeRequestWithSideEffects(
         SIDE_EFFECT_REQUEST_COMMANDS.MERGE_INTO_ACCOUNT_AND_LOGIN,
-        {workEmail, validateCode, accountID},
+        {workEmail, validateCode, accountID, completedTaskReportActionID},
         {
             optimisticData,
             successData,
@@ -1820,18 +1842,27 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
             } else {
                 Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
             }
-            return;
+            return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
         }
+
+        const responseOnyxData = response?.onyxData as Array<{key: string; value?: unknown}> | undefined;
+        const onboardingUpdate = responseOnyxData?.find((update) => update.key === ONYXKEYS.NVP_ONBOARDING);
+        const shouldRedirectToClassicAfterMerge =
+            !!onboardingUpdate?.value && typeof onboardingUpdate.value === 'object' && 'shouldRedirectToClassicAfterMerge' in onboardingUpdate.value
+                ? onboardingUpdate.value.shouldRedirectToClassicAfterMerge === true
+                : false;
+        const conciergeReportUpdate = responseOnyxData?.find((update) => update.key === ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeReportID = typeof conciergeReportUpdate?.value === 'string' ? conciergeReportUpdate.value : undefined;
 
         // When the action is successful, we need to update the new authToken and encryptedAuthToken
         // This action needs to be synchronous as the user will be logged out due to middleware if old authToken is used
         // For more information see the slack discussion: https://expensify.slack.com/archives/C08CZDJFJ77/p1742838796040369
         return SequentialQueue.waitForIdle().then(() => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
-                return;
+                return {didMerge: false, shouldRedirectToClassicAfterMerge: false, conciergeReportID: undefined};
             }
 
-            updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
+            return updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken).then(() => ({didMerge: true, shouldRedirectToClassicAfterMerge, conciergeReportID}));
         });
     });
 }
@@ -1903,6 +1934,7 @@ export {
     unlinkLogin,
     clearSignInData,
     clearAccountMessages,
+    clearAccountErrors,
     setAccountError,
     authenticatePusher,
     invalidateCredentials,

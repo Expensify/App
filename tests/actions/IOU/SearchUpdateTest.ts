@@ -12,7 +12,7 @@ import {hasMissingSmartscanFields} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, getCurrentSearchQueryJSON} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -123,6 +123,53 @@ describe('actions/IOU', () => {
     });
 
     describe('shouldOptimisticallyUpdateSearch', () => {
+        it('puts a new expense on "My expenses" even when the query carries a Spend footer selection', () => {
+            const transaction = {...createRandomTransaction(1)};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // Given "My expenses", whose only filter is the current user
+            const myExpenses = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID}`);
+            expect(myExpenses && shouldOptimisticallyUpdateSearch(myExpenses, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // Then a footer selection alongside it changes nothing: it picks which figures the footer prints, it does
+            // not narrow the rows, and offline the server's answer never comes to correct the list
+            const withFooterCurrency = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} footerCurrency:EUR`);
+            expect(withFooterCurrency && shouldOptimisticallyUpdateSearch(withFooterCurrency, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            const withEveryFooterSelection = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} footerCount:reports footerTotal:billable footerCurrency:EUR`);
+            expect(withEveryFooterSelection && shouldOptimisticallyUpdateSearch(withEveryFooterSelection, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeTruthy();
+
+            // While a filter that does narrow the rows still keeps the expense off the list
+            const someoneElsesExpenses = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID + 1} footerCurrency:EUR`);
+            expect(someoneElsesExpenses && shouldOptimisticallyUpdateSearch(someoneElsesExpenses, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+
+            const narrowedByCategory = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} category:Travel footerCurrency:EUR`);
+            expect(narrowedByCategory && shouldOptimisticallyUpdateSearch(narrowedByCategory, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
+        it('leaves a "from" search with a status filter as main had it, with or without a Spend footer selection', () => {
+            const transaction = {...createRandomTransaction(1)};
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            // Given the current user's drafts, which pairs the "from" filter with a status
+            const myDrafts = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} status:drafts`);
+            const myDraftsWithFooterSelection = buildSearchQueryJSON(`type:expense from:${RORY_ACCOUNT_ID} status:drafts footerCurrency:EUR`);
+
+            // Then neither gets a new expense inserted: the footer keys are ignored, and nothing else is widened
+            expect(myDrafts && shouldOptimisticallyUpdateSearch(myDrafts, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+            expect(myDraftsWithFooterSelection && shouldOptimisticallyUpdateSearch(myDraftsWithFooterSelection, iouReport, false, RORY_ACCOUNT_ID, transaction)).toBeFalsy();
+        });
+
         it('when the current hash is submit action query it should only return true if the iou report is in draft state', () => {
             const transaction = {
                 ...createRandomTransaction(1),
@@ -974,7 +1021,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(cannedSnapshotKey, {search: {hash: cannedQueryJSON.hash, inputQuery: cannedQuery}});
             await Onyx.merge(groupedSnapshotKey, {
                 search: {hash: groupedQueryJSON.hash, inputQuery: groupedQuery},
-                data: {[groupKey]: {accountID: RORY_ACCOUNT_ID, count: 3, total: -15000, currency: CONST.CURRENCY.USD}},
+                data: {[groupKey]: {accountID: RORY_ACCOUNT_ID, count: 3, total: 15000, currency: CONST.CURRENCY.USD}},
             });
             await waitForBatchedUpdates();
 
@@ -992,7 +1039,116 @@ describe('actions/IOU', () => {
             expect(cannedUpdates).toHaveLength(1);
             expect(groupedUpdates).toHaveLength(1);
             expect(groupedUpdates?.at(0)?.value).toHaveProperty(['data', groupKey, 'count'], 4);
-            expect(groupedUpdates?.at(0)?.value).toHaveProperty(['data', groupKey, 'total'], -20000);
+            expect(groupedUpdates?.at(0)?.value).toHaveProperty(['data', groupKey, 'total'], 20000);
+        });
+
+        it('adds an expense report transaction to the groupBy:from total with its displayed sign', async () => {
+            // Given a loaded grouped search whose group total is positive, as the server sends it
+            jest.mocked(buildCannedSearchQuery).mockReturnValue('');
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const groupedQuery = `type:expense group-by:from from:${RORY_ACCOUNT_ID}`;
+            const groupedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON(groupedQuery);
+            if (!groupedQueryJSON) {
+                throw new Error('Failed to parse the grouped search query');
+            }
+            const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedQueryJSON.hash}` as const;
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${RORY_ACCOUNT_ID}` as const;
+            await Onyx.merge(groupedSnapshotKey, {
+                search: {hash: groupedQueryJSON.hash, inputQuery: groupedQuery},
+                data: {[groupKey]: {accountID: RORY_ACCOUNT_ID, count: 1, total: 15000, currency: CONST.CURRENCY.USD}},
+            });
+            await waitForBatchedUpdates();
+
+            // When an expense is submitted to a workspace chat, which stores the amount on the expense report with the opposite sign
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyID: undefined,
+            };
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(groupedQueryJSON);
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1), amount: -5000, reportID: iouReport.reportID},
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                iouReport,
+                transactionThreadReportID: undefined,
+            });
+
+            // Then the group total grows by the expense amount instead of shrinking
+            const groupedUpdate = result?.optimisticData?.find((update) => update.key === groupedSnapshotKey);
+            expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'count'], 2);
+            expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'total'], 20000);
+        });
+
+        it('does not add an expense in a different currency to the groupBy:from total', async () => {
+            // Given a loaded grouped search whose group total is in USD
+            jest.mocked(buildCannedSearchQuery).mockReturnValue('');
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const groupedQuery = `type:expense group-by:from from:${RORY_ACCOUNT_ID}`;
+            const groupedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON(groupedQuery);
+            if (!groupedQueryJSON) {
+                throw new Error('Failed to parse the grouped search query');
+            }
+            const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedQueryJSON.hash}` as const;
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${RORY_ACCOUNT_ID}` as const;
+            await Onyx.merge(groupedSnapshotKey, {
+                search: {hash: groupedQueryJSON.hash, inputQuery: groupedQuery},
+                data: {[groupKey]: {accountID: RORY_ACCOUNT_ID, count: 1, total: 15000, currency: CONST.CURRENCY.USD}},
+            });
+            await waitForBatchedUpdates();
+
+            // When an expense in EUR is created, since its amount can't be summed with a USD total
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(groupedQueryJSON);
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1), amount: -5000, currency: CONST.CURRENCY.EUR, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                transactionThreadReportID: undefined,
+            });
+
+            // Then the group count grows but the total and currency stay unchanged
+            const groupedUpdate = result?.optimisticData?.find((update) => update.key === groupedSnapshotKey);
+            expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'count'], 2);
+            expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'total'], 15000);
+            expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'currency'], CONST.CURRENCY.USD);
+        });
+
+        it('compares the modified currency of an edited expense with the groupBy:from currency', async () => {
+            // Given a loaded grouped search whose group total is in USD
+            jest.mocked(buildCannedSearchQuery).mockReturnValue('');
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const groupedQuery = `type:expense group-by:from from:${RORY_ACCOUNT_ID}`;
+            const groupedQueryJSON = actualSearchQueryUtils.buildSearchQueryJSON(groupedQuery);
+            if (!groupedQueryJSON) {
+                throw new Error('Failed to parse the grouped search query');
+            }
+            const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedQueryJSON.hash}` as const;
+            const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${RORY_ACCOUNT_ID}` as const;
+            await Onyx.merge(groupedSnapshotKey, {
+                search: {hash: groupedQueryJSON.hash, inputQuery: groupedQuery},
+                data: {[groupKey]: {accountID: RORY_ACCOUNT_ID, count: 1, total: 15000, currency: CONST.CURRENCY.USD}},
+            });
+            await waitForBatchedUpdates();
+
+            // When an expense created in EUR but edited to USD is added, since its displayed amount is the modified USD amount
+            jest.mocked(getCurrentSearchQueryJSON).mockReturnValueOnce(groupedQueryJSON);
+            const result = getSearchOnyxUpdate({
+                transaction: {
+                    ...createRandomTransaction(1),
+                    amount: -1000,
+                    currency: CONST.CURRENCY.EUR,
+                    modifiedAmount: -5000,
+                    modifiedCurrency: CONST.CURRENCY.USD,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                },
+                participant: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                transactionThreadReportID: undefined,
+            });
+
+            // Then the modified USD amount is added to the USD group total
+            const groupedUpdate = result?.optimisticData?.find((update) => update.key === groupedSnapshotKey);
+            expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'count'], 2);
+            expect(groupedUpdate?.value).toHaveProperty(['data', groupKey, 'total'], 20000);
         });
 
         it('patches a loaded snapshot that is not the active search using the query recorded on it', async () => {

@@ -437,19 +437,25 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     };
 }
 
+type MergeDuplicatesTransactionParams = Omit<MergeDuplicatesParams, 'transactionID' | 'transactionIDList'> & {
+    transaction: OnyxEntry<Transaction>;
+    transactionList: Transaction[];
+};
+
 function buildMergeDuplicatesParams(
     reviewDuplicates: OnyxEntry<ReviewDuplicates>,
     duplicatedTransactions: Array<OnyxEntry<Transaction>>,
     originalTransaction: Partial<Transaction>,
-): MergeDuplicatesParams {
+    keptTransaction: OnyxEntry<Transaction>,
+): MergeDuplicatesTransactionParams {
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
         currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
         created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
-        transactionID: reviewDuplicates?.transactionID,
-        transactionIDList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []).map((transaction) => transaction.transactionID),
+        transaction: keptTransaction,
+        transactionList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []),
         billable: reviewDuplicates?.billable ?? false,
         reimbursable: reviewDuplicates?.reimbursable ?? false,
         category: reviewDuplicates?.category ?? '',
@@ -467,3 +473,5 @@ export {
     removeSettledAndApprovedTransactions,
     removeTransactionFromDuplicateTransactionViolation,
 };
+
+export type {MergeDuplicatesTransactionParams};

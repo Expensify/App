@@ -17,11 +17,12 @@ jest.mock('@sentry/react-native', () => ({
 }));
 
 describe('web tracing integration', () => {
-    it('tells the browser SDK not to create resource spans for stylesheets/fonts and scripts', async () => {
-        // Given the web integrations module, which configures browserTracingIntegration at import time
+    it('tells the browser SDK not to create resource spans for stylesheets/fonts, scripts, and beacons', async () => {
+        // Given browser resource timings that add background traffic to page load traces
+        // When the web integrations module configures browser tracing
         await import('@libs/telemetry/integrations/index.web');
 
-        // Then the two highest-volume resource span ops are never created
-        expect(mockBrowserTracingIntegration).toHaveBeenCalledWith(expect.objectContaining({ignoreResourceSpans: ['resource.link', 'resource.script']}));
+        // Then asset and beacon requests remain enabled without generating these resource spans
+        expect(mockBrowserTracingIntegration).toHaveBeenCalledWith(expect.objectContaining({ignoreResourceSpans: ['resource.link', 'resource.script', 'resource.beacon']}));
     });
 });

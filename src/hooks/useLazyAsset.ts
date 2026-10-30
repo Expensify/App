@@ -9,13 +9,14 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ReactElement} from 'react';
 import type {SvgProps} from 'react-native-svg';
 
-import {cloneElement, isValidElement, useEffect, useMemo, useRef, useState} from 'react';
+import {cloneElement, isValidElement, useEffect, useRef, useState} from 'react';
 
 /**
  * OXC can cache SVG assets as pre-rendered elements (including host `<svg>` nodes).
  * ImageSVG expects a component, so wrap those elements. Replacing them with PlaceholderIcon
  * blanks illustrations; unwrapping `.type` fails when type is the string `'svg'`.
  */
+
 const wrappedElementIconCache = new WeakMap<ReactElement, IconAsset>();
 
 function wrapElementAsIcon(element: ReactElement): IconAsset {
@@ -123,15 +124,16 @@ function useLazyAsset<T>(importFn: () => {default: T} | Promise<{default: T}>, f
  * that can change across renders (e.g. a dynamic illustration name), remount the consumer with a
  * `key` tied to that value so a new importFn is captured.
  */
-function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} | Promise<{default: T}>, fallback?: T): {asset: T} {
+function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} | Promise<{default: T}>, fallback?: T): {asset: T; isLoading: boolean} {
     // Capture the first importFn only. Callers pass inline loaders that close over constant asset
     // names; re-binding every render would invalidate useLazyAsset's effect and loop on setState.
     // useState's initializer runs once, which avoids writing a ref during render (OXC bailout).
     const [stableImportFn] = useState(() => importFn);
-    const {asset, isLoaded} = useLazyAsset(stableImportFn, fallback);
+    const {asset, isLoaded, isLoading} = useLazyAsset(stableImportFn, fallback);
 
     return {
         asset: (isLoaded ? resolveIconComponent(asset, fallback ?? PlaceholderIcon) : PlaceholderIcon) as T,
+        isLoading: !!isLoading,
     };
 }
 
@@ -141,8 +143,8 @@ function useMemoizedLazyAsset<T extends IconAsset>(importFn: () => {default: T} 
  */
 function useMemoizedLazyIllustrationsImpl(names: readonly IllustrationName[]): Record<string, IconAsset> {
     const cachedChunk = getIllustrationsChunk();
-    const namesKey = useMemo(() => names.join(','), [names]);
-    const namesList = useMemo(() => namesKey.split(',') as IllustrationName[], [namesKey]);
+    const namesKey = names.join(',');
+    const namesList = namesKey.split(',');
 
     // Try to get cached chunk synchronously to avoid Promise microtask delay
     const [assets, setAssets] = useState<Record<string, IconAsset>>(() => {
@@ -162,6 +164,7 @@ function useMemoizedLazyIllustrationsImpl(names: readonly IllustrationName[]): R
             return;
         }
 
+        const requestedNames = namesKey.split(',') as IllustrationName[];
         let isMounted = true;
 
         loadIllustrationsChunk()
@@ -171,7 +174,7 @@ function useMemoizedLazyIllustrationsImpl(names: readonly IllustrationName[]): R
                 }
 
                 const loaded: Record<string, IconAsset> = {};
-                for (const name of namesList) {
+                for (const name of requestedNames) {
                     loaded[name] = chunk.getIllustration(name) ?? PlaceholderIcon;
                 }
                 setAssets(loaded);
@@ -182,7 +185,7 @@ function useMemoizedLazyIllustrationsImpl(names: readonly IllustrationName[]): R
                 }
 
                 const fallback: Record<string, IconAsset> = {};
-                for (const name of namesList) {
+                for (const name of requestedNames) {
                     fallback[name] = PlaceholderIcon;
                 }
                 setAssets(fallback);
@@ -191,7 +194,7 @@ function useMemoizedLazyIllustrationsImpl(names: readonly IllustrationName[]): R
         return () => {
             isMounted = false;
         };
-    }, [namesList, cachedChunk]);
+    }, [namesKey, cachedChunk]);
 
     // Do not wrap this mapping in useMemo — OXC can fuse it into pre-rendered elements (#96158).
     const icons: Record<string, IconAsset> = {};
@@ -218,14 +221,14 @@ function useMemoizedLazyIllustrations<const TName extends readonly IllustrationN
  */
 function useMemoizedLazyExpensifyIconsImpl(names: readonly ExpensifyIconName[]): Record<string, IconAsset> {
     const cachedChunk = getExpensifyIconsChunk();
-    const namesKey = useMemo(() => names.join(','), [names]);
-    const namesList = useMemo(() => namesKey.split(',') as ExpensifyIconName[], [namesKey]);
+    const namesKey = names.join(',');
+    const namesList = namesKey.split(',');
 
     // Try to get cached chunk synchronously to avoid Promise microtask delay
     const [assets, setAssets] = useState<Record<string, IconAsset>>(() => {
         if (cachedChunk) {
             const loaded: Record<string, IconAsset> = {};
-            for (const name of namesList) {
+            for (const name of names) {
                 loaded[name] = cachedChunk.getExpensifyIcon(name) ?? PlaceholderIcon;
             }
             return loaded;
@@ -238,6 +241,7 @@ function useMemoizedLazyExpensifyIconsImpl(names: readonly ExpensifyIconName[]):
             return;
         }
 
+        const requestedNames = namesKey.split(',') as ExpensifyIconName[];
         let isMounted = true;
 
         loadExpensifyIconsChunk()
@@ -247,7 +251,7 @@ function useMemoizedLazyExpensifyIconsImpl(names: readonly ExpensifyIconName[]):
                 }
 
                 const loaded: Record<string, IconAsset> = {};
-                for (const name of namesList) {
+                for (const name of requestedNames) {
                     loaded[name] = chunk.getExpensifyIcon(name) ?? PlaceholderIcon;
                 }
                 setAssets(loaded);
@@ -258,7 +262,7 @@ function useMemoizedLazyExpensifyIconsImpl(names: readonly ExpensifyIconName[]):
                 }
 
                 const fallback: Record<string, IconAsset> = {};
-                for (const name of namesList) {
+                for (const name of requestedNames) {
                     fallback[name] = PlaceholderIcon;
                 }
                 setAssets(fallback);
@@ -267,7 +271,7 @@ function useMemoizedLazyExpensifyIconsImpl(names: readonly ExpensifyIconName[]):
         return () => {
             isMounted = false;
         };
-    }, [namesList, cachedChunk]);
+    }, [namesKey, cachedChunk]);
 
     // Do not wrap this mapping in useMemo — OXC can fuse it into pre-rendered elements (#96158).
     const icons: Record<string, IconAsset> = {};
