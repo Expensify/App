@@ -10,7 +10,7 @@ import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {canMemberWrite} from './permissions';
+import {canMemberWrite, isPolicyAdmin} from './permissions';
 import {isGroupPolicy} from './policyType';
 
 /**
@@ -121,6 +121,26 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
+/**
+ * Whether to load the workspace's AU withdrawal account, which canPayViaABA needs.
+ * Only admins of AUD workspaces can pay via ABA, so nobody else needs it.
+ */
+function shouldLoadPayViaABAData(policy: OnyxInputOrEntry<Policy>): boolean {
+    return isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD;
+}
+
+/**
+ * Whether the current user can pay the workspace's reports via ABA
+ */
+function canPayViaABA(policy: OnyxInputOrEntry<Policy>): boolean {
+    const withdrawalAccount = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
+
+    // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
+    const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
+
+    return shouldLoadPayViaABAData(policy) && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
+}
+
 export {
     getReimburserEmail,
     getOwnerChangePayerSuccessData,
@@ -130,4 +150,6 @@ export {
     arePaymentsEnabled,
     isAutoPayApprovedReportsAvailable,
     getReimburserAccountID,
+    shouldLoadPayViaABAData,
+    canPayViaABA,
 };

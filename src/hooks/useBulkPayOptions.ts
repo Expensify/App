@@ -31,6 +31,7 @@ import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
+import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useThemeStyles from './useThemeStyles';
@@ -49,6 +50,10 @@ type UseBulkPayOptionProps = {
     currency: string | undefined;
     formattedAmount: string;
     onlyShowPayElsewhere: boolean;
+    hasMultipleCurrencies?: boolean;
+
+    /** Whether the selection can be paid via ABA, i.e. it's from a single workspace that can pay via ABA */
+    shouldShowPayViaABAOption?: boolean;
 };
 
 type UseBulkPayOptionReturnType = {
@@ -69,11 +74,14 @@ function useBulkPayOptions({
     currency,
     formattedAmount,
     onlyShowPayElsewhere,
+    hasMultipleCurrencies = false,
+    shouldShowPayViaABAOption = false,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
+    const {isOffline} = useNetwork();
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
@@ -141,9 +149,19 @@ function useBulkPayOptions({
             : undefined;
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
+    const payViaABAOption = {
+        ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
+        // The file is downloaded straight from the API, which can't be queued for when the user is back online
+        disabled: isOffline,
+        additionalData: {paymentMethod: CONST.PAYMENT_METHODS.ABA},
+    };
+
     let bulkPayButtonOptions;
     if (onlyShowPayElsewhere) {
         bulkPayButtonOptions = [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
+    } else if (hasMultipleCurrencies) {
+        // An ABA file pays every report in AUD, so it still works when the reports are in different currencies
+        bulkPayButtonOptions = [...(shouldShowPayViaABAOption && isExpenseReport ? [payViaABAOption] : []), paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
     } else if (!selectedReportID || !selectedPolicyID) {
         bulkPayButtonOptions = undefined;
     } else {
@@ -200,6 +218,10 @@ function useBulkPayOptions({
                     shouldUpdateSelectedIndex: false,
                 });
             }
+        }
+
+        if (shouldShowPayViaABAOption && isExpenseReport) {
+            bulkPayButtonOptions.push(payViaABAOption);
         }
 
         if (shouldShowPayElsewhereOption) {

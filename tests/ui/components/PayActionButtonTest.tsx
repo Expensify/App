@@ -123,6 +123,8 @@ jest.mock('@hooks/useLastWorkspaceNumber', () => ({__esModule: true, default: je
 jest.mock('@hooks/useCurrencyList', () => ({__esModule: true, useCurrencyListActions: jest.fn(() => ({convertToDisplayString: () => '$100.00'}))}));
 jest.mock('@hooks/useParticipantsInvoiceReport', () => ({__esModule: true, default: jest.fn(() => undefined)}));
 jest.mock('@hooks/usePolicy', () => ({__esModule: true, default: jest.fn(() => undefined)}));
+const mockPayReportsViaABA = jest.fn();
+jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => ({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false}))}));
 jest.mock('@hooks/useReportTransactionsCollection', () => ({__esModule: true, default: jest.fn(() => ({}))}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 
@@ -191,6 +193,20 @@ describe('PayActionButton', () => {
         );
     });
 
+    it('downloads the ABA file instead of only instantly marking the report as paid when paying via ABA', () => {
+        // Given the report preview's pay button
+        renderPayActionButton(jest.fn());
+
+        // When "Pay via ABA" is picked
+        act(() => {
+            mockOnPressHolder.current?.({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        // Then the report's ABA file is downloaded, which marks it as paid, instead of only marking it as "paid elsewhere" instantly
+        expect(mockPayReportsViaABA).toHaveBeenCalledWith([TEST_IOU_REPORT_ID], undefined);
+        expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
+    });
+
     it('does not send a bank account for non-VBBA payment types', () => {
         renderPayActionButton(jest.fn());
 
@@ -218,7 +234,23 @@ describe('PayActionButton', () => {
             });
         });
 
-        expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID);
+        expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID, CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it('opens the hold menu for paying via ABA when the report has held expenses', () => {
+        // Given a report with held expenses
+        mockedHasHeldExpenses.mockReturnValue(true);
+        const onHoldMenuOpen = jest.fn();
+        renderPayActionButton(onHoldMenuOpen);
+
+        // When "Pay via ABA" is picked
+        act(() => {
+            mockOnPressHolder.current?.({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        // Then the hold menu asks whether to pay the held expenses too, and remembers that the report is paid via ABA
+        expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, expect.anything(), undefined, CONST.PAYMENT_METHODS.ABA);
+        expect(mockPayReportsViaABA).not.toHaveBeenCalled();
     });
 });

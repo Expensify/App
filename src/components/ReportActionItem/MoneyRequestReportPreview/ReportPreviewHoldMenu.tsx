@@ -32,6 +32,7 @@ function ReportPreviewHoldMenu() {
             onClose={onHoldMenuClose}
             isVisible
             paymentType={holdMenu.paymentType}
+            paymentMethod={holdMenu.paymentMethod}
             methodID={holdMenu.methodID}
             chatReport={chatReport}
             moneyRequestReport={iouReport}

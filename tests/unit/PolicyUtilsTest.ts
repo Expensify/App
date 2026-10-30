@@ -75,6 +75,8 @@ import {
     getOwnedPaidPolicies,
     getSageIntacctVendors,
     arePaymentsEnabled,
+    canPayViaABA,
+    shouldLoadPayViaABAData,
     getReimbursementChoice,
     isPolicyPayer,
     getReimburserEmail,
@@ -4452,6 +4454,69 @@ describe('PolicyUtils', () => {
                     expect(canPay).toBe(false);
                 },
             );
+        });
+
+        describe('shouldLoadPayViaABAData', () => {
+            it.each([
+                ['return true for an admin of an AUD workspace', CONST.POLICY.ROLE.ADMIN, CONST.CURRENCY.AUD, true],
+                ['return false for a member of an AUD workspace', CONST.POLICY.ROLE.USER, CONST.CURRENCY.AUD, false],
+                ['return false for an admin of a USD workspace', CONST.POLICY.ROLE.ADMIN, CONST.CURRENCY.USD, false],
+            ])('should %s', (_, role, outputCurrency, expected) => {
+                // Given a workspace whose AU withdrawal account hasn't been loaded yet
+                const policy = createMock<Policy>({id: '1', role, outputCurrency});
+
+                // When checking whether that account has to be loaded
+                const result = shouldLoadPayViaABAData(policy);
+
+                // Then it's only loaded where Pay via ABA could show, since only admins of AUD workspaces can pay via ABA
+                expect(result).toBe(expected);
+            });
+        });
+
+        describe('canPayViaABA', () => {
+            const AUWithdrawalAccount = {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN};
+
+            it('should return true for an admin of an AUD workspace with an open AU withdrawal account', () => {
+                // Given an AUD workspace with an open AU withdrawal account, viewed by an admin
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: AUWithdrawalAccount}},
+                });
+
+                // When checking whether its reports can be paid via ABA
+                const result = canPayViaABA(policy);
+
+                // Then they can, since the ABA file debits that withdrawal account
+                expect(result).toBe(true);
+            });
+
+            it.each([
+                ['the user is not an admin', {role: CONST.POLICY.ROLE.USER}],
+                ['the workspace is not AUD', {outputCurrency: CONST.CURRENCY.USD}],
+                ['the workspace has no AU withdrawal account', {reimbursement: {countries: {}}}],
+                ['the AU withdrawal account is not open', {reimbursement: {countries: {[CONST.COUNTRY.AU]: {...AUWithdrawalAccount, state: CONST.BANK_ACCOUNT.STATE.PENDING}}}}],
+                [
+                    'the AU withdrawal account was set up through Corpay',
+                    {reimbursement: {countries: {[CONST.COUNTRY.AU]: {...AUWithdrawalAccount, additionalData: {verifications: {corpay: {clientCode: 123}}}}}}},
+                ],
+            ])('should return false when %s', (_, overrides: Partial<Policy>) => {
+                // Given a workspace that only misses one of the requirements
+                const policy = createMock<Policy>({
+                    id: '1',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.AUD,
+                    reimbursement: {countries: {[CONST.COUNTRY.AU]: AUWithdrawalAccount}},
+                    ...overrides,
+                });
+
+                // When checking whether its reports can be paid via ABA
+                const result = canPayViaABA(policy);
+
+                // Then they can't, since only admins can pay via ABA, and the file needs an open AU withdrawal account
+                expect(result).toBe(false);
+            });
         });
 
         describe('isPolicyPayer', () => {

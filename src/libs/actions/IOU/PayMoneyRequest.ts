@@ -1,15 +1,20 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
 import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
+import type HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
 import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -50,6 +55,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
@@ -992,6 +998,90 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     return payMoneyRequestParams.optimisticHoldReportID;
 }
 
+type PayViaABAFunctionParams = {
+    reportIDs: string[];
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    shouldReimburseHeldTransactions?: boolean;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
+    currentUserAccountID: number;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    delegateAccountID: number | undefined;
+    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
+    translate: LocalizedTranslate;
+    onDownloadFailed: (error?: HttpsError) => void;
+};
+
+/**
+ * Downloads the ABA file for paying the given reports. The backend marks them as "paid elsewhere" when it creates the file.
+ * Resolves once the download has finished or failed.
+ */
+function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
+    const {
+        reportIDs,
+        policy,
+        shouldReimburseHeldTransactions = true,
+        introSelected,
+        isSelfTourViewed,
+        currentUserAccountID,
+        conciergeChat,
+        delegateAccountID,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        translate,
+        onDownloadFailed,
+    } = params;
+    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+        return Promise.resolve();
+    }
+
+    completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
+
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.PAY_VIA_ABA, {reportIDList: reportIDs.join(','), shouldReimburseHeldTransactions});
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(finalParameters)) {
+        formData.append(key, String(value));
+    }
+
+    // Matches the file names Classic gives ABA files
+    const fileName = reportIDs.length === 1 ? `ABA_Report_${reportIDs.at(0)}.aba` : `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`;
+    let hasDownloadFailed = false;
+    const handleDownloadFailed = (error?: HttpsError) => {
+        hasDownloadFailed = true;
+        onDownloadFailed(error);
+    };
+    return fileDownload(
+        translate,
+        getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}),
+        fileName,
+        '',
+        false,
+        formData,
+        CONST.NETWORK.METHOD.POST,
+        handleDownloadFailed,
+        undefined,
+        false,
+    ).then(() => {
+        if (hasDownloadFailed) {
+            return;
+        }
+
+        // A successful download means the reports are paid, so we mark them as paid now to stop the Pay button
+        // reappearing before the BE's pusher updates arrive.
+        Onyx.update(
+            reportIDs.map((reportID) => ({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
+            })),
+        );
+    });
+}
+
 function markReportPaymentReceived(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
@@ -1289,4 +1379,4 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, payViaABA, savePreferredPaymentMethod};

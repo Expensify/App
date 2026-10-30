@@ -18,7 +18,7 @@ jest.mock('@hooks/useLocalize', () => ({
 
 describe('useSettlementButtonPaymentMethods', () => {
     const {translate} = useLocalize();
-    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle']));
+    const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle', 'Paycheck']));
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -66,12 +66,30 @@ describe('useSettlementButtonPaymentMethods', () => {
         });
     });
 
-    it('should return all three payment methods', () => {
+    it('should return payment method via ABA for ABA', () => {
+        // Given the settlement button's payment methods
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
-        expect(Object.keys(result.current)).toHaveLength(3);
+
+        // When looking up the ABA one
+        const paymentMethod = result.current[CONST.PAYMENT_METHODS.ABA];
+
+        // Then it shows as "Pay via ABA" and doesn't change the selected option (like the other non-wallet options)
+        expect(paymentMethod).toEqual({
+            text: translate('iou.payViaABA'),
+            icon: icons.current.Paycheck,
+            value: CONST.PAYMENT_METHODS.ABA,
+            shouldUpdateSelectedIndex: false,
+            key: CONST.PAYMENT_METHODS.ABA,
+        });
+    });
+
+    it('should return all four payment methods', () => {
+        const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
+        expect(Object.keys(result.current)).toHaveLength(4);
         expect(result.current).toHaveProperty(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
         expect(result.current).toHaveProperty(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
         expect(result.current).toHaveProperty(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+        expect(result.current).toHaveProperty(CONST.PAYMENT_METHODS.ABA);
     });
 
     it.each([
@@ -79,13 +97,15 @@ describe('useSettlementButtonPaymentMethods', () => {
         {hasActivatedWallet: false, expectedPersonalKey: 'iou.settlePersonal'},
     ])('should use correct texts for each payment method when hasActivatedWallet is $hasActivatedWallet', ({hasActivatedWallet, expectedPersonalKey}) => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(hasActivatedWallet, translate));
-        expect(translate).toHaveBeenCalledTimes(3);
+        expect(translate).toHaveBeenCalledTimes(4);
         expect(translate).toHaveBeenCalledWith(expectedPersonalKey, '');
         expect(translate).toHaveBeenCalledWith('iou.settleBusiness', '');
         expect(translate).toHaveBeenCalledWith('iou.payElsewhere', '');
+        expect(translate).toHaveBeenCalledWith('iou.payViaABA');
         expect(result.current[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT].text).toBe(expectedPersonalKey);
         expect(result.current[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT].text).toBe('iou.settleBusiness');
         expect(result.current[CONST.IOU.PAYMENT_TYPE.ELSEWHERE].text).toBe('iou.payElsewhere');
+        expect(result.current[CONST.PAYMENT_METHODS.ABA].text).toBe('iou.payViaABA');
     });
 
     it.each([
@@ -107,6 +127,12 @@ describe('useSettlementButtonPaymentMethods', () => {
             expectedValue: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             description: 'ELSEWHERE',
         },
+        {
+            method: CONST.PAYMENT_METHODS.ABA,
+            expectedIcon: icons.current.Paycheck,
+            expectedValue: CONST.PAYMENT_METHODS.ABA,
+            description: 'ABA',
+        },
     ])('should use correct icon and value for $description regardless of hasActivatedWallet', ({method, expectedIcon, expectedValue}) => {
         const {result: resultWithWallet} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
         const {result: resultWithoutWallet} = renderHook(() => useSettlementButtonPaymentMethods(false, translate));
@@ -117,10 +143,11 @@ describe('useSettlementButtonPaymentMethods', () => {
         }
     });
 
-    it('should set shouldUpdateSelectedIndex to false for business bank account and elsewhere payment types', () => {
+    it('should set shouldUpdateSelectedIndex to false for business bank account, elsewhere and ABA payment types', () => {
         const {result} = renderHook(() => useSettlementButtonPaymentMethods(true, translate));
         expect(result.current[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).not.toHaveProperty('shouldUpdateSelectedIndex');
         expect(result.current[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT].shouldUpdateSelectedIndex).toBe(false);
         expect(result.current[CONST.IOU.PAYMENT_TYPE.ELSEWHERE].shouldUpdateSelectedIndex).toBe(false);
+        expect(result.current[CONST.PAYMENT_METHODS.ABA].shouldUpdateSelectedIndex).toBe(false);
     });
 });

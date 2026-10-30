@@ -11,6 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePayViaABA from '@hooks/usePayViaABA';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
@@ -67,6 +68,7 @@ function PayActionButton() {
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
+    const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
 
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
@@ -81,7 +83,7 @@ function PayActionButton() {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            onHoldMenuOpen(type, shouldShowPayButton, methodID);
+            onHoldMenuOpen(type, shouldShowPayButton, methodID, paymentMethod);
         } else if (chatReport && iouReport) {
             const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {
@@ -111,6 +113,8 @@ function PayActionButton() {
                     isTrackIntentUser,
                     rules,
                 });
+            } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+                payReportsViaABA([iouReport.reportID], policy);
             } else {
                 payMoneyRequest({
                     bankAccountList,
@@ -172,7 +176,7 @@ function PayActionButton() {
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             isDisabled={isOffline && !canAllowSettlement}
-            isLoading={!isOffline && !canAllowSettlement}
+            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.PAY_BUTTON}
         />
     );

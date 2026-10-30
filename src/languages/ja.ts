@@ -1976,6 +1976,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         undeletedExpense: 'この経費を復元しました',
         conciergeAutoSelectedDistanceRates: ({policyName}: {policyName: string}) => `新しいワークスペース「${policyName}」の距離単価を更新しました`,
+        payViaABA: 'ABA で支払う',
     },
     transactionMerge: {
         listPage: {

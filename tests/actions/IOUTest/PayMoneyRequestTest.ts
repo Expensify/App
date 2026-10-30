@@ -1,11 +1,15 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest, payViaABA} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report/reportActionSubscribers';
 import * as APIActions from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import fileDownload from '@libs/fileDownload';
+import {translate} from '@libs/Localize';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
@@ -27,6 +31,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../../utils/TestHelper';
@@ -72,6 +77,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@react-navigation/native');
+jest.mock('@libs/fileDownload');
 
 jest.mock('@src/libs/actions/Report/reportActionSubscribers', () => ({
     ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report/reportActionSubscribers'),
@@ -3076,6 +3082,134 @@ describe('actions/IOU/PayMoneyRequest', () => {
             // Then the payment is sent and no onboarding opens
             expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+        });
+    });
+
+    describe('payViaABA', () => {
+        const translateForTest: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
+        const policy = {...createRandomPolicy(1), id: 'ABAPolicy', ownerAccountID: CARLOS_ACCOUNT_ID, role: CONST.POLICY.ROLE.ADMIN};
+        const payViaABAParams = {
+            policy,
+            introSelected: undefined,
+            isSelfTourViewed: false,
+            currentUserAccountID: CARLOS_ACCOUNT_ID,
+            conciergeChat: undefined,
+            delegateAccountID: undefined,
+            userBillingGracePeriodEnds: undefined,
+            amountOwed: 0,
+            translate: translateForTest,
+        };
+        let appendSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            appendSpy = jest.spyOn(FormData.prototype, 'append');
+            jest.mocked(fileDownload).mockResolvedValue();
+        });
+
+        afterEach(() => {
+            appendSpy.mockRestore();
+        });
+
+        it('downloads the ABA file for a single report, named the way Classic names it', () => {
+            // Given a single report to pay
+            const onDownloadFailed = jest.fn();
+
+            // When it's paid via ABA
+            payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed});
+
+            // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is saved as the report's ABA file
+            expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123');
+            expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'true');
+            expect(fileDownload).toHaveBeenCalledWith(
+                translateForTest,
+                expect.stringContaining(WRITE_COMMANDS.PAY_VIA_ABA),
+                'ABA_Report_123.aba',
+                '',
+                false,
+                expect.any(FormData),
+                CONST.NETWORK.METHOD.POST,
+                expect.any(Function),
+                undefined,
+                false,
+            );
+        });
+
+        it('shows the reports as paid once their ABA file has downloaded', async () => {
+            // Given two approved reports
+            for (const reportID of ['123', '456']) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            }
+
+            // When their ABA file downloads
+            await payViaABA({...payViaABAParams, reportIDs: ['123', '456'], onDownloadFailed: jest.fn()});
+            await waitForBatchedUpdates();
+
+            // Then they're shown as paid straight away, since the backend only sends the file once it has paid them
+            for (const reportID of ['123', '456']) {
+                const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            }
+        });
+
+        it('shows the report as paid in Search results once its ABA file has downloaded', async () => {
+            // Given an approved report that's in Search results, which rows read instead of the report itself
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}123` as const;
+            const approvedReport = {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
+            await Onyx.set(reportKey, approvedReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}1`, {data: {[reportKey]: approvedReport}});
+
+            // When its ABA file downloads
+            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed: jest.fn()});
+            await waitForBatchedUpdates();
+
+            // Then its Search row is shown as paid too, so the Pay button doesn't reappear there
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}1`);
+            expect(snapshot?.data?.[reportKey]).toMatchObject({statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        });
+
+        it('leaves the report unpaid when its ABA file fails to download', async () => {
+            // Given an approved report whose ABA file will fail to download
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123', stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            jest.mocked(fileDownload).mockImplementationOnce((...args) => {
+                const onDownloadFailedArgument = args[7];
+                onDownloadFailedArgument?.();
+                return Promise.resolve();
+            });
+            const onDownloadFailed = jest.fn();
+
+            // When it's paid via ABA
+            await payViaABA({...payViaABAParams, reportIDs: ['123'], onDownloadFailed});
+            await waitForBatchedUpdates();
+
+            // Then the user is told the download failed, and the report isn't shown as paid since the backend didn't pay it
+            expect(onDownloadFailed).toHaveBeenCalled();
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
+            expect(report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+
+        it('downloads one ABA file for several reports, named with the date', () => {
+            // Given several reports to pay, leaving their held expenses for later
+            const reportIDs = ['123', '456'];
+
+            // When they're paid via ABA
+            payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false, onDownloadFailed: jest.fn()});
+
+            // Then one file pays them all, named the way Classic names a bulk ABA file
+            expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123,456');
+            expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'false');
+            expect(jest.mocked(fileDownload).mock.calls.at(0)?.at(2)).toBe(`ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`);
+        });
+
+        it('navigates to the restricted action page instead of downloading when billable actions are restricted', () => {
+            // Given the workspace owner owes money and their billing grace period has ended
+            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
+
+            // When they try to pay via ABA
+            payViaABA({...payViaABAParams, reportIDs: ['123'], amountOwed: 100, ownerBillingGracePeriodEnd: pastDate, onDownloadFailed: jest.fn()});
+
+            // Then they're told why they can't, and no file is downloaded
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            expect(fileDownload).not.toHaveBeenCalled();
         });
     });
 });

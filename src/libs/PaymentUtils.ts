@@ -186,6 +186,7 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
             const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
             return (
                 accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                !accountData.additionalData?.isForABA &&
                 (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
                 method?.methodID != null &&
                 !isPartiallySetup &&
@@ -293,7 +294,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
 
 type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;
 type PaymentOption = PopoverMenuItem & DropdownOption<ValueOf<typeof CONST.IOU.PAYMENT_TYPE>>;
-type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType}>;
+type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType | typeof CONST.PAYMENT_METHODS.ABA}>;
 type SecondaryActionOption = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>;
 type WorkspacePolicyPaymentOption = PopoverMenuItem & {workspacePolicy: Policy};
 
@@ -339,8 +340,9 @@ function getActivePaymentType(
     // Policy that is part of payment method ie: Policy when user presses on 'Pay via workspace' option
     const policyFromPaymentMethod = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
 
-    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
-    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
+    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid" or "Pay via ABA", don't require payment method selection since payment happens outside of Expensify
+    const isPaidOutsideExpensify = paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || paymentMethod === CONST.PAYMENT_METHODS.ABA;
+    const shouldSelectPaymentMethod = !isPaidOutsideExpensify && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
 
     return {
         paymentType,

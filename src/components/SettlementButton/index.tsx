@@ -31,7 +31,7 @@ import {isBankAccountPartiallySetup, showUnlockAlreadyRequestedModal} from '@lib
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
-import {isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
+import {canPayViaABA, isPaidGroupPolicy, isPolicyAdmin, shouldLoadPayViaABAData, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -46,6 +46,7 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {clearPersonalBankAccount, pressLockedBankAccount} from '@userActions/BankAccounts';
+import {openPaymentMethods, openPaymentMethodsOnce} from '@userActions/PaymentMethods';
 import {navigateToConciergeChat} from '@userActions/Report';
 
 import CONST from '@src/CONST';
@@ -59,7 +60,7 @@ import type {TupleToUnion} from 'type-fest';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {View} from 'react-native';
 
 import type SettlementButtonProps from './types';
@@ -345,6 +346,16 @@ function SettlementButton({
             }
         }
 
+        if (isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy)) {
+            buttonOptions.push({
+                ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
+                // The file is downloaded straight from the API, which can't be queued for when the user is back online
+                disabled: isOffline,
+                onSelected: () =>
+                    runPaymentAction(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, () => onPress({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA})),
+            });
+        }
+
         if (shouldShowPayElsewhereOption) {
             buttonOptions.push({
                 ...paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE],
@@ -546,6 +557,23 @@ function SettlementButton({
         customText = translate('iou.settlePayment', formattedAmount);
     }
 
+    const shouldLoadABAData = shouldLoadPayViaABAData(policy);
+
+    // Loads the Pay via ABA data as soon as the button shows, so the option is there when the menu first opens
+    useEffect(() => {
+        if (!shouldLoadABAData) {
+            return;
+        }
+        openPaymentMethodsOnce();
+    }, [shouldLoadABAData]);
+
+    const handlePaymentOptionsShow = () => {
+        if (shouldLoadABAData) {
+            openPaymentMethods();
+        }
+        onPaymentOptionsShow?.();
+    };
+
     const popoverUseScrollView = shouldPopoverUseScrollView(paymentButtonOptions);
 
     return (
@@ -564,7 +592,7 @@ function SettlementButton({
         >
             {(triggerKYCFlow, buttonRef) => (
                 <ButtonWithDropdownMenu<string>
-                    onOptionsMenuShow={onPaymentOptionsShow}
+                    onOptionsMenuShow={handlePaymentOptionsShow}
                     onOptionsMenuHide={onPaymentOptionsHide}
                     buttonRef={buttonRef}
                     shouldAlwaysShowDropdownMenu

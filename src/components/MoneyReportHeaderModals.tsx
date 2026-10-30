@@ -68,13 +68,14 @@ function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderM
     const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
     const {openHoldEducational, openRejectModal} = useMoneyReportHeaderEducationalModals(moneyRequestReport?.reportID);
 
-    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> => {
+    const openHoldMenu = ({requestType, paymentType, paymentMethod, methodID, onConfirm}: HoldMenuParams): Promise<void> => {
         const open = () =>
             showHoldMenu({
                 reportID: moneyRequestReport?.reportID,
                 chatReportID: chatReport?.reportID,
                 requestType,
                 paymentType,
+                paymentMethod,
                 methodID,
                 nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
                 fullAmount,

@@ -1,4 +1,5 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -84,6 +85,7 @@ function useSelectionModeReportActions({
     // Hold menu state (managed locally on mobile; desktop uses modals context)
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>();
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [selectedVBBAToPayFromHoldMenu, setSelectedVBBAToPayFromHoldMenu] = useState<number | undefined>(undefined);
 
@@ -223,9 +225,10 @@ function useSelectionModeReportActions({
         onlyShowPayElsewhere,
         hasPayAction,
         allExpensesSelected,
-        onHoldMenuOpen: ({requestType: rt, paymentType: pt, methodID}) => {
+        onHoldMenuOpen: ({requestType: rt, paymentType: pt, paymentMethod: method, methodID}) => {
             setRequestType(rt);
             setPaymentType(pt);
+            setPaymentMethod(method);
             setSelectedVBBAToPayFromHoldMenu(methodID);
             setIsHoldMenuVisible(true);
         },
@@ -288,6 +291,7 @@ function useSelectionModeReportActions({
 
     const handleHoldMenuClose = () => {
         setSelectedVBBAToPayFromHoldMenu(undefined);
+        setPaymentMethod(undefined);
         setIsHoldMenuVisible(false);
     };
 
@@ -306,6 +310,7 @@ function useSelectionModeReportActions({
         isHoldMenuVisible,
         requestType,
         paymentType,
+        paymentMethod,
         selectedVBBAToPayFromHoldMenu,
         handleHoldMenuClose,
         handleHoldMenuConfirm,

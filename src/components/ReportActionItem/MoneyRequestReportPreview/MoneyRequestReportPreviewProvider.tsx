@@ -1,3 +1,5 @@
+import type {PaymentMethod} from '@components/KYCWall/types';
+
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
@@ -116,6 +118,7 @@ function MoneyRequestReportPreviewProvider({
         paymentType: PaymentMethodType | undefined;
         canPay: boolean;
         methodID: number | undefined;
+        paymentMethod?: PaymentMethod;
     } | null>(null);
 
     useFocusEffect(
@@ -235,8 +238,8 @@ function MoneyRequestReportPreviewProvider({
     };
 
     // Only the pay flow opens this menu; approve surfaces its partial/full choice in the approve dropdown instead.
-    const onHoldMenuOpen = (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
-        setHoldMenu({paymentType, canPay: !!canPay, methodID});
+    const onHoldMenuOpen = (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number, paymentMethod?: PaymentMethod) => {
+        setHoldMenu({paymentType, canPay: !!canPay, methodID, paymentMethod});
     };
     const onHoldMenuClose = () => setHoldMenu(null);
 

@@ -90,6 +90,44 @@ function getPaymentMethods(params?: OpenPaymentsPageParams) {
     );
 }
 
+let hasOpenedPaymentMethods = false;
+
+// Many Pay buttons can ask for the payment methods in the same render, before useOnyx would show any of them the
+// request was sent, so this keeps a copy that openPaymentMethods updates straight away
+Onyx.connectWithoutView({
+    key: ONYXKEYS.RAM_ONLY_HAS_OPENED_PAYMENT_METHODS,
+    callback: (value) => {
+        hasOpenedPaymentMethods = !!value;
+    },
+});
+
+/**
+ * Loads the reimbursement details of the user's policies, which decide which payment options can be shown
+ */
+function openPaymentMethods() {
+    hasOpenedPaymentMethods = true;
+    API.read(READ_COMMANDS.OPEN_PAYMENT_METHODS, null, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RAM_ONLY_HAS_OPENED_PAYMENT_METHODS,
+                value: true,
+            },
+        ],
+    });
+}
+
+/**
+ * Loads the reimbursement details of the user's policies unless they've already been requested.
+ * Lets every Pay button load them ahead of time without sending a request each.
+ */
+function openPaymentMethodsOnce() {
+    if (hasOpenedPaymentMethods) {
+        return;
+    }
+    openPaymentMethods();
+}
+
 /**
  * Sets the default bank account or debit card for an Expensify Wallet
  *
@@ -615,6 +653,8 @@ export {
     deletePaymentCard,
     addPaymentCard,
     getPaymentMethods,
+    openPaymentMethods,
+    openPaymentMethodsOnce,
     makeDefaultPaymentMethod,
     continueSetup,
     addSubscriptionPaymentCard,

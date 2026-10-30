@@ -10,6 +10,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
+import type {PaymentMethod} from './KYCWall/types';
+
 import DecisionModal from './DecisionModal';
 
 type ProcessMoneyReportHoldMenuProps = {
@@ -34,6 +36,9 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Type of payment */
     paymentType?: PaymentMethodType;
 
+    /** Method the report is paid with */
+    paymentMethod?: PaymentMethod;
+
     /** Selected VBBA ID for payment */
     methodID?: number;
 
@@ -53,6 +58,7 @@ function ProcessMoneyReportHoldMenu({
     onClose,
     isVisible,
     paymentType,
+    paymentMethod,
     methodID,
     chatReport,
     moneyRequestReport,
@@ -69,6 +75,7 @@ function ProcessMoneyReportHoldMenu({
         moneyRequestReport,
         chatReport,
         paymentType,
+        paymentMethod,
         methodID,
         onClose,
         onConfirm,

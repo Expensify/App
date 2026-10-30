@@ -1,4 +1,5 @@
 import * as ApiUtils from '@libs/ApiUtils';
+import HttpsError from '@libs/Errors/HttpsError';
 import openExternalLink from '@libs/openExternalLink';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
@@ -7,7 +8,7 @@ import CONST from '@src/CONST';
 import type {FileDownload} from './types';
 
 import createDownloadLink from './createDownloadLink';
-import {appendTimeToFileName, getFileName} from './FileUtils';
+import {appendTimeToFileName, getFileName, isErrorResponseForFileDownload, rejectWithFileDownloadError} from './FileUtils';
 
 /**
  * The function downloads an attachment on web platforms.
@@ -21,7 +22,7 @@ const fetchFileDownload: FileDownload = (
     shouldOpenExternalLink = false,
     formData = undefined,
     requestType = 'get',
-    onDownloadFailed?: () => void,
+    onDownloadFailed?: (error?: HttpsError) => void,
     // `shouldUnlink` is part of the cross-platform FileDownload signature but has no meaning on web, so it is intentionally unused here.
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     shouldUnlink = false,
@@ -52,8 +53,8 @@ const fetchFileDownload: FileDownload = (
     return fetch(url, fetchOptions)
         .then((response) => {
             const contentType = response.headers.get('content-type');
-            if (contentType === 'application/json' && fileName?.includes('.csv')) {
-                throw new Error();
+            if (isErrorResponseForFileDownload(contentType, fileName)) {
+                return rejectWithFileDownloadError(response);
             }
             return response.blob();
         })
@@ -64,9 +65,9 @@ const fetchFileDownload: FileDownload = (
             const completeFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
             createDownloadLink(href, completeFileName);
         })
-        .catch(() => {
+        .catch((error: unknown) => {
             if (onDownloadFailed) {
-                onDownloadFailed();
+                onDownloadFailed(error instanceof HttpsError ? error : undefined);
             } else {
                 // file could not be downloaded, open sourceURL in new tab
                 openExternalLink(url);
