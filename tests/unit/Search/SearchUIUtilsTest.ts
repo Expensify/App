@@ -18,7 +18,7 @@ import type {
 } from '@components/Search/SearchList/ListItem/types';
 import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
-import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
+import type {ASTNode, SearchColumnType, SearchDatePreset, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
 import Navigation from '@navigation/Navigation';
@@ -44,7 +44,7 @@ import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
-import type {SearchTask} from '@src/types/onyx/SearchResults';
+import type {SearchTask, SearchTrip} from '@src/types/onyx/SearchResults';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -74,7 +74,11 @@ jest.mock('@userActions/Report', () => ({
     ...jest.requireActual<typeof ReportUserActions>('@userActions/Report'),
     createTransactionThreadReport: globalThis.createTransactionThreadReportMock ?? (globalThis.createTransactionThreadReportMock = jest.fn()),
 }));
-jest.mock('@userActions/Search', () => ({setOptimisticDataForTransactionThreadPreview: jest.fn()}));
+jest.mock('@userActions/Search', () => ({
+    setOptimisticDataForTransactionThreadPreview: jest.fn(),
+    // shouldShowDeleteOption resolves a report's actions through this helper, so the real implementation has to stay available
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchUtils>('@userActions/Search').getReportActionsFromSearchSnapshot,
+}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const adminAccountID = 18439984;
@@ -2325,6 +2329,20 @@ describe('SearchUIUtils', () => {
         test('Should return `Submit` action for report on policy with delayed submission and no violations', () => {
             const action = SearchUIUtils.getActions(searchResults.data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
+
+        test('Should not return `Submit` action when the report workspace is missing because it was deleted', () => {
+            // Given a submittable report whose workspace was deleted. Deleting a workspace removes it from the search results and
+            // leaves no archivedDate, so the only sign left is that the policy is missing.
+            const data = {...searchResults.data};
+            expect(data[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]).toBeDefined();
+            delete data[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
+
+            // When the Search actions are computed for the report
+            const actions = SearchUIUtils.getActions(data, {}, `report_${reportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+
+            // Then Submit is not offered, matching the report view, because the backend rejects submissions to a deleted workspace
+            expect(actions).not.toContain(CONST.SEARCH.ACTION_TYPES.SUBMIT);
         });
 
         test('Should return only `View` action for the expense of a single-expense report that can be submitted', () => {
@@ -9187,6 +9205,63 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
+        it('should sort expenses by the Rejected column, ranking expenses without the field as not rejected', () => {
+            // Given a rejected expense, a never rejected one, and one returned without the field, with `inserted` set so
+            // the tie breaker between the equal rows is predictable
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const transactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'rejected', keyForList: 'rejected', inserted: '2024-01-01', declined: true},
+                {...baseTransaction, transactionID: 'not-rejected', keyForList: 'not-rejected', inserted: '2024-02-02', declined: false},
+                {...baseTransaction, transactionID: 'no-field', keyForList: 'no-field', inserted: '2024-03-03'},
+            ];
+
+            // When the expenses are sorted by Rejected in each direction
+            const sortTransactions = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(
+                    CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    [...transactions],
+                    localeCompare,
+                    translateLocal,
+                    CONST.SEARCH.TABLE_COLUMNS.DECLINED,
+                    sortOrder,
+                    undefined,
+                ).map((item) => ('transactionID' in item ? item.transactionID : undefined));
+
+            // Then the expense without the field ranks with the not rejected one, the way its cell shows "No", so the local
+            // sort agrees with the backend's 'yes'/'no' ranking
+            expect(sortTransactions(CONST.SEARCH.SORT_ORDER.ASC)).toEqual(['not-rejected', 'no-field', 'rejected']);
+            expect(sortTransactions(CONST.SEARCH.SORT_ORDER.DESC)).toEqual(['rejected', 'no-field', 'not-rejected']);
+        });
+
+        it('should sort expense reports by the Rejected column, ranking reports without the field as not rejected', () => {
+            // Given a rejected expense report, a never rejected one, and one returned without the field
+            const createReport = (keyForList: string, declined?: boolean) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    currency: 'USD',
+                    transactions: [],
+                    ...(declined === undefined ? {} : {declined}),
+                });
+            const reports = [createReport('report_rejected', true), createReport('report_not_rejected', false), createReport('report_no_field')];
+
+            // When the reports are sorted by Rejected in each direction
+            const sortReports = (sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.DECLINED, sortOrder).map(
+                    (report) => report.keyForList,
+                );
+
+            // Then the report without the field ranks with the not rejected one, the way its cell shows "No", and equal
+            // reports keep the order the backend returned them in
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_not_rejected', 'report_no_field', 'report_rejected']);
+            expect(sortReports(CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['report_rejected', 'report_not_rejected', 'report_no_field']);
+        });
+
         it('should return getSortedReportData result when type is expense-report', () => {
             expect(SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, transactionReportGroupListItems, localeCompare, translateLocal, 'date', 'asc')).toStrictEqual(
                 transactionReportGroupListItems,
@@ -9925,6 +10000,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     achAccount: {
                         bankAccountID: 1,
                         reimburser: adminEmail,
@@ -10028,6 +10110,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     areWorkflowsEnabled: false,
                     achAccount: {
                         bankAccountID: 1,
@@ -10099,6 +10188,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     areWorkflowsEnabled: true,
                     achAccount: {
                         bankAccountID: 1,
@@ -10811,6 +10907,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     achAccount: {
                         bankAccountID: 1,
                         reimburser: adminEmail,
@@ -10883,6 +10986,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     areExpensifyCardsEnabled: true,
                     areCompanyCardsEnabled: true,
                     achAccount: {
@@ -10956,6 +11066,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                     reimburser: adminEmail,
                     achAccount: {
@@ -11052,6 +11169,13 @@ describe('SearchUIUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     approver: adminEmail,
                     exporter: adminEmail,
+                    // The export suggestion needs a connection whose exporter is this user
+                    connections: createMock<Connections>({
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            lastSync: {isConnected: true, isSuccessful: true, isAuthenticationError: false, source: 'DIRECT'},
+                            config: {export: {exporter: adminEmail}},
+                        },
+                    }),
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                     achAccount: {
                         bankAccountID: 1,
@@ -11656,6 +11780,7 @@ describe('SearchUIUtils', () => {
                     connections: createMock<Connections>({
                         [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
                             verified: false,
+                            options: {config: {exporter: adminEmail}},
                             lastSync: {
                                 errorDate: new Date().toISOString(),
                                 errorMessage: 'Error',
@@ -11673,6 +11798,8 @@ describe('SearchUIUtils', () => {
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.visibility.export).toBe(false);
 
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE]!.verified = true;
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             policies[policyKey]!.connections![CONST.POLICY.CONNECTIONS.NAME.NETSUITE]!.lastSync = {
                 errorDate: '',
@@ -12686,6 +12813,40 @@ describe('SearchUIUtils', () => {
             const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
             expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
             expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.TOTAL);
+        });
+
+        test('Should keep the Rejected column hidden on expense searches until the user picks it', () => {
+            // Given an expense the backend marked as rejected
+            const rejectedTransaction = {...createRandomTransaction(4), declined: true};
+            const pickedColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.DECLINED, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT];
+
+            // When the columns are resolved with and without the user picking Rejected
+            const defaultColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [rejectedTransaction], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+            const pickedResult = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [rejectedTransaction], visibleColumns: pickedColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+
+            // Then Rejected is offered in the Search column picker but only shown once picked, and it is not offered in the
+            // single-report view because the report view's transactions never carry the field
+            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(pickedResult).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+        });
+
+        test('Should keep the Rejected column hidden on expense report searches until the user picks it', () => {
+            // Given the column lists for expense report searches
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.DECLINED, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
+
+            // When the columns are resolved with and without the user picking Rejected
+            const defaultColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns: [], type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            const pickedResult = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+
+            // Then Rejected is offered in the expense report column picker, stays out of the defaults, and is shown in the
+            // picked position once chosen, so it is sent in the query columns the backend reads to return the field
+            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(pickedResult).toEqual(visibleColumns);
         });
 
         test('Should not force Avatar for group-by:from when toggled off', () => {
@@ -14116,6 +14277,17 @@ describe('SearchUIUtils', () => {
             const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
             expect(translationKey).toBe('common.withdrawalID');
         });
+
+        it('should label the DECLINED column with the Rejected filter label', () => {
+            // Given the Rejected column, whose header is also sent as the export column label
+            // When its translation key is resolved for expenses and expense reports
+            const expenseKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DECLINED, CONST.SEARCH.DATA_TYPES.EXPENSE);
+            const expenseReportKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DECLINED, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+
+            // Then it reuses the declined: filter's "Rejected" label, so the column, the filter, and the export header match
+            expect(expenseKey).toBe('search.filters.rejected');
+            expect(expenseReportKey).toBe('search.filters.rejected');
+        });
     });
 
     describe('createAndOpenSearchTransactionThread', () => {
@@ -14597,7 +14769,7 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should show delete option for unreported expense which can be deleted', async () => {
@@ -14783,7 +14955,159 @@ describe('SearchUIUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID});
 
-            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined)).toBe(true);
+            expect(SearchUIUtils.shouldShowDeleteOption(selectedTransactions, currentSearchResults, TEST_ACCOUNT_ID, undefined, undefined, undefined, undefined)).toBe(true);
+        });
+
+        describe('with a grouped search snapshot that carries no report actions', () => {
+            const TEST_ACCOUNT_ID = 5;
+            const TEST_APPROVER_ACCOUNT_ID = 2;
+            const TEST_OWNER_LOGIN = 'lagertha2@vikings.net';
+            const TEST_APPROVER_LOGIN = 'floki@vikings.net';
+            const TEST_REPORT_ID = '66419001';
+            const TEST_TRANSACTION_ID = '66419002';
+            const TEST_POLICY_ID = '66419003';
+            // Literal keys, because a template string in a computed key would widen to `string` and no longer match the snapshot type
+            const REPORT_KEY = `${ONYXKEYS.COLLECTION.REPORT}${TEST_REPORT_ID}` as const;
+            const TRANSACTION_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}` as const;
+            const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as const;
+            const REPORT_ACTIONS_KEY = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${TEST_REPORT_ID}` as const;
+
+            const personalDetailsList: OnyxTypes.PersonalDetailsList = {
+                [TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, login: TEST_OWNER_LOGIN, displayName: 'Lagertha'},
+                [TEST_APPROVER_ACCOUNT_ID]: {accountID: TEST_APPROVER_ACCOUNT_ID, login: TEST_APPROVER_LOGIN, displayName: 'Floki'},
+            };
+            // A multi-level approval chain, so the report stays at first-level approval until the approver forwards it
+            const approvalPolicy: OnyxTypes.Policy = {
+                id: TEST_POLICY_ID,
+                name: 'Advanced approval policy',
+                role: CONST.POLICY.ROLE.USER,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: '',
+                outputCurrency: CONST.CURRENCY.USD,
+                employeeList: {
+                    [TEST_OWNER_LOGIN]: {email: TEST_OWNER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: TEST_APPROVER_LOGIN},
+                },
+            };
+            const expenseReport: OnyxTypes.Report = {
+                reportID: TEST_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: TEST_POLICY_ID,
+                ownerAccountID: TEST_ACCOUNT_ID,
+                managerID: TEST_APPROVER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const transaction: OnyxTypes.Transaction = {
+                ...createRandomTransaction(Number(TEST_TRANSACTION_ID)),
+                transactionID: TEST_TRANSACTION_ID,
+                reportID: TEST_REPORT_ID,
+                bank: '',
+                managedCard: false,
+            };
+            const iouAction: OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '66419004',
+                reportID: TEST_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: TEST_ACCOUNT_ID,
+                created: '2026-04-21 16:00:00',
+                message: [{type: 'COMMENT', html: 'expense', text: 'expense'}],
+                originalMessage: {IOUTransactionID: TEST_TRANSACTION_ID, amount: 5000, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            };
+            const submittedAction: OnyxTypes.ReportAction = {
+                reportActionID: '66419005',
+                reportID: TEST_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2026-04-21 17:00:00',
+            };
+            const forwardedAction: OnyxTypes.ReportAction = {
+                reportActionID: '66419006',
+                reportID: TEST_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2026-04-21 17:10:00',
+            };
+
+            // The grouped snapshot carries the report, the transaction and the policy, but no report actions at all
+            const currentSearchResults = createMock<OnyxTypes.SearchResults['data']>({
+                [REPORT_KEY]: expenseReport,
+                [TRANSACTION_KEY]: transaction,
+                [POLICY_KEY]: approvalPolicy,
+            });
+            const selectedTransactions = createMock<Record<string, SelectedTransactionInfo>>({
+                [TEST_TRANSACTION_ID]: {transaction, reportAction: iouAction, reportID: TEST_REPORT_ID, policyID: TEST_POLICY_ID, ownerAccountID: TEST_ACCOUNT_ID, isSelected: true},
+            });
+            const selectedReports: SelectedReports[] = [createMock<SelectedReports>({reportID: TEST_REPORT_ID, policyID: TEST_POLICY_ID, ownerAccountID: TEST_ACCOUNT_ID})];
+            const liveActionsAfterForward: OnyxCollection<OnyxTypes.ReportActions> = {
+                [REPORT_ACTIONS_KEY]: {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction},
+            };
+            const liveActionsAfterSubmit: OnyxCollection<OnyxTypes.ReportActions> = {
+                [REPORT_ACTIONS_KEY]: {[submittedAction.reportActionID]: submittedAction},
+            };
+
+            beforeEach(async () => {
+                // The approval check resolves the policy and the approver's account ID from Onyx rather than from the arguments
+                await Onyx.merge(POLICY_KEY, approvalPolicy);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: TEST_OWNER_LOGIN});
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.merge(POLICY_KEY, null);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, null);
+            });
+
+            it('hides the delete option when the live report actions show the report was forwarded since its last submit', () => {
+                // Given the live collection holds the submit and the later forward that the snapshot lacks
+                // When the submitter's selected expense is checked for the delete option
+                const canDelete = SearchUIUtils.shouldShowDeleteOption(
+                    selectedTransactions,
+                    currentSearchResults,
+                    TEST_ACCOUNT_ID,
+                    undefined,
+                    personalDetailsList,
+                    undefined,
+                    liveActionsAfterForward,
+                );
+
+                // Then delete is hidden, because the live actions show the report already left first-level approval
+                expect(canDelete).toBe(false);
+            });
+
+            it('keeps the delete option when the live report actions show no forward since the last submit', () => {
+                // Given the live collection holds only the submit
+                // When the submitter's selected expense is checked for the delete option
+                const canDelete = SearchUIUtils.shouldShowDeleteOption(
+                    selectedTransactions,
+                    currentSearchResults,
+                    TEST_ACCOUNT_ID,
+                    undefined,
+                    personalDetailsList,
+                    undefined,
+                    liveActionsAfterSubmit,
+                );
+
+                // Then delete stays available while the report is still awaiting first-level approval
+                expect(canDelete).toBe(true);
+            });
+
+            it('hides the report-level delete option when the live report actions show the report was forwarded since its last submit', () => {
+                // Given a whole report selected on a report search, with the forward only in the live collection
+                // When the selection is checked for the delete option
+                const canDelete = SearchUIUtils.shouldShowDeleteOption(
+                    {},
+                    currentSearchResults,
+                    TEST_ACCOUNT_ID,
+                    undefined,
+                    personalDetailsList,
+                    undefined,
+                    liveActionsAfterForward,
+                    selectedReports,
+                    CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                );
+
+                // Then delete is hidden for the report as well
+                expect(canDelete).toBe(false);
+            });
         });
     });
     describe('getToFieldValueForTransaction', () => {
@@ -15672,6 +15996,102 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getGroupColumnWidthFlags', () => {
+        const yearFlags = ['shouldShowYear', 'shouldShowYearSubmitted', 'shouldShowYearApproved', 'shouldShowYearPaid', 'shouldShowYearPosted', 'shouldShowYearExported'] as const;
+        const withoutYear = (transaction: TransactionListItemType): TransactionListItemType => ({
+            ...transaction,
+            ...Object.fromEntries(yearFlags.map((flag) => [flag, false])),
+        });
+
+        it.each(yearFlags)('widens the %s column of an expanded group when one of its transactions needs the year', (flag) => {
+            // Given a group where only the second transaction has a date from a past year in this column, as a group
+            // of expenses paid last year and this year would
+            const transactions = [withoutYear(getTransactionListItem(0)), {...withoutYear(getTransactionListItem(1)), [flag]: true}];
+
+            // When the group's column widths are computed for its rows and its sub-header
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then that date column is wide enough for the year, so the date isn't truncated, and the other date columns stay narrow
+            for (const otherFlag of yearFlags) {
+                expect(flags[otherFlag]).toBe(otherFlag === flag);
+            }
+        });
+
+        it('widens every column once one transaction needs them all, without checking the rest of the group', () => {
+            // Given a group whose first transaction already needs every wide column, followed by one that needs none
+            const widestTransaction = {
+                ...getTransactionListItem(0),
+                ...Object.fromEntries(yearFlags.map((flag) => [flag, true])),
+                isAmountColumnWide: true,
+                isTaxAmountColumnWide: true,
+                isActionColumnWide: true,
+            };
+            const transactions = [widestTransaction, withoutYear(getTransactionListItem(1))];
+
+            // When the group's column widths are computed
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then every column is wide, since a later narrow transaction can't make a column narrow again
+            expect(Object.values(flags).every(Boolean)).toBe(true);
+        });
+
+        it('keeps every date column narrow when all the dates are from this year', () => {
+            // Given a group whose transactions have no date from a past year
+            const transactions = [withoutYear(getTransactionListItem(0)), withoutYear(getTransactionListItem(1))];
+
+            // When the group's column widths are computed
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then no date column reserves room for a year it doesn't show
+            for (const flag of yearFlags) {
+                expect(flags[flag]).toBe(false);
+            }
+        });
+    });
+
+    describe('getGroupTableScrollLayout', () => {
+        const dateColumns = [
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+            CONST.SEARCH.TABLE_COLUMNS.APPROVED,
+            CONST.SEARCH.TABLE_COLUMNS.PAID,
+            CONST.SEARCH.TABLE_COLUMNS.POSTED,
+            CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        ];
+        const narrowFlags = SearchUIUtils.getGroupColumnWidthFlags([]);
+        const wideFlags = {
+            ...narrowFlags,
+            shouldShowYear: true,
+            shouldShowYearSubmitted: true,
+            shouldShowYearApproved: true,
+            shouldShowYearPaid: true,
+            shouldShowYearPosted: true,
+            shouldShowYearExported: true,
+        };
+
+        it('reserves the wide width for date columns that show the year, so the table scrolls before they are clipped', () => {
+            // Given a window that fits the group's date columns at their narrow estimates
+            const narrowLayout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, narrowFlags, 10000, true);
+            const windowWidth = narrowLayout.minTableWidth + 1;
+
+            // When the same columns show the year
+            const wideLayout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, wideFlags, windowWidth, true);
+
+            // Then each one counts at its wide width, and the table scrolls instead of overflowing the window
+            expect(wideLayout.minTableWidth).toBeGreaterThan(narrowLayout.minTableWidth);
+            expect(wideLayout.shouldScrollHorizontally).toBe(true);
+        });
+
+        it('keeps the existing estimate when no date shows the year', () => {
+            // Given the group's date columns all show this year's dates
+            // When the scroll layout is computed
+            const layout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, narrowFlags, 10000, true);
+
+            // Then the minimum width is the same as the shared table estimate, so narrow groups scroll exactly as before
+            expect(layout.minTableWidth).toBe(SearchUIUtils.getTableMinWidth(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, false));
+        });
+    });
+
     describe('vendor column label', () => {
         test('Should label the vendor column as Vendor', () => {
             expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe('common.vendor');
@@ -16412,12 +16832,12 @@ describe('hasFilterContentValuesChanged', () => {
 });
 
 describe('getDatePresets', () => {
-    it('does not offer never for anyApproval', () => {
-        // Given anyApproval, which always matches an approval action
+    it('offers never for anyApproval', () => {
+        // Given anyApproval, where Auth matches never against reports with no approve or forward action
         // When presets are requested
         const presets = SearchUIUtils.getDatePresets(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, false);
 
-        // Then only the common date presets are returned, without never
+        // Then the common date presets are returned along with never, so users can search for expenses that were never approved
         expect(presets).toEqual([
             CONST.SEARCH.DATE_PRESETS.THIS_WEEK,
             CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
@@ -16432,8 +16852,168 @@ describe('getDatePresets', () => {
             CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS,
             CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS,
             CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS,
+            CONST.SEARCH.DATE_PRESETS.NEVER,
         ]);
-        expect(presets).not.toContain(CONST.SEARCH.DATE_PRESETS.NEVER);
+    });
+});
+
+describe('Trip search', () => {
+    const buildTrip = (tripReportID: string, overrides: Partial<SearchTrip> = {}): SearchTrip => ({
+        reportID: tripReportID,
+        reportName: `Trip ${tripReportID}`,
+        chatType: CONST.REPORT.CHAT_TYPE.TRIP_ROOM,
+        type: CONST.REPORT.TYPE.CHAT,
+        policyID: 'DD949BDE0E77A392',
+        ownerAccountID: 0,
+        startDate: '2026-10-28T00:00:00',
+        endDate: '2026-11-01T00:00:00',
+        status: CONST.SEARCH.TRIP_STATUS.UPCOMING,
+        total: 159732,
+        currency: 'USD',
+        travelerAccountID: 629,
+        ...overrides,
+    });
+
+    // Shaped like the trip search response: trip rooms only, with the traveler in personalDetailsList
+    const tripData: OnyxTypes.SearchResults['data'] = {
+        personalDetailsList: {
+            628: {accountID: 628, displayName: 'Travel Admin', login: 'travel-admin@cplustest.com'},
+            629: {accountID: 629, displayName: 'Travel Employee', login: 'travel-employee@cplustest.com'},
+        },
+        report_1: buildTrip('1', {reportName: 'Tokyo Sales Conference', startDate: '2026-10-28T00:00:00'}),
+        report_2: buildTrip('2', {reportName: 'Sales Conf Vegas', startDate: '2026-08-12T00:00:00', status: CONST.SEARCH.TRIP_STATUS.DONE, travelerAccountID: 628}),
+        report_3: buildTrip('3', {reportName: 'Oslo React Meetup', startDate: '2026-11-04T00:00:00'}),
+    };
+
+    const getTripSections = (shouldReturnTripRooms: boolean) =>
+        SearchUIUtils.getSections({
+            dateFnsLocale: undefined,
+            type: CONST.SEARCH.DATA_TYPES.TRIP,
+            data: tripData,
+            currentAccountID: 628,
+            currentUserEmail: 'travel-admin@cplustest.com',
+            translate: translateLocal,
+            formatPhoneNumber,
+            bankAccountList: {},
+            rules: undefined,
+            conciergeReportID: undefined,
+            convertToDisplayString,
+            reportAttributesDerivedValue: undefined,
+            shouldReturnTripRooms,
+        });
+
+    it('builds one row per trip room with its traveler', () => {
+        // Given a trip search with the TravelApproval beta, which returns trip rooms
+        // When the search results are turned into rows
+        const [rows, count] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+
+        // Then each trip room is a row keyed by its room, named after it, with the traveler from travelerAccountID since trip rooms have no owner
+        expect(count).toBe(3);
+        const tokyo = rows.find((row) => row.reportID === '1');
+        expect(tokyo).toEqual(
+            expect.objectContaining({keyForList: '1', tripName: 'Tokyo Sales Conference', formattedTraveler: 'Travel Employee', status: CONST.SEARCH.TRIP_STATUS.UPCOMING}),
+        );
+        expect(rows.find((row) => row.reportID === '2')?.formattedTraveler).toBe('Travel Admin');
+    });
+
+    it('keeps the expense rows for a trip search without the beta', () => {
+        // Given the same results read without the TravelApproval beta, where type:trip is still an expense search
+        // When the search results are turned into rows
+        const [rows] = getTripSections(false);
+
+        // Then no trip rows are built, since the expense search reads transactions and these results have none
+        expect(rows.some((row) => SearchUIUtils.isTripListItemType(row))).toBe(false);
+    });
+
+    it('sorts trips by start date for the default date sort', () => {
+        // Given trip rows and the canned trip search's date sort, newest first
+        const [rows] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+
+        // When the rows are sorted
+        const sorted = SearchUIUtils.getSortedSections(
+            CONST.SEARCH.DATA_TYPES.TRIP,
+            rows,
+            localeCompare,
+            translateLocal,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.SORT_ORDER.DESC,
+            undefined,
+            {shouldReturnTripRooms: true},
+        );
+
+        // Then they follow the trip's start date, since trips have no created date to sort by
+        expect(getSortedSectionsByType(sorted, SearchUIUtils.isTripListItemType).map((row) => row.reportID)).toEqual(['3', '1', '2']);
+    });
+
+    it('sorts trips by trip name and traveler through the title and from sort keys', () => {
+        // Given trip rows, since the trip search sorts trip names by title and travelers by from
+        const [rows] = getSectionsByType(getTripSections(true), SearchUIUtils.isTripListItemType);
+        const sortBy = (column: typeof CONST.SEARCH.TABLE_COLUMNS.TITLE | typeof CONST.SEARCH.TABLE_COLUMNS.FROM) =>
+            getSortedSectionsByType(
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, [...rows], localeCompare, translateLocal, column, CONST.SEARCH.SORT_ORDER.ASC, undefined, {
+                    shouldReturnTripRooms: true,
+                }),
+                SearchUIUtils.isTripListItemType,
+            ).map((row) => row.reportID);
+
+        // When the rows are sorted by those keys
+        // Then title follows the trip name and from follows the traveler's name
+        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.TITLE)).toEqual(['3', '2', '1']);
+        expect(sortBy(CONST.SEARCH.TABLE_COLUMNS.FROM).at(0)).toBe('2');
+    });
+
+    it('offers the trip columns in Sort by with the trip search sort keys', () => {
+        // Given the trip columns, which the backend sorts by date, title and from
+        // When the Sort by options are built for a trip search
+        const options = SearchUIUtils.getSortByOptions([...CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TRIP], translateLocal, CONST.SEARCH.DATA_TYPES.TRIP);
+
+        // Then start date, trip name and traveler sort by those keys, so the default date sort shows as Start date, and end date isn't offered
+        expect(options).toEqual(
+            expect.arrayContaining([
+                {text: translateLocal('iou.startDate'), value: CONST.SEARCH.TABLE_COLUMNS.DATE},
+                {text: translateLocal('search.trip.tripName'), value: CONST.SEARCH.TABLE_COLUMNS.TITLE},
+                {text: translateLocal('search.trip.traveler'), value: CONST.SEARCH.TABLE_COLUMNS.FROM},
+            ]),
+        );
+        expect(options.map((option) => option.text)).not.toContain(translateLocal('iou.endDate'));
+    });
+
+    it('labels the date sort as Start date only for trip rooms', () => {
+        // Given the canned trip search's date sort
+        // When its label is read with and without the TravelApproval beta
+        // Then trip rooms show Start date, matching the Sort by option, and the expense search keeps Date
+        expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.DATA_TYPES.TRIP, true)).toBe('iou.startDate');
+        expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.DATA_TYPES.TRIP, false)).toBe('common.date');
+    });
+
+    it('shows the trip columns only for trip rooms', () => {
+        // Given a trip search
+        const getColumns = (shouldReturnTripRooms: boolean) =>
+            SearchUIUtils.getColumnsToShow({currentAccountID: 628, data: tripData, type: CONST.SEARCH.DATA_TYPES.TRIP, shouldReturnTripRooms});
+
+        // When the columns are worked out with and without the beta
+        // Then trip rooms get the trip columns, with no Approver column until approval data exists, and the expense search keeps its own columns
+        expect(getColumns(true)).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.START_DATE,
+            CONST.SEARCH.TABLE_COLUMNS.END_DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME,
+            CONST.SEARCH.TABLE_COLUMNS.TRAVELER,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ]);
+        expect(getColumns(false)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME);
+    });
+
+    it('shows the trip columns the user picked and always keeps the total', () => {
+        // Given a user who picked only the trip name and traveler columns, plus an expense column left from another search
+        const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME, CONST.SEARCH.TABLE_COLUMNS.TRAVELER, CONST.SEARCH.TABLE_COLUMNS.MERCHANT];
+
+        // When the trip columns are worked out
+        const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 628, data: tripData, type: CONST.SEARCH.DATA_TYPES.TRIP, visibleColumns, shouldReturnTripRooms: true});
+
+        // Then only the picked trip columns show, with the total added like on expense reports, and the expense column is ignored
+        expect(columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME, CONST.SEARCH.TABLE_COLUMNS.TRAVELER]);
     });
 });
 
