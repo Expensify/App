@@ -1,4 +1,5 @@
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import type {Shortcut as DocumentedShortcut} from '@libs/KeyboardShortcut';
 
 import {useScreenFreezeContext} from '@navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenFreezeWrapper/ScreenFreezeContext';
 
@@ -9,7 +10,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useEffect} from 'react';
 
-type Shortcut = ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>;
+type Shortcut = ValueOf<typeof CONST.KEYBOARD_SHORTCUTS> | Pick<DocumentedShortcut, 'shortcutKey' | 'descriptionKey' | 'modifiers'>;
 type KeyboardShortcutConfig = {
     /* Should we capture the event on inputs too? */
     captureOnInputs?: boolean;
