@@ -19,8 +19,8 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported} from '@libs/SearchQueryUtils';
-import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, getViolationDisplayName, isFilterSupported, VIOLATION_FILTER_VALUES} from '@libs/SearchQueryUtils';
+import {getDatePresets, getHasOptions, hasRulesEnabledPolicy} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -447,6 +447,26 @@ function useAutocompleteSuggestions({
             return filteredReceiptTypes.map((receiptType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
                 text: receiptType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION: {
+            if (!hasRulesEnabledPolicy(policies, allPolicyCategories)) {
+                return getEmptyArray<AutocompleteItemData>();
+            }
+
+            const searchValue = autocompleteValue.toLowerCase();
+            const filteredViolations = VIOLATION_FILTER_VALUES.map((violationName) => ({violationName, displayName: getViolationDisplayName(violationName, translate)}))
+                .filter(
+                    ({violationName, displayName}) =>
+                        (displayName.toLowerCase().includes(searchValue) || violationName.toLowerCase().includes(searchValue)) && !alreadyAutocompletedKeys.has(displayName.toLowerCase()),
+                )
+                .sort((first, second) => localeCompare(first.displayName, second.displayName));
+
+            return filteredViolations.map(({violationName, displayName}) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                text: displayName,
+                autocompleteID: violationName,
+                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {

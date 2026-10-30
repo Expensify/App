@@ -10735,6 +10735,7 @@ ${reportName}`,
         noVendor: 'Sin proveedor',
         expenseType: 'Tipo de gasto',
         receiptType: 'Tipo de recibo',
+        violation: 'Infracción',
         receiptTypeValues: {
             ereceipt: 'Recibo electrónico',
             itemized: 'Detallado',

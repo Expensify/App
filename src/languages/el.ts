@@ -11115,6 +11115,7 @@ ${reportName}`,
         noVendor: 'Χωρίς προμηθευτή',
         expenseType: 'Τύπος εξόδου',
         receiptType: 'Τύπος απόδειξης',
+        violation: 'Παράβαση',
         receiptTypeValues: {
             ereceipt: 'ηλεκτρονική απόδειξη',
             itemized: 'Αναλυτικό',

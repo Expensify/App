@@ -53,6 +53,9 @@ expenseType
 receiptType
   = "receiptType"
   / "receipt-type"i { return "receiptType"; }
+violationName
+  = "violationName"
+  / "violation"i { return "violationName"; }
 transactionStatus
   = "transactionStatus"
   / "transaction-status"i { return "transactionStatus"; }

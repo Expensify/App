@@ -10688,6 +10688,7 @@ ${reportName}`,
         noVendor: 'ベンダーなし',
         expenseType: '経費の種類',
         receiptType: '領収書の種類',
+        violation: '違反',
         receiptTypeValues: {
             ereceipt: '電子領収書',
             itemized: '明細',

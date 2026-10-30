@@ -43,6 +43,12 @@ function isFilterKeyValid(filterKey: string): filterKey is SearchFilter['key'] {
 
 const CONFIRM_BUTTON_HEIGHT = variables.componentSizeLarge;
 
+/** Drops the values the user just selected from the matching negated filter, so the query can't emit both key:value and -key:value for the same value. */
+function getRemainingNegatedValues<T extends string>(selectedValues: readonly T[], negatedValues: readonly T[] | undefined): T[] | undefined {
+    const remainingNegatedValues = negatedValues?.filter((value) => !selectedValues.includes(value));
+    return remainingNegatedValues?.length ? remainingNegatedValues : undefined;
+}
+
 function SearchAdvancedFiltersContentBase() {
     const route = useRoute<PlatformStackRouteProp<SearchAdvancedFiltersParamList, typeof SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP>>();
     const styles = useThemeStyles();
@@ -125,11 +131,11 @@ function SearchAdvancedFiltersContentBase() {
                                 buttonText={buttonText}
                                 onChange={(newValues) => {
                                     const updatedValues = {...newValues};
-                                    const selectedReceiptTypes = newValues.receiptType;
-                                    // A positive receipt-type selection drops those values from the negated filter so the query can't emit both receiptType and -receiptType for the same value
-                                    if (selectedReceiptTypes !== undefined) {
-                                        const remainingNegatedReceiptTypes = currentValues?.receiptTypeNot?.filter((receiptType) => !selectedReceiptTypes.includes(receiptType));
-                                        updatedValues.receiptTypeNot = remainingNegatedReceiptTypes?.length ? remainingNegatedReceiptTypes : undefined;
+                                    if (newValues.receiptType !== undefined) {
+                                        updatedValues.receiptTypeNot = getRemainingNegatedValues(newValues.receiptType, currentValues?.receiptTypeNot);
+                                    }
+                                    if (newValues.violationName !== undefined) {
+                                        updatedValues.violationNameNot = getRemainingNegatedValues(newValues.violationName, currentValues?.violationNameNot);
                                     }
 
                                     if (shouldApplyFilterChangeDirectly) {

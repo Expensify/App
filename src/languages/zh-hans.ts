@@ -10417,6 +10417,7 @@ ${reportName}`,
         noVendor: '无供应商',
         expenseType: '报销类型',
         receiptType: '收据类型',
+        violation: '违规',
         receiptTypeValues: {
             ereceipt: '电子收据',
             itemized: '明细',

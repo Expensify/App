@@ -100,11 +100,14 @@ jest.mock('@libs/SearchQueryUtils', () => ({
     getUserFriendlyKey: jest.fn((key: string) => key),
     getUserFriendlyValue: jest.fn((value: string) => value),
     isFilterSupported: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isFilterSupported,
+    getViolationDisplayName: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').getViolationDisplayName,
+    VIOLATION_FILTER_VALUES: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').VIOLATION_FILTER_VALUES,
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
     getDatePresets: jest.fn(() => ['today', 'yesterday', 'lastWeek', 'lastMonth']),
     getHasOptions: jest.fn(() => [{value: 'attachment'}, {value: 'note'}]),
+    hasRulesEnabledPolicy: jest.fn(() => true),
 }));
 
 jest.mock('@hooks/useExportedToFilterOptions', () => ({
@@ -118,6 +121,7 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
 const {getUserFriendlyKey} = jest.requireMock<{getUserFriendlyKey: jest.Mock}>('@libs/SearchQueryUtils');
 const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
+const {hasRulesEnabledPolicy} = jest.requireMock<{hasRulesEnabledPolicy: jest.Mock}>('@libs/SearchUIUtils');
 const mockedUseNetwork = jest.mocked(useNetwork);
 const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
 const mockedGetSearchOptions = jest.mocked(getSearchOptions);
@@ -767,6 +771,86 @@ describe('useAutocompleteSuggestions', () => {
 
             const values = result.current.map((item) => item.text).sort();
             expect(values).toEqual(['cleared', 'failed', 'never']);
+        });
+    });
+
+    describe('violation autocomplete', () => {
+        // Stand-in translations whose words never appear in the raw violation names, so a match proves the label was searched
+        const violationLabels = new Map<string, string>([
+            ['violations.shortName.missingCategory', 'Category absent'],
+            ['violations.shortName.missingTag', 'Tag absent'],
+            ['violations.shortName.overLimit', 'Spending ceiling passed'],
+        ]);
+        const translate: Params['translate'] = (key, ...parameters) => violationLabels.get(key) ?? String([key, ...parameters].at(0));
+
+        it('suggests translated names and keeps the raw violation name as the value sent to the backend', () => {
+            // Given the user types a word that only appears in the translated labels, not in the raw violation names
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'absent'},
+                ranges: [],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:absent'}));
+
+            // Then the suggestions match and show the translated label, while the substitution map gets the raw name Auth matches on
+            expect(result.current).toEqual([
+                {
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                    text: 'Category absent',
+                    autocompleteID: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                },
+                {
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIOLATION,
+                    text: 'Tag absent',
+                    autocompleteID: CONST.VIOLATIONS.MISSING_TAG,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                },
+            ]);
+        });
+
+        it('still matches the raw violation name so people who know the backend names can type them', () => {
+            // Given the user types the start of the raw name rather than the translated label
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'missingCat'},
+                ranges: [],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:missingCat'}));
+
+            // Then the matching violation is still offered under its translated label
+            expect(result.current.map((item) => item.text)).toEqual(['Category absent']);
+        });
+
+        it('excludes a violation that is already in the query', () => {
+            // Given "Category absent" is already selected and the user starts the next value
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'absent'},
+                ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, length: 15, start: 10, value: 'Category absent'}],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:"Category absent",absent'}));
+
+            // Then only the violation that is not selected yet is offered
+            expect(result.current.map((item) => item.text)).toEqual(['Tag absent']);
+        });
+
+        it('suggests nothing when no workspace has Rules enabled', () => {
+            // Given none of the user's workspaces has Rules turned on, so the advanced filters hide the violation row too
+            hasRulesEnabledPolicy.mockReturnValueOnce(false);
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: ''},
+                ranges: [],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:'}));
+
+            // Then no violation names are suggested
+            expect(result.current).toEqual([]);
         });
     });
 });
