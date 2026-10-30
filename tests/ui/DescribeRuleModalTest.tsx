@@ -322,23 +322,14 @@ describe('DescribeRuleModal', () => {
     });
 
     it('disables Use suggestion and sends no request while offline', async () => {
-        // Given Concierge answered that the description cannot be done and suggested another one
+        // Given the admin is offline when Concierge answers that the description cannot be done and suggests another one.
+        // The mocked network hook cannot re-render the refusal, so the refusal shows for the first time while offline.
         await renderFlagForReviewModal(jest.fn(), jest.fn());
         const generationID = describeRule(writeSpy, 'Text the approver when a report is submitted');
+        mockedUseNetwork.mockReturnValue({isOffline: true});
         await answerGeneration({...IMPOSSIBLE_ANSWER, generationID});
 
-        // When the admin goes offline and taps Use suggestion
-        mockedUseNetwork.mockReturnValue({isOffline: true});
-        screen.rerender(
-            <DescribeRuleModal
-                isVisible
-                onClose={jest.fn()}
-                policyID={POLICY_ID}
-                ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
-                onRuleGenerated={jest.fn()}
-            />,
-        );
-        await waitForBatchedUpdatesWithAct();
+        // When the admin taps Use suggestion
         fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.useSuggestion'));
         await waitForBatchedUpdatesWithAct();
 

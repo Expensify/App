@@ -9228,6 +9228,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 describeRuleForConcierge: 'Décrivez votre règle et Concierge la créera',
                 gotIt: 'Compris',
                 createRule: 'Créer une règle',
+                saveAnyway: 'Enregistrer quand même',
+                checkingRule: 'Vérification de votre règle...',
                 fallbackBanner:
                     'Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. Les règles d’agent agissent après la modification d’une dépense ou d’une note de frais, par exemple en bloquant la dépense ou en rejetant la note de frais.',
                 fallbackBannerWithExplanation: (explanation: string) => `Ce n’est pas une règle standard, nous l’avons donc rédigée comme une règle d’agent. ${explanation}`,

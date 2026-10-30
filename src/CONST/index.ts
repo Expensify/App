@@ -645,6 +645,9 @@ const CONST = {
 
     GENERATED_RULE: {
         PROMPT_MAX_LENGTH: 6000,
+
+        // The slowest answers in the eval take about 13 seconds. After this time, the agent rule saves without an answer.
+        AGENT_RULE_CHECK_TIMEOUT_MS: 20000,
         STATE: {
             RULE: 'rule',
             UNSUPPORTED: 'unsupported',

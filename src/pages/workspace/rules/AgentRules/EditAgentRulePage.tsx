@@ -18,7 +18,9 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import ImpossibleRuleNotice from '@pages/workspace/rules/ImpossibleRuleNotice';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
+import useSuggestionButtonRow from '@pages/workspace/rules/useSuggestionButtonRow';
 
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
 
@@ -33,6 +35,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import useAgentPromptInputStyles from './useAgentPromptInputStyles';
+import useAgentRulePromptCheck from './useAgentRulePromptCheck';
 import useShouldUseExpandedRevampFormLayout from './useShouldUseExpandedRevampFormLayout';
 
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
@@ -70,14 +73,22 @@ function EditAgentRulePage({
         return errors;
     };
 
-    const saveRule = (values: FormOnyxValues<EditAgentRuleFormID>): void => {
-        const newPrompt = values[INPUT_IDS.PROMPT];
+    const saveRule = (newPrompt: string): void => {
         const previousPrompt = agentRule?.prompt ?? '';
         if (newPrompt !== previousPrompt) {
             updatePolicyAgentRule(policyID, ruleID, newPrompt, previousPrompt, agentRule?.title);
         }
         Navigation.goBack();
     };
+
+    const {refusal, isChecking, checkThenSavePrompt, trySuggestedPrompt, resetCheck} = useAgentRulePromptCheck({
+        policyID,
+        formID: ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM,
+        formRef,
+        checkedPrompt: agentRule?.prompt,
+        savePrompt: saveRule,
+    });
+    const suggestionButtonRow = useSuggestionButtonRow(refusal?.suggestedPrompt, trySuggestedPrompt);
 
     const inputWrapperStyles = useAgentPromptInputStyles();
 
@@ -120,13 +131,17 @@ function EditAgentRulePage({
                     ref={formRef}
                     formID={ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM}
                     validate={validate}
-                    onSubmit={saveRule}
-                    submitButtonText={translate('common.save')}
+                    onSubmit={(values) => checkThenSavePrompt(values[INPUT_IDS.PROMPT])}
+                    submitButtonText={translate(refusal ? 'workspace.rules.agentRules.saveAnyway' : 'common.save')}
                     style={[styles.flex1, styles.ph5]}
                     shouldUseScrollView={false}
                     submitFlexEnabled={false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    isSubmitButtonNeutral={suggestionButtonRow.isSubmitButtonNeutral}
+                    submitButtonAndFooterContainerStyles={suggestionButtonRow.containerStyles}
+                    submitButtonInnerStyles={suggestionButtonRow.submitButtonStyles}
+                    footerContent={suggestionButtonRow.footerContent}
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
@@ -142,6 +157,7 @@ function EditAgentRulePage({
                                 type="markdown"
                                 excludedMarkdownStyles={['mentionReport']}
                                 onKeyPress={submitFormOnModEnter}
+                                onValueChange={resetCheck}
                                 defaultValue={agentRule.prompt}
                                 multiline
                                 shouldLabelStayOnSingleLine
@@ -150,7 +166,10 @@ function EditAgentRulePage({
                                 inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                             />
                         </View>
-                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>
+                        {!!refusal && <ImpossibleRuleNotice refusal={refusal} />}
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>
+                            {translate(isChecking ? 'workspace.rules.agentRules.checkingRule' : 'workspace.rules.agentRules.disclaimer')}
+                        </Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>
