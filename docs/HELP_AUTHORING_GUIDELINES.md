@@ -15,6 +15,7 @@ Every article must:
 - Solve one primary workflow only
 - Match real user search intent
 - Use exact UI terminology
+- Follow the naming, navigation, and capitalization rules in docs/HELPSITE_NAMING_CONVENTIONS.md
 - Follow strict heading rules
 - Be optimized for semantic retrieval
 - Be concise and actionable
@@ -46,10 +47,19 @@ If multiple workflows are detected → split into multiple articles.
   - Explicit
   - Feature-specific
 
+## Capitalization
+
+- Use title case for the article title (the metadata `title` and the `#` title).
+- Use sentence case for every `##` heading.
+- Capitalize proper nouns, product names, plan names, and acronyms. Write `# FAQ` in all caps.
+- Lowercase roles and generic terms (for example, workspace admin, workspace, expense report) unless quoting a UI label.
+
+Full capitalization rules are in docs/HELPSITE_NAMING_CONVENTIONS.md.
+
 **Valid Examples**
 
-# Who can connect a business bank account in Expensify
-## Where to enable ACH reimbursements in a Workspace
+# Who Can Connect a Business Bank Account in Expensify
+## Where to enable ACH reimbursements in a workspace
 ## How to troubleshoot bank connection errors in Expensify
 ## How to enable Expensify Card notifications on iPhone
 
@@ -69,7 +79,7 @@ Every article must begin with:
 
 ```yaml
 ---
-title: Clear task-based title using feature name
+title: Clear Task-Based Title Using Feature Name (title case)
 description: 1–2 sentence summary of outcome
 keywords: [primary task phrase, feature name, relevant roles]
 internalScope: Audience is [target role(s), covers [included workflow], does not cover [explicit exclusions]
@@ -105,6 +115,11 @@ Step instructions must be:
 - Clear
 - Action-oriented
 - Aligned with actual UI flow
+
+Step instructions must also follow docs/HELPSITE_NAMING_CONVENTIONS.md:
+- Use **select** for interacting with UI elements and **choose** only for decisions between options. Do not use click, tap, hit, press, or push.
+- Start navigation in the navigation tabs and use a bolded navigation path, such as **Workspaces > [workspace name] > Members**.
+- Combine web and mobile instructions when navigation is the same. Use separate "On web:" and "On mobile:" instructions when it differs.
 
 ---
 
@@ -277,6 +292,16 @@ Before outputting an article, confirm:
  - No noun-only, topic-only, or platform-only headings
  - No generic headings (Overview, Introduction, Notes, Setup, Options, Step 1)
  - Feature names match UI
+ - Article title uses title case; every ## heading uses sentence case
+ - UI references follow docs/HELPSITE_NAMING_CONVENTIONS.md, including:
+   - **select** (or **choose** for decisions) instead of click or tap
+   - Navigation tabs, bolded navigation paths with lowercase placeholders, and the navigation menu
+   - **More (⋮)** for the three dots menu
+   - **field** for text-entry controls and "selection bar" for the bulk actions menu
+   - "Enable" or "disable" for toggles
+   - Color used only as a secondary descriptor
+   - Lowercase roles and generic terms; capitalized plan names with lowercase "plan"
+   - "This feature is only available on web/mobile" for platform limitations
  - Metadata aligns with search intent
  - Navigation included (if applicable)
  - Single workflow only

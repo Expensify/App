@@ -2,6 +2,9 @@ import variables from '@styles/variables';
 
 import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
 
+// Read once at module level so the worklets below don't capture the whole variables object
+const GUTTER_WIDTH = variables.gutterWidth;
+
 /**
  * Compute the amount that the Context menu's Anchor needs to be horizontally shifted
  * in order to keep it from displaying in the gutters.
@@ -11,15 +14,17 @@ import roundToNearestMultipleOfFour from './roundToNearestMultipleOfFour';
  * @param windowWidth - The width of the Window.
  */
 function computeHorizontalShift(anchorLeftEdge: number, menuWidth: number, windowWidth: number): number {
+    'worklet';
+
     const popoverRightEdge = anchorLeftEdge + menuWidth;
-    if (anchorLeftEdge < variables.gutterWidth) {
+    if (anchorLeftEdge < GUTTER_WIDTH) {
         // Anchor is in left gutter, shift right by a multiple of four.
-        return roundToNearestMultipleOfFour(variables.gutterWidth - anchorLeftEdge);
+        return roundToNearestMultipleOfFour(GUTTER_WIDTH - anchorLeftEdge);
     }
 
-    if (popoverRightEdge > windowWidth - variables.gutterWidth) {
+    if (popoverRightEdge > windowWidth - GUTTER_WIDTH) {
         // Anchor is in right gutter, shift left by a multiple of four.
-        return roundToNearestMultipleOfFour(windowWidth - variables.gutterWidth - popoverRightEdge);
+        return roundToNearestMultipleOfFour(windowWidth - GUTTER_WIDTH - popoverRightEdge);
     }
 
     // Anchor is not in the gutter, so no need to shift it horizontally
@@ -37,6 +42,8 @@ function computeHorizontalShift(anchorLeftEdge: number, menuWidth: number, windo
  * @param shouldSwitchPositionIfOverflow -
  */
 function computeVerticalShift(anchorTopEdge: number, menuHeight: number, windowHeight: number, anchorHeight: number, shouldSwitchPositionIfOverflow = false): number {
+    'worklet';
+
     const popoverBottomEdge = anchorTopEdge + menuHeight;
     let canSwitchPosition = false;
 

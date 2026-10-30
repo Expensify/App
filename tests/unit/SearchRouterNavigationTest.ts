@@ -197,6 +197,7 @@ const spendIcons = {
     ThumbsUp: mockIcon,
     CheckCircle: mockIcon,
     UserEye: mockIcon,
+    Plane: mockIcon,
 };
 const workspaceIcons = {
     Building: mockIcon,
@@ -204,6 +205,7 @@ const workspaceIcons = {
     Hashtag: mockIcon,
     Document: mockIcon,
     Sync: mockIcon,
+    Connect: mockIcon,
     Receipt: mockIcon,
     Briefcase: mockIcon,
     Folder: mockIcon,
@@ -406,45 +408,11 @@ describe('top-level Search Router navigation source', () => {
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
-            isInsightsPageBetaEnabled: false,
             getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
             getDestinationText: (destination) => `Go to ${destination}`,
         });
 
-        expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Workspaces', 'Go to Domains', 'Go to Account']);
-        expect(items.map((item) => item.keyForList)).toEqual(['topLevelHome', 'topLevelInbox', 'topLevelSpend', 'topLevelWorkspaces', 'topLevelDomains', 'topLevelAccount']);
-    });
-
-    it('adds the Insights destination when the beta is enabled', () => {
-        // Given a user with the Insights beta
-        const isInsightsPageBetaEnabled = true;
-
-        // When the top-level destinations are built
-        const items = buildTopLevelNavigationItems({
-            labels: {
-                home: 'Home',
-                inbox: 'Inbox',
-                spend: 'Spend',
-                insights: 'Insights',
-                workspaces: 'Workspaces',
-                domains: 'Domains',
-                account: 'Account',
-            },
-            icons: {
-                Home: mockIcon,
-                Inbox: mockIcon,
-                ReceiptMultiple: mockIcon,
-                PieChart: mockIcon,
-                Building: mockIcon,
-                Globe: mockIcon,
-                Gear: mockIcon,
-            },
-            isInsightsPageBetaEnabled,
-            getSpendRoute: () => ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}),
-            getDestinationText: (destination) => `Go to ${destination}`,
-        });
-
-        // Then the Insights row follows Spend and navigates to the Spend dashboard
+        expect(items.map((item) => item.text)).toEqual(['Go to Home', 'Go to Inbox', 'Go to Spend', 'Go to Insights', 'Go to Workspaces', 'Go to Domains', 'Go to Account']);
         expect(items.map((item) => item.keyForList)).toEqual([
             'topLevelHome',
             'topLevelInbox',
@@ -454,8 +422,6 @@ describe('top-level Search Router navigation source', () => {
             'topLevelDomains',
             'topLevelAccount',
         ]);
-        items.at(3)?.action?.();
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
     });
 
     it('navigates each top-level row to its intended route', () => {
@@ -480,7 +446,6 @@ describe('top-level Search Router navigation source', () => {
                 Globe: mockIcon,
                 Gear: mockIcon,
             },
-            isInsightsPageBetaEnabled: false,
             getSpendRoute,
             getDestinationText: (destination) => `Go to ${destination}`,
         });
@@ -493,9 +458,10 @@ describe('top-level Search Router navigation source', () => {
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, ROUTES.INBOX);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(3, spendRoute);
         expect(getSpendRoute).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(4, ROUTES.WORKSPACES_LIST.route);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.DOMAINS_LIST.route);
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(6, ROUTES.SETTINGS);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(4, ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(5, ROUTES.WORKSPACES_LIST.route);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(6, ROUTES.DOMAINS_LIST.route);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(7, ROUTES.SETTINGS);
     });
 });
 
@@ -704,15 +670,17 @@ describe('Workspace Search Router navigation source', () => {
         jest.clearAllMocks();
     });
 
-    const buildItems = (policies: Policy[], isOffline = false) =>
+    const buildItems = (policies: Policy[], isOffline = false, isUnifiedConnectionsBetaEnabled = false) =>
         buildWorkspaceNavigationItems({
             policies: Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy])),
             policyCategories: undefined,
             currentUserLogin: workspaceCurrentUserLogin,
+            currentUserPersonalDetails: {accountID: 1},
             icons: workspaceIcons,
             isOffline,
             isVendorMatchingBetaEnabled: false,
             isRecruitingBetaEnabled: false,
+            isUnifiedConnectionsBetaEnabled,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
             getItemText: (item) => {
@@ -721,6 +689,7 @@ describe('Workspace Search Router navigation source', () => {
                     ['workspace.common.members', 'Members'],
                     ['workspace.common.rooms', 'Rooms'],
                     ['workspace.common.workflows', 'Workflows'],
+                    ['workspace.common.connections', 'Connections'],
                     ['workspace.common.hr', 'HR'],
                 ]);
                 return labels.get(item.translationKey) ?? item.translationKey;
@@ -755,6 +724,17 @@ describe('Workspace Search Router navigation source', () => {
             `workspace_2_${SCREENS.WORKSPACE.HR}`,
             `workspace_1_${SCREENS.WORKSPACE.HR}`,
         ]);
+    });
+
+    it('matches the Connections row by the name of a page it replaced when the unified Connections beta is on', () => {
+        // Given a workspace with the HR feature on, viewed with the beta on so HR has no row of its own
+        const items = buildItems([createWorkspacePolicy('1', 'Alpha Workspace', {isHREnabled: true})], false, true);
+
+        // When searching for the old HR page by its short name
+        const suggestions = buildNavigationSuggestions('hr', [items], localeCompare);
+
+        // Then the Connections row is suggested, because HR moved onto the Connections page
+        expect(suggestions.map((item) => item.keyForList)).toEqual([`workspace_1_${SCREENS.WORKSPACE.CONNECTIONS}`]);
     });
 
     it('includes workspace identity and navigates through the Workspace synchronization helper', () => {

@@ -41,6 +41,7 @@ type BaseVideoPlayerProps = VideoPlayerProps & {reportID: string};
 function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     const {
         url,
+        fileName,
         onSourceLoaded,
         isLooping = false,
         style,
@@ -651,6 +652,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                         duration={duration || 0}
                                         position={currentTime || 0}
                                         url={url}
+                                        fileName={fileName}
                                         videoPlayerRef={videoPlayerRef}
                                         videoViewRef={videoViewRef}
                                         isPlaying={isPlaying}

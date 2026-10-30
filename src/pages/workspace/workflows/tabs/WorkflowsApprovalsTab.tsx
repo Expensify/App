@@ -10,6 +10,7 @@ import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
@@ -17,7 +18,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -35,26 +35,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getApprovalWorkflow, hasDynamicExternalWorkflow, isControlPolicy, isGroupPolicy, isSubmitPolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {
-    convertApprovalWorkflowRulesToWorkflows,
-    convertPolicyEmployeesToApprovalWorkflows,
-    filterRulesForPolicy,
-    getApprovalWorkflowRulesForPolicy,
-    getApprovalWorkflowSource,
-    INITIAL_APPROVAL_WORKFLOW,
-    isApprovalWorkflowLockedByIntegration,
-} from '@libs/WorkflowUtils';
+import {getApprovalWorkflowSource, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
-import type Rule from '@src/types/onyx/Rule';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -116,23 +105,22 @@ function WorkflowsLoadMoreCard({count, onPress}: {count: number; onPress: () => 
 }
 
 function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Info', 'Plus']);
     const policy = usePolicy(policyID);
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const {isBetaEnabledOrUnknown} = usePermissions();
 
     const isSmartLimitEnabled = policy?.areApprovalsLockedByExpensifyCard ?? false;
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [personalDetails] = useAllPersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const accountManagerReportID = account?.accountManagerReportID;
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const {accountID: currentUserAccountID, email: currentUserEmail = '', login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, email: currentUserEmail = ''} = useCurrentUserPersonalDetails();
 
     const {
         canWrite: canWriteApprovals,
@@ -142,44 +130,31 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 
-    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
-    const policyRulesSelector = useCallback((rules: OnyxCollection<Rule>) => filterRulesForPolicy(rules, policyID), [policyID]);
-    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
-    const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(() => {
-        const params = {
-            policy,
-            personalDetails: personalDetails ?? {},
-            localeCompare,
-            currentUserLogin,
-            rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID),
-        };
-        return isMultipleApproversBetaEnabled ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
-    }, [policy, personalDetails, localeCompare, currentUserLogin, rulesCollection, policyID, isMultipleApproversBetaEnabled]);
+    const {approvalWorkflows, filteredApprovalWorkflows, availableMembers, usedApproverEmails, isAdvanceApproval, rulesCollection, personalDetails} = useApprovalWorkflows(policy);
 
-    const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
 
-    const confirmDisableApprovals = useCallback(() => {
+    const confirmDisableApprovals = () => {
         setWorkspaceApprovalMode(policy, policy?.owner ?? '', CONST.POLICY.APPROVAL_MODE.OPTIONAL, currentUserAccountID, currentUserEmail, isTrackIntentUser, rulesCollection, {
             transactionViolations,
             isASAPSubmitBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.ASAP_SUBMIT),
             personalDetailsList: personalDetails,
         });
-    }, [isBetaEnabledOrUnknown, policy, transactionViolations, currentUserAccountID, currentUserEmail, personalDetails, isTrackIntentUser, rulesCollection]);
+    };
 
     const approvalWorkflowSource = getApprovalWorkflowSource(policy, policyID);
     const isWorkflowFromIntegration = !!approvalWorkflowSource;
     const workflowSourceName = approvalWorkflowSource?.providerName ?? '';
     const workflowSourceSettingsRoute = approvalWorkflowSource?.settingsRoute;
 
-    const navigateToWorkflowSourceSettings = useCallback(() => {
+    const navigateToWorkflowSourceSettings = () => {
         if (!workflowSourceSettingsRoute) {
             return;
         }
         Navigation.navigate(workflowSourceSettingsRoute);
-    }, [workflowSourceSettingsRoute]);
+    };
 
-    const promptConfigureApprovalsInIntegration = useCallback(async () => {
+    const promptConfigureApprovalsInIntegration = async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
             prompt: translate('workflowsPage.integrationApprovalWorkflowLockedPrompt', {
@@ -194,14 +169,14 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
             return;
         }
         navigateToWorkflowSourceSettings();
-    }, [navigateToWorkflowSourceSettings, workflowSourceName, showConfirmModal, translate]);
+    };
 
-    const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
+    const navigateToSubmitWorkspaceApprovalsUpgrade = () => {
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
-    }, [policyID]);
+    };
 
     // User should be allowed to add new Approval Workflow only if he's upgraded to Control Plan, otherwise redirected to the Upgrade Page
-    const addApprovalAction = useCallback(() => {
+    const addApprovalAction = () => {
         setApprovalWorkflow({
             ...INITIAL_APPROVAL_WORKFLOW,
             availableMembers,
@@ -225,19 +200,11 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
         }
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
-    }, [policy, policyID, availableMembers, usedApproverEmails, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
+    };
 
     const isHRAdvancedModeEnabled = isHRAdvancedMode(policy);
     const isRecruitingAdvancedModeEnabled = isRecruitingAdvancedMode(policy);
     const hrFinalApproverEmail = getHRFinalApprover(policy);
-
-    const filteredApprovalWorkflows =
-        isMultipleApproversBetaEnabled ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.ADVANCED ||
-        policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL ||
-        isHRAdvancedModeEnabled
-            ? approvalWorkflows
-            : approvalWorkflows.filter((workflow) => workflow.isDefault);
 
     const everyoneText = translate('workspace.common.everyone');
 
@@ -289,10 +256,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // Trim before deciding so a whitespace-only input doesn't drop pagination while searchFilteredWorkflows is still unfiltered.
     const isSearchingWorkflows = workflowSearchInput.trim().length > 0;
     // Memoize so a stable reference reaches the render below; otherwise the slice() allocates a new array each render.
-    const displayedWorkflows = useMemo(
-        () => (isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH)),
-        [isWorkflowListExpanded, isSearchingWorkflows, searchFilteredWorkflows],
-    );
+    const displayedWorkflows = isWorkflowListExpanded || isSearchingWorkflows ? searchFilteredWorkflows : searchFilteredWorkflows.slice(0, CONST.WORKFLOW_APPROVALS_INITIAL_BATCH);
     const hiddenWorkflowsCount = searchFilteredWorkflows.length - displayedWorkflows.length;
 
     const isDEWEnabled = hasDynamicExternalWorkflow(policy);
@@ -304,22 +268,18 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
     // The info banner below still explains why the section is empty, but nothing else about the workflows is rendered.
     const shouldHideApprovalWorkflows = shouldHideDynamicExternalWorkflowPeople(policy);
     const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
-    const approvalSubtitle = useMemo(() => {
-        if (!isWorkflowFromIntegration) {
-            return translate('workflowsPage.addApprovalsDescription');
-        }
-
-        return (
-            <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
-                {translate('workflowsPage.addApprovalsDescription')}{' '}
-                <TextLink onPress={navigateToWorkflowSourceSettings}>
-                    {translate('workflowsPage.configureViaProvider', {
-                        provider: workflowSourceName,
-                    })}
-                </TextLink>
-            </Text>
-        );
-    }, [isWorkflowFromIntegration, workflowSourceName, navigateToWorkflowSourceSettings, styles.lh20, styles.mr5, styles.mt1, styles.textLabelSupportingEmptyValue, translate]);
+    const approvalSubtitle = !isWorkflowFromIntegration ? (
+        translate('workflowsPage.addApprovalsDescription')
+    ) : (
+        <Text style={[styles.textLabelSupportingEmptyValue, styles.lh20, styles.mt1, styles.mr5]}>
+            {translate('workflowsPage.addApprovalsDescription')}{' '}
+            <TextLink onPress={navigateToWorkflowSourceSettings}>
+                {translate('workflowsPage.configureViaProvider', {
+                    provider: workflowSourceName,
+                })}
+            </TextLink>
+        </Text>
+    );
 
     const approvalOptionSubtitle = isWorkflowFromIntegration || !isApprovalsLockedBySmartLimit ? approvalSubtitle : translate('workspace.moreFeatures.workflows.disableApprovalPrompt');
     const hasApprovalError = !!policy?.errorFields?.approvalMode;

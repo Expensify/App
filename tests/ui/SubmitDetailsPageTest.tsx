@@ -5,6 +5,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,6 +23,7 @@ import type {Report, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {check} from 'react-native-permissions';
 
 import type * as FileUtilsModule from '../../src/libs/fileDownload/FileUtils';
 
@@ -137,6 +139,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     getTopmostReportId: jest.fn(() => 'report-share-1'),
     getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+    getPreMountedFullscreenRouteKey: jest.fn(() => undefined),
     getPreInsertedFullscreenRouteName: jest.fn(() => undefined),
     clearFullscreenPreInsertedFlag: jest.fn(),
     revealRouteBeforeDismissingModal: jest.fn((_route: unknown, options?: {afterTransition?: () => void}) => {
@@ -244,6 +247,35 @@ async function renderAndConfirm() {
     await waitForBatchedUpdatesWithAct();
 }
 
+function mockPositionAnswer() {
+    jest.mocked(getCurrentPosition).mockImplementation(async (success) => {
+        success({
+            coords: {
+                latitude: 40.7128,
+                longitude: -74.006,
+                altitude: null,
+                accuracy: null,
+                altitudeAccuracy: null,
+                heading: null,
+                speed: null,
+            },
+            timestamp: 0,
+        });
+    });
+}
+
+function getUserLocationFromOnyx(): Promise<unknown> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connect({
+            key: ONYXKEYS.USER_LOCATION,
+            callback: (val) => {
+                resolve(val);
+                Onyx.disconnect(connection);
+            },
+        });
+    });
+}
+
 function renderSubmitDetailsPage() {
     return render(
         <SubmitDetailsPage
@@ -276,6 +308,7 @@ describe('SubmitDetailsPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue(undefined);
         mockConfirmationListProps = {};
         const actualGetReportOrDraftReport = jest.requireActual<ReportUtilsActual>('@libs/ReportUtils').getReportOrDraftReport;
         jest.mocked(getReportOrDraftReport).mockImplementation(actualGetReportOrDraftReport);
@@ -421,11 +454,16 @@ describe('SubmitDetailsPage', () => {
     // Error #5 — wide layout fallback: when destination is not topmost, reveal it via revealRouteBeforeDismissingModal
     // and defer navigation to cleanup (shouldNavigate: false) so we do not double-navigate after dismiss.
     it('wide layout: reveals destination via revealRouteBeforeDismissingModal when another report is topmost', async () => {
+        // Given a wide layout where another report is topmost, so the destination is pre-mounted inside the tab navigator
         jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
         jest.mocked(getIsNarrowLayout).mockReturnValue(false);
+        jest.mocked(Navigation.getPreMountedFullscreenRouteKey).mockReturnValue('Report-wide-pre-mount-1');
 
+        // When the share is confirmed
         await renderAndConfirm();
 
+        // Then the pre-mounted destination is revealed instead of dismissing over it
+        expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID));
         expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
             ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID),
             expect.objectContaining({afterTransition: expect.any(Function)}),
@@ -574,6 +612,43 @@ describe('SubmitDetailsPage', () => {
         } finally {
             jest.useRealTimers();
         }
+    });
+
+    it('creates the shared expense with the position the share screen cached, without reading the device at submit', async () => {
+        // Given a shared receipt, location permission granted when the user confirms, and a position the share screen cached when it opened
+        mockPositionAnswer();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, null);
+        });
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(await getUserLocationFromOnyx()).toEqual({latitude: 40.7128, longitude: -74.006});
+
+        // When the user confirms the share
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the expense carries the cached position and confirming read the device no further
+        expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+        expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
+        expect(getCurrentPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('caches nothing and raises nothing when the permission check fails on open', async () => {
+        // Given a device whose location permission check fails outright
+        jest.mocked(check).mockRejectedValueOnce(new Error('permission check failed'));
+        const unhandledRejection = jest.fn();
+        process.on('unhandledRejection', unhandledRejection);
+
+        // When the share screen opens
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        process.off('unhandledRejection', unhandledRejection);
+
+        // Then the screen cached no position, and the failed check never surfaced as an unhandled rejection
+        expect(await getUserLocationFromOnyx()).toBeUndefined();
+        expect(unhandledRejection).not.toHaveBeenCalled();
     });
 
     // Error #11 — narrow layout race: confirm fires before scheduleWhenIdle runs pre-insert setup.

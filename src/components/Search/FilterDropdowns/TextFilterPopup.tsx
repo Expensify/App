@@ -18,7 +18,7 @@ import type {PopoverComponentProps} from './FilterPopupButton';
 import BasePopup from './BasePopup';
 
 type TextFilterPopupProps = {
-    baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
+    baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT | ReportFieldTextKey>;
     values: Partial<SearchAdvancedFiltersForm> | undefined;
     label: string;
     closeOverlay: PopoverComponentProps['closeOverlay'];

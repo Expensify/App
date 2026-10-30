@@ -26,7 +26,7 @@ import type {ComponentRef, RefObject} from 'react';
 import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 const MAX_VISIBLE_PROMPT_LINES = 15;
@@ -59,7 +59,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
-    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [draftPrompt, setDraftPrompt] = useState('');
     const [showEmptyError, setShowEmptyError] = useState(false);
@@ -107,7 +107,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [agentPrompt?.promptErrors]);
 
-    const triggerSavedConfirmation = useCallback(() => {
+    const triggerSavedConfirmation = () => {
         setShowSavedConfirmation(true);
         if (savedConfirmationTimerRef.current) {
             clearTimeout(savedConfirmationTimerRef.current);
@@ -116,7 +116,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             setShowSavedConfirmation(false);
             savedConfirmationTimerRef.current = null;
         }, SAVED_CONFIRMATION_DURATION_MS);
-    }, []);
+    };
 
     useEffect(() => {
         if (wasSavingRef.current && !isSaving) {
@@ -150,17 +150,17 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         };
     }, []);
 
-    const dismissInput = useCallback(() => {
+    const dismissInput = () => {
         inputRef.current?.blur();
         Keyboard.dismiss();
-    }, []);
+    };
 
-    const handleInputFocus = useCallback(() => {
+    const handleInputFocus = () => {
         if (!parentScrollViewRef) {
             return;
         }
         scrollInputIntoView(parentScrollViewRef);
-    }, [parentScrollViewRef]);
+    };
 
     const handleSave = () => {
         if (isSaving && isUserInitiatedSave) {

@@ -177,7 +177,11 @@ function ValidateLoginPage({
                 />
             )}
             {((!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) || isCompletingDirectSignIn) && (
-                <FullScreenLoadingIndicator testID="validate-login-loading" />
+                <FullScreenLoadingIndicator
+                    // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
+                    shouldUseGoBackButton={false}
+                    testID="validate-login-loading"
+                />
             )}
         </>
     );

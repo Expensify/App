@@ -7,6 +7,7 @@ import TabSelectorContextProvider from '@components/TabSelector/TabSelectorConte
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -30,6 +31,7 @@ import type {ComponentRef} from 'react';
 import type {ValueOf} from 'type-fest';
 
 import {reportNameValuePairsArchivedSelector} from '@selectors/ReportNameValuePairs';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -41,10 +43,12 @@ const anchorAlignment = {
 const TOOLTIP_HORIZONTAL_MARGIN = 48;
 
 function InboxTabSelector() {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {activeTab, inboxTabCounts, hasStaleUnreadReport} = useSidebarOrderedReportsState();
     const {setActiveTab, getReportIDsForTab} = useSidebarOrderedReportsActions();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {selector: reportNameValuePairsArchivedSelector});
@@ -103,7 +107,7 @@ function InboxTabSelector() {
             }
             // From the To-dos tab only the chats listed there are marked read. The All and Unread tabs both cover every
             // unread chat, so they mark all of them.
-            markAllMessagesAsRead(reportNameValuePairs, isTodoTab ? getReportIDsForTab(CONST.INBOX_TAB.TODO) : undefined, reportAttributesDerived);
+            markAllMessagesAsRead(reportNameValuePairs, isTodoTab ? getReportIDsForTab(CONST.INBOX_TAB.TODO) : undefined, reportAttributesDerived, session);
         });
     };
 
@@ -167,6 +171,7 @@ function InboxTabSelector() {
         <View style={styles.pt1}>
             <TabSelectorContextProvider activeTabKey={activeTab}>
                 <TabSelectorBase
+                    contentContainerStyles={pageGutter}
                     tabs={tabs}
                     activeTabKey={activeTab}
                     onTabPress={(key) => {

@@ -42,6 +42,8 @@ describe('DistanceRequestRenderItem', () => {
                 onPress={onPress}
             />,
         );
+        // The subject still renders this legacy component, so its mock verifies the forwarded waypoint props.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const props = jest.mocked(MenuItemWithTopDescription).mock.lastCall?.[0];
         fireEvent(screen.getByTestId('waypoint'), 'touchEnd');
         // Then its finite translation, icon, title, error and index still match that position
@@ -59,6 +61,8 @@ describe('DistanceRequestRenderItem', () => {
             />,
         );
         // Then the first branch wins as before
+        // Inspect the subject's current render seam without migrating its production component in this test.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         expect(jest.mocked(MenuItemWithTopDescription).mock.lastCall?.[0]).toMatchObject({
             description: 'distance.waypointDescription.start',
             secondaryIcon: 'start',

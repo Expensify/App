@@ -4,7 +4,6 @@ import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisable
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -14,6 +13,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -58,7 +58,6 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const role = canMemberAssignRole(policy, currentUserLogin, roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
     const [isImporting, setIsImporting] = useState(false);
 
-    const personalDetails = usePersonalDetails();
     const {setIsClosing} = useCloseImportPage();
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
 
@@ -80,18 +79,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         newMembersRef.current = computedNewMembers;
     }
     const newMembers = newMembersRef.current;
-    const invitedEmailsToAccountIDsDraft = useMemo(() => {
-        const memberEmails = newMembers.map((member) => member.email);
-        return memberEmails.reduce(
-            (acc, email) => {
-                acc[email] = getAccountIDsByLogins([email])?.at(0) ?? 0;
-                return acc;
-            },
-            {} as Record<string, number>,
-        );
-        // getAccountIDsByLogins function uses the personalDetails data from the connection, so we need to re-run this logic when the personal detail is changed.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newMembers, personalDetails]);
+    const newMemberEmails = newMembers.map((member) => member.email);
+    const newMembersPersonalDetails = usePersonalDetailsByLogins(newMemberEmails);
 
     /** Opens privacy url as an external link */
     const openPrivacyURL = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -154,7 +143,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                 <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <MultiAccountAvatar
                         size={CONST.AVATAR_SIZE.XXX_LARGE}
-                        accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
+                        accountIDs={getAccountIDsByLogins(newMemberEmails, newMembersPersonalDetails)}
                         horizontalOptions={{
                             maxRows: 2,
                         }}

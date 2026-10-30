@@ -15,30 +15,39 @@ const ANCHOR_ALIGNMENT = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 } as const;
 
+const SIZES = {
+    [CONST.BUTTON_SIZE.SMALL]: {buttonSize: variables.componentSizeSmall, iconSize: variables.iconSizeExtraSmall},
+    [CONST.BUTTON_SIZE.MEDIUM]: {buttonSize: variables.componentSizeNormal, iconSize: variables.iconSizeSmall},
+} as const;
+
 type WidgetHeaderMenuProps = {
     /** Items shown in the popover opened by the three-dots trigger */
     menuItems: PopoverMenuItem[];
+
+    /** Size of the three-dots button */
+    size?: typeof CONST.BUTTON_SIZE.SMALL | typeof CONST.BUTTON_SIZE.MEDIUM;
 
     testID?: string;
     sentryLabel?: string;
 };
 
 /**
- * Widget header three-dots menu: a Medium Ghost trigger whose negative margins let it overflow the header
+ * Widget header three-dots menu: a Ghost trigger whose negative margins let it overflow the header
  * rather than grow it, so every card header keeps the same height. Built on `ThreeDotsMenu`.
  */
-function WidgetHeaderMenu({menuItems, testID, sentryLabel}: WidgetHeaderMenuProps) {
+function WidgetHeaderMenu({menuItems, size = CONST.BUTTON_SIZE.MEDIUM, testID, sentryLabel}: WidgetHeaderMenuProps) {
     const styles = useThemeStyles();
+    const {buttonSize, iconSize} = SIZES[size];
 
     return (
         <ThreeDotsMenu
             menuItems={menuItems}
             shouldSelfPosition
             anchorAlignment={ANCHOR_ALIGNMENT}
-            iconStyles={[styles.widgetHeaderMenuButton, styles.widgetHeaderMenuButtonWrapper]}
+            iconStyles={styles.getWidgetHeaderMenuButtonStyle(buttonSize)}
             iconHoverStyle={styles.widgetHeaderMenuButtonHovered}
-            iconWidth={variables.iconSizeSmall}
-            iconHeight={variables.iconSizeSmall}
+            iconWidth={iconSize}
+            iconHeight={iconSize}
             shouldChangeFillOnOpen={false}
             testID={testID}
             sentryLabel={sentryLabel}
