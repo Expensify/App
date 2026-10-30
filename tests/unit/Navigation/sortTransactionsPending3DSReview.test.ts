@@ -1,4 +1,4 @@
-import {sortTransactionsPending3DSReview} from '@libs/Navigation/useNavigateTo3DSAuthorizationChallenge';
+import {sortTransactionsPending3DSReview} from '@libs/Navigation/useNavigateToForcedTransactionReview';
 
 import type {TransactionPending3DSReview} from '@src/types/onyx';
 
