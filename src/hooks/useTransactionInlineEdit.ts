@@ -75,12 +75,12 @@ type UseTransactionInlineEditReturn = {
     canEditAmount: boolean;
     canEditTag: boolean;
     transactionThreadReportID: string | undefined;
-    onEditDate: (newDate: string) => Promise<boolean>;
-    onEditMerchant: (newMerchant: string) => Promise<boolean>;
-    onEditDescription: (newDescription: string) => Promise<boolean>;
-    onEditCategory: (newCategory: string) => Promise<boolean>;
-    onEditAmount: (newAmount: number) => Promise<boolean>;
-    onEditTag: (newTag: string) => Promise<boolean>;
+    onEditDate: (newDate: string) => Promise<void>;
+    onEditMerchant: (newMerchant: string) => Promise<void>;
+    onEditDescription: (newDescription: string) => Promise<void>;
+    onEditCategory: (newCategory: string) => Promise<void>;
+    onEditAmount: (newAmount: number) => Promise<void>;
+    onEditTag: (newTag: string) => Promise<void>;
     /**
      * Ref that should be written in onPressIn and checked in onPress to suppress
      * row navigation when a cell edit is being dismissed.
@@ -274,11 +274,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         };
     };
 
-    const applyEdit = (edit: (params: TransactionInlineEditParams) => void): Promise<boolean> =>
-        getEditParams().then((params) => {
-            edit(params);
-            return true;
-        });
+    const applyEdit = (edit: (params: TransactionInlineEditParams) => void): Promise<void> => getEditParams().then(edit);
 
     const onEditDate = (newDate: string) => applyEdit((params) => editTransactionDateInline(params, newDate, renderedEditDataRef.current.personalOutputCurrency));
 
