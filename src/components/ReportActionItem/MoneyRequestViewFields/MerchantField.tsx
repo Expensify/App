@@ -22,10 +22,10 @@ import EditableField from './EditableField';
 
 type MerchantFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'title' | 'errorText' | 'copyValue' | 'onPress'> & {
-        /** Enables the merchant editor. Otherwise the merchant can only be copied or searched. */
+        /** A read-only merchant can still offer copy and search actions. */
         canEdit: boolean;
 
-        /** Original card merchant to search for. Omit while scanning or for non-card expenses. */
+        /** Original card merchant for the search link. Omit to hide the link. */
         googleSearchMerchant?: string;
     };
 

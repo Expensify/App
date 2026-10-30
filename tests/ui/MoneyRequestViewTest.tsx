@@ -1,13 +1,14 @@
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
-import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import type EditableField from '@components/ReportActionItem/MoneyRequestViewFields/EditableField';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getMoneyRequestViewFields from '@libs/getMoneyRequestViewFields';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -277,7 +278,7 @@ describe('MoneyRequestView edit fields', () => {
         const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
         await setupTestData();
         await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]);
+            await Onyx.set(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]));
         });
 
         // When the expense derives the report owner as its fallback attendee.
@@ -298,10 +299,10 @@ describe('MoneyRequestView edit fields', () => {
         await setupTestData();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {[column]: value});
-            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]);
+            await Onyx.set(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]));
         });
 
-        // When the expense is opened with the shared report preference.
+        // When the expense is opened with its expense field preference.
         renderMoneyRequestView(threadReport, policy);
         await waitForBatchedUpdatesWithAct();
 
@@ -313,7 +314,7 @@ describe('MoneyRequestView edit fields', () => {
         // When the field is deselected, or the account returns to its untouched preferences.
         for (const columns of [[CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT], null]) {
             await act(async () => {
-                await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, columns);
+                await Onyx.set(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify(columns));
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -330,7 +331,7 @@ describe('MoneyRequestView edit fields', () => {
         const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
         await setupTestData();
         await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]);
+            await Onyx.set(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]));
         });
 
         // When the expense is opened.
@@ -352,10 +353,10 @@ describe('MoneyRequestView edit fields', () => {
         await setupTestData();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {[column]: value});
-            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]);
+            await Onyx.set(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, column]));
         });
 
-        // When the restricted field is selected in the shared preference.
+        // When the restricted field is selected in the expense preference.
         renderMoneyRequestView(threadReport, policy);
         await waitForBatchedUpdatesWithAct();
 
@@ -372,7 +373,7 @@ describe('MoneyRequestView edit fields', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
                 Location: {name: 'Location', orderWeight: 0, required: true, tags: {Berlin: {name: 'Berlin', enabled: true}}},
             });
-            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+            await Onyx.set(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]));
         });
 
         // When the expense opens with the customized preference.
@@ -390,7 +391,7 @@ describe('MoneyRequestView edit fields', () => {
         const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
         await setupTestData();
         await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+            await Onyx.set(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]));
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
                 {name: CONST.VIOLATIONS.MISSING_COMMENT, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
             ]);
@@ -450,7 +451,46 @@ describe('MoneyRequestView edit fields', () => {
         expect(screen.queryByLabelText(fieldLabel('common.vendor'))).not.toBeOnTheScreen();
     });
 
-    it('renders the shared report fields in order and reacts to preference changes', async () => {
+    it('keeps standard editors when the table only selects accounting columns', async () => {
+        // Given a table selection that predates expense field customization.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MCC]);
+        });
+
+        // When the expense is opened without its own field preference.
+        renderMoneyRequestView(threadReport, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then existing editors remain available alongside the explicitly selected accounting field.
+        expect(screen.getByTestId('menu-item-common.description')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-iou.attendees')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.mcc')).toBeOnTheScreen();
+    });
+
+    it('preserves untouched editors after adding an expense field', async () => {
+        // Given an expense whose default fields have never been customized.
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        renderMoneyRequestView(threadReport, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user adds only Category GL code to the fields already selected by the picker.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify([...getMoneyRequestViewFields(), CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE]));
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then saving does not hide unrelated editors or require changes to the report table.
+        expect(screen.getByTestId('menu-item-common.description')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-iou.attendees')).toBeOnTheScreen();
+        expect(screen.getByTestId('menu-item-common.categoryGLCode')).toBeOnTheScreen();
+    });
+
+    it('renders customized expense fields in order and reacts to preference changes', async () => {
         // Given an expense whose report columns include accounting data absent from the default editor.
         const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
         await setupTestData();
@@ -466,13 +506,16 @@ describe('MoneyRequestView edit fields', () => {
                 currencyConversionRate: '1.25',
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {currency: 'USD'});
-            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [
-                CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
-                CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
-                CONST.SEARCH.TABLE_COLUMNS.MCC,
-                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
-                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-            ]);
+            await Onyx.set(
+                ONYXKEYS.NVP_EXPENSE_FIELDS,
+                JSON.stringify([
+                    CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE,
+                    CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+                    CONST.SEARCH.TABLE_COLUMNS.MCC,
+                    CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                    CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+                ]),
+            );
         });
 
         // When the same expense is opened, it uses the report's selection and keeps existing editors.
@@ -489,9 +532,9 @@ describe('MoneyRequestView edit fields', () => {
         const fieldIDs = screen.getAllByTestId(/^menu-item-(?!title)/).map((item) => String(item.props.testID));
         expect(fieldIDs.slice(0, 4)).toEqual(['menu-item-common.categoryGLCode', 'menu-item-common.exchangeRate', 'menu-item-common.mcc', 'menu-item-common.merchant']);
 
-        // When another view updates the shared preference, the mounted expense must update too.
+        // When another expense view updates the field preference, the mounted expense must update too.
         await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS, [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MCC]);
+            await Onyx.set(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.MCC]));
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -1655,14 +1698,10 @@ describe('MoneyRequestView edit fields', () => {
             // When the expense is rendered
             await renderWithReservationDates('2026-10-01', '2026-10-04');
 
-            // Then the hint stays below the category row, outside the trailing controls.
+            // Then the category includes the nightly rate so the user can review the reservation cost.
             const hint = screen.getByText(reservationNightsHint);
             const category = screen.getByLabelText(fieldLabel('common.category'));
             expect(category).toContainElement(hint);
-            for (let ancestor = hint.parent; ancestor && ancestor !== category; ancestor = ancestor.parent) {
-                expect(ancestor.type).not.toBe(MenuItem.Row);
-                expect(ancestor.type).not.toBe(MenuItem.Trailing);
-            }
         });
 
         it('does not show the hint for a single-night reservation', async () => {

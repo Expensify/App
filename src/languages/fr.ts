@@ -10370,6 +10370,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         columns: 'Colonnes',
         customizeFields: 'Personnaliser les champs',
+        columnMoved: ({columnName, position, total}: {columnName: string; position: string; total: string}) => `Le champ ${columnName} a été déplacé à la position ${position} sur ${total}`,
         editColumns: 'Modifier les colonnes',
         resetColumns: 'Réinitialiser les colonnes',
         groupColumns: 'Regrouper les colonnes',

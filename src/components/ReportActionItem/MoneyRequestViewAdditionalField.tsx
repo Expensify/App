@@ -9,7 +9,7 @@ import {getCategoryGLCode} from '@libs/CategoryUtils';
 import {getTagGLCode, isTaxCodeCustomized} from '@libs/PolicyUtils';
 import {getReportCustomColumnValue} from '@libs/ReportUtils';
 import {getSearchColumnTranslationKey} from '@libs/SearchUIUtils';
-import {getCategory, getExchangeRate, getMCCForDisplay, getTag, isOnHold, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
+import {getCategory, getExchangeRate, getMCCForDisplay, getTag, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
@@ -51,9 +51,6 @@ function MoneyRequestViewAdditionalField({column, transaction, report, policy, p
             break;
         case CONST.SEARCH.TABLE_COLUMNS.MCC:
             value = getMCCForDisplay(transaction.mcc);
-            break;
-        case CONST.SEARCH.TABLE_COLUMNS.HELD:
-            value = translate(isOnHold(transaction) ? 'common.yes' : 'common.no');
             break;
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             value = getExchangeRate(transaction, report?.currency ?? policy?.outputCurrency, true);

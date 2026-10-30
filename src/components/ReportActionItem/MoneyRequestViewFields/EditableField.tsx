@@ -24,19 +24,19 @@ type EditableFieldProps = PropsWithChildren<
             /** Allows native text selection independently of whether the editor is available. */
             isValueSelectable?: boolean;
 
-            /** Defaults to 2. Use 0 to display the full value. */
+            /** Maximum number of visible value lines. Use 0 to display the full value. */
             numberOfLinesValue?: number;
 
-            /** Validation feedback shown below the field and marked by an error indicator. */
+            /** Validation feedback for an invalid expense value. */
             error?: ReactNode;
 
             /** Replaces the plain text value with rich content such as attendee pills. */
             valueComponent?: ReactNode;
 
-            /** Supporting information displayed between the value row and any footer or error. */
+            /** Additional context about the expense value. */
             hintText?: ReactNode;
 
-            /** Additional controls below the value row, such as the original merchant search link. */
+            /** Content displayed below the value, such as a merchant search link. */
             footer?: ReactNode;
         }
 >;

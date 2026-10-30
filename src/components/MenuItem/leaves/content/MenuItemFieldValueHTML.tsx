@@ -1,4 +1,5 @@
 import {useMenuItemAccessibilityLabel} from '@components/MenuItem/MenuItemAccessibilityContext';
+import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
@@ -30,6 +31,7 @@ type MenuItemFieldValueHTMLProps = {
  */
 function MenuItemFieldValueHTML({children, characterLimit, isMuted = false}: MenuItemFieldValueHTMLProps) {
     const styles = useThemeStyles();
+    const {shouldAllowTextSelection} = useMenuItemConfig();
 
     // The row builds its label from text, so screen readers hear the content rather than the markup
     useMenuItemAccessibilityLabel('bottom', Parser.htmlToText(children));
@@ -41,9 +43,17 @@ function MenuItemFieldValueHTML({children, characterLimit, isMuted = false}: Men
     return (
         <View style={[styles.renderHTMLTitle, styles.textAlignLeft]}>
             {Parser.isHTML(children) ? (
-                <RenderHTML html={html} />
+                <RenderHTML
+                    html={html}
+                    isSelectable={shouldAllowTextSelection ? true : undefined}
+                />
             ) : (
-                <Text style={[styles.webViewStyles.baseFontStyle, isMuted && styles.colorMuted]}>{convertToLTR(Parser.htmlToText(html))}</Text>
+                <Text
+                    style={[styles.webViewStyles.baseFontStyle, isMuted && styles.colorMuted]}
+                    selectable={shouldAllowTextSelection ? true : undefined}
+                >
+                    {convertToLTR(Parser.htmlToText(html))}
+                </Text>
             )}
         </View>
     );

@@ -13,7 +13,7 @@ import EditableField from './EditableField';
 
 type DescriptionFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'title' | 'errorText' | 'copyValue' | 'onPress'> & {
-        /** Enables the description editor. Otherwise its rendered HTML can only be copied. */
+        /** A read-only description can still offer a copy action. */
         canEdit: boolean;
     };
 

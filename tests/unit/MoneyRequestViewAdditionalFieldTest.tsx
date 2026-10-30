@@ -61,25 +61,14 @@ describe('additional expense field values', () => {
         CONST.SEARCH.TABLE_COLUMNS.POSTED,
         CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
         CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
+        CONST.SEARCH.TABLE_COLUMNS.HELD,
     ])('does not create a second field for %s', (column) => {
-        // Given a table column whose information belongs to an existing expense editor.
+        // Given a table column whose information already appears in the expense fields or header.
         // When the column reaches the additional field renderer.
         renderField(column);
 
-        // Then the existing editor remains responsible for its details and workspace visibility rules.
+        // Then the expense view does not repeat that information in another field.
         expect(MenuItemField).not.toHaveBeenCalled();
-    });
-
-    it.each([
-        {hold: 'hold-action', expected: 'common.yes'},
-        {hold: undefined, expected: 'common.no'},
-    ])('shows the report table hold status as $expected', ({hold, expected}) => {
-        // Given an expense whose hold state must stay visible when opening it from the report table.
-        // When Held is selected as an expense field.
-        const field = renderField(CONST.SEARCH.TABLE_COLUMNS.HELD, {comment: {hold}});
-
-        // Then the field displays the same localized Yes or No value as the table.
-        expect(field).toEqual(expect.objectContaining({value: expected, isValueSelectable: true}));
     });
 
     it.each([

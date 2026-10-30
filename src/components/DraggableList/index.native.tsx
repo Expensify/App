@@ -4,7 +4,7 @@ import type {FlatList} from 'react-native-gesture-handler';
 
 import React from 'react';
 import {View} from 'react-native';
-import DraggableFlatList from 'react-native-draggable-flatlist';
+import DraggableFlatList, {NestableDraggableFlatList} from 'react-native-draggable-flatlist';
 
 import type DraggableListProps from './types';
 
@@ -18,9 +18,11 @@ function DraggableList<T>({
     data,
     onDragEnd,
     ListFooterComponent,
+    disableScroll = false,
     ...viewProps
 }: DraggableListProps<T> & {ref?: React.ForwardedRef<FlatList<T>>}) {
     const styles = useThemeStyles();
+    const ListComponent = disableScroll ? NestableDraggableFlatList : DraggableFlatList;
     const draggableItems = shouldRestrictDragToEnabledItems ? data.filter((item) => !isItemDragDisabled?.(item)) : data;
     const fixedItems = shouldRestrictDragToEnabledItems ? data.filter((item) => isItemDragDisabled?.(item)) : [];
 
@@ -41,9 +43,9 @@ function DraggableList<T>({
         );
 
     return (
-        <DraggableFlatList
+        <ListComponent
             ref={ref}
-            containerStyle={styles.flex1}
+            containerStyle={disableScroll ? undefined : styles.flex1}
             contentContainerStyle={styles.flexGrow1}
             ListFooterComponentStyle={styles.flex1}
             {...viewProps}

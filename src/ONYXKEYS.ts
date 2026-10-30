@@ -953,6 +953,9 @@ const ONYXKEYS = {
     /** Stores the user's report details columns preference */
     NVP_REPORT_DETAILS_COLUMNS: 'nvp_reportDetailsColumns',
 
+    /** JSON selection and order of fields in the expense view, independent of table columns. */
+    NVP_EXPENSE_FIELDS: 'nvp_expenseFields',
+
     /** Dragged table column widths, keyed by `columnResizingID` then column key. Per device, since ideal widths depend on window size. */
     TABLE_COLUMN_WIDTHS: 'tableColumnWidths',
 
@@ -2070,6 +2073,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.NVP_REPORT_LAYOUT_OPTION]: string;
     [ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS]: string[];
+    [ONYXKEYS.NVP_EXPENSE_FIELDS]: string;
     [ONYXKEYS.TABLE_COLUMN_WIDTHS]: OnyxTypes.TableColumnWidths;
     [ONYXKEYS.SINGLE_RHP_WIDTH]: number;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;

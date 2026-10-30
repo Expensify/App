@@ -1,6 +1,8 @@
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Accessibility from '@libs/Accessibility';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -14,6 +16,7 @@ import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 function ColumnsSettingsListItem({item, isFocused, drag, isActive, onSelectRow, onMoveUp, onMoveDown}: ColumnsSettingsListItemProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
     const accessibilityActions = [
         ...(onMoveUp ? [{name: 'moveUp', label: translate('common.moveUp')}] : []),
         ...(onMoveDown ? [{name: 'moveDown', label: translate('common.moveDown')}] : []),
@@ -52,7 +55,7 @@ function ColumnsSettingsListItem({item, isFocused, drag, isActive, onSelectRow, 
                 isFocused={isActive ? true : isFocused}
                 showTooltip={false}
                 onSelectRow={onSelectRow}
-                onLongPressRow={startDrag}
+                onLongPressRow={isScreenReaderEnabled ? undefined : startDrag}
                 isDisabled={item.isDisabled}
                 accessibilityActions={accessibilityActions}
                 onAccessibilityAction={({nativeEvent}) => {

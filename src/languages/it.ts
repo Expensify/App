@@ -10298,6 +10298,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         columns: 'Colonne',
         customizeFields: 'Personalizza campi',
+        columnMoved: ({columnName, position, total}: {columnName: string; position: string; total: string}) =>
+            `Il campo ${columnName} è stato spostato alla posizione ${position} di ${total}`,
         editColumns: 'Modifica colonne',
         resetColumns: 'Reimposta colonne',
         groupColumns: 'Raggruppa colonne',

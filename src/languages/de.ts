@@ -10344,6 +10344,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         columns: 'Spalten',
         customizeFields: 'Felder anpassen',
+        columnMoved: ({columnName, position, total}: {columnName: string; position: string; total: string}) => `${columnName} auf Position ${position} von ${total} verschoben`,
         editColumns: 'Spalten bearbeiten',
         resetColumns: 'Spalten zurücksetzen',
         groupColumns: 'Spalten gruppieren',

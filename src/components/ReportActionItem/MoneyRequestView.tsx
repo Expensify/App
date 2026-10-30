@@ -231,6 +231,7 @@ function MoneyRequestView({
     const {getReportRHPActiveRoute} = useActiveRoute();
     const {showConfirmModal} = useConfirmModal();
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
+    const [expenseFields] = useOnyx(ONYXKEYS.NVP_EXPENSE_FIELDS);
     const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
 
     const {currentSearchResults} = useSearchResultsContext();
@@ -1289,7 +1290,7 @@ function MoneyRequestView({
         requiredFields.push(CONST.SEARCH.TABLE_COLUMNS.TAG);
     }
     // A display preference must not prevent users from seeing or fixing a required expense field.
-    const fieldsToShow = [...new Set([...getMoneyRequestViewFields(savedColumns, savedColumns.length > 0), ...requiredFields])];
+    const fieldsToShow = [...new Set([...getMoneyRequestViewFields(savedColumns, shouldUseReportFields ? expenseFields : undefined), ...requiredFields])];
 
     const editOrSplitAmount = () => {
         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {

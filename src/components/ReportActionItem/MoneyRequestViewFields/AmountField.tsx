@@ -5,6 +5,7 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
@@ -24,6 +25,7 @@ type AmountFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     };
 
 function AmountField({pendingAction, title, description, hintText, errorText, copyValue, onPress, canEdit, shouldShowPaid}: AmountFieldProps) {
+    const theme = useTheme();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
@@ -46,7 +48,12 @@ function AmountField({pendingAction, title, description, hintText, errorText, co
                         >
                             {title}
                         </Text>
-                        {!!shouldShowPaid && <Icon src={icons.Checkmark} />}
+                        {!!shouldShowPaid && (
+                            <Icon
+                                src={icons.Checkmark}
+                                fill={theme.iconSuccessFill}
+                            />
+                        )}
                     </View>
                 ) : undefined
             }

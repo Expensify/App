@@ -5,36 +5,35 @@ import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type React from 'react';
 
 type ColumnItem = {
-    /** Localized column label, also used as the screen reader name. */
+    /** Display label for the column, also used as its accessible name. */
     text: string;
 
-    /** Column ID passed back when a row is reordered. */
+    /** Column to update when the user changes its selection or position. */
     value: SearchCustomColumnIds;
 
-    /** Stable row key matching the column ID. */
     keyForList: SearchCustomColumnIds;
 
-    /** Selected columns appear before the alphabetically ordered unselected columns. */
+    /** The table shows only selected columns. */
     isSelected: boolean;
 
-    /** Required fields cannot be deselected, but can still be reordered. */
+    /** Prevents deselection of required columns without preventing reordering. */
     isDisabled: boolean;
 
-    /** Unselected columns remain visible without becoming drop targets. */
+    /** Prevents reordering without disabling the selection checkbox. */
     isDragDisabled: boolean;
 
-    /** Drag icon wrapped in a touch target by the native variant. */
+    /** Element rendered on the left side of the list item, such as a drag handle. */
     leftElement: React.JSX.Element;
 };
 
 type ColumnsSettingsListItemProps = Pick<DraggableListRenderItemParams<ColumnItem>, 'item' | 'isFocused' | 'drag' | 'isActive'> & {
-    /** Toggles optional columns without changing the selection of required columns. */
+    /** Changes whether the column appears in the table. */
     onSelectRow: ListItemProps<ColumnItem>['onSelectRow'];
 
-    /** Omitted when this row is already first or cannot be reordered. */
+    /** Moves the column before the previous selected column. Omit when that move is unavailable. */
     onMoveUp?: () => void;
 
-    /** Omitted when the next row is unselected or this row cannot be reordered. */
+    /** Moves the column after the next selected column. Omit when that move is unavailable. */
     onMoveDown?: () => void;
 };
 

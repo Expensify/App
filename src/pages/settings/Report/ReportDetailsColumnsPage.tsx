@@ -17,6 +17,8 @@ import {hasNonReimbursableTransactions} from '@libs/TransactionUtils';
 
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 
+import {setNameValuePair} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -28,11 +30,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
-/**
- * Default selected columns for the report details table.
- * These match what MoneyRequestReportTransactionList shows by default
- * (the always-true columns from getColumnsToShow when isExpenseReportView=true).
- */
+// Reset restores the report table's default columns.
 const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
     CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
     CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -44,13 +42,14 @@ const REPORT_DETAILS_DEFAULT_COLUMNS: SearchCustomColumnIds[] = [
 
 const ALL_REPORT_DETAILS_CUSTOM_COLUMNS = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS).filter(isReportDetailsCustomColumn);
 const EXPENSE_DEFAULT_FIELDS = getMoneyRequestViewFields().filter(isReportDetailsCustomColumn);
-const ALL_EXPENSE_FIELDS = getMoneyRequestViewFields([...EXPENSE_DEFAULT_FIELDS, ...ALL_REPORT_DETAILS_CUSTOM_COLUMNS], true).filter(isReportDetailsCustomColumn);
+const ALL_EXPENSE_FIELDS = getMoneyRequestViewFields(ALL_REPORT_DETAILS_CUSTOM_COLUMNS).filter(isReportDetailsCustomColumn);
 
 function ReportDetailsColumnsPage() {
     const route = useRoute<PlatformStackRouteProp<ReportSettingsNavigatorParamList, typeof SCREENS.REPORT_SETTINGS.COLUMNS | typeof SCREENS.REPORT_SETTINGS.FIELDS>>();
     const reportID = route.params.reportID;
     const isExpenseView = route.name === SCREENS.REPORT_SETTINGS.FIELDS;
-    const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
+    const [reportDetailsColumns, {status: tableColumnsStatus}] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
+    const [expenseFields, {status: expenseFieldsStatus}] = useOnyx(ONYXKEYS.NVP_EXPENSE_FIELDS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     // Selector keeps re-renders scoped to this report's transactions. We intentionally return undefined
@@ -74,7 +73,7 @@ function ReportDetailsColumnsPage() {
     // Wait for transactions to load before rendering. ColumnsSettingsList snapshots
     // currentColumns in useState on mount and does not sync prop updates, so we must
     // pass the final value on first render.
-    const isLoading = !reportTransactions;
+    const isLoading = !reportTransactions || tableColumnsStatus === 'loading' || (isExpenseView && expenseFieldsStatus === 'loading');
 
     const rawSavedColumns = (reportDetailsColumns ?? []).filter(isReportDetailsCustomColumn);
     const savedColumns = rawSavedColumns.filter((column) => isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
@@ -95,7 +94,7 @@ function ReportDetailsColumnsPage() {
               }).filter(isReportDetailsCustomColumn)
             : REPORT_DETAILS_DEFAULT_COLUMNS;
     }
-    const effectiveColumns = isExpenseView ? getMoneyRequestViewFields(savedColumns, savedColumns.length > 0).filter(isReportDetailsCustomColumn) : tableColumns;
+    const effectiveColumns = isExpenseView ? getMoneyRequestViewFields(savedColumns, expenseFields).filter(isReportDetailsCustomColumn) : tableColumns;
 
     const allColumns = (isExpenseView ? ALL_EXPENSE_FIELDS : ALL_REPORT_DETAILS_CUSTOM_COLUMNS).filter(isColumnAvailable);
     const currentColumns = effectiveColumns.filter(isColumnAvailable);
@@ -105,35 +104,18 @@ function ReportDetailsColumnsPage() {
         // Skip saving if columns haven't changed from the effective state, to avoid
         // switching from the default path to the custom path in getColumnsToShow unnecessarily.
         if (!arraysEqual(selectedColumnIds, currentColumns)) {
-            const columnsToSave = [...selectedColumnIds];
             if (isExpenseView) {
-                // Preserve table-only and unavailable workspace columns from the account-wide preference.
-                const columnsToPreserve = rawSavedColumns.length > 0 ? rawSavedColumns : tableColumns;
-                for (const [index, column] of columnsToPreserve.entries()) {
-                    if (allColumns.includes(column)) {
-                        continue;
+                const fieldsToSave = [...selectedColumnIds];
+                // Workspace availability must not erase a field selected for other workspaces.
+                for (const [index, column] of effectiveColumns.entries()) {
+                    if (!isColumnAvailable(column)) {
+                        fieldsToSave.splice(Math.min(index, fieldsToSave.length), 0, column);
                     }
-                    let editorColumn: SearchCustomColumnIds | undefined;
-                    if (column === CONST.SEARCH.TABLE_COLUMNS.POSTED) {
-                        editorColumn = CONST.SEARCH.TABLE_COLUMNS.DATE;
-                    } else if (column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE) {
-                        editorColumn = CONST.SEARCH.TABLE_COLUMNS.ATTENDEES;
-                    }
-                    if (editorColumn) {
-                        const editorIndex = columnsToSave.indexOf(editorColumn);
-                        if (editorIndex === -1) {
-                            continue;
-                        }
-                        if (!columnsToPreserve.includes(editorColumn)) {
-                            // Keep the original table column when this editor was only added to represent it.
-                            columnsToSave[editorIndex] = column;
-                            continue;
-                        }
-                    }
-                    columnsToSave.splice(Math.min(index, columnsToSave.length), 0, column);
                 }
+                setNameValuePair(ONYXKEYS.NVP_EXPENSE_FIELDS, JSON.stringify(fieldsToSave), expenseFields ?? '');
+            } else {
+                setReportDetailsColumns(selectedColumnIds, reportDetailsColumns);
             }
-            setReportDetailsColumns(columnsToSave, reportDetailsColumns);
         }
         Navigation.goBack();
     };

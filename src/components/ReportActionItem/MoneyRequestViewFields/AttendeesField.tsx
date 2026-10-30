@@ -15,7 +15,7 @@ import EditableField from './EditableField';
 
 type AttendeesFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
     Pick<MenuItemProps, 'onPress' | 'errorText' | 'copyValue'> & {
-        /** Attendees enriched with their personal details and sorted for display. */
+        /** Expense participants with the names and avatars to display. */
         attendees: AttendeeWithAccountID[] | undefined;
 
         /** Plain text summary used by assistive technology. */
@@ -24,7 +24,7 @@ type AttendeesFieldProps = Pick<OfflineWithFeedbackProps, 'pendingAction'> &
         /** Localized amount per person. An empty string omits it from the field label. */
         formattedPerAttendeeAmount: string;
 
-        /** Enables attendee editing. Otherwise all attendee pills remain visible for copying. */
+        /** All attendees remain visible for copying when editing is unavailable. */
         canEdit: boolean;
     };
 

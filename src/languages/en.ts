@@ -10578,6 +10578,7 @@ const translations = {
         },
         columns: 'Columns',
         customizeFields: 'Customize fields',
+        columnMoved: ({columnName, position, total}: {columnName: string; position: string; total: string}) => `${columnName} moved to position ${position} of ${total}`,
         editColumns: 'Edit columns',
         resetColumns: 'Reset columns',
         groupColumns: 'Group columns',

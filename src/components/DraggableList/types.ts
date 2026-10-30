@@ -23,6 +23,9 @@ type DraggableListProps<T> = {
     /** Called after the animation has been completed. Returns updated ordering of data  */
     onDragEnd?: (params: DraggableListData<T>) => void;
 
+    /** Suspend external keyboard navigation while a web drag is active. */
+    onDragActiveChange?: (isActive: boolean) => void;
+
     /** Called when a row is selected via Enter/Space key */
     onSelectRow?: (item: T) => void;
 
