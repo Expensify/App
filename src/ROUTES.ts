@@ -704,15 +704,8 @@ const DYNAMIC_ROUTES = {
     PROFILE: {
         path: 'a/:accountID',
         entryScreens: ['*'],
-        getRoute: (accountID?: number, login?: string, policyID?: string) => getUrlWithParams(`a/${accountID}`, {login, policyID}),
-        queryParams: ['login', 'policyID'],
-    },
-    PROFILE_DISPLAY_NAME: {
-        // `accountID` is carried as `memberAccountID` so it never collides with the `accountID` of the
-        // profile this is opened from.
-        path: 'display-name/:memberAccountID/:policyID',
-        entryScreens: [SCREENS.DYNAMIC_PROFILE],
-        getRoute: (memberAccountID: number, policyID: string) => `display-name/${memberAccountID}/${policyID}` as const,
+        getRoute: (accountID?: number, login?: string) => getUrlWithParams(`a/${accountID}`, {login}),
+        queryParams: ['login'],
     },
     PROFILE_AVATAR: {
         path: 'avatar/:accountID',
@@ -1432,6 +1425,10 @@ const DYNAMIC_ROUTES = {
         path: 'card-details/:cardID',
         entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD, SCREENS.WORKSPACE.MEMBER_DETAILS],
         getRoute: (cardID: string) => `card-details/${cardID}` as const,
+    },
+    WORKSPACE_MEMBER_DISPLAY_NAME: {
+        path: 'display-name',
+        entryScreens: [SCREENS.WORKSPACE.MEMBER_DETAILS],
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
         path: 'account',

@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
@@ -21,9 +22,12 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import WorkspaceMemberDetailsPage from '@pages/workspace/members/WorkspaceMemberDetailsPage';
 
+import * as PersonalDetailsActions from '@userActions/PersonalDetails';
+import * as ReportActions from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {CompanyAddress, OfficeLocation} from '@src/types/onyx/Policy';
@@ -59,7 +63,17 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const renderPage = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.MEMBER_DETAILS]) => {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, CurrentReportIDContextProvider, ModalProvider, PersonalDetailsByLoginProvider]}>
+        <ComposeProviders
+            components={[
+                OnyxListItemProvider,
+                LocaleContextProvider,
+                HTMLEngineProvider,
+                CurrentReportIDContextProvider,
+                ModalProvider,
+                PersonalDetailsByLoginProvider,
+                CurrentUserPersonalDetailsProvider,
+            ]}
+        >
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.MEMBER_DETAILS}>
@@ -908,6 +922,127 @@ describe('WorkspaceMemberDetailsPage', () => {
         });
         expect(screen.queryByTestId('WorkspaceMemberDetailsPage')).not.toBeOnTheScreen();
 
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    const setMemberPersonalDetails = async (personalDetails: Record<string, unknown>) => {
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[invitedAccountID]: personalDetails});
+        });
+    };
+
+    it('shows the profile rows directly in the member details, in order, instead of a Profile row', async () => {
+        // Given a validated member with a timezone, so their local time can be shown
+        await setMemberPersonalDetails({validated: true});
+
+        // When the admin opens the member details
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the email, display name, local time, role and chat history rows appear in that order
+        const expectedLabels = [
+            TestHelper.translateLocal('common.email'),
+            TestHelper.translateLocal('displayNamePage.headerTitle'),
+            TestHelper.translateLocal('detailsPage.localTime'),
+            TestHelper.translateLocal('common.role'),
+            TestHelper.translateLocal('profilePage.seeChatHistory'),
+        ];
+        const labels = (await screen.findAllByText(new RegExp(`^(${expectedLabels.join('|')})$`))).map((label) => String(label.props.children));
+        expect(labels).toEqual(expectedLabels);
+
+        // And the Profile row they used to sit behind is gone
+        expect(screen.queryByText(TestHelper.translateLocal('common.profile'))).not.toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('loads the public profile of the member so their local time is available', async () => {
+        const openPublicProfilePageSpy = jest.spyOn(PersonalDetailsActions, 'openPublicProfilePage');
+
+        // When the admin opens the member details
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the public profile is requested, because the member profile request doesn't return the timezone or validated status
+        expect(openPublicProfilePageSpy).toHaveBeenCalledWith(invitedAccountID);
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('hides the local time of a custom agent', async () => {
+        // Given a member who is a custom agent, even with a timezone and validated status
+        await setMemberPersonalDetails({validated: true, isCustomAgent: true});
+
+        // When the admin opens the member details
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the local time is hidden, because an agent has no local time, and the history entry uses the agent wording
+        expect(await screen.findByText(TestHelper.translateLocal('profilePage.viewAgentHistory'))).toBeOnTheScreen();
+        expect(screen.queryByText(TestHelper.translateLocal('detailsPage.localTime'))).not.toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('lets an admin open the display name editor only when the member has no name set', async () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // Given a member with no first or last name
+        await setMemberPersonalDetails({firstName: '', lastName: '', displayName: invitedEmail});
+
+        // When the admin opens the member details and presses the display name row
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByTestId('member-display-name-menu-item'), {nativeEvent: {}});
+
+        // Then the display name editor opens on top of the member details
+        await waitFor(() => {
+            expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(DYNAMIC_ROUTES.WORKSPACE_MEMBER_DISPLAY_NAME.path));
+        });
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('shows the display name as read-only once the member has a name', async () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the admin opens the details of a member whose name is already set and presses the display name row
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+        const displayNameItem = await screen.findByTestId('member-display-name-menu-item');
+        fireEvent.press(displayNameItem, {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the name is shown but the editor doesn't open, because only an unset name can be set by an admin
+        expect(within(displayNameItem).getByText('Invited User')).toBeOnTheScreen();
+        expect(navigateSpy).not.toHaveBeenCalled();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('opens a DM with the member from the Message button', async () => {
+        const navigateToAndOpenReportSpy = jest.spyOn(ReportActions, 'navigateToAndOpenReport').mockImplementation(() => {});
+
+        // When the admin opens the member details and presses Message
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByText(TestHelper.translateLocal('common.message')));
+
+        // Then the 1:1 chat with the member is opened, found or created by their login
+        expect(navigateToAndOpenReportSpy).toHaveBeenCalledWith(expect.objectContaining({login: invitedEmail}));
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('hides the Message button on the current user', async () => {
+        // When the admin opens their own member details
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then there is no Message button, because there is no one else to message
+        expect(await screen.findByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        expect(screen.queryByText(TestHelper.translateLocal('common.message'))).not.toBeOnTheScreen();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });

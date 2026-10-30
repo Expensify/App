@@ -1137,6 +1137,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.WORKSPACE.DYNAMIC_MEMBER_DISPLAY_NAME]: DYNAMIC_ROUTES.WORKSPACE_MEMBER_DISPLAY_NAME.path,
                         [SCREENS.WORKSPACE.ROOM_CREATE]: {
                             path: ROUTES.WORKSPACE_ROOM_CREATE.route,
                         },
@@ -1856,7 +1857,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.PROFILE]: {
                     screens: {
                         [SCREENS.DYNAMIC_PROFILE]: DYNAMIC_ROUTES.PROFILE.path,
-                        [SCREENS.DYNAMIC_PROFILE_DISPLAY_NAME]: DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.path,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.PARTICIPANTS]: {

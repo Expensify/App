@@ -1,3 +1,4 @@
+import AutoUpdateTime from '@components/AutoUpdateTime';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
@@ -11,6 +12,7 @@ import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation'
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import {PromotedActions} from '@components/PromotedActionsBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -23,11 +25,12 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
@@ -59,7 +62,8 @@ import {
     shouldHideDynamicExternalWorkflowPeople,
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
-import {isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
+import {getChatHistoryTranslationKey, navigateToChatHistory, shouldShowLocalTime as shouldShowLocalTimeUtil} from '@libs/ProfileUtils';
+import {getChatByParticipants, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
@@ -75,17 +79,20 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 
 import variables from '@styles/variables';
 
+import {openPublicProfilePage} from '@userActions/PersonalDetails';
 import {clearWorkspaceOwnerChangeFlow, openPolicyMemberProfilePage, removeMembers} from '@userActions/Policy/Member';
+import {isAnonymousUser as isAnonymousUserSession} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, Card as MemberCard, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
@@ -103,12 +110,15 @@ function isNameValuePairsObject(value: unknown): value is Record<string, unknown
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+const createMemberChatReportIDSelector = (memberAccountID: number, currentUserAccountID: number) => (reports: OnyxCollection<Report>) =>
+    getChatByParticipants([memberAccountID, currentUserAccountID], reports)?.reportID;
+
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const {convertToDisplayString} = useCurrencyListActions();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info', 'Transfer']);
+    const icons = useMemoizedLazyExpensifyIcons(['CommentBubbles', 'History', 'RemoveMembers', 'Transfer']);
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const isWorkArrangementBetaEnabled = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS);
@@ -127,11 +137,19 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const expensifyCardSettings = useExpensifyCardFeeds(policyID);
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const isSupportalSession = useIsSupportalSession();
 
     const routeAccountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
+    const memberPersonalDetailsByLogin = usePersonalDetailsByLogins([memberLogin]);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
+    const [memberChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: createMemberChatReportIDSelector(accountID, currentUserAccountID)});
+    const [hasMemberChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberChatReportID}`, {selector: Boolean});
     const member = policy?.employeeList?.[memberLogin];
     const memberWorkArrangement = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
     const memberOfficeLocation = getMemberOfficeLocation(getAssignableOfficeLocations(policy, translate, localeCompare), member?.officeID);
@@ -163,6 +181,24 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const canEditSelectedMemberRole = !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canManageSelectedMemberRole && (!isReimburser || canReimburserChangeRole);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
+    const isCustomAgent = !!details.isCustomAgent;
+    const hasDisplayNameSet = !!details.firstName || !!details.lastName;
+    const canSetDisplayName = !hasDisplayNameSet && isPolicyAdmin(policy, currentUserLogin);
+    const shouldShowLocalTime = shouldShowLocalTimeUtil({accountID, timezone: details.timezone, isCustomAgent, isValidated: !!details.validated});
+    const shouldShowMessageButton = !isSelectedMemberCurrentUser && !isAnonymousUserSession();
+    const messageAction = PromotedActions.message({
+        accountID,
+        login: memberLogin,
+        personalDetailsByLogin: memberPersonalDetailsByLogin,
+        personalDetails,
+        currentUserAccountID,
+        introSelected,
+        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        hasReportActions: hasMemberChatReportActions,
+        conciergeChat,
+        isSupportalSession,
+    });
 
     const {approvalWorkflows, enforcedApprovalWorkflows, availableMembers, usedApproverEmails, approverPendingActionByMemberEmail} = useApprovalWorkflows(policy);
 
@@ -221,6 +257,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     useEffect(() => {
         openPolicyMemberProfilePage(policyID, accountID);
     }, [policyID, accountID]);
+
+    // OpenPolicyMemberProfilePage doesn't return the member's timezone or validated status, which Local time needs
+    useEffect(() => {
+        openPublicProfilePage(accountID);
+    }, [accountID]);
 
     // Filter out travel cards — they should not appear on the member profile page
     // as they expose card-level controls and data not intended for workspace admin view.
@@ -355,10 +396,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         showRemoveMemberModal();
     };
 
-    const navigateToProfile = () => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID, undefined, policyID)));
-    };
-
     const navigateToDetails = (card: MemberCard) => {
         if (card.bank === CONST.EXPENSIFY_CARD.BANK) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(card.cardID.toString())));
@@ -420,26 +457,30 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     {displayName}
                                 </Text>
                             )}
-                            {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
-                                shouldRenderTransferOwnerButton(fundList) && (
-                                    <ButtonDisabledWhenOffline
-                                        onPress={startChangeOwnershipFlow}
-                                        style={styles.mb5}
+                            <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentCenter, styles.gap2, styles.mb5]}>
+                                {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
+                                    shouldRenderTransferOwnerButton(fundList) && (
+                                        <ButtonDisabledWhenOffline onPress={startChangeOwnershipFlow}>
+                                            <Button.Icon src={icons.Transfer} />
+                                            <Button.Text>{translate('workspace.people.transferOwner')}</Button.Text>
+                                        </ButtonDisabledWhenOffline>
+                                    )
+                                ) : (
+                                    <Button
+                                        onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
+                                        isDisabled={!canRemoveSelectedMember}
                                     >
-                                        <Button.Icon src={icons.Transfer} />
-                                        <Button.Text>{translate('workspace.people.transferOwner')}</Button.Text>
-                                    </ButtonDisabledWhenOffline>
-                                )
-                            ) : (
-                                <Button
-                                    onPress={isAccountLocked ? showLockedAccountModal : askForConfirmationToRemove}
-                                    isDisabled={!canRemoveSelectedMember}
-                                    style={styles.mb5}
-                                >
-                                    <Button.Icon src={icons.RemoveMembers} />
-                                    <Button.Text>{translate('workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
-                                </Button>
-                            )}
+                                        <Button.Icon src={icons.RemoveMembers} />
+                                        <Button.Text>{translate('workspace.people.removeWorkspaceMemberButtonTitle')}</Button.Text>
+                                    </Button>
+                                )}
+                                {shouldShowMessageButton && (
+                                    <Button onPress={messageAction.onSelected}>
+                                        <Button.Icon src={icons.CommentBubbles} />
+                                        <Button.Text>{translate('common.message')}</Button.Text>
+                                    </Button>
+                                )}
+                            </View>
                         </View>
                         <View style={styles.w100}>
                             <MenuItemField
@@ -448,6 +489,20 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             >
                                 <MenuItem.Copy value={memberLoginToCopy} />
                             </MenuItemField>
+                            <OfflineWithFeedback pendingAction={details.pendingFields?.displayName}>
+                                <MenuItemField
+                                    name={translate('displayNamePage.headerTitle')}
+                                    value={hasDisplayNameSet ? displayName : ''}
+                                    onPress={canSetDisplayName ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_MEMBER_DISPLAY_NAME.path)) : undefined}
+                                    testID="member-display-name-menu-item"
+                                />
+                            </OfflineWithFeedback>
+                            {shouldShowLocalTime && !!details.timezone && (
+                                <AutoUpdateTime
+                                    timezone={details.timezone}
+                                    shouldRemoveHorizontalPadding={false}
+                                />
+                            )}
                             <MenuItemWithTopDescription
                                 disabled={!canEditSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}
@@ -544,14 +599,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                 </>
                             )}
-                            <View style={styles.mb5}>
-                                <MenuItemNavigation
-                                    title={translate('common.profile')}
-                                    icon={icons.Info}
-                                    onPress={navigateToProfile}
-                                    testID="member-profile-menu-item"
-                                />
-                            </View>
+                            {!isAnonymousUserSession() && (
+                                <View style={styles.mb5}>
+                                    <MenuItemNavigation
+                                        title={translate(getChatHistoryTranslationKey(isCustomAgent, memberLogin))}
+                                        icon={icons.History}
+                                        onPress={() => navigateToChatHistory(accountID)}
+                                        testID="member-chat-history-menu-item"
+                                    />
+                                </View>
+                            )}
                             {memberCards.length > 0 && (
                                 <>
                                     <View style={[styles.ph5, styles.pv3]}>

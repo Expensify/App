@@ -17,9 +17,12 @@ import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 type AutoUpdateTimeProps = {
     /** Timezone of the user from their personal details */
     timezone: Timezone;
+
+    /** Whether to drop the row's horizontal padding, which is needed when it sits in an already padded section */
+    shouldRemoveHorizontalPadding?: boolean;
 };
 
-function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
+function AutoUpdateTime({timezone, shouldRemoveHorizontalPadding = true}: AutoUpdateTimeProps) {
     const {translate, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
 
@@ -42,7 +45,7 @@ function AutoUpdateTime({timezone}: AutoUpdateTimeProps) {
     return (
         <View style={[styles.w100, styles.detailsPageSectionContainer]}>
             <MenuItemWithTopDescription
-                style={[styles.ph0]}
+                style={shouldRemoveHorizontalPadding ? [styles.ph0] : undefined}
                 title={`${DateUtils.formatToLocalTime(currentUserLocalTime, dateFnsLocale)} ${timezoneName}`}
                 description={translate('detailsPage.localTime')}
                 interactive={false}

@@ -1153,7 +1153,7 @@
 "../../src/pages/PrivateNotes/PrivateNotesEditPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/PrivateNotes/PrivateNotesListPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/ProfilePage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/ProfilePage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	5
+"../../src/pages/ProfilePage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	4
 "../../src/pages/ProfilePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/ProfilePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/ReimbursementAccount/AddressFormFields.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
