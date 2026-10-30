@@ -75,7 +75,6 @@ function putOnHold({
     initialReportID: string | undefined;
     initialReport: OnyxEntry<OnyxTypes.Report>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
-    /** Actions of the transaction's report, which is the thread's parent. The hold is announced on that report instead of the thread when the thread is its only expense */
     transactionReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isOffline: boolean;
     currentUserLogin: string;
@@ -389,7 +388,6 @@ function putTransactionsOnHold({
     allReports: OnyxCollection<OnyxTypes.Report>;
     comment: string;
     reportID: string;
-    /** Actions of the report identified by reportID, which every transaction being held belongs to */
     reportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isOffline: boolean;
     currentUserLogin: string;

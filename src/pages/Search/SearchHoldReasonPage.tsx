@@ -112,7 +112,6 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                 const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                 const transaction = relevantTransactions.find((t) => t.transactionID === transactionID) ?? selectedTransactions[transactionID].transaction;
-                // The selection can span several expense reports and comes from the search snapshot, so each transaction's report actions are read from the same snapshot
                 const transactionReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`];
 
                 putOnHold({
