@@ -141,6 +141,35 @@ describe('attachment and API authentication', () => {
         expect(imageResponse.mock.calls).toEqual(isCancelled ? [[OLD_TOKEN]] : [[OLD_TOKEN], [NEW_TOKEN]]);
     });
 
+    it.each([
+        ['API', CONST.HTTP_STATUS.OK],
+        ['image', CONST.HTTP_STATUS.OK],
+        ['API', CONST.HTTP_STATUS.UNAUTHORIZED],
+        ['image', CONST.HTTP_STATUS.UNAUTHORIZED],
+    ] as const)('replays a delayed 401 after %s recovery: replay=%s', async (recoverySource, replayStatus) => {
+        // Given a probe held in flight while another caller completes authentication
+        let finishProbe: (value: Response) => void = () => {};
+        imageResponse.mockReturnValueOnce(
+            new Promise((resolve) => {
+                finishProbe = resolve;
+            }),
+        );
+        const pendingProbe = startImageRequest();
+        await waitForBatchedUpdates();
+        await (recoverySource === 'API' ? startAPIRequest() : startImageRequest());
+        await waitForBatchedUpdates();
+        imageResponse.mockResolvedValue(response(replayStatus));
+
+        // When the old probe's rejection arrives after shared authentication has settled
+        finishProbe(response(401));
+        const result = await pendingProbe;
+
+        // Then the probe replays once with current credentials without authenticating again
+        expect(result).toBe(replayStatus);
+        expect(authenticate).toHaveBeenCalledTimes(1);
+        expect(imageResponse.mock.calls).toEqual(recoverySource === 'API' ? [[OLD_TOKEN], [NEW_TOKEN]] : [[OLD_TOKEN], [OLD_TOKEN], [NEW_TOKEN], [NEW_TOKEN]]);
+    });
+
     it('starts a new authentication cycle after an earlier recovery settles', async () => {
         // Given an image that expires again after a completed recovery
         let rejectedToken = OLD_TOKEN;
