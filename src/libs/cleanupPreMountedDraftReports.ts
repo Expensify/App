@@ -39,7 +39,7 @@ function cleanupReportDrafts(markers: OnyxCollection<boolean>) {
     let reportDraftsConnection: ReturnType<typeof Onyx.connectWithoutView>;
 
     function handleReportDrafts(reportDrafts: OnyxCollection<Report>) {
-        Onyx.disconnect(reportDraftsConnection);
+        reportDraftsConnection.unsubscribe();
         Onyx.multiSet(getPreMountedDraftReportCleanupData(markers, reportDrafts));
     }
 
@@ -60,7 +60,7 @@ function cleanupPreMountedDraftReports() {
     let markersConnection: ReturnType<typeof Onyx.connectWithoutView>;
 
     function handleMarkers(markers: OnyxCollection<boolean>) {
-        Onyx.disconnect(markersConnection);
+        markersConnection.unsubscribe();
         if (!Object.keys(markers ?? {}).length) {
             return;
         }

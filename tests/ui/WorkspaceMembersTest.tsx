@@ -388,7 +388,7 @@ describe('WorkspaceMembers', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
