@@ -17,6 +17,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -91,6 +92,7 @@ function NewChatPage({ref}: NewChatPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const selectionListRef = useRef<SelectionListWithSectionsHandle | null>(null);
     const allPersonalDetails = usePersonalDetails();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {singleExecution} = useSingleExecution();
     const isSupportalSession = useIsSupportalSession();
     const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
@@ -302,13 +304,13 @@ function NewChatPage({ref}: NewChatPageProps) {
             return;
         }
 
-        let login = '';
-
+        let participant: OptionWithKey | undefined;
         if (option?.login) {
-            login = option.login;
+            participant = option;
         } else if (latestSelectedOptions.length === 1) {
-            login = latestSelectedOptions.at(0)?.login ?? '';
+            participant = latestSelectedOptions.at(0);
         }
+        const login = participant?.login;
         if (!login) {
             Log.warn('Tried to create chat with empty login');
             return;
@@ -316,7 +318,8 @@ function NewChatPage({ref}: NewChatPageProps) {
         KeyboardUtils.dismiss().then(() => {
             singleExecution(() =>
                 navigateToAndOpenReport({
-                    userLogins: [login],
+                    login,
+                    personalDetailsByLogin: getPersonalDetailsByLogin(),
                     personalDetails: allPersonalDetails,
                     currentUserAccountID,
                     introSelected,
@@ -447,7 +450,8 @@ function NewChatPage({ref}: NewChatPageProps) {
                 shouldUpdateFocusedIndex
                 shouldSingleExecuteRowSelect
                 confirmButtonOptions={{
-                    onConfirm: (e, option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
+                    onConfirm: () => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption()),
+                    onConfirmFocusedOption: (option) => (latestSelectedOptionsRef.current.length > 0 ? createGroup() : selectOption(option)),
                     isFooterConfirmEnabled: selectedOptions.length > 0,
                 }}
                 footerContent={footerContent}

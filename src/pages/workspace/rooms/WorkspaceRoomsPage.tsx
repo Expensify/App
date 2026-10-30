@@ -24,7 +24,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberWrite, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canMemberWrite, isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -113,7 +113,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         keyForList: report.reportID,
         reportID: report.reportID,
         name: getReportName(report, derivedNames?.[report.reportID]),
-        memberCount: getParticipantsAccountIDsForDisplay(report, true, false, false, undefined, personalDetails).length,
+        memberCount: getParticipantsAccountIDsForDisplay(report, undefined, true, false, false, personalDetails).length,
         action: () => {
             if (isAdmin) {
                 // Admins open the details RHP directly instead of the room report, so the report is never fetched via ReportScreen.
@@ -210,6 +210,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                     onEndReached={loadMoreRooms}
                     onSortingChange={(sorting) => setRoomSort({columnKey: sorting.columnKey === 'members' ? 'members' : 'name', order: sorting.order})}
                     headerComponent={roomsTableHeader}
+                    isPolicyArchived={isArchivedPolicy(policy)}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

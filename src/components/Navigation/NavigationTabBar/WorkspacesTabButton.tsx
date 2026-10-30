@@ -61,7 +61,7 @@ function WorkspacesTabButton({selectedTab, isWideLayout}: WorkspacesTabButtonPro
             role={CONST.ROLE.TAB}
             accessibilityLabel={`${translate('common.workspacesTabTitle')}${workspacesTabIndicatorStatus ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
             accessibilityState={workspacesAccessibilityState}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
         >

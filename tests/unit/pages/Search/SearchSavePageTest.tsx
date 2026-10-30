@@ -75,10 +75,30 @@ it.each([[['12']], [['12', '23']], [['123']]])('renders canonical card selection
 });
 it('renders scalar feed and tax values without calling array display hooks', () => {
     jest.spyOn(SearchUIUtils, 'mapFiltersFormToLabelValueList').mockReturnValueOnce([
-        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, label: 'Feed', value: 'feed-scalar'},
-        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, label: 'Tax', value: 'tax-scalar'},
+        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, id: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, label: 'Feed', value: 'feed-scalar'},
+        {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, id: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE, label: 'Tax', value: 'tax-scalar'},
     ]);
     const output = JSON.stringify(render(<SearchSavePage />).toJSON());
     expect(['feed-scalar', 'tax-scalar'].every((text) => output.includes(text))).toBe(true);
     expect([jest.mocked(useFilterFeedValue).mock.calls.length, jest.mocked(useFilterTaxRateValue).mock.calls.length]).toEqual([0, 0]);
+});
+it("lists the Spend footer's choices with the display settings, in the footer's own wording", () => {
+    // Given a search saved with the footer switched to the report count, the reimbursable total and EUR
+    form = {footerCount: CONST.SEARCH.FOOTER_COUNT.REPORTS, footerTotal: CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE, footerCurrency: CONST.CURRENCY.EUR};
+
+    // When the save page renders its summary
+    const output = JSON.stringify(render(<SearchSavePage />).toJSON());
+
+    // Then each choice shows under its own label, so the user sees what the saved search will reopen on
+    expect(['Count', 'Reports', 'Total', 'Reimbursable', 'Currency', CONST.CURRENCY.EUR].every((text) => output.includes(text))).toBe(true);
+});
+it('lists no footer rows for a search that keeps the footer defaults', () => {
+    // Given a search whose footer was left on its defaults, which the query leaves out
+    form = {};
+
+    // When the save page renders its summary
+    const output = JSON.stringify(render(<SearchSavePage />).toJSON());
+
+    // Then no footer choice is listed
+    expect(['Count', 'Reimbursable', 'Currency'].some((text) => output.includes(text))).toBe(false);
 });

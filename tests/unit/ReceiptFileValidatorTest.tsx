@@ -37,7 +37,7 @@ function createScanDraft(values: Partial<Transaction> = {}): Transaction {
     };
 }
 
-async function getValidatedReceiptState(transaction: Transaction, canEnterScanFieldsManually: boolean) {
+async function getValidatedReceiptState(transaction: Transaction, canEnterScanFieldsManually: boolean, isPolicyExpenseChat = true) {
     let receiptFiles: Record<string, Receipt> = {};
     render(
         <ReceiptFileValidator
@@ -53,6 +53,7 @@ async function getValidatedReceiptState(transaction: Transaction, canEnterScanFi
             draftTransactionIDs={[TRANSACTION_ID]}
             isReceiptReady
             canEnterScanFieldsManually={canEnterScanFieldsManually}
+            isPolicyExpenseChat={isPolicyExpenseChat}
             onReceiptFilesChange={(files) => {
                 receiptFiles = files;
             }}
@@ -78,6 +79,17 @@ describe('ReceiptFileValidator', () => {
 
     it('still scans a receipt whose details the user only partially filled in', async () => {
         expect(await getValidatedReceiptState(createScanDraft({merchant: 'Starbucks', isMerchantSet: true}), true)).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
+    });
+
+    it('submits a P2P scan receipt as open once the amount and date are filled in, since its merchant is optional', async () => {
+        // Given a scan with the amount and date entered but no merchant (#101147)
+        const transaction = createScanDraft({amount: 1234, isAmountSet: true, isCreatedSet: true});
+
+        // When it goes to a chat that doesn't require a merchant
+        const receiptState = await getValidatedReceiptState(transaction, true, false);
+
+        // Then SmartScan is kept from overwriting the entered values
+        expect(receiptState).toBe(CONST.IOU.RECEIPT_STATE.OPEN);
     });
 
     it('keeps SmartScan on surfaces that do not expose the scan fields', async () => {

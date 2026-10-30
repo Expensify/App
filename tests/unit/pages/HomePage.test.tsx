@@ -58,12 +58,7 @@ jest.mock('@components/ScrollView', () => {
     }
     return MockScrollView;
 });
-jest.mock('@components/Navigation/NavigationTabBar', () => {
-    function MockNavigationTabBar() {
-        return null;
-    }
-    return MockNavigationTabBar;
-});
+jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps', () => () => ({}));
 jest.mock('@components/Navigation/QuickCreationActionsBar', () => {
     function MockQuickCreationActionsBar() {
         return null;
@@ -152,7 +147,7 @@ jest.mock('@pages/home/ForYouSection', () => {
     return MockForYouSection;
 });
 jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravelSection'));
-jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
+jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'));
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
 jest.mock('@pages/home/InsightsSection', () => mockSection('InsightsSection'));
 

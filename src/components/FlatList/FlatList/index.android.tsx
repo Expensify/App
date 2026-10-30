@@ -16,7 +16,7 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
     const lastScrollOffsetRef = useRef(0);
     const styles = useThemeStyles();
 
-    const onScreenFocus = useCallback(() => {
+    const onScreenFocus = () => {
         if (typeof ref === 'function') {
             return;
         }
@@ -26,15 +26,12 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
         if (ref.current && lastScrollOffsetRef.current) {
             ref.current.scrollToOffset({offset: lastScrollOffsetRef.current, animated: false});
         }
-    }, [ref]);
+    };
 
-    const handleScrollEnd = useCallback(
-        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            onMomentumScrollEnd?.(event);
-            lastScrollOffsetRef.current = event.nativeEvent.contentOffset.y;
-        },
-        [onMomentumScrollEnd],
-    );
+    const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        onMomentumScrollEnd?.(event);
+        lastScrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+    };
 
     const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         lastScrollOffsetRef.current = event.nativeEvent.contentOffset.y;

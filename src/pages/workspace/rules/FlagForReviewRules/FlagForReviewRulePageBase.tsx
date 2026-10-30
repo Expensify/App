@@ -16,6 +16,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
@@ -39,6 +40,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getFlagForReviewRuleAmountRoute, getFlagForReviewRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -75,6 +77,7 @@ function FlagForReviewRulePageBase({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyData = usePolicyData(policyID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {policy} = policyData;
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
@@ -90,6 +93,7 @@ function FlagForReviewRulePageBase({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [shouldShowError, setShouldShowError] = useState(false);
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
+    const hasDraft = !isEmptyObject(form);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
@@ -105,7 +109,9 @@ function FlagForReviewRulePageBase({
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                if (!hasDraft) {
+                    setDraftFlagForReviewRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                }
             }
             return;
         }
@@ -129,13 +135,13 @@ function FlagForReviewRulePageBase({
 
         initializedDraftForRuleKeyRef.current = categoryName;
         setDraftFlagForReviewRule(getFlagForReviewFormFromCategory(category, getCurrencyDecimals, policyCurrency));
-    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
-    const fetchPolicyData = useCallback(() => {
+    }, [category, categoryName, draftMaxExpenseAmount, getCurrencyDecimals, hasDraft, initialCategoryName, isEditing, policyCurrency, selectedCategoryName]);
+    const fetchPolicyData = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -152,7 +158,7 @@ function FlagForReviewRulePageBase({
             return;
         }
 
-        saveFlagForReviewRule(policyID, policyData.categories, form, isEditing ? categoryName : undefined);
+        saveFlagForReviewRule(policyID, policyData.categories, form, isEditing ? categoryName : undefined, getReviewWorkspaceSettingsTaskCompletion());
 
         // initialCategoryName is also set when the create screen is editing a category's existing rule, and in that
         // case going back one step would land on the New rule hub instead of the category we came from.
@@ -190,7 +196,7 @@ function FlagForReviewRulePageBase({
     const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && hasExplicitFlagAmount(category?.maxExpenseAmount) && !isRuleBeingDeleted,
         onDelete: () => {
-            deleteFlagForReviewRule(policyID, categoryName ?? '', policyData.categories);
+            deleteFlagForReviewRule(policyID, categoryName ?? '', policyData.categories, getReviewWorkspaceSettingsTaskCompletion());
             return true;
         },
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DELETE,
@@ -227,6 +233,7 @@ function FlagForReviewRulePageBase({
                         ruleType={CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_DESCRIBE}
                         onRuleGenerated={setDraftFlagForReviewRule}
+                        isCategoryEligible={(generatedCategory) => !hasExplicitFlagAmount(generatedCategory.maxExpenseAmount)}
                     />
                 )
             }

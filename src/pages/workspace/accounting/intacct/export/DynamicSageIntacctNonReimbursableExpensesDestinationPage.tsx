@@ -22,7 +22,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
@@ -42,19 +42,16 @@ function DynamicSageIntacctNonReimbursableExpensesDestinationPage({policy}: With
         isSelected: config?.export.nonReimbursable === expenseType,
     }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const selectDestination = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.export.nonReimbursable && policyID) {
-                updateSageIntacctNonreimbursableExpensesExportDestination(policyID, row.value, config?.export.nonReimbursable);
-            }
-            goBack();
-        },
-        [config?.export.nonReimbursable, policyID, goBack],
-    );
+    const selectDestination = (row: MenuListItem) => {
+        if (row.value !== config?.export.nonReimbursable && policyID) {
+            updateSageIntacctNonreimbursableExpensesExportDestination(policyID, row.value, config?.export.nonReimbursable);
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen
