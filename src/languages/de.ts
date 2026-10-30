@@ -496,6 +496,7 @@ const translations: TranslationDeepObject<typeof en> = {
         copyToClipboard: 'In Zwischenablage kopieren',
         thisIsTakingLongerThanExpected: 'Das dauert länger als erwartet ...',
         domains: 'Domains',
+        actionRequired: 'Aktion erforderlich',
         duplicate: 'Duplizieren',
         duplicated: 'Dupliziert',
         duplicateExpense: 'Doppelte Ausgabe',
@@ -2908,6 +2909,9 @@ const translations: TranslationDeepObject<typeof en> = {
             plaidBrokenReconnect: 'Beheben Sie Ihre Plaid-Verbindung für ein genaueres Limit Ihrer Expensify Karte',
             plaidConnectForLimit: 'Mit Plaid verbinden, um ein genaueres Limit für Ihre Expensify Karte zu erhalten',
             connect: 'Verbinden',
+            debitBlocked: 'Ihre Bank hat Testtransaktionen auf dieses Konto blockiert',
+            insufficientFunds: 'Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen',
+            validationFailedFallback: 'Ihre Bank hat Testtransaktionen auf dieses Konto blockiert. <concierge-link>Kontaktieren Sie Concierge</concierge-link>',
         },
         linkPlaid: {
             title: 'Mit Plaid verbinden',
@@ -2917,6 +2921,19 @@ const translations: TranslationDeepObject<typeof en> = {
             failureDescription: '<muted-text>Bitte versuchen Sie es erneut oder <concierge-link>wenden Sie sich an Concierge</concierge-link>.</muted-text>',
             wrongAccountHeading: 'Falsches Bankkonto',
             wrongAccountDescription: 'Bitte wählen Sie das passende Bankkonto in Plaid aus.',
+            debitBlocked: 'Ihre Bank hat Testtransaktionen auf dieses Konto blockiert',
+            insufficientFunds: 'Testtransaktionen sind aufgrund unzureichender Deckung fehlgeschlagen',
+            validationFailedFallback: 'Ihre Bank hat Testtransaktionen auf dieses Konto blockiert. <concierge-link>Kontaktieren Sie Concierge</concierge-link>',
+        },
+        fixBankAccount: {
+            title: 'Bankkonto beheben',
+            debitBlockedBody:
+                'Ihre Bank hat die Testtransaktionen zu diesem Konto blockiert.<br/><br/>Bitte lassen Sie die ACH-IDs von Expensify auf die Whitelist setzen:<bullet-list><bullet-item>1270239450</bullet-item><bullet-item>2270239450</bullet-item><bullet-item>4270239450</bullet-item></bullet-list>Senden Sie anschließend die Testtransaktionen unten erneut.',
+            insufficientFundsBody: 'Testtransaktionen sind aufgrund unzureichender Kontodeckung fehlgeschlagen. Sobald wieder Geld verfügbar ist, verwenden Sie die Schaltfläche unten.',
+            resendButton: 'Transaktionen erneut senden',
+            successTitle: 'Transaktionen gesendet!',
+            successBody: 'Prüfen Sie Ihr Bankkonto in den nächsten 1–2 Werktagen.',
+            successButton: 'Verstanden',
         },
         wiseOnboarding: {
             confirmationTitle: 'Lassen Sie uns prüfen, ob alles stimmt',
@@ -12302,6 +12319,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             completeHrSetup: 'HR-Einrichtung abschließen',
             theresAProblemWithAnHRConnection: 'Es gibt ein Problem mit einer HR-Verbindung',
             theresAProblemWithYourAgent: 'Es gibt ein Problem mit Ihrem/Ihren Agent(en)',
+            aBankAccountFailedValidation: 'Ein Bankkonto hat die Validierung nicht bestanden',
         },
     },
     emptySearchView: {

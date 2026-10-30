@@ -49,6 +49,8 @@ jest.mock('@libs/Parser', () => ({
 
 const buildTextTNode = (text: string) => createMock<TText>({type: 'text', data: text});
 const buildTNode = (text = '') => createMock<CustomRendererProps<TBlock>['tnode']>({type: 'block', children: [buildTextTNode(text)]});
+const buildTNodeWithAttributes = (text: string, attributes: Record<string, string>) =>
+    createMock<CustomRendererProps<TBlock>['tnode']>({type: 'block', attributes, children: [buildTextTNode(text)]});
 const buildULTNode = (children: Array<{tagName: string; text: string}>) =>
     createMock<CustomRendererProps<TBlock>['tnode']>({
         type: 'block',
@@ -95,6 +97,29 @@ describe('Bullet list rendering', () => {
             render(<BulletItemRenderer tnode={buildTNode('First item')} />);
             expect(screen.getByText(CONST.DOT_SEPARATOR)).toBeTruthy();
             expect(screen.getByText('First item')).toBeTruthy();
+        });
+
+        // Given a bullet item whose content is a long run of digits, which screen readers would otherwise speak as one
+        // large number ("one billion two hundred seventy million...") instead of an identifier the user can read out
+        it('exposes an aria-label from the markup as the item accessibility label', () => {
+            // When the item carries an aria-label spelling out the digits
+            // HTML attribute names are hyphenated, so they can't satisfy the camelCase property naming rule
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            render(<BulletItemRenderer tnode={buildTNodeWithAttributes('1270239450', {'aria-label': '1 2 7 0 2 3 9 4 5 0'})} />);
+
+            // Then the item is a single accessibility element named by that label, while the digits stay visible as-is
+            expect(screen.getByLabelText('1 2 7 0 2 3 9 4 5 0')).toBeTruthy();
+            expect(screen.getByText('1270239450')).toBeTruthy();
+        });
+
+        // Given the many existing bullet items that carry no aria-label
+        it('does not become an accessibility element when no aria-label is present', () => {
+            // When the item is rendered without the attribute
+            render(<BulletItemRenderer tnode={buildTNode('Plain item')} />);
+
+            // Then nothing is grouped under a label, so the content is read normally
+            expect(screen.queryByLabelText('Plain item')).toBeNull();
+            expect(screen.getByText('Plain item')).toBeTruthy();
         });
     });
 

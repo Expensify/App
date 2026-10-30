@@ -235,6 +235,7 @@ function PaymentMethodList({
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         isPendingDelete = false,
         onPlaidPress?: () => void,
+        onFixPress?: () => void,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
@@ -245,6 +246,10 @@ function PaymentMethodList({
         // An account queued for deletion is struck through, so its action is disabled rather than hidden.
         isActionDisabled: isPendingDelete,
         onActionPress: () => {
+            if (onFixPress) {
+                onFixPress();
+                return;
+            }
             if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
                 return;
@@ -637,10 +642,17 @@ function PaymentMethodList({
                     ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_LINK_PLAID.getRoute(methodID.toString())))
                     : undefined;
 
+            const onFixPress =
+                bankConnectionStatus?.requiresFixHandler && methodID !== undefined
+                    ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(methodID.toString())))
+                    : undefined;
+
+            const rowTitle = paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title;
+
             return {
                 ...paymentMethod,
-                title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
-                onPress: paymentMethodPress,
+                title: rowTitle,
+                onPress: onFixPress ?? paymentMethodPress,
                 onThreeDotsMenuPress: paymentMethodThreeDotsPress,
                 disabled: paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 isMethodActive,
@@ -656,6 +668,7 @@ function PaymentMethodList({
                           paymentMethodThreeDotsPress,
                           paymentMethod.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                           onPlaidPress,
+                          onFixPress,
                       )
                     : undefined,
             };

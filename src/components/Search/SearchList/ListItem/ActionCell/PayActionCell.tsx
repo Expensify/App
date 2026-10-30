@@ -16,6 +16,7 @@ import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
+import {selectPartiallySetupBankAccount} from '@libs/PaymentUtils';
 import {canIOUBePaid, getReimbursableTotal, isArchivedReport, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -109,6 +110,10 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
 
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+
+        if (type === CONST.IOU.PAYMENT_TYPE.VBBA && selectPartiallySetupBankAccount({state: methodID ? bankAccountList?.[methodID]?.accountData?.state : undefined, methodID, policyID})) {
             return;
         }
 

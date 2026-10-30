@@ -25,6 +25,7 @@ type BankAccountConnectionStatus = {
     actionKey?: TranslationPaths;
     requiresUnlockHandler?: boolean;
     requiresPlaidHandler?: boolean;
+    requiresFixHandler?: boolean;
     tooltipKey?: TranslationPaths;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
@@ -52,7 +53,12 @@ function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>
 }
 
 function isBankAccountPartiallySetup(state: string | undefined) {
-    return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
+    return (
+        state === CONST.BANK_ACCOUNT.STATE.SETUP ||
+        state === CONST.BANK_ACCOUNT.STATE.VERIFYING ||
+        state === CONST.BANK_ACCOUNT.STATE.PENDING ||
+        state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED
+    );
 }
 
 function getBankAccountState(accountData: AccountData | undefined): string | undefined {
@@ -113,6 +119,20 @@ function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; 
     }
 
     return false;
+}
+
+function hasInsufficientFundsError(accountData: AccountData | undefined): boolean {
+    if (!accountData?.additionalData?.lastNocCode) {
+        return false;
+    }
+    return CONST.BANK_ACCOUNT.NOC_CODE.INSUFFICIENT_FUNDS.includes(accountData.additionalData.lastNocCode);
+}
+
+function hasDebitBlockedError(accountData: AccountData | undefined): boolean {
+    if (!accountData?.additionalData?.lastNocCode) {
+        return false;
+    }
+    return CONST.BANK_ACCOUNT.NOC_CODE.DEBIT_BLOCKED.includes(accountData.additionalData.lastNocCode);
 }
 
 function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
@@ -199,6 +219,34 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined, cu
                 tone: 'danger',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
+        case CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED: {
+            if (hasInsufficientFundsError(accountData)) {
+                return {
+                    labelKey: 'walletPage.bankAccountStatus.pending',
+                    messageKey: 'walletPage.bankAccountStatus.insufficientFunds',
+                    actionKey: 'common.actionBadge.fix',
+                    requiresFixHandler: true,
+                    tone: 'danger',
+                    brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                };
+            }
+            if (hasDebitBlockedError(accountData)) {
+                return {
+                    labelKey: 'walletPage.bankAccountStatus.pending',
+                    messageKey: 'walletPage.bankAccountStatus.debitBlocked',
+                    actionKey: 'common.actionBadge.fix',
+                    requiresFixHandler: true,
+                    tone: 'danger',
+                    brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+                };
+            }
+            return {
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                messageKey: 'walletPage.bankAccountStatus.validationFailedFallback',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        }
         default:
             return undefined;
     }
@@ -306,6 +354,10 @@ function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankA
 
 function hasBrokenPlaidConnectionBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
     return Object.values(bankAccountList ?? {}).some((bankAccount) => hasBrokenPlaidConnection(bankAccount?.accountData));
+}
+
+function hasValidationFailedBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => bankAccount?.accountData?.state === CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED);
 }
 
 const PERSONAL_INFO_STEP = {
@@ -467,11 +519,14 @@ export {
     isConnectedViaPlaid,
     hasBrokenPlaidConnection,
     canLinkPlaid,
+    hasInsufficientFundsError,
+    hasDebitBlockedError,
     getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
     hasBrokenPlaidConnectionBankAccount,
+    hasValidationFailedBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     isUserAddressVerificationRequired,

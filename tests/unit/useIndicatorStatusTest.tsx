@@ -136,6 +136,12 @@ const TEST_CASES = {
         status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
         indicatorPolicyID: undefined,
     },
+    hasValidationFailedBankAccount: {
+        name: 'has validation failed bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT,
+        indicatorPolicyID: undefined,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const TEST_CASES_NON_ADMIN = {
@@ -163,8 +169,13 @@ const TEST_CASES_NON_ADMIN = {
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const getMockBankAccountData = (name: string, status: IndicatorStatus | undefined) => {
-    if (status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT) {
-        return {state: CONST.BANK_ACCOUNT.STATE.LOCKED};
+    switch (status) {
+        case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
+            return {state: CONST.BANK_ACCOUNT.STATE.LOCKED};
+        case CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT:
+            return {state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED};
+        default:
+            break;
     }
     if (name === brokenPlaidConnectionTestCase.name) {
         return {additionalData: {verifications: {externalApiResponses: {plaidAssets: {needsFixing: true}}}}};

@@ -7034,7 +7034,7 @@ const staticStyles = (theme: ThemeColors) =>
             height: 180,
         },
         paymentMethodErrorRow: {
-            paddingHorizontal: variables.iconSizeMenuItem + variables.iconSizeNormal / 2,
+            paddingHorizontal: variables.iconSizeMenuItem,
         },
         transactionReceiptButton: {
             minWidth: variables.transactionReceiptButtonWidth,

@@ -94,13 +94,23 @@ const TEST_CASES = {
         indicatorColor: defaultTheme.danger,
         status: CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT,
     },
+    hasValidationFailedBankAccount: {
+        name: 'has validation failed bank account',
+        indicatorColor: defaultTheme.danger,
+        status: CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT,
+    },
 } as const satisfies Record<string, IndicatorTestCase>;
 
 const policyKey = `${ONYXKEYS.COLLECTION.POLICY}1` as const;
 
 const getMockBankAccountData = (name: string, status: IndicatorStatus | undefined) => {
-    if (status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT) {
-        return {state: CONST.BANK_ACCOUNT.STATE.LOCKED};
+    switch (status) {
+        case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
+            return {state: CONST.BANK_ACCOUNT.STATE.LOCKED};
+        case CONST.INDICATOR_STATUS.HAS_VALIDATION_FAILED_BANK_ACCOUNT:
+            return {state: CONST.BANK_ACCOUNT.STATE.VALIDATION_FAILED};
+        default:
+            break;
     }
     if (name === brokenPlaidConnectionTestCase.name) {
         return {additionalData: {verifications: {externalApiResponses: {plaidAssets: {needsFixing: true}}}}};

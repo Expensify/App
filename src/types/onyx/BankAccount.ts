@@ -81,6 +81,9 @@ type BankAccountAdditionalData = {
         /** Present once the account is set up with Corpay for Global Reimbursement */
         corpay?: Record<string, unknown>;
     };
+
+    /** ACH Return Codes, reason the payment was returned or flagged for correction */
+    lastNocCode?: string;
 };
 
 /** Model of bank account */
