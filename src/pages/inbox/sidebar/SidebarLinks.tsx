@@ -87,7 +87,7 @@ function SidebarLinks({insets, reportIDs, hasReportData, priorityMode = CONST.PR
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    const contentContainerStyles = StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
+    const contentContainerStyles = StyleSheet.flatten([!listHeaderComponent && styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
 
     const shouldShowEmptyLHN = reportIDs.length === 0;
     const {contentContainerStyle: emptyLHNStyle} = useTabRootScrollProps([styles.flex1, isInLandscapeMode ? styles.pv4 : styles.emptyLHNWrapper], {fillsVisibleArea: true});
@@ -130,7 +130,7 @@ function SidebarLinks({insets, reportIDs, hasReportData, priorityMode = CONST.PR
                         shouldDisableFocusOptions={shouldUseNarrowLayout}
                         optionMode={viewMode}
                         onFirstItemRendered={setSidebarLoaded}
-                        listHeaderComponent={listHeaderComponent}
+                        listHeaderComponent={listHeaderComponent ? <View style={styles.pb2}>{listHeaderComponent}</View> : undefined}
                     />
                 )}
                 {!shouldShowSkeletonBelowHeader && loadingSkeleton}

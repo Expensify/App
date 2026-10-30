@@ -120,7 +120,7 @@ function useMoneyRequestReportScroll({
     fullPolicySnapshot,
 }: UseMoneyRequestReportScrollParams): UseMoneyRequestReportScrollResult {
     const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useActionListContext();
+    const {scrollOffsetRef, syncScrollSharedValues} = useActionListContext();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -175,6 +175,12 @@ function useMoneyRequestReportScroll({
             listLayoutHeightRef.current = layoutMeasurement.height;
             listScrollYRef.current = contentOffset.y;
             syncBottomOffset();
+            syncScrollSharedValues({
+                offset: -contentOffset.y,
+                distanceToOldestEnd: contentOffset.y,
+                distanceToNewestEnd: scrollingVerticalBottomOffset.current,
+                viewportHeight: layoutMeasurement.height,
+            });
 
             // The jump fired by "Latest messages" settles over several frames as deferred items hydrate, so the
             // report is marked as read only once the scroll really lands here.

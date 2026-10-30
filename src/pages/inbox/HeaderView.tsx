@@ -22,6 +22,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useIsPastDate from '@hooks/useIsPastDate';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -34,6 +35,7 @@ import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -124,6 +126,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator', 'Plus']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    // The join button row starts from pb2, not the pb3 of useStackedHeaderRowPadding, so it picks its own compact padding.
+    const shouldUseCompactJoinRow = useIsMobileWebLandscape();
     const isInSidePanel = useIsInSidePanel();
     const route = useRoute();
     const openParentReportInCurrentTab = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
@@ -159,6 +163,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const stackedRowBottomPadding = useStackedHeaderRowPadding();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldClaimOnlyForScreenReader: true});
     const isSelfDM = isSelfDMReportUtils(report);
@@ -559,12 +564,14 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                         </View>
                     )}
                 </View>
-                {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
-                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newConciergeChatButton}</View>}
-                {shouldShowBookCall && shouldStackBookCall && <View style={[styles.ph5, styles.pb3]}>{bookCallButton}</View>}
+                {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && (
+                    <View style={[styles.ph5, shouldUseCompactJoinRow ? styles.pb1 : styles.pb2]}>{joinButton}</View>
+                )}
+                {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, stackedRowBottomPadding]}>{newConciergeChatButton}</View>}
+                {shouldShowBookCall && shouldStackBookCall && <View style={[styles.ph5, stackedRowBottomPadding]}>{bookCallButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
                     {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
-                        <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>
+                        <View style={[styles.flex1, stackedRowBottomPadding]}>{onboardingHelpDropdownButton}</View>
                     )}
                     {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                         <FreeTrial
@@ -577,14 +584,14 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 </View>
                 {!!report && shouldUseNarrowLayout && chatIncludesChronos(report) && (
                     <View style={[styles.appBG, styles.pl0]}>
-                        <View style={[styles.ph5, styles.pb3]}>
+                        <View style={[styles.ph5, stackedRowBottomPadding]}>
                             <ChronosTimerHeaderButton report={report} />
                         </View>
                     </View>
                 )}
                 {!!report && shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && (
                     <View style={[styles.appBG, styles.pl0]}>
-                        <View style={[styles.ph5, styles.pb3]}>
+                        <View style={[styles.ph5, stackedRowBottomPadding]}>
                             <TaskHeaderActionButton reportID={report.reportID} />
                         </View>
                     </View>

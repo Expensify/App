@@ -23,6 +23,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isMobilePhoneWeb} from '@libs/isInLandscapeMode';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -79,6 +80,7 @@ import React, {useEffect, useRef, useState} from 'react';
 
 import AskConciergeWelcome from './AskConciergeWelcome';
 import CollapsedSystemMessages from './CollapsedSystemMessages';
+import CollapsedReportHeaderSpacer from './CollapsibleReportHeader/CollapsedReportHeaderSpacer';
 import ConciergeChatHistoryToggle from './ConciergeChatHistoryToggle';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import {ReportActionPositionContextProvider} from './ReportActionIndexContext';
@@ -601,7 +603,13 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
 
     const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-    const listFooterComponent = shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : undefined;
+    const listFooterComponent =
+        isMobilePhoneWeb || shouldShowOfflineSkeleton ? (
+            <>
+                <CollapsedReportHeaderSpacer />
+                {shouldShowOfflineSkeleton && <ReportActionsSkeletonView shouldAnimate={false} />}
+            </>
+        ) : undefined;
 
     const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,

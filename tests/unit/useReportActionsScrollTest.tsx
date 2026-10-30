@@ -14,6 +14,7 @@ import type {ReactNode} from 'react';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+import {makeMutable} from 'react-native-reanimated';
 
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -207,7 +208,15 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
 
 // Built via a function so the value isn't an inline literal the context-split lint rule would flag; these are all refs/accessors with no re-render concern.
 function buildActionListContextValue() {
-    return {scrollOffsetRef: mockScrollOffsetRef, getScrollOffset: () => mockScrollOffsetRef.current, registerListRef: () => {}, getListRef: () => null};
+    return {
+        scrollOffsetRef: mockScrollOffsetRef,
+        scrollMetricsSV: makeMutable({offset: 0, distanceToOldestEnd: 0, distanceToNewestEnd: 0, viewportHeight: 0}),
+        syncScrollSharedValues: () => {},
+        collapsedHeaderHeightSV: makeMutable(0),
+        getScrollOffset: () => mockScrollOffsetRef.current,
+        registerListRef: () => {},
+        getListRef: () => null,
+    };
 }
 
 function wrapper({children}: {children: ReactNode}) {

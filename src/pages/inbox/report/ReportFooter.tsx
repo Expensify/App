@@ -12,6 +12,7 @@ import useConciergeAskState from '@hooks/useConciergeAskState';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -71,6 +72,7 @@ function ReportFooter() {
     // must keep rendering their own inline one.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const shouldUseCompactChrome = useIsMobileWebLandscape();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
@@ -108,7 +110,8 @@ function ReportFooter() {
         return null;
     }
 
-    const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
+    const chatFooterMinHeight = !isOffline && !shouldUseCompactChrome ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0;
+    const chatFooterStyles = {...styles.chatFooter, minHeight: chatFooterMinHeight};
 
     if (shouldShowResolvedSupportTicketFooter) {
         return (

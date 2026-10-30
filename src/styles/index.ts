@@ -1564,6 +1564,16 @@ const staticStyles = (theme: ThemeColors) =>
             marginTop: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
         },
 
+        /**
+         * The secondary row reserves a fixed height so that the typing indicator appearing and disappearing never
+         * shifts the compose box. On mobile web in landscape that costs scarce vertical space for a row that is empty
+         * most of the time, so there it collapses to its content and accepts the shift instead.
+         */
+        chatItemComposeSecondaryRowCompact: {
+            marginTop: 0,
+            marginBottom: CONST.CHAT_FOOTER_SECONDARY_ROW_PADDING,
+        },
+
         chatItemComposeSecondaryRowSubText: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -3042,6 +3052,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         headerBarNarrowHeight: {
             height: variables.contentHeaderNarrowHeight,
+        },
+
+        headerBarCompactHeight: {
+            height: variables.contentHeaderCompactHeight,
         },
 
         imageViewContainer: {
