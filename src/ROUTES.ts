@@ -1275,6 +1275,10 @@ const DYNAMIC_ROUTES = {
         path: 'rule-has-match-type',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
+    RULES_CARD_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-card-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
     RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE: {
         path: 'rule-merchant-type-to-match',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
@@ -4691,6 +4695,10 @@ const ROUTES = {
     RULES_HAS_MATCH_TYPE: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/has-match-type',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/has-match-type` as const,
+    },
+    RULES_CARD_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/card-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/card-to-match` as const,
     },
     RULES_MERCHANT_TYPE_TO_MATCH: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-type-to-match',

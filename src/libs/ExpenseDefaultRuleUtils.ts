@@ -77,6 +77,9 @@ type ExpenseDefaultFormValues = {
     /** Whether the expense has to carry (`eq`) or lack (`neq`) everything in `hasToMatch` */
     hasMatchType?: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
+    /** The IDs of the cards an expense has to be paid with. The list is matched as an OR */
+    cardsToMatch?: string[];
+
     /** The merchant the expense is renamed to */
     merchant?: string;
 
@@ -137,6 +140,7 @@ const CONDITION = {
     DATE: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
     AMOUNT: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
     HAS: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+    CARD: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
     // The rules engine matches merchant categories on its own key, which search has no equivalent for.
     MERCHANT_TYPE: 'merchantType',
 } as const;
@@ -368,6 +372,11 @@ function buildExpenseDefaultFilters(formValues: Partial<ExpenseDefaultFormValues
         comparisons.push({left: CONDITION.HAS, operator: formValues.hasMatchType ?? EQUAL_TO, right: hasToMatch});
     }
 
+    const cardsToMatch = getNonEmptyValues(formValues.cardsToMatch);
+    if (cardsToMatch.length > 0) {
+        comparisons.push({left: CONDITION.CARD, operator: EQUAL_TO, right: cardsToMatch});
+    }
+
     const [firstComparison, ...rest] = comparisons;
     if (!firstComparison) {
         return undefined;
@@ -460,7 +469,8 @@ function haveSameConditions(first: Partial<ExpenseDefaultFormValues>, second: Pa
         haveSameConditionValues(first.merchantTypesToMatch, second.merchantTypesToMatch) &&
         haveSameDateCondition(first, second) &&
         haveSameAmountCondition(first, second) &&
-        haveSameHasCondition(first, second)
+        haveSameHasCondition(first, second) &&
+        haveSameConditionValues(first.cardsToMatch, second.cardsToMatch)
     );
 }
 
@@ -559,6 +569,7 @@ type EditableConditions = Pick<
     | 'amountMatchType'
     | 'hasToMatch'
     | 'hasMatchType'
+    | 'cardsToMatch'
 >;
 
 /**
@@ -612,6 +623,10 @@ function getConditionFromLeaf(leaf: RuleFilterComparison): EditableConditions | 
             return undefined;
         }
         return {hasToMatch: values, hasMatchType: leaf.operator};
+    }
+
+    if (leaf.left === CONDITION.CARD && leaf.operator === EQUAL_TO) {
+        return {cardsToMatch: values};
     }
 
     if (leaf.operator !== EQUAL_TO) {

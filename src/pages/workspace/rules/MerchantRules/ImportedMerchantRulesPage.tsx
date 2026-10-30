@@ -81,6 +81,7 @@ function getRuleContentKey(formValues: Partial<ExpenseDefaultFormValues>): strin
         formValues.amountMatchType ?? null,
         formValues.hasToMatch ?? [],
         formValues.hasMatchType ?? null,
+        formValues.cardsToMatch ?? [],
         formValues.reimbursableToMatch ?? null,
         formValues.billableToMatch ?? null,
         formValues.merchant ?? '',

@@ -33,6 +33,7 @@ import {deleteRule, setRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
+import {getCardDescription} from '@libs/CardUtils';
 import {getTaxRateDisplayName, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {
@@ -79,6 +80,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
+import usePolicyCards from './usePolicyCards';
 
 type ExpenseDefaultRulePageBaseProps = {
     policyID: string;
@@ -144,6 +146,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         MERCHANT_RULE_INPUT_IDS.AMOUNT_MATCH_TYPE,
         MERCHANT_RULE_INPUT_IDS.HAS_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.HAS_MATCH_TYPE,
+        MERCHANT_RULE_INPUT_IDS.CARDS_TO_MATCH,
     ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -189,7 +192,9 @@ function ExpenseDefaultRulePageBase({
     const {isCreatedFromExpense, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.path, policyID, ruleID);
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Calendar', 'Cash', 'Folder', 'Paperclip', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Calendar', 'Cash', 'CreditCard', 'Folder', 'Paperclip', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
+    const policyCards = usePolicyCards(policyID);
+    const cardDescriptionsByID = new Map(policyCards.map((card) => [String(card.cardID), getCardDescription(card, translate)]));
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -367,6 +372,9 @@ function ExpenseDefaultRulePageBase({
         }
         return translate('search.filters.amount.equalTo', formattedAmount);
     };
+    const cardsToMatch = form?.cardsToMatch ?? [];
+    // A card that has left the workspace keeps its ID, so the row still shows the rule matches on one.
+    const cardsToMatchDisplayName = cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => cardDescriptionsByID.get(cardID) ?? cardID).join(', ') : undefined;
     const hasToMatch = form?.hasToMatch ?? [];
     const hasMatchType = form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
     const getHasToMatchDisplayName = () => {
@@ -479,6 +487,7 @@ function ExpenseDefaultRulePageBase({
                     getDateToMatchDisplayName(),
                     getAmountToMatchDisplayName(),
                     getHasToMatchDisplayName(),
+                    cardsToMatchDisplayName,
                 ].find(Boolean) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
@@ -606,6 +615,13 @@ function ExpenseDefaultRulePageBase({
                     title: currenciesToMatchDisplayName,
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Cash,
+                },
+                {
+                    key: 'cardsToMatch',
+                    description: translate('common.card'),
+                    title: cardsToMatchDisplayName,
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CARD_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.CreditCard,
                 },
                 hasUsableTaxRates(policy)
                     ? {

@@ -33,6 +33,7 @@ const SUBMITTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 const DATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
 const AMOUNT = CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT;
 const HAS = CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS;
+const CARD_ID = CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID;
 const {NOT_EQUAL_TO} = CONST.SEARCH.SYNTAX_OPERATORS;
 const MERCHANT_TYPE = 'merchantType';
 const {LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
@@ -330,6 +331,15 @@ describe('ExpenseDefaultRuleUtils', () => {
             // When its filters are read
             // Then the parts are required, which is the Has option the picker preselects
             expect(rule?.filters).toEqual({left: HAS, operator: EQUAL_TO, right: ['receipt', 'tag']});
+        });
+
+        it('builds a rule that matches on the cards an expense was paid with', () => {
+            // Given a form matching on two of the workspace's cards
+            const rule = buildExpenseDefaultRule({cardsToMatch: ['11111', '22222'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then both card IDs sit on one comparison, which the engine matches as an OR
+            expect(rule?.filters).toEqual({left: CARD_ID, operator: EQUAL_TO, right: ['11111', '22222']});
         });
 
         it('builds a rule that matches on a submitter alone', () => {

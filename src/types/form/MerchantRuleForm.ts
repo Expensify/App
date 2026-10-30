@@ -12,6 +12,7 @@ const INPUT_IDS = {
     BILLABLE_TO_MATCH: 'billableToMatch',
     CATEGORY: 'category',
     CATEGORIES_TO_MATCH: 'categoriesToMatch',
+    CARDS_TO_MATCH: 'cardsToMatch',
     CURRENCIES_TO_MATCH: 'currenciesToMatch',
     DATE_MATCH_TYPE: 'dateMatchType',
     DATE_TO_MATCH: 'dateToMatch',
@@ -44,6 +45,7 @@ type MerchantRuleForm = Form<
         [INPUT_IDS.BILLABLE_TO_MATCH]: boolean;
         [INPUT_IDS.CATEGORY]: string;
         [INPUT_IDS.CATEGORIES_TO_MATCH]: string[];
+        [INPUT_IDS.CARDS_TO_MATCH]: string[];
         [INPUT_IDS.CURRENCIES_TO_MATCH]: string[];
         [INPUT_IDS.DATE_MATCH_TYPE]: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
         [INPUT_IDS.DATE_TO_MATCH]: string;
