@@ -7455,6 +7455,13 @@ const translations = {
                 title: 'Cannot delete or disable all categories',
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'Cannot disable category',
+                description: 'Every member needs at least one category to choose from, and these members can only use this one. Give them access to another category first, then try again.',
+                bulkDescription:
+                    'Every member needs at least one category to choose from, and these members can only use these categories. Give them access to another category first, then try again.',
+                andMore: ({count}: {count: number}) => `and ${count} more`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',

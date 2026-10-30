@@ -1998,6 +1998,16 @@ function setPolicyMemberCategoryVisibility(
     API.write(WRITE_COMMANDS.SET_POLICY_MEMBER_CATEGORY_VISIBILITY, parameters, onyxData);
 }
 
+/** Signals the "Cannot disable category" modal for members the backend refused to leave without a category. */
+function setMembersNeedCategoryModal(policyID: string, accountIDs: number[], categoryCount: number) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, {policyID, accountIDs, categoryCount});
+}
+
+/** Clears the signal for the "Cannot disable category" modal once it has been shown. */
+function clearMembersNeedCategoryModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, null);
+}
+
 /** Dismisses the error left on a member by a failed category visibility change. */
 function clearPolicyMemberCategoryVisibilityError(policyID: string, memberLogin: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -2325,6 +2335,7 @@ function setPolicyCategoryAttendeesRequired(
 }
 
 export {
+    clearMembersNeedCategoryModal,
     clearCategoryErrors,
     clearPolicyMemberCategoryVisibilityError,
     deletePolicyCategoryTax,
@@ -2353,6 +2364,7 @@ export {
     setPolicyCategoryTax,
     setPolicyCategoryTaxes,
     setPolicyCustomUnitDefaultCategory,
+    setMembersNeedCategoryModal,
     setPolicyMemberCategoryVisibility,
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,

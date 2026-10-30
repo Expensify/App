@@ -6865,6 +6865,13 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'No se pueden eliminar ni deshabilitar todas las categorías',
                 description: `Debe quedar al menos una categoría habilitada porque tu espacio de trabajo requiere categorías.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'No se puede deshabilitar la categoría',
+                description: 'Cada miembro necesita al menos una categoría para elegir, y estos miembros solo pueden usar esta. Dales acceso a otra categoría primero y vuelve a intentarlo.',
+                bulkDescription:
+                    'Cada miembro necesita al menos una categoría para elegir, y estos miembros solo pueden usar estas categorías. Dales acceso a otra categoría primero y vuelve a intentarlo.',
+                andMore: ({count}: {count: number}) => `y ${count} más`,
+            },
         },
         moreFeatures: {
             subtitle: 'Utiliza los botones de abajo para activar más funciones a medida que creces. Cada función aparecerá en el menú de navegación para una mayor personalización.',

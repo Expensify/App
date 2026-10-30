@@ -8,6 +8,7 @@ import {
     getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
     getMemberVisibleCategoryNames,
+    getMembersWithoutVisibleCategories,
     hasAnyCategoryGLCode,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
@@ -677,5 +678,56 @@ describe('getMemberVisibleCategoryNames', () => {
 
         // Then there are none, rather than a crash
         expect(visibleCategoryNames).toEqual([]);
+    });
+});
+
+describe('getMembersWithoutVisibleCategories', () => {
+    // Alice (1) is unrestricted, Bob (2) can only use Fuel, and Carol (3) can use Fuel and Meals.
+    const policyCategories: PolicyCategories = {
+        Travel: {name: 'Travel', enabled: true, visibleTo: buildVisibleTo(1)},
+        Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1, 3)},
+        Fuel: {name: 'Fuel', enabled: true, visibleTo: buildVisibleTo(1, 2, 3)},
+        Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(1, 2)},
+    };
+
+    it('returns only the members left without an enabled category', () => {
+        // Given Fuel is Bob's only enabled category, while Carol also has Meals and Alice can use everything
+        // When Fuel is about to be disabled
+        const members = getMembersWithoutVisibleCategories(policyCategories, ['Fuel'], [1, 2, 3]);
+
+        // Then only Bob is blocked; his disabled Office category doesn't count as one he can still use
+        expect(members).toEqual([2]);
+    });
+
+    it('counts every category being disabled at once', () => {
+        // Given Carol can only use Fuel and Meals
+        // When both are disabled together in bulk
+        const members = getMembersWithoutVisibleCategories(policyCategories, ['Fuel', 'Meals'], [1, 2, 3]);
+
+        // Then Bob and Carol are both blocked
+        expect(members).toEqual([2, 3]);
+    });
+
+    it("leaves out members who can't use any of the categories being disabled", () => {
+        // Given Dave (4) can't use any enabled category, for example because he was invited after the restrictions were set
+        // When Travel is disabled
+        const members = getMembersWithoutVisibleCategories(policyCategories, ['Travel'], [4]);
+
+        // Then he isn't blocked, since disabling Travel takes nothing away from him
+        expect(members).toEqual([]);
+    });
+
+    it('returns nothing when no category is restricted', () => {
+        // Given every category is open to everyone, as it is before any admin sets a restriction
+        const unrestrictedCategories: PolicyCategories = {
+            Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            Meals: {name: 'Meals', enabled: true},
+        };
+
+        // When one is disabled
+        const members = getMembersWithoutVisibleCategories(unrestrictedCategories, ['Travel'], [1, 2]);
+
+        // Then no one is blocked, so the check needs no beta
+        expect(members).toEqual([]);
     });
 });

@@ -20,6 +20,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMembersNeedCategoryModal from '@hooks/useMembersNeedCategoryModal';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
@@ -39,7 +40,7 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {renameCategoryInline} from '@libs/actions/Policy/InlineEdit';
-import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -91,6 +92,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {backTo, policyID: policyId} = route.params;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyData = usePolicyData(policyId);
+    const {policyMemberAccountIDs, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyId);
     const {policy, categories: policyCategories} = policyData;
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.categories');
@@ -234,6 +236,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [category])) {
             showCannotDeleteOrDisableLastCategoryModal();
             return;
+        }
+
+        if (!enabled) {
+            const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [category.name], policyMemberAccountIDs);
+            if (membersWithoutVisibleCategories.length > 0) {
+                showMembersNeedCategoryModal(membersWithoutVisibleCategories, 1);
+                return;
+            }
         }
 
         updateWorkspaceCategoryEnabled(enabled, category.name);
@@ -463,14 +473,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         };
                         return acc;
                     }, {});
+                const isDisablingLastEnabledCategory = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject);
+                const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, enabledCategories, policyMemberAccountIDs);
                 options.push({
                     icon: icons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
-                    shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject),
+                    shouldSkipFocusRestore: isDisablingLastEnabledCategory || membersWithoutVisibleCategories.length > 0,
                     onSelected: () => {
-                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
+                        if (isDisablingLastEnabledCategory) {
                             showCannotDeleteOrDisableLastCategoryModal();
+                            return;
+                        }
+                        if (membersWithoutVisibleCategories.length > 0) {
+                            showMembersNeedCategoryModal(membersWithoutVisibleCategories, enabledCategories.length);
                             return;
                         }
                         clearTableSelection();

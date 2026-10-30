@@ -7014,6 +7014,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Es können nicht alle Kategorien gelöscht oder deaktiviert werden',
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'Kategorie kann nicht deaktiviert werden',
+                description:
+                    'Jedes Mitglied braucht mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese eine verwenden. Gib ihnen zuerst Zugriff auf eine andere Kategorie und versuche es dann erneut.',
+                bulkDescription:
+                    'Jedes Mitglied braucht mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese Kategorien verwenden. Gib ihnen zuerst Zugriff auf eine andere Kategorie und versuche es dann erneut.',
+                andMore: ({count}: {count: number}) => `und ${count} weitere`,
+            },
         },
         moreFeatures: {
             subtitle: 'Verwende die Schalter unten, um beim Wachsen weitere Funktionen zu aktivieren. Jede Funktion wird im Navigationsmenü angezeigt, wo du sie weiter anpassen kannst.',

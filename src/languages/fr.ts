@@ -7021,6 +7021,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Impossible de supprimer ou de désactiver toutes les catégories',
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'Impossible de désactiver la catégorie',
+                description:
+                    "Chaque membre doit pouvoir choisir au moins une catégorie, et ces membres ne peuvent utiliser que celle-ci. Donnez-leur d'abord accès à une autre catégorie, puis réessayez.",
+                bulkDescription:
+                    "Chaque membre doit pouvoir choisir au moins une catégorie, et ces membres ne peuvent utiliser que ces catégories. Donnez-leur d'abord accès à une autre catégorie, puis réessayez.",
+                andMore: ({count}: {count: number}) => `et ${count} de plus`,
+            },
         },
         moreFeatures: {
             subtitle:

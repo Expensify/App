@@ -145,6 +145,7 @@ import type Logins from './Logins';
 import type MapboxAccessToken from './MapboxAccessToken';
 import type MarketingAttribution from './MarketingAttribution';
 import type {StoredMarketingAttribution} from './MarketingAttribution';
+import type MembersNeedCategoryModal from './MembersNeedCategoryModal';
 import type MerchantRuleSuggestion from './MerchantRuleSuggestion';
 import type MergeTransaction from './MergeTransaction';
 import type Modal from './Modal';
@@ -512,6 +513,7 @@ export type {
     DismissedProductTraining,
     TravelProvisioning,
     EnableGlobalReimbursementsModal,
+    MembersNeedCategoryModal,
     SidePanel,
     SidePanelContext,
     LastPaymentMethodType,

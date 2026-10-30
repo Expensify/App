@@ -6728,6 +6728,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '无法删除或停用所有类别',
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
+            cannotDisableCategoryForMembers: {
+                title: '无法停用类别',
+                description: '每位成员都需要至少一个可选择的类别，而这些成员只能使用此类别。请先为他们授予其他类别的访问权限，然后重试。',
+                bulkDescription: '每位成员都需要至少一个可选择的类别，而这些成员只能使用这些类别。请先为他们授予其他类别的访问权限，然后重试。',
+                andMore: ({count}: {count: number}) => `及其他 ${count} 人`,
+            },
         },
         moreFeatures: {
             subtitle: '使用下方切换按钮，在业务成长过程中启用更多功能。每个功能都会出现在导航菜单中，供你进一步自定义。',

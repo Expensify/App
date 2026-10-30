@@ -6985,6 +6985,14 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie można usunąć ani wyłączyć wszystkich kategorii',
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'Nie można wyłączyć kategorii',
+                description:
+                    'Każdy członek musi mieć co najmniej jedną kategorię do wyboru, a ci członkowie mogą używać tylko tej jednej. Najpierw daj im dostęp do innej kategorii, a potem spróbuj ponownie.',
+                bulkDescription:
+                    'Każdy członek musi mieć co najmniej jedną kategorię do wyboru, a ci członkowie mogą używać tylko tych kategorii. Najpierw daj im dostęp do innej kategorii, a potem spróbuj ponownie.',
+                andMore: ({count}: {count: number}) => `i jeszcze ${count}`,
+            },
         },
         moreFeatures: {
             subtitle: 'Użyj poniższych przełączników, aby włączać kolejne funkcje w miarę rozwoju. Każda funkcja pojawi się w menu nawigacji, gdzie będzie można ją dalej dostosować.',
