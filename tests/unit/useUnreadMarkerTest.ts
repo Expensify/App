@@ -2,6 +2,8 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -66,6 +68,7 @@ function renderUnreadMarker(params: Partial<Parameters<typeof useUnreadMarker>[0
 
 describe('useUnreadMarker', () => {
     beforeEach(() => {
+        jest.restoreAllMocks();
         mockIsAnonymousUser = false;
         mockLastReadTime = LAST_READ_TIME;
         mockLastReadTimeByReportID = {};
@@ -89,6 +92,49 @@ describe('useUnreadMarker', () => {
 
         expect(result.current.unreadMarkerReportActionID).toBe('m1');
         expect(result.current.unreadMarkerReportActionIndex).toBe(0);
+    });
+
+    describe.each([
+        {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}},
+        {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [OTHER_USER_ACCOUNT_ID]}},
+    ])('informational $actionName', ({actionName, originalMessage}) => {
+        it('does not use the informational action as an automatic unread pagination anchor', () => {
+            // Given informational activity selected as the oldest unread by pagination
+            const action = makeAction('informational', {actionName, originalMessage});
+
+            // When the first page is shown
+            const {result} = renderUnreadMarker({sortedVisibleReportActions: [action], oldestUnreadReportActionID: action.reportActionID, hasOnceLoadedReportActions: false});
+
+            // Then pagination cannot bypass the automatic marker filter
+            expect(result.current.unreadMarkerReportActionID).toBeNull();
+        });
+
+        it('filters offline informational activity without suppressing a real offline message', () => {
+            // Given a read chat with informational activity received offline
+            const read = makeAction('read', {created: '2023-01-01 09:00:00.000'});
+            const informational = makeAction('informational', {actionName, originalMessage});
+            jest.spyOn(ReportActionsUtils, 'wasMessageReceivedWhileOffline').mockImplementation((action) => action.reportActionID !== read.reportActionID);
+            const {result, rerender} = renderHook(
+                (actions: OnyxTypes.ReportAction[]) =>
+                    useUnreadMarker({
+                        reportID: REPORT_ID,
+                        sortedVisibleReportActions: actions,
+                        sortedReportActions: actions,
+                        oldestUnreadReportActionID: undefined,
+                        isScrolledOverThreshold: false,
+                        hasOnceLoadedReportActions: true,
+                    }),
+                {initialProps: [informational, read]},
+            );
+            expect(result.current.unreadMarkerReportActionID).toBeNull();
+
+            // When a real message is also received offline
+            const comment = makeAction('offline-comment', {created: '2023-01-01 12:00:00.000'});
+            rerender([comment, informational, read]);
+
+            // Then the divider belongs to the real message, not the informational action
+            expect(result.current.unreadMarkerReportActionID).toBe(comment.reportActionID);
+        });
     });
 
     it('prefers the oldestUnread pagination anchor over the scan on first open when the scan finds nothing', () => {
