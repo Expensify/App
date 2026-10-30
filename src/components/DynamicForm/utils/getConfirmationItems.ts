@@ -44,8 +44,8 @@ function getListItemRows(
 }
 
 /**
- * The question each opt-out link stands in for, keyed by the link, such as the SSN behind "I don't have a social security number".
- * It is the first field that shows only while the link is off, on a page the form shows with the link off. A link that opts out of nothing is not in the map.
+ * Maps each "I don't have X" link to the question it replaces, such as "I don't have a social security number" to the SSN.
+ * The question must be one the form asks while the link is off. A link that replaces no question is not in the map.
  */
 function getOptedOutFieldByLink(pages: DynamicFormPage[], values: DynamicFormValues, allFields: DynamicFormField[]): Map<string, DynamicFormField> {
     const optedOutFieldByLink = new Map<string, DynamicFormField>();
@@ -80,7 +80,7 @@ function getConfirmationItems(
             return [];
         }
 
-        // An opt-out link that is off has no row, since the fields it opts out of are shown and already carry the answer
+        // A link that is off has no row, because the question it replaces already shows the answer.
         const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter(
             (field) => values[field.key] === true || !optedOutFieldByLink.has(field.key),
         );
