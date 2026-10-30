@@ -23,7 +23,7 @@ function useSortedIcons(icons: Icon[], sort?: SortingOption | SortingOption[]): 
     if (sortBy.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.NAME)) {
         // Read personal details only for a name sort, so other stacks don't re-render on every personal details change.
         // `sortIconsByName` sorts in place, so sort a copy and leave the given array as it was
-        sortedIcons = sortIconsByName([...icons], use(PersonalDetailsContext), localeCompare);
+        sortedIcons = sortIconsByName([...icons], use(PersonalDetailsContext) ?? undefined, localeCompare);
     } else if (sortBy.includes(CONST.REPORT_ACTION_AVATARS.SORT_BY.ID)) {
         sortedIcons = lodashSortBy(icons, (icon) => icon.id);
     }

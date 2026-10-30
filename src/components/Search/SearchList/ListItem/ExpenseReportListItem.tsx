@@ -17,7 +17,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -35,10 +34,10 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
-import {getAttendees, isOnHold, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {getAttendees, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -110,13 +109,18 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
      * so the row's own key alone can never reflect it. A report is checked by its rows once it has them, and
      * by its own key only while it has none.
      */
-    const {isSelectAllChecked: isSelected, isIndeterminate} = useGroupCheckboxState({groupKey: item.keyForList, groupTransactions: reportItem.transactions ?? []});
+    const {isSelectAllChecked: isSelected, isIndeterminate} = useGroupCheckboxState({
+        groupKey: item.keyForList,
+        groupTransactions: reportItem.transactions ?? [],
+    });
     const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {
+        selector: isActionLoadingSelector,
+    });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -207,7 +211,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
-    const {showHoldMenu} = useHoldMenuModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
@@ -278,31 +281,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             confirmSubmitReportViolations,
-            onHoldMenuOpen: (holdItem, requestType, paymentType) => {
-                // Search rows render from a snapshot; the report may not exist in the main
-                // collection yet. Fall back to the snapshot so the modal can submit.
-                const moneyRequestReport = parentReport ?? snapshotReport;
-                const transactionsForHoldMenu = liveReportTransactions.length > 0 ? liveReportTransactions : holdItem.transactions;
-                const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(
-                    moneyRequestReport,
-                    holdItem.canPay ?? false,
-                    transactionsForHoldMenu,
-                    convertToDisplayString,
-                );
-                const hasNonHeldExpenses = transactionsForHoldMenu.some((t) => !isOnHold(t));
-                showHoldMenu({
-                    reportID: holdItem.reportID,
-                    chatReportID: holdItem.parentReportID,
-                    moneyRequestReport,
-                    chatReport,
-                    requestType,
-                    paymentType,
-                    nonHeldAmount: hasNonHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
-                    fullAmount,
-                    hasNonHeldExpenses,
-                    transactionCount: transactionsForHoldMenu.length > 0 ? transactionsForHoldMenu.length : (holdItem.transactionCount ?? 0),
-                });
-            },
             ownerBillingGracePeriodEnd,
             amountOwed,
             openReportSubmitToPopover,
@@ -346,7 +324,11 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isSelected && styles.activeComponentBG,
         styles.mh0,
         isPendingDelete && styles.cursorDisabled,
-        isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
+        isLargeScreenWidth
+            ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected, {
+                  vertical: variables.tableRowPaddingVertical,
+              })
+            : styles.noBorderRadius,
         !isLargeScreenWidth && isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
         !isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
     ];

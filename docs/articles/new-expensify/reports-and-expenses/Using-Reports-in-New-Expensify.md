@@ -73,6 +73,7 @@ You can choose from a wide range of columns, including:
 - **Avatar** – The profile image of the report submitter
 - **Date** – When the report or expense was created
 - **Submitted** – The date the report was submitted for approval
+- **Paid** – The date the report was paid
 - **Total** – The total amount of the report or expense
 - **Workspace** – The workspace the report belongs to
 - **Paid status** – The payment stage of a paid report: **Marked as paid**, **Withdrawing**, or **Confirmed**

@@ -48,7 +48,7 @@ type ProcessMoneyReportHoldMenuProps = {
 };
 
 function ProcessMoneyReportHoldMenu({
-    nonHeldAmount = '0',
+    nonHeldAmount,
     fullAmount,
     onClose,
     isVisible,
@@ -81,7 +81,8 @@ function ProcessMoneyReportHoldMenu({
             onClose={onClose}
             isVisible={isVisible}
             prompt={promptText}
-            firstOptionText={hasNonHeldExpenses ? `${translate('iou.payOnly')} ${nonHeldAmount}` : undefined}
+            // Callers pass undefined when there is no meaningful partial amount to offer.
+            firstOptionText={nonHeldAmount !== undefined ? `${translate('iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate('iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}

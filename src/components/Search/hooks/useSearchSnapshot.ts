@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {getSections, getSortedSections, getSortedTransactionData, getValidGroupBy, isSearchDataLoaded, isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldShowAttendees} from '@libs/TransactionUtils';
@@ -151,6 +152,7 @@ const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? Str
  */
 function useSearchSnapshot({queryJSON, searchResults, transactions, reportActions, visibleRowLimit, selectedTransactions}: UseSearchSnapshotParams): SearchSnapshotResult {
     const {type, sortBy, sortOrder, hash, groupBy} = queryJSON;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     const {isOffline} = useNetwork();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -250,6 +252,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                   convertToDisplayString,
                   reportAttributesDerivedValue: reportAttributesForSections,
                   optimisticTransactionID,
+                  shouldReturnTripRooms,
               }
             : undefined,
     );

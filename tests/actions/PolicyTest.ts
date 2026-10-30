@@ -6253,7 +6253,7 @@ describe('actions/Policy', () => {
         });
     });
 
-    describe('setWorkspaceAutoReportingMonthlyOffset', () => {
+    describe('setWorkspaceAutoReportingOffset', () => {
         it('should update auto reporting monthly offset optimistically and succeed', async () => {
             // Given a workspace with offset 1
             const policy = {
@@ -6264,7 +6264,7 @@ describe('actions/Policy', () => {
             mockFetch.pause();
 
             // When setting auto reporting offset to 2
-            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 2, policy.autoReportingOffset);
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 2, policy.autoReportingOffset);
 
             // Then optimistic data should be set in Onyx
             await waitForBatchedUpdates();
@@ -6290,7 +6290,7 @@ describe('actions/Policy', () => {
 
             // When setting auto reporting offset to 2 but fail
             mockFetch.fail();
-            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 2, policy.autoReportingOffset);
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 2, policy.autoReportingOffset);
             await waitForBatchedUpdates();
 
             // Then the offset should be reverted
@@ -6298,6 +6298,113 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.autoReportingOffset).toBe(1);
             expect(updatedPolicy?.pendingFields?.autoReportingOffset).toBeUndefined();
             expect(updatedPolicy?.errorFields?.autoReportingOffset).toBeTruthy();
+        });
+
+        it('should update both twice a month dates and succeed', async () => {
+            // Given a twice a month workspace on the 1st and the last day
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReportingOffset: 1,
+                autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting the dates to the 5th and 20th
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 5, policy.autoReportingOffset, {}, 20, policy.autoReportingOffsetSecondSemiMonthly);
+
+            // Then both dates should be set optimistically and sent to the API
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReportingOffset).toBe(5);
+            expect(updatedPolicy?.autoReportingOffsetSecondSemiMonthly).toBe(20);
+            expect(updatedPolicy?.pendingFields?.autoReportingOffsetSecondSemiMonthly).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.SET_WORKSPACE_AUTO_REPORTING_MONTHLY_OFFSET, 0, {
+                policyID: policy.id,
+                value: JSON.stringify({autoReportingOffset: 5, autoReportingOffsetSecondSemiMonthly: 20}),
+            });
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields for both dates should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.autoReportingOffset).toBeUndefined();
+            expect(updatedPolicy?.pendingFields?.autoReportingOffsetSecondSemiMonthly).toBeUndefined();
+        });
+
+        it('should revert both twice a month dates when fail', async () => {
+            // Given a twice a month workspace on the 1st and the last day
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReportingOffset: 1,
+                autoReportingOffsetSecondSemiMonthly: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting the dates to the 5th and 20th but fail
+            mockFetch.fail();
+            Policy.setWorkspaceAutoReportingOffset(policy.id, 5, policy.autoReportingOffset, {}, 20, policy.autoReportingOffsetSecondSemiMonthly);
+            await waitForBatchedUpdates();
+
+            // Then both dates should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReportingOffset).toBe(1);
+            expect(updatedPolicy?.autoReportingOffsetSecondSemiMonthly).toBe(CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH);
+            expect(updatedPolicy?.pendingFields?.autoReportingOffsetSecondSemiMonthly).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.autoReportingOffset).toBeTruthy();
+        });
+    });
+
+    describe('setWorkspaceTimezone', () => {
+        it('should update workspace timezone optimistically and succeed', async () => {
+            // Given a workspace on Pacific time
+            const policy = {
+                ...createRandomPolicy(0),
+                timeZone: 'America/Los_Angeles',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting the timezone to London
+            Policy.setWorkspaceTimezone(policy.id, 'Europe/London', policy.timeZone);
+
+            // Then the timezone should be set optimistically and sent to the API
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.timeZone).toBe('Europe/London');
+            expect(updatedPolicy?.pendingFields?.timeZone).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE, 0, {
+                policyID: policy.id,
+                policyTimezone: 'Europe/London',
+            });
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.timeZone).toBeUndefined();
+        });
+
+        it('should revert workspace timezone when fail', async () => {
+            // Given a workspace on Pacific time
+            const policy = {
+                ...createRandomPolicy(0),
+                timeZone: 'America/Los_Angeles',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting the timezone to London but fail
+            mockFetch.fail();
+            Policy.setWorkspaceTimezone(policy.id, 'Europe/London', policy.timeZone);
+            await waitForBatchedUpdates();
+
+            // Then the timezone should be reverted with an error
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.timeZone).toBe('America/Los_Angeles');
+            expect(updatedPolicy?.pendingFields?.timeZone).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.timeZone).toBeTruthy();
         });
     });
 
@@ -7417,6 +7524,62 @@ describe('actions/Policy', () => {
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.isAttendeeTrackingEnabled).toBe(initialIsAttendeeTrackingEnabled);
             expect(updatedPolicy?.errorFields?.isAttendeeTrackingEnabled).toBeDefined();
+        });
+    });
+
+    describe('toggleCollectDepositAccounts', () => {
+        it('should enable collecting deposit accounts optimistically without changing the reimbursement countries', async () => {
+            // Given a policy that isn't collecting deposit accounts but already has a reimbursement country
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                isCollectDepositAccountsEnabled: false,
+                reimbursement: {countries: {GB: {}}},
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the admin turns the toggle on
+            mockFetch.pause();
+            Policy.toggleCollectDepositAccounts(policyID, true, false);
+            await waitForBatchedUpdates();
+
+            // Then the flag flips optimistically with a pending update, and the countries stay as they were, because
+            // the toggle only controls the flag, like Classic
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedPolicy?.reimbursement?.countries).toEqual({GB: {}});
+
+            // When the request succeeds
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the pending update is cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBeFalsy();
+        });
+
+        it('should revert the flag and show an error when the request fails', async () => {
+            // Given a policy that is collecting deposit accounts
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                isCollectDepositAccountsEnabled: true,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the admin turns the toggle off and the request fails
+            mockFetch.fail();
+            Policy.toggleCollectDepositAccounts(policyID, false, true);
+            await waitForBatchedUpdates();
+
+            // Then the flag goes back to its previous value so the toggle reflects the saved setting, with an error to explain why
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.isCollectDepositAccountsEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.isCollectDepositAccountsEnabled).toBeFalsy();
+            expect(updatedPolicy?.errorFields?.isCollectDepositAccountsEnabled).toBeDefined();
         });
     });
 

@@ -174,6 +174,7 @@ export default {
     receiptPreviewWidth: 380,
     widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
+    conciergeAskColumnMaxWidth: 720,
     centeredContentMaxWidth: 1200,
     insightsEmptyStateIllustrationSize: 136,
     minScanTooltipWidth: 320,
@@ -497,8 +498,6 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -120,
-    minimalTopBarWithFiltersOffset: -164,
     searchHeaderDefaultOffset: 0,
     searchListContentMarginTop: 120,
     searchListContentWithFiltersMarginTop: 164,
