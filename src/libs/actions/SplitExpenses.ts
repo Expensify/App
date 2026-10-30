@@ -6,13 +6,12 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
-import {buildOptimisticTransaction, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, getAttendees, getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -122,7 +121,7 @@ function initSplitExpense(
                 currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
                 participants: transaction?.participants,
                 merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
-                attendees: transactionDetails?.attendees as Attendee[],
+                attendees: originalTransaction ? getAttendees(originalTransaction) : undefined,
                 reportID,
                 reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable, originalTransaction),
             },
@@ -134,8 +133,13 @@ function initSplitExpense(
                 ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID))
                 : createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(reportID, originalTransactionID));
             initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
-            Navigation.navigate(splitExpenseOverviewRoute);
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, transaction.transactionID), splitExpenseOverviewRoute));
+            // Open the edit page only after the overview's RHP has mounted. Pushed in the same tick, the edit page replaces the overview's RHP,
+            // so going back from it (e.g. after Remove split) closes the RHP instead of returning to the overview to Save.
+            Navigation.navigate(splitExpenseOverviewRoute, {
+                afterTransition: () => {
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, transaction.transactionID), splitExpenseOverviewRoute));
+                },
+            });
             return;
         }
         if (isSearchTopmostFullScreenRoute()) {
@@ -224,7 +228,7 @@ function initSplitExpense(
             currency: transactionDetails?.currency ?? CONST.CURRENCY.USD,
             merchant: transactionDetails?.merchant ?? '',
             participants: transaction?.participants,
-            attendees: transactionDetails?.attendees as Attendee[],
+            attendees: getAttendees(transaction),
             reportID,
             reimbursable: getSplitReimbursable(effectivePolicy, transactionDetails?.reimbursable, transaction),
             customUnit: transaction?.comment?.customUnit,

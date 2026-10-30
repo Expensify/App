@@ -21,11 +21,13 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
@@ -87,6 +89,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     // Supportal agents and copilots should not see the change-policy educational modal on behalf of another account
     const shouldSkipChangePolicyTrainingModal = isChangePolicyTrainingModalDismissed || shouldSuppressPromotionalUI;
@@ -132,6 +135,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const initialSelection = useInitialSelection(currentSelection, {resetOnFocus: true});
 
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
 
     // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
@@ -141,6 +145,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             shouldCalculateTotals,
             isOffline,
             isLoading: !!currentSearchResults?.search?.isLoading,
+            shouldReturnTripRooms,
         });
     };
 
@@ -198,6 +203,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isChangePolicyTrainingModalDismissed: shouldSkipChangePolicyTrainingModal,
                 isASAPSubmitBetaEnabled,
                 employeeList,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 isReportLastVisibleArchived,
                 reportActionsList: filteredReportActions,
                 reportPreviewAction,

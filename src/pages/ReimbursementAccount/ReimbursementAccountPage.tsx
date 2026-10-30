@@ -1,6 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
@@ -619,7 +619,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const shouldShowPolicyName = topmostFullScreenRoute?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const policyNameToDisplay = shouldShowPolicyName ? policyName : '';
 
-    if (isOffline && !hasLoadedData) {
+    // Matched the way fetchData opens the account. Like hasInProgressVBBA, an account without the route's ID counts as another one.
+    const isOtherAccount = bankAccountIDParam ? achData?.bankAccountID !== Number(bankAccountIDParam) : !!policyIDParam && achData?.policyID !== policyIDParam;
+    // hasLoadedData only proves the account differs from DEFAULT_DATA. Offline, the mount effect's setBankAccountSubStep(null) and the
+    // failed OpenReimbursementAccountPage request also cause that, by leaving `{achData: {}, isLoading: false}` with nothing loaded.
+    const hasAchDataForThisPage = !isEmptyObject(achData) && !deepEqual(achData, CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA.achData) && !isOtherAccount;
+
+    if (isOffline && (!hasLoadedData || !hasAchDataForThisPage)) {
         return (
             <ScreenWrapper testID="ReimbursementAccountPage">
                 <HeaderWithBackButton
@@ -632,7 +638,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
 
     if (isLoadingPolicy) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(backTo)} />;
     }
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server
@@ -696,10 +702,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                         title={translate('bankAccount.addBankAccount')}
                         onBackButtonPress={() => Navigation.dismissModal()}
                     />
-                    <ConfirmationPage
+                    <ConfirmationPageDefault
                         heading={translate('bankAccount.bbaAdded')}
                         description={translate('bankAccount.bbaAddedDescription')}
-                        shouldShowButton
                         headingStyle={styles.mh5}
                         buttonText={translate('common.confirm')}
                         onButtonPress={() => Navigation.dismissModal()}

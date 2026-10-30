@@ -8,17 +8,18 @@ import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import OnboardingHeader from '@components/OnboardingHeader';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useCompleteOnboarding from '@hooks/useCompleteOnboarding';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -27,6 +28,7 @@ import {getDefaultOnboardingFeaturesMap} from '@libs/actions/Welcome/OnboardingF
 import {isMobileSafari} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import scrollFocusedInputToTop from '@libs/scrollFocusedInputToTop';
 
 import variables from '@styles/variables';
 
@@ -41,7 +43,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingAccountingProps} from './types';
@@ -85,6 +87,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const shouldFooterBeInsideScrollView = useShouldFooterBeInsideList();
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -103,7 +106,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [shouldScrollToOtherInput, setShouldScrollToOtherInput] = useState(initialSelectedIntegration === 'other');
     const [error, setError] = useState('');
     const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
-    const otherAccountingSoftwareInputRef = useRef<BaseTextInputRef | null>(null);
+    const scrollContentRef = useRef<View>(null);
+    const otherAccountingSoftwareInputRef = useRef<AnimatedTextInputRef | null>(null);
     const isOtherSelected = selectedIntegration === 'other';
 
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
@@ -151,14 +155,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         setError('');
     };
 
-    const handleContentSizeChange = useCallback(() => {
+    const handleContentSizeChange = () => {
         if (!shouldScrollToOtherInput) {
             return;
         }
 
         scrollViewRef.current?.scrollToEnd({animated: false});
         setShouldScrollToOtherInput(false);
-    }, [shouldScrollToOtherInput]);
+    };
 
     function renderOption(optionKey: AccountingOptionKey) {
         const isOtherOption = optionKey === 'other';
@@ -241,26 +245,29 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             </CollapsibleHeaderOnKeyboard>
             <ScrollView
                 ref={scrollViewRef}
+                onLayout={() => scrollFocusedInputToTop(scrollViewRef, scrollContentRef, otherAccountingSoftwareInputRef)}
                 style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 contentContainerStyle={[styles.pt3, styles.pb5]}
                 onContentSizeChange={handleContentSizeChange}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptionKeys.map(renderOption)}</View>
-                {isOtherSelected && (
-                    <TextInput
-                        ref={otherAccountingSoftwareInputRef}
-                        accessibilityLabel={translate('onboarding.accounting.otherAccountingSoftware')}
-                        label={translate('onboarding.accounting.otherAccountingSoftware')}
-                        value={userReportedIntegrationName}
-                        onChangeText={setUserReportedIntegrationName}
-                        autoFocus
-                    />
-                )}
+                <View ref={scrollContentRef}>
+                    <View style={[styles.flexRow, styles.flexWrap, styles.gap3, styles.mb3]}>{accountingOptionKeys.map(renderOption)}</View>
+                    {isOtherSelected && (
+                        <TextInput
+                            ref={otherAccountingSoftwareInputRef}
+                            accessibilityLabel={translate('onboarding.accounting.otherAccountingSoftware')}
+                            label={translate('onboarding.accounting.otherAccountingSoftware')}
+                            value={userReportedIntegrationName}
+                            onChangeText={setUserReportedIntegrationName}
+                            autoFocus
+                        />
+                    )}
 
-                {isInLandscapeMode && <View style={[styles.pt8]}>{continueButton}</View>}
+                    {shouldFooterBeInsideScrollView && <View style={[styles.pt8]}>{continueButton}</View>}
+                </View>
             </ScrollView>
-            {!isInLandscapeMode && <FixedFooter style={[styles.pt3, styles.ph5]}>{continueButton}</FixedFooter>}
+            {!shouldFooterBeInsideScrollView && <FixedFooter style={[styles.pt3, styles.ph5]}>{continueButton}</FixedFooter>}
         </ScreenWrapper>
     );
 }

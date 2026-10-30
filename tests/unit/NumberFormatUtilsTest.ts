@@ -84,6 +84,48 @@ describe('NumberFormatUtils', () => {
         });
     });
 
+    describe('formatDistanceToParts', () => {
+        const joinParts = (parts: Intl.NumberFormatPart[]) => parts.map((part) => part.value).join('');
+
+        test('formats miles in English with the number first and a short unit part', () => {
+            // Given a distance in miles and the English locale
+            // When the distance is formatted into parts
+            const parts = NumberFormatUtils.formatDistanceToParts(CONST.LOCALES.EN, 1234.5, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+
+            // Then the locale grouping and two decimals are used, and the unit comes back as its own part so it can be styled separately
+            expect(joinParts(parts)).toBe('1,234.50 mi');
+            expect(parts.find((part) => part.type === 'unit')?.value).toBe('mi');
+        });
+
+        test('uses the locale decimal separator for kilometers', () => {
+            // Given a distance in kilometers and the Spanish locale, which uses a decimal comma
+            // When the distance is formatted into parts
+            const parts = NumberFormatUtils.formatDistanceToParts(CONST.LOCALES.ES, 12.5, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+
+            // Then the number uses a comma and the unit is still a separate part
+            expect(joinParts(parts)).toBe('12,50 km');
+            expect(parts.find((part) => part.type === 'unit')?.value).toBe('km');
+        });
+
+        test('lets the locale decide spacing and unit spelling', () => {
+            // Given a locale that writes the unit without a space after the number
+            // When the distance is formatted into parts
+            const parts = NumberFormatUtils.formatDistanceToParts(CONST.LOCALES.ZH_HANS, 12.5, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+
+            // Then no space is inserted before the translated unit
+            expect(joinParts(parts)).toBe('12.50英里');
+            expect(parts.find((part) => part.type === 'unit')?.value).toBe('英里');
+        });
+
+        test('always shows two decimal places', () => {
+            // Given distances that would otherwise drop trailing zeros or show more than two decimals
+            // When they are formatted into parts
+            // Then they are rounded and padded to two decimals, matching how distances are stored
+            expect(joinParts(NumberFormatUtils.formatDistanceToParts(CONST.LOCALES.EN, 0, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES))).toBe('0.00 mi');
+            expect(joinParts(NumberFormatUtils.formatDistanceToParts(CONST.LOCALES.EN, 3.14159, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS))).toBe('3.14 km');
+        });
+    });
+
     describe('malformed-currency warn deduplication', () => {
         test('warns at most once per unique malformed currency across repeated format calls', () => {
             NumberFormatUtils.format(CONST.LOCALES.EN, 25, {style: 'currency', currency: 'XX'});

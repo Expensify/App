@@ -1,5 +1,4 @@
 import Header from '@components/Header';
-import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -11,7 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {ValidateCodeActionContentProps} from './type';
@@ -24,11 +23,13 @@ function ValidateCodeActionContent({
     descriptionPrimary,
     descriptionSecondary,
     onClose,
+    shouldShowCloseButton = false,
     validateError,
     validatePendingAction,
     validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
+    shouldClearErrorOnClose = true,
     sendValidateCode,
     validateCodeReasonCode,
     isLoading,
@@ -62,10 +63,12 @@ function ValidateCodeActionContent({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sendValidateCode, validateCodeActionMetadata]);
 
-    const hide = useCallback(() => {
-        clearError();
+    const hide = () => {
+        if (shouldClearErrorOnClose) {
+            clearError();
+        }
         onClose?.();
-    }, [onClose, clearError]);
+    };
 
     return (
         <ScreenWrapper
@@ -76,18 +79,20 @@ function ValidateCodeActionContent({
             offlineIndicatorStyle={themeStyles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButtonAndTitle
-                title={title}
-                onBackButtonPress={hide}
-            >
-                {threeDotsMenuItems.length > 0 && (
-                    <Header.ThreeDotsMenu
-                        items={threeDotsMenuItems}
-                        onIconPress={onThreeDotsButtonPress}
-                        shouldOverlay
-                    />
-                )}
-            </HeaderWithBackButtonAndTitle>
+            <Header>
+                {!shouldShowCloseButton && <Header.BackButton onPress={hide} />}
+                <Header.Title title={title} />
+                <Header.Right>
+                    {threeDotsMenuItems.length > 0 && (
+                        <Header.ThreeDotsMenu
+                            items={threeDotsMenuItems}
+                            onIconPress={onThreeDotsButtonPress}
+                            shouldOverlay
+                        />
+                    )}
+                    {shouldShowCloseButton && <Header.CloseButton onPress={hide} />}
+                </Header.Right>
+            </Header>
 
             <ScrollView
                 style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}

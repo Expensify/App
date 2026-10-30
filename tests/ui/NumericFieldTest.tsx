@@ -1,10 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import ComposeProviders from '@components/ComposeProviders';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import NumericField, {useNumericFieldActions, useNumericFieldState} from '@components/NumericField';
 import type {NumericFieldRef} from '@components/NumericField';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 
@@ -12,6 +9,11 @@ import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
 import {View} from 'react-native';
+
+jest.mock('@hooks/useLocalize', () => () => ({
+    fromLocaleDigit: (digit: string) => digit,
+    toLocaleDigit: (digit: string) => digit,
+}));
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
@@ -62,21 +64,19 @@ function ContextReadout() {
     );
 }
 
-function renderWithProviders(children: React.ReactNode) {
-    return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>);
-}
-
 describe('NumericField', () => {
     const onInputChange = jest.fn();
-    const renderNumericField = (props: Partial<NumericFieldProps> = {}, children: React.ReactNode = <ContextReadout />) =>
-        renderWithProviders(
-            <NumericField
-                onInputChange={onInputChange}
-                {...props}
-            >
-                {children}
-            </NumericField>,
-        );
+
+    const wrapNumericField = (props: Partial<NumericFieldProps> = {}, children: React.ReactNode = <ContextReadout />) => (
+        <NumericField
+            onInputChange={onInputChange}
+            {...props}
+        >
+            {children}
+        </NumericField>
+    );
+
+    const renderNumericField = (props: Partial<NumericFieldProps> = {}, children: React.ReactNode = <ContextReadout />) => render(wrapNumericField(props, children));
 
     afterEach(() => {
         jest.clearAllMocks();
@@ -127,16 +127,7 @@ describe('NumericField', () => {
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
 
             // When the parent rerenders with an empty value
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumericField
-                        value=""
-                        onInputChange={onInputChange}
-                    >
-                        <ContextReadout />
-                    </NumericField>
-                </ComposeProviders>,
-            );
+            rerender(wrapNumericField({value: ''}));
 
             // Then the editing state resets
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('');
@@ -149,16 +140,7 @@ describe('NumericField', () => {
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
 
             // When the parent rerenders with value "20"
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumericField
-                        value="20"
-                        onInputChange={onInputChange}
-                    >
-                        <ContextReadout />
-                    </NumericField>
-                </ComposeProviders>,
-            );
+            rerender(wrapNumericField({value: '20'}));
 
             // Then the editing state keeps the current value; external pushes must use the imperative ref
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
@@ -171,16 +153,7 @@ describe('NumericField', () => {
             fireEvent.press(screen.getByTestId('ctx-setNumber'));
 
             // When the parent rerenders with the same external value "10"
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumericField
-                        value="10"
-                        onInputChange={onInputChange}
-                    >
-                        <ContextReadout />
-                    </NumericField>
-                </ComposeProviders>,
-            );
+            rerender(wrapNumericField({value: '10'}));
 
             // Then the local edit is preserved
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('7');

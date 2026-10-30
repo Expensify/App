@@ -3,7 +3,9 @@
  * and tap-to-navigate behaviour for bar chart series.
  */
 import ChartTooltip from '@components/Charts/components/ChartTooltip';
+import ChartTooltipSummary from '@components/Charts/components/ChartTooltipSummary';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {useVictoryChartLayoutScale} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartLayoutContext';
 import useVictoryBarInteractions from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/hooks/useVictoryBarInteractions';
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 
@@ -28,8 +30,19 @@ function VictoryChartCartesianInteractive() {
     const {chartContentStyles} = useVictoryChartContext();
     const designWidth = getChartDesignWidth(undefined, chartContentStyles.width);
     const [chartWidth, setChartWidth] = useState(designWidth ?? 0);
-    const {customGestures, syncBarPositions, activeTooltipData, hasInteractiveBars, hasTooltipLabels, isTooltipActive, isCursorOverClickable, initialTooltipPosition} =
-        useVictoryBarInteractions();
+    const coordinateScale = useVictoryChartLayoutScale();
+    const {
+        customGestures,
+        syncBarPositions,
+        activeTooltipData,
+        hasInteractiveBars,
+        hasTooltipLabels,
+        isTooltipActive,
+        isCursorOverClickable,
+        initialTooltipPosition,
+        onChartMoved,
+        dismissTooltip,
+    } = useVictoryBarInteractions();
 
     const updateChartWidth = (event: LayoutChangeEvent) => {
         setChartWidth(event.nativeEvent.layout.width);
@@ -37,15 +50,6 @@ function VictoryChartCartesianInteractive() {
 
     const cursorStyle = useAnimatedStyle(() => ({
         cursor: isCursorOverClickable.get() ? 'pointer' : 'auto',
-    }));
-
-    const tooltipWrapperStyle = useAnimatedStyle(() => ({
-        bottom: 0,
-        left: 0,
-        opacity: isTooltipActive.get() ? 1 : 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
     }));
 
     if (!hasInteractiveBars) {
@@ -60,18 +64,19 @@ function VictoryChartCartesianInteractive() {
             >
                 <VictoryChartCartesian onRenderArgs={syncBarPositions} />
                 {!!activeTooltipData && hasTooltipLabels && chartWidth > 0 && (
-                    <Animated.View
-                        style={tooltipWrapperStyle}
-                        pointerEvents="none"
+                    <ChartTooltip
+                        label={activeTooltipData.label}
+                        chartWidth={chartWidth * coordinateScale}
+                        initialTooltipPosition={initialTooltipPosition}
+                        isVisible={isTooltipActive}
+                        onChartMoved={onChartMoved}
+                        onDismiss={dismissTooltip}
                     >
-                        <ChartTooltip
-                            label={activeTooltipData.label}
+                        <ChartTooltipSummary
                             amount={activeTooltipData.amount}
                             percentage={activeTooltipData.percentage}
-                            chartWidth={chartWidth}
-                            initialTooltipPosition={initialTooltipPosition}
                         />
-                    </Animated.View>
+                    </ChartTooltip>
                 )}
             </Animated.View>
         </GestureDetector>

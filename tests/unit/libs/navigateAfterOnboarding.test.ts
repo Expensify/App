@@ -10,7 +10,7 @@ import ROUTES from '@src/ROUTES';
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
-        dismissModal: jest.fn(),
+        dismissModal: jest.fn((options?: {afterTransition?: () => void}) => options?.afterTransition?.()),
         navigate: jest.fn(),
         setNavigationActionToMicrotaskQueue: jest.fn((callback: () => void) => callback()),
     },

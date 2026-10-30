@@ -7,6 +7,7 @@ import useOriginalReportID from '@hooks/useOriginalReportID';
 
 import {openReport} from '@libs/actions/Report';
 import {getValidatedImageSource} from '@libs/AvatarUtils';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportNotFound} from '@libs/ReportUtils';
 
@@ -27,6 +28,7 @@ import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {SafeString} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 
@@ -60,6 +62,10 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionReportID}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportActionReportID}`);
+    const reportPolicyID = report?.policyID;
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(reportPolicyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
 
     useNavigateToReportOnRefresh({source: sourceParam, reportID});
 
@@ -90,6 +96,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
             currentUserAccountID,
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot: reportPolicyID && fullPolicySnapshotLastModified ? {policyID: reportPolicyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         });
     }, [
         reportActionReportID,
@@ -101,6 +108,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         currentUserAccountID,
         guidedSetupAndTourStatus?.isSelfTourViewed,
         guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        reportPolicyID,
+        fullPolicySnapshotLastModified,
     ]);
 
     const onCarouselAttachmentChange = (attachment: Attachment) => {

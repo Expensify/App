@@ -1,4 +1,5 @@
 import AddressSearch from '@components/AddressSearch';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -21,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 function getInputComponent(field: CorpayFormField) {
@@ -57,31 +58,25 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
         shouldSaveDraft: true,
     });
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS], translate);
-        },
-        [fieldsMap, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
+        return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS], translate);
+    };
 
-    const getStyle = useCallback(
-        (field: CorpayFormField, index: number) => {
-            if ((field.valueSet ?? []).length > 0) {
-                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-            }
-            if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
-                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-            }
-            if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
-                return [index === 0 ? styles.pb2 : styles.pv2];
-            }
-            if (field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY) {
-                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-            }
+    const getStyle = (field: CorpayFormField, index: number) => {
+        if ((field.valueSet ?? []).length > 0) {
+            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
+        }
+        if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
+            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
+        }
+        if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
             return [index === 0 ? styles.pb2 : styles.pv2];
-        },
-        [styles.mhn5, styles.pb1, styles.pb2, styles.pv1, styles.pv2],
-    );
+        }
+        if (field.id === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY) {
+            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
+        }
+        return [index === 0 ? styles.pb2 : styles.pv2];
+    };
 
     return (
         <FormProvider
@@ -94,7 +89,9 @@ function AccountHolderInformation({isEditing, onNext, formValues, fieldsMap}: Cu
             enabledWhenOffline
         >
             <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountHolderInformationStepHeader')}</Text>
+                <CollapsibleHeaderOnKeyboardGroupMember>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.accountHolderInformationStepHeader')}</Text>
+                </CollapsibleHeaderOnKeyboardGroupMember>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_HOLDER_DETAILS] ?? {})
                     .sort((a, b) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(b.id))
                     .map((field, index) => {

@@ -33,7 +33,9 @@ import {
     isSameYear,
     isThisYear,
     isValid,
+    isWithinInterval,
     parse,
+    parseISO,
     set,
     startOfDay,
     startOfWeek,
@@ -257,7 +259,11 @@ function getZoneAbbreviation(datetime: string | Date, selectedTimezone: Selected
  * @returns Sunday, July 9, 2023
  */
 function formatToLongDateWithWeekday(datetime: string | Date, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(datetime), CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
+    const date = new Date(datetime);
+    if (!isValid(date)) {
+        return '';
+    }
+    return format(date, CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY, {locale: dateFnsLocale});
 }
 
 /**
@@ -329,6 +335,31 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
 }
 
 /**
+ * Parses a stored `yyyy-MM-dd` date at local midnight, with leading zeros optional as in ValidationUtils.isValidDate.
+ * Other values, such as a date with a time, are read as ISO. Returns undefined for an empty value or one neither format can read.
+ */
+function parseCalendarDate(value?: string): Date | undefined {
+    if (!value) {
+        return undefined;
+    }
+    const date = parse(value, CONST.DATE.FNS_FORMAT_STRING, new Date());
+    if (isValid(date)) {
+        return date;
+    }
+    const dateTime = parseISO(value);
+    return isValid(dateTime) ? dateTime : undefined;
+}
+
+const CALENDAR_PICKER_RANGE = {start: startOfDay(CONST.CALENDAR_PICKER.MIN_DATE), end: endOfDay(CONST.CALENDAR_PICKER.MAX_DATE)};
+
+/**
+ * Whether a day falls between CONST.CALENDAR_PICKER.MIN_DATE and MAX_DATE, both days included.
+ */
+function isWithinCalendarPickerRange(date: Date): boolean {
+    return isWithinInterval(date, CALENDAR_PICKER_RANGE);
+}
+
+/**
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(dateFnsLocale: DateFnsLocale | undefined): string[] {
@@ -339,18 +370,6 @@ function getMonthNames(dateFnsLocale: DateFnsLocale | undefined): string[] {
     });
 
     return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT, {locale: dateFnsLocale}));
-}
-
-/**
- * Returns month list items for SelectionList.
- */
-function getFilteredMonthItems(monthNames: string[], currentMonth: number) {
-    return monthNames.map((month, index) => ({
-        text: month.charAt(0).toUpperCase() + month.slice(1),
-        value: index,
-        keyForList: index.toString(),
-        isSelected: index === currentMonth,
-    }));
 }
 
 /**
@@ -867,6 +886,9 @@ function getFormattedDateRange(translate: LocalizedTranslate, dateFnsLocale: Dat
  * 4. When the dates are from different years or from a year which is not current: Wednesday, Mar 17, 2023 to Saturday, Jan 20, 2024
  */
 function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date1: Date, date2: Date): string {
+    if (!isValid(date1) || !isValid(date2)) {
+        return '';
+    }
     if (isSameDay(date1, date2) && isThisYear(date1)) {
         // Dates are from the same day
         return format(date1, 'EEEE, MMM d', {locale: dateFnsLocale});
@@ -890,6 +912,9 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, dateFns
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, date: Date): string {
+    if (!isValid(date)) {
+        return '';
+    }
     if (isThisYear(date)) {
         return `${translate('travel.departs')} ${format(date, 'EEEE, MMM d', {locale: dateFnsLocale})} ${translate('common.conjunctionAt')} ${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
     }
@@ -903,6 +928,9 @@ function getFormattedTransportDate(translate: LocalizedTranslate, dateFnsLocale:
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
 function getFormattedTransportDateAndHour(date: Date, dateFnsLocale: DateFnsLocale | undefined): {date: string; hour: string} {
+    if (!isValid(date)) {
+        return {date: '', hour: ''};
+    }
     if (isThisYear(date)) {
         return {
             date: format(date, 'EEEE, MMM d', {locale: dateFnsLocale}),
@@ -955,6 +983,9 @@ function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: Date
  * Returns a formatted layover duration in format "2h 30m".
  */
 function getFormattedDurationBetweenDates(translateParam: LocaleContextProps['translate'], start: Date, end: Date): string | undefined {
+    if (!isValid(start) || !isValid(end)) {
+        return;
+    }
     const {days, hours, minutes} = intervalToDuration({start, end});
 
     if (days && days > 0) {
@@ -1064,7 +1095,7 @@ const formatInTimeZoneWithFallback: typeof formatInTimeZone = (date, timeZone, f
  * @param timeZone - Target timezone to display the date in
  * @returns Date string in yyyy-MM-dd format, or empty string if invalid
  */
-function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: SelectedTimezone | undefined, formatStr = CONST.DATE.FNS_FORMAT_STRING): string {
+function formatUTCDateTimeToDateInTimezone(utcDateTime: string, timeZone: SelectedTimezone | undefined, formatStr: string = CONST.DATE.FNS_FORMAT_STRING): string {
     if (!utcDateTime || !timeZone) {
         return '';
     }
@@ -1165,9 +1196,9 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
     return datePart >= monthStart && datePart <= monthEnd;
 }
 
-/** Returns a compact day label, e.g. "Sep 15, ’26". */
-function getShortFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(parse(day, 'yyyy-MM-dd', new Date()), 'MMM d, ’yy', {locale: dateFnsLocale});
+/** Returns a compact date label, e.g. "Sep 15, ’26", or "Sep 15" when the year is left out. */
+function getShortFormattedDayForSearch(day: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    return format(parse(day, 'yyyy-MM-dd', new Date()), shouldShowYear ? 'MMM d, ’yy' : 'MMM d', {locale: dateFnsLocale});
 }
 
 /** Returns a month label, e.g. "September 2025". */
@@ -1176,8 +1207,8 @@ function getFormattedMonthForSearch(year: number, month: number, dateFnsLocale: 
 }
 
 /** Returns a compact month label, e.g. "Sep ’25". */
-function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(year, month - 1, 1), 'LLL ’yy', {locale: dateFnsLocale});
+function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
+    return format(new Date(year, month - 1, 1), shouldShowYear ? 'LLL ’yy' : 'LLL', {locale: dateFnsLocale});
 }
 
 /**
@@ -1196,13 +1227,14 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, date
 }
 
 /** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
-function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined): string {
+function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
     if (!isSameYear(start, end)) {
         return `${format(start, 'MMM d, ’yy', {locale: dateFnsLocale})} - ${format(end, 'MMM d, ’yy', {locale: dateFnsLocale})}`;
     }
-    const formattedEnd = isSameMonth(start, end) ? format(end, 'd, ’yy', {locale: dateFnsLocale}) : format(end, 'MMM d, ’yy', {locale: dateFnsLocale});
+    const yearSuffix = shouldShowYear ? ', ’yy' : '';
+    const formattedEnd = format(end, isSameMonth(start, end) ? `d${yearSuffix}` : `MMM d${yearSuffix}`, {locale: dateFnsLocale});
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${formattedEnd}`;
 }
 
@@ -1243,12 +1275,12 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
 /**
  * Returns a compact quarter label, e.g. "Q3 ’25".
  */
-function getShortFormattedQuarterForSearch(year: number, quarter: number, dateFnsLocale: DateFnsLocale | undefined): string {
+function getShortFormattedQuarterForSearch(year: number, quarter: number, dateFnsLocale: DateFnsLocale | undefined, shouldShowYear = true): string {
     // Same reasoning as `getFormattedQuarterForSearch`. The quarter label has to come from `QQQ` rather than a
     // hand-built `Q${quarter}`, because every locale names quarters differently and `Intl.DateTimeFormat` has no
     // quarter option to fall back on.
     const quarterStart = set(new Date(), {year, month: (quarter - 1) * 3, date: 1, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
-    return format(quarterStart, `QQQ ’yy`, {locale: dateFnsLocale});
+    return format(quarterStart, shouldShowYear ? 'QQQ ’yy' : 'QQQ', {locale: dateFnsLocale});
 }
 
 function getNextNthOfMonth(nth: number) {
@@ -1303,8 +1335,9 @@ const DateUtils = {
     isToday,
     isTomorrow,
     isYesterday,
+    parseCalendarDate,
+    isWithinCalendarPickerRange,
     getMonthNames,
-    getFilteredMonthItems,
     getDaysOfWeek,
     formatWithUTCTimeZone,
     formatMachineDateWithUTCTimeZone,
@@ -1334,6 +1367,7 @@ const DateUtils = {
     formatViolationSnapshotStartedAtDate,
     normalizeDateToStartOfDay,
     normalizeDateToEndOfDay,
+    formatDBTimeWithoutMilliseconds,
     getMonthDateRange,
     getWeekDateRange,
     isDateStringInMonth,

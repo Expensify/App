@@ -5,6 +5,7 @@
  */
 import Text from '@components/Text';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +36,7 @@ function HomeTaskGroup({title, rows, children, reducedTopGap = false}: HomeTaskG
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const [isExpanded, setIsExpanded] = useState(false);
 
     // Collapse again whenever the user leaves and returns to Home.
@@ -49,7 +51,7 @@ function HomeTaskGroup({title, rows, children, reducedTopGap = false}: HomeTaskG
 
     return (
         <>
-            <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, reducedTopGap ? styles.mt2 : styles.mt4, styles.mb2]}>
+            <View style={[cardPaddingHorizontal, reducedTopGap ? styles.mt2 : styles.mt4, styles.mb2]}>
                 <Text style={styles.textLabelSupporting}>{title}</Text>
             </View>
             {rows.length > 0 && (

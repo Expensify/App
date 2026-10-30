@@ -9,12 +9,51 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
+import CONST from '@src/CONST';
+
 import {getBackgroundPermissionsAsync, getForegroundPermissionsAsync, PermissionStatus, requestBackgroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
 import {useEffect, useRef} from 'react';
-import {Linking} from 'react-native';
+import {AppState, Linking} from 'react-native';
 import {checkLocationAccuracy} from 'react-native-permissions';
 
 import type BackgroundLocationPermissionsFlowCallbacks from './types';
+
+function waitForAppToBeActive() {
+    if (AppState.currentState === CONST.APP_STATE.ACTIVE) {
+        return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+        const subscription = AppState.addEventListener('change', (nextAppState) => {
+            if (nextAppState !== CONST.APP_STATE.ACTIVE) {
+                return;
+            }
+            subscription.remove();
+            resolve();
+        });
+    });
+}
+
+/**
+ * expo-location only waits for the "Change to Always Allow" prompt if it sees the app resign active within 1.5 seconds
+ * of the request, otherwise it resolves `denied` while that prompt is still on screen. The app is still inactive right
+ * after the "Allow While Using App" prompt closes, so the request has to wait for the app to become active first. If it
+ * still resolves while the prompt is open, the real answer is read once the prompt closes.
+ */
+async function requestBackgroundPermissions() {
+    await waitForAppToBeActive();
+
+    const {status} = await requestBackgroundPermissionsAsync();
+
+    if (status === PermissionStatus.GRANTED || AppState.currentState === CONST.APP_STATE.ACTIVE) {
+        return status;
+    }
+
+    await waitForAppToBeActive();
+    const {status: updatedStatus} = await getBackgroundPermissionsAsync();
+
+    return updatedStatus;
+}
 
 async function requestPermissions({
     onGrant,
@@ -28,7 +67,7 @@ async function requestPermissions({
             return;
         }
 
-        const {status} = await requestBackgroundPermissionsAsync();
+        const status = await requestBackgroundPermissions();
 
         if (status !== PermissionStatus.GRANTED) {
             return;

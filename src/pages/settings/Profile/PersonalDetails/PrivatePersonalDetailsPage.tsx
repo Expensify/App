@@ -18,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
-import {normalizeCountryCode} from '@libs/CountryUtils';
+import {normalizeCountryCode, resolveStateCode} from '@libs/CountryUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -39,15 +39,6 @@ import {subYears} from 'date-fns';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-
-// StateSelector keys on 2-letter codes, but stored addresses may use full state names (e.g. "California").
-function resolveStateCode(stateValue: string): string {
-    if (!stateValue || stateValue in COMMON_CONST.STATES) {
-        return stateValue;
-    }
-    const match = Object.entries(COMMON_CONST.STATES).find(([, v]) => v.stateName.toLowerCase() === stateValue.toLowerCase());
-    return match ? match[0] : stateValue;
-}
 
 function PrivatePersonalDetailsPage() {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS>>();
@@ -226,7 +217,7 @@ function PrivatePersonalDetailsPage() {
     };
 
     if (isLoadingApp) {
-        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

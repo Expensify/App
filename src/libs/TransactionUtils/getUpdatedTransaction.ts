@@ -402,11 +402,17 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-        const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
-        if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
-            updatedTransaction.taxCode = categoryTaxCode;
-            updatedTransaction.taxAmount = categoryTaxAmount;
-            updatedTransaction.taxValue = categoryTaxValue;
+
+        // On a server backed edit, clearing the category leaves the stored tax rate untouched, so predicting a
+        // change here only writes a rate that the response immediately overwrites. Split drafts have no such
+        // response and send whatever tax the draft holds, so they keep recalculating.
+        if (transactionChanges.category || isSplitTransaction) {
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
+            if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
+                updatedTransaction.taxCode = categoryTaxCode;
+                updatedTransaction.taxAmount = categoryTaxAmount;
+                updatedTransaction.taxValue = categoryTaxValue;
+            }
         }
     }
 
