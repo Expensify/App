@@ -193,6 +193,9 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                 title={translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
+            <View fsClass={CONST.FULLSTORY.CLASS.MASK}>
+                <Text fsClass={CONST.FULLSTORY.CLASS.UNMASK}>UNMASK-CHILD-TEST-1</Text>
+            </View>
             <FormProvider
                 formID={ONYXKEYS.FORMS.ADD_NEW_CARD_FEED_FORM}
                 submitButtonText={translate('common.submit')}
@@ -206,6 +209,7 @@ function DetailsStep({policyID, cardFeeds, workspaceAccountID}: DetailsStepProps
                     {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}
                 </Text>
                 <View fsClass={CONST.FULLSTORY.CLASS.MASK}>{renderInputs()}</View>
+                <Text fsClass={CONST.FULLSTORY.CLASS.UNMASK}>UNMASK-CHILD-TEST-2</Text>
                 {!!feedProvider && !isStripeFeedProvider && (
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
                         <Icon
