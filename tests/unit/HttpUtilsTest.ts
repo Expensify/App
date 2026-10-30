@@ -2,7 +2,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {setAuthToken} from '@libs/Network/NetworkStore';
 
 import CONFIG from '@src/CONFIG';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
