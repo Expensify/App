@@ -221,7 +221,9 @@ function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData |
         // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
         (bankCurrency || accountData?.additionalData?.currency) === CONST.CURRENCY.USD &&
         accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        // Corpay accounts are marked by their verification, Wise accounts by the flag the backend sets once Wise approves the business
         !accountData.additionalData?.verifications?.corpay &&
+        accountData.additionalData?.isGlobalReimbursementEnabled !== true &&
         accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
     );
 }

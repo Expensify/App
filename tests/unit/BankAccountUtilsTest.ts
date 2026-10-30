@@ -284,6 +284,20 @@ describe('BankAccountUtils', () => {
             expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, verifications: {corpay: {}}}})).toBe(false);
         });
 
+        it('returns false when global reimbursements are already enabled', () => {
+            // Given a verified USD business account the backend marks as set up for global reimbursements, e.g. after Wise approved it
+            // When checking eligibility
+            // Then it is not eligible, so the Wallet menu and banners stop offering a setup that is already done
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled: true}})).toBe(false);
+        });
+
+        it('returns true when global reimbursements are explicitly disabled', () => {
+            // Given a verified USD business account the backend marks as not set up for global reimbursements
+            // When checking eligibility
+            // Then it is eligible, because that is exactly the account the setup is for
+            expect(isBankAccountEligibleForGlobalReimbursements({...eligibleAccountData, additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled: false}})).toBe(true);
+        });
+
         it.each([CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.PENDING, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
             'returns false for an account in the %s state',
             (state) => {
@@ -1025,6 +1039,18 @@ describe('BankAccountUtils', () => {
             // When picking the account for the Wallet banner
             // Then the newest one by creation date wins, since the spec defaults the banner to the most recently added account
             expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(1);
+        });
+
+        it('skips accounts that already have global reimbursements enabled', () => {
+            // Given a newer account with global reimbursements enabled and an older one without
+            const bankAccountList = createMock<BankAccountList>({
+                accountOne: buildBankAccount(1, '2026-05-01 10:00:00', {additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled: true}}),
+                accountTwo: buildBankAccount(2, '2026-03-01 10:00:00'),
+            });
+
+            // When picking the account for the Wallet banner
+            // Then the older account wins, because the banner asks to enable something the newer account already has
+            expect(getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList)).toBe(2);
         });
 
         it('skips accounts that are not eligible', () => {
