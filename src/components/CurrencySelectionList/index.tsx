@@ -31,7 +31,9 @@ function CurrencySelectionList({
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
     const [searchValue, setSearchValue] = useState('');
-    const selectedCurrencyCodes = [initiallySelectedCurrencyCode, ...selectedCurrencies].filter(Boolean);
+    const selectedCurrencyCodes = [initiallySelectedCurrencyCode, ...selectedCurrencies].filter(
+        (currencyCode) => currencyCode !== undefined && (currencyCode !== '' || shouldAllowEmptySelection),
+    );
     const initiallyPinnedCurrencyCodes = useInitialSelection(selectedCurrencyCodes, {resetOnFocus: true});
     const {translate} = useLocalize();
     const initiallyPinnedCurrencyCodeSet = new Set(initiallyPinnedCurrencyCodes);

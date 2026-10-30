@@ -7,7 +7,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 
 import {getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
-import getAmountInputKeyboard from '@libs/getAmountInputKeyboard';
+import getAmountFilterInputKeyboard from '@libs/getAmountFilterInputKeyboard';
 import {supportsAmountFilterCurrency} from '@libs/SearchAmountFilterUtils';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
@@ -23,7 +23,11 @@ import {View} from 'react-native';
 type AmountFilterInputProps = {
     ref?: ForwardedRef<BaseTextInputRef>;
     baseFilterKey: SearchAmountFilterKeys;
+
+    /** Amount in major units, regardless of the saved operand's units. */
     amount: string;
+
+    /** Empty or omitted means Any currency instead of a currency comparison. */
     currency?: string;
     label: string;
     name?: string;
@@ -57,7 +61,7 @@ function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, a
     }
 
     const hideCurrencyPicker = () => setIsCurrencyPickerVisible(false);
-    const {keyboardType} = getAmountInputKeyboard(true);
+    const {keyboardType, shouldShowFlipButton} = getAmountFilterInputKeyboard();
 
     return (
         <View style={containerStyles}>
@@ -74,9 +78,10 @@ function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, a
                 onInputChange={onAmountChange}
                 allowNegativeInput
                 keyboardType={keyboardType}
+                shouldShowFlipButton={shouldShowFlipButton}
                 shouldShowCurrencyButton
                 currencyButtonLabel={currency || translate('common.any')}
-                currencyButtonAccessibilityLabel={[label, translate('common.selectCurrency'), currency || translate('common.anyCurrency')].join(', ')}
+                currencyButtonAccessibilityLabel={[label.trim(), translate('common.selectCurrency'), currency || translate('common.anyCurrency')].join(', ')}
                 onCurrencyButtonPress={() => setIsCurrencyPickerVisible(true)}
                 shouldShowBigNumberPad={false}
                 shouldUseBorderlessButtons

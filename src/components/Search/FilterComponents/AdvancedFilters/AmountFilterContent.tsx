@@ -8,6 +8,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -97,6 +98,7 @@ type AmountBetweenInputProps = {
 
 function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue, autoFocus}: AmountBetweenInputProps) {
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const initialGreaterThan = getAmountFilterInputValue(greaterThanValue);
     const initialLessThan = getAmountFilterInputValue(lessThanValue);
@@ -129,7 +131,7 @@ function AmountBetweenInput({ref, baseFilterKey, greaterThanValue, lessThanValue
     const lessThanLabel = translate('search.filters.amount.lessThan');
 
     return (
-        <View style={[styles.flexRow, styles.gap1, styles.ph4, styles.mv2]}>
+        <View style={[shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow, styles.gap1, styles.ph4, styles.mv2]}>
             <AmountFilterInput
                 ref={inputRef}
                 baseFilterKey={baseFilterKey}

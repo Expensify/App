@@ -2,6 +2,7 @@ import {act, fireEvent, render, renderHook, screen} from '@testing-library/react
 
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import AmountFilterContent from '@components/Search/FilterComponents/AdvancedFilters/AmountFilterContent';
+import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterInput';
 import AmountPopup from '@components/Search/FilterDropdowns/AmountPopup';
 import BasePopup from '@components/Search/FilterDropdowns/BasePopup';
 
@@ -32,6 +33,26 @@ beforeEach(() => {
 });
 
 describe('AmountFilterContent currency selection', () => {
+    it.each(['Greater than ', 'Less than '])('trims the %s label in the currency button name', (label) => {
+        // Given a range label whose translation leaves space for an optional amount.
+        render(
+            <AmountFilterInput
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT}
+                amount="12.00"
+                currency="USD"
+                label={label}
+                onAmountChange={jest.fn()}
+                onCurrencyChange={jest.fn()}
+            />,
+        );
+
+        // When the currency button's accessible name combines the label with its selected currency.
+        const props = jest.mocked(NumberWithSymbolForm).mock.lastCall?.[0];
+
+        // Then no trailing translation space remains before the spoken separator.
+        expect(props?.currencyButtonAccessibilityLabel).toBe(`${label.trim()}, common.selectCurrency, USD`);
+    });
+
     it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('sends the selected currency for %s', (baseFilterKey) => {
         // Given a legacy bare amount in a workspace whose default currency is GBP.
         jest.mocked(useDefaultExpensePolicy).mockReturnValue(createMock<Policy>({outputCurrency: 'GBP'}));

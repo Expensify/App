@@ -8,8 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -55,7 +53,7 @@ function IOURequestStepCurrencyModal({
             onClose={hidePickerModal}
             onModalHide={hidePickerModal}
             shouldEnableNewFocusManagement
-            onBackdropPress={Navigation.dismissModal}
+            onBackdropPress={hidePickerModal}
             shouldUseModalPaddingStyle={false}
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding

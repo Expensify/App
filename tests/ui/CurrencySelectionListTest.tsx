@@ -76,8 +76,6 @@ describe('CurrencySelectionList', () => {
     it.each([
         {initiallySelectedCurrencyCode: 'USD', recentlyUsedCurrencies: ['EUR']},
         {initiallySelectedCurrencyCode: 'USD', recentlyUsedCurrencies: []},
-        {initiallySelectedCurrencyCode: '', recentlyUsedCurrencies: ['EUR']},
-        {initiallySelectedCurrencyCode: '', recentlyUsedCurrencies: []},
     ])('puts Any currency first under All with selection "$initiallySelectedCurrencyCode" and recents $recentlyUsedCurrencies', (props) => {
         // Given an optional currency picker with a saved selection and optional recent currencies.
         renderCurrencyList({...props, shouldAllowEmptySelection: true});
@@ -94,6 +92,21 @@ describe('CurrencySelectionList', () => {
         if (props.initiallySelectedCurrencyCode) {
             expect(pinnedCurrencyCodes()).toEqual(['USD']);
         }
+    });
+
+    it.each([{recentlyUsedCurrencies: ['EUR']}, {recentlyUsedCurrencies: []}])('pins selected Any currency above recents $recentlyUsedCurrencies', ({recentlyUsedCurrencies}) => {
+        // Given an optional picker reopened with Any currency selected and optional recents.
+        renderCurrencyList({initiallySelectedCurrencyCode: '', recentlyUsedCurrencies, shouldAllowEmptySelection: true});
+
+        // When the selected option is pinned before the other sections.
+        const sections = getSelectionListProps()?.sections;
+
+        // Then initial focus stays above Recents and Any currency does not appear twice.
+        expect(pinnedCurrencyCodes()).toEqual(['']);
+        expect(sections?.at(0)?.title).toBeUndefined();
+        expect(sections?.at(0)?.data.at(0)).toMatchObject({currencyCode: '', isSelected: true});
+        expect(sections?.slice(1).flatMap((section) => section.data.map((item) => item.currencyCode))).not.toContain('');
+        expect(getSelectionListProps()?.initiallyFocusedItemKey).toBe('any-currency');
     });
 
     it('searches Any currency as a list option', () => {

@@ -1,6 +1,9 @@
 import {act, render, screen} from '@testing-library/react-native';
 
 import CurrencySelectionList from '@components/CurrencySelectionList';
+import Modal from '@components/Modal';
+
+import Navigation from '@libs/Navigation/Navigation';
 
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
@@ -11,8 +14,33 @@ jest.mock('@components/Modal', () => jest.fn(({children}: {children: React.React
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/CurrencySelectionList', () => jest.fn(() => null));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, preferredLocale: 'en'}));
+jest.mock('@libs/Navigation/Navigation', () => ({dismissModal: jest.fn()}));
 
 describe('IOURequestStepCurrencyModal', () => {
+    it.each([true, false])('closes only the picker on backdrop press with optional currency %s', (shouldAllowEmptySelection) => {
+        // Given a local currency picker over a filter or money request.
+        const hidePickerModal = jest.fn();
+        const onInputChange = jest.fn();
+        render(
+            <IOURequestStepCurrencyModal
+                isPickerVisible
+                hidePickerModal={hidePickerModal}
+                headerText="Select a currency"
+                value="USD"
+                onInputChange={onInputChange}
+                shouldAllowEmptySelection={shouldAllowEmptySelection}
+            />,
+        );
+
+        // When the backdrop is pressed instead of selecting another currency.
+        act(() => jest.mocked(Modal).mock.lastCall?.[0].onBackdropPress?.());
+
+        // Then only the local picker closes, without changing the selection or underlying route.
+        expect(hidePickerModal).toHaveBeenCalledTimes(1);
+        expect(onInputChange).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+    });
+
     it('selects Any currency as an empty currency and closes the picker', () => {
         // Given an amount filter that permits currency-agnostic comparisons.
         const onInputChange = jest.fn();
