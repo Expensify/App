@@ -1,5 +1,6 @@
 import {fireEvent, render, screen, within} from '@testing-library/react-native';
 
+import ActivityIndicator from '@components/ActivityIndicator';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -103,6 +104,7 @@ describe('Insights controls', () => {
         expect(screen.getByText(new RegExp(`: ${POLICY_NAME}$`))).toBeOnTheScreen();
         expect(screen.getByText(/: USD$/)).toBeOnTheScreen();
         expect(screen.getByTestId('InsightsExportButton')).toBeOnTheScreen();
+        expect(within(screen.getByTestId('InsightsExportButton')).UNSAFE_queryByType(ActivityIndicator)).toBeNull();
     });
 
     it('exports when the dashboard is ready and blocks exports while a chart is loading', async () => {
@@ -143,7 +145,7 @@ describe('Insights controls', () => {
         expect(onExport).toHaveBeenCalledTimes(1);
     });
 
-    it.each([false, true])('captures the idle Export button while exporting with narrow layout %s', async (shouldUseNarrowLayout) => {
+    it.each([false, true])('shows a 16px spinner without hiding the Export label with narrow layout %s', async (shouldUseNarrowLayout) => {
         // Given an export in progress on either toolbar layout
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
             createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout, isSmallScreenWidth: shouldUseNarrowLayout}),
@@ -164,7 +166,8 @@ describe('Insights controls', () => {
         const toolbar = screen.getByTestId('InsightsCaptureControls');
         const exportButton = within(toolbar).getByTestId('InsightsExportButton');
 
-        // Then the captured subtree includes the visible label instead of a spinner and cannot start another export
+        // Then the button shows a small spinner, keeps its label in the captured subtree, and cannot start another export
+        expect(within(exportButton).UNSAFE_getByType(ActivityIndicator).props.size).toBe(16);
         expect(within(exportButton).getByText(/^(Export|common\.export)$/)).toBeVisible();
         expect(exportButton).toBeDisabled();
         fireEvent.press(exportButton);

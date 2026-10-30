@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ScrollView from '@components/ScrollView';
 
@@ -5,10 +6,13 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {InsightsCaptureRef} from '@pages/Insights/exportInsightsDashboard/types';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
@@ -37,6 +41,7 @@ type InsightsPageControlsProps = {
 
 function InsightsPageControls({filters, defaultFilters, onChange, onExport, isExportDisabled = false, isExporting = false, captureRef}: InsightsPageControlsProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -64,7 +69,7 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
         </View>
     );
 
-    // Keep the idle button content in the image while preventing another export.
+    // Keep the label visible during export so the captured button does not become an empty loading state.
     const exportButton = (
         <Button
             size={CONST.BUTTON_SIZE.SMALL}
@@ -74,7 +79,14 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CONTROL_EXPORT}
             testID="InsightsExportButton"
         >
-            <Button.Icon src={icons.Export} />
+            {isExporting ? (
+                <ActivityIndicator
+                    size={variables.iconSizeSmall}
+                    color={theme.text}
+                />
+            ) : (
+                <Button.Icon src={icons.Export} />
+            )}
             <Button.Text style={styles.textMicroBold}>{translate('common.export')}</Button.Text>
         </Button>
     );
