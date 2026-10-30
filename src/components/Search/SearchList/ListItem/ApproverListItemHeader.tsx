@@ -103,10 +103,12 @@ function ApproverListItemHeader({
                     <TextWithTooltip
                         text={formattedDisplayName}
                         style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                        isSelectable
                     />
                     <TextWithTooltip
                         text={formattedLogin || formattedDisplayName}
                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                        isSelectable
                     />
                 </View>
             </View>
@@ -160,10 +162,12 @@ function ApproverListItemHeader({
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isSelectable
                                 />
                                 <TextWithTooltip
                                     text={formattedLogin || formattedDisplayName}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    isSelectable
                                 />
                             </View>
                         </View>

@@ -1059,6 +1059,20 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com');
         });
 
+        test('array of approver', () => {
+            // Given form values holding the approver picked from the filter bar
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                approver: ['12345', '67890'],
+            };
+
+            // When the query string is rebuilt from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the approver filter is written back to the query so the search keeps narrowing by it
+            expect(result).toEqual('type:expense approver:12345,67890');
+        });
+
         test('complex filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -1921,6 +1935,21 @@ describe('SearchQueryUtils', () => {
 
             // Then only `=` restores Equal to, because legacy `:` keeps its partial-match behavior
             expect(result).toEqual({type: 'expense', merchant: 'Uber', merchantOperator});
+        });
+
+        test('approver filter is kept when the approver has personal details', () => {
+            // Given a query from an approver chart drill-down, where only one of the approvers is a known user
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense approver:12345,99999');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+            const personalDetails = {12345: {accountID: 12345, login: 'approver@expensify.com'}};
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, personalDetails, {}, {}, {});
+
+            // Then the known approver is kept like a from filter, so changing another filter does not drop it
+            expect(result).toEqual({type: 'expense', approver: ['12345']});
         });
 
         test('category filter includes empty values', () => {

@@ -51,24 +51,14 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
 
         const shouldResetSearchKey = !!values.type && values.type !== searchAdvancedFiltersForm.type;
 
-        Navigation.setParams({
-            q: queryString,
-            rawQuery: undefined,
-            ...(shouldResetSearchKey && {
-                searchKey: getSearchKeyForQuery(buildSearchQueryJSON(queryString)),
-            }),
-        });
+        Navigation.setParams({q: queryString, rawQuery: undefined, ...(shouldResetSearchKey && {searchKey: getSearchKeyForQuery(buildSearchQueryJSON(queryString))})});
     }
 
     function updateFilterQueryParams(values: Partial<SearchAdvancedFiltersForm>) {
         setFilterQueryParams(getUpdatedFilterFormValues(searchAdvancedFiltersForm, values));
     }
 
-    return {
-        getUpdatedFilterFormValues,
-        setFilterQueryParams,
-        updateFilterQueryParams,
-    };
+    return {getUpdatedFilterFormValues, setFilterQueryParams, updateFilterQueryParams};
 }
 
 export default useUpdateFilterQuery;

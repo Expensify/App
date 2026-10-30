@@ -58,6 +58,8 @@
     approver: "asc",
   };
 
+  const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
+
   const TIME_BASED_GROUP_BY = new Set(["day", "week", "month", "year", "quarter"]);
 
   const defaultValues = {
@@ -76,7 +78,7 @@
   ]);
 
   function isDefaultSortValue(sortBy) {
-    return sortBy === "date" || sortBy === GROUP_BY_DEFAULT_SORT[defaultValues.groupBy];
+    return DEFAULT_SORT_BY_VALUES.has(sortBy);
   }
 
   function getDefaultSortByForGroupBy(groupBy) {

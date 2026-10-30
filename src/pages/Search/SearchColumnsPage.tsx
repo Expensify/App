@@ -104,13 +104,7 @@ function SearchColumnsPage() {
 
         // Only the columns change, so it's still the same search - carry the key over rather than letting it be
         // re-derived from the new query.
-        Navigation.navigate(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: queryString,
-                searchKey: currentSearchKey,
-            }),
-            {forceReplace: true},
-        );
+        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString, searchKey: currentSearchKey}), {forceReplace: true});
     };
 
     if (isSeedPending) {
