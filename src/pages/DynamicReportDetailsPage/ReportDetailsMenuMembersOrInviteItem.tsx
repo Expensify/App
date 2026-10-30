@@ -31,6 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type ReportDetailsMenuMembersOrInviteItemProps = {
@@ -39,6 +40,7 @@ type ReportDetailsMenuMembersOrInviteItemProps = {
 
 function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembersOrInviteItemProps) {
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users']);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -89,13 +91,17 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     ) {
         return (
             <MenuItem.Root
-                onPress={callFunctionIfActionIsAllowed(() => {
-                    if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
-                    } else {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
-                    }
-                })}
+                onPress={callFunctionIfActionIsAllowed(
+                    () => {
+                        if (shouldOpenRoomMembersPage) {
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
+                        } else {
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
+                        }
+                    },
+                    false,
+                    session,
+                )}
                 accessibilityLabel={translate('common.members')}
             >
                 <MenuItem.Row>

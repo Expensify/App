@@ -87,7 +87,6 @@ function getApprovalWorkflow(policy: OnyxEntry<Policy>): ValueOf<typeof CONST.PO
 
 function getDefaultApprover(policy: OnyxEntry<Policy>): string {
     // We intentionally use || here so an empty-string approver falls back to the owner. ?? would keep the empty string.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return policy?.approver || policy?.owner || '';
 }
 

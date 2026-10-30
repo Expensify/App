@@ -20,6 +20,7 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type ReportDetailsMenuPrivateNotesItemProps = {
@@ -28,6 +29,7 @@ type ReportDetailsMenuPrivateNotesItemProps = {
 
 function ReportDetailsMenuPrivateNotesItem({reportID}: ReportDetailsMenuPrivateNotesItemProps) {
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -46,7 +48,7 @@ function ReportDetailsMenuPrivateNotesItem({reportID}: ReportDetailsMenuPrivateN
 
     return (
         <MenuItem.Root
-            onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID))}
+            onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID), false, session)}
             accessibilityLabel={translate('privateNotes.title')}
         >
             <MenuItem.Row>

@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import ActivityIndicator from '@components/ActivityIndicator';
 import DynamicFormFlow from '@components/DynamicForm';
@@ -35,9 +35,15 @@ const mockPrevPage = jest.fn();
 const mockResetToPage = jest.fn();
 const mockMoveTo = jest.fn();
 let mockOnBackButtonPress: (() => void) | undefined;
+let mockOnAndroidBackPress: (() => boolean) | undefined;
 const mockStepWrapper = jest.fn<null, [{stepNames: string[]; startStepIndex: number}]>(() => null);
 
 jest.mock('@hooks/useSubPage', () => jest.fn());
+jest.mock('@hooks/useAndroidBackButtonHandler', () =>
+    jest.fn((callback: () => boolean) => {
+        mockOnAndroidBackPress = callback;
+    }),
+);
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@userActions/DynamicForm', () => ({
     saveDraftAnswers: jest.fn(),
@@ -100,6 +106,21 @@ type RenderFlowOptions = {
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
 };
 
+function mockSubPage(currentPageName: string, pageIndex: number, isRedirecting: boolean) {
+    jest.mocked(useSubPage<DynamicFormSubPageProps>).mockReturnValue({
+        CurrentPage: mockCurrentPage,
+        isEditing: false,
+        currentPageName,
+        pageIndex,
+        lastPageIndex: 3,
+        nextPage: jest.fn(),
+        prevPage: mockPrevPage,
+        moveTo: mockMoveTo,
+        resetToPage: mockResetToPage,
+        isRedirecting,
+    });
+}
+
 async function renderFlow({
     flowSchema = schema,
     draft = {},
@@ -116,18 +137,7 @@ async function renderFlow({
 }: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
-    jest.mocked(useSubPage<DynamicFormSubPageProps>).mockReturnValue({
-        CurrentPage: mockCurrentPage,
-        isEditing: false,
-        currentPageName,
-        pageIndex,
-        lastPageIndex: 3,
-        nextPage: jest.fn(),
-        prevPage: mockPrevPage,
-        moveTo: mockMoveTo,
-        resetToPage: mockResetToPage,
-        isRedirecting,
-    });
+    mockSubPage(currentPageName, pageIndex, isRedirecting);
     const onSubmit = jest.fn();
     const onBack = jest.fn();
     const onPageSubmit = jest.fn();
@@ -161,7 +171,15 @@ async function renderFlow({
         throw new Error('useSubPage was not called');
     }
     const pageProps = mockCurrentPage.mock.lastCall?.[0];
-    return {subPageOptions, setSubmitting, unmount, onSubmit, onBack, onPageSubmit, pageProps: hasDynamicFormProps(pageProps) ? pageProps : undefined};
+    const rerenderFlow = () => setSubmitting(isSubmitting);
+    return {subPageOptions, setSubmitting, rerenderFlow, unmount, onSubmit, onBack, onPageSubmit, pageProps: hasDynamicFormProps(pageProps) ? pageProps : undefined};
+}
+
+function pressAndroidBack(): boolean {
+    if (!mockOnAndroidBackPress) {
+        throw new Error('The flow did not register an Android back handler');
+    }
+    return mockOnAndroidBackPress();
 }
 
 describe('DynamicFormFlow', () => {
@@ -171,6 +189,7 @@ describe('DynamicFormFlow', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockOnAndroidBackPress = undefined;
         await Onyx.clear();
     });
 
@@ -493,6 +512,54 @@ describe('DynamicFormFlow', () => {
         // Then the previous page opens and the sensitive answers are kept
         expect(mockPrevPage).toHaveBeenCalled();
         expect(clearSensitiveAnswers).not.toHaveBeenCalled();
+    });
+
+    it('takes Android back to the previous page from a later page', async () => {
+        // Given the second page of a flow on replaced routes, which leaves no page in the stack for the system back to pop
+        await renderFlow({pageIndex: 1, shouldReplaceRoute: true});
+
+        // When the user presses Android's back button
+        const isHandled = pressAndroidBack();
+
+        // Then the flow handles it like the header's back, so the user lands on the first page instead of leaving the flow
+        expect(isHandled).toBe(true);
+        expect(mockPrevPage).toHaveBeenCalled();
+        expect(clearSensitiveAnswers).not.toHaveBeenCalled();
+    });
+
+    it('leaves the flow and forgets sensitive answers on Android back from the first page', async () => {
+        // Given the first page
+        const {onBack} = await renderFlow({pageIndex: 0, shouldReplaceRoute: true});
+
+        // When the user presses Android's back button
+        const isHandled = pressAndroidBack();
+
+        // Then the screen is left and the SSN is dropped, as the header's back does, so it does not outlive the visit
+        expect(isHandled).toBe(true);
+        expect(onBack).toHaveBeenCalled();
+        expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
+        expect(mockPrevPage).not.toHaveBeenCalled();
+    });
+
+    it('waits for the sensitive answers of an earlier visit to be cleared before showing a page', async () => {
+        // Given an SSN still in memory from a visit left without the flow's own back, such as by a swipe, and a new visit that opens with no page in the URL
+        const {rerenderFlow} = await renderFlow({draft: {firstName: 'Jane'}, sensitiveAnswers: {ssn: '123456789'}, isRedirecting: true});
+
+        // When the redirect lands on the first page before the clearing reaches memory
+        mockSubPage('personal-details', 0, false);
+        await rerenderFlow();
+
+        // Then the spinner stays, since the page's inputs read their values once on mount and would keep the old SSN
+        expect(mockCurrentPage).not.toHaveBeenCalled();
+
+        // When the earlier answers are cleared
+        await act(() => Onyx.merge(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: null}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page opens without the old SSN, and no render of it ever held the SSN
+        expect(mockCurrentPage).toHaveBeenCalled();
+        const pageValues = mockCurrentPage.mock.calls.map(([props]) => (hasDynamicFormProps(props) ? props.values : undefined));
+        expect(pageValues.every((values) => values?.ssn === undefined)).toBe(true);
     });
 
     it('passes the file size limit on to the page', async () => {

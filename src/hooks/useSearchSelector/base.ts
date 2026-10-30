@@ -158,7 +158,7 @@ const CONTEXTS_APPLYING_GET_VALID_OPTIONS_CONFIG: ReadonlySet<SearchSelectorCont
 
 const doOptionsMatch = (option1: OptionData, option2: OptionData) => {
     return (
-        (option1.accountID && option1.accountID === option2.accountID) || // eslint-disable-line @typescript-eslint/prefer-nullish-coalescing -- this is boolean comparison
+        (option1.accountID && option1.accountID === option2.accountID) ||
         (option1.reportID && option1.reportID !== '-1' && option1.reportID === option2.reportID) ||
         (option1.login && option1.login === option2.login)
     );
@@ -461,27 +461,6 @@ function useSearchSelectorBase({
         }
     })();
 
-    // Two independent pagination cursors are checked here on purpose:
-    // - hasMore/maxResults track how many relevance-sorted options are rendered.
-    // - hasMoreReports/loadMoreReports track the raw Onyx report pool size by useFilteredOptions
-    const onListEndReached = useDebounce(
-        () => {
-            if (!areOptionsInitialized) {
-                return;
-            }
-
-            if (hasMore) {
-                setMaxResults((previous) => previous + maxResultsPerPage);
-            }
-            if (hasMoreReports) {
-                loadMoreReports();
-            }
-        },
-        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
-        // maxWait keeps pages arriving while the scrolling continues.
-        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
-    );
-
     const isOptionSelected = (option: OptionData) => selectedOptions.some((selected) => doOptionsMatch(selected, option));
 
     const searchOptions = {
@@ -514,6 +493,26 @@ function useSearchSelectorBase({
         recentReports: filteredRecentReports,
         userToInvite: !shouldKeepSelectedInAvailableOptions && searchOptions.userToInvite?.isSelected ? null : searchOptions.userToInvite,
     };
+
+    const selectedOptionsForDisplay = selectedOptions.filter((option) => {
+        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID, translate);
+        return (
+            !!option.text?.toLowerCase().includes(computedSearchTerm) ||
+            !!option.login?.toLowerCase().includes(computedSearchTerm) ||
+            personalDetailSearchTerms.some((term) => term.toLocaleLowerCase().includes(computedSearchTerm))
+        );
+    });
+
+    const selectedNonExistingOptions = shouldSeparateNonExistingSelectedOptions
+        ? (() => {
+              const personalDetailLogins = new Set(filteredPersonalDetails.map((option) => option.login).filter(Boolean));
+              return selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
+          })()
+        : [];
+
+    // Keep toggleSelection below the option lists so React Compiler can reuse the lists when
+    // only onSingleSelect or onSelectionChange changes. Keep useDebounce below the derived
+    // lists so no hook call separates them from getValidOptions.
 
     /**
      * Toggle selection state of option based on selection mode
@@ -559,21 +558,26 @@ function useSearchSelectorBase({
         onSelectionChange?.(newlySelected);
     };
 
-    const selectedOptionsForDisplay = selectedOptions.filter((option) => {
-        const personalDetailSearchTerms = getPersonalDetailSearchTerms(option, currentUserAccountID, translate);
-        return (
-            !!option.text?.toLowerCase().includes(computedSearchTerm) ||
-            !!option.login?.toLowerCase().includes(computedSearchTerm) ||
-            personalDetailSearchTerms.some((term) => term.toLocaleLowerCase().includes(computedSearchTerm))
-        );
-    });
+    // Two independent pagination cursors are checked here on purpose:
+    // - hasMore/maxResults track how many relevance-sorted options are rendered.
+    // - hasMoreReports/loadMoreReports track the raw Onyx report pool size by useFilteredOptions
+    const onListEndReached = useDebounce(
+        () => {
+            if (!areOptionsInitialized) {
+                return;
+            }
 
-    const selectedNonExistingOptions = shouldSeparateNonExistingSelectedOptions
-        ? (() => {
-              const personalDetailLogins = new Set(filteredPersonalDetails.map((option) => option.login).filter(Boolean));
-              return selectedOptionsForDisplay.filter((option) => !personalDetailLogins.has(option.login));
-          })()
-        : [];
+            if (hasMore) {
+                setMaxResults((previous) => previous + maxResultsPerPage);
+            }
+            if (hasMoreReports) {
+                loadMoreReports();
+            }
+        },
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+        // maxWait keeps pages arriving while the scrolling continues.
+        {maxWait: CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME},
+    );
 
     return {
         searchTerm,

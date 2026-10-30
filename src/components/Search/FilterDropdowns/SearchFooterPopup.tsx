@@ -6,14 +6,17 @@ import type {SearchFooterCount, SearchFooterTotal} from '@components/Search/type
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getFooterTotalItems} from '@libs/SearchUIUtils';
+import {getFooterCountItems, getFooterTotalItems} from '@libs/SearchUIUtils';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import CurrencyPopup from './CurrencyPopup';
@@ -83,14 +86,12 @@ function SearchFooterPopup({
     onCurrencyChange,
 }: SearchFooterPopupProps) {
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [selectedFooterFilter, setSelectedFooterFilter] = useState<SelectedFooterFilter>(null);
 
-    const countItems: Array<SingleSelectItem<SearchFooterCount>> = [
-        {text: translate('common.expenses'), value: CONST.SEARCH.FOOTER_COUNT.EXPENSES},
-        {text: translate('common.reports'), value: CONST.SEARCH.FOOTER_COUNT.REPORTS},
-    ];
+    const countItems: Array<SingleSelectItem<SearchFooterCount>> = getFooterCountItems(translate);
     const totalItems = getFooterTotalItems(translate);
 
     if (!selectedFooterFilter) {
@@ -106,28 +107,30 @@ function SearchFooterPopup({
                 )}
                 {shouldShowTotalSelector && !!totalType && (
                     <MenuItem.Root
-                        // Both rows re-run the search, so they are inert until the one in flight lands. The count row
-                        // stays interactive, since switching it needs no request.
-                        onPress={!isTotalLoading ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL)) : undefined}
+                        onPress={!isTotalLoading ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL), false, session) : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_TOTAL}
                     >
                         <MenuItemField.Row
                             name={translate('common.total')}
                             value={totalItems.find((item) => item.value === totalType)?.text}
                         >
-                            <MenuItem.Chevron />
+                            {!isTotalLoading && <MenuItem.Chevron />}
                         </MenuItemField.Row>
                     </MenuItem.Root>
                 )}
                 <MenuItem.Root
-                    onPress={!isTotalLoading && !isOffline ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY)) : undefined}
+                    onPress={
+                        !isTotalLoading && !isOffline
+                            ? callFunctionIfActionIsAllowed(() => setSelectedFooterFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY), false, session)
+                            : undefined
+                    }
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.FOOTER_CURRENCY}
                 >
                     <MenuItemField.Row
                         name={translate('common.currency')}
                         value={currency ?? defaultCurrency}
                     >
-                        <MenuItem.Chevron />
+                        {!isTotalLoading && !isOffline && <MenuItem.Chevron />}
                     </MenuItemField.Row>
                 </MenuItem.Root>
             </ScrollView>

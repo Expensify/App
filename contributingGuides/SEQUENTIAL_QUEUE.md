@@ -19,6 +19,7 @@ This document covers **how the queue works today**. For sibling concerns:
 - **How the app decides it is offline** (the hard-stop model, failure tracking, reachability) → [Network State Detection](NETWORK_STATE_DETECTION.md).
 - **How features should behave when offline** (optimistic UX patterns A/B/C/D) → [Offline UX Patterns](philosophies/OFFLINE.md).
 - **How screens derive loading state from the queue** (the `PERSISTED_REQUESTS` / `PERSISTED_ONGOING_REQUESTS` consumer hooks, and the READ-command exception) → [Deriving Loading State From the Request Queue](LOADING_STATE.md).
+- [Onyx update manager](ONYX_UPDATE_MANAGER.md) explains server update IDs and replaying deferred updates.
 
 This is an observational reference. Where current behavior diverges from apparent intent, that is noted neutrally in a **Sharp edges** subsection on the relevant block. All references use module and function **names**, not line numbers, so the doc survives refactors. Read it in terms of blocks and their relationships.
 

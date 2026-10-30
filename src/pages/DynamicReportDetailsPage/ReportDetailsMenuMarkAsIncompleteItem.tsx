@@ -11,7 +11,6 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import Navigation from '@libs/Navigation/Navigation';
 import {isCanceledTaskReport as isCanceledTaskReportUtil, isCompletedTaskReport, isTaskReport as isTaskReportUtil} from '@libs/ReportUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, reopenTask} from '@userActions/Task';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,10 +49,10 @@ function ReportDetailsMenuMarkAsIncompleteItem({reportID}: ReportDetailsMenuMark
         <MenuItemAction
             title={translate('task.markAsIncomplete')}
             icon={expensifyIcons.Checkmark}
-            onPress={callFunctionIfActionIsAllowed(() => {
+            onPress={() => {
                 Navigation.goBack(navigateBackFromReportDetailsPath);
                 reopenTask(report, parentReport, currentUserAccountID, delegateEmail);
-            })}
+            }}
         />
     );
 }

@@ -1,18 +1,28 @@
-import {render} from '@testing-library/react-native';
+import {act, fireEvent, render} from '@testing-library/react-native';
 
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useOnyx from '@hooks/useOnyx';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import EditPromptPage from '@pages/settings/Agents/Fields/DynamicEditPromptPage';
+import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import {Platform, View} from 'react-native';
 
 import createMock from '../../../utils/createMock';
+
+const mockPromptMount = jest.fn();
+const mockPromptProps = jest.fn<void, [{onFocus?: () => void; onBlur?: () => void}]>();
+
+jest.mock('@pages/settings/Agents/scrollToMultilineInput', () => jest.fn());
+
+jest.mock('@hooks/useIsInLandscapeMode', () => jest.fn(() => false));
 
 jest.mock('@userActions/Agent', () => ({
     updateAgentPrompt: jest.fn(),
@@ -76,7 +86,12 @@ jest.mock('@components/Form/FormProvider', () => {
 });
 
 jest.mock('@components/Form/InputWrapper', () => {
-    function MockInputWrapper({inputID, defaultValue}: {inputID: string; defaultValue?: string}) {
+    const {useEffect} = jest.requireActual<typeof React>('react');
+    function MockInputWrapper({inputID, defaultValue, ...props}: {inputID: string; defaultValue?: string; onFocus?: () => void; onBlur?: () => void}) {
+        mockPromptProps(props);
+        useEffect(() => {
+            mockPromptMount();
+        }, []);
         return `${inputID}::${defaultValue ?? ''}`;
     }
     return MockInputWrapper;
@@ -96,6 +111,66 @@ describe('EditPromptPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
+    });
+
+    it('keeps the prompt mounted when rotating on native', () => {
+        // Given a native prompt editor in portrait, remounting would discard the input's focus and selection.
+        const platform = jest.replaceProperty(Platform, 'OS', 'ios');
+        const mockLandscape = jest.mocked(useIsInLandscapeMode);
+        mockLandscape.mockReturnValue(false);
+        const page = (
+            <EditPromptPage
+                route={mockRoute}
+                navigation={mockNavigation}
+            />
+        );
+        const {rerender} = render(page);
+        expect(mockPromptMount).toHaveBeenCalledTimes(1);
+
+        // When the device rotates to landscape and back while the editor is open.
+        mockLandscape.mockReturnValue(true);
+        rerender(React.cloneElement(page));
+        mockLandscape.mockReturnValue(false);
+        rerender(React.cloneElement(page));
+
+        // Then the original input survives both layout changes, preserving native editing state.
+        expect(mockPromptMount).toHaveBeenCalledTimes(1);
+        platform.restore();
+    });
+
+    it('reveals the focused prompt after rotation changes its layout', () => {
+        // Given an iOS prompt that is being edited, focus will survive rotation.
+        const platform = jest.replaceProperty(Platform, 'OS', 'ios');
+        const {UNSAFE_getAllByType: getAllByType} = render(
+            <EditPromptPage
+                route={mockRoute}
+                navigation={mockNavigation}
+            />,
+        );
+        act(() => mockPromptProps.mock.lastCall?.[0].onFocus?.());
+        jest.mocked(scrollToMultilineInput).mockClear();
+        const promptContainer = getAllByType(View).find((view) => {
+            const child: unknown = view.props.children;
+            return React.isValidElement<{inputID?: string}>(child) && child.props.inputID === 'prompt';
+        });
+        if (!promptContainer) {
+            throw new Error('Prompt container not found');
+        }
+
+        // When rotation moves the still-focused field, the updated offset must be used without another focus event.
+        fireEvent(promptContainer, 'layout', {nativeEvent: {layout: {x: 0, y: 120, width: 600, height: 76}}});
+
+        // Then the field is revealed using the newly measured position.
+        expect(scrollToMultilineInput).toHaveBeenLastCalledWith(expect.anything(), true, 120);
+
+        // When editing ends, later layout changes should preserve the user's scroll position.
+        act(() => mockPromptProps.mock.lastCall?.[0].onBlur?.());
+        jest.mocked(scrollToMultilineInput).mockClear();
+        fireEvent(promptContainer, 'layout', {nativeEvent: {layout: {x: 0, y: 180, width: 300, height: 200}}});
+
+        // Then the page does not scroll to an unfocused field.
+        expect(scrollToMultilineInput).not.toHaveBeenCalled();
+        platform.restore();
     });
 
     it('renders page title', () => {

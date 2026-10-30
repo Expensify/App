@@ -1,6 +1,7 @@
-import type {SearchCompareMode, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+import type {SearchCompareMode, SearchGroupBy, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 
 import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, getRangeQueryValue} from '@libs/SearchQueryUtils';
+import {hashText} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -27,17 +28,56 @@ function buildDateFormValues(date: InsightsFilters['date']): Partial<SearchAdvan
 }
 
 /** Builds the page's filters in the shape a search query is built from. Leaves the workspaces out when none are selected, which reports on all of them. */
-function buildFilterFormValues(filters: InsightsFilters): Partial<SearchAdvancedFiltersForm> {
+function buildFilterFormValues(filters: InsightsFilters, shouldIncludeDate = true): Partial<SearchAdvancedFiltersForm> {
     return {
-        ...buildDateFormValues(filters.date),
+        ...(shouldIncludeDate && buildDateFormValues(filters.date)),
         groupCurrency: filters.groupCurrency,
         ...(filters.policyIDs.length > 0 && {policyID: filters.policyIDs}),
     };
 }
 
-/** Builds the dashboard-wide query the whole page is narrowed by. */
+/** Compliance periods follow actions, while saved picker selections keep the shared date format. */
+function buildComplianceFilters(filters: InsightsFilters) {
+    const buildStageFilter = (stage: 'anySubmission' | 'anyApproval') => {
+        if ('from' in filters.date) {
+            return {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: stage, right: filters.date.from},
+                right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: stage, right: filters.date.to},
+            };
+        }
+
+        return {
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            left: stage,
+            right: 'preset' in filters.date ? filters.date.preset : filters.date.on,
+        };
+    };
+    const actionDates = {
+        operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+        left: buildStageFilter('anySubmission'),
+        right: buildStageFilter('anyApproval'),
+    };
+    const commonFilters = buildSearchQueryJSON(buildQueryStringFromFilterFormValues(buildFilterFormValues(filters, false)))?.filters;
+
+    return commonFilters ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: commonFilters, right: actionDates} : actionDates;
+}
+
+/** Charts retain picker dates for labels, but Compliance snapshots must not share Spend's cache keys. */
+function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashboardID): Readonly<SearchQueryJSON> | undefined {
+    const queryJSON = buildSearchQueryJSON(query);
+    if (!queryJSON || dashboard === CONST.INSIGHTS.DASHBOARD.SPEND) {
+        return queryJSON;
+    }
+
+    return {...queryJSON, hash: hashText(`${dashboard}:${queryJSON.hash}`, 2 ** 32)};
+}
+
+/** Builds the dashboard-wide query the whole page is narrowed by. Keeps the grouping the user picked, Running total included, so reopening the dashboard restores it. `getQueryGroupBy` resolves it to a real bucket for the backend request. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
-    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy, compare: filters.compare});
+    // Running total is a display grouping outside the Search grammar, so it isn't a SearchGroupBy. The serializer writes it verbatim and the Insights parser reads it back.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the serializer accepts any groupBy string, and `parseInsightsFilters` reads `runningTotal` back off the raw query
+    return buildQueryStringFromFilterFormValues({...buildFilterFormValues(filters), groupBy: filters.groupBy as SearchGroupBy, compare: filters.compare});
 }
 
 /** Builds a chart's query with the page's filters applied. */
@@ -52,7 +92,6 @@ type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
     previousPeriodQueryJSON?: Readonly<SearchQueryJSON>;
-    averageQueryJSON?: Readonly<SearchQueryJSON>;
 };
 
 type InsightsGraphHashes = {
@@ -63,17 +102,17 @@ type InsightsGraphHashes = {
 type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
-function buildSnapshotHashEntry({chart, queryJSON, previousPeriodQueryJSON, averageQueryJSON}: InsightsChartQuery, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
+function buildSnapshotHashEntry(
+    {chart, queryJSON, previousPeriodQueryJSON}: InsightsChartQuery,
+    dashboard: InsightsDashboardID,
+    filters: InsightsFilters,
+): InsightsGraphHashEntry | undefined {
     const snapshotHash = queryJSON?.hash;
     if (!snapshotHash) {
         return undefined;
     }
-    if (!shouldIncludeComparisons) {
-        return [chart.graphKey, {snapshotHash}];
-    }
-
     const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
-    const averageSnapshotHash = averageQueryJSON?.hash;
+    const averageSnapshotHash = buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard)?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -95,11 +134,11 @@ type InsightsQuery = {
     supportingCharts: InsightsChartQuery[];
 };
 
-/** Builds one request for the whole dashboard, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
-function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, shouldIncludeComparisons: boolean): InsightsQuery | undefined {
+/** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
+function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, supportingChartSpecs: InsightsChartSpec[]): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
-    const inputQuery = buildInsightsQueryString({...filters, compare: undefined});
-    const queryJSON = buildSearchQueryJSON(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}));
+    const inputQuery = buildInsightsQueryString(filters);
+    const queryJSON = buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
     if (!queryJSON) {
         return undefined;
     }
@@ -107,16 +146,13 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
     const spec = INSIGHTS_DASHBOARD_SPECS[dashboard];
     const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
         chart,
-        queryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters)),
-        ...(shouldIncludeComparisons && {
-            previousPeriodQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD)),
-            averageQueryJSON: buildSearchQueryJSON(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE)),
-        }),
+        queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
+        previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
     });
     const headlineChart = buildChartQuery(spec.headlineChart);
-    const supportingCharts = spec.supportingCharts.map(buildChartQuery);
+    const supportingCharts = supportingChartSpecs.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts]
-        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, shouldIncludeComparisons))
+        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
     const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
@@ -124,11 +160,11 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
         jsonQuery: JSON.stringify({
             hash: queryJSON.hash,
             groupBy: queryJSON.groupBy,
-            filters: queryJSON.filters,
+            filters: dashboard === CONST.INSIGHTS.DASHBOARD.COMPLIANCE ? buildComplianceFilters(filters) : queryJSON.filters,
             inputQuery,
             searchKey: spec.searchKey,
             insightsHashes,
-            numberOfPeriods: shouldIncludeComparisons ? COMPARE_AVERAGE_PERIOD_COUNT : undefined,
+            numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
         }),
         hash: queryJSON.hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),

@@ -78,6 +78,11 @@ type DismissedProductTraining = {
     [CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER]: DismissedProductTrainingElement;
 
     /**
+     * When user dismisses the Workspace Workflows global reimbursements banner, or starts global reimbursements onboarding, we store the timestamp here.
+     */
+    [CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER]: DismissedProductTrainingElement;
+
+    /**
      * When user dismisses the GPS tooltip, we store the timestamp here.
      */
     [GPS_TOOLTIP]: DismissedProductTrainingElement;

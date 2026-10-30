@@ -79,8 +79,9 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 import SplitList from './SplitList';
@@ -96,6 +97,7 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const delegateAccountID = useDelegateAccountID();
 
     const {splitReportID: reportID, originalTransactionID: transactionID, splitExpenseTransactionID} = route.params;
@@ -177,20 +179,19 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         );
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, effectivePolicy, true) ?? {};
-    const transactionDetailsAmount = useMemo(() => {
-        // `initSplitExpense` computes the total against the fallback rate for self-DM splits
-        // where the original rate was deleted from the workspace, and stores it on the draft.
-        const draftAmount = draftTransaction?.amount;
-        const signedAmount = transactionDetails?.amount;
-        if (typeof draftAmount === 'number' && draftAmount !== 0) {
-            const sign = typeof signedAmount === 'number' && signedAmount < 0 ? -1 : 1;
-            return sign * Math.abs(draftAmount);
-        }
-        if (typeof signedAmount !== 'number') {
-            return 0;
-        }
-        return signedAmount;
-    }, [draftTransaction?.amount, transactionDetails.amount]);
+    let transactionDetailsAmount;
+    // `initSplitExpense` computes the total against the fallback rate for self-DM splits
+    // where the original rate was deleted from the workspace, and stores it on the draft.
+    const draftAmount = draftTransaction?.amount;
+    const signedAmount = transactionDetails?.amount;
+    if (typeof draftAmount === 'number' && draftAmount !== 0) {
+        const sign = typeof signedAmount === 'number' && signedAmount < 0 ? -1 : 1;
+        transactionDetailsAmount = sign * Math.abs(draftAmount);
+    } else if (typeof signedAmount !== 'number') {
+        transactionDetailsAmount = 0;
+    } else {
+        transactionDetailsAmount = signedAmount;
+    }
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const sumOfSplitExpenses = splitExpenses.reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
@@ -413,7 +414,12 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
-            searchContext: {currentSearchHash: isSearchBackPath ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
+            searchContext: {
+                currentSearchHash: isSearchBackPath ? currentSearchHash : undefined,
+                currentSearchQueryJSON: isSearchBackPath ? currentSearchQueryJSON : undefined,
+                activeGroupSearchHashes,
+                clearSelectedTransactions,
+            },
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
@@ -555,7 +561,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         <>
             <View style={[styles.w100, styles.flexColumn, styles.mt1, shouldUseNarrowLayout && styles.mb3]}>
                 <MenuItem.Root
-                    onPress={callFunctionIfActionIsAllowed(onAddSplitExpense)}
+                    onPress={callFunctionIfActionIsAllowed(onAddSplitExpense, false, session)}
                     style={[styles.ph4]}
                     sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.ADD_SPLIT_BUTTON}
                 >
@@ -570,7 +576,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 </MenuItem.Root>
                 {isInitialSplit && (
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(onMakeSplitsEven)}
+                        onPress={callFunctionIfActionIsAllowed(onMakeSplitsEven, false, session)}
                         style={[styles.ph4]}
                         sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.MAKE_SPLITS_EVEN_BUTTON}
                     >
