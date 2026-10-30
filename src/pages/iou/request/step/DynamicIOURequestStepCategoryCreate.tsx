@@ -192,7 +192,7 @@ function DynamicIOURequestStepCategoryCreate({
                 rules,
             });
         } else {
-            setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);
+            setMoneyRequestCategory(transactionID, categoryName, policy);
         }
 
         Navigation.goBack(basePath);

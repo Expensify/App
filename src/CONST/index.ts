@@ -5048,13 +5048,9 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
+            TAGS: 'tags',
             MERCHANTS: 'merchants',
             MERCHANT_TYPES: 'merchantTypes',
-        },
-        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
-        EXPENSE_DEFAULT_RULE_TYPE: {
-            MERCHANT: 'merchant',
-            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -9592,9 +9588,39 @@ const CONST = {
             /** A rule firing only on these is an approval workflow rather than an expense default. */
             TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],
         },
+        /**
+         * The merchant categories a rule can match on.
+         *
+         * These are the rules engine's own vocabulary, which is not the same as the `mccGroup` groups the
+         * merchant type defaults use. The two taxonomies overlap only on `airlines` and `groceries`.
+         */
+        MERCHANT_TYPE: {
+            AIRLINES: 'airlines',
+            ALCOHOL_AND_BARS: 'alcoholAndBars',
+            AMAZON_AND_BOOKSTORES: 'amazonAndBookstores',
+            AUTOMOTIVE: 'automotive',
+            CAR_RENTALS: 'carRentals',
+            DINING: 'dining',
+            FUEL_AND_GAS: 'fuelAndGas',
+            GOVERNMENT_AND_NON_PROFITS: 'governmentAndNonProfits',
+            GROCERIES: 'groceries',
+            GYMS_AND_FITNESS: 'gymsAndFitness',
+            HEALTHCARE: 'healthcare',
+            HOTELS: 'hotels',
+            INTERNET_AND_PHONE: 'internetAndPhone',
+            OFFICE_SUPPLIES: 'officeSupplies',
+            PARKING_AND_TOLLS: 'parkingAndTolls',
+            PROFESSIONAL_SERVICES: 'professionalServices',
+            RETAIL: 'retail',
+            SHIPPING_AND_DELIVERY: 'shippingAndDelivery',
+            SOFTWARE: 'software',
+            TRANSIT_AND_RIDESHARE: 'transitAndRideshare',
+            TRAVEL_AGENCIES: 'travelAgencies',
+        },
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
+                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -10841,6 +10867,7 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+                TAG_RULE_ITEM: 'WorkspaceRules-TagRuleItem',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_DESCRIBE: 'WorkspaceRules-RequireFieldsRuleDescribe',

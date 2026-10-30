@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,25 +24,28 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
-import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
-import {deletePolicyCategoryTax, movePolicyCategoryTax, openPolicyCategoriesPage, setPolicyCategoryTaxes} from '@libs/actions/Policy/Category';
+import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deleteRule, setRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
-import {
-    categoryHasTaxRule,
-    getCategoryTaxRuleDraftFromGeneratedValues,
-    getCategoryTaxRuleTaxID,
-    getTaxRateDisplayName,
-    hasUsableTaxRates,
-    isCategoryRuleDraft,
-} from '@libs/CategoryTaxRulesUtils';
+import {getCardDescription} from '@libs/CardUtils';
+import {getTaxRateDisplayName, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {buildMerchantRule, canEditMerchantRule, getMerchantRuleDraftFromGeneratedValues, getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
+import {
+    buildExpenseDefaultRule,
+    canEditExpenseDefaultRule,
+    getExpenseDefaultFormValues,
+    getMerchantTypeLabel,
+    getPolicyExpenseDefaultRules,
+    hasExpenseDefaultConditions,
+    haveSameConditions,
+} from '@libs/ExpenseDefaultRuleUtils';
+import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -57,13 +61,12 @@ import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeader
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
+import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
 import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
-import type {ExpenseDefaultRuleType} from '@src/types/form/MerchantRuleForm';
 import type {PolicyTagLists} from '@src/types/onyx';
 import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -77,20 +80,15 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
+import usePolicyCards from './usePolicyCards';
 
-type MerchantRulePageBaseProps = {
+type ExpenseDefaultRulePageBaseProps = {
     policyID: string;
     ruleID?: string;
     /** Pre-scopes the category default when creating a rule (e.g. from the category details RHP). */
     initialCategoryName?: string;
-    /**
-     * Edits the existing category tax default for this category. Category rules live in `policy.rules.expenseRules`
-     * keyed by category name rather than in `codingRules` keyed by a ruleID, so they arrive here by category instead
-     * of through `ruleID`.
-     */
-    editCategoryTaxRuleFor?: string;
-    /** Starts a new category tax default for this category, used by the category details RHP. */
-    newCategoryTaxRuleFor?: string;
+    /** Pre-scopes a new rule to this category, used by the category details RHP. */
+    initialCategoryToMatch?: string;
     /** When true, the category field is non-interactive (category-scoped create/edit). */
     isCategoryLocked?: boolean;
     /** Where saving or deleting returns to when the rule was opened from category settings through the New rule hub. */
@@ -121,28 +119,34 @@ const getBooleanTitle = (value: boolean | undefined, translate: LocalizedTransla
     return translate(value ? 'common.yes' : 'common.no');
 };
 
-/** A category rule matches on categories and can only set a tax, so both halves are required and nothing else counts. */
-const getCategoryRuleErrorMessage = (translate: LocalizedTranslate, taxID: string | undefined, isMoveBlocked: boolean, form?: MerchantRuleForm) => {
-    if (!form?.categoriesToMatch?.length) {
-        return translate('workspace.rules.merchantRules.confirmErrorCategory');
+/** A condition left unset matches either way, rather than leaving a field alone the way an unset default does. */
+const getConditionBooleanTitle = (value: boolean | undefined, translate: LocalizedTranslate): string => {
+    if (value === undefined) {
+        return translate('common.any');
     }
-    if (isMoveBlocked) {
-        return translate('workspace.rules.merchantRules.confirmErrorCategoryTaxMoveIsWorkspaceDefault');
-    }
-    if (!taxID) {
-        return translate('workspace.rules.merchantRules.confirmErrorCategoryTax');
-    }
-    return '';
+    return translate(value ? 'common.yes' : 'common.no');
 };
 
-/** Only ever a merchant rule: a category rule is scoped before this page opens and validates through `getCategoryRuleErrorMessage`. */
+/** A rule needs something to match on and something to set. */
 const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm) => {
     const matchingCriteriaFields = new Set<string>([
         MERCHANT_RULE_INPUT_IDS.MERCHANT_TO_MATCH,
         MERCHANT_RULE_INPUT_IDS.MATCH_TYPE,
         MERCHANT_RULE_INPUT_IDS.CATEGORIES_TO_MATCH,
-        // Scoping, not a default the admin set.
-        MERCHANT_RULE_INPUT_IDS.RULE_TYPE,
+        MERCHANT_RULE_INPUT_IDS.TAGS_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.CURRENCIES_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.TAX_RATES_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.REIMBURSABLE_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.BILLABLE_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.SUBMITTERS_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.DATE_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.DATE_MATCH_TYPE,
+        MERCHANT_RULE_INPUT_IDS.MERCHANT_TYPES_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.AMOUNT_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.AMOUNT_MATCH_TYPE,
+        MERCHANT_RULE_INPUT_IDS.HAS_TO_MATCH,
+        MERCHANT_RULE_INPUT_IDS.HAS_MATCH_TYPE,
+        MERCHANT_RULE_INPUT_IDS.CARDS_TO_MATCH,
     ]);
     const hasAtLeastOneUpdate = Object.entries(form ?? {}).some(([key, value]) => {
         if (matchingCriteriaFields.has(key)) {
@@ -153,45 +157,44 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
         }
         return value !== undefined && value !== '';
     });
-    if (form?.merchantToMatch && hasAtLeastOneUpdate) {
+    const hasCondition = hasExpenseDefaultConditions(form ?? {});
+    if (hasCondition && hasAtLeastOneUpdate) {
         return '';
     }
     if (hasAtLeastOneUpdate) {
         return translate('workspace.rules.merchantRules.confirmErrorCondition');
     }
-    if (form?.merchantToMatch) {
+    if (hasCondition) {
         return translate('workspace.rules.merchantRules.confirmErrorUpdate');
     }
     return translate('workspace.rules.merchantRules.confirmErrorConditionAndDefault');
 };
 
-function MerchantRulePageBase({
+function ExpenseDefaultRulePageBase({
     policyID,
     ruleID,
     initialCategoryName,
-    editCategoryTaxRuleFor,
-    newCategoryTaxRuleFor,
+    initialCategoryToMatch,
     isCategoryLocked = false,
     categorySettingsBackPath,
     testID,
-}: MerchantRulePageBaseProps) {
+}: ExpenseDefaultRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {convertToDisplayString} = useCurrencyListActions();
     const policy = usePolicy(policyID);
-    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    // The page is on its way out, so the rule it was editing no longer being there is expected. A category rule is
-    // keyed by its category, so moving it to another category makes the one this page opened with disappear.
+    // The page is on its way out, so the rule it was editing no longer being there is expected rather than an
+    // error worth showing.
     const [isClosing, setIsClosing] = useState(false);
     const {isLoading, startWithLoading} = usePressLoading();
     const isEditing = !!ruleID;
     const {isCreatedFromExpense, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_NEW_FROM_EXPENSE.path, policyID, ruleID);
-    const isEditingCategoryTaxRule = !!editCategoryTaxRuleFor;
-    // A category tax default has no ruleID, so neither flag alone means "saved".
-    const isEditingSavedRule = isEditing || isEditingCategoryTaxRule;
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
-    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Calendar', 'Cash', 'CreditCard', 'Folder', 'Paperclip', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
+    const policyCards = usePolicyCards(policyID);
+    const cardDescriptionsByID = new Map(policyCards.map((card) => [String(card.cardID), getCardDescription(card, translate)]));
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -202,7 +205,6 @@ function MerchantRulePageBase({
     const [shouldUpdateMatchingTransactions, setShouldUpdateMatchingTransactions] = useState(false);
     // The footer remounts when it moves on rotation, so the page owns the modal to keep it open
     const [isDescribeRuleModalVisible, setIsDescribeRuleModalVisible] = useState(false);
-    const seededCategoryTaxRuleRef = useRef<string | undefined>(undefined);
     const didSeedInitialCategoryRef = useRef(false);
 
     // The "Set vendor to" row gate below reads policy.connections (via hasVendorFeature and
@@ -222,26 +224,14 @@ function MerchantRulePageBase({
     const areRulesLoading = isLoadingOnyxValue(rulesResult) || isRulesFetchPending;
     // Get the existing rule from the rules collection (for edit mode)
     const existingRule = ruleID ? rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`] : undefined;
-    const existingCategoryTaxID = editCategoryTaxRuleFor ? getCategoryTaxRuleTaxID(policy?.rules?.expenseRules, editCategoryTaxRuleFor) : undefined;
-
     // Initialize the form with existing rule data (for edit mode)
     useEffect(() => {
-        if (isEditingCategoryTaxRule) {
-            // Seed once per rule, or this overwrites the category picked in the picker.
-            if (!existingCategoryTaxID || seededCategoryTaxRuleRef.current === editCategoryTaxRuleFor) {
-                return;
-            }
-            seededCategoryTaxRuleRef.current = editCategoryTaxRuleFor;
-            setDraftMerchantRule({categoriesToMatch: [editCategoryTaxRuleFor], tax: existingCategoryTaxID});
-            return;
-        }
-
-        if (newCategoryTaxRuleFor) {
+        if (initialCategoryToMatch) {
             if (didSeedInitialCategoryRef.current) {
                 return;
             }
             didSeedInitialCategoryRef.current = true;
-            setDraftMerchantRule({ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY, categoriesToMatch: [newCategoryTaxRuleFor]});
+            setDraftMerchantRule({categoriesToMatch: [initialCategoryToMatch]});
             return;
         }
 
@@ -257,12 +247,12 @@ function MerchantRulePageBase({
 
         // An undefined result means the rule uses parts of the format this form can't show. Saving it back would
         // drop them, so the editor stays empty and the rules list keeps such rules read-only.
-        const formValues = getMerchantRuleFormValues(existingRule);
+        const formValues = getExpenseDefaultFormValues(existingRule);
         if (!formValues) {
             return;
         }
         setDraftMerchantRule(formValues);
-    }, [isEditing, existingRule, isEditingCategoryTaxRule, editCategoryTaxRuleFor, existingCategoryTaxID, initialCategoryName, newCategoryTaxRuleFor]);
+    }, [isEditing, existingRule, initialCategoryName, initialCategoryToMatch]);
 
     // Clear the form on unmount
     useEffect(() => () => clearDraftMerchantRule(), []);
@@ -298,7 +288,28 @@ function MerchantRulePageBase({
         }
         return policyTags.length > 0;
     };
+
+    // `hasCategories` falls back to the category the rule sets, which says nothing about what it matches on, so the
+    // condition row asks separately. A category the rule already matches on keeps the row even once the workspace has
+    // none left to pick, otherwise the condition would be invisible and still saved.
+    const hasCategoriesToMatch = () => {
+        if (!policy?.areCategoriesEnabled) {
+            return false;
+        }
+        return !!form?.categoriesToMatch?.length || hasEnabledOptions(policyCategories ?? {});
+    };
+
+    // Turning tags on creates a tag list whether or not it holds anything, so the condition row needs a tag to
+    // actually match on. A tag the rule already matches on keeps the row, the same way.
+    const hasTagsToMatch = () => {
+        if (!policy?.areTagsEnabled) {
+            return false;
+        }
+        return !!form?.tagsToMatch?.length || policyTags.some((tagList) => hasEnabledOptions(tagList.tags));
+    };
     const formTags = getTagArrayFromName(form?.tag ?? '');
+    const members = useWorkspaceMembers(policy);
+    const membersByAccountID = new Map(members.map(({accountID, details}) => [String(accountID), details.displayName ?? details.login ?? String(accountID)]));
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
@@ -307,86 +318,105 @@ function MerchantRulePageBase({
     const unavailableLabel = translate('workspace.rules.merchantRules.vendorUnavailable');
     const vendorDisplayName = form?.vendorID ? getVendorRuleDisplayValue(policy, form.vendorID, unavailableLabel) : undefined;
 
-    // `Expense defaults` has not been migrated to the new rules system, so a rule can only carry one condition. The
-    // type is chosen before this page opens, so the condition and the defaults the type can't carry are simply absent.
+    // A rule matches on every condition it carries, so all three rows are offered together.
     const categoriesToMatch = form?.categoriesToMatch ?? [];
     const hasCategoryCondition = categoriesToMatch.length > 0;
     const hasMerchantCondition = !!form?.merchantToMatch;
-    // A saved rule already is one kind or the other, so editing is scoped the same way creating is. Creating reads the
-    // draft rather than the route, so scoping survives a trip to any picker and every picker routes back to one URL.
-    // Three branches, and `no-nested-ternary` rules out folding them into one expression.
-    const getScopedRuleType = (): ExpenseDefaultRuleType | undefined => {
-        if (isEditingCategoryTaxRule) {
-            return CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY;
-        }
-        if (isEditing) {
-            return CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT;
-        }
-        return form?.ruleType;
-    };
-    const scopedRuleType = getScopedRuleType();
-    const isScopedToCategory = scopedRuleType === CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY;
-    const isCategoryRule = isCategoryRuleDraft(form, editCategoryTaxRuleFor);
-    // Deleting means writing the workspace default rate back, so without one there is nothing to write.
-    const canDeleteCategoryTaxRule = isEditingCategoryTaxRule && !!policy?.taxRates?.defaultExternalID;
-    // A draft carrying the workspace default rate means "no rule", since saving it would delete the rule.
-    const isDraftTaxTheWorkspaceDefault = isCategoryRule && !isEditingCategoryTaxRule && form?.tax === policy?.taxRates?.defaultExternalID;
-    const categoryTaxID = isDraftTaxTheWorkspaceDefault ? undefined : form?.tax;
-    // Safe to show a saved rule holding the default rate, but not to write it: that write is what deletes the rule.
-    const isSavedTaxTheWorkspaceDefault = isCategoryRule && isEditingCategoryTaxRule && !!form?.tax && form.tax === policy?.taxRates?.defaultExternalID;
-    // Editing is single-select, so a move has exactly one destination.
-    const movedToCategory = editCategoryTaxRuleFor && !categoriesToMatch.includes(editCategoryTaxRuleFor) ? categoriesToMatch.at(0) : undefined;
-    // A move still needs a write the command can't express while the rate is the default, so that's the one case blocked.
-    const isCategoryTaxRuleMoveBlocked = isSavedTaxTheWorkspaceDefault && !!movedToCategory;
-    const showCategoryRulesApplyGoingForwardExplainer = () => {
-        showConfirmModal({
-            title: translate('workspace.rules.merchantRules.categoryRulesApplyGoingForwardTitle'),
-            prompt: translate('workspace.rules.merchantRules.categoryRulesApplyGoingForwardPrompt'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    };
 
-    /** Clears the condition and every default, keeping the type the rule was scoped to. */
+    /** Clears every condition and every default. */
     const resetRule = () => {
-        setDraftMerchantRule(scopedRuleType ? {ruleType: scopedRuleType} : {});
+        setDraftMerchantRule({});
         setShouldShowError(false);
         setShouldUpdateMatchingTransactions(false);
     };
 
-    // One rule per category is saved, so the condition row lists every category the admin picked.
+    // A rule can match on several categories, so the condition row lists every one the admin picked.
     const categoriesToMatchDisplayName = hasCategoryCondition ? categoriesToMatch.map(getDecodedCategoryName).join(', ') : undefined;
+    const tagsToMatch = form?.tagsToMatch ?? [];
+    const hasTagCondition = tagsToMatch.length > 0;
+    const tagsToMatchDisplayName = hasTagCondition ? tagsToMatch.map(getCleanedTagName).join(', ') : undefined;
+    const currenciesToMatch = form?.currenciesToMatch ?? [];
+    const currenciesToMatchDisplayName = currenciesToMatch.length > 0 ? currenciesToMatch.join(', ') : undefined;
+    const submittersToMatch = form?.submittersToMatch ?? [];
+    // A submitter who has left the workspace keeps their account ID, so the row still shows the rule matches on someone.
+    const submittersToMatchDisplayName = submittersToMatch.length > 0 ? submittersToMatch.map((accountID) => membersByAccountID.get(accountID) ?? accountID).join(', ') : undefined;
+    const merchantTypesToMatch = form?.merchantTypesToMatch ?? [];
+    const merchantTypesToMatchDisplayName =
+        merchantTypesToMatch.length > 0 ? merchantTypesToMatch.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', ') : undefined;
+    const dateToMatch = form?.dateToMatch;
+    const dateMatchType = form?.dateMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+    const getDateToMatchDisplayName = () => {
+        if (!dateToMatch) {
+            return undefined;
+        }
+        if (dateMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
+            return translate('search.filters.date.after', dateToMatch);
+        }
+        if (dateMatchType === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
+            return translate('search.filters.date.before', dateToMatch);
+        }
+        return translate('search.filters.date.on', dateToMatch);
+    };
+    const amountToMatch = form?.amountToMatch;
+    const amountMatchType = form?.amountMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+    const getAmountToMatchDisplayName = () => {
+        if (!amountToMatch) {
+            return undefined;
+        }
+        const formattedAmount = convertToDisplayString(Number(amountToMatch), policy?.outputCurrency);
+        if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN) {
+            return translate('search.filters.amount.greaterThan', formattedAmount);
+        }
+        if (amountMatchType === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN) {
+            return translate('search.filters.amount.lessThan', formattedAmount);
+        }
+        return translate('search.filters.amount.equalTo', formattedAmount);
+    };
+    const cardsToMatch = form?.cardsToMatch ?? [];
+    // A card that has left the workspace keeps its ID, so the row still shows the rule matches on one.
+    const cardsToMatchDisplayName = cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => cardDescriptionsByID.get(cardID) ?? cardID).join(', ') : undefined;
+    const hasToMatch = form?.hasToMatch ?? [];
+    const hasMatchType = form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
+    const getHasToMatchDisplayName = () => {
+        if (hasToMatch.length === 0) {
+            return undefined;
+        }
+        const parts = hasToMatch.map((value) => translate(HAS_VALUE_TRANSLATION_KEYS[value] ?? 'common.other')).join(', ');
+        const matchType =
+            hasMatchType === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? translate('search.filters.filterType.has.negative') : translate('search.filters.filterType.has.positive');
+        return `${matchType} ${parts}`;
+    };
+    const taxRatesToMatch = form?.taxRatesToMatch ?? [];
+    // Blank rather than the raw ID once a rate is gone from the workspace.
+    const taxRatesToMatchDisplayName = taxRatesToMatch.length > 0 ? taxRatesToMatch.map((externalID) => getTaxRateDisplayName(policy, externalID) || externalID).join(', ') : undefined;
+    const amountDisplayName = form?.amount ? convertToDisplayString(Number(form.amount), policy?.outputCurrency) : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     // Blank rather than the raw ID once the rate is gone from the workspace.
-    const taxRateID = isCategoryRule ? categoryTaxID : form?.tax;
-    const taxDisplayName = (taxRateID && getTaxByID(policy, taxRateID) ? getTaxRateDisplayName(policy, taxRateID) : '') || undefined;
+    const taxDisplayName = (form?.tax && getTaxByID(policy, form.tax) ? getTaxRateDisplayName(policy, form.tax) : '') || undefined;
 
     /**
-     * Checks if there's a duplicate rule with the same merchant name and match type.
-     * A duplicate is a rule that has the same merchant to match AND the same match type (contains/exact).
+     * Checks if another rule already matches on the same conditions.
      * When editing, we exclude the current rule from the comparison.
      */
-    const checkForDuplicateRule = (merchantToMatch: string | undefined, matchType: string | undefined): boolean => {
-        if (!merchantToMatch) {
+    const checkForDuplicateRule = (formValues: Partial<ExpenseDefaultFormValues>): boolean => {
+        if (!hasExpenseDefaultConditions(formValues)) {
             return false;
         }
 
-        const normalizedMerchant = merchantToMatch.toLowerCase();
-        const currentMatchType = matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
-
-        return getPolicyExpenseDefaultRules(rules, policyID).some(({ruleID: existingRuleID, rule}) => {
+        // A rule deleted offline no longer applies to anything, so recreating it is not a duplicate.
+        return getPolicyExpenseDefaultRules(rules, policyID, true).some(({ruleID: existingRuleID, rule}) => {
             // Skip the rule being edited
             if (isEditing && existingRuleID === ruleID) {
                 return false;
             }
 
             // A rule this form can't represent can't be a duplicate of what this form is about to save.
-            const existingFormValues = getMerchantRuleFormValues(rule);
+            const existingFormValues = getExpenseDefaultFormValues(rule);
             if (!existingFormValues) {
                 return false;
             }
 
-            if (existingFormValues.merchantToMatch.toLowerCase() !== normalizedMerchant || existingFormValues.matchType !== currentMatchType) {
+            if (!haveSameConditions(existingFormValues, formValues)) {
                 return false;
             }
 
@@ -400,7 +430,7 @@ function MerchantRulePageBase({
         });
     };
 
-    const errorMessage = isCategoryRule ? getCategoryRuleErrorMessage(translate, categoryTaxID, isCategoryTaxRuleMoveBlocked, form) : getErrorMessage(translate, form);
+    const errorMessage = getErrorMessage(translate, form);
 
     const goBackToExpenseDefaults = () => {
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
@@ -415,36 +445,12 @@ function MerchantRulePageBase({
             return;
         }
 
-        // Category rules are stored as `policy.rules.expenseRules`, the same objects Expensify Classic reads, so that a
-        // default tax rate set here is the one Classic already understands.
-        if (isCategoryRule) {
-            if (!hasCategoryCondition || !categoryTaxID) {
-                return;
-            }
-            // Nothing to write for an unchanged save; a move is blocked earlier by the error message instead.
-            if (isSavedTaxTheWorkspaceDefault) {
-                setIsClosing(true);
-                Navigation.goBack(categorySettingsBackPath);
-                return;
-            }
-            setIsClosing(true);
-            // A move clears the old category and sets the new one as a pair, sharing one rollback.
-            if (editCategoryTaxRuleFor && movedToCategory) {
-                movePolicyCategoryTax(policy, editCategoryTaxRuleFor, movedToCategory, categoryTaxID, getReviewWorkspaceSettingsTaskCompletion());
-            } else {
-                // The command is per-category, so a bulk selection saves one rule for each category picked.
-                setPolicyCategoryTaxes(policy, categoriesToMatch, categoryTaxID, getReviewWorkspaceSettingsTaskCompletion());
-            }
-            if (isEditingCategoryTaxRule || categorySettingsBackPath) {
-                Navigation.goBack(categorySettingsBackPath);
-            } else {
-                goBackToExpenseDefaults();
-            }
-            return;
-        }
-
-        setRule(policyID, buildMerchantRule(form, policy), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
-        if (isCreatedFromExpense) {
+        setRule(policyID, buildExpenseDefaultRule(form, policy, existingRule?.triggers), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
+        if (categorySettingsBackPath) {
+            // Category settings enters through its own dynamic route, so the way back is the category the rule was
+            // opened from rather than anything in the workspace Rules flow.
+            Navigation.goBack(categorySettingsBackPath);
+        } else if (isCreatedFromExpense) {
             // Opened from the callout, so this page is a suffix on the expense's path. Dropping it returns to the
             // expense instead of the workspace Rules page.
             Navigation.goBack(backToRoute);
@@ -467,19 +473,25 @@ function MerchantRulePageBase({
             return;
         }
 
-        // A category rule matches on a category that the picker already excluded if it had a rule, so there is no
-        // duplicate to warn about.
-        if (isCategoryRule) {
-            startWithLoading(() => saveRule());
-            return;
-        }
-
         // Check for duplicate rules
-        const hasDuplicate = checkForDuplicateRule(form.merchantToMatch, form.matchType);
+        const hasDuplicate = checkForDuplicateRule(form);
         if (hasDuplicate) {
+            // A duplicate does not have to match on a merchant, so the prompt names the first condition the two share.
+            const duplicateCondition =
+                [
+                    form.merchantToMatch,
+                    categoriesToMatchDisplayName,
+                    tagsToMatchDisplayName,
+                    currenciesToMatchDisplayName,
+                    taxRatesToMatchDisplayName,
+                    getDateToMatchDisplayName(),
+                    getAmountToMatchDisplayName(),
+                    getHasToMatchDisplayName(),
+                    cardsToMatchDisplayName,
+                ].find(Boolean) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
-                prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', form.merchantToMatch ?? ''),
+                prompt: translate('workspace.rules.merchantRules.duplicateRulePrompt', duplicateCondition),
                 confirmText: translate('workspace.rules.merchantRules.saveAnyway'),
                 cancelText: translate('common.cancel'),
             }).then((result) => {
@@ -499,18 +511,15 @@ function MerchantRulePageBase({
             return false;
         }
         setIsClosing(true);
-        if (editCategoryTaxRuleFor) {
-            deletePolicyCategoryTax(policy, editCategoryTaxRuleFor, getReviewWorkspaceSettingsTaskCompletion());
-        } else if (ruleID) {
+        if (ruleID) {
             deleteRule(ruleID, existingRule);
         }
         return true;
     };
 
-    // A category tax rule is its category, so it carries no pending state of its own. Only a merchant rule can
-    // already be on its way out. Declared above the not-found returns below, since a hook can't run conditionally.
+    // Declared above the not-found returns below, since a hook can't run conditionally.
     const isRuleBeingDeleted = existingRule?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const canDeleteRule = canWriteRules && !!policy && !isRuleBeingDeleted && (isEditing || canDeleteCategoryTaxRule);
+    const canDeleteRule = canWriteRules && !!policy && !isRuleBeingDeleted && isEditing;
 
     const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canDeleteRule,
@@ -523,36 +532,126 @@ function MerchantRulePageBase({
         {
             titleTranslationKey: 'workspace.rules.merchantRules.expensesWith',
             items: [
-                isScopedToCategory
-                    ? undefined
-                    : {
-                          key: 'merchantToMatch',
-                          description: translate('common.merchant'),
-                          // The rule's only condition, since the type is chosen before this page opens.
-                          required: true,
-                          title: form?.merchantToMatch,
-                          onPress: () =>
-                              Navigation.navigate(
-                                  getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
-                              ),
-                          icon: icons.Basket,
-                      },
-                isScopedToCategory
+                {
+                    key: 'submittersToMatch',
+                    description: translate('common.submitter'),
+                    title: submittersToMatchDisplayName ?? translate('common.any'),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_SUBMITTER_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Paycheck,
+                },
+                {
+                    key: 'amountToMatch',
+                    description: translate('iou.amount'),
+                    title: getAmountToMatchDisplayName(),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_AMOUNT_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
+                },
+                {
+                    key: 'merchantToMatch',
+                    description: translate('common.merchant'),
+                    title: form?.merchantToMatch,
+                    onPress: () =>
+                        Navigation.navigate(
+                            getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
+                        ),
+                    icon: icons.Basket,
+                },
+                {
+                    key: 'merchantTypesToMatch',
+                    description: translate('workspace.rules.merchantTypeRule.merchantType'),
+                    title: merchantTypesToMatchDisplayName,
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TYPE_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Basket,
+                },
+                hasCategoriesToMatch()
                     ? {
                           key: 'categoriesToMatch',
                           description: translate('common.category'),
-                          required: true,
                           title: categoriesToMatchDisplayName,
-                          onPress: () => Navigation.navigate(ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID, editCategoryTaxRuleFor)),
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CATEGORY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CATEGORY_TO_MATCH.getRoute(policyID, ruleID))),
                           isLocked: isCategoryLocked,
                           icon: icons.Folder,
                       }
                     : undefined,
+                !hasTagsToMatch()
+                    ? undefined
+                    : {
+                          key: 'tagsToMatch',
+                          description: translate('common.tag'),
+                          title: tagsToMatchDisplayName,
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_TAG_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_TAG_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Tag,
+                      },
+                {
+                    key: 'reimbursableToMatch',
+                    description: translate('common.reimbursable'),
+                    title: getConditionBooleanTitle(form?.reimbursableToMatch, translate),
+                    onPress: () =>
+                        Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Paycheck,
+                },
+                isBillableEnabled
+                    ? {
+                          key: 'billableToMatch',
+                          description: translate('common.billable'),
+                          title: getConditionBooleanTitle(form?.billableToMatch, translate),
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_BILLABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_BILLABLE_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Paycheck,
+                      }
+                    : undefined,
+                {
+                    key: 'dateToMatch',
+                    description: translate('common.date'),
+                    title: getDateToMatchDisplayName(),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_DATE_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Calendar,
+                },
+                {
+                    key: 'currenciesToMatch',
+                    description: translate('common.currency'),
+                    title: currenciesToMatchDisplayName,
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CURRENCY_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
+                },
+                {
+                    key: 'cardsToMatch',
+                    description: translate('common.card'),
+                    title: cardsToMatchDisplayName,
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CARD_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.CreditCard,
+                },
+                hasUsableTaxRates(policy)
+                    ? {
+                          key: 'taxRatesToMatch',
+                          description: translate('workspace.taxes.taxRate'),
+                          title: taxRatesToMatchDisplayName,
+                          onPress: () =>
+                              Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_TAX_RATE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_TAX_RATE_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.InvoiceGeneric,
+                      }
+                    : undefined,
+                {
+                    key: 'hasToMatch',
+                    description: translate('workspace.rules.merchantRules.hasOrDoesNotHave'),
+                    title: getHasToMatchDisplayName(),
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_HAS_TO_MATCH.getRoute(policyID, ruleID))),
+                    icon: icons.Paperclip,
+                },
             ],
         },
         {
             titleTranslationKey: 'workspace.rules.merchantRules.applyUpdates',
             items: [
+                {
+                    key: 'amount',
+                    description: translate('iou.amount'),
+                    title: amountDisplayName,
+                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_AMOUNT.getRoute(policyID, ruleID))),
+                    icon: icons.Cash,
+                },
                 {
                     key: 'merchant',
                     description: translate('common.merchant'),
@@ -592,17 +691,12 @@ function MerchantRulePageBase({
                               };
                           })
                     : []),
-                // Tax is a category rule's only default, so the row stays with taxes off rather than leaving the
-                // section blank. The picker then explains that taxes are disabled.
-                hasUsableTaxRates(policy) || isCategoryRule
+                hasUsableTaxRates(policy)
                     ? {
                           key: 'tax',
                           description: translate('common.tax'),
                           title: taxDisplayName,
-                          onPress: () =>
-                              Navigation.navigate(
-                                  getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TAX_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID, editCategoryTaxRuleFor)),
-                              ),
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_TAX_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID))),
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
@@ -642,13 +736,12 @@ function MerchantRulePageBase({
                           icon: icons.Paycheck,
                       }
                     : undefined,
-                // Tax is the only default a category rule can set, so the other rows are dropped rather than shown.
-            ].filter((item) => !isCategoryRule || item?.key === 'tax'),
+            ],
         },
     ];
 
     const previewMatches = () => {
-        if (!form?.merchantToMatch?.trim()) {
+        if (!hasExpenseDefaultConditions(form ?? {})) {
             setShouldShowError(true);
             return;
         }
@@ -670,39 +763,32 @@ function MerchantRulePageBase({
 
     // The rules collection is shared across workspaces and rule kinds, so a stale link can resolve a ruleID that
     // this editor must not write to. Saving would replace it with a merchant rule and drop whatever it holds.
-    if (ruleID && !!existingRule && !isClosing && !canEditMerchantRule(existingRule, policyID)) {
+    if (ruleID && !!existingRule && !isClosing && !canEditExpenseDefaultRule(existingRule, policyID)) {
         return <NotFoundPage />;
     }
 
-    if (isEditingCategoryTaxRule && !existingCategoryTaxID && !isClosing) {
+    // A saved rule stays readable without write access, so only creating one is gated.
+    if (!isEditing && !!policy && !canWriteRules) {
         return <NotFoundPage />;
     }
 
-    // A saved rule stays readable without write access, so only creating one is gated. `isEditing` alone would miss a
-    // category rule, which is keyed by its category and so carries no ruleID, and send auditors to a not-found page.
-    if (!isEditingSavedRule && !!policy && !canWriteRules) {
-        return <NotFoundPage />;
-    }
-
-    const shouldShowDescribeRule = !isEditingSavedRule && !isCategoryLocked;
+    const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
     const applyGeneratedRule = (values: GeneratedRuleValues) => {
-        setDraftMerchantRule(isScopedToCategory ? getCategoryTaxRuleDraftFromGeneratedValues(values, policy) : getMerchantRuleDraftFromGeneratedValues(values));
+        setDraftMerchantRule(values);
     };
 
     const footer = canWriteRules ? (
         <View style={[styles.m4, styles.mb5, styles.mh5]}>
-            {!isCategoryRule && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.ph2, styles.mt2, styles.mb6]}>
-                    <Text style={[styles.textNormal, styles.textSupporting, styles.flex1]}>{translate('workspace.rules.merchantRules.previewMatchesDescription')}</Text>
-                    <Button
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        onPress={previewMatches}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
-                    >
-                        <Button.Text>{translate('workspace.rules.merchantRules.preview')}</Button.Text>
-                    </Button>
-                </View>
-            )}
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3, styles.ph2, styles.mt2, styles.mb6]}>
+                <Text style={[styles.textNormal, styles.textSupporting, styles.flex1]}>{translate('workspace.rules.merchantRules.previewMatchesDescription')}</Text>
+                <Button
+                    size={CONST.BUTTON_SIZE.SMALL}
+                    onPress={previewMatches}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_PREVIEW_MATCHES}
+                >
+                    <Button.Text>{translate('workspace.rules.merchantRules.preview')}</Button.Text>
+                </Button>
+            </View>
             <FormAlertWithSubmitButton
                 buttonText={translate('workspace.rules.merchantRules.saveRule')}
                 isAlertVisible={shouldShowError && !!errorMessage}
@@ -783,10 +869,9 @@ function MerchantRulePageBase({
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')}>
                     <Header.Actions>
-                        {/* Only while a condition is set, and only on an unsaved rule: resetting a saved one would let it
-                        switch condition type, which the two storage shapes can't express as one edit. A locked category
-                        isn't the admin's to clear. */}
-                        {canWriteRules && !isEditingSavedRule && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition) && (
+                        {/* Only while a condition is set, and only on an unsaved rule, since clearing the conditions of
+                        a saved rule would leave it matching everything. A locked category isn't the admin's to clear. */}
+                        {canWriteRules && !isEditing && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition || hasTagCondition) && (
                             <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
                         )}
                     </Header.Actions>
@@ -809,10 +894,8 @@ function MerchantRulePageBase({
                         </Text>
                         <Switch
                             accessibilityLabel={translate('workspace.rules.merchantRules.applyToExistingUnsubmittedExpenses')}
-                            isOn={!isCategoryRule && shouldUpdateMatchingTransactions}
+                            isOn={shouldUpdateMatchingTransactions}
                             onToggle={setShouldUpdateMatchingTransactions}
-                            disabled={isCategoryRule}
-                            disabledAction={isCategoryRule ? showCategoryRulesApplyGoingForwardExplainer : undefined}
                         />
                     </View>
                     {isInLandscapeMode && footer}
@@ -823,9 +906,8 @@ function MerchantRulePageBase({
                         isVisible={isDescribeRuleModalVisible}
                         onClose={() => setIsDescribeRuleModalVisible(false)}
                         policyID={policyID}
-                        ruleType={isScopedToCategory ? CONST.GENERATED_RULE.RULE_TYPE.CATEGORY_TAX_RATE : CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.EXPENSE_DEFAULTS}
                         onRuleGenerated={applyGeneratedRule}
-                        isCategoryEligible={isScopedToCategory ? (generatedCategory) => !categoryHasTaxRule(policy?.rules?.expenseRules, generatedCategory.name) : undefined}
                     />
                 )}
             </ScreenWrapper>
@@ -833,6 +915,6 @@ function MerchantRulePageBase({
     );
 }
 
-MerchantRulePageBase.displayName = 'MerchantRulePageBase';
+ExpenseDefaultRulePageBase.displayName = 'ExpenseDefaultRulePageBase';
 
-export default MerchantRulePageBase;
+export default ExpenseDefaultRulePageBase;

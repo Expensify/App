@@ -10,6 +10,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import RulesNewPage from '@pages/workspace/rules/RulesNewPage';
 
@@ -17,7 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {GeneratedRule} from '@src/types/onyx';
+import type {GeneratedRule, Rule} from '@src/types/onyx';
 import type {GeneratedRuleState, GeneratedRuleType} from '@src/types/onyx/GeneratedRule';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -307,7 +308,7 @@ describe('New rule describe section', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(POLICY_ID));
     });
 
-    it('scopes an expense defaults draft to a merchant rule', async () => {
+    it('seeds the expense defaults draft from a merchant answer', async () => {
         // Given the admin described an expense default for a merchant
         await renderRulesNewPage();
         const {generationID} = describeRule(writeSpy, 'Set Uber expenses to not billable');
@@ -320,12 +321,12 @@ describe('New rule describe section', () => {
             rule: {merchantToMatch: 'Uber'},
         });
 
-        // Then the draft carries the merchant rule type, because the merchant editor sends a draft without one to the type picker
-        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual({merchantToMatch: 'Uber', ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.MERCHANT});
+        // Then the editor opens with the generated values, so the admin only reviews and saves
+        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual({merchantToMatch: 'Uber'});
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
     });
 
-    it('opens the category tax rate editor for a categoryTaxRate answer', async () => {
+    it('opens the expense defaults editor for a categoryTaxRate answer', async () => {
         // Given a workspace with a Meals category and a GST rate that a category rule can use, and an admin who describes a tax default
         mockedUsePolicy.mockReturnValue({
             ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
@@ -347,29 +348,29 @@ describe('New rule describe section', () => {
             rule: {categoriesToMatch: ['Meals'], tax: 'GST'},
         });
 
-        // Then the expense defaults editor opens scoped to categories, because it takes its rule type from the draft
-        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual({categoriesToMatch: ['Meals'], tax: 'GST', ruleType: CONST.POLICY.EXPENSE_DEFAULT_RULE_TYPE.CATEGORY});
+        // Then the editor opens matching on the category, because a category tax default is an ordinary expense default
+        expect(await getOnyxValue(ONYXKEYS.FORMS.MERCHANT_RULE_FORM)).toEqual({categoriesToMatch: ['Meals'], tax: 'GST'});
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
     });
 
-    it('shows an error when the generated category already has a tax rate rule', async () => {
+    it('opens the editor when the generated category already has a rule', async () => {
         // Given a Meals category that already has a tax rate rule
         mockedUsePolicy.mockReturnValue({
             ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
             id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
-            rules: {
-                expenseRules: [
-                    {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention -- the expense rule stores the tax under the field name that the backend uses
-                        tax: {field_id_TAX: {externalID: 'GST'}},
-                        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: 'Meals'}],
-                    },
-                ],
-            },
         });
+        const existingRule: Rule = {
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: POLICY_ID,
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+            filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Meals'},
+            // eslint-disable-next-line @typescript-eslint/naming-convention -- the rule stores the tax under the field name that the backend uses
+            actions: {'1': {name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX, value: {field_id_TAX: {externalID: 'GST'}}}},
+        };
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Meals: {name: 'Meals', enabled: true}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}existing-category-tax-rule`, existingRule);
         });
         await renderRulesNewPage();
         const {generationID} = describeRule(writeSpy, 'Use GST for meals');
@@ -382,9 +383,10 @@ describe('New rule describe section', () => {
             rule: {categoriesToMatch: ['Meals'], tax: 'GST'},
         });
 
-        // Then New rule shows the error and opens nothing, because a category can have one tax rate rule
-        expect(await getPromptErrors()).toEqual([translateLocal('workspace.rules.newRule.promptErrors.categoryHasRule')]);
-        expect(Navigation.navigate).not.toHaveBeenCalled();
+        // Then the editor opens anyway, because a category can hold more than one rule and saving a second one
+        // that matches the same things prompts first
+        expect(await getPromptErrors()).toEqual([]);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_MERCHANT_NEW.getRoute(POLICY_ID));
     });
 
     it.each([CONST.GENERATED_RULE.STATE.UNSUPPORTED, CONST.GENERATED_RULE.STATE.MULTIPLE_RULES])(

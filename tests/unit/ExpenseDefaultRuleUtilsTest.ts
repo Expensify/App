@@ -1,14 +1,16 @@
 import {
-    buildMerchantRule,
-    canEditMerchantRule,
+    buildExpenseDefaultRule,
+    canEditExpenseDefaultRule,
+    getCategoryExpenseDefaultRules,
+    getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
-    getMerchantRuleFormValues,
+    getExpenseDefaultFormValues,
     getPolicyExpenseDefaultRules,
-    getRuleMerchantMatchSummary,
     hasExpenseDefaultRuleErrors,
+    haveSameConditions,
 } from '@libs/ExpenseDefaultRuleUtils';
-import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
+import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import Parser from '@libs/Parser';
 import {getRuleFilterLeaves, isExpenseDefaultRule, toIndexMap} from '@libs/RuleUtils';
 
@@ -23,6 +25,18 @@ import createRandomPolicy from '../utils/collections/policies';
 const {FIELD} = CONST.RULES.EXPENSE_DEFAULT;
 const {TRIGGERS: TRIGGER, ACTIONS: ACTION} = CONST.RULES;
 const {EQUAL_TO, CONTAINS, AND, OR, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
+const CURRENCY = CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY;
+const TAX_RATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE;
+const REIMBURSABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
+const BILLABLE = CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE;
+const SUBMITTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
+const DATE = CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE;
+const AMOUNT = CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT;
+const HAS = CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS;
+const CARD_ID = CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID;
+const {NOT_EQUAL_TO} = CONST.SEARCH.SYNTAX_OPERATORS;
+const MERCHANT_TYPE = 'merchantType';
+const {LOWER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
 
 const POLICY_ID = 'ABC123';
 const OTHER_POLICY_ID = 'DEF456';
@@ -62,9 +76,9 @@ function buildRuleWithOverrides(overrides: Record<string, unknown>): ExpenseDefa
 }
 
 describe('ExpenseDefaultRuleUtils', () => {
-    describe('buildMerchantRule', () => {
+    describe('buildExpenseDefaultRule', () => {
         it('builds both transaction triggers, the merchant filter and one Set action per field', () => {
-            const rule = buildMerchantRule(
+            const rule = buildExpenseDefaultRule(
                 {
                     merchantToMatch: 'Starbucks',
                     matchType: EQUAL_TO,
@@ -98,13 +112,13 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
 
         it('defaults the match type to contains and trims the matched merchant', () => {
-            const rule = buildMerchantRule({merchantToMatch: '  Uber  ', category: 'Travel'}, policy);
+            const rule = buildExpenseDefaultRule({merchantToMatch: '  Uber  ', category: 'Travel'}, policy);
 
             expect(rule?.filters).toEqual({left: FIELD.MERCHANT, operator: CONTAINS, right: 'Uber'});
         });
 
         it('keeps false booleans, which are meaningful values rather than empty ones', () => {
-            const rule = buildMerchantRule({merchantToMatch: 'Uber', billable: false, reimbursable: false}, policy);
+            const rule = buildExpenseDefaultRule({merchantToMatch: 'Uber', billable: false, reimbursable: false}, policy);
 
             expect(Object.values(rule?.actions ?? {})).toEqual([
                 {name: ACTION.SET, field: FIELD.REIMBURSABLE, value: false},
@@ -113,28 +127,28 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
 
         it('returns undefined when there is nothing to match on', () => {
-            expect(buildMerchantRule({merchantToMatch: '   ', category: 'Coffee'}, policy)).toBeUndefined();
+            expect(buildExpenseDefaultRule({merchantToMatch: '   ', category: 'Coffee'}, policy)).toBeUndefined();
         });
 
         it('returns undefined when there is nothing to set', () => {
-            expect(buildMerchantRule({merchantToMatch: 'Starbucks'}, policy)).toBeUndefined();
+            expect(buildExpenseDefaultRule({merchantToMatch: 'Starbucks'}, policy)).toBeUndefined();
         });
 
         it('treats a whitespace-only description as nothing to set', () => {
-            expect(buildMerchantRule({merchantToMatch: 'Starbucks', comment: '   '}, policy)).toBeUndefined();
+            expect(buildExpenseDefaultRule({merchantToMatch: 'Starbucks', comment: '   '}, policy)).toBeUndefined();
         });
 
         it('still records the tax external ID when the rate is missing from the policy', () => {
-            const rule = buildMerchantRule({merchantToMatch: 'Starbucks', tax: 'id_UNKNOWN'}, policy);
+            const rule = buildExpenseDefaultRule({merchantToMatch: 'Starbucks', tax: 'id_UNKNOWN'}, policy);
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
             expect(Object.values(rule?.actions ?? {}).at(0)?.value).toEqual({field_id_TAX: {externalID: 'id_UNKNOWN'}});
         });
     });
 
-    describe('getMerchantRuleFormValues round trip', () => {
+    describe('getExpenseDefaultFormValues round trip', () => {
         it('returns the values it was built from', () => {
-            const formValues: MerchantRuleFormValues = {
+            const formValues: ExpenseDefaultFormValues = {
                 merchantToMatch: 'Starbucks',
                 matchType: EQUAL_TO,
                 merchant: 'Starbucks Coffee',
@@ -147,41 +161,372 @@ describe('ExpenseDefaultRuleUtils', () => {
                 billable: false,
             };
 
-            expect(getMerchantRuleFormValues(buildMerchantRule(formValues, policy))).toEqual(formValues);
+            expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
         });
 
         it('round trips a rule that only renames the merchant', () => {
-            const formValues: MerchantRuleFormValues = {merchantToMatch: 'STARBUCKS #123', matchType: CONTAINS, merchant: 'Starbucks'};
+            const formValues: ExpenseDefaultFormValues = {merchantToMatch: 'STARBUCKS #123', matchType: CONTAINS, merchant: 'Starbucks'};
 
-            expect(getMerchantRuleFormValues(buildMerchantRule(formValues, policy))).toEqual(formValues);
+            expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
         });
 
         it('converts the description back to markdown', () => {
-            const rule = buildMerchantRule({merchantToMatch: 'Starbucks', comment: 'A description'}, policy);
+            const rule = buildExpenseDefaultRule({merchantToMatch: 'Starbucks', comment: 'A description'}, policy);
 
-            expect(getMerchantRuleFormValues(rule)?.comment).toBe('A description');
+            expect(getExpenseDefaultFormValues(rule)?.comment).toBe('A description');
         });
 
         it('accepts a single-value list on the right of the merchant filter', () => {
             const rule = buildRuleWithOverrides({filters: {left: FIELD.MERCHANT, operator: CONTAINS, right: ['Starbucks']}});
 
-            expect(getMerchantRuleFormValues(rule)).toEqual({merchantToMatch: 'Starbucks', matchType: CONTAINS, category: 'Coffee'});
+            expect(getExpenseDefaultFormValues(rule)).toEqual({merchantToMatch: 'Starbucks', matchType: CONTAINS, category: 'Coffee'});
         });
     });
 
-    describe('getMerchantRuleFormValues rejects rules the form cannot represent', () => {
+    describe('buildExpenseDefaultRule conditions', () => {
+        it('builds one condition per field, ANDed together and nested to the left', () => {
+            // Given a form matching on a merchant, two categories and a tag
+            const formValues: Partial<ExpenseDefaultFormValues> = {
+                merchantToMatch: 'Starbucks',
+                matchType: EQUAL_TO,
+                categoriesToMatch: ['Coffee', 'Travel'],
+                tagsToMatch: ['Team A'],
+                category: 'Coffee',
+            };
+
+            // When the rule is built
+            const rule = buildExpenseDefaultRule(formValues, policy);
+
+            // Then the conditions are ANDed in form order, with each list left as an OR of its values
+            expect(rule?.filters).toEqual({
+                operator: AND,
+                left: {
+                    operator: AND,
+                    left: {left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Starbucks'},
+                    right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: ['Coffee', 'Travel']},
+                },
+                right: {left: FIELD.TAG, operator: EQUAL_TO, right: ['Team A']},
+            });
+        });
+
+        it('builds a rule that matches on a category alone', () => {
+            // Given a form with no merchant, which is a rule the editor could not express before
+            const rule = buildExpenseDefaultRule({categoriesToMatch: ['Coffee'], tax: TAX_KEY}, policy);
+
+            // When its filters are read
+            // Then the single category condition is the whole tree
+            expect(rule?.filters).toEqual({left: FIELD.CATEGORY, operator: EQUAL_TO, right: ['Coffee']});
+        });
+
+        it('returns undefined when every condition is blank', () => {
+            // Given a form whose pickers were emptied, leaving blanks behind
+            // When the rule is built
+            // Then there is nothing to match on, so no rule is built
+            expect(buildExpenseDefaultRule({merchantToMatch: '  ', categoriesToMatch: ['  '], tagsToMatch: [], category: 'Coffee'}, policy)).toBeUndefined();
+        });
+
+        it('round trips every condition', () => {
+            // Given a form matching on all four fields
+            const formValues: ExpenseDefaultFormValues = {
+                merchantToMatch: 'Starbucks',
+                matchType: CONTAINS,
+                categoriesToMatch: ['Coffee'],
+                tagsToMatch: ['Team A', 'Team B'],
+                currenciesToMatch: ['USD', 'EUR'],
+                taxRatesToMatch: [TAX_KEY],
+                reimbursableToMatch: true,
+                billableToMatch: false,
+                submittersToMatch: ['12345'],
+                merchantTypesToMatch: [CONST.RULES.MERCHANT_TYPE.AIRLINES],
+                dateToMatch: '2026-01-15',
+                dateMatchType: GREATER_THAN,
+                category: 'Coffee',
+            };
+
+            // When the built rule is read back
+            // Then the form gets the same conditions it wrote
+            expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
+        });
+
+        it('stores a boolean condition the way search spells it', () => {
+            // Given a form matching only on expenses that are reimbursable and not billable
+            const rule = buildExpenseDefaultRule({reimbursableToMatch: true, billableToMatch: false, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then each boolean is stored as the yes/no word search uses, rather than as a JSON boolean
+            expect(rule?.filters).toEqual({
+                operator: AND,
+                left: {left: REIMBURSABLE, operator: EQUAL_TO, right: 'yes'},
+                right: {left: BILLABLE, operator: EQUAL_TO, right: 'no'},
+            });
+        });
+
+        it('keeps a false boolean condition rather than treating it as unset', () => {
+            // Given a form matching only on expenses that are not reimbursable
+            const rule = buildExpenseDefaultRule({reimbursableToMatch: false, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the condition survives, because false is a real match rather than a cleared field
+            expect(rule?.filters).toEqual({left: REIMBURSABLE, operator: EQUAL_TO, right: 'no'});
+        });
+
+        it('builds a rule that matches on merchant types alone', () => {
+            // Given a form whose only condition is two merchant categories
+            const rule = buildExpenseDefaultRule({merchantTypesToMatch: [CONST.RULES.MERCHANT_TYPE.AIRLINES, CONST.RULES.MERCHANT_TYPE.HOTELS], category: 'Travel'}, policy);
+
+            // When its filters are read
+            // Then they are ORed on the rules engine's own merchant type key, which search has no equivalent for
+            expect(rule?.filters).toEqual({left: MERCHANT_TYPE, operator: EQUAL_TO, right: ['airlines', 'hotels']});
+        });
+
+        it('compares the expense date with the operator the picker chose', () => {
+            // Given a form matching on expenses dated before a day
+            const rule = buildExpenseDefaultRule({dateToMatch: '2026-01-15', dateMatchType: LOWER_THAN, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the date carries the chosen operator rather than defaulting to an equality match
+            expect(rule?.filters).toEqual({left: DATE, operator: LOWER_THAN, right: '2026-01-15'});
+        });
+
+        it('defaults an unset date match type to matching the day itself', () => {
+            // Given a form with a date but no match type, which is what the picker leaves behind
+            const rule = buildExpenseDefaultRule({dateToMatch: '2026-01-15', category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the date is compared for equality, which is the On option the picker preselects
+            expect(rule?.filters).toEqual({left: DATE, operator: EQUAL_TO, right: '2026-01-15'});
+        });
+
+        it('compares the expense amount with the operator the picker chose', () => {
+            // Given a form matching on expenses over an amount
+            const rule = buildExpenseDefaultRule({amountToMatch: '3000', amountMatchType: GREATER_THAN, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the amount carries the chosen operator rather than defaulting to an equality match
+            expect(rule?.filters).toEqual({left: AMOUNT, operator: GREATER_THAN, right: '3000'});
+        });
+
+        it('defaults an unset amount match type to matching the amount itself', () => {
+            // Given a form with an amount but no match type, which is what the picker leaves behind
+            const rule = buildExpenseDefaultRule({amountToMatch: '3000', category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the amount is compared for equality, which is the Equal to option the picker preselects
+            expect(rule?.filters).toEqual({left: AMOUNT, operator: EQUAL_TO, right: '3000'});
+        });
+
+        it("matches on expenses missing a part when the picker chose doesn't have", () => {
+            // Given a form matching on expenses that carry no receipt
+            const rule = buildExpenseDefaultRule({hasToMatch: ['receipt'], hasMatchType: NOT_EQUAL_TO, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the check is negated rather than defaulting to a presence match
+            expect(rule?.filters).toEqual({left: HAS, operator: NOT_EQUAL_TO, right: ['receipt']});
+        });
+
+        it('defaults an unset has match type to requiring the part to be present', () => {
+            // Given a form listing parts but no match type, which is what the picker leaves behind
+            const rule = buildExpenseDefaultRule({hasToMatch: ['receipt', 'tag'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the parts are required, which is the Has option the picker preselects
+            expect(rule?.filters).toEqual({left: HAS, operator: EQUAL_TO, right: ['receipt', 'tag']});
+        });
+
+        it('builds a rule that matches on the cards an expense was paid with', () => {
+            // Given a form matching on two of the workspace's cards
+            const rule = buildExpenseDefaultRule({cardsToMatch: ['11111', '22222'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then both card IDs sit on one comparison, which the engine matches as an OR
+            expect(rule?.filters).toEqual({left: CARD_ID, operator: EQUAL_TO, right: ['11111', '22222']});
+        });
+
+        it('builds a rule that matches on a submitter alone', () => {
+            // Given a form whose only condition is who submitted the expense
+            const rule = buildExpenseDefaultRule({submittersToMatch: ['12345', '67890'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the submitters are ORed on the `from` key, which is what search uses for the submitter
+            expect(rule?.filters).toEqual({left: SUBMITTER, operator: EQUAL_TO, right: ['12345', '67890']});
+        });
+
+        it('builds a rule that matches on a tax rate alone', () => {
+            // Given a form whose only condition is a tax rate
+            const rule = buildExpenseDefaultRule({taxRatesToMatch: [TAX_KEY], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the single tax rate condition is the whole tree
+            expect(rule?.filters).toEqual({left: TAX_RATE, operator: EQUAL_TO, right: [TAX_KEY]});
+        });
+
+        it('builds a rule that matches on a currency alone', () => {
+            // Given a form whose only condition is a currency
+            const rule = buildExpenseDefaultRule({currenciesToMatch: ['USD'], category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the single currency condition is the whole tree, ORing the values it was given
+            expect(rule?.filters).toEqual({left: CURRENCY, operator: EQUAL_TO, right: ['USD']});
+        });
+    });
+
+    describe('buildExpenseDefaultRule amount default', () => {
+        it('stores the amount negated, the way an expense carries it', () => {
+            // Given a rule setting the amount to $30.00
+            const rule = buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: '3000'}, policy);
+
+            // When the action is read
+            // Then the stored value is negative cents
+            expect(Object.values(rule?.actions ?? {})).toEqual([{name: ACTION.SET, field: FIELD.AMOUNT, value: -3000}]);
+        });
+
+        it('round trips the amount as the admin typed it', () => {
+            // Given a rule setting an amount
+            const formValues: ExpenseDefaultFormValues = {merchantToMatch: 'Starbucks', matchType: CONTAINS, amount: '3000'};
+
+            // When it is read back
+            // Then the form gets the positive amount, not the negated one
+            expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
+        });
+
+        it('leaves out an amount of zero, which is not a default', () => {
+            // Given a rule whose amount was cleared
+            // When it is built
+            // Then nothing is set, so the rule has no default and is not built
+            expect(buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: '0'}, policy)).toBeUndefined();
+        });
+
+        it('is read-only for a rule that sets a credit', () => {
+            // Given a rule storing a positive amount, which sets a credit rather than an expense
+            const rule = buildRuleWithOverrides({actions: toIndexMap([{name: ACTION.SET, field: FIELD.AMOUNT, value: 3000}])});
+
+            // When the form tries to read it
+            // Then it is refused, because saving the form back would flip the sign
+            expect(getExpenseDefaultFormValues(rule)).toBeUndefined();
+        });
+    });
+
+    describe('getExpenseDefaultConditionSummary', () => {
+        it('groups every condition by the field it matches on', () => {
+            // Given a rule matching on a merchant, two categories and a tag
+            const rule = buildExpenseDefaultRule({merchantToMatch: 'Starbucks', categoriesToMatch: ['Coffee', 'Travel'], tagsToMatch: ['Team A'], category: 'Coffee'}, policy);
+
+            // When its conditions are summarized
+            // Then each field keeps its own values, so the table can name them separately
+            expect(getExpenseDefaultConditionSummary(rule?.filters)).toEqual({
+                merchants: [{value: 'Starbucks', isExactMatch: false}],
+                categories: ['Coffee', 'Travel'],
+                tags: ['Team A'],
+            });
+        });
+
+        it('summarizes a rule the editor cannot open', () => {
+            // Given two merchants ORed together, which the form has one input for
+            const filters: RuleFilterNode = {
+                left: merchantFilter,
+                operator: OR,
+                right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Costa'},
+            };
+
+            // When it is summarized
+            // Then both merchants are listed, so a read-only rule still shows what it matches
+            expect(getExpenseDefaultConditionSummary(filters)).toEqual({
+                merchants: [
+                    {value: 'Starbucks', isExactMatch: false},
+                    {value: 'Costa', isExactMatch: false},
+                ],
+                categories: [],
+                tags: [],
+            });
+        });
+
+        it('keeps the match type of each merchant condition', () => {
+            // Given one rule matching a merchant exactly and another matching it by substring
+            const exactRule = buildExpenseDefaultRule({merchantToMatch: 'Uber', matchType: EQUAL_TO, category: 'Travel'}, policy);
+            const containsRule = buildExpenseDefaultRule({merchantToMatch: 'Uber', matchType: CONTAINS, category: 'Travel'}, policy);
+
+            // When each is summarized
+            // Then the match type comes back with the merchant, so the table can tell the two rules apart
+            expect(getExpenseDefaultConditionSummary(exactRule?.filters).merchants).toEqual([{value: 'Uber', isExactMatch: true}]);
+            expect(getExpenseDefaultConditionSummary(containsRule?.filters).merchants).toEqual([{value: 'Uber', isExactMatch: false}]);
+        });
+
+        it('ignores a field the table has no wording for', () => {
+            // Given a rule matching on a merchant category code
+            const filters: RuleFilterNode = {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, operator: EQUAL_TO, right: '5812'};
+
+            // When it is summarized
+            // Then nothing is reported, rather than the code being labelled as a merchant
+            expect(getExpenseDefaultConditionSummary(filters)).toEqual({merchants: [], categories: [], tags: []});
+        });
+
+        it('reports nothing for a rule with no filters', () => {
+            // Given a rule whose filters never loaded
+            // When it is summarized
+            // Then every field is empty
+            expect(getExpenseDefaultConditionSummary(undefined)).toEqual({merchants: [], categories: [], tags: []});
+        });
+    });
+
+    describe('haveSameConditions', () => {
+        it('ignores the order of a multi-select', () => {
+            // Given two rules picking the same categories in a different order
+            // When they are compared
+            // Then they are duplicates, because the list is matched as an OR
+            expect(haveSameConditions({categoriesToMatch: ['Coffee', 'Travel']}, {categoriesToMatch: ['Travel', 'Coffee']})).toBe(true);
+        });
+
+        it('treats a different match type on the same merchant as a different rule', () => {
+            // Given the same merchant matched exactly by one rule and partially by the other
+            // When they are compared
+            // Then they are not duplicates, because they match different expenses
+            expect(haveSameConditions({merchantToMatch: 'Starbucks', matchType: EQUAL_TO}, {merchantToMatch: 'Starbucks', matchType: CONTAINS})).toBe(false);
+        });
+
+        it('ignores the match type when neither rule matches on a merchant', () => {
+            // Given two category rules whose match type is left at its default
+            // When they are compared
+            // Then they are duplicates, because the match type only applies to the merchant input
+            expect(haveSameConditions({categoriesToMatch: ['Coffee'], matchType: EQUAL_TO}, {categoriesToMatch: ['Coffee'], matchType: CONTAINS})).toBe(true);
+        });
+
+        it('is false when one rule matches on a condition the other does not', () => {
+            // Given two rules on the same merchant, one of which is also narrowed to a tag
+            // When they are compared
+            // Then they are not duplicates
+            expect(haveSameConditions({merchantToMatch: 'Starbucks'}, {merchantToMatch: 'Starbucks', tagsToMatch: ['Team A']})).toBe(false);
+        });
+    });
+
+    describe('getExpenseDefaultFormValues rejects rules the form cannot represent', () => {
         it.each([
             [
-                'a nested filter tree',
+                'conditions combined with or rather than and',
                 {
                     filters: {
                         left: merchantFilter,
-                        operator: AND,
+                        operator: OR,
                         right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
                     },
                 },
             ],
-            ['a filter on a field the form has no input for', {filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'}}],
+            [
+                'two conditions on the same field, which the form has one input for',
+                {
+                    filters: {
+                        left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+                        operator: AND,
+                        right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Travel'},
+                    },
+                },
+            ],
+            ['a condition on an operator the form has no control for', {filters: {left: FIELD.CATEGORY, operator: CONTAINS, right: 'Coffee'}}],
+            ['a currency condition the picker cannot express, which only ever selects whole currencies', {filters: {left: CURRENCY, operator: CONTAINS, right: ['USD']}}],
+            ['a boolean condition whose value is neither yes nor no', {filters: {left: REIMBURSABLE, operator: EQUAL_TO, right: 'true'}}],
+            ['a boolean condition carrying more than one value', {filters: {left: BILLABLE, operator: EQUAL_TO, right: ['yes', 'no']}}],
+            ['a date range, which needs two comparisons on one field', {filters: {left: DATE, operator: CONST.SEARCH.SYNTAX_OPERATORS.RANGE, right: '2026-01-01'}}],
+            ['an amount range, which needs two comparisons on one field', {filters: {left: AMOUNT, operator: CONST.SEARCH.SYNTAX_OPERATORS.RANGE, right: '3000'}}],
+            ['a filter on a field the form has no input for', {filters: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MCC, operator: EQUAL_TO, right: '5812'}}],
             ['an operator the form has no control for', {filters: {left: FIELD.MERCHANT, operator: GREATER_THAN, right: 'Starbucks'}}],
             ['a list of merchants, which the form has one input for', {filters: {left: FIELD.MERCHANT, operator: OR, right: ['Starbucks', 'Costa']}}],
             ['a trigger the form does not set', {triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.REPORT_SUBMIT])}],
@@ -198,11 +543,48 @@ describe('ExpenseDefaultRuleUtils', () => {
             ['a value of the wrong type', {actions: toIndexMap([{name: ACTION.SET, field: FIELD.BILLABLE, value: 'true'}])}],
             ['a malformed tax value', {actions: toIndexMap([{name: ACTION.SET, field: FIELD.TAX, value: TAX_KEY}])}],
         ])('returns undefined for %s', (_description, overrides) => {
-            expect(getMerchantRuleFormValues(buildRuleWithOverrides(overrides))).toBeUndefined();
+            expect(getExpenseDefaultFormValues(buildRuleWithOverrides(overrides))).toBeUndefined();
         });
 
         it('returns undefined for an undefined rule', () => {
-            expect(getMerchantRuleFormValues(undefined)).toBeUndefined();
+            expect(getExpenseDefaultFormValues(undefined)).toBeUndefined();
+        });
+    });
+
+    describe('triggers the backend sets', () => {
+        // Given a category tax default as the backend writes it, which also fires when an expense is edited
+        const backendTriggers = toIndexMap([TRIGGER.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.UPDATE_TRANSACTION]);
+
+        it('opens a rule that also fires on UpdateTransaction', () => {
+            // When the editor reads it
+            const formValues = getExpenseDefaultFormValues(buildRuleWithOverrides({triggers: backendTriggers}));
+
+            // Then it is editable rather than read-only, because the form can hand every trigger back untouched
+            expect(formValues).toEqual({merchantToMatch: 'Starbucks', matchType: CONTAINS, category: 'Coffee'});
+        });
+
+        it('keeps both triggers when the rule is saved again', () => {
+            // When the edited rule is rebuilt from the form
+            const rule = buildExpenseDefaultRule({categoriesToMatch: ['Coffee'], tax: TAX_KEY}, policy, backendTriggers);
+
+            // Then the trigger the form has no input for survives the save
+            expect(rule?.triggers).toEqual(backendTriggers);
+        });
+
+        it('sets both triggers on a new rule', () => {
+            // When a rule is built with no existing triggers to carry over
+            const rule = buildExpenseDefaultRule({categoriesToMatch: ['Coffee'], tax: TAX_KEY}, policy);
+
+            // Then it fires on creation and on an edit, matching what the backend writes
+            expect(rule?.triggers).toEqual(backendTriggers);
+        });
+
+        it('stays read-only when a trigger is one the form does not know', () => {
+            // When the rule carries a trigger outside the transaction lifecycle
+            const rule = buildRuleWithOverrides({triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.REPORT_APPROVE])});
+
+            // Then the editor refuses it, since saving would drop that trigger
+            expect(getExpenseDefaultFormValues(rule)).toBeUndefined();
         });
     });
 
@@ -223,12 +605,21 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(isExpenseDefaultRule(rule)).toBe(false);
         });
 
-        it('is false for a rule that matches on something other than a merchant', () => {
-            // Given a category rule, which the merchant rule editor has no way to open
-            const rule = asStoredRule(buildRuleWithOverrides({filters: {left: FIELD.CATEGORY, operator: CONTAINS, right: 'Coffee'}}));
+        it('is true for a rule that matches on a category rather than a merchant', () => {
+            // Given a category rule, which the editor can now open
+            const rule = asStoredRule(buildRuleWithOverrides({filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'}}));
 
             // When it is tested
-            // Then it is not an expense default, so a client that cannot edit it does not list it either
+            // Then it is an expense default, because merchant is only one of the conditions it can match on
+            expect(isExpenseDefaultRule(rule)).toBe(true);
+        });
+
+        it('is false for a rule with no conditions', () => {
+            // Given a rule that sets a field but matches on nothing, which would apply to every expense
+            const rule = asStoredRule(buildRuleWithOverrides({filters: undefined}));
+
+            // When it is tested
+            // Then it is not an expense default
             expect(isExpenseDefaultRule(rule)).toBe(false);
         });
 
@@ -286,6 +677,113 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
     });
 
+    describe('getCategoryExpenseDefaultRules', () => {
+        const categoryOnlyRuleBody: ExpenseDefaultRule = {
+            triggers: toIndexMap([TRIGGER.CREATE_TRANSACTION]),
+            filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+            actions: toIndexMap([{name: ACTION.SET, field: FIELD.MERCHANT, value: 'Starbucks Coffee'} as ExpenseDefaultAction]),
+        };
+
+        it('finds a rule matching that category', () => {
+            // Given a rule matching that category and nothing else
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(categoryOnlyRuleBody)};
+
+            // When the category's rules are looked up
+            // Then it is found, so category settings can list it
+            expect(getCategoryExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1']);
+        });
+
+        it('includes a rule that also matches on a merchant', () => {
+            // Given a rule matching the category together with a merchant
+            const ruleWithMerchant: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                filters: {
+                    operator: AND,
+                    left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+                    right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Starbucks'},
+                },
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithMerchant)};
+
+            // When the category's rules are looked up
+            // Then it is listed, because it applies to the category just as much. The Rules page still groups it
+            // with the merchants, so it is shown in one place there
+            expect(getCategoryExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1']);
+        });
+
+        it('includes a rule that also matches on a tag', () => {
+            // Given a rule matching the category together with a tag
+            const ruleWithTag: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                filters: {
+                    operator: AND,
+                    left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
+                    right: {left: FIELD.TAG, operator: EQUAL_TO, right: 'Engineering'},
+                },
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(ruleWithTag)};
+
+            // When the category's rules are looked up
+            // Then it is listed, for the same reason a merchant match is
+            expect(getCategoryExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1']);
+        });
+
+        it('keeps a rule being deleted, for the row that strikes it through', () => {
+            // Given the category's rule, deleted while offline so it is still in the collection
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.RULE}1`]: {...asStoredRule(categoryOnlyRuleBody), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+
+            // When the category's rules are looked up
+            // Then it is still returned, so category settings can show it struck through while the delete is in
+            // flight rather than dropping the row the way the Rules table does not
+            expect(getCategoryExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1']);
+        });
+
+        it('returns a rule that sets no tax', () => {
+            // Given a rule matching the category alone that sets an amount rather than a tax
+            const amountOnly: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                actions: toIndexMap([{name: ACTION.SET, field: FIELD.AMOUNT, value: -1000} as ExpenseDefaultAction]),
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(amountOnly)};
+
+            // When the category's rules are looked up
+            // Then it is found, because a category's rule need not set a tax
+            expect(getCategoryExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1']);
+        });
+
+        it('returns a rule that matches on this category and another', () => {
+            // Given a rule matching two categories and nothing else
+            const twoCategories: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                filters: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: ['Coffee', 'Travel']},
+            };
+            const collection = {[`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(twoCategories)};
+
+            // When each category's rules are looked up
+            // Then both find it, because the rule is each of their own and hiding it would lose it from every page
+            expect(getCategoryExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1']);
+            expect(getCategoryExpenseDefaultRules(collection, POLICY_ID, 'Travel').map(({ruleID}) => ruleID)).toEqual(['1']);
+        });
+
+        it('returns every rule matching the category', () => {
+            // Given two rules that each match the category alone, which saving past the duplicate prompt allows
+            const second: ExpenseDefaultRule = {
+                ...categoryOnlyRuleBody,
+                actions: toIndexMap([{name: ACTION.SET, field: FIELD.AMOUNT, value: -1000} as ExpenseDefaultAction]),
+            };
+            const collection = {
+                [`${ONYXKEYS.COLLECTION.RULE}1`]: asStoredRule(categoryOnlyRuleBody),
+                [`${ONYXKEYS.COLLECTION.RULE}2`]: asStoredRule(second),
+            };
+
+            // When the category's rules are looked up
+            // Then both come back, so category settings can list one row for each instead of hiding the second
+            expect(getCategoryExpenseDefaultRules(collection, POLICY_ID, 'Coffee').map(({ruleID}) => ruleID)).toEqual(['1', '2']);
+        });
+    });
+
     describe('hasExpenseDefaultRuleErrors', () => {
         const failedRule = {...asStoredRule(merchantRuleBody), errors: {error: 'Whoops'}};
 
@@ -302,17 +800,17 @@ describe('ExpenseDefaultRuleUtils', () => {
         });
     });
 
-    describe('canEditMerchantRule', () => {
+    describe('canEditExpenseDefaultRule', () => {
         it('allows a representable rule scoped to the policy', () => {
-            expect(canEditMerchantRule(asStoredRule(merchantRuleBody), POLICY_ID)).toBe(true);
+            expect(canEditExpenseDefaultRule(asStoredRule(merchantRuleBody), POLICY_ID)).toBe(true);
         });
 
         it('refuses a rule belonging to another policy', () => {
-            expect(canEditMerchantRule(asStoredRule(merchantRuleBody, OTHER_POLICY_ID), POLICY_ID)).toBe(false);
+            expect(canEditExpenseDefaultRule(asStoredRule(merchantRuleBody, OTHER_POLICY_ID), POLICY_ID)).toBe(false);
         });
 
         it('refuses an account scoped rule', () => {
-            expect(canEditMerchantRule(asStoredRule(merchantRuleBody, POLICY_ID, CONST.RULES.SCOPE.ACCOUNT), POLICY_ID)).toBe(false);
+            expect(canEditExpenseDefaultRule(asStoredRule(merchantRuleBody, POLICY_ID, CONST.RULES.SCOPE.ACCOUNT), POLICY_ID)).toBe(false);
         });
 
         it('refuses an approval workflow rule that happens to share the ruleID', () => {
@@ -323,7 +821,7 @@ describe('ExpenseDefaultRuleUtils', () => {
                 }),
             );
 
-            expect(canEditMerchantRule(approvalWorkflowRule, POLICY_ID)).toBe(false);
+            expect(canEditExpenseDefaultRule(approvalWorkflowRule, POLICY_ID)).toBe(false);
         });
 
         it('refuses a rule the form cannot represent, so saving cannot overwrite it', () => {
@@ -333,68 +831,12 @@ describe('ExpenseDefaultRuleUtils', () => {
                 }),
             );
 
-            expect(canEditMerchantRule(nested, POLICY_ID)).toBe(false);
+            expect(canEditExpenseDefaultRule(nested, POLICY_ID)).toBe(false);
         });
 
         it('refuses without a rule or without a policy', () => {
-            expect(canEditMerchantRule(undefined, POLICY_ID)).toBe(false);
-            expect(canEditMerchantRule(asStoredRule(merchantRuleBody), undefined)).toBe(false);
-        });
-    });
-
-    describe('getRuleMerchantMatchSummary', () => {
-        it('reads a single merchant leaf', () => {
-            expect(getRuleMerchantMatchSummary(merchantFilter)).toEqual({merchants: 'Starbucks', isExactMatch: false});
-        });
-
-        it('flags an exact match', () => {
-            expect(getRuleMerchantMatchSummary({left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Starbucks'})).toEqual({merchants: 'Starbucks', isExactMatch: true});
-        });
-
-        it('joins the values of a merchant leaf holding a list, which the editor cannot represent', () => {
-            const filters: RuleFilterComparison = {left: FIELD.MERCHANT, operator: EQUAL_TO, right: ['Starbucks', 'Costa']};
-
-            expect(getRuleMerchantMatchSummary(filters)).toEqual({merchants: 'Starbucks, Costa', isExactMatch: true});
-        });
-
-        it('joins the merchants of a nested tree, which the editor cannot represent', () => {
-            const filters: RuleFilterNode = {
-                left: merchantFilter,
-                operator: AND,
-                right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Costa'},
-            };
-
-            expect(getRuleMerchantMatchSummary(filters)).toEqual({merchants: 'Starbucks, Costa', isExactMatch: false});
-            // The same rule stays read-only, so the summary is the only thing the row can show.
-            expect(getMerchantRuleFormValues(asStoredRule({...merchantRuleBody, filters}))).toBeUndefined();
-        });
-
-        it('is not an exact match when the merchant leaves disagree on the operator', () => {
-            const filters: RuleFilterNode = {
-                left: {left: FIELD.MERCHANT, operator: EQUAL_TO, right: 'Starbucks'},
-                operator: OR,
-                right: {left: FIELD.MERCHANT, operator: CONTAINS, right: 'Costa'},
-            };
-
-            expect(getRuleMerchantMatchSummary(filters).isExactMatch).toBe(false);
-        });
-
-        it('ignores leaves on other fields', () => {
-            const filters: RuleFilterNode = {
-                left: merchantFilter,
-                operator: AND,
-                right: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'},
-            };
-
-            expect(getRuleMerchantMatchSummary(filters)).toEqual({merchants: 'Starbucks', isExactMatch: false});
-        });
-
-        it('is empty without a merchant leaf', () => {
-            expect(getRuleMerchantMatchSummary({left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Coffee'})).toEqual({merchants: '', isExactMatch: false});
-        });
-
-        it('is empty without filters', () => {
-            expect(getRuleMerchantMatchSummary(undefined)).toEqual({merchants: '', isExactMatch: false});
+            expect(canEditExpenseDefaultRule(undefined, POLICY_ID)).toBe(false);
+            expect(canEditExpenseDefaultRule(asStoredRule(merchantRuleBody), undefined)).toBe(false);
         });
     });
 

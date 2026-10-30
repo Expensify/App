@@ -22,7 +22,12 @@ import WorkspaceExpenseDefaultsTableRow from './WorkspaceExpenseDefaultsTableRow
 type ExpenseDefaultsTableColumnKey = 'type' | 'condition' | 'rule' | 'actions';
 
 /** The order the `Expense defaults` subsections render in, per the design. */
-const SECTION_ORDER = [CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES, CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS, CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES] as const;
+const SECTION_ORDER = [
+    CONST.POLICY.EXPENSE_DEFAULTS_SECTION.CATEGORIES,
+    CONST.POLICY.EXPENSE_DEFAULTS_SECTION.TAGS,
+    CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANTS,
+    CONST.POLICY.EXPENSE_DEFAULTS_SECTION.MERCHANT_TYPES,
+] as const;
 
 type WorkspaceExpenseDefaultsTableProps = {
     rulesData: ExpenseDefaultTableItem[];

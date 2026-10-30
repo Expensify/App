@@ -99,7 +99,7 @@ describe('useUpdateTransactionCategory', () => {
         // Then it lands on the money request draft, and says so: the category step reads this to decide whether
         // it may carry forward into confirmation.
         expect(setMoneyRequestCategory).toHaveBeenCalledTimes(1);
-        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, CATEGORY, policy, expect.any(Function));
+        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, CATEGORY, policy);
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
         expect(updateMoneyRequestCategory).not.toHaveBeenCalled();
         expect(result.current.isDraftUpdate).toBe(true);
@@ -140,6 +140,6 @@ describe('useUpdateTransactionCategory', () => {
         result.current.updateCategory('');
 
         // Then the empty value is written through rather than dropped
-        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, '', policy, expect.any(Function));
+        expect(setMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, '', policy);
     });
 });

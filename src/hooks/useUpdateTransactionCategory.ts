@@ -123,7 +123,7 @@ function useUpdateTransactionCategory({
             return;
         }
 
-        setMoneyRequestCategory(transactionID, category, policy, getCurrencyDecimals);
+        setMoneyRequestCategory(transactionID, category, policy);
     };
 
     return {updateCategory, isDraftUpdate: !isSplitUpdate && !isExistingExpenseUpdate};
