@@ -78,7 +78,7 @@ function DualEntryTravelBillingSettlementAccountPage({policy}: WithPolicyConnect
         />
     );
 
-    const setTravelInvoicingSettlementsAccount = (item: AccountListItem) => {
+    const setTravelBillingSettlementsAccount = (item: AccountListItem) => {
         if (item.value !== travelInvoicingSettlementsBankAccountID && policyID) {
             updateDualEntryTravelBillingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
         }
@@ -97,7 +97,7 @@ function DualEntryTravelBillingSettlementAccountPage({policy}: WithPolicyConnect
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
-            onSelectRow={setTravelInvoicingSettlementsAccount}
+            onSelectRow={setTravelBillingSettlementsAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={travelInvoicingSettlementsBankAccountID}
             onBackButtonPress={() => Navigation.goBack(backPath)}

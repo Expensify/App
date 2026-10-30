@@ -56,8 +56,8 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const syncExpensifyCardSettlements = campfireConfig?.sync?.syncExpensifyCardSettlements ?? true;
     const settlementsBankAccount = campfireData?.accounts?.find((account) => account.id === campfireConfig?.sync?.settlementsBankAccountID);
     const syncTravelInvoicingSettlements = campfireConfig?.sync?.syncTravelInvoicingSettlements ?? true;
-    const travelInvoicingSettlementsBankAccount = campfireData?.accounts?.find((account) => account.id === campfireConfig?.sync?.travelInvoicingSettlementsBankAccountID);
-    const travelInvoicingPayableAccount = campfireData?.accounts?.find((account) => account.id === campfireConfig?.export?.travelInvoicingPayableAccountID);
+    const travelBillingSettlementsBankAccount = campfireData?.accounts?.find((account) => account.id === campfireConfig?.sync?.travelInvoicingSettlementsBankAccountID);
+    const travelBillingPayableAccount = campfireData?.accounts?.find((account) => account.id === campfireConfig?.export?.travelInvoicingPayableAccountID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const travelBillingFundID = useTravelBillingFundID(policyID);
@@ -70,7 +70,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
         useAccordionAnimation(syncReimbursedReports);
     const {isAccordionExpanded: isSyncExpensifyCardSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncExpensifyCardSettlementsAccordionSection} =
         useAccordionAnimation(syncExpensifyCardSettlements);
-    const {isAccordionExpanded: isSyncTravelInvoicingSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncTravelInvoicingSettlementsAccordionSection} =
+    const {isAccordionExpanded: isSyncTravelBillingSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncTravelBillingSettlementsAccordionSection} =
         useAccordionAnimation(syncTravelInvoicingSettlements);
 
     return (
@@ -199,14 +199,14 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         onCloseError={() => policyID && clearCampfireErrorField(policyID, CONST.CAMPFIRE_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS)}
                     />
                     <Accordion
-                        isExpanded={isSyncTravelInvoicingSettlementsAccordionExpanded}
-                        isToggleTriggered={shouldAnimateSyncTravelInvoicingSettlementsAccordionSection}
+                        isExpanded={isSyncTravelBillingSettlementsAccordionExpanded}
+                        isToggleTriggered={shouldAnimateSyncTravelBillingSettlementsAccordionSection}
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], campfireConfig?.pendingFields)}>
                             <MenuItemField
                                 name={translate('workspace.campfire.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
-                                value={travelInvoicingSettlementsBankAccount ? `${travelInvoicingSettlementsBankAccount?.id} ${travelInvoicingSettlementsBankAccount?.name}` : undefined}
+                                value={travelBillingSettlementsBankAccount ? `${travelBillingSettlementsBankAccount?.id} ${travelBillingSettlementsBankAccount?.name}` : undefined}
                             >
                                 {areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], campfireConfig?.errorFields) && (
                                     <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
@@ -217,7 +217,7 @@ function CampfireAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             <MenuItemField
                                 name={translate('workspace.campfire.travelBillingPayableAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
-                                value={travelInvoicingPayableAccount ? `${travelInvoicingPayableAccount?.id} ${travelInvoicingPayableAccount?.name}` : undefined}
+                                value={travelBillingPayableAccount ? `${travelBillingPayableAccount?.id} ${travelBillingPayableAccount?.name}` : undefined}
                             >
                                 {areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], campfireConfig?.errorFields) && (
                                     <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />

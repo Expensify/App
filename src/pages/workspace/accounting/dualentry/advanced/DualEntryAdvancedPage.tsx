@@ -59,8 +59,8 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const syncExpensifyCardSettlements = dualentryConfig?.sync?.syncExpensifyCardSettlements ?? true;
     const settlementsBankAccount = dualentryData?.accounts?.find((account) => account.id === dualentryConfig?.sync?.settlementsBankAccountID);
     const syncTravelInvoicingSettlements = dualentryConfig?.sync?.syncTravelInvoicingSettlements ?? true;
-    const travelInvoicingSettlementsBankAccount = dualentryData?.accounts?.find((account) => account.id === dualentryConfig?.sync?.travelInvoicingSettlementsBankAccountID);
-    const travelInvoicingPayableAccount = dualentryData?.accounts?.find((account) => account.id === dualentryConfig?.export?.travelInvoicingPayableAccountID);
+    const travelBillingSettlementsBankAccount = dualentryData?.accounts?.find((account) => account.id === dualentryConfig?.sync?.travelInvoicingSettlementsBankAccountID);
+    const travelBillingPayableAccount = dualentryData?.accounts?.find((account) => account.id === dualentryConfig?.export?.travelInvoicingPayableAccountID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
     const travelBillingFundID = useTravelBillingFundID(policyID);
@@ -73,7 +73,7 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
         useAccordionAnimation(syncReimbursedReports);
     const {isAccordionExpanded: isSyncExpensifyCardSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncExpensifyCardSettlementsAccordionSection} =
         useAccordionAnimation(syncExpensifyCardSettlements);
-    const {isAccordionExpanded: isSyncTravelInvoicingSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncTravelInvoicingSettlementsAccordionSection} =
+    const {isAccordionExpanded: isSyncTravelBillingSettlementsAccordionExpanded, shouldAnimateAccordionSection: shouldAnimateSyncTravelBillingSettlementsAccordionSection} =
         useAccordionAnimation(syncTravelInvoicingSettlements);
 
     return (
@@ -215,14 +215,14 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         onCloseError={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS)}
                     />
                     <Accordion
-                        isExpanded={isSyncTravelInvoicingSettlementsAccordionExpanded}
-                        isToggleTriggered={shouldAnimateSyncTravelInvoicingSettlementsAccordionSection}
+                        isExpanded={isSyncTravelBillingSettlementsAccordionExpanded}
+                        isToggleTriggered={shouldAnimateSyncTravelBillingSettlementsAccordionSection}
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.pendingFields)}>
                             <MenuItemField
                                 name={translate('workspace.dualEntry.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
-                                value={travelInvoicingSettlementsBankAccount ? `${travelInvoicingSettlementsBankAccount?.id} ${travelInvoicingSettlementsBankAccount?.name}` : undefined}
+                                value={travelBillingSettlementsBankAccount ? `${travelBillingSettlementsBankAccount?.id} ${travelBillingSettlementsBankAccount?.name}` : undefined}
                             >
                                 {areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.errorFields) && (
                                     <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
@@ -233,7 +233,7 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             <MenuItemField
                                 name={translate('workspace.dualEntry.travelBillingPayableAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT.getRoute(policyID)) : undefined)}
-                                value={travelInvoicingPayableAccount ? `${travelInvoicingPayableAccount?.id} ${travelInvoicingPayableAccount?.name}` : undefined}
+                                value={travelBillingPayableAccount ? `${travelBillingPayableAccount?.id} ${travelBillingPayableAccount?.name}` : undefined}
                             >
                                 {areSettingsInErrorFields([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID], dualentryConfig?.errorFields) && (
                                     <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />

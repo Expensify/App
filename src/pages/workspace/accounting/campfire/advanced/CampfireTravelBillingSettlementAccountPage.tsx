@@ -78,7 +78,7 @@ function CampfireTravelBillingSettlementAccountPage({policy}: WithPolicyConnecti
         />
     );
 
-    const setTravelInvoicingSettlementsAccount = (item: AccountListItem) => {
+    const setTravelBillingSettlementsAccount = (item: AccountListItem) => {
         if (item.value !== travelInvoicingSettlementsBankAccountID && policyID) {
             updateCampfireTravelBillingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
         }
@@ -97,7 +97,7 @@ function CampfireTravelBillingSettlementAccountPage({policy}: WithPolicyConnecti
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
-            onSelectRow={setTravelInvoicingSettlementsAccount}
+            onSelectRow={setTravelBillingSettlementsAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={travelInvoicingSettlementsBankAccountID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
