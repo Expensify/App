@@ -30,17 +30,24 @@ type WiseAccountRequirement = {
     }>;
 };
 
-type WiseBankAccountFields = {
-    country: string;
-    currency: string;
-    payoutType: string;
+type WisePayoutTypeOption = {
+    type: string;
+    title: string;
     schema: DynamicFormSchema;
 
     /** Single-option selects Wise asks for, answered by the server on create instead of shown */
     answeredByServer: Record<string, string>;
 };
 
+type WiseBankAccountFields = {
+    country: string;
+    currency: string;
+    defaultPayoutType: string;
+    payoutTypes: WisePayoutTypeOption[];
+};
+
 const SWIFT_PAYOUT_TYPE = 'swift_code';
+const DOMESTIC_WIRE_PAYOUT_TYPE = 'fedwire_local';
 const ADDRESS_KEY_PREFIX = 'address.';
 const ADDRESS_FIELD_KEY = 'address';
 
@@ -65,12 +72,19 @@ const KNOWN_LABEL_KEYS: Record<string, DynamicFormField['labelKey']> = {
     accountNumber: 'bankAccount.accountNumber',
 };
 
-/** The domestic rail when the account sits in the currency's own country, else SWIFT when Wise offers it. Wise lists the domestic rail first. */
-function pickPayoutType(requirements: WiseAccountRequirement[], isDomestic: boolean): WiseAccountRequirement | undefined {
-    if (!isDomestic) {
-        return requirements.find((requirement) => requirement.type === SWIFT_PAYOUT_TYPE) ?? requirements.at(0);
+function acceptsPersonalAccounts(requirement: WiseAccountRequirement): boolean {
+    const legalType = requirement.fields.flatMap((group) => group.group).find((descriptor) => descriptor.key === LEGAL_TYPE_KEY);
+    return !legalType || (legalType.valuesAllowed ?? []).some((value) => value.key === PERSONAL_LEGAL_TYPE);
+}
+
+/** Every local rail a personal account can use for a domestic account, in Wise's order; SWIFT alone when no local rail reaches the account */
+function pickPayoutTypes(requirements: WiseAccountRequirement[], isDomestic: boolean): WiseAccountRequirement[] {
+    const localRails = requirements.filter((requirement) => requirement.type !== SWIFT_PAYOUT_TYPE && requirement.type !== DOMESTIC_WIRE_PAYOUT_TYPE && acceptsPersonalAccounts(requirement));
+    if (isDomestic && localRails.length > 0) {
+        return localRails;
     }
-    return requirements.find((requirement) => requirement.type !== SWIFT_PAYOUT_TYPE) ?? requirements.at(0);
+    const swift = requirements.find((requirement) => requirement.type === SWIFT_PAYOUT_TYPE);
+    return swift ? [swift] : [];
 }
 
 function isHolderField(descriptor: WiseFieldDescriptor): boolean {
@@ -108,12 +122,7 @@ function toField(descriptor: WiseFieldDescriptor): DynamicFormField {
     }
 }
 
-/** Builds the schema the server writes to `wiseBankAccountFields` from Wise's account requirements for one country and currency */
-function toWiseBankAccountFields(country: string, currency: string, requirements: WiseAccountRequirement[], isDomestic = true): WiseBankAccountFields | undefined {
-    const requirement = pickPayoutType(requirements, isDomestic);
-    if (!requirement) {
-        return undefined;
-    }
+function toPayoutTypeOption(requirement: WiseAccountRequirement): WisePayoutTypeOption {
     const descriptors = requirement.fields.flatMap((group) => group.group);
     const answeredByServer: Record<string, string> = {};
     const accountFields: DynamicFormField[] = [{key: 'currency', type: 'currency', labelKey: 'common.currency', required: true, refreshOnChange: true}];
@@ -156,7 +165,17 @@ function toWiseBankAccountFields(country: string, currency: string, requirements
     ];
     const pages = allPages.filter((page) => page.content.length > 0);
 
-    return {country, currency, payoutType: requirement.type, schema: {pages}, answeredByServer};
+    return {type: requirement.type, title: requirement.title, schema: {pages}, answeredByServer};
+}
+
+/** Builds what the server writes to `wiseBankAccountFields` from Wise's account requirements for one country and currency */
+function toWiseBankAccountFields(country: string, currency: string, requirements: WiseAccountRequirement[], isDomestic = true): WiseBankAccountFields | undefined {
+    const payoutTypes = pickPayoutTypes(requirements, isDomestic).map(toPayoutTypeOption);
+    const defaultPayoutType = payoutTypes.at(0)?.type;
+    if (!defaultPayoutType) {
+        return undefined;
+    }
+    return {country, currency, defaultPayoutType, payoutTypes};
 }
 
 export default toWiseBankAccountFields;

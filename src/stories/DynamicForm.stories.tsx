@@ -599,7 +599,7 @@ function WiseBankAccountGBFlow({layout, confirmation}: WiseBankAccountStoryProps
     return (
         <Flow
             resetKey="wiseBankAccountGB"
-            schema={wiseBankAccountFieldsGB.schema}
+            schema={wiseBankAccountFieldsGB.payoutTypes.at(0)?.schema ?? {pages: []}}
             draftValues={WISE_GB_DRAFT}
             confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
             layout={layout}
@@ -637,14 +637,15 @@ function WiseFromRequirementsFlow({currency, isDomestic, layout, confirmation}: 
     return (
         <>
             <Text style={[defaultStyles.textSupporting, defaultStyles.ph5]}>
-                payoutType {bankAccountFields.payoutType}, answered by server: {JSON.stringify(bankAccountFields.answeredByServer)}
+                payout types {bankAccountFields.payoutTypes.map((payoutType) => payoutType.type).join(', ')}, showing {bankAccountFields.defaultPayoutType}, answered by server:{' '}
+                {JSON.stringify(bankAccountFields.payoutTypes.at(0)?.answeredByServer)}
                 {refreshKey
                     ? `, refreshed for ${refreshKey}`
                     : `, refresh replies captured for: ${[...WISE_ACCOUNT_REQUIREMENT_REFRESHES.keys()].filter((key) => key.startsWith(`${currency}:`)).join(', ') || 'none'}`}
             </Text>
             <Flow
                 resetKey={`${currency}-${String(isDomestic)}`}
-                schema={bankAccountFields.schema}
+                schema={bankAccountFields.payoutTypes.at(0)?.schema ?? {pages: []}}
                 draftValues={{currency, accountHolderName: WISE_GB_DRAFT.accountHolderName}}
                 confirmationTitle={translate('addPersonalBankAccount.confirmationStepHeader')}
                 layout={layout}
