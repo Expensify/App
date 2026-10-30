@@ -7,7 +7,7 @@ describe('subscribeToNewActionEvent', () => {
 
         notifyNewAction('1', undefined, true);
 
-        expect(callback).toHaveBeenCalledWith(true, undefined);
+        expect(callback).toHaveBeenCalledWith(true, undefined, 'local');
         unsubscribe();
     });
 
@@ -55,5 +55,18 @@ describe('subscribeToNewActionEvent', () => {
         notifyNewAction('1', undefined, true);
 
         expect(callback).not.toHaveBeenCalled();
+    });
+
+    test('identifies realtime notifications separately from local actions', () => {
+        // Given a subscriber listening to the current report
+        const callback = jest.fn();
+        const unsubscribe = subscribeToNewActionEvent('1', callback);
+
+        // When a realtime echo arrives without an action payload
+        notifyNewAction('1', undefined, true, 'realtime');
+
+        // Then the subscriber can distinguish it from a local money request
+        expect(callback).toHaveBeenCalledWith(true, undefined, 'realtime');
+        unsubscribe();
     });
 });

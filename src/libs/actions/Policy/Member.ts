@@ -22,7 +22,7 @@ import Parser from '@libs/Parser';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
-import {getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 
@@ -648,6 +648,8 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
         },
     ];
 
+    // Roles that cannot create expenses show a dedicated modal on refusal, so skip inline row errors.
+    const canCreateExpenses = canRoleCreateExpenses(newRole);
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -658,8 +660,8 @@ function buildUpdateWorkspaceMembersRoleOnyxData(policy: OnyxEntry<Policy>, sele
                         // eslint-disable-next-line no-param-reassign
                         member[current.email] = {
                             ...(previousEmployeeList[current.email] ?? {}),
-                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage'),
+                            pendingAction: canCreateExpenses ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null,
+                            ...(canCreateExpenses && {errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage')}),
                         };
                         return member;
                     }, {}),
@@ -723,8 +725,7 @@ function updateWorkspaceMembersRole(policy: OnyxEntry<Policy>, selectedMemberEma
     if (!policy?.id) {
         return;
     }
-    // Submit workspaces lock everyone to the Editor role — role changes are not allowed.
-    // This guard prevents any future code path from bypassing the UI-level blocks.
+    // Submit workspaces lock everyone to the Editor role, so role changes are not allowed.
     if (isSubmitPolicy(policy)) {
         return;
     }
@@ -875,15 +876,17 @@ function buildAddMembersToWorkspaceOnyxData(
         doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
 
-    // create onyx data for policy expense chats for each new member
-    const membersChats = createPolicyExpenseChats({
-        policyID,
-        invitedEmailsToAccountIDs,
-        currentUser,
-        reportActionsList,
-        notificationPreference: policyExpenseChatNotificationPreference,
-        doesPersonalDetailExistByAccountID,
-    });
+    // Roles that cannot create expenses don't get a workspace chat, so don't build an optimistic one.
+    const membersChats = canRoleCreateExpenses(effectiveRole)
+        ? createPolicyExpenseChats({
+              policyID,
+              invitedEmailsToAccountIDs,
+              currentUser,
+              reportActionsList,
+              notificationPreference: policyExpenseChatNotificationPreference,
+              doesPersonalDetailExistByAccountID,
+          })
+        : {onyxSuccessData: [], onyxOptimisticData: [], onyxFailureData: [], reportCreationData: {}};
 
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -1285,6 +1288,10 @@ function clearUpdateMemberRoleError(policyID: string, login: string) {
     });
 }
 
+function clearBlockedRoleChange() {
+    Onyx.set(ONYXKEYS.BLOCKED_ROLE_CHANGE, null);
+}
+
 function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]) {
     if (!policyID || !clientMemberEmails) {
         Log.warn('openWorkspaceMembersPage invalid params', {policyID, clientMemberEmails});
@@ -1568,6 +1575,14 @@ function clearImportedSpreadsheetMemberData() {
     Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET_MEMBER_ROLE, null);
 }
 
+function setWorkspaceMembersSelectedForBulkEdit(policyID: string, accountIDs: number[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {policyID, accountIDs});
+}
+
+function clearWorkspaceMembersSelectedForBulkEdit() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, null);
+}
+
 export {
     removeMembers,
     buildUpdateWorkspaceMembersRoleOnyxData,
@@ -1579,6 +1594,7 @@ export {
     clearDeleteMemberError,
     clearAddMemberError,
     clearUpdateMemberRoleError,
+    clearBlockedRoleChange,
     openWorkspaceMembersPage,
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
@@ -1603,5 +1619,7 @@ export {
     setImportedSpreadsheetMemberData,
     setImportedSpreadsheetMemberRole,
     clearImportedSpreadsheetMemberData,
+    setWorkspaceMembersSelectedForBulkEdit,
+    clearWorkspaceMembersSelectedForBulkEdit,
     updatePolicyMemberDisplayName,
 };

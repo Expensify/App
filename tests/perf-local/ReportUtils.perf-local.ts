@@ -9,7 +9,7 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    getReportPreviewReportActionMessage,
+    getReportPreviewMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
     getWorkspaceChats,
@@ -38,7 +38,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
-import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -131,7 +131,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, formatPhoneNumber, translateLocal, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons({report, formatPhoneNumber, translate: translateLocal, personalDetails, defaultIcon, defaultName, defaultAccountID: defaultIconId, policy}));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
@@ -151,7 +151,9 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getReportPreviewReportActionMessage(
+            getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
                 {
                     reportOrID: report,
                     iouReportAction: reportAction,
@@ -159,7 +161,7 @@ describe('ReportUtils', () => {
                     isPreviewMessageForParentChatReport,
                     policy,
                 },
-                getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             ),
         );
     });
