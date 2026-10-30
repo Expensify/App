@@ -6,8 +6,10 @@ import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
+    canEditWorkspaceSettings,
     canSendInvoice,
     getActiveAdminWorkspaces,
+    getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
@@ -256,6 +258,14 @@ const createHasAdminPolicyWithXeroConnectionSelector =
         hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+/**
+ * Whether the user could edit the settings of any active workspace, which is what the upgrade page gates on once a
+ * workspace is in the route. Admins pass, and so do editors on a Submit workspace, who `getActiveAdminWorkspaces`
+ * leaves out.
+ */
+const canEditAnyWorkspaceSettingsSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string): boolean =>
+    getActivePolicies(policies, currentUserAccountLogin).some((policy) => canEditWorkspaceSettings(policy, currentUserAccountLogin));
 
 /**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
@@ -624,6 +634,7 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    canEditAnyWorkspaceSettingsSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
     createHasWorkspaceToSubmitToSelector,

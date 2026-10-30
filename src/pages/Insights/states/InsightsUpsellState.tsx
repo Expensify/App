@@ -12,15 +12,18 @@ import ROUTES from '@src/ROUTES';
 import React from 'react';
 
 type InsightsUpsellStateProps = {
-    /** Workspace the upgrade flow starts on, left out when none or several in scope qualify so the flow asks which one */
+    /** Workspace the upgrade flow starts on, left out when none or several in scope qualify so the user picks one */
     policyID?: string;
 };
 
-/** Stands in for the whole dashboard when it needs Control but no workspace in scope is on it. */
+/** Stands in for a dashboard's charts when it needs Control and no workspace in scope is on it. */
 function InsightsUpsellState({policyID}: InsightsUpsellStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Chart']);
+
+    // The route keeps the feature only alongside a workspace, so without one this lands on the generic Control pitch.
+    const navigateToUpgrade = () => Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias));
 
     return (
         <GenericEmptyStateComponent
@@ -33,7 +36,7 @@ function InsightsUpsellState({policyID}: InsightsUpsellStateProps) {
             buttons={[
                 {
                     buttonText: translate('insightsPage.upsellState.button'),
-                    buttonAction: () => Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias)),
+                    buttonAction: navigateToUpgrade,
                     buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                 },
             ]}

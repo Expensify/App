@@ -63,7 +63,7 @@ import {
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {ownerPoliciesSelector} from '@src/selectors/Policy';
+import {canEditAnyWorkspaceSettingsSelector, ownerPoliciesSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -137,6 +137,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: ownerPoliciesSelectorWithAccountID});
+    const canEditAnyWorkspaceSettingsSelectorWithLogin = (policies: OnyxCollection<Policy>) => canEditAnyWorkspaceSettingsSelector(policies, email);
+    const [canEditAnyWorkspaceSettings] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: canEditAnyWorkspaceSettingsSelectorWithLogin});
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {isOffline} = useNetwork();
     const canPerformUpgrade = canModifyPlan(ownerPolicies, policy) || isUpgradingFromSubmitPolicy;
@@ -401,7 +403,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     // Editors can view the intro but only admins can upgrade, so we separate
     // access (canEditWorkspaceSettings) from the upgrade action (canPerformUpgrade).
-    if (policy ? !canEditWorkspaceSettings(policy) : !canPerformUpgrade) {
+    // Without a workspace in the route the page only pitches Control and links to the workspace list, so being able
+    // to edit any workspace is enough to view it.
+    const canViewUpgradePage = policy ? canEditWorkspaceSettings(policy) : canPerformUpgrade || !!canEditAnyWorkspaceSettings;
+    if (!canViewUpgradePage) {
         return <NotFoundPage />;
     }
 

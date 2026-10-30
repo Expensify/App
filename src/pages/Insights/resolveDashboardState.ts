@@ -36,7 +36,7 @@ type InsightsDashboardChart = InsightsChartQuery & {
  * `shouldUpsell` wins over every other state because it is settled from the policies already in Onyx: the dashboard
  * has nothing to show whether or not the request succeeded, so the user never waits on one or lands on an offline blocker.
  */
-function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[], shouldUpsell = false): InsightsDashboardState {
+function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[], shouldUpsell: boolean): InsightsDashboardState {
     if (shouldUpsell) {
         return INSIGHTS_DASHBOARD_STATE.UPSELL;
     }

@@ -40,7 +40,7 @@ import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDash
 
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
-import INSIGHTS_DASHBOARD_SPECS, {getUpgradeablePolicyIDInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
+import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getUpgradeablePolicyIDInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
@@ -78,30 +78,14 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
-    const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY || state === INSIGHTS_DASHBOARD_STATE.UPSELL;
-    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], {
+    const shouldShowStandInView = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY || state === INSIGHTS_DASHBOARD_STATE.UPSELL;
+    const scrollProps = useTabRootScrollProps(shouldShowStandInView ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], {
         hasBottomSafeAreaPadding: true,
         hasOfflineIndicatorPadding: true,
-        fillsVisibleArea: isEmptyState,
+        fillsVisibleArea: shouldShowStandInView,
     });
 
     const didRequestFail = state === INSIGHTS_DASHBOARD_STATE.ERROR || state === INSIGHTS_DASHBOARD_STATE.STALE;
-
-    // Checked before the failure and offline views because the dashboard has nothing to show either way, so a standing view is the more useful answer
-    if (isEmptyState) {
-        return (
-            <TabRootScrollViewMarker>
-                <ScrollView
-                    {...scrollProps}
-                    addBottomSafeAreaPadding
-                >
-                    {state === INSIGHTS_DASHBOARD_STATE.UPSELL && <InsightsUpsellState policyID={upgradeablePolicyID} />}
-                    {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && <InsightsNoExpensesState />}
-                    {state === INSIGHTS_DASHBOARD_STATE.EMPTY && <InsightsEmptyState />}
-                </ScrollView>
-            </TabRootScrollViewMarker>
-        );
-    }
 
     if (didRequestFail) {
         const failureViewByState = {
@@ -138,6 +122,21 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 addBottomSafeAreaPadding
                 addOfflineIndicatorBottomSafeAreaPadding
             />
+        );
+    }
+
+    if (shouldShowStandInView) {
+        return (
+            <TabRootScrollViewMarker>
+                <ScrollView
+                    {...scrollProps}
+                    addBottomSafeAreaPadding
+                >
+                    {state === INSIGHTS_DASHBOARD_STATE.UPSELL && <InsightsUpsellState policyID={upgradeablePolicyID} />}
+                    {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && <InsightsNoExpensesState />}
+                    {state === INSIGHTS_DASHBOARD_STATE.EMPTY && <InsightsEmptyState />}
+                </ScrollView>
+            </TabRootScrollViewMarker>
         );
     }
 
@@ -211,12 +210,13 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
 
     const isCompareEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-    const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
+    const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
+    const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
     const arePoliciesLoaded = !isLoadingOnyxValue(policiesMetadata);
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
-    const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policies, filters.policyIDs);
-    const upgradeablePolicyID = shouldUpsell ? getUpgradeablePolicyIDInScope(policies, filters.policyIDs, login) : undefined;
+    const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, login);
+    const upgradeablePolicyID = shouldUpsell ? getUpgradeablePolicyIDInScope(policiesInScope, login) : undefined;
     const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, isCompareEnabled) : undefined;
     const hash = query?.hash;
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.

@@ -51,7 +51,7 @@ describe('getDashboardState', () => {
     it('says the user is offline while no response has landed', () => {
         // Given no stored response and no connection
         // When the page's state is resolved
-        const state = getDashboardState(undefined, true, makeCharts(undefined, undefined));
+        const state = getDashboardState(undefined, true, makeCharts(undefined, undefined), false);
 
         // Then the page says it is offline rather than spinning forever
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
@@ -60,7 +60,7 @@ describe('getDashboardState', () => {
     it('keeps showing a stored dashboard while offline', () => {
         // Given a response that already landed, and a connection that since dropped
         // When the page's state is resolved
-        const state = getDashboardState(LOADED_DASHBOARD, true, makeCharts(SNAPSHOT_WITH_ROWS, SNAPSHOT_WITH_ROWS));
+        const state = getDashboardState(LOADED_DASHBOARD, true, makeCharts(SNAPSHOT_WITH_ROWS, SNAPSHOT_WITH_ROWS), false);
 
         // Then the charts stay on screen instead of being replaced by the offline state
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
@@ -69,7 +69,7 @@ describe('getDashboardState', () => {
     it('draws the charts offline when only a supporting chart has data stored', () => {
         // Given no response and no connection, and a supporting chart whose query a Search request already settled
         // When the page's state is resolved
-        const state = getDashboardState(undefined, true, makeCharts(undefined, SNAPSHOT_WITH_ROWS));
+        const state = getDashboardState(undefined, true, makeCharts(undefined, SNAPSHOT_WITH_ROWS), false);
 
         // Then the page shows the stored chart and leaves the rest to say they are offline, instead of hiding everything
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
@@ -78,7 +78,7 @@ describe('getDashboardState', () => {
     it('says the user is offline when the only stored snapshot is a failed Search', () => {
         // Given no stored response and no connection, and a headline snapshot whose Search request failed
         // When the page's state is resolved
-        const state = getDashboardState(undefined, true, makeCharts(FAILED_SNAPSHOT, undefined));
+        const state = getDashboardState(undefined, true, makeCharts(FAILED_SNAPSHOT, undefined), false);
 
         // Then the whole page says it is offline, since a failed request left nothing to draw
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
@@ -87,7 +87,7 @@ describe('getDashboardState', () => {
     it("says the user is offline instead of empty when every chart's Search failed", () => {
         // Given no stored response and no connection, and Home having failed a Search for every chart on the page
         // When the page's state is resolved
-        const state = getDashboardState(undefined, true, makeCharts(FAILED_SNAPSHOT, FAILED_SNAPSHOT));
+        const state = getDashboardState(undefined, true, makeCharts(FAILED_SNAPSHOT, FAILED_SNAPSHOT), false);
 
         // Then the whole page says it is offline, since failed requests don't mean the filters matched nothing
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
@@ -96,7 +96,7 @@ describe('getDashboardState', () => {
     it('says the user is offline when every chart failed after a response landed', () => {
         // Given a stored response, charts whose later Search requests all failed, and no connection to refresh them
         // When the page's state is resolved
-        const state = getDashboardState(LOADED_DASHBOARD, true, makeCharts(FAILED_SNAPSHOT, FAILED_SNAPSHOT));
+        const state = getDashboardState(LOADED_DASHBOARD, true, makeCharts(FAILED_SNAPSHOT, FAILED_SNAPSHOT), false);
 
         // Then the whole page says it is offline, rather than every chart saying so on its own
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
@@ -105,7 +105,7 @@ describe('getDashboardState', () => {
     it('says the user is offline when the only stored rows belong to a failed Search', () => {
         // Given no stored response and no connection, and a snapshot that kept its rows when a later Search failed
         // When the page's state is resolved
-        const state = getDashboardState(undefined, true, makeCharts({...SNAPSHOT_WITH_ROWS, errors: ERRORS}, undefined));
+        const state = getDashboardState(undefined, true, makeCharts({...SNAPSHOT_WITH_ROWS, errors: ERRORS}, undefined), false);
 
         // Then the whole page says it is offline, since the charts don't plot rows from a failed request either
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.OFFLINE);
@@ -114,7 +114,7 @@ describe('getDashboardState', () => {
     it('does not read a failed snapshot as an empty one', () => {
         // Given a loaded response, a headline chart whose Search request failed, and an empty supporting snapshot
         // When the page's state is resolved
-        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(FAILED_SNAPSHOT, SNAPSHOT_WITHOUT_ROWS));
+        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(FAILED_SNAPSHOT, SNAPSHOT_WITHOUT_ROWS), false);
 
         // Then the charts render and the failed one shows its own error, instead of the page claiming nothing matched
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
@@ -123,7 +123,7 @@ describe('getDashboardState', () => {
     it('reports a failed request', () => {
         // Given a record the request wrote errors to
         // When the page's state is resolved
-        const state = getDashboardState({errors: ERRORS}, false, makeCharts(undefined, undefined));
+        const state = getDashboardState({errors: ERRORS}, false, makeCharts(undefined, undefined), false);
 
         // Then the page offers the error state
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.ERROR);
@@ -132,7 +132,7 @@ describe('getDashboardState', () => {
     it('waits while the request is in flight', () => {
         // Given a record holding nothing but the cleared errors the request wrote optimistically
         // When the page's state is resolved
-        const state = getDashboardState({errors: undefined}, false, makeCharts(undefined, undefined));
+        const state = getDashboardState({errors: undefined}, false, makeCharts(undefined, undefined), false);
 
         // Then the page is still loading, because only a response sets `inputQuery`
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.LOADING);
@@ -141,7 +141,7 @@ describe('getDashboardState', () => {
     it('says the account has no expenses without waiting on a snapshot', () => {
         // Given a response saying the account has no expenses at all, and no chart snapshots
         // When the page's state is resolved
-        const state = getDashboardState({inputQuery: QUERY, hasResults: false}, false, makeCharts(undefined, undefined));
+        const state = getDashboardState({inputQuery: QUERY, hasResults: false}, false, makeCharts(undefined, undefined), false);
 
         // Then the page says so straight away, since no set of filters could fill it
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.NO_EXPENSES);
@@ -150,7 +150,7 @@ describe('getDashboardState', () => {
     it('says the account has no expenses offline after its snapshots were evicted', () => {
         // Given a stored response saying the account has no expenses, snapshots Onyx has since evicted, and no connection
         // When the page's state is resolved
-        const state = getDashboardState({inputQuery: QUERY, hasResults: false}, true, makeCharts(undefined, undefined));
+        const state = getDashboardState({inputQuery: QUERY, hasResults: false}, true, makeCharts(undefined, undefined), false);
 
         // Then the page keeps the stored answer instead of saying it is offline, since no refresh is needed to know it
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.NO_EXPENSES);
@@ -159,7 +159,7 @@ describe('getDashboardState', () => {
     it('prefers the no-expenses state over the empty one', () => {
         // Given an account with no expenses whose chart snapshots also came back with no rows
         // When the page's state is resolved
-        const state = getDashboardState({...LOADED_DASHBOARD, hasResults: false}, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
+        const state = getDashboardState({...LOADED_DASHBOARD, hasResults: false}, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS), false);
 
         // Then the page says the user has no expenses, not that their filters matched nothing
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.NO_EXPENSES);
@@ -168,7 +168,7 @@ describe('getDashboardState', () => {
     it('draws the charts when rows loaded after a response said the account had no expenses', () => {
         // Given a stored response from before the account's first expense, and a chart snapshot Search has since filled with rows
         // When the page's state is resolved
-        const state = getDashboardState({...LOADED_DASHBOARD, hasResults: false}, true, makeCharts(SNAPSHOT_WITH_ROWS, undefined));
+        const state = getDashboardState({...LOADED_DASHBOARD, hasResults: false}, true, makeCharts(SNAPSHOT_WITH_ROWS, undefined), false);
 
         // Then the rows win, since they prove the stored `hasResults` is stale
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
@@ -177,7 +177,7 @@ describe('getDashboardState', () => {
     it('says the filters matched nothing when every chart came back without rows', () => {
         // Given an account with expenses and no grouped rows in any chart's snapshot
         // When the page's state is resolved
-        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
+        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS), false);
 
         // Then the page points at the filters rather than the account
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
@@ -186,7 +186,7 @@ describe('getDashboardState', () => {
     it('says the account has no expenses when every bucket came back empty', () => {
         // Given an account with no expenses whose snapshots hold only the empty buckets GetInsights sends for the range
         // When the page's state is resolved
-        const state = getDashboardState({...LOADED_DASHBOARD, hasResults: false}, false, makeCharts(SNAPSHOT_WITH_EMPTY_BUCKETS, SNAPSHOT_WITH_EMPTY_BUCKETS));
+        const state = getDashboardState({...LOADED_DASHBOARD, hasResults: false}, false, makeCharts(SNAPSHOT_WITH_EMPTY_BUCKETS, SNAPSHOT_WITH_EMPTY_BUCKETS), false);
 
         // Then the page says the user has no expenses
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.NO_EXPENSES);
@@ -195,7 +195,7 @@ describe('getDashboardState', () => {
     it('says the filters matched nothing when every bucket came back empty', () => {
         // Given an account with expenses whose snapshots hold only empty buckets
         // When the page's state is resolved
-        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITH_EMPTY_BUCKETS, SNAPSHOT_WITH_EMPTY_BUCKETS));
+        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITH_EMPTY_BUCKETS, SNAPSHOT_WITH_EMPTY_BUCKETS), false);
 
         // Then the page shows an empty state
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
@@ -204,7 +204,7 @@ describe('getDashboardState', () => {
     it('draws the charts when any of them has rows', () => {
         // Given a headline snapshot with no rows, and a supporting chart that has some
         // When the page's state is resolved
-        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITH_ROWS));
+        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITH_ROWS), false);
 
         // Then the dashboard renders, since the page is only empty when no chart has anything to plot
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
@@ -213,7 +213,7 @@ describe('getDashboardState', () => {
     it('does not read a missing snapshot as an empty one', () => {
         // Given a response whose supporting chart snapshot has not arrived yet, and an empty headline snapshot
         // When the page's state is resolved
-        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, undefined));
+        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, undefined), false);
 
         // Then the charts render and show their own loading, instead of the page flashing the empty state
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
@@ -222,7 +222,7 @@ describe('getDashboardState', () => {
     it('treats a record with no `hasResults` as an account that may have expenses', () => {
         // Given a response that says nothing about whether the account has expenses, and chart snapshots with no rows
         // When the page's state is resolved
-        const state = getDashboardState({inputQuery: QUERY}, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
+        const state = getDashboardState({inputQuery: QUERY}, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS), false);
 
         // Then the page shows the empty state, never claiming an account has no expenses on a guess
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
@@ -231,7 +231,7 @@ describe('getDashboardState', () => {
     it('draws the charts once rows are in', () => {
         // Given a loaded response and chart snapshots holding grouped rows
         // When the page's state is resolved
-        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITH_ROWS, SNAPSHOT_WITH_ROWS));
+        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITH_ROWS, SNAPSHOT_WITH_ROWS), false);
 
         // Then the dashboard renders
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
@@ -240,7 +240,7 @@ describe('getDashboardState', () => {
     it('draws the charts from a headline snapshot a Search request loaded before the response landed', () => {
         // Given no stored response yet, and a headline snapshot a Search request settled for the same query
         // When the page's state is resolved
-        const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITH_ROWS, undefined));
+        const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITH_ROWS, undefined), false);
 
         // Then the dashboard renders instead of waiting on GetInsights for data it already has
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
