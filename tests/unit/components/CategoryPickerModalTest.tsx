@@ -315,8 +315,16 @@ describe('CategoryPickerModal', () => {
 
         it('caps a fitted sheet at the height the window leaves', async () => {
             // Given a phone and a workspace with enough categories that the rows plus the bottom safe area are taller than the window allows
-            const windowCap = mockWindowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO - BOTTOM_SHEET_TOP_PADDING;
-            expect(getSelectionListPopoverContentHeight({optionCount: CATEGORY_COUNT, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM).toBeGreaterThan(windowCap);
+            const contentHeight = getSelectionListPopoverContentHeight({optionCount: CATEGORY_COUNT, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM;
+            const windowCap = getBottomSheetHeight({
+                preferredHeight: contentHeight,
+                windowHeight: mockWindowHeight,
+                keyboardHeight: 0,
+                topSafeAreaInset: 0,
+                minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}),
+                maxHeight: mockWindowHeight,
+            });
+            expect(contentHeight).toBeGreaterThan(windowCap);
 
             // When the expense form's category list opens
             renderSheet({shouldFitContentHeight: true});

@@ -26,10 +26,10 @@ type UseSelectionListPopoverLayoutParams = {
     /** Width of the pop-over on a wide layout */
     popoverWidth: number;
 
-    /** Tallest the pop-over may be */
+    /** Tallest the pop-over may be. A fitted bottom sheet on a phone ignores it and grows up to the window instead */
     popoverHeight: number;
 
-    /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling */
+    /** Whether the pop-over shrinks to the height its list needs, treating `popoverHeight` as a ceiling, or the window on a phone */
     shouldFitContentHeight: boolean;
 
     /** Height of a header shown above the list */
@@ -50,6 +50,7 @@ function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth,
     const {windowHeight} = useWindowDimensions();
     const viewportOffsetTop = useViewportOffsetTop();
     const {paddingTop: safeAreaTop, paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
+    const isTabletDevice = isTablet();
 
     // The bottom sheet already pads its own top, so under a header it skips the list's top padding to keep the header 20px from the edge.
     const shouldSkipListTopPadding = isSmallScreenWidth && headerHeight > 0;
@@ -64,7 +65,7 @@ function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth,
     // A list with a search input makes room for the keyboard inside the sheet, frame by frame with it, in both orientations:
     // flipping `avoidKeyboard` on rotation would swap the modal's wrapper and remount the sheet, replaying its entry animation
     // and dropping the input's focus. On mobile web the keyboard shrinks the window instead, which the sheet's height follows.
-    const shouldPadForKeyboard = isSmallScreenWidth && isSearchable && !isTablet();
+    const shouldPadForKeyboard = isSmallScreenWidth && isSearchable && !isTabletDevice;
     // In portrait that list opens as tall as a sheet may be and its top edge stays put when the keyboard comes up, so the gap
     // above it is sized off the screen, which the keyboard leaves alone.
     const shouldKeepTopEdge = shouldPadForKeyboard && !isInLandscapeMode;
@@ -73,7 +74,7 @@ function useSelectionListPopoverLayout({optionCount, isSearchable, popoverWidth,
     // On a phone a sheet that fits its content grows with its rows up to the window, the same height the list with a search
     // input opens at, rather than stopping at the dropdown cap sized for a pop-over on a wide layout: 11 options would
     // otherwise get a five-row sheet and 12 the whole screen. A tablet's window is tall enough for that cap to look right.
-    const shouldGrowToWindow = shouldFitContentHeight && !isTablet();
+    const shouldGrowToWindow = shouldFitContentHeight && !isTabletDevice;
     const bottomSheetHeight = shouldKeepTopEdge
         ? Math.max(minSheetHeight, keptTopEdgeSheetHeight)
         : getBottomSheetHeight({
