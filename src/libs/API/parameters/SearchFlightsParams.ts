@@ -13,6 +13,9 @@ type SearchFlightsParams = {
     /** The fare picked on the previous leg, empty for the first leg */
     selectedFareID: string;
     legIndex: number;
+
+    /** Every flight instead of an express search, which can return only nonstops on a busy route */
+    shouldShowAllFlights: boolean;
 };
 
 export default SearchFlightsParams;

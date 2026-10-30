@@ -50,6 +50,7 @@ function FlightBookingDevPage({route}: FlightBookingDevPageProps) {
     const [airports, setAirports] = useState<TravelAirport[]>([]);
     const [fareRules, setFareRules] = useState<FlightFareRules[]>([]);
     const [pickedFares, setPickedFares] = useState<FlightFare[]>([]);
+    const [legSearchIDs, setLegSearchIDs] = useState<string[]>([]);
 
     useEffect(() => () => clearFlightBooking(), []);
 
@@ -62,6 +63,7 @@ function FlightBookingDevPage({route}: FlightBookingDevPageProps) {
 
     const startSearch = () => {
         setPickedFares([]);
+        setLegSearchIDs([]);
         setFareRules([]);
         clearFlightBooking();
         searchFlights(policyID, legs, isNonstop ? {maxStops: 0} : {});
@@ -74,11 +76,31 @@ function FlightBookingDevPage({route}: FlightBookingDevPageProps) {
             return;
         }
         setPickedFares([...pickedFares, fare]);
+        setLegSearchIDs([...legSearchIDs, searchID]);
         if (legIndex + 1 < (flightSearch?.query?.legs.length ?? 1)) {
-            searchFlights(policyID, flightSearch?.query?.legs ?? legs, flightSearch?.query?.filters ?? {}, legIndex + 1, searchID, fare.fareID);
+            searchFlights(policyID, flightSearch?.query?.legs ?? legs, flightSearch?.query?.filters ?? {}, legIndex + 1, searchID, fare.fareID, !!flightSearch?.query?.shouldShowAllFlights);
             return;
         }
         startFlightCheckout(policyID, searchID, fare.fareID);
+    };
+
+    // Express search shows only nonstops on a busy route, so this reruns the current leg for every flight
+    const showAllFlights = () => {
+        const query = flightSearch?.query;
+        if (!query) {
+            return;
+        }
+        const legIndex = flightSearch?.legIndex ?? 0;
+        if (legIndex === 0) {
+            searchFlights(policyID, query.legs, query.filters, 0, '', '', true);
+            return;
+        }
+        const previousFare = pickedFares.at(legIndex - 1);
+        const previousSearchID = legSearchIDs.at(legIndex - 1);
+        if (!previousFare || !previousSearchID) {
+            return;
+        }
+        searchFlights(policyID, query.legs, query.filters, legIndex, previousSearchID, previousFare.fareID, true);
     };
 
     const showFareRules = (fare: FlightFare) => {
@@ -185,6 +207,15 @@ function FlightBookingDevPage({route}: FlightBookingDevPageProps) {
                     {!flightCheckout && !!flightSearch?.itineraries && (
                         <>
                             <Text style={[styles.textStrong, styles.mv3]}>{`Leg ${(flightSearch.legIndex ?? 0) + 1} results: ${flightSearch.itineraries.length} flights`}</Text>
+                            {!!flightSearch.isExpressSearch && (
+                                <Button
+                                    style={styles.mb3}
+                                    onPress={showAllFlights}
+                                    accessibilityLabel="Showing nonstop flights only. Show all flights"
+                                >
+                                    <Button.Text>Showing nonstop flights only. Show all flights</Button.Text>
+                                </Button>
+                            )}
                             {flightSearch.itineraries.map((itinerary) => (
                                 <View
                                     key={itinerary.itineraryID}

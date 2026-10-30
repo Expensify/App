@@ -126,14 +126,14 @@ let latestFlightSearchNumber = 0;
  * The priced search takes over ten seconds, so the flight schedules for the same leg are fetched alongside it and
  * shown, without prices, until the priced results arrive.
  */
-function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: FlightSearchFilters = {}, legIndex = 0, searchID = '', selectedFareID = '') {
+function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: FlightSearchFilters = {}, legIndex = 0, searchID = '', selectedFareID = '', shouldShowAllFlights = false) {
     latestFlightSearchNumber += 1;
     const flightSearchNumber = latestFlightSearchNumber;
     const isCurrentSearch = () => flightSearchNumber === latestFlightSearchNumber;
     let isPricedSearchFinished = false;
-    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {query: {policyID, legs, filters}, legIndex, isLoading: true});
+    Onyx.set(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH, {query: {policyID, legs, filters, shouldShowAllFlights}, legIndex, isLoading: true});
 
-    const parameters = {policyID, legs: JSON.stringify(legs), filters: JSON.stringify(filters), searchID, selectedFareID, legIndex};
+    const parameters = {policyID, legs: JSON.stringify(legs), filters: JSON.stringify(filters), searchID, selectedFareID, legIndex, shouldShowAllFlights};
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method -- the server returns the schedules instead of writing Onyx, so they are stored here
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHT_SCHEDULES, parameters)
@@ -163,6 +163,7 @@ function searchFlights(policyID: string, legs: FlightSearchLeg[], filters: Fligh
                 itineraries: response.itineraries,
                 scheduleItineraries: null,
                 filterOptions: response.filterOptions,
+                isExpressSearch: response.isExpressSearch,
                 isLoading: false,
             });
         })

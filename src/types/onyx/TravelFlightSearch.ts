@@ -147,6 +147,9 @@ type TravelFlightSearch = {
         policyID: string;
         legs: FlightSearchLeg[];
         filters: FlightSearchFilters;
+
+        /** Whether the traveler asked for every flight instead of an express search */
+        shouldShowAllFlights?: boolean;
     };
 
     /** Spotnana's search ID, needed to fetch the next leg and to start checkout */
@@ -163,6 +166,9 @@ type TravelFlightSearch = {
 
     /** Values present in the results, for the filter menus */
     filterOptions?: FlightSearchFilterOptions;
+
+    /** Whether Spotnana returned only nonstop flights on a busy route, so the traveler can ask for every flight */
+    isExpressSearch?: boolean;
     isLoading?: boolean;
     errors?: Errors | null;
 };

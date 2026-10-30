@@ -100,6 +100,9 @@ type Response<TKey extends OnyxKey> = {
     /** Which leg flight search results are for, 0 for the first leg */
     legIndex?: number;
 
+    /** Whether Spotnana returned only nonstop flights on a busy route, so the traveler can ask for every flight */
+    isExpressSearch?: boolean;
+
     /** One flight search result per flight row */
     itineraries?: FlightItinerary[];
 

@@ -98,7 +98,7 @@ describe('actions/Travel', () => {
             // Given the schedule search answers right away and the priced search answers later
             const scheduleItineraries = [{itineraryID: 'UA368@2027-01-21T23:30:00', flights: []}];
             const itineraries = [{itineraryID: 'flight_1', flights: [], fares: []}];
-            let resolvePricedSearch: (response: {jsonCode: number; searchID: string; legIndex: number; itineraries: typeof itineraries}) => void = () => {};
+            let resolvePricedSearch: (response: {jsonCode: number; searchID: string; legIndex: number; itineraries: typeof itineraries; isExpressSearch: boolean}) => void = () => {};
             mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 200, itineraries: scheduleItineraries}).mockReturnValueOnce(
                 new Promise((resolve) => {
                     resolvePricedSearch = resolve;
@@ -117,19 +117,20 @@ describe('actions/Travel', () => {
                 searchID: '',
                 selectedFareID: '',
                 legIndex: 0,
+                shouldShowAllFlights: false,
             };
             expect(mockMakeRequestWithSideEffects).toHaveBeenNthCalledWith(1, SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHT_SCHEDULES, parameters);
             expect(mockMakeRequestWithSideEffects).toHaveBeenNthCalledWith(2, SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS, parameters);
             expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH)).toMatchObject({scheduleItineraries, isLoading: true});
 
             // When the priced results arrive
-            resolvePricedSearch({jsonCode: 200, searchID: SEARCH_ID, legIndex: 0, itineraries});
+            resolvePricedSearch({jsonCode: 200, searchID: SEARCH_ID, legIndex: 0, itineraries, isExpressSearch: true});
             await searchRequest;
             await waitForBatchedUpdates();
 
-            // Then they replace the schedules
+            // Then they replace the schedules, and an express search is noted so every flight can be asked for
             const flightSearch = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH);
-            expect(flightSearch).toMatchObject({query: {policyID: POLICY_ID, legs: ROUND_TRIP_LEGS}, searchID: SEARCH_ID, legIndex: 0, itineraries, isLoading: false});
+            expect(flightSearch).toMatchObject({query: {policyID: POLICY_ID, legs: ROUND_TRIP_LEGS}, searchID: SEARCH_ID, legIndex: 0, itineraries, isExpressSearch: true, isLoading: false});
             expect(flightSearch?.scheduleItineraries).toBeUndefined();
         });
 
@@ -140,13 +141,13 @@ describe('actions/Travel', () => {
                 .mockResolvedValueOnce({jsonCode: 517, message: '517 Spotnana error'});
 
             // When the return leg is searched
-            await searchFlights(POLICY_ID, ROUND_TRIP_LEGS, {}, 1, SEARCH_ID, FARE_ID);
+            await searchFlights(POLICY_ID, ROUND_TRIP_LEGS, {}, 1, SEARCH_ID, FARE_ID, true);
             await waitForBatchedUpdates();
 
             // Then the request names the previous search and fare, and loading stops with an error and no schedules left showing
             expect(mockMakeRequestWithSideEffects).toHaveBeenCalledWith(
                 SIDE_EFFECT_REQUEST_COMMANDS.SEARCH_FLIGHTS,
-                expect.objectContaining({searchID: SEARCH_ID, selectedFareID: FARE_ID, legIndex: 1}),
+                expect.objectContaining({searchID: SEARCH_ID, selectedFareID: FARE_ID, legIndex: 1, shouldShowAllFlights: true}),
             );
             const flightSearch = await getOnyxValue(ONYXKEYS.RAM_ONLY_TRAVEL_FLIGHT_SEARCH);
             expect(flightSearch?.isLoading).toBe(false);
