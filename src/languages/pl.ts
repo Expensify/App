@@ -10841,6 +10841,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         noVendor: 'Brak dostawcy',
         expenseType: 'Typ wydatku',
         receiptType: 'Typ paragonu',
+        violation: 'Naruszenie',
         receiptTypeValues: {
             ereceipt: 'eParagon',
             itemized: 'Szczegółowy',

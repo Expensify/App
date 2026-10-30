@@ -99,6 +99,7 @@ autocompleteKey "key"
       / assignee
       / expenseType
       / receiptType
+      / violationName
       / transactionStatus
       / withdrawalType
       / withdrawalStatus

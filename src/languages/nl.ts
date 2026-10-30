@@ -10806,6 +10806,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         noVendor: 'Geen leverancier',
         expenseType: 'Onkostentype',
         receiptType: 'Bontype',
+        violation: 'Overtreding',
         receiptTypeValues: {
             ereceipt: 'eBon',
             itemized: 'Gespecificeerd',

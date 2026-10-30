@@ -101,6 +101,50 @@ describe('useAdvancedSearchFilters', () => {
         await waitForBatchedUpdates();
     });
 
+    describe('violation filter visibility', () => {
+        it('hides the violation filter when no workspace has Rules enabled', async () => {
+            // Given a paid workspace with Rules turned off, so Auth has no rule-based violations to match for this user
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {areRulesEnabled: false}));
+            await waitForBatchedUpdates();
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+            await waitForBatchedUpdates();
+
+            // Then the violation row is left out so the user is not offered a filter that can only return nothing
+            expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE);
+            expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+        });
+
+        it('shows the violation filter when a workspace has Rules enabled', async () => {
+            // Given a paid workspace with Rules turned on
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {areRulesEnabled: true}));
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then the violation row is offered
+            await waitFor(() => {
+                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+            });
+        });
+
+        it('shows the violation filter for a migrated Control workspace whose Rules come from Classic category rules', async () => {
+            // Given a Control workspace that never set areRulesEnabled but has a category rule from Expensify Classic,
+            // which is how migrated workspaces report that Rules are on
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: undefined}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, {Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 5000}});
+
+            // When the advanced filters are built for expenses
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+
+            // Then the violation row is offered, using the same Rules check as the has: violation options
+            await waitFor(() => {
+                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+            });
+        });
+    });
+
     describe('category filter visibility', () => {
         it('shows category filter when no categories are configured', async () => {
             const policy = buildPolicy(1, {areCategoriesEnabled: false});

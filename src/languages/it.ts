@@ -10850,6 +10850,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         noVendor: 'Nessun fornitore',
         expenseType: 'Tipo di spesa',
         receiptType: 'Tipo di ricevuta',
+        violation: 'Violazione',
         receiptTypeValues: {
             ereceipt: 'eRicevuta',
             itemized: 'Dettagliata',

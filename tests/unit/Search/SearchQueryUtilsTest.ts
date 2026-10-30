@@ -2699,6 +2699,50 @@ describe('SearchQueryUtils', () => {
             expect(result.receiptType).toBeUndefined();
         });
 
+        test.each([
+            {
+                query: 'type:expense violation:missingCategory,overLimit',
+                formKey: 'violationName',
+                otherFormKey: 'violationNameNot',
+                expectedQuery: 'type:expense violationName:missingCategory,overLimit',
+            },
+            {
+                query: 'type:expense -violation:missingCategory,overLimit',
+                formKey: 'violationNameNot',
+                otherFormKey: 'violationName',
+                expectedQuery: 'type:expense -violationName:missingCategory,overLimit',
+            },
+        ] as const)('violation filter round trips through the advanced filters form: $query', ({query, formKey, otherFormKey, expectedQuery}) => {
+            // Given a query using the user-friendly violation key, which is what people type in the search bar
+            const queryJSON = buildSearchQueryJSON(query);
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When it is loaded into the advanced filters form and serialized back, as happens when the filters page saves
+            const formValues = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+            const result = buildQueryStringFromFilterFormValues(formValues);
+
+            // Then the names land on the matching positive or negated form key and come back unchanged, so editing other filters never drops or flips them
+            expect(formValues[formKey]).toEqual(['missingCategory', 'overLimit']);
+            expect(formValues[otherFormKey]).toBeUndefined();
+            expect(result).toEqual(expectedQuery);
+        });
+
+        test('violation filter drops names that are not violations', () => {
+            // Given a query with a typo next to a real violation name
+            const queryJSON = buildSearchQueryJSON('type:expense violation:missingCategory,notAViolation');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the query is loaded into the advanced filters form
+            const formValues = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+            // Then only the real name is kept, because Auth would never match the unknown one
+            expect(formValues.violationName).toEqual(['missingCategory']);
+        });
+
         test('from:me resolves to current user account ID when currentUserAccountID is provided', () => {
             const currentUserAccountID = 12345;
             const queryString = 'type:expense from:me';

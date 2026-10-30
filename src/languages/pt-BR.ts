@@ -10807,6 +10807,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         noVendor: 'Sem fornecedor',
         expenseType: 'Tipo de despesa',
         receiptType: 'Tipo de recibo',
+        violation: 'Violação',
         receiptTypeValues: {
             ereceipt: 'Recibo eletrônico',
             itemized: 'Detalhado',
