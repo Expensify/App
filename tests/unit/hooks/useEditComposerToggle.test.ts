@@ -259,7 +259,8 @@ describe('useEditComposerToggle', () => {
     it('on narrow, when edit ends, restores prior draft and selection', () => {
         const onValueChange = jest.fn();
         const onSelectionChange = jest.fn();
-        const composerRef = makeComposerRef();
+        const blur = jest.fn<ReturnType<ComposerRef['blur']>, Parameters<ComposerRef['blur']>>();
+        const composerRef = makeComposerRef({blur});
         const priorSelection: TextSelection = {start: 2, end: 5};
 
         // Start with edit off so wasEditingRef is false; then turn editing on to capture previousDraftSelectionRef.
@@ -289,7 +290,7 @@ describe('useEditComposerToggle', () => {
 
         expect(onValueChange).toHaveBeenCalledWith('restored');
         expect(onSelectionChange).toHaveBeenCalledWith(priorSelection);
-        expect(composerRef.current?.blur).not.toHaveBeenCalled();
+        expect(blur).not.toHaveBeenCalled();
     });
 
     it('resets the manual composer height after a submitted narrow composer edit ends', () => {

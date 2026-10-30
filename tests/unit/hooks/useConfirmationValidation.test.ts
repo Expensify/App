@@ -102,6 +102,7 @@ const baseParams = {
     isTimeRequest: false,
     routeError: undefined,
     canEnterScanFieldsManually: false,
+    isPolicyExpenseChat: false,
     isReadOnly: false,
     shouldShowDate: true,
     isTaxAmountEmpty: false,
@@ -907,6 +908,8 @@ describe('useConfirmationValidation', () => {
             return {
                 ...baseParams,
                 canEnterScanFieldsManually: true,
+                // A workspace chat, where the merchant is one of the all-or-nothing fields
+                isPolicyExpenseChat: true,
                 iouAmount: 0,
                 iouMerchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                 isMerchantEmpty: true,
@@ -944,6 +947,28 @@ describe('useConfirmationValidation', () => {
             expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
         });
 
+        it('does not require the merchant when the expense goes to a chat that does not require one', () => {
+            // Given a P2P scan with the amount and date entered but no merchant (#101147)
+            const params = createScanValidationParams({isAmountSet: true, amount: 1000, isCreatedSet: true, created: '2025-01-15'}, {iouAmount: 1000, isPolicyExpenseChat: false});
+
+            // When the user confirms it
+            const {result} = renderHook(() => useConfirmationValidation(params));
+
+            // Then it goes through, the same as a P2P manual expense without a merchant
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('still requires the amount and date of a P2P scan once one of them is entered', () => {
+            // Given a P2P scan with only the amount entered
+            const params = createScanValidationParams({isAmountSet: true, amount: 1000}, {iouAmount: 1000, isPolicyExpenseChat: false});
+
+            // When the user confirms it
+            const {result} = renderHook(() => useConfirmationValidation(params));
+
+            // Then the blank date still blocks confirmation
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.fieldRequired'});
+        });
+
         it('passes again once the user clears the fields back to an untouched scan', () => {
             const {result} = renderHook(() => useConfirmationValidation(createScanValidationParams({isAmountSet: false, isMerchantSet: false, isCreatedSet: false})));
             expect(result.current.validate()).toEqual({errorKey: null});
@@ -971,6 +996,44 @@ describe('useConfirmationValidation', () => {
                 ),
             );
             expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it('blocks a negative entered amount when the expense goes to a 1:1 user', () => {
+            // Given a scan addressed to a P2P recipient, where the To field is picked before the amount is entered
+            const filledFields = {isAmountSet: true, amount: -1234, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15'};
+
+            // When the user fills in a negative amount and confirms
+            const {result} = renderHook(() =>
+                useConfirmationValidation(createScanValidationParams(filledFields, {iouType: CONST.IOU.TYPE.CREATE, iouAmount: -1234, iouMerchant: 'Starbucks', isMerchantEmpty: false})),
+            );
+
+            // Then it is rejected, since P2P chats don't support negative amounts
+            expect(result.current.validate()).toEqual({errorKey: 'common.error.invalidAmount'});
+        });
+
+        it.each([
+            ['a workspace', POLICY_EXPENSE_CHAT_PARTICIPANT],
+            ['the self DM', SELF_DM_PARTICIPANT],
+            ['the current user seeded before the self-DM flag is set', {accountID: 1, isPolicyExpenseChat: false} as Participant],
+        ])('still allows a negative entered amount when the expense goes to %s', (_destination, participant) => {
+            // Given a scan addressed to a destination that supports negative amounts
+            const filledFields = {isAmountSet: true, amount: -1234, isMerchantSet: true, merchant: 'Starbucks', isCreatedSet: true, created: '2025-01-15', participants: [participant]};
+
+            // When the user fills in a negative amount and confirms
+            const {result} = renderHook(() =>
+                useConfirmationValidation(
+                    createScanValidationParams(filledFields, {
+                        iouType: CONST.IOU.TYPE.CREATE,
+                        iouAmount: -1234,
+                        iouMerchant: 'Starbucks',
+                        isMerchantEmpty: false,
+                        selectedParticipants: [participant],
+                    }),
+                ),
+            );
+
+            // Then it goes through, so only 1:1 expenses are held to the positive-amount rule
+            expect(result.current.validate()).toEqual({errorKey: null});
         });
 
         it('blocks confirmation when another receipt in a multi-scan is the partially filled one', () => {

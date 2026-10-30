@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMergeTransactions from '@hooks/useMergeTransactions';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -88,6 +89,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: reportsSelector,
     });
+    const [personalDetails] = useAllPersonalDetails();
     const {isOffline} = useNetwork();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
@@ -112,6 +114,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             report: targetTransactionReport,
             currentUserLogin,
             rules,
+            personalDetails,
             allPolicies,
             allReports,
         });
@@ -125,6 +128,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         targetTransaction,
         targetReportTransactions,
         rules,
+        personalDetails,
         allPolicies,
         allReports,
     ]);
