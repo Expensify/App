@@ -72,4 +72,37 @@ describe('UnreadIndicatorUpdaterTest', () => {
             });
         });
     });
+
+    describe('memoizedGetUnreadReportsForUnreadIndicator', () => {
+        it('keeps a single cache entry across report updates', () => {
+            // Given the memoized lookup and three report collections, as three report writes would produce
+            const memoized = UnreadIndicatorUpdater.memoizedGetUnreadReportsForUnreadIndicator;
+            memoized.cache.clear();
+            const snapshots = [1, 2, 3].map((i) => ({
+                1: {reportID: '1', reportName: 'test', type: CONST.REPORT.TYPE.CHAT, lastReadTime: `2023-07-0${i} 07:15:44.030`},
+            }));
+
+            // When each collection is looked up in turn
+            for (const snapshot of snapshots) {
+                memoized(snapshot, undefined, undefined);
+            }
+
+            // Then only the latest collection is cached, so older report snapshots are not kept alive
+            expect(memoized.cache.size).toBe(1);
+        });
+
+        it('reuses the result when called again with the same collection', () => {
+            // Given a report collection that was already looked up once
+            const memoized = UnreadIndicatorUpdater.memoizedGetUnreadReportsForUnreadIndicator;
+            memoized.cache.clear();
+            const reports = {1: {reportID: '1', reportName: 'test', type: CONST.REPORT.TYPE.CHAT}};
+            const first = memoized(reports, undefined, undefined);
+
+            // When the same collection is looked up again, as happens on a navigation change with no report write
+            const second = memoized(reports, undefined, undefined);
+
+            // Then the cached result is returned instead of recomputing it
+            expect(second).toBe(first);
+        });
+    });
 });
