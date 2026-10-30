@@ -543,6 +543,7 @@ function MoneyRequestReceiptView({
                     isOffline,
                     isSingleTransactionView: true,
                     policy,
+                    reports: reportsParentHierarchy,
                 });
                 return;
             }
