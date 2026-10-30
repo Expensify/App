@@ -18,7 +18,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {memo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import AvatarFromIcon from './Avatar/AvatarFromIcon';
@@ -179,4 +179,4 @@ function RoomHeaderAvatars({icons, report, policy, participants, currentUserAcco
     );
 }
 
-export default memo(RoomHeaderAvatars);
+export default RoomHeaderAvatars;

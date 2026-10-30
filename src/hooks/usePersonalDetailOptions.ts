@@ -2,7 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import memoize, {equivalentArgsComparator} from '@libs/memoize';
-import {createOptionList, filterPersonalDetailsByLogins} from '@libs/PersonalDetailOptionsListUtils';
+import {createOptionList, filterAgentsPersonalDetailsByAccountIDs, filterPersonalDetailsByLogins} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData, PrivateIsArchivedMap} from '@libs/PersonalDetailOptionsListUtils/types';
 import {isOneOnOneChat, isSelfDM} from '@libs/ReportUtils';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
@@ -23,6 +23,10 @@ type UseFilteredOptionsConfig = {
     enabled?: boolean;
     /** When set, only the personal details whose login is in this set are turned into options */
     includeLoginsOnly?: Set<string>;
+    /**
+     * When set, only the agents in this set are turned into options.
+     */
+    agentsWhitelist?: Set<number>;
     /* Whether to include report errors in the option data (default: false) */
     shouldStoreReportErrors?: boolean;
     /* Whether to include brick road indicator status in the option data (default: false) */
@@ -108,7 +112,7 @@ const createReportAttributesSelector =
 /**
  * Building an option per personal details entry is the expensive step of this hook and depends only on Onyx values.
  * Arguments are compared one level deep because the maps are rebuilt each render from those same unchanged values.
- * A single entry is held, so a consumer narrowing the list with `includeLoginsOnly` evicts the whole-list one.
+ * A single entry is held, so a consumer narrowing the list with `includeLoginsOnly` or `agentsWhitelist` evicts the whole-list one.
  */
 const memoizedCreateOptionList = memoize(createOptionList, {
     maxSize: 1,
@@ -128,6 +132,7 @@ type BuildOptionsDataParams = {
     accountID: number;
     allPersonalDetails: OnyxEntry<PersonalDetailsList>;
     includeLoginsOnly: Set<string> | undefined;
+    agentsWhitelist: Set<number> | undefined;
     reports: OnyxCollection<Report>;
     reportAttributes: FilteredReportAttributes | undefined;
     reportNameValuePairs: PrivateIsArchivedMap | undefined;
@@ -142,6 +147,7 @@ function buildOptionsData({
     accountID,
     allPersonalDetails,
     includeLoginsOnly,
+    agentsWhitelist,
     reports,
     reportAttributes,
     reportNameValuePairs,
@@ -150,9 +156,14 @@ function buildOptionsData({
     shouldStoreReportErrors,
     shouldShowBrickRoadIndicator,
 }: BuildOptionsDataParams) {
-    const personalDetails = includeLoginsOnly ? filterPersonalDetailsByLogins(allPersonalDetails, includeLoginsOnly) : allPersonalDetails;
+    let personalDetails = allPersonalDetails;
+    if (includeLoginsOnly) {
+        personalDetails = filterPersonalDetailsByLogins(personalDetails, includeLoginsOnly);
+    }
+    if (agentsWhitelist) {
+        personalDetails = filterAgentsPersonalDetailsByAccountIDs(personalDetails, agentsWhitelist);
+    }
     const accountIDToReportIDMap = generateAccountIDToReportIDMap(reports, accountID);
-
     return memoizedCreateOptionList(accountID, personalDetails, accountIDToReportIDMap, reports, reportAttributes, reportNameValuePairs ?? {}, formatPhoneNumber, translate, {
         shouldStoreReportErrors,
         shouldShowBrickRoadIndicator,
@@ -179,7 +190,7 @@ function buildOptionsData({
  * />
  */
 function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
-    const {enabled = true, includeLoginsOnly, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config;
+    const {enabled = true, includeLoginsOnly, agentsWhitelist, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config;
 
     const reportAttributesSelector = createReportAttributesSelector(shouldStoreReportErrors, shouldShowBrickRoadIndicator);
 
@@ -200,6 +211,7 @@ function usePersonalDetailOptions(config: UseFilteredOptionsConfig = {}): UseFil
               accountID,
               allPersonalDetails,
               includeLoginsOnly,
+              agentsWhitelist,
               reports,
               reportAttributes,
               reportNameValuePairs,

@@ -4,7 +4,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {DynamicFormField, DynamicFormPage} from '@src/types/onyx';
 
 import getContentFields from './getContentFields';
-import getLocalizedText, {getFieldLabel} from './getLocalizedText';
+import getLocalizedText, {getInputLabel} from './getLocalizedText';
 import {getLoneField, getVisibleContent, isFieldVisible} from './getVisibleFields';
 
 /** The page's own title, else the schema's wording of its lone question. A label never names a section, since the label is already on the question's row. */
@@ -24,7 +24,7 @@ function getPageTitle(page: DynamicFormPage, values: DynamicFormValues, translat
         return sectionName;
     }
     const loneField = getLoneField(getContentFields(getVisibleContent(page.content, values, allFields)));
-    return loneField ? getFieldLabel(loneField, translate) : '';
+    return loneField ? getInputLabel(loneField, translate) : '';
 }
 
 /** A page is shown when its own `showWhen` matches and it has a field to show. A page that is not shown is skipped, and its fields are not asked or submitted. */

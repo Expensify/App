@@ -8,6 +8,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
+    areApprovalsEnabled,
     arePolicyRulesEnabled,
     areSettingsInErrorFields,
     canAdminPayReport,
@@ -17,6 +18,8 @@ import {
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
+    canCreateExpensesOnPolicy,
+    canRoleCreateExpenses,
     canSendInvoice,
     canSendInvoiceFromWorkspace,
     canShowReimbursableToggleForPolicy,
@@ -24,6 +27,7 @@ import {
     canUnarchivePolicy,
     evaluateApprovalWorkflowRule,
     findVendorByID,
+    getVendorFeaturePolicyIDs,
     getVendorDisplayName,
     hasCompanyAddress,
     hasReadOnlyAllReportsAccess,
@@ -82,6 +86,7 @@ import {
     findPolicyTagAtLevel,
     findPolicyTagEntryByParentFilter,
     getTagGLCode,
+    escapeTagName,
     hasAnyTagGLCode,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -93,6 +98,7 @@ import {
     getGLCodeFromPolicyTag,
     getTagList,
     getTagListByOrderWeight,
+    getTagListEntryByOrderWeight,
     getTravelStep,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
@@ -135,6 +141,7 @@ import {
     isXeroVendorMatchingActive,
     settingsPendingAction,
     shouldHideDynamicExternalWorkflowPeople,
+    shouldHideExpensifyTeamCardholder,
     shouldShowPolicy,
     sortPoliciesByName,
     getDefaultVendorID,
@@ -143,6 +150,7 @@ import {
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {getApprovalChain, isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
+import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1470,21 +1478,21 @@ describe('PolicyUtils', () => {
                 expect(hasReadOnlyAllReportsAccess(policy, memberLogin)).toBe(false);
             });
 
-            it('allows auditors to read every policy feature but write only rooms', () => {
+            it('allows auditors to read every policy feature but write only rooms and expense creation', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.AUDITOR);
 
                 for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
                     expect(canMemberRead(policy, memberLogin, feature)).toBe(true);
-                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS);
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.ROOMS || feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
                 }
             });
 
-            it('allows guests to read only the workspace overview', () => {
+            it('allows guests to read only the workspace overview but create expenses', () => {
                 const policy = buildPolicy(CONST.POLICY.ROLE.GUEST);
 
                 for (const feature of Object.values(CONST.POLICY.POLICY_FEATURE)) {
-                    expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW);
-                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(false);
+                    expect(canMemberRead(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.OVERVIEW || feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
+                    expect(canMemberWrite(policy, memberLogin, feature)).toBe(feature === CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES);
                 }
             });
 
@@ -1505,6 +1513,55 @@ describe('PolicyUtils', () => {
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.CARD_ADMIN)).toBe(false);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PEOPLE_ADMIN)).toBe(false);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.PAYMENTS_ADMIN)).toBe(false);
+            });
+
+            it('blocks assigning the approve-only role', () => {
+                const peopleAdminPolicy = buildPolicy(CONST.POLICY.ROLE.PEOPLE_ADMIN);
+                const adminPolicy = buildPolicy(CONST.POLICY.ROLE.ADMIN);
+
+                expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+                expect(canMemberAssignRole(adminPolicy, memberLogin, CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+            });
+
+            it('gives approve-only members read-only access like members', () => {
+                const policy = buildPolicy(CONST.POLICY.ROLE.APPROVE_ONLY);
+
+                expect(canMemberRead(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(true);
+                expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
+            });
+
+            it('allows creating expenses only for roles with create-expenses write access', () => {
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.USER)).toBe(true);
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.ADMIN)).toBe(true);
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.AUDITOR)).toBe(true);
+                expect(canRoleCreateExpenses(CONST.POLICY.ROLE.APPROVE_ONLY)).toBe(false);
+            });
+
+            it('blocks expense creation when the policy role cannot be resolved', () => {
+                expect(canCreateExpensesOnPolicy(createMock<Policy>({role: undefined}))).toBe(false);
+                expect(canCreateExpensesOnPolicy(undefined)).toBe(false);
+            });
+
+            it('resolves the member role from employeeList when the policy role is missing', () => {
+                const legacyPolicy = createMock<Policy>({
+                    employeeList: {
+                        [memberLogin]: {role: CONST.POLICY.ROLE.USER},
+                    },
+                });
+
+                expect(canCreateExpensesOnPolicy(legacyPolicy)).toBe(false);
+                expect(canCreateExpensesOnPolicy(legacyPolicy, memberLogin)).toBe(true);
+            });
+
+            it('resolves the target member role from employeeList even when policy.role belongs to another user', () => {
+                const policyWithDifferentViewerRole = createMock<Policy>({
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [memberLogin]: {role: CONST.POLICY.ROLE.APPROVE_ONLY},
+                    },
+                });
+
+                expect(canCreateExpensesOnPolicy(policyWithDifferentViewerRole, memberLogin)).toBe(false);
             });
 
             it('allows Guest assignment only on Control workspaces', () => {
@@ -1922,6 +1979,22 @@ describe('PolicyUtils', () => {
             const {result} = renderHook(() => useDefaultFundID(policy.id));
 
             expect(result?.current).toBe(123234);
+        });
+    });
+
+    describe('getGroupPoliciesWhereReportCanBeCreated', () => {
+        it('excludes workspaces where the current user is approve-only', () => {
+            const approveOnlyPolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), role: CONST.POLICY.ROLE.APPROVE_ONLY, pendingAction: null});
+            const memberPolicy = createMock<Policy>({...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), name: 'member', role: CONST.POLICY.ROLE.USER, pendingAction: null});
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => (index === 0 ? approveOnlyPolicy : memberPolicy),
+                2,
+            );
+
+            const result = getGroupPoliciesWhereReportCanBeCreated(policies, employeeEmail);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe(memberPolicy.id);
         });
     });
 
@@ -3267,6 +3340,24 @@ describe('PolicyUtils', () => {
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
+
+        it('returns false if the submitter is approve-only on the new policy', async () => {
+            const currentUserLogin = employeeEmail;
+
+            const newPolicy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.APPROVE_ONLY},
+                },
+                pendingAction: null,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(false);
+        });
     });
 
     describe('tag', () => {
@@ -3288,6 +3379,38 @@ describe('PolicyUtils', () => {
             ])('%s', (_description, orderWeight, expected) => {
                 const tagList = getTagListByOrderWeight(policyTags, orderWeight);
                 expect(tagList.name).toEqual(expected);
+            });
+        });
+        describe('getTagListEntryByOrderWeight', () => {
+            // Given tag lists that share a name but are stored under unique Onyx keys, as a no-header import with
+            // GL codes in adjacent columns can return them
+            const tagListsWithDuplicateNames: PolicyTagLists = {
+                Clients: {name: 'Clients', orderWeight: 0, required: false, tags: {}},
+                'Sub-projects': {name: 'Sub-projects', orderWeight: 1, required: false, tags: {}},
+                'Sub-projects_2': {name: 'Sub-projects', orderWeight: 2, required: false, tags: {}},
+            };
+
+            it.each([
+                ['returns the entry of the first list with a repeated name', 1, 'Sub-projects'],
+                ['returns the entry of the second list with a repeated name', 2, 'Sub-projects_2'],
+            ])('%s', (_description, orderWeight, expectedKey) => {
+                // When the entry is looked up by orderWeight
+                const entry = getTagListEntryByOrderWeight(tagListsWithDuplicateNames, orderWeight);
+
+                // Then the key and value of the matching list are returned, so callers write to its key, not its name
+                expect(entry).toEqual([expectedKey, tagListsWithDuplicateNames[expectedKey]]);
+            });
+
+            it('returns undefined when no list has the orderWeight', () => {
+                // Given tag lists without orderWeight 3
+                // When / Then
+                expect(getTagListEntryByOrderWeight(tagListsWithDuplicateNames, 3)).toBeUndefined();
+            });
+
+            it('returns undefined when there are no tag lists', () => {
+                // Given no tag lists
+                // When / Then
+                expect(getTagListEntryByOrderWeight(undefined, 0)).toBeUndefined();
             });
         });
         describe('hasAnyTagGLCode', () => {
@@ -3920,6 +4043,60 @@ describe('PolicyUtils', () => {
             });
         });
 
+        describe('escapeTagName', () => {
+            it.each([
+                ['escapes a plain colon', 'Plain:Colon', 'Plain\\:Colon'],
+                ['keeps an already escaped colon unchanged', 'Parent\\: Child', 'Parent\\: Child'],
+                ['escapes consecutive colons', 'a::b', 'a\\:\\:b'],
+                ['escapes a colon preceded by an escaped backslash', 'parent\\\\:child', 'parent\\\\\\:child'],
+                ['keeps a colon preceded by an escaped backslash and an escaped colon unchanged', 'a\\\\\\:b', 'a\\\\\\:b'],
+                ['returns a tag without colons unchanged', 'Engineering', 'Engineering'],
+            ])('%s', (_description, tag, expected) => {
+                // Given a tag name typed by the user
+                // When it is escaped before being saved
+                const result = escapeTagName(tag);
+
+                // Then only colons that are not already escaped get a backslash, matching the backend
+                expect(result).toBe(expected);
+            });
+
+            it('returns the same result when run twice', () => {
+                // Given a tag name that has already been escaped once, as happens when an existing tag is re-saved
+                const escapedOnce = escapeTagName('Parent: Child\\: Grandchild');
+
+                // When it is escaped again
+                const escapedTwice = escapeTagName(escapedOnce);
+
+                // Then no extra backslashes are added, so re-saving a tag cannot change it
+                expect(escapedTwice).toBe(escapedOnce);
+            });
+
+            it('keeps a tag with an already escaped colon as a single tag level', () => {
+                // Given a tag created with an already escaped colon
+                const escapedTag = escapeTagName('Parent\\: Child');
+
+                // When the saved tag is split into tag levels
+                const result = getTagArrayFromName(escapedTag);
+
+                // Then it stays one tag level instead of being split into `Parent\\` and ` Child`
+                expect(result).toEqual(['Parent\\: Child']);
+            });
+
+            it.each([
+                ['an escaped backslash before a colon', 'parent\\\\:child', 'parent\\\\\\:child'],
+                ['an escaped backslash and an escaped colon', 'a\\\\\\:b', 'a\\\\\\:b'],
+            ])('keeps a tag with %s as a single tag level', (_description, tag, expected) => {
+                // Given a tag whose colon is preceded by backslashes
+                const escapedTag = escapeTagName(tag);
+
+                // When the saved tag is split into tag levels
+                const result = getTagArrayFromName(escapedTag);
+
+                // Then it stays one tag level, because every saved colon has an odd number of backslashes before it
+                expect(result).toEqual([expected]);
+            });
+        });
+
         describe('getTagLists', () => {
             it('returns an empty array when the policy tag lists are undefined', () => {
                 // Given a policy whose tag lists have not loaded
@@ -4110,6 +4287,43 @@ describe('PolicyUtils', () => {
 
                 // Then nobody is returned, because a disabled workspace has no payer no matter who is named on it
                 expect(reimburserEmail).toBeUndefined();
+            });
+        });
+
+        describe('areApprovalsEnabled', () => {
+            it('should be false when there is no policy', () => {
+                // Given no policy, which happens while a workspace is still loading
+
+                // When approvals are resolved
+                // Then they read as off, rather than as on by virtue of the policy not saying they are off
+                expect(areApprovalsEnabled(undefined)).toBe(false);
+            });
+
+            it('should be false when the policy has no approval mode yet', () => {
+                // Given a workspace whose approval mode has not come back from the server
+                const policy = createMock<Policy>({id: '1'});
+
+                // When approvals are resolved
+                // Then they read as off, which is what separates this from `!isSubmitAndClose(policy)`
+                expect(areApprovalsEnabled(policy)).toBe(false);
+            });
+
+            it('should be false when the workspace submits and closes', () => {
+                // Given a workspace that has approvals turned off
+                const policy = createMock<Policy>({id: '1', approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL});
+
+                // When approvals are resolved
+                // Then they read as off
+                expect(areApprovalsEnabled(policy)).toBe(false);
+            });
+
+            it.each([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED])('should be true in %s mode', (approvalMode) => {
+                // Given a workspace on an approval mode that submits to an approver
+                const policy = createMock<Policy>({id: '1', approvalMode});
+
+                // When approvals are resolved
+                // Then they read as on
+                expect(areApprovalsEnabled(policy)).toBe(true);
             });
         });
 
@@ -5496,6 +5710,40 @@ describe('PolicyUtils', () => {
                 // Then it does not, so callers can pass optional logins safely
                 expect(isExpensifyTeam(undefined)).toBe(false);
                 expect(isExpensifyTeam('')).toBe(false);
+            });
+        });
+
+        describe('shouldHideExpensifyTeamCardholder', () => {
+            const customerOwner = 'owner@test.com';
+
+            it('hides Expensify team logins on a customer workspace', () => {
+                // Given a customer-owned workspace viewed by a customer admin
+                // When checking an Expensify team login that is not the current cardholder
+                // Then it is hidden, matching the Workspace Members page
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, undefined, customerOwner, employeeEmail)).toBe(true);
+            });
+
+            it('keeps non-Expensify logins and missing logins visible', () => {
+                // Given a customer-owned workspace viewed by a customer admin
+                // When checking a customer login or no login at all
+                // Then neither is hidden, because only Expensify team logins are filtered
+                expect(shouldHideExpensifyTeamCardholder(employeeEmail, undefined, customerOwner, employeeEmail)).toBe(false);
+                expect(shouldHideExpensifyTeamCardholder(undefined, undefined, customerOwner, employeeEmail)).toBe(false);
+            });
+
+            it('keeps the current cardholder visible even if they are on the Expensify team', () => {
+                // Given an Expensify team login that is already the cardholder being edited
+                // When checking whether to hide it
+                // Then it stays visible so editing the assignment doesn't blank out the selection
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, guideEmail, customerOwner, employeeEmail)).toBe(false);
+            });
+
+            it('shows Expensify team logins on Expensify-owned workspaces or to Expensify staff', () => {
+                // Given a workspace owned by Expensify, or a viewer on the Expensify team
+                // When checking an Expensify team login
+                // Then it is not hidden, matching the Workspace Members page behavior
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, undefined, 'owner@expensify.com', employeeEmail)).toBe(false);
+                expect(shouldHideExpensifyTeamCardholder(guideEmail, undefined, customerOwner, 'support@team.expensify.com')).toBe(false);
             });
         });
 
@@ -6991,7 +7239,7 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('hasVendorFeatureOnAnyPolicy', () => {
+        describe('hasVendorFeatureOnAnyPolicy and getVendorFeaturePolicyIDs', () => {
             const qboPolicy: Policy = {...buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), id: 'qbo'};
             const xeroPolicy: Policy = {...buildXeroPolicy(), id: 'xero'};
             const campfirePolicy = createMock<Policy>({id: 'campfire', connections: {[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: {config: {isConfigured: true}}}});
@@ -7053,6 +7301,19 @@ describe('PolicyUtils', () => {
 
                 // Then the feature is not available on any workspace because Business Central still depends on the beta
                 expect(isVendorFeatureAvailable).toBe(false);
+            });
+
+            it('lists the workspaces that have the vendor feature', () => {
+                // Given QBO, Xero and Business Central workspaces next to one with no accounting connection
+                const policies = {[qboKey]: qboPolicy, [xeroKey]: xeroPolicy, [businessCentralKey]: businessCentralPolicy, [plainKey]: plainPolicy};
+
+                // When the workspace IDs are listed with and without the vendorMatching beta
+                const policyIDsWithBeta = getVendorFeaturePolicyIDs(policies, true);
+                const policyIDsWithoutBeta = getVendorFeaturePolicyIDs(policies, false);
+
+                // Then every connected workspace is listed with the beta, and Business Central is dropped without it because it still depends on the beta
+                expect(policyIDsWithBeta.toSorted()).toEqual(['businessCentral', 'qbo', 'xero']);
+                expect(policyIDsWithoutBeta.toSorted()).toEqual(['qbo', 'xero']);
             });
         });
 
