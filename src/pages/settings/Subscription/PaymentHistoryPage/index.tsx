@@ -6,10 +6,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import {openPaymentHistoryPage} from '@userActions/Subscription';
 
@@ -23,19 +20,13 @@ function PaymentHistoryPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isBetaOn = isBetaEnabled(CONST.BETAS.PAYMENT_HISTORY);
 
     useEffect(() => {
-        if (!isBetaOn || isOffline) {
+        if (isOffline) {
             return;
         }
         openPaymentHistoryPage();
-    }, [isBetaOn, isOffline]);
-
-    if (!isBetaOn) {
-        return <NotFoundPage />;
-    }
+    }, [isOffline]);
 
     return (
         <ScreenWrapper

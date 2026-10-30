@@ -1,5 +1,6 @@
 import ActivePointIndicator from '@components/Charts/components/ActivePointIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
+import ChartAverageLine from '@components/Charts/components/ChartAverageLine';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
@@ -43,6 +44,9 @@ type LineChartProps = CartesianChartProps & {
 
     /** Steps the x-axis may label points at, ascending. When set, labels stay horizontal and only every Nth point is labeled. */
     labelSteps?: readonly number[];
+
+    /** Whether a compared tooltip shows how the primary series changed against the compared one */
+    shouldShowTooltipChange?: boolean;
 };
 
 type LineChartContentProps = LineChartProps & {
@@ -52,7 +56,7 @@ type LineChartContentProps = LineChartProps & {
 
 type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps, chartWidth, fontManager}: LineChartCanvasProps) {
+function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps, shouldShowTooltipChange, chartWidth, fontManager}: LineChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -60,6 +64,9 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const yAxisDomain = useDynamicYDomain(data);
     const seriesKeys = series.map((seriesItem) => seriesItem.key);
     const [{key: primarySeriesKey, color: primarySeriesColor = VictoryTheme.colors.default}] = series;
+    const lineSeries = series.filter((seriesItem) => !seriesItem.isAverage);
+    const averageSeries = series.find((seriesItem) => seriesItem.isAverage);
+    const averageValue = averageSeries && data.at(0)?.values[averageSeries.key];
     const openPointFlags = data.map((point) => !!point.isInProgress);
 
     // Periods that haven't ended, the current one and any later ones, are drawn dashed on the primary series, along with the segments leading into them.
@@ -252,8 +259,9 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                         />
                     ))}
                 {/* Drawn last, the primary line sits on top of the compared one */}
-                {[...series].reverse().map((seriesItem) => {
+                {[...lineSeries].reverse().map((seriesItem) => {
                     const color = seriesItem.color ?? VictoryTheme.colors.default;
+
                     const seriesPoints = args.points[seriesItem.key] ?? [];
 
                     // Only the primary series is dashed
@@ -305,7 +313,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                 <ActivePointIndicator
                     x={activePointX}
                     activeIndex={matchedIndex}
-                    dots={series.map((seriesItem) => ({
+                    dots={lineSeries.map((seriesItem) => ({
                         color: seriesItem.color ?? VictoryTheme.colors.default,
                         yPositions: (args.points[seriesItem.key] ?? []).map((point) => point.y),
                     }))}
@@ -318,6 +326,17 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     isHollow={isActivePointHollow}
                     hollowColor={theme.cardBG}
                 />
+                {averageValue !== undefined && (
+                    <ChartAverageLine
+                        value={averageValue}
+                        yScale={args.yScale}
+                        chartBounds={args.chartBounds}
+                        canvasHeight={args.canvasSize.height}
+                        formatValue={formatCompactValue}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontManager={fontManager}
+                    />
+                )}
             </>
         );
     };
@@ -377,6 +396,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
                     onDismiss={onTooltipDismiss}
+                    shouldShowTooltipChange={shouldShowTooltipChange}
                 />
             </Animated.View>
         </GestureDetector>

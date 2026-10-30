@@ -58,7 +58,6 @@ import {clearCachedAttachments} from '@userActions/Attachment';
 import clearOnyxAndSeedFullReconnect from '@userActions/clearOnyxAndSeedFullReconnect';
 import {clearOnyxForDelegateTransition} from '@userActions/Delegate';
 import * as Device from '@userActions/Device';
-import {setErrorFields} from '@userActions/FormActions';
 import type HybridAppSettings from '@userActions/HybridApp/types';
 import {close} from '@userActions/Modal';
 import redirectToSignIn from '@userActions/SignInRedirect';
@@ -72,7 +71,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import ADD_WORK_EMAIL_INPUT_IDS from '@src/types/form/AddWorkEmailForm';
 import type {Report, TryNewDot} from '@src/types/onyx';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Locale from '@src/types/onyx/Locale';
@@ -1442,8 +1440,21 @@ function toggleTwoFactorAuth(enable: boolean, twoFactorAuthCode = '') {
     // A 2FA code is required to disable 2FA
     const params: DisableTwoFactorAuthParams = {twoFactorAuthCode};
 
+    // The secret kept for an unfinished setup is no longer valid once 2FA is turned off.
+    const disableSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+                recoveryCodes: null,
+                twoFactorAuthSecretKey: null,
+            },
+        },
+    ];
+
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
-    API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH, params, {optimisticData, successData: disableSuccessData, failureData});
 }
 
 function clearDisableTwoFactorAuthErrors() {
@@ -1489,6 +1500,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
                 // Clear the secret key once we know we no longer need to show it
                 // This is necessary in case the user needs to complete the replaceTwoFactorDevice flow on this device at some point in the future - that flow uses the presence of this key to know when to navigate from one step to the next
                 twoFactorAuthSecretKey: null,
+                // The success screen is the usual place that drops recovery codes. If the user already closed
+                // the panel, that screen never mounts, so clear them here once validation has succeeded.
+                recoveryCodes: null,
             },
         },
     ];
@@ -1499,6 +1513,9 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
+                // Drop the saved codes so leaving this screen can request a fresh secret. The secret itself
+                // stays, so the QR remains and a mistyped code can be retried without leaving the page.
+                recoveryCodes: null,
             },
         },
     ];
@@ -1679,72 +1696,43 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
-/** The forms that submit a work email. Onboarding has its own, the workspace company card and Expensify card flows share one. */
-type AddWorkEmailFormID = typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM;
-
 /**
  * Adds a work email to the account.
  *
  * @param workEmail the work email to add.
- * @param formID the form that submitted the request. Its loading state and errors follow the request, so the submit button stops spinning and the failure
- * renders inline. Defaults to the onboarding form, which is where this action is called from during onboarding.
+ * @param addWorkEmailTaskReport the onboarding task report to complete once the work email is added, if any.
  */
-function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID | OnyxEntry<Report> = ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM) {
-    const isOnboardingFlow = typeof formIDOrTaskReport !== 'string' || formIDOrTaskReport === ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
-    const formID = typeof formIDOrTaskReport === 'string' ? formIDOrTaskReport : ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM;
-    const addWorkEmailTaskReport = typeof formIDOrTaskReport === 'string' ? undefined : formIDOrTaskReport;
+function AddWorkEmail(workEmail: string, addWorkEmailTaskReport?: OnyxEntry<Report>) {
     // Auth completes direct additions and MergeIntoAccountAndLogin completes existing-account additions. Both commands
     // need the same client-generated action ID, but AddWorkEmail must not complete the task before a required merge.
     const completedTaskReportActionID = addWorkEmailTaskReport ? rand64() : undefined;
 
-    const optimisticData: Array<OnyxUpdate<AddWorkEmailFormID | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = isOnboardingFlow
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
-                  value: {
-                      onboardingWorkEmail: workEmail,
-                      isLoading: true,
-                      completedTaskReportActionID: completedTaskReportActionID ?? null,
-                  },
-              },
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
-                  value: null,
-              },
-          ]
-        : [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: formID,
-                  value: {
-                      isLoading: true,
-                      errorFields: null,
-                  },
-              },
-          ];
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM | typeof ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                onboardingWorkEmail: workEmail,
+                isLoading: true,
+                completedTaskReportActionID: completedTaskReportActionID ?? null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY,
+            value: null,
+        },
+    ];
 
-    const getLoadingFinishedData = (): Array<OnyxUpdate<AddWorkEmailFormID>> =>
-        isOnboardingFlow
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
-                      value: {
-                          isLoading: false,
-                      },
-                  },
-              ]
-            : [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: formID,
-                      value: {
-                          isLoading: false,
-                      },
-                  },
-              ];
+    const getLoadingFinishedData = (): Array<OnyxUpdate<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>> => [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
 
     // We need to inspect the response to detect the closed-account error and surface a specific translation key, which API.write cannot do.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
@@ -1768,15 +1756,6 @@ function AddWorkEmail(workEmail: string, formIDOrTaskReport: AddWorkEmailFormID 
             errorTranslationKey = 'onboarding.singleSignOnError';
         } else if (response?.message === CONST.WORK_ACCOUNT_CLOSED_ERROR || response?.title === CONST.WORK_ACCOUNT_CLOSED_ERROR) {
             errorTranslationKey = 'onboarding.mergeBlockScreen.workAccountClosedSubtitle';
-        }
-
-        // Outside of onboarding we show the failure on the form the user is looking at, instead of writing onboarding-only state that the caller doesn't render.
-        // The backend also rejects this command with errors we have no specific copy for (e.g. a 403), so fall back to a generic message rather than showing nothing.
-        if (!isOnboardingFlow) {
-            setErrorFields(formID, {
-                [ADD_WORK_EMAIL_INPUT_IDS.EMAIL]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey ?? 'common.genericErrorMessage'),
-            });
-            return;
         }
 
         if (errorTranslationKey) {
