@@ -14,6 +14,7 @@ import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import YesNoCell from '@components/Search/SearchList/ListItem/YesNoCell';
 import type {SearchColumnType} from '@components/Search/types';
+import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -757,7 +758,8 @@ function TransactionItemRowWide({
                     styles.mw100,
                     style,
                 ]}
-                dataSet={dataSet}
+                // The resize line reads this marker to find the rows it spans.
+                dataSet={{...dataSet, ...TABLE_ROW_DATA_SET}}
                 testID="transaction-item-row"
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, fullHeightMainRowStyle]}>
