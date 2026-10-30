@@ -10,8 +10,8 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceMemberFromRoute from '@hooks/useWorkspaceMemberFromRoute';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
 import {setWorkspaceInviteWorkArrangementDraft} from '@libs/actions/Policy/Member';
@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, isMemberInHomeAndOfficeWorkspace} from '@libs/PolicyUtils';
-import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
+import {getEffectiveWorkArrangement, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -67,11 +67,9 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
 
     const [inviteWorkArrangementDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`);
     // Only an existing member has an account ID here. The invite flow reads its own arrangement draft and never looks up a member.
-    const accountID = route.name === SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT ? Number(route.params.accountID) : CONST.DEFAULT_NUMBER_ID;
-    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
+    const routeAccountID = route.name === SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT ? Number(route.params.accountID) : CONST.DEFAULT_NUMBER_ID;
+    const {memberLogin, accountID} = useWorkspaceMemberFromRoute(policy, personalDetails, routeAccountID);
     const member = policy?.employeeList?.[memberLogin];
-    const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
-    const memberAccountID = memberPersonalDetails?.accountID ?? accountID;
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const isHomeAndOfficeWorkspace = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     const canAccessWorkArrangementPage =
@@ -85,7 +83,8 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
             Navigation.goBack(inviteBackPath);
             return;
         }
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, memberAccountID));
+        // Go back with the route's accountID so it matches the details screen below, which keeps the optimistic accountID it was opened with.
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policyID, routeAccountID));
     };
 
     const changeWorkArrangement = ({value}: WorkArrangementOption) => {
@@ -97,7 +96,7 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
             navigateBackToDetails();
             return;
         }
-        setEmployeeWorkArrangement(policy, [memberAccountID], value, personalDetails);
+        setEmployeeWorkArrangement(policy, [accountID], value, personalDetails);
         navigateBackToDetails();
     };
 

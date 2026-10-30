@@ -382,6 +382,27 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should open the Role page with the stale optimistic accountID from its own route', async () => {
+        // Given a details page whose route still holds the member's optimistic accountID after the invite swapped in the real one
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const staleOptimisticAccountID = generateAccountID(invitedEmail);
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin opens the member's Role page
+        const roleItem = await screen.findByTestId('member-role-menu-item');
+        fireEvent.press(roleItem, {nativeEvent: {}, type: 'press', target: roleItem, currentTarget: roleItem});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Role route keeps the stale accountID, so going back from it pops to this details screen instead of
+        // stacking a second details screen for the real accountID
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policy.id, staleOptimisticAccountID));
+        expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.getRoute(policy.id, invitedAccountID));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should keep showing the member details when the stale optimistic accountID was derived without the SMS domain', async () => {
         const staleOptimisticAccountID = generateAccountID(phoneNumber);
         const {unmount} = renderPage({policyID: policy.id, accountID: String(staleOptimisticAccountID)});
