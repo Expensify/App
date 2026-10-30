@@ -12742,7 +12742,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         minutesAgo: (count: number) => `vor ${count} Min.`,
         hoursAgo: (count: number) => `vor ${count} Std.`,
         daysAgo: (count: number) => `vor ${count} Tagen`,
-        offlineMessage: 'Sie sind offline. Der Berichtverlauf ist möglicherweise veraltet.',
+        offlineMessage: 'Sie sind offline. Der Berichtsverlauf ist möglicherweise veraltet.',
     },
 };
 export default translations;

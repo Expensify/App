@@ -67,7 +67,14 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransact
         if (!canOpenReportHistory) {
             return statusBar;
         }
-        return <MoneyReportHeaderHistoryButton sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_STATUS_BAR}>{statusBar}</MoneyReportHeaderHistoryButton>;
+        return (
+            <MoneyReportHeaderHistoryButton
+                message={description}
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_STATUS_BAR}
+            >
+                {statusBar}
+            </MoneyReportHeaderHistoryButton>
+        );
     };
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.MARK_AS_RESOLVED) {

@@ -12674,9 +12674,9 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
     reportHistoryPage: {
         title: 'Historia raportu',
         created: 'utworzył raport',
-        submitted: 'wysłane',
-        approved: 'zatwierdzone',
-        paid: 'opłacone',
+        submitted: 'wysłał',
+        approved: 'zatwierdził',
+        paid: 'opłacił',
         toSubmit: 'przesłać',
         toSubmitAutomatically: (eta?: string, etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>) => {
             if (!eta) {

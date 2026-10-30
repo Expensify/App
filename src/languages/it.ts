@@ -12695,7 +12695,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
         toPay: 'pagare',
         minutesAgo: (count: number) => `${count} min fa`,
         hoursAgo: (count: number) => `${count} h fa`,
-        daysAgo: (count: number) => `${count}g fa`,
+        daysAgo: (count: number) => `${count} g fa`,
         offlineMessage: 'Sei offline. La cronologia dei report potrebbe non essere aggiornata.',
     },
 };

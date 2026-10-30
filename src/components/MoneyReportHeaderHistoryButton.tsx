@@ -15,13 +15,16 @@ import React from 'react';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type MoneyReportHeaderHistoryButtonProps = ChildrenProps & {
+    /** Plain text of the status shown inside the button, so screen readers still announce it */
+    message: string;
+
     sentryLabel: ValueOf<typeof CONST.SENTRY_LABEL.REPORT>;
 };
 
 /**
  * Makes the next step or status bar open the report history.
  */
-function MoneyReportHeaderHistoryButton({children, sentryLabel}: MoneyReportHeaderHistoryButtonProps) {
+function MoneyReportHeaderHistoryButton({children, message, sentryLabel}: MoneyReportHeaderHistoryButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -29,7 +32,7 @@ function MoneyReportHeaderHistoryButton({children, sentryLabel}: MoneyReportHead
         <PressableWithFeedback
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_HISTORY.path))}
             wrapperStyle={[styles.w100, styles.justifyContentCenter, styles.headerStatusBarContainer]}
-            accessibilityLabel={translate('reportHistoryPage.title')}
+            accessibilityLabel={`${message}, ${translate('reportHistoryPage.title')}`}
             role={CONST.ROLE.BUTTON}
             sentryLabel={sentryLabel}
         >
