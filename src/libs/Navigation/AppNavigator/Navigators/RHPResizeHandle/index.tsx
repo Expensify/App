@@ -136,8 +136,7 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
             return;
         }
 
-        clearLiveSingleRHPWidth(paintedScopeRef.current);
-        paintedScopeRef.current = null;
+        clearLiveWidth();
     }, [width]);
 
     // The scope outlives the handle, so unmounting before the save renders would otherwise pin the cards at the live width.
