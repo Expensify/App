@@ -10144,6 +10144,39 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
+        it('should show the Rejected suggested search in the Expense reports section only when shouldShowRejectedSuggestion is true', () => {
+            // Given a user with no policies, so no policy-based signal can affect the Rejected item
+            const params = {
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            };
+
+            // When the user has never had a rejected expense
+            const sectionsWithoutRejected = SearchUIUtils.createTypeMenuSections(params);
+
+            // Then the Rejected item is hidden
+            const keysWithoutRejected = sectionsWithoutRejected.flatMap((section) => section.menuItems.map((item) => item.key));
+            expect(keysWithoutRejected).not.toContain(CONST.SEARCH.SEARCH_KEYS.REJECTED);
+
+            // When the user has (or has had) a rejected expense
+            const sectionsWithRejected = SearchUIUtils.createTypeMenuSections({...params, shouldShowRejectedSuggestion: true});
+
+            // Then the Rejected item shows in the Expense reports section with its empty state, using the declined filter
+            const expenseReportsSection = sectionsWithRejected.find((section) => section.translationPath === 'search.tabs.expenseReports');
+            const rejectedItem = expenseReportsSection?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.REJECTED);
+            expect(rejectedItem).toBeDefined();
+            expect(rejectedItem?.searchQuery).toContain('declined:yes');
+            expect(rejectedItem?.emptyState?.title).toBe('search.searchResults.emptyRejectedResults.title');
+        });
+
         it('should keep Submit visible without CTA buttons for group workspaces that are not CTA-eligible', () => {
             const sections = SearchUIUtils.createTypeMenuSections({
                 currentUserEmail: adminEmail,
@@ -11913,6 +11946,21 @@ describe('SearchUIUtils', () => {
             // A report awaiting the user's approval surfaces the suggestion regardless of workflow membership.
             const withReport = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, true);
             expect(withReport.visibility.approve).toBe(true);
+        });
+
+        test('Should show the Rejected suggestion only when shouldShowRejectedSuggestion is true', () => {
+            // Given a user without any policies, since the Rejected suggestion doesn't depend on policy settings
+            // When the caller hasn't seen a rejected expense
+            const hidden = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, {}, undefined);
+
+            // Then the suggestion stays hidden
+            expect(hidden.visibility.rejected).toBe(false);
+
+            // When the caller reports a current or previously seen rejected expense
+            const shown = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, {}, undefined, false, false, undefined, true);
+
+            // Then the suggestion is visible
+            expect(shown.visibility.rejected).toBe(true);
         });
 
         test('Should not throw when employeeList contains a null entry', () => {

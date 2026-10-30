@@ -10464,6 +10464,7 @@ ${reportName}`,
             submit: 'Borradores',
             approve: 'Necesita aprobación',
             pay: 'Listo para pagar',
+            rejected: 'Rechazado',
             accounting: 'Contabilidad',
             export: 'Pendiente de exportación',
             unapprovedCash: 'Acumulaciones de efectivo',
@@ -10518,6 +10519,10 @@ ${reportName}`,
             emptyPayResults: {
                 title: 'No hay gastos para pagar',
                 subtitle: '¡Felicidades! Has cruzado la línea de meta.',
+            },
+            emptyRejectedResults: {
+                title: 'No hay gastos rechazados',
+                subtitle: 'Nada que corregir. ¡Buen trabajo!',
             },
             emptyExportResults: {
                 title: 'No hay gastos para exportar',

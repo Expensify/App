@@ -125,6 +125,7 @@ import {approveMoneyRequest} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
+import {setNameValuePair} from './User';
 
 type OnyxSearchResponse = {
     data: SearchResults['data'];
@@ -1001,6 +1002,11 @@ function seedMyExpensesSearch(currentUserAccountID: number, searchName: string, 
     ];
 
     write(WRITE_COMMANDS.SAVE_SEARCH, {jsonQuery, savedSearchID: queryJSON.hash.toString(), newName: searchName}, {optimisticData, failureData, successData});
+}
+
+/** Persists a one-time NVP the first time the user has a rejected expense, so the "Rejected" suggested search stays visible across sessions. */
+function setHasSeenRejectedSuggestedSearch() {
+    setNameValuePair(ONYXKEYS.NVP_HAS_SEEN_REJECTED_SUGGESTED_SEARCH, true, false);
 }
 
 function deleteSavedSearch(savedSearchID: string) {
@@ -2747,6 +2753,7 @@ export {
     parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,
+    setHasSeenRejectedSuggestedSearch,
     search,
     getFooterConvertedAmounts,
     clearFooterConversion,

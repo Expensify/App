@@ -195,6 +195,7 @@ const spendIcons = {
     Document: mockIcon,
     Pencil: mockIcon,
     ThumbsUp: mockIcon,
+    ThumbsDown: mockIcon,
     CheckCircle: mockIcon,
     UserEye: mockIcon,
     Plane: mockIcon,

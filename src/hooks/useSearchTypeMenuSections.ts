@@ -1,3 +1,4 @@
+import {setHasSeenRejectedSuggestedSearch} from '@libs/actions/Search';
 import {createTypeMenuSections, omitInsightsPageMenuItems, omitTravelApprovalMenuItems} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -13,6 +14,7 @@ import {useEffect, useState} from 'react';
 
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import useHasRejectedExpense from './useHasRejectedExpense';
 import useHasReportAwaitingApproval from './useHasReportAwaitingApproval';
 import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
@@ -77,6 +79,21 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
     // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
     const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused);
+
+    // The "Rejected" suggested search appears once the user has a rejected expense, then stays visible for good so it
+    // doesn't come and go as expenses are rejected and resolved.
+    const hasRejectedExpense = useHasRejectedExpense();
+    const [hasSeenRejectedSuggestedSearch = false, hasSeenRejectedSuggestedSearchMetadata] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_REJECTED_SUGGESTED_SEARCH);
+    const isHasSeenRejectedSuggestedSearchLoading = hasSeenRejectedSuggestedSearchMetadata.status === 'loading';
+    const shouldShowRejectedSuggestion = hasRejectedExpense || hasSeenRejectedSuggestedSearch;
+
+    useEffect(() => {
+        if (isHasSeenRejectedSuggestedSearchLoading || !hasRejectedExpense || hasSeenRejectedSuggestedSearch) {
+            return;
+        }
+        setHasSeenRejectedSuggestedSearch();
+    }, [isHasSeenRejectedSuggestedSearchLoading, hasRejectedExpense, hasSeenRejectedSuggestedSearch]);
+
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -118,6 +135,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         isTrackIntentUser: isTrackIntentUser ?? false,
         hasReportAwaitingApproval,
         policyCategories: allPolicyCategories,
+        shouldShowRejectedSuggestion,
     });
 
     return typeMenuSections;
