@@ -9,7 +9,6 @@ import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import {setNameValuePair} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -33,8 +32,6 @@ function InsightsSectionContent() {
     const chartPaddingStyle = useInsightChartPaddingStyle();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Expand']);
-    const {isBetaEnabled} = usePermissions();
-    const isInsightsPageEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
 
     const {configs: insightConfigs, isResolved: isConfigResolved, shouldShowRunningTotal} = useHomeInsightConfigs();
     const [selectedKey, selectedKeyMetadata] = useOnyx(ONYXKEYS.NVP_HOME_SELECTED_INSIGHT);
@@ -54,12 +51,9 @@ function InsightsSectionContent() {
         return null;
     }
 
-    const navigateToInsights = () =>
-        Navigation.navigate(
-            isInsightsPageEnabled ? ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND) : ROUTES.SEARCH_ROOT.getRoute({query: config.searchQuery, searchKey: config.key}),
-        );
+    const navigateToInsights = () => Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
 
-    const showRunningTotal = isInsightsPageEnabled && shouldShowRunningTotal && config.key === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME && view === CONST.SEARCH.VIEW.LINE;
+    const showRunningTotal = shouldShowRunningTotal && config.key === CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME && view === CONST.SEARCH.VIEW.LINE;
 
     const widget = (
         <WidgetContainer
@@ -99,16 +93,16 @@ function InsightsSectionContent() {
                         data={data}
                         isLoading={state === INSIGHTS_CHART_STATE.LOADING}
                         shouldShowRunningTotal={showRunningTotal}
-                        shouldShowSinglePointAsBar={isInsightsPageEnabled}
+                        shouldShowSinglePointAsBar
                         shouldUseResponsiveLabels
-                        shouldDrillDownOnPress={!isInsightsPageEnabled}
+                        shouldDrillDownOnPress={false}
                     />
                 </View>
             )}
         </WidgetContainer>
     );
 
-    if (!isInsightsPageEnabled || canUseTouchScreen()) {
+    if (canUseTouchScreen()) {
         return widget;
     }
 

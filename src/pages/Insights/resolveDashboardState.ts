@@ -26,13 +26,17 @@ type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 type InsightsDashboardChart = InsightsChartQuery & {
     snapshot: OnyxEntry<SearchResults>;
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
-    averageSnapshot?: OnyxEntry<SearchResults>;
+    averageTotal?: number;
+    isDashboardLoaded?: boolean;
 };
+
+/** Checks whether GetInsights has responded for the dashboard's filters, since only its response sets `inputQuery`. */
+function hasDashboardResponse(dashboard: OnyxEntry<InsightsDashboard>): boolean {
+    return !!dashboard?.inputQuery;
+}
 
 /** Resolves the page's state from the dashboard record and the snapshot of every chart on screen. */
 function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[], isKnownToHaveExpenses: boolean): InsightsDashboardState {
-    // Only a GetInsights response sets `inputQuery`.
-    const hasDashboardResponse = !!dashboard?.inputQuery;
     const chartStates = charts.map(({snapshot, queryJSON}) => {
         const isLoaded = isSearchDataLoaded(snapshot, queryJSON) && isEmptyObject(snapshot?.errors);
         const data = snapshot?.data;
@@ -53,7 +57,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
         return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
     }
     // Until an account is known to have expenses, waits for GetInsights, whose response may replace the charts with the no-expenses state
-    if (!hasDashboardResponse && !hasChartWithRows && !isKnownToHaveExpenses && !(isOffline && hasLoadedChart)) {
+    if (!hasDashboardResponse(dashboard) && !hasChartWithRows && !isKnownToHaveExpenses && !(isOffline && hasLoadedChart)) {
         return INSIGHTS_DASHBOARD_STATE.LOADING;
     }
     if (hasChartWithRows) {
@@ -68,5 +72,5 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     return INSIGHTS_DASHBOARD_STATE.READY;
 }
 
-export {INSIGHTS_DASHBOARD_STATE, getDashboardState};
+export {INSIGHTS_DASHBOARD_STATE, getDashboardState, hasDashboardResponse};
 export type {InsightsDashboardState, InsightsDashboardChart};

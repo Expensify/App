@@ -14,7 +14,6 @@ import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {isReceiptError} from '@libs/ErrorUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
@@ -2609,12 +2608,11 @@ describe('actions/IOU/TrackExpense', () => {
 
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,
@@ -2727,12 +2725,11 @@ describe('actions/IOU/TrackExpense', () => {
 
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,
