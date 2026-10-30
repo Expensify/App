@@ -8,6 +8,7 @@ import {
 import type {AnyRequestMatcher, EnablePolicyFeatureCommand} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
 import {waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
+import type {HeadRequest} from '@libs/processHeadRequest';
 
 import {getOngoingRequest, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 
@@ -22,7 +23,7 @@ import type {ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCom
 import type {WriteReadyBarrier, WriteWhenReadyOptions} from './writeWhenReady';
 
 import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './types';
+import {READ_COMMANDS, WRITE_COMMANDS} from './types';
 import baseWrite from './write';
 import {armTransitionBarrier, createTransitionBarrier, writeWhenReady as baseWriteWhenReady} from './writeWhenReady';
 
@@ -155,17 +156,17 @@ function makeRequestWithSideEffects<TCommand extends SideEffectRequestCommand, T
     command: TCommand,
     apiCommandParameters: ApiRequestCommandParameters[TCommand],
     onyxData: OnyxData<TKey> = {},
-    requestOptions: Pick<OnyxRequest<TKey>, 'signal'> = {},
 ): Promise<void | Response<TKey>> {
     Log.info('[API] Called API makeRequestWithSideEffects', false, buildLogParams(command, apiCommandParameters ?? {}));
-    const request = {...prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData), ...requestOptions};
-    if (command === SIDE_EFFECT_REQUEST_COMMANDS.HEAD_ATTACHMENT) {
-        request.type = CONST.NETWORK.METHOD.HEAD;
-        request.commandName = command;
-    }
+    const request = prepareRequest(command, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS, apiCommandParameters, onyxData);
 
     // Return a promise containing the response from HTTPS
     return processRequest(request, CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS);
+}
+
+/** Image probes need an HTTP status and bounded authentication replay, without JSON API processing. */
+function makeHeadRequest(imageURL: string, requestOptions: Pick<HeadRequest, 'signal'> = {}): Promise<number | undefined> {
+    return processRequest({imageURL, signal: requestOptions.signal}, CONST.API_REQUEST_TYPE.HEAD_REQUEST);
 }
 
 /**
@@ -245,7 +246,7 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
         case CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS:
             return processRequest(request, type);
         case CONST.API_REQUEST_TYPE.READ:
-            waitForWrites(command as ReadCommand).then(() => processRequest(request, type));
+            waitForWrites(command).then(() => processRequest(request, type));
             return;
         default:
             throw new Error('Unknown API request type');
@@ -258,6 +259,7 @@ export {
     createTransitionBarrier,
     armTransitionBarrier,
     makeRequestWithSideEffects,
+    makeHeadRequest,
     read,
     paginate,
     writeWithNoDuplicatesConflictAction,

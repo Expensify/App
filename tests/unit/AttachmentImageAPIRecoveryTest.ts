@@ -1,4 +1,4 @@
-/** Verify image HEAD probes and JSON requests share authentication through the real middleware. */
+/** Verify HEAD and JSON request paths share authentication without sharing API response processing. */
 import redirectToSignIn from '@libs/actions/SignInRedirect';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
@@ -6,6 +6,7 @@ import {getFailureCount, recordFailure, reset as resetFailureTracker} from '@lib
 import Log from '@libs/Log';
 import {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import * as Network from '@libs/Network';
+import {getDuplicateRequestCount, setLoadTestParameters} from '@libs/Network/LoadTestState';
 import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {setHasRadio} from '@libs/NetworkState';
@@ -47,8 +48,7 @@ function startAPIRequest() {
 }
 
 function startImageRequest(imageURL = IMAGE_URL, signal?: AbortSignal) {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Exercise HEAD directly so the transport regression is independent of the image component.
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.HEAD_ATTACHMENT, {imageURL}, {}, {signal});
+    return API.makeHeadRequest(imageURL, {signal});
 }
 
 function response(status: number, data: Record<string, unknown> = {jsonCode: CONST.JSON_CODE.SUCCESS}) {
@@ -64,6 +64,7 @@ beforeEach(async () => {
     NetworkStore.setIsAuthenticating(false);
     resetReauthentication();
     resetFailureTracker();
+    setLoadTestParameters(null);
     setHasRadio(true);
     await Onyx.clear();
     await Onyx.multiSet({
@@ -93,6 +94,7 @@ beforeEach(async () => {
 
 afterEach(() => {
     globalThis.fetch = originalFetch;
+    setLoadTestParameters(null);
     resetReauthentication();
     NetworkStore.setIsAuthenticating(false);
     jest.restoreAllMocks();
@@ -133,7 +135,7 @@ describe('attachment and API authentication', () => {
         const results = await Promise.all([first, second]);
 
         // Then both requests share the cycle, and only an active image replays with fresh credentials
-        expect(results.at(firstCaller === 'API' ? 1 : 0)?.jsonCode).toBe(isCancelled ? 403 : 200);
+        expect(results.at(firstCaller === 'API' ? 1 : 0)).toBe(isCancelled ? 403 : 200);
         expect(authenticate).toHaveBeenCalledTimes(isBackingOff ? 2 : 1);
         expect(apiResponse).toHaveBeenCalledTimes(2);
         expect(imageResponse.mock.calls).toEqual(isCancelled ? [[OLD_TOKEN]] : [[OLD_TOKEN], [NEW_TOKEN]]);
@@ -148,7 +150,7 @@ describe('attachment and API authentication', () => {
             return Promise.resolve(response(200, {jsonCode: 200, authToken: `api-token-${count}`, encryptedAuthToken: `image-token-${count}`}));
         });
         imageResponse.mockImplementation((token) => Promise.resolve(response(token === rejectedToken ? 401 : 200)));
-        await expect(startImageRequest()).resolves.toMatchObject({jsonCode: 200});
+        await expect(startImageRequest()).resolves.toBe(200);
         await waitForBatchedUpdates();
         rejectedToken = 'image-token-1';
 
@@ -156,7 +158,7 @@ describe('attachment and API authentication', () => {
         const result = await startImageRequest();
 
         // Then the settled promise cannot prevent the next genuine recovery
-        expect(result?.jsonCode).toBe(200);
+        expect(result).toBe(200);
         expect(authenticate).toHaveBeenCalledTimes(2);
     });
 
@@ -168,7 +170,7 @@ describe('attachment and API authentication', () => {
         const result = await startImageRequest();
 
         // Then another 401 is terminal rather than an unbounded authentication loop
-        expect(result?.jsonCode).toBe(401);
+        expect(result).toBe(401);
         expect(authenticate).toHaveBeenCalledTimes(1);
     });
 
@@ -189,7 +191,7 @@ describe('attachment and API authentication', () => {
         finishProbe(response(401));
 
         // Then stale work cannot initiate a sign-in for the current view
-        expect((await recovery)?.jsonCode).toBe(401);
+        expect(await recovery).toBe(401);
         expect(authenticate).not.toHaveBeenCalled();
     });
 
@@ -199,11 +201,11 @@ describe('attachment and API authentication', () => {
         recordFailure();
         const previousFailures = getFailureCount();
 
-        // When recovery checks the image endpoint through the real middleware
+        // When recovery checks the image endpoint through its dedicated request path
         const recovery = await startImageRequest();
 
         // Then neither authentication nor API-health changes are justified by this image result
-        expect(recovery?.jsonCode).toBe(typeof result === 'number' ? result : undefined);
+        expect(recovery).toBe(typeof result === 'number' ? result : undefined);
         expect(authenticate).not.toHaveBeenCalled();
         expect(getFailureCount()).toBe(previousFailures);
     });
@@ -231,18 +233,56 @@ describe('attachment and API authentication', () => {
         const result = await startImageRequest();
 
         // Then the rejection is returned and ordinary network requests are not left paused
-        expect(result?.jsonCode).toBe(401);
+        expect(result).toBe(401);
         expect(NetworkStore.isAuthenticating()).toBe(false);
         expect(redirectToSignIn).toHaveBeenCalledTimes(1);
     });
 
-    it('does not log encrypted credentials embedded in an image query string', async () => {
+    it('does not duplicate probes or consume API load-test headers', async () => {
+        // Given an active API load-test window and an unrelated image response
+        setLoadTestParameters(JSON.stringify({multiplier: 3, expire: '2099-01-01T00:00:00'}));
+        imageResponse.mockResolvedValue(response(200));
+        const update = jest.spyOn(Onyx, 'update');
+
+        // When a HEAD uses its dedicated processing path
+        const status = await startImageRequest();
+
+        // Then no API middleware duplicates it, clears the header state, or applies Onyx data
+        expect(status).toBe(200);
+        expect(imageResponse).toHaveBeenCalledTimes(1);
+        expect(getDuplicateRequestCount()).toBe(2);
+        expect(update).not.toHaveBeenCalled();
+    });
+
+    it.each(['offline', 'cancelled'])('does not dispatch a probe when %s', async (reason) => {
+        // Given a probe that cannot run for its current image
+        const controller = new AbortController();
+        if (reason === 'offline') {
+            setHasRadio(false);
+        } else {
+            controller.abort();
+        }
+
+        // When the dedicated request path receives it
+        const status = await startImageRequest(IMAGE_URL, controller.signal);
+
+        // Then neither the image transport nor authentication sends a request
+        expect(status).toBe(403);
+        expect(imageResponse).not.toHaveBeenCalled();
+        expect(authenticate).not.toHaveBeenCalled();
+    });
+
+    it.each([false, true])('does not log credentials in image URLs or transport errors: failure=%s', async (isFailure) => {
         // Given a legacy image URL carrying a bearer credential
         const secret = 'image-query-secret';
         const logInfo = jest.spyOn(Log, 'info');
-        imageResponse.mockResolvedValue(response(200));
+        if (isFailure) {
+            imageResponse.mockRejectedValue(new Error(`${IMAGE_URL}?encryptedAuthToken=${secret}`));
+        } else {
+            imageResponse.mockResolvedValue(response(200));
+        }
 
-        // When API logging observes the HEAD request
+        // When request logging observes the HEAD request
         await startImageRequest(`${IMAGE_URL}?encryptedAuthToken=${secret}`);
 
         // Then neither the query credential nor the encrypted header enters request logs

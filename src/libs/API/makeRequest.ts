@@ -1,6 +1,8 @@
 import Log from '@libs/Log';
 import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
+import processHeadRequest from '@libs/processHeadRequest';
+import type {HeadRequest} from '@libs/processHeadRequest';
 import Pusher from '@libs/Pusher';
 import {processWithMiddleware} from '@libs/Request';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
@@ -95,7 +97,15 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
 /**
  * Process a prepared request according to its type.
  */
-async function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: ApiRequestType): Promise<void | Response<TKey>> {
+function processRequest(request: HeadRequest, type: typeof CONST.API_REQUEST_TYPE.HEAD_REQUEST): Promise<number | undefined>;
+function processRequest<TKey extends OnyxKey>(request: OnyxRequest<TKey>, type: ApiRequestType): Promise<void | Response<TKey>>;
+async function processRequest<TKey extends OnyxKey>(
+    ...[request, type]: [HeadRequest, typeof CONST.API_REQUEST_TYPE.HEAD_REQUEST] | [OnyxRequest<TKey>, ApiRequestType]
+): Promise<number | void | Response<TKey>> {
+    if (type === CONST.API_REQUEST_TYPE.HEAD_REQUEST) {
+        return processHeadRequest(request);
+    }
+
     Log.info('[API] Processing request', false, {command: request.command, type});
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
