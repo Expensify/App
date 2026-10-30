@@ -289,6 +289,7 @@ key "key"
       / groupCurrency
       / tag
       / category
+      / vendor
       / to
       / taxRate
       / cardID
@@ -306,6 +307,7 @@ key "key"
       / paidStatus
       / withdrawalID
       / submitted
+      / anyApproval
       / approved
       / paid
       / exportedTo
@@ -321,6 +323,8 @@ key "key"
       / createdBy
       / reimbursable
       / billable
+      / declined
+      / held
       / action
       / has
       / is

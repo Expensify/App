@@ -14,7 +14,6 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OutstandingReportsByPolicyIDDerivedValue, PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -35,6 +34,10 @@ function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<type
 
 function getReportChatType(report: OnyxEntry<Report>) {
     return report?.chatType;
+}
+
+function getReportType(report: OnyxEntry<Report>) {
+    return report?.type;
 }
 
 function getReportPolicyID(report: OnyxEntry<Report>) {
@@ -72,6 +75,10 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
             if (isThread(report)) {
                 return CONST.REPORT_AVATAR_KIND.CHAT_THREAD;
             }
+            // Only a trip room missing its parent fields gets here. Legacy `isTripRoom` requires type=chat, so one without a type stays DEFAULT.
+            if (report.chatType === CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
+                return CONST.REPORT_AVATAR_KIND.TRIP_ROOM;
+            }
             break;
         case undefined:
             // Legacy `getIcons` classifies chats purely off chatType, so a chat row whose `type` hasn't populated
@@ -93,7 +100,7 @@ function reportAvatarKindSelector(report: OnyxEntry<Report>): ValueOf<typeof CON
         case CONST.REPORT.CHAT_TYPE.INVOICE:
             return CONST.REPORT_AVATAR_KIND.ROOM;
         default:
-            // DM, self-DM, system, a trip room without its parent fields and anything unclassified
+            // DM, self-DM, system, a trip room without a type and anything unclassified
             return CONST.REPORT_AVATAR_KIND.DEFAULT;
     }
 }
@@ -156,6 +163,13 @@ function reportPolicyFieldsSelector(report: OnyxEntry<Report>): Pick<Report, 'po
         return undefined;
     }
     return {policyID: report.policyID, policyName: report.policyName, oldPolicyName: report.oldPolicyName, policyAvatar: report.policyAvatar};
+}
+
+function reportTypeAndParentIDsSelector(report: OnyxEntry<Report>): Pick<Report, 'type' | 'chatReportID' | 'parentReportID'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {type: report.type, chatReportID: report.chatReportID, parentReportID: report.parentReportID};
 }
 
 const policyIDsWithEmptyReportsSelector =
@@ -320,6 +334,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         created: report.created,
         submitted: report.submitted,
         approved: report.approved,
+        paid: report.paid,
         submitterUserID: report.submitterUserID,
         submitterPayrollID: report.submitterPayrollID,
         orderDealNumbers: report.orderDealNumbers,
@@ -327,6 +342,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         debitedCurrency: report.debitedCurrency,
         creditedAmount: report.creditedAmount,
         creditedCurrency: report.creditedCurrency,
+        withdrawalIDs: report.withdrawalIDs,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,
@@ -353,7 +369,6 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         // Coerce placeholder `0` to `undefined`. The backend ships `managerID: 0` on chat reports
         // without a manager, and a later push removes the key entirely; treating both as
         // `undefined` keeps the projection stable through that reconciliation.
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         managerID: report.managerID || undefined,
         supportTicketCalendarLink: report.supportTicketCalendarLink,
         ownerAccountID: report.ownerAccountID,
@@ -368,6 +383,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         errors: report.errors,
         isWaitingOnBankAccount: report.isWaitingOnBankAccount,
         canCancelReimbursement: report.canCancelReimbursement,
+        isWaitingForCancelledReimbursement: report.isWaitingForCancelledReimbursement,
         isCancelledIOU: report.isCancelledIOU,
         hasReportBeenRetracted: report.hasReportBeenRetracted,
         hasReportBeenReopened: report.hasReportBeenReopened,
@@ -390,18 +406,28 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
-function reportHierarchySelector(report: OnyxEntry<Report>): OnyxEntry<ReportHierarchyInfo> {
-    return (
-        report && {
-            parentReportID: report.parentReportID,
-            parentReportActionID: report.parentReportActionID,
+/**
+ * Creates a selector returning the parent links of the given report and each of its ancestors, so a consumer only
+ * looks up the reports on that chain instead of iterating the whole collection.
+ */
+function reportParentChainSelector(reportID: string | undefined) {
+    return function selectReportParentChain(reports: OnyxCollection<Report>): OnyxCollection<ReportHierarchyInfo> {
+        const result: OnyxCollection<ReportHierarchyInfo> = {};
+        let currentReportID = reportID;
+        while (currentReportID) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT}${currentReportID}` as const;
+            const report = reports?.[key];
+            // Stop at the top of the chain, and at an already visited report in case the links form a cycle
+            if (!report || result[key]) {
+                break;
+            }
+            result[key] = {parentReportID: report.parentReportID, parentReportActionID: report.parentReportActionID};
+            currentReportID = report.parentReportID;
         }
-    );
+        return result;
+    };
 }
 
-function reportsParentHierarchySelector(reports: OnyxCollection<Report>): OnyxCollection<ReportHierarchyInfo> {
-    return mapOnyxCollectionItems(reports, reportHierarchySelector);
-}
 /**
  * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
  * reports it needs doesn't re-render when any other report in the account changes.
@@ -420,6 +446,7 @@ const reportsByIDsSelector =
 export {
     getArchiveReason,
     getReportChatType,
+    getReportType,
     groupChatAvatarReportSelector,
     getReportOwnerAccountID,
     getReportParentReportID,
@@ -431,13 +458,14 @@ export {
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
     reportPolicyFieldsSelector,
+    reportTypeAndParentIDsSelector,
     roomAvatarFieldsSelector,
     createMoveExpenseReportNVPSelector,
     createOutstandingReportsForPolicySelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
-    reportsParentHierarchySelector,
+    reportParentChainSelector,
     reportsByIDsSelector,
 };
 

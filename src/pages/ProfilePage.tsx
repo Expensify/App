@@ -22,6 +22,7 @@ import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -66,6 +67,7 @@ import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -89,6 +91,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useAllPersonalDetails();
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
@@ -101,7 +104,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'History', 'Pencil', 'Phone', 'UserPlus']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
+    const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
@@ -119,7 +122,8 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
 
     const isValidAccountID = isValidAccountRoute(accountID);
-    const loginParams = route.params?.login;
+    const loginParams = route.params?.login?.toLowerCase();
+    const personalDetailsByLogin = usePersonalDetailsByLogins([loginParams]);
 
     let details: OnyxEntry<PersonalDetails>;
     // Check if we have the personal details already in Onyx
@@ -207,7 +211,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const promotedActions: PromotedAction[] = [];
     if (report) {
-        promotedActions.push(PromotedActions.pin(report));
+        promotedActions.push(PromotedActions.pin(report, session));
     }
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
@@ -218,6 +222,7 @@ function ProfilePage({route}: ProfilePageProps) {
                 personalDetails,
                 accountID,
                 login: loginParams,
+                personalDetailsByLogin,
                 currentUserAccountID,
                 introSelected,
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
@@ -337,7 +342,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                     shouldTruncateTitle
                                     characterLimit={CONST.AGENT_PROMPT_LIMIT}
                                     shouldShowRightIcon
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT_PROMPT.getRoute()))}
                                 />
                             </OfflineWithFeedback>
                         )}
@@ -372,7 +377,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
-                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true))}>
+                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true), false, session)}>
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <MenuItem.Icon src={expensifyIcons.Pencil} />

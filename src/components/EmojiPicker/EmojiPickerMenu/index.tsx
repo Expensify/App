@@ -22,7 +22,6 @@ import isEnterWhileComposition from '@libs/KeyboardShortcut/isEnterWhileComposit
 import {shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 
 import type {ListRenderItem} from '@shopify/flash-list';
 import type {ComponentRef} from 'react';
@@ -84,7 +83,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         }
         pendingHeaderFocusIndexRef.current = null;
 
-        (headerRef.current as unknown as HTMLElement).focus?.();
+        headerRef.current.focus();
         return true;
     }, []);
 
@@ -343,7 +342,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                             target === 'StickyHeader' ? styles.stickyHeaderEmoji : undefined,
                         ]}
                     >
-                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${item.code}`)}</Text>
                     </View>
                 );
             }
