@@ -498,6 +498,12 @@ export default {
     searchAutocompleteInputSkeletonHeight: 8,
     searchAutocompleteInputSkeletonWidth: 145,
 
+    reportHistoryLabelGap: 12,
+    reportHistoryConnectorHeight: 12,
+    reportHistoryConnectorMarginVertical: 4,
+    reportHistorySkeletonLabelHeight: 8,
+    reportHistorySkeletonLabelWidth: 160,
+
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
 
