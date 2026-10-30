@@ -22,7 +22,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {reportActionsLoadingStateSelector, isOptimisticReportSelector} from '@src/selectors/ReportMetaData';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 import type {ListRenderItem} from '@shopify/flash-list';
@@ -40,7 +39,6 @@ import {
     ReportPreviewCarouselListContext,
     ReportPreviewCarouselStateContext,
     ReportPreviewDataContext,
-    ReportPreviewHoldMenuContext,
     ReportPreviewMetaContext,
     ReportPreviewTransactionViolationsContext,
     ReportPreviewUIStateContext,
@@ -112,11 +110,6 @@ function MoneyRequestReportPreviewProvider({
         const pending = getPendingSubmitFollowUpAction();
         return pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT && (pending?.reportID === chatReportID || pending?.reportID === iouReportID);
     });
-    const [holdMenu, setHoldMenu] = useState<{
-        paymentType: PaymentMethodType | undefined;
-        canPay: boolean;
-        methodID: number | undefined;
-    } | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -234,12 +227,6 @@ function MoneyRequestReportPreviewProvider({
         }
     };
 
-    // Only the pay flow opens this menu; approve surfaces its partial/full choice in the approve dropdown instead.
-    const onHoldMenuOpen = (paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
-        setHoldMenu({paymentType, canPay: !!canPay, methodID});
-    };
-    const onHoldMenuClose = () => setHoldMenu(null);
-
     const shouldShowCarouselArrows = !shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible;
     const buttonMaxWidth =
         !shouldUseNarrowLayout && reportPreviewStyles.transactionPreviewCarouselStyle.width >= CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.MIN_WIDE_WIDTH
@@ -293,8 +280,6 @@ function MoneyRequestReportPreviewProvider({
     const carouselStateValue = {isPreviousDisabled, isNextDisabled};
     const actionsValue = {
         openReportFromPreview,
-        onHoldMenuOpen,
-        onHoldMenuClose,
         onPaymentOptionsShow,
         onPaymentOptionsHide,
         stopAnimation,
@@ -315,9 +300,7 @@ function MoneyRequestReportPreviewProvider({
                             <ReportPreviewCarouselListContext.Provider value={carouselList}>
                                 <ReportPreviewActionStateContext.Provider value={actionStateValue}>
                                     <ReportPreviewActionsContext.Provider value={actionsValue}>
-                                        <ReportPreviewHoldMenuContext.Provider value={holdMenu}>
-                                            <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
-                                        </ReportPreviewHoldMenuContext.Provider>
+                                        <ReportPreviewMetaContext.Provider value={metaValue}>{children}</ReportPreviewMetaContext.Provider>
                                     </ReportPreviewActionsContext.Provider>
                                 </ReportPreviewActionStateContext.Provider>
                             </ReportPreviewCarouselListContext.Provider>

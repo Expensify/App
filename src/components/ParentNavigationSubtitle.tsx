@@ -72,7 +72,7 @@ type ParentNavigationSubtitleProps = {
 
 /** Picks the fields that find a report's parent, so the subtitle doesn't re-render when other fields of the report change */
 function parentNavigationReportSelector(report: OnyxEntry<Report>) {
-    return report && {hasParentAccess: getReportHasParentAccess(report), type: report.type, ownerAccountID: report.ownerAccountID, policyID: report.policyID};
+    return report && {hasParentAccess: getReportHasParentAccess(report), isExpenseReport: isExpenseReport(report), ownerAccountID: report.ownerAccountID, policyID: report.policyID};
 }
 
 function ParentNavigationSubtitle({
@@ -110,7 +110,7 @@ function ParentNavigationSubtitle({
     const {translate} = useLocalize();
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: parentNavigationReportSelector});
     const hasParentAccess = currentReport?.hasParentAccess;
-    const policyExpenseChat = !parentReportID && currentReport && isExpenseReport(currentReport) ? getPolicyExpenseChat(currentReport.ownerAccountID, currentReport.policyID) : undefined;
+    const policyExpenseChat = !parentReportID && currentReport?.isExpenseReport ? getPolicyExpenseChat(currentReport.ownerAccountID, currentReport.policyID) : undefined;
     const parentNavigationReportID = parentReportID || policyExpenseChat?.reportID;
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReportID)}`);
     const report = parentReport ?? policyExpenseChat;

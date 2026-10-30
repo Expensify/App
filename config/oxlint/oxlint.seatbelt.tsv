@@ -627,10 +627,10 @@
 "../../src/libs/actions/__mocks__/App.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/__mocks__/App.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/__mocks__/OnyxUpdates.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/App.ts"	"import/no-cycle"	1
+"../../src/libs/actions/App.ts"	"import/no-cycle"	2
 "../../src/libs/actions/App.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/applyOnyxUpdatesReliably.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/BankAccounts.ts"	"import/no-cycle"	1
+"../../src/libs/actions/BankAccounts.ts"	"import/no-cycle"	3
 "../../src/libs/actions/BankAccounts.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/CanvasSize.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Card.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -750,6 +750,8 @@
 "../../src/libs/actions/Policy/Travel.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/PolicyConnections.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/QueuedOnyxUpdates.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/libs/actions/ReimbursementAccount/index.ts"	"import/no-cycle"	1
+"../../src/libs/actions/ReimbursementAccount/navigation.ts"	"import/no-cycle"	1
 "../../src/libs/actions/ReimbursementAccount/resetNonUSDBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/ReimbursementAccount/resetUSDBankAccount.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/replaceOptimisticReportWithActualReport.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -781,7 +783,7 @@
 "../../src/libs/actions/Subscription.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Tab.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/Task.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	8
-"../../src/libs/actions/Task.ts"	"import/no-cycle"	6
+"../../src/libs/actions/Task.ts"	"import/no-cycle"	7
 "../../src/libs/actions/Task.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Task.ts"	"no-restricted-syntax"	5
 "../../src/libs/actions/TaskDeletion.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -801,11 +803,11 @@
 "../../src/libs/actions/Wallet.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
 "../../src/libs/actions/Wallet.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/actions/Wallet.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/Welcome/index.ts"	"import/no-cycle"	2
+"../../src/libs/actions/Welcome/index.ts"	"import/no-cycle"	3
 "../../src/libs/actions/Welcome/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Welcome/OnboardingFlow.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/Welcome/OnboardingFlow.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/libs/actions/Welcome/OnboardingFlow.ts"	"import/no-cycle"	2
+"../../src/libs/actions/Welcome/OnboardingFlow.ts"	"import/no-cycle"	3
 "../../src/libs/actions/Workflow.ts"	"import/no-cycle"	3
 "../../src/libs/API/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/API/makeRequest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -935,6 +937,7 @@
 "../../src/libs/Navigation/helpers/getAdaptedStateFromPath.ts"	"import/no-cycle"	1
 "../../src/libs/Navigation/helpers/getOnboardingRouteFromScreen.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/Navigation/helpers/getParamsFromRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/libs/Navigation/helpers/getReportURLForCurrentContext.ts"	"import/no-cycle"	1
 "../../src/libs/Navigation/helpers/getStateFromPath.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Navigation/helpers/getTopmostFullScreenRoute.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Navigation/helpers/getTopmostReportParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -957,6 +960,7 @@
 "../../src/libs/Navigation/linkingConfig/RELATIONS/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/Navigation/Navigation.ts"	"@typescript-eslint/no-unsafe-type-assertion"	10
+"../../src/libs/Navigation/Navigation.ts"	"import/no-cycle"	1
 "../../src/libs/Navigation/OnyxTabNavigator.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/index.native.tsx"	"@typescript-eslint/no-deprecated/NavigationContent"	1
 "../../src/libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/index.tsx"	"@typescript-eslint/no-deprecated/NavigationContent"	1
@@ -994,8 +998,9 @@
 "../../src/libs/PolicyUtils/errors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/PolicyUtils/errors.ts"	"import/no-cycle"	3
 "../../src/libs/PolicyUtils/features.ts"	"import/no-cycle"	2
-"../../src/libs/PolicyUtils/index.ts"	"import/no-cycle"	9
+"../../src/libs/PolicyUtils/index.ts"	"import/no-cycle"	10
 "../../src/libs/PolicyUtils/members.ts"	"import/no-cycle"	2
+"../../src/libs/PolicyUtils/navigation.ts"	"import/no-cycle"	1
 "../../src/libs/PolicyUtils/policy.ts"	"import/no-cycle"	2
 "../../src/libs/PolicyUtils/rules.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/PolicyUtils/tag.ts"	"import/no-cycle"	1
@@ -1010,7 +1015,7 @@
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-deprecated/reportAction.sequenceNumber"	1
 "../../src/libs/ReportActionsUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	109
-"../../src/libs/ReportActionsUtils.ts"	"import/no-cycle"	1
+"../../src/libs/ReportActionsUtils.ts"	"import/no-cycle"	2
 "../../src/libs/ReportActionsUtils.ts"	"rulesdir/no-onyx-connect"	2
 "../../src/libs/ReportAlternateTextUtils.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/ReportNameUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1023,7 +1028,7 @@
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-deprecated/translateLocal"	7
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	16
 "../../src/libs/ReportUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	31
-"../../src/libs/ReportUtils.ts"	"import/no-cycle"	5
+"../../src/libs/ReportUtils.ts"	"import/no-cycle"	8
 "../../src/libs/ReportUtils.ts"	"rulesdir/no-onyx-connect"	13
 "../../src/libs/sanitizeLogParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
@@ -1042,6 +1047,7 @@
 "../../src/libs/StatusBar/index.android.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/StatusBar/index.web.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/StatusBar/types.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/libs/TaskUtils.ts"	"import/no-cycle"	1
 "../../src/libs/telemetry/forwardLogsToSentry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/telemetry/TelemetrySynchronizer.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/TransactionPreviewUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1268,7 +1274,6 @@
 "../../src/pages/iou/request/step/DynamicIOURequestStepDestination.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepDistance.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepDistance.tsx"	"rulesdir/no-onyx-loading-status"	1
-"../../src/pages/iou/request/step/DynamicIOURequestStepReport.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/iou/request/step/DynamicIOURequestStepSubrate.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepSubrate.tsx"	"no-restricted-imports"	1
 "../../src/pages/iou/request/step/DynamicIOURequestStepSubrate.tsx"	"react-hooks/set-state-in-effect"	1
@@ -2262,6 +2267,7 @@
 "../../tests/actions/EnforceActionExportRestrictions.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOU/BuildOnyxDataForMoneyRequestTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
 "../../tests/actions/IOU/CreateDraftTransactionTest.ts"	"no-restricted-imports"	1
+"../../tests/actions/IOU/GetMoneyRequestInformationTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/actions/IOU/MoneyRequestBuilderTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/actions/IOU/MoneyRequestBuilderTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOU/MoneyRequestSettersTest.ts"	"no-restricted-imports"	1
@@ -2281,7 +2287,7 @@
 "../../tests/actions/IOUTest/RejectMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/actions/IOUTest/SplitSelfDMTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/actions/IOUTest/SplitTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	2
-"../../tests/actions/IOUTest/TrackExpenseTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
+"../../tests/actions/IOUTest/TrackExpenseTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	6
 "../../tests/actions/IOUTest/TrackExpenseTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/UpdateMoneyRequestTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/UpdateMoneyRequestVendorTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1

@@ -35,7 +35,6 @@ const translations: TranslationDeepObject<typeof en> = {
     billPay: {
         bill: 'Λογαριασμός',
         bills: 'Λογαριασμοί',
-        payByACH: 'Πληρωμή μέσω ACH',
         markAsPaid: 'Σήμανση ως πληρωμένο',
         paymentFailed: 'Δεν μπορέσαμε να πληρώσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
     },
@@ -3393,6 +3392,7 @@ ${amount} για ${merchant} - ${date}`,
         approverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα ή διαγράψτε αυτή τη ροή εργασίας.',
         defaultWorkflowApproverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα.',
         overLimitApproverNotWorkspaceMember: 'Ο πρόσθετος εγκρίνων για αναφορές πάνω από το όριο δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο πρόσθετο εγκρίνοντα.',
+        overLimitApproverInWorkflow: 'Ο επιπλέον εγκρίνων για αναφορές πάνω από το όριο είναι ήδη εγκρίνων σε αυτή τη ροή εργασίας. Επιλέξτε έναν διαφορετικό επιπλέον εγκρίνοντα.',
         approverCircularReference: (name1: string, name2: string) =>
             `Ο/Η <strong>${name1}</strong> ήδη εγκρίνει αναφορές προς τον/την <strong>${name2}</strong>. Παρακαλούμε επιλέξτε διαφορετικό εγκρίνων για να αποφύγετε έναν κυκλικό κύκλο έγκρισης.`,
         emptyContent: {
@@ -11049,6 +11049,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδα',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτος',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνο',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνων',
             },
             feed: 'Ροή',
             withdrawalType: {
@@ -11112,6 +11113,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδες',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτη',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνα',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνοντες',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Καμία δαπάνη ακόμη',

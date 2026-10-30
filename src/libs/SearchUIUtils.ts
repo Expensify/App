@@ -13,6 +13,7 @@ import type {
     ReportActionListItemType,
     SearchListItem,
     TaskListItemType,
+    TransactionApproverGroupListItemType,
     TransactionCardGroupListItemType,
     TransactionCategoryGroupListItemType,
     TransactionDayGroupListItemType,
@@ -59,6 +60,7 @@ import type {
     SyntaxFilterKey,
 } from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
+import type {RowChromeWidths} from '@components/Table/columnResize/getResizableColumnLayout';
 
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
@@ -290,6 +292,7 @@ type TransactionMonthGroupSorting = ColumnSortMapping<TransactionMonthGroupListI
 type TransactionWeekGroupSorting = ColumnSortMapping<TransactionWeekGroupListItemType>;
 type TransactionYearGroupSorting = ColumnSortMapping<TransactionYearGroupListItemType>;
 type TransactionQuarterGroupSorting = ColumnSortMapping<TransactionQuarterGroupListItemType>;
+type TransactionApproverGroupSorting = ColumnSortMapping<TransactionApproverGroupListItemType>;
 
 type GetReportSectionsParams = {
     data: OnyxTypes.SearchResults['data'];
@@ -472,6 +475,12 @@ const transactionYearGroupColumnNamesToSortingProperty: TransactionYearGroupSort
 
 const transactionQuarterGroupColumnNamesToSortingProperty: TransactionQuarterGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER]: 'sortKey' as const,
+    ...transactionGroupBaseSortingProperties,
+};
+
+const transactionApproverGroupColumnNamesToSortingProperty: TransactionApproverGroupSorting = {
+    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER]: 'formattedApprover' as const,
     ...transactionGroupBaseSortingProperties,
 };
 
@@ -1001,6 +1010,10 @@ function isTransactionYearGroupListItemType(item: ListItem): item is Transaction
 
 function isTransactionQuarterGroupListItemType(item: ListItem): item is TransactionQuarterGroupListItemType {
     return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER;
+}
+
+function isTransactionApproverGroupListItemType(item: ListItem): item is TransactionApproverGroupListItemType {
+    return isTransactionGroupListItemType(item) && 'groupedBy' in item && item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER;
 }
 
 /**
@@ -3192,6 +3205,12 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
             return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
+        case CONST.SEARCH.GROUP_BY.APPROVER: {
+            if (!groupData || typeof groupData !== 'object' || !('accountID' in groupData) || typeof groupData.accountID !== 'number') {
+                return undefined;
+            }
+            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, value: groupData.accountID};
+        }
         case CONST.SEARCH.GROUP_BY.CARD:
             return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
@@ -3332,6 +3351,12 @@ function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | unde
                 }
                 break;
             }
+            case CONST.SEARCH.GROUP_BY.APPROVER: {
+                if ('accountID' in group && typeof group.accountID === 'number') {
+                    transactionsQueryJSON = buildApproverGroupQuery(queryJSON, group.accountID);
+                }
+                break;
+            }
             default:
                 break;
         }
@@ -3368,9 +3393,14 @@ function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start:
     return {transactionsQueryJSON, start, end};
 }
 
+function buildApproverGroupQuery(queryJSON: SearchQueryJSON, accountID: number): SearchQueryJSON | undefined {
+    return buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER, accountID);
+}
+
 /**
  * @private
- * Organizes data into List Sections grouped by member for display, for the TransactionGroupListItemType of Search Results.
+ * Organizes data into List Sections grouped by a person for display, for the TransactionGroupListItemType of Search Results:
+ * the submitter when grouping by from, or the approver when grouping by approver.
  *
  * Do not use directly, use only via `getSections()` facade.
  */
@@ -3380,25 +3410,30 @@ function getMemberSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocalizedTranslate,
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList,
-): [TransactionMemberGroupListItemType[], number, boolean] {
-    const memberSections: Record<string, TransactionMemberGroupListItemType> = {};
+    groupBy: typeof CONST.SEARCH.GROUP_BY.FROM | typeof CONST.SEARCH.GROUP_BY.APPROVER = CONST.SEARCH.GROUP_BY.FROM,
+): [Array<TransactionMemberGroupListItemType | TransactionApproverGroupListItemType>, number, boolean] {
+    const memberSections: Record<string, TransactionMemberGroupListItemType | TransactionApproverGroupListItemType> = {};
+    const isApproverGroup = groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
+    const filterKey = isApproverGroup ? CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER : CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM;
 
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
 
             const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? onyxPersonalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
-            const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID) : undefined;
-
-            memberSections[key] = {
-                groupedBy: CONST.SEARCH.GROUP_BY.FROM,
+            const transactionsQueryJSON = queryJSON && memberGroup.accountID ? buildSpecificGroupQuery(queryJSON, filterKey, memberGroup.accountID) : undefined;
+            const formattedName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
+            const section = {
                 transactions: [],
                 transactionsQueryJSON,
                 ...personalDetails,
                 ...memberGroup,
-                formattedFrom: temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber}),
                 keyForList: key,
             };
+
+            memberSections[key] = isApproverGroup
+                ? {...section, groupedBy: CONST.SEARCH.GROUP_BY.APPROVER, formattedApprover: formattedName}
+                : {...section, groupedBy: CONST.SEARCH.GROUP_BY.FROM, formattedFrom: formattedName};
         }
     }
 
@@ -3969,6 +4004,8 @@ function getSections({
                 return getYearSections(data, queryJSON);
             case CONST.SEARCH.GROUP_BY.QUARTER:
                 return getQuarterSections(data, queryJSON, dateFnsLocale);
+            case CONST.SEARCH.GROUP_BY.APPROVER:
+                return getMemberSections(data, queryJSON, formatPhoneNumber, translate, onyxPersonalDetailsList, CONST.SEARCH.GROUP_BY.APPROVER);
         }
     }
 
@@ -4029,9 +4066,12 @@ const groupBySortFunction: Record<SearchGroupBy, GroupBySortFunction> = {
     [CONST.SEARCH.GROUP_BY.WEEK]: createGroupSortFunction<TransactionWeekGroupListItemType>(transactionWeekGroupColumnNamesToSortingProperty, (a, b, lc) => lc(a.week, b.week)),
     [CONST.SEARCH.GROUP_BY.YEAR]: createGroupSortFunction<TransactionYearGroupListItemType>(transactionYearGroupColumnNamesToSortingProperty, (a, b) => a.year - b.year),
     [CONST.SEARCH.GROUP_BY.QUARTER]: createGroupSortFunction<TransactionQuarterGroupListItemType>(transactionQuarterGroupColumnNamesToSortingProperty, (a, b) => a.sortKey - b.sortKey),
+    [CONST.SEARCH.GROUP_BY.APPROVER]: createGroupSortFunction<TransactionApproverGroupListItemType>(transactionApproverGroupColumnNamesToSortingProperty, (a, b, lc) =>
+        lc(a.formattedApprover ?? '', b.formattedApprover ?? ''),
+    ),
 };
 
-const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchColumnType[]>> = {
+const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchCustomColumnIds[]>> = {
     [CONST.SEARCH.GROUP_BY.FROM]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM],
     [CONST.SEARCH.GROUP_BY.CARD]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD],
     [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID],
@@ -4043,6 +4083,7 @@ const groupByRequiredColumns: Partial<Record<SearchGroupBy, SearchColumnType[]>>
     [CONST.SEARCH.GROUP_BY.WEEK]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK],
     [CONST.SEARCH.GROUP_BY.YEAR]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR],
     [CONST.SEARCH.GROUP_BY.QUARTER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER],
+    [CONST.SEARCH.GROUP_BY.APPROVER]: [CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER],
 };
 
 /**
@@ -4628,6 +4669,8 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR);
         case CONST.SEARCH.GROUP_BY.QUARTER:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER);
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER);
         default:
             return [];
     }
@@ -4670,6 +4713,8 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.YEAR;
         case CONST.SEARCH.GROUP_BY.QUARTER:
             return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER;
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.APPROVER;
         default:
             return [];
     }
@@ -4833,6 +4878,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.year';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER:
             return 'common.quarter';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER:
+            return 'search.filters.groupBy.approver';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
             return 'search.filters.withdrawn';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
@@ -5650,9 +5697,10 @@ function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
         text: translate(`search.filters.groupBy.${groupBy}`),
         value: groupBy,
     });
-    return [
+
+    const sections: Array<Omit<GroupBySection, 'sectionIndex'>> = [
         {
-            options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD)],
+            options: [getOption(CONST.SEARCH.GROUP_BY.FROM), getOption(CONST.SEARCH.GROUP_BY.CARD), getOption(CONST.SEARCH.GROUP_BY.APPROVER)],
         },
         {
             options: [getOption(CONST.SEARCH.GROUP_BY.CATEGORY), getOption(CONST.SEARCH.GROUP_BY.MERCHANT), getOption(CONST.SEARCH.GROUP_BY.TAG)],
@@ -5669,7 +5717,9 @@ function getGroupBySections(translate: LocalizedTranslate): GroupBySection[] {
         {
             options: [getOption(CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID)],
         },
-    ].map((section, sectionIndex) => ({
+    ];
+
+    return sections.map((section, sectionIndex) => ({
         ...section,
         sectionIndex,
     }));
@@ -5996,6 +6046,10 @@ const FILTER_VIEW_MAP = {
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM]: {
         labelKey: 'common.from',
         icon: 'User',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER]: {
+        labelKey: 'common.approver',
+        icon: 'UserCheck',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS]: {
         labelKey: 'search.has',
@@ -6364,6 +6418,8 @@ function getDisplayValue(
     if (
         key === FILTER_KEYS.FROM ||
         key === FILTER_KEYS.FROM_NOT ||
+        key === FILTER_KEYS.APPROVER ||
+        key === FILTER_KEYS.APPROVER_NOT ||
         key === FILTER_KEYS.TO ||
         key === FILTER_KEYS.TO_NOT ||
         key === FILTER_KEYS.ATTENDEE ||
@@ -6967,6 +7023,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK,
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR,
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER,
+            [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER,
         }[groupBy];
 
         const defaultCustomColumns = {
@@ -6981,6 +7038,7 @@ function getColumnsToShow({
             [CONST.SEARCH.GROUP_BY.WEEK]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WEEK,
             [CONST.SEARCH.GROUP_BY.YEAR]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.YEAR,
             [CONST.SEARCH.GROUP_BY.QUARTER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.QUARTER,
+            [CONST.SEARCH.GROUP_BY.APPROVER]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.APPROVER,
         }[groupBy];
 
         const filteredVisibleColumns = customColumns ? visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>)) : [];
@@ -7040,7 +7098,6 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: false,
           }
         : {
-              [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
               [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TYPE]: true,
               [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
@@ -7418,7 +7475,30 @@ const SEARCH_TABLE_ROW_ARROW_WIDTH = variables.iconSizeNormal;
  * of width at the end of the row that no column ever fills.
  */
 function getSearchTableRowInsetWidth(columnCount: number): number {
-    return variables.searchTableRowCheckboxWidth + (columnCount + 1) * variables.searchTableColumnGap + SEARCH_TABLE_ROW_ARROW_WIDTH + variables.searchTableRowChromeWidth;
+    const {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth} = getSearchTableRowChromeWidths(columnCount);
+
+    return selectionColumnWidth + totalGapWidth + rowMarginWidth + rowPaddingWidth;
+}
+
+/**
+ * Search row inset in the shape column resizing reads, so resizing works against the same room as the scroller.
+ * The checkbox and the trailing arrow count as the selection width, since resizing only sums the row chrome.
+ */
+function getSearchTableRowChromeWidths(columnCount: number): RowChromeWidths {
+    return {
+        selectionColumnWidth: variables.searchTableRowCheckboxWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
+        totalGapWidth: (columnCount + 1) * variables.searchTableColumnGap,
+        rowMarginWidth: variables.searchTableRowChromeWidth,
+        rowPaddingWidth: 0,
+    };
+}
+
+/**
+ * One stored layout per data type, since each shows its own columns. Grouped tables don't resize, so the group-by isn't
+ * part of it. Not per query, so a filter change keeps the widths.
+ */
+function getSearchColumnResizingID(type: SearchDataTypes): string {
+    return `${CONST.TABLES.COLUMN_RESIZING_IDS.SEARCH_PREFIX}:${type}`;
 }
 
 function getTableMinWidth(
@@ -7831,6 +7911,9 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
         const transactionQuarter = Math.floor((transactionMonth - 1) / 3) + 1;
         return transactionYear === quarterGroup.year && transactionQuarter === quarterGroup.quarter;
     }
+    if (groupBy === CONST.SEARCH.GROUP_BY.APPROVER) {
+        return !!transaction.transactionID;
+    }
     return false;
 }
 
@@ -7858,6 +7941,7 @@ export {
     isTransactionWeekGroupListItemType,
     isTransactionYearGroupListItemType,
     isTransactionQuarterGroupListItemType,
+    isTransactionApproverGroupListItemType,
     isGroupedItemArray,
     isGroupEntry,
     isReportEntry,
@@ -7917,12 +8001,15 @@ export {
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,
     getSearchTableRowInsetWidth,
+    getSearchTableRowChromeWidths,
+    getSearchColumnResizingID,
     getTableMinWidth,
     getGroupColumnWidthFlags,
     getGroupTableScrollLayout,
     getCustomColumns,
     getCustomColumnDefault,
     filterValidHasValues,
+    groupByRequiredColumns,
     navigateToSearchRHP,
     shouldShowDeleteOption,
     getToFieldValueForTransaction,

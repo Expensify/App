@@ -38,7 +38,6 @@ const translations: TranslationDeepObject<typeof en> = {
     billPay: {
         bill: 'Eingangsrechnung',
         bills: 'Eingangsrechnungen',
-        payByACH: 'Per ACH bezahlen',
         markAsPaid: 'Als bezahlt markieren',
         paymentFailed: 'Diese Rechnung konnte nicht bezahlt werden. Bitte versuche es erneut.',
     },
@@ -3337,6 +3336,8 @@ ${amount} für ${merchant} – ${date}`,
         defaultWorkflowApproverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person.',
         overLimitApproverNotWorkspaceMember:
             'Die zusätzliche genehmigende Person für Berichte über dem Limit ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue zusätzliche genehmigende Person.',
+        overLimitApproverInWorkflow:
+            'Die zusätzliche Genehmigungsperson für Berichte über dem Limit ist bereits eine Genehmigungsperson in diesem Workflow. Wählen Sie eine andere zusätzliche Genehmigungsperson.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> genehmigt bereits Berichte für <strong>${name2}</strong>. Bitte wähle eine andere approvierende Person, um einen zirkulären Workflow zu vermeiden.`,
         emptyContent: {
@@ -10838,6 +10839,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahr',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartal',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10897,6 +10899,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Wochen',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
         },
         moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',

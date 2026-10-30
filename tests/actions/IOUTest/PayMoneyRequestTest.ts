@@ -2321,6 +2321,16 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 expect(command).toBe(WRITE_COMMANDS.CANCEL_PAYMENT);
                 expect(parameters).toMatchObject({iouReportID: billReport.reportID});
                 expect(parameters).not.toHaveProperty('chatReportID');
+
+                // And a failed cancellation restores the bill's state as well as its status
+                const reportRollback = getRequiredOnyxUpdate(
+                    getRequiredWriteCall(writeSpy.mock.calls, 0)[2],
+                    'failureData',
+                    `${ONYXKEYS.COLLECTION.REPORT}${billReport.reportID}`,
+                    Onyx.METHOD.MERGE,
+                    true,
+                ).value;
+                expect(reportRollback).toMatchObject({stateNum: billReport.stateNum, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
             } finally {
                 writeSpy.mockRestore();
             }
