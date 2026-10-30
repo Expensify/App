@@ -20,6 +20,7 @@ import Onyx from 'react-native-onyx';
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
 import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
+import type {CompanyAddress} from '../../src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
 
@@ -29,6 +30,7 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     getAddedCardFeedMessage,
+    getAddedOfficeLocationMessage,
     getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
@@ -41,6 +43,8 @@ import {
     getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
+    getDeletedOfficeLocationMessage,
+    getUpdatedEmployeeOfficeLocationMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getHumanAgentAccountIDFromReportAction,
     getHumanAgentFirstName,
@@ -73,11 +77,13 @@ import {
     getUpdatedMemberWorkArrangementMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedOfficeLocationMessage,
     hasNextActionMadeBySameActor,
     hasReasoning,
     isConsecutiveActionMadeByPreviousActor,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
+    isReportActionFromCurrentUser,
     shouldHideNewMarker,
     wasActionTakenByCurrentUser,
 } from '../../src/libs/ReportActionsUtils';
@@ -98,6 +104,8 @@ type TakeControlAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONT
 type TakeControlOriginalMessageFixture = NonNullable<TakeControlAction['originalMessage']>;
 
 type ConciergeAutoSelectDistanceRateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE>;
+
+type AddCustomUnitRateAction = ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE>;
 
 type LegacyReportActionFields = {
     message?: string;
@@ -1381,6 +1389,100 @@ describe('ReportActionsUtils', () => {
                     )
             );
         });
+
+        it('should skip a whisper that targets somebody else when picking the last visible action', async () => {
+            const reportID = '90210';
+            const comment: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+                created: '2023-08-01 16:00:00',
+                reportActionID: 'comment1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                },
+            };
+            const whisperTargetAccountID = 100;
+            const whisper: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+                created: '2023-08-01 18:00:00',
+                reportActionID: 'whisper1',
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Do you want to invite them?',
+                        text: 'Do you want to invite them?',
+                        whisperedTo: [whisperTargetAccountID],
+                    },
+                ],
+                originalMessage: {
+                    inviteeAccountIDs: [1],
+                    whisperedTo: [whisperTargetAccountID],
+                },
+            };
+
+            // Given a report whose newest action is a whisper targeted at a single account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+
+            // When the user is the one the whisper targets, the whisper is the last visible action
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID)?.reportActionID).toBe(whisper.reportActionID);
+
+            // When the whisper targets somebody else, it is invisible and the older comment wins
+            expect(ReportActionsUtils.getLastVisibleAction(reportID, true, {}, undefined, undefined, whisperTargetAccountID + 1)?.reportActionID).toBe(comment.reportActionID);
+        });
+    });
+
+    describe('getLastVisibleMessage', () => {
+        const REPORT_ID = '90301';
+        const WHISPER_TARGET_ACCOUNT_ID = 111;
+
+        const comment: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
+            created: '2026-12-01 10:00:00.000',
+            reportActionID: 'visibleMessageComment',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            originalMessage: {html: 'Older comment'},
+        };
+
+        /** Newer than `comment`, and only the whispered-to account can see it. */
+        const whisper: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
+            created: '2026-12-01 12:00:00.000',
+            reportActionID: 'visibleMessageWhisper',
+            reportID: REPORT_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+            originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[comment.reportActionID]: comment, [whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+        });
+
+        it('should take the message from the whisper when the user is the one it targets', () => {
+            // Given a report whose newest action is a whisper aimed at the user
+            // When the last visible message is resolved for that user
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID);
+
+            // Then the whisper supplies the message
+            expect(result.lastMessageText).toBe('changed the amount');
+        });
+
+        it('should skip the whisper and fall back to the older comment when it targets somebody else', () => {
+            // Given the same report, seen by an account the whisper does not target
+            // When the last visible message is resolved for that account
+            const result = ReportActionsUtils.getLastVisibleMessage(REPORT_ID, true, {}, undefined, undefined, WHISPER_TARGET_ACCOUNT_ID + 1);
+
+            // Then the whisper is invisible and the older comment supplies the message
+            expect(result.lastMessageText).toBe('Older comment');
+        });
     });
 
     describe('getExportIntegrationActionFragments', () => {
@@ -1736,7 +1838,134 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getWorkspaceCustomUnitRateAddedMessage', () => {
+        function buildAddCustomUnitRateAction(originalMessage: AddCustomUnitRateAction['originalMessage']): AddCustomUnitRateAction {
+            return {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE,
+                reportActionID: 'add-custom-unit-rate-1',
+                created: '2026-09-01 12:00:00.000',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: '', html: ''}],
+                originalMessage,
+            };
+        }
+
+        const fuelBandRateMessage = {
+            customUnitName: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            rateName: 'Cars & Vans (Petrol/Hybrid) - Up to 1400cc',
+            rate: 55,
+            currency: CONST.CURRENCY.GBP,
+            unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            startDate: '2026-09-01',
+        };
+
+        it('should append the reclaimable tax amount and tax rate name when the log has tax details', () => {
+            // Given an added rate log for a UK fuel-band rate, whose reclaimable share is the 14p fuel rate out of the 55p rate
+            const action = buildAddCustomUnitRateAction({...fuelBandRateMessage, taxClaimablePercentage: 14 / 55, taxRateName: 'Standard VAT (20%)'});
+
+            // When building the message
+            const message = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(translateLocal, undefined, action);
+
+            // Then it should show the reclaimable amount per mile, rate × taxClaimablePercentage, under the tax rate name
+            expect(message).toBe(
+                'added "Cars & Vans (Petrol/Hybrid) - Up to 1400cc" rate of £0.55/mile, valid from September 1, 2026, with £0.14/mile tax reclaimable under "Standard VAT (20%)"',
+            );
+        });
+
+        it('should show a zero reclaimable amount when the reclaimable share is zero', () => {
+            // Given an added rate log for a fuel band with no reclaimable fuel cost
+            const action = buildAddCustomUnitRateAction({
+                ...fuelBandRateMessage,
+                rateName: 'Cars & Vans (Electric) - Home charged',
+                taxClaimablePercentage: 0,
+                taxRateName: 'Standard VAT (20%)',
+            });
+
+            // When building the message
+            const message = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(translateLocal, undefined, action);
+
+            // Then the tax details should still be shown, because the log carries them
+            expect(message).toBe(
+                'added "Cars & Vans (Electric) - Home charged" rate of £0.55/mile, valid from September 1, 2026, with £0.00/mile tax reclaimable under "Standard VAT (20%)"',
+            );
+        });
+
+        it('should not append tax details when the log has no tax rate name', () => {
+            // Given an added rate log with a reclaimable share but no tax rate name
+            const action = buildAddCustomUnitRateAction({...fuelBandRateMessage, taxClaimablePercentage: 14 / 55});
+
+            // When building the message
+            const message = ReportActionsUtils.getWorkspaceCustomUnitRateAddedMessage(translateLocal, undefined, action);
+
+            // Then it should render the same text as a log without tax details
+            expect(message).toBe('added "Cars & Vans (Petrol/Hybrid) - Up to 1400cc" rate of £0.55/mile, valid from September 1, 2026');
+        });
+    });
+
     describe('getMessageOfOldDotReportAction', () => {
+        it('should return the removed field message when a field with a value is cleared', () => {
+            // Given a field change whose new value is empty while the old value was set, which is what clearing a text field sends
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed and shows the old value, instead of `changed Project to ""`
+            expect(message).toBe('removed Project (previously "Apollo")');
+        });
+
+        it('should return the cleared field message when a field without a saved value is cleared', () => {
+            // Given a field change where both values are empty, which is what clearing a field that only showed its default can send
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: ''},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was removed, instead of `set Project to ""`
+            expect(message).toBe('removed Project');
+        });
+
+        it('should return the set field message when a field without a value is filled in', () => {
+            // Given a field change whose old value is empty
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: '', newValue: 'Apollo'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it says the field was set, because there is no previous value to show
+            expect(message).toBe('set Project to "Apollo"');
+        });
+
+        it('should return the changed field message when a field value is replaced', () => {
+            // Given a field change where both the old and the new value are set
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
+                originalMessage: {fieldName: 'Project', oldValue: 'Apollo', newValue: 'Gemini'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it shows both the new and the previous value
+            expect(message).toBe('changed Project to "Gemini" (previously "Apollo")');
+        });
+
         it('should return the ACH bounce message with return reason when provided', () => {
             const returnReason = 'R03 - No Account/Unable to Locate Account';
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
@@ -2157,6 +2386,23 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
 
+        it('should return false for POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME action with an empty message html', () => {
+            // Given the display name whisper as the backend sends it after a reaction, with an empty message html
+            const reportAction: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME,
+                reportActionID: '1',
+                created: '2026-10-13 12:00:03.573',
+                message: [{html: '', text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT, whisperedTo: [590]}],
+                originalMessage: {oldValue: 'cathy@boulderdev.com', newValue: 'Cathy Miller', whisperedTo: [590]},
+            };
+
+            // When checking whether it is deleted
+            const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
+
+            // Then it is not, because its text comes from originalMessage
+            expect(isDeleted).toBe(false);
+        });
+
         it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
@@ -2546,6 +2792,52 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isReportActionFromCurrentUser', () => {
+        const currentUserAccountID = 42;
+        const otherUserAccountID = 99;
+
+        it('returns true for a regular action whose actor is the current user', () => {
+            // Given a comment written by the current user
+            const action = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, actorAccountID: currentUserAccountID} as ReportAction;
+
+            // When checking whether the action is from the current user
+            // Then it matches because actorAccountID equals currentUserAccountID
+            expect(isReportActionFromCurrentUser(action, currentUserAccountID)).toBe(true);
+        });
+
+        it('returns false for a regular action whose actor is another user', () => {
+            // Given a comment written by someone else
+            const action = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, actorAccountID: otherUserAccountID} as ReportAction;
+
+            // When checking whether the action is from the current user
+            // Then it does not match because actorAccountID belongs to another user
+            expect(isReportActionFromCurrentUser(action, currentUserAccountID)).toBe(false);
+        });
+
+        it('uses childLastActorAccountID for a report preview', () => {
+            // Given a report preview where actorAccountID belongs to another user
+            // and childLastActorAccountID belongs to the current user
+            const action = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actorAccountID: otherUserAccountID,
+                childLastActorAccountID: currentUserAccountID,
+            } as ReportAction;
+
+            // When checking whether each preview is from the current user
+            // Then childLastActorAccountID determines the result, regardless of actorAccountID
+            expect(isReportActionFromCurrentUser(action, currentUserAccountID)).toBe(true);
+            expect(isReportActionFromCurrentUser({...action, childLastActorAccountID: otherUserAccountID, actorAccountID: currentUserAccountID}, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns false for an undefined action', () => {
+            // Given no report action
+            // When checking whether it is from the current user
+            // Then the check returns false because there is no author to match
+            expect(isReportActionFromCurrentUser(undefined, currentUserAccountID)).toBe(false);
+        });
+    });
+
     describe('isPushScopedToOthers', () => {
         const cardholderAccountID = 1;
         const auditorAccountID = 2;
@@ -2863,6 +3155,139 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
+        it('should return false for MARKED_REIMBURSED with a sibling IOU PAY action in the passed collection when the report timeline is not loaded into Onyx', () => {
+            // Given a MARKED_REIMBURSED action with stale write-time flags on a report whose actions are not in the Onyx collection
+            const reportID = 'reportOnlyInSearchSnapshot';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            // And a caller-provided collection (e.g. a Search snapshot) that contains a sibling IOU PAY action
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const snapshotReportActions = {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should NOT be visible, because the sibling is found in the passed collection
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for MARKED_REIMBURSED when Onyx only has the action and the passed collection has the sibling IOU PAY action', async () => {
+            // Given a partially loaded Onyx history that contains the MARKED_REIMBURSED action but no PAY action
+            const reportID = 'reportPartiallyLoadedInOnyx';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+            // And a caller-provided collection (e.g. a Search snapshot) that contains the sibling IOU PAY action
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const snapshotReportActions = {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should NOT be visible, because Onyx can't answer and the caller's collection holds the sibling
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for MARKED_REIMBURSED when the loaded Onyx history separates the PAY action with a cancellation, even if the passed collection has the PAY action', async () => {
+            // Given a loaded Onyx history where a PAY was canceled before the manual MARKED_REIMBURSED action
+            const reportID = 'reportWithCanceledPayInOnyx';
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            const canceledAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:10',
+                message: [{type: 'TEXT', style: 'normal', text: 'canceled payment'}],
+                originalMessage: {},
+            } as ReportAction;
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '3',
+                reportID,
+                created: '2025-01-01 00:00:20',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [payAction.reportActionID]: payAction,
+                [canceledAction.reportActionID]: canceledAction,
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+            // And a filtered caller-provided collection that omits the cancellation
+            const snapshotReportActions = {
+                [payAction.reportActionID]: payAction,
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            };
+
+            // When visibility is checked with the caller's collection
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, snapshotReportActions);
+
+            // Then the MARKED_REIMBURSED action should stay visible, because the complete Onyx history shows it belongs to a new payment attempt
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for MARKED_REIMBURSED when the passed collection has no PAY action', () => {
+            // Given a MARKED_REIMBURSED action on a report whose actions are not in the Onyx collection
+            const reportID = 'reportOnlyInSearchSnapshotWithoutPay';
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+
+            // When visibility is checked with a caller-provided collection that only contains the MARKED_REIMBURSED action
+            const actual = ReportActionsUtils.isReportActionVisible(markedReimbursedAction, reportID, true, undefined, undefined, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+            });
+
+            // Then the MARKED_REIMBURSED action should stay visible, because there is no PAY action to replace it
+            expect(actual).toBe(true);
+        });
+
         it('should return true for TAKE_CONTROL when automaticAction is false', () => {
             const reportAction = buildTakeControlActionFixture(
                 {
@@ -2938,7 +3363,7 @@ describe('ReportActionsUtils', () => {
                 },
             };
 
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
             const expected = translateLocal('report.actions.type.updatedCustomField1', formatPhoneNumber(email), newValue, previousValue);
             expect(actual).toBe(expected);
         });
@@ -2980,8 +3405,270 @@ describe('ReportActionsUtils', () => {
                 translateLocal('workspace.common.roleName', newRole).toLowerCase(),
             );
 
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
             expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
+        });
+
+        it('should show an approval workflow message instead of a role change when submitsTo changes', () => {
+            // Given an employee update where only the approver (submitsTo) changed
+            const email = 'employee@example.com';
+            const newApprover = 'new.approver@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.SUBMITS_TO,
+                    newValue: newApprover,
+                    oldValue: previousApprover,
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it describes the approver change, because the user's role did not change
+            expect(actual).toBe(translateLocal('workspaceActions.changedSubmitsToApprover', {members: email, approver: newApprover, previousApprover}));
+        });
+
+        it('should show a default approver message when submitsTo is cleared', () => {
+            // Given an employee update where submitsTo was cleared, like a member import with a blank Submit To value
+            const email = 'employee@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.SUBMITS_TO,
+                    newValue: '',
+                    oldValue: previousApprover,
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it says reports now go to the default approver, because an empty submitsTo means the member uses the default approver
+            expect(actual).toBe(translateLocal('workspaceActions.changedSubmitsToDefault', {members: email, previousApprover}));
+        });
+
+        it('should show a stopped forwarding message when forwardsTo is cleared', () => {
+            // Given an employee update where forwardsTo was removed
+            const email = 'approver@example.com';
+            const previousForwardsTo = 'final.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.FORWARDS_TO,
+                    newValue: '',
+                    oldValue: previousForwardsTo,
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it says forwarding stopped, because there is no new forwardsTo approver
+            expect(actual).toBe(translateLocal('workspaceActions.removedForwardsTo', {approver: email, previousForwardsTo}));
+        });
+
+        it('should fall back to the server message for a field without dedicated copy', () => {
+            // Given an employee update for a field App has no copy for, alongside a role change
+            const serverText = 'updated the someNewField of employee@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: serverText, text: serverText}],
+                previousMessage: [],
+                originalMessage: {
+                    email: 'employee@example.com',
+                    fields: [
+                        {field: 'someNewField', newValue: 'new', oldValue: 'old'},
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.ROLE, newValue: CONST.POLICY.ROLE.ADMIN, oldValue: CONST.POLICY.ROLE.USER},
+                    ],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then the server message is used, so the unknown field is not reported as a role change or silently dropped
+            expect(actual).toBe(serverText);
+        });
+
+        it('should show an approval limit message in the currency saved on the action when approvalLimit changes', () => {
+            // Given an employee update where only the approval limit changed, with the currency and limits saved on the action
+            const email = 'approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    currency: CONST.CURRENCY.EUR,
+                    limit: 200000,
+                    previousLimit: 100000,
+                    fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: 200000, oldValue: 100000}],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it describes the new and previous limits in the saved currency, so the log doesn't change when the workspace currency changes later
+            expect(actual).toBe(
+                translateLocal('workspaceActions.changedApprovalLimit', {
+                    member: email,
+                    limit: convertToDisplayString(200000, CONST.CURRENCY.EUR),
+                    previousLimit: convertToDisplayString(100000, CONST.CURRENCY.EUR),
+                }),
+            );
+        });
+
+        it('should fall back to the server message for an older approvalLimit change without a saved currency', () => {
+            // Given an approval limit change logged before the currency was saved on the action
+            const serverText = 'added a approvalLimit of "" to approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: serverText, text: serverText}],
+                previousMessage: [],
+                originalMessage: {
+                    email: 'approver@example.com',
+                    fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: 200000, oldValue: 100000}],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then the server message is used, because guessing the currency could show the wrong amount
+            expect(actual).toBe(serverText);
+        });
+
+        it('should use the limit saved on the action when only overLimitForwardsTo changes', () => {
+            // Given an employee update where only the over-limit approver changed, and the member's unchanged limit is saved on the action
+            const email = 'approver@example.com';
+            const newApprover = 'new.approver@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    currency: CONST.CURRENCY.USD,
+                    limit: 100000,
+                    previousLimit: 100000,
+                    fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: newApprover, oldValue: previousApprover}],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it describes the new over-limit approver with the saved limit, without a previous limit because it didn't change
+            expect(actual).toBe(
+                translateLocal('workspaceActions.changedOverLimitForwardsTo', {
+                    member: email,
+                    approver: newApprover,
+                    limit: convertToDisplayString(100000, CONST.CURRENCY.USD),
+                    previousApprover,
+                }),
+            );
+        });
+
+        it('should show one stopped forwarding message when overLimitForwardsTo and approvalLimit are cleared together', () => {
+            // Given an employee update that clears both the approval limit and the over-limit approver
+            const email = 'approver@example.com';
+            const previousApprover = 'old.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    currency: CONST.CURRENCY.USD,
+                    limit: 0,
+                    previousLimit: 200000,
+                    fields: [
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: '', oldValue: 200000},
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: '', oldValue: previousApprover},
+                    ],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then the cleared limit is folded into a single message, because the removed over-limit approver already names the previous limit
+            expect(actual).toBe(
+                translateLocal('workspaceActions.removedOverLimitForwardsTo', {member: email, previousApprover, previousLimit: convertToDisplayString(200000, CONST.CURRENCY.USD)}),
+            );
+        });
+
+        it('should show the limit and approver together when overLimitForwardsTo is set with a new approvalLimit', () => {
+            // Given an employee update that sets an approval limit and an over-limit approver for the first time
+            const email = 'approver@example.com';
+            const newApprover = 'new.approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    currency: CONST.CURRENCY.USD,
+                    limit: 100000,
+                    previousLimit: 0,
+                    fields: [
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.APPROVAL_LIMIT, newValue: 100000, oldValue: ''},
+                        {field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: newApprover, oldValue: ''},
+                    ],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then it shows a single "set" message with the new limit saved on the action
+            expect(actual).toBe(
+                translateLocal('workspaceActions.changedOverLimitForwardsTo', {member: email, approver: newApprover, limit: convertToDisplayString(100000, CONST.CURRENCY.USD)}),
+            );
+        });
+
+        it('should fall back to the server message when the approval limit is unknown', () => {
+            // Given an older over-limit approver change with no currency or limit saved on the action
+            const serverText = 'updated the overLimitForwardsTo of approver@example.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: serverText, text: serverText}],
+                previousMessage: [],
+                originalMessage: {
+                    email: 'approver@example.com',
+                    fields: [{field: CONST.POLICY_CHANGE_LOG_EMPLOYEE_FIELDS.OVER_LIMIT_FORWARDS_TO, newValue: 'new.approver@example.com', oldValue: 'old.approver@example.com'}],
+                },
+            };
+
+            // When the message is built
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action, convertToDisplayString);
+
+            // Then the server message is used, because the over-limit copy needs a limit and we should not invent one
+            expect(actual).toBe(serverText);
         });
     });
 
@@ -3043,6 +3730,23 @@ describe('ReportActionsUtils', () => {
 
             expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
             expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+        });
+
+        it('should keep a merged expense deleted action with an empty message visible', () => {
+            // Given the action the backend adds to the submitter's report when an admin merges their expenses, which has no message fragments
+            const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED,
+                reportActionID: '1',
+                message: [],
+            });
+
+            // When checking whether the action is deleted and whether it is visible
+            const isDeleted = ReportActionsUtils.isDeletedAction(action);
+            const isVisible = ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true);
+
+            // Then it is not treated as deleted and is shown in the report
+            expect(isDeleted).toBe(false);
+            expect(isVisible).toBe(true);
         });
 
         it('should return false if the action is a hold or unhold action', () => {
@@ -4546,6 +5250,25 @@ describe('ReportActionsUtils', () => {
             const result = getAddedCardFeedMessage(translateLocal, action);
             expect(result).toBe('added card feed "Visa Commercial"');
         });
+
+        it('should return the Expensify Card message when feedType is ExpensifyCard', () => {
+            // Given an added card feed action for an Expensify Card feed shared to the workspace
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'acme.com',
+                    feedType: CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD,
+                },
+            } as ReportAction;
+
+            // When the message is built
+            const result = getAddedCardFeedMessage(translateLocal, action);
+
+            // Then it uses the Expensify Card wording so admins can tell it apart from a company card feed
+            expect(result).toBe('added "acme.com" Expensify Card feed');
+        });
     });
 
     describe('getRemovedCardFeedMessage', () => {
@@ -4675,6 +5398,29 @@ describe('ReportActionsUtils', () => {
         ])('names both the new and the previous method for %s from %s', (newValue, oldValue, expected) => {
             expect(getUpdatedCommuterExclusionsMessage(translateLocal, buildMethodChangeAction(newValue, oldValue))).toBe(expected);
         });
+
+        it('formats the previous distance using its original unit after a unit change', () => {
+            // Given a unit-only commuter exclusion change from 5 miles to 5 kilometers
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_COMMUTER_EXCLUSIONS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    updatedField: CONST.POLICY.COMMUTER_EXCLUSION_TYPE.FIXED_DISTANCE,
+                    newValue: 5,
+                    oldValue: 5,
+                    unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    oldUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                message: [],
+            } as ReportAction;
+
+            // When NewDot formats the workspace audit action
+            const message = getUpdatedCommuterExclusionsMessage(translateLocal, action);
+
+            // Then it preserves each value's own unit in the message
+            expect(message).toBe('changed fixed distance exclusion to 5.00 kilometers per claim (previously 5.00 miles)');
+        });
     });
 
     describe('getPolicyWorkArrangementMessage', () => {
@@ -4800,6 +5546,101 @@ describe('ReportActionsUtils', () => {
                     oldArrangement: translateLocal('workspace.people.noRegularWorkspace'),
                 }),
             );
+        });
+    });
+
+    describe('office location change logs', () => {
+        const headquartersAddress: CompanyAddress = {addressStreet: '88 Kearny St', city: 'San Francisco', state: 'CA', zipCode: '94108', country: 'US'};
+        const newJerseyAddress: CompanyAddress = {addressStreet: '900 Asbury Ave\nSuite 2', city: 'Ocean City', state: 'NJ', zipCode: '08226', country: 'US'};
+
+        it('names the added office and its address', () => {
+            // Given an office added to the workspace
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {officeID: 'OFFICE1', name: 'Headquarters', address: headquartersAddress, isDefault: true},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getAddedOfficeLocationMessage(translateLocal, action)).toBe('added the office location "Headquarters" (88 Kearny St, San Francisco, CA 94108)');
+        });
+
+        it.each([
+            ['a rename', {updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.NAME, name: 'HQ', newValue: 'HQ', oldValue: 'Headquarters'}, 'renamed the office location "Headquarters" to "HQ"'],
+            [
+                'an address change',
+                {updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.ADDRESS, name: 'HQ', newAddress: newJerseyAddress, oldAddress: headquartersAddress},
+                'changed the address of the office location "HQ" to "900 Asbury Ave, Suite 2, Ocean City, NJ 08226" (previously "88 Kearny St, San Francisco, CA 94108")',
+            ],
+            ['a new primary office', {updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.IS_DEFAULT, name: 'HQ', newValue: true, oldValue: false}, 'set the office location "HQ" as primary'],
+            [
+                'the company address becoming primary',
+                {updatedField: CONST.POLICY.OFFICE_LOCATION_FIELD.IS_DEFAULT, name: 'HQ', newValue: false, oldValue: true},
+                'set the company address as primary',
+            ],
+        ])('describes %s', (_description, originalMessage, expected) => {
+            // Given an office update that changed a single field
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {officeID: 'OFFICE1', ...originalMessage},
+            };
+
+            // When the change log is rendered
+            // Then it describes the field that changed, the same way Auth does
+            expect(getUpdatedOfficeLocationMessage(translateLocal, action)).toBe(expected);
+        });
+
+        it('names the deleted office', () => {
+            // Given an office deleted from the workspace
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {officeID: 'OFFICE2', name: 'New Jersey Office'},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getDeletedOfficeLocationMessage(translateLocal, action)).toBe('removed the office location "New Jersey Office"');
+        });
+
+        it.each([
+            [
+                'an office assigned to a member who followed the primary office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE2', officeName: 'New Jersey Office', oldOfficeID: '', oldOfficeName: ''},
+                `changed Bob Smith's office location to "New Jersey Office" (previously the primary office)`,
+            ],
+            [
+                'a member moved from the company address to an office',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: 'OFFICE1', officeName: 'Headquarters', oldOfficeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, oldOfficeName: ''},
+                `changed Bob Smith's office location to "Headquarters" (previously the company address)`,
+            ],
+            [
+                'a cleared assignment',
+                {name: 'Bob Smith', email: 'bob@smith.com', officeID: '', officeName: '', oldOfficeID: 'OFFICE1', oldOfficeName: 'Headquarters'},
+                `changed Bob Smith's office location to the primary office (previously "Headquarters")`,
+            ],
+            [
+                'a member without a name moved off an office that was removed since',
+                {email: 'bob@smith.com', officeID: CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID, officeName: '', oldOfficeID: 'OFFICE9', oldOfficeName: ''},
+                `changed bob@smith.com's office location to the company address (previously the primary office)`,
+            ],
+        ])('describes %s', (_description, originalMessage, expected) => {
+            // Given a member whose office assignment changed
+            const action: ReportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {accountID: 1, ...originalMessage},
+            };
+
+            // When the change log is rendered
+            // Then it reads the same as the message Auth stores for it
+            expect(getUpdatedEmployeeOfficeLocationMessage(translateLocal, action)).toBe(expected);
         });
     });
 
@@ -5996,6 +6837,13 @@ describe('ReportActionsUtils', () => {
                 message: [],
             }) as ReportAction;
 
+        const buildFastACHAction = () =>
+            buildReimbursedAction({
+                paymentMethod: 'Fast_ACH',
+                creditBankAccountLast4: '1111',
+                expectedDate: '2025-03-15',
+            });
+
         it('shows the funding bank account from the masked accountNumber when debitBankAccountLast4 is absent', () => {
             // Given a reimbursed action carrying the raw masked accountNumber, as delivered by real-time Pusher updates
             const action = buildReimbursedAction({
@@ -6042,7 +6890,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then the message reports the credited amount instead of the report total and names both accounts
             expect(result).toBe(translateLocal('iou.reimbursedCrossBorder', {amount: '$80.50', debitBankAccount: '9999', creditBankAccount: '5678'}));
@@ -6057,7 +6905,7 @@ describe('ReportActionsUtils', () => {
                 creditedAmount: 8050,
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, undefined, undefined, convertToDisplayString, 2);
 
             // Then we describe the payment without an amount rather than guessing a currency
             expect(result).toBe(
@@ -6079,7 +6927,7 @@ describe('ReportActionsUtils', () => {
                 creditedCurrency: 'USD',
             });
 
-            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString);
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, 2, 'submitter@expensify.com', undefined, convertToDisplayString, 2);
 
             // Then the message announces the submitter taking the report off hold rather than the credited amount
             expect(result).toBe(
@@ -6142,6 +6990,46 @@ describe('ReportActionsUtils', () => {
 
             const resultOtherUser = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
             expect(resultOtherUser).toContain(submitterLogin);
+        });
+
+        it('names the submitter when the signed-in session owns the report but the current user does not', async () => {
+            // Given a signed-in session whose account owns the report
+            const ownerAccountID = 42;
+            const submitterLogin = 'submitter@example.com';
+            const action = buildFastACHAction();
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: ownerAccountID});
+            await waitForBatchedUpdates();
+
+            // When the message is built for a different current user
+            const result = ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999);
+
+            // Then it names the submitter, and matches what the same call produces with no session at all
+            expect(result).toContain(submitterLogin);
+            expect(result).not.toContain('your');
+
+            await Onyx.set(ONYXKEYS.SESSION, null);
+            await waitForBatchedUpdates();
+            expect(ReportActionsUtils.getReimbursedMessage(translateLocal, undefined, action, ownerAccountID, submitterLogin, undefined, convertToDisplayString, 999)).toBe(result);
+        });
+
+        it('shows "your" wording when the report has no owner and the current user is unknown', () => {
+            // Given a report with no owner, so the submitter also resolves to the default account ID
+            const submitterLogin = 'submitter@example.com';
+
+            // When the current user is unknown and passed as the default account ID
+            const result = ReportActionsUtils.getReimbursedMessage(
+                translateLocal,
+                undefined,
+                buildFastACHAction(),
+                undefined,
+                submitterLogin,
+                undefined,
+                convertToDisplayString,
+                CONST.DEFAULT_NUMBER_ID,
+            );
+
+            // Then both sides resolve to the same ID and the message addresses the current user directly
+            expect(result).toContain('your');
         });
     });
 
@@ -7093,6 +7981,38 @@ describe('ReportActionsUtils', () => {
             ).toEqual(['unread-newer', 1]);
         });
 
+        it.each([null, 'older-unread'])('keeps older unread actions before the offline boundary with manual anchor %s', (manuallyMarkedUnreadReportActionID) => {
+            // Given an older unread action before the remembered offline row in an oldest-first list
+            const visibleReportActions = [makeAction({reportActionID: 'older-unread'}), makeAction({reportActionID: 'offline-newer', created: '2023-01-01 12:00:00.000'})];
+
+            // When either the timestamp or an explicit manual anchor selects that older action
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    earliestReceivedOfflineMessageIndex: 1,
+                    isReversed: true,
+                    manuallyMarkedUnreadReportActionID,
+                }),
+            ).toEqual(['older-unread', 0]);
+        });
+
+        it('still marks the first offline row when earlier visible actions are already read', () => {
+            // Given a remembered offline message and a read older row
+            const visibleReportActions = [makeAction({reportActionID: 'read-older'}), makeAction({reportActionID: 'offline-anchor', created: '2023-01-01 12:00:00.000'})];
+
+            // Then scanning all visible rows still preserves the existing offline marker rule
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    unreadMarkerTime: '2023-01-01 13:00:00.000',
+                    earliestReceivedOfflineMessageIndex: 1,
+                    isReversed: true,
+                }),
+            ).toEqual(['offline-anchor', 1]);
+        });
+
         it("clears the marker entirely when the only unread action is the current user's own new message", () => {
             const ownNew = makeAction({reportActionID: 'own-new', actorAccountID: currentUserAccountID});
             const olderRead = makeAction({reportActionID: 'older-read', created: '2023-01-01 09:00:00.000'});
@@ -7680,6 +8600,199 @@ describe('ReportActionsUtils', () => {
 
         it('returns undefined for an empty report', () => {
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([], persisted([]))).toBeUndefined();
+        });
+
+        it('returns the newest comment of Concierge and of each custom agent', () => {
+            // Given a report where Concierge and two custom agents each wrote twice, and a human wrote last
+            const firstAgentAccountID = 1001;
+            const secondAgentAccountID = 1002;
+            const sorted = [
+                conciergeComment('700', '2026-09-07 00:00:00.000', {actorAccountID: 12345}),
+                conciergeComment('600', '2026-09-06 00:00:00.000', {actorAccountID: firstAgentAccountID}),
+                conciergeComment('500', '2026-09-05 00:00:00.000'),
+                conciergeComment('400', '2026-09-04 00:00:00.000', {actorAccountID: secondAgentAccountID}),
+                conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: firstAgentAccountID}),
+                conciergeComment('200', '2026-09-02 00:00:00.000', {actorAccountID: secondAgentAccountID}),
+                conciergeComment('100', '2026-09-01 00:00:00.000'),
+            ];
+
+            // When the comments that show the prompt are picked
+            const actionIDs = ReportActionsUtils.getFeedbackPromptActionIDs(sorted, persisted(sorted), [firstAgentAccountID, secondAgentAccountID]);
+
+            // Then each AI author gets one prompt on its newest comment, so an agent reply does not take the prompt away from Concierge, and the human gets none
+            expect([...actionIDs].sort()).toEqual(['400', '500', '600']);
+        });
+
+        it('hides the prompt of an agent whose newest comment is not in Onyx yet, and keeps the prompt of Concierge', () => {
+            // Given an agent comment that exists only on the client, above saved comments of Concierge and of the same agent
+            const agentAccountID = 1001;
+            const unsavedAgentComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: agentAccountID});
+            const concierge = conciergeComment('200', '2026-09-02 00:00:00.000');
+            const olderAgentComment = conciergeComment('100', '2026-09-01 00:00:00.000', {actorAccountID: agentAccountID});
+            const sorted = [unsavedAgentComment, concierge, olderAgentComment];
+
+            // When the comments that show the prompt are picked
+            const actionIDs = ReportActionsUtils.getFeedbackPromptActionIDs(sorted, persisted([concierge, olderAgentComment]), [agentAccountID]);
+
+            // Then the older agent comment does not stand in for the unsaved one, which would ask the user to rate an older reply
+            expect(actionIDs).toEqual(['200']);
+        });
+
+        it('picks the newest comment of the given author out of a report actions collection', () => {
+            // Given a parent report where an agent wrote twice after Concierge
+            const agentAccountID = 1001;
+            const concierge = conciergeComment('100', '2026-09-01 00:00:00.000');
+            const olderAgentComment = conciergeComment('200', '2026-09-02 00:00:00.000', {actorAccountID: agentAccountID});
+            const newerAgentComment = conciergeComment('300', '2026-09-03 00:00:00.000', {actorAccountID: agentAccountID});
+            const collection = {
+                [concierge.reportActionID]: concierge,
+                [olderAgentComment.reportActionID]: olderAgentComment,
+                [newerAgentComment.reportActionID]: newerAgentComment,
+            };
+
+            // When a thread checks the message it hangs off against the newest comment of that message's author
+            // Then each author gets its own newest comment, so the agent's comments do not hide Concierge's
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, agentAccountID)).toBe('300');
+            expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, CONST.ACCOUNT_ID.CONCIERGE)).toBe('100');
+        });
+    });
+    describe('getReportActionMessageText', () => {
+        it('reads an edited file attachment as the attachment token', () => {
+            // Given an edited text-and-file comment as the server returns it, which drops data-expensify-source but keeps the attachment ID
+            const html =
+                'test 2<br /><br /><a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" data-attachment-id="456" target="_blank" rel="noreferrer noopener">renamed.csv</a>';
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html, text: 'test 2 renamed.csv'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            const text = ReportActionsUtils.getReportActionMessageText(reportAction);
+
+            // Then the file reads as an attachment, as it does before the edit, instead of its file name
+            expect(text).toContain(CONST.ATTACHMENT_MESSAGE_TEXT);
+            expect(text).not.toContain('renamed.csv');
+        });
+
+        it('keeps a plain link as its label', () => {
+            // Given a comment with an ordinary link
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: '<a href="https://example.com/a.csv">a.csv</a>', text: 'a.csv'}],
+            } as ReportAction;
+
+            // When the text is read
+            // Then the label is kept
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('a.csv');
+        });
+
+        it('keeps a link to another host as its label even when it carries an attachment ID', () => {
+            // Given a file anchor edited to point at another host, which the server returns with only the attachment ID
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'see <a href="https://example.com/file.csv" data-attachment-id="456">the file</a>', text: 'see the file'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the label is kept, because the chat draws it as a link and not a file card
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('see the file');
+        });
+
+        it("reads a link to the action's own uploaded file as the attachment token", () => {
+            // Given an edited file anchor with no attachment attributes left, whose URL names the action it was uploaded to
+            const reportAction = {
+                reportActionID: '123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: '<a href="https://www.expensify.com/chat-attachments/123/w_abc.csv">renamed.csv</a><br />notes', text: 'renamed.csv\nnotes'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the file reads as an attachment and the text after it stays on its own line
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe(`${CONST.ATTACHMENT_MESSAGE_TEXT}\nnotes`);
+        });
+
+        it('keeps a pasted attachment link as its label', () => {
+            // Given a typed link to an uploaded file, which the server stores without an attachment ID
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'see <a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" target="_blank" rel="noreferrer noopener">old sheet</a>',
+                        text: 'see old sheet',
+                    },
+                ],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the link keeps its label, because only an uploaded file is an attachment
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('see old sheet');
+        });
+    });
+
+    describe('getWorkspaceRulesDocumentUpdatedMessage', () => {
+        const buildRulesDocumentAction = (isReplacement?: boolean) =>
+            ({
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT,
+                originalMessage: {isReplacement},
+            }) as ReportAction;
+
+        it('says a document was added when none existed before', () => {
+            // Given change logs for a first upload, where the backend sends either an explicit false or leaves the flag out
+            const explicitFirstUpload = buildRulesDocumentAction(false);
+            const omittedFlag = buildRulesDocumentAction();
+
+            // When the message is built for each of them
+            const explicitMessage = ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, explicitFirstUpload);
+            const omittedMessage = ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, omittedFlag);
+
+            // Then both read as an addition, because an absent flag must not be mistaken for a replacement
+            expect(explicitMessage).toBe('added an expense policy document');
+            expect(omittedMessage).toBe('added an expense policy document');
+        });
+
+        it('says the document was replaced when one already existed', () => {
+            // Given a change log for an upload that overwrote an existing document
+            const action = buildRulesDocumentAction(true);
+
+            // When the message is built
+            const message = ReportActionsUtils.getWorkspaceRulesDocumentUpdatedMessage(translateLocal, action);
+
+            // Then admins see a replacement, so they know the previous document is gone
+            expect(message).toBe('replaced the expense policy document');
+        });
+
+        it('links to the workspace Overview page in the rendered message only', () => {
+            // Given a change log that carries the workspace it happened in
+            const action = {...buildRulesDocumentAction(false), originalMessage: {isReplacement: false, policyID: 'ABC123'}} as ReportAction;
+
+            // When the room renders its message fragments
+            const [fragment] = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then the HTML points admins to the Overview page where the file can be opened, while the text stays plain for search and previews
+            expect(fragment.text).toBe('added an expense policy document');
+            expect(fragment.html).toMatch(/^<muted-text>added an expense policy document in <a href=".*\/workspaces\/ABC123\/overview">Workspace &gt; Overview<\/a><\/muted-text>$/);
+        });
+
+        it('stays plain text when the change log has no workspace', () => {
+            // Given a change log without a policyID, such as one written before the backend started sending it
+            const action = buildRulesDocumentAction(false);
+
+            // When the room renders its message fragments
+            const [fragment] = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then no link is built, because there is no workspace to point to
+            expect(fragment.html).toBe('<muted-text>added an expense policy document</muted-text>');
         });
     });
 });

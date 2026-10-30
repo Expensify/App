@@ -263,7 +263,7 @@ Only **Domain Admins** have access.
    - Amount
    - The last four digits of the card
 
-**Note:** Only posted credit card transactions will import.
+**Note:** Only posted credit card transactions will import, except for cards connected through Plaid. Plaid cards also import pending transactions, which are marked as pending until they post.
 
 
 No. Concierge Receipt Audit is automatically enabled for all Control plan workspaces and cannot be turned off.
@@ -282,7 +282,7 @@ Use the **Reconciliation tool** to find missing expenses:
   - Amount  
   - Last four digits of the card number
 
-**Note:** Only **posted transactions** will be imported.
+**Note:** Only **posted transactions** will be imported, except for cards connected through Plaid. Plaid cards also import pending transactions, which are marked as pending until they post.
 
 ## Can admins delete expenses on behalf of members?
 

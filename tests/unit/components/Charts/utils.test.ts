@@ -6,10 +6,12 @@ import {
     effectiveHeight,
     effectiveWidth,
     findSliceAtPosition,
+    getAxisLabelStep,
     getBarLayout,
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -21,8 +23,21 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import {getBarChartHeight, getBarChartLoadingHeight, getCartesianChartHeight, getPieChartLoadingHeight} from '@components/Charts/utils/chartHeights';
+import VictoryTheme, {
+    CHART_CONTENT_MIN_HEIGHT,
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    LABEL_ROTATIONS,
+    MAX_BAR_LABEL_LINES,
+    SIN_45,
+    X_AXIS_LABEL_MIN_HEIGHT,
+} from '@components/Charts/VictoryTheme';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 const LINE_HEIGHT = 16;
 
@@ -753,6 +768,122 @@ describe('getBarLayout', () => {
     });
 });
 
+describe('getCartesianChartHeight', () => {
+    const ROTATED_LABEL_HEIGHT = 120;
+
+    it('should give the loading box and a chart with one line of labels the same height', () => {
+        // Given the loading box, which has no labels to measure, and a loaded chart whose labels fit on one line
+        const loadingHeight = getCartesianChartHeight();
+
+        // When the loaded chart sizes its box from the measured label strip
+        const loadedHeight = getCartesianChartHeight(X_AXIS_LABEL_MIN_HEIGHT - 1);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadedHeight).toBe(loadingHeight);
+    });
+
+    it('should grow the box when rotated labels need more room than one line', () => {
+        // Given labels rotated so their strip is taller than one line of text
+        // When the chart sizes its box
+        const height = getCartesianChartHeight(ROTATED_LABEL_HEIGHT);
+
+        // Then the box makes room for the whole strip, since clipping the labels would be worse than a jump
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.axis.xAxisLabelGap + ROTATED_LABEL_HEIGHT);
+    });
+});
+
+describe('getBarChartLoadingHeight', () => {
+    // ExpensifyNeue's ascent plus descent at the 12px label size, (950 + 230) / 1000 of the em, which Skia measures for each label line
+    const SKIA_LABEL_LINE_HEIGHT = 14.16;
+
+    it('should give the loading box the height of a chart whose labels wrap', () => {
+        // Given a bar chart with wrapped labels, which keeps two lines of label space whatever the names are
+        const loadedHeight = getBarChartHeight(true, MAX_BAR_LABEL_LINES * SKIA_LABEL_LINE_HEIGHT);
+
+        // When the loading box is sized before the chart has measured anything
+        const loadingHeight = getBarChartLoadingHeight(true, true);
+
+        // Then both heights match, so the card does not jump when the chart replaces the spinner
+        expect(loadingHeight).toBeCloseTo(loadedHeight, 5);
+    });
+});
+
+describe('getPieChartLoadingHeight', () => {
+    // The narrowest card that fits the side legend: the 250px donut, the 24px gap and the 180px legend column
+    const SIDE_LEGEND_MIN_CARD_WIDTH = 454;
+
+    it('should reserve the donut height for a side legend once the card is measured', () => {
+        // Given a responsive legend in a card just wide enough for it to sit beside the donut, on the narrow layout
+        // When the loading box is sized from the measured card width
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH, true, true, true);
+
+        // Then it keeps the donut's height, since five legend rows fit beside it, and the measured width wins over the layout
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+
+    it('should reserve a full stacked legend under the donut when the card is too narrow for a side legend', () => {
+        // Given a responsive legend in a card 1px too narrow for the side legend, on the wide layout
+        // When the loading box is sized from the measured card width, before the slice count is known
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, false, true, true);
+
+        // Then it reserves one row per slice Home can show, under the donut and the stack gap, since most cards fill the cap
+        const rowCount = CONST.SEARCH.TOP_SEARCH_LIMIT;
+        const legendHeight = rowCount * variables.fontSizeNormalHeight + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.pie.legendStackGap + legendHeight);
+    });
+
+    it('should reserve only the donut when the legend is hidden', () => {
+        // Given a responsive pie with its legend turned off, in a card too narrow for a side legend
+        // When the loading box is sized
+        const height = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, true, false, true);
+
+        // Then it keeps the donut's height alone, since the chart draws no legend to stack
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+
+    it('should assume a stacked legend on the narrow layout until the card is measured', () => {
+        // Given a responsive legend whose card has not reported its width yet, on the narrow layout, where phone cards are too narrow for a side legend
+        // When the loading box is sized before the width lands
+        const height = getPieChartLoadingHeight(null, true, true, true);
+
+        // Then it matches the stacked height a phone card measures into, so the box does not change when the width lands
+        const stackedHeight = getPieChartLoadingHeight(SIDE_LEGEND_MIN_CARD_WIDTH - 1, true, true, true);
+        expect(height).toBe(stackedHeight);
+    });
+
+    it('should assume a side legend on the wide layout until the card is measured', () => {
+        // Given a responsive legend whose card has not reported its width yet, on the wide layout, where a typical desktop card fits a side legend
+        // When the loading box is sized before the width lands
+        const height = getPieChartLoadingHeight(null, false, true, true);
+
+        // Then it keeps the donut's height that a desktop card measures into, so the box does not change when the width lands
+        expect(height).toBe(CHART_CONTENT_MIN_HEIGHT);
+    });
+});
+
+describe('getCartesianPlotBounds', () => {
+    const PADDING_LEFT = VictoryTheme.axis.padding.left;
+
+    it('reserves the right gutter for labels and the left base padding', () => {
+        // Given a 300px container with a 30px right gutter
+        // When computing the plot bounds
+        // Then the plot spans from the left padding to the gutter, where victory-native puts it,
+        // so labels laid out before the chart mounts line up with the plot it draws
+        expect(getCartesianPlotBounds(300, 30)).toEqual({left: PADDING_LEFT, right: 300 - 30, width: 300 - 30 - PADDING_LEFT});
+    });
+
+    it('clamps to a zero-width plot when the container is too small for the gutters', () => {
+        // Given a container narrower than the right gutter itself
+        // When computing the plot bounds
+        // Then the plot collapses to zero width at the left padding, because a negative width would break the bar and
+        // label layouts that are sized from it
+        const bounds = getCartesianPlotBounds(10, 30);
+        expect(bounds.left).toBe(PADDING_LEFT);
+        expect(bounds.right).toBe(PADDING_LEFT);
+        expect(bounds.width).toBe(0);
+    });
+});
+
 describe('getDomainPaddingForEdgeSpace', () => {
     it('returns the padding victory-native shrinks back to the requested edge space', () => {
         // Given a 200px plot and the space wanted before the first and after the last point
@@ -773,5 +904,97 @@ describe('getDomainPaddingForEdgeSpace', () => {
         // When converting it to domain padding
         // Then it is returned as is instead of dividing by zero or going negative
         expect(getDomainPaddingForEdgeSpace({left: 30, right: 0}, 0)).toEqual({left: 30, right: 0});
+    });
+});
+
+describe('getAxisLabelStep', () => {
+    const MIN_GAP = 24;
+
+    const getEvenPointXs = (count: number, spacing: number) => Array.from({length: count}, (_, index) => index * spacing);
+
+    it('labels every point when neighboring labels keep the minimum gap', () => {
+        // Given 20px labels on points 50px apart, which leaves a 30px gap between neighbors
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(20), pointXs, steps: [1, 2, 7, 14], minGap: MIN_GAP});
+
+        // Then the smallest step is used, so no label is hidden needlessly
+        expect(step).toBe(1);
+    });
+
+    it('moves to the next listed step when neighboring labels are too close', () => {
+        // Given 30px labels on points 50px apart, which leaves only a 20px gap between neighbors
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(30), pointXs, steps: [1, 2, 7, 14], minGap: MIN_GAP});
+
+        // Then every other point is labeled, which widens the gap to 70px
+        expect(step).toBe(2);
+    });
+
+    it('accepts a gap exactly equal to the minimum gap', () => {
+        // Given 26px labels on points 50px apart, which leaves exactly a 24px gap between neighbors
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(26), pointXs, steps: [1, 2], minGap: MIN_GAP});
+
+        // Then the minimum gap counts as enough room, so every point stays labeled
+        expect(step).toBe(1);
+    });
+
+    it('tries multiples of the last listed step when no listed step fits', () => {
+        // Given 30px labels on points 10px apart, too dense for steps 1 and 2
+        const pointXs = getEvenPointXs(10, 10);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(10).fill(30), pointXs, steps: [1, 2], minGap: MIN_GAP});
+
+        // Then 4 is still too tight (10px gap), and 6 is the first multiple of 2 that leaves a 30px gap
+        expect(step).toBe(6);
+    });
+
+    it('labels only the first point when no step fits', () => {
+        // Given 3 points 10px apart with 30px labels, where even the first and last labels overlap
+        const pointXs = getEvenPointXs(3, 10);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(3).fill(30), pointXs, steps: [1], minGap: MIN_GAP});
+
+        // Then the step reaches past the last point, so only the first label is drawn instead of overlapping ones
+        expect(step).toBe(3);
+    });
+
+    it('labels only the first and last points when the only step spans the whole axis', () => {
+        // Given 5 points and the single step the narrow layout passes, points.length - 1
+        const pointXs = getEvenPointXs(5, 50);
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: Array<number>(5).fill(30), pointXs, steps: [4], minGap: MIN_GAP});
+
+        // Then that step is used, so the first and last points are labeled
+        expect(step).toBe(4);
+    });
+
+    it("checks each label's own width", () => {
+        // Given a wide first label that reaches the second label but clears the third
+        const pointXs = [0, 50, 100];
+
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: [80, 20, 20], pointXs, steps: [1, 2], minGap: MIN_GAP});
+
+        // Then step 1 is rejected because of the first label's width, even though the narrow labels would fit
+        expect(step).toBe(2);
+    });
+
+    it('labels a single point with the smallest step', () => {
+        // Given one point, which has no neighbor its label could overlap
+        // When picking the label step
+        const step = getAxisLabelStep({labelWidths: [30], pointXs: [0], steps: [1, 2], minGap: MIN_GAP});
+
+        // Then the smallest step is used and the point stays labeled
+        expect(step).toBe(1);
     });
 });

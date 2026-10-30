@@ -23,7 +23,6 @@ function Template(props: TooltipExtendedProps) {
             <Tooltip
                 {...props}
                 // Disable nullish coalescing to handle cases when maxWidth is 0
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 maxWidth={props.maxWidth || undefined}
             >
                 <div

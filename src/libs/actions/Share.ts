@@ -19,6 +19,12 @@ import Onyx from 'react-native-onyx';
  * - `deferredUntilOnboardingExit`: the user needs onboarding; opened by the onboarding exit on top of the landing screen.
  * Kept in memory on purpose: the staged file does not survive a process restart, and the intent must never replay for
  * the next account that signs in (it is cleared on sign-out below).
+ *
+ * This is separate from `setDeepLinkToOpenAfterOnboarding`: that parks a route inside the report deep-link replay and
+ * opens it instead of the post-onboarding landing, and only an onboarding exit consumes it. The share is a modal that
+ * belongs on top of whatever screen the user lands on, it must also open for accounts that never go through onboarding,
+ * and parking it before the replay keeps it off the replay's timing (a share replayed before OpenApp lands is evicted
+ * by the onboarding redirect).
  */
 type PendingNativeShare = 'none' | 'pending' | 'deferredUntilOnboardingExit';
 

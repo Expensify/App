@@ -46,7 +46,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue, Session} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -86,7 +86,7 @@ Onyx.connectWithoutView({
     },
 });
 
-// This value is used in the handler for a RECONNECT_APP Pusher event (anonymous users), so it's not possible to use useOnyx().
+// This value is used in the handler for a RECONNECT_APP Pusher event, so it's not possible to use useOnyx().
 let lastUpdateIDAppliedToClient: OnyxEntry<number>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
@@ -878,6 +878,26 @@ function subscribeToUserEvents(
 
     PusherUtils.onPrivateUserChannelResubscribe(currentUserAccountID.toString());
 
+    // Temporary labels bypass the reliable update stream, but wait for the current API response so an older snapshot cannot overwrite them.
+    // Keep events in arrival order even when they wait on different queued requests.
+    let processingStatusEventsPromise = Promise.resolve();
+    PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, currentUserAccountID.toString(), (pushJSON) => {
+        processingStatusEventsPromise = processingStatusEventsPromise
+            .then(() => SequentialQueue.getCurrentRequest())
+            .then(() => {
+                if (sessionAccountID !== currentUserAccountID || !ActiveClientManager.isClientTheLeader()) {
+                    return;
+                }
+
+                return Onyx.update(pushJSON.updates);
+            })
+            .catch((error: unknown) => {
+                Log.alert('[subscribeToUserEvents] Applying Agent Zero processing status failed', {
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            });
+    });
+
     // Handles the mega multipleEvents from Pusher which contains an array of single events.
     // Each single event is passed to PusherUtils in order to trigger the callbacks for that event
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, currentUserAccountID.toString(), (pushJSON) => {
@@ -943,14 +963,12 @@ function subscribeToUserEvents(
     // We have an event to reconnect the App. It is triggered when we detect that the user passed updateID
     // is not in the DB
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.RECONNECT_APP, () => {
-        // Anonymous public-room sessions already have report actions from OpenReport. A full ReconnectApp
-        // uses setCollection and clears them, which flashes the loading skeleton until GetNewerActions
-        // refills. Pass lastUpdateID so reconnect stays incremental for anonymous users (#97847).
-        if (isAnonymousUser()) {
-            reconnectApp(lastUpdateIDAppliedToClient);
-        } else {
-            reconnectApp();
-        }
+        // This event is broadcast on the account-wide channel, so every signed-in device receives it, not only
+        // the one whose updateID is missing. A full ReconnectApp uses setCollection and clears report actions the
+        // device already holds (#97847, #100791). Pass lastUpdateID so the server can reply incrementally. It
+        // still returns full data when it can't serve that range, and we fall back to a full reconnect when the
+        // client has no lastUpdateID yet.
+        reconnectApp(lastUpdateIDAppliedToClient);
         return Promise.resolve();
     });
 }
@@ -1175,9 +1193,9 @@ function setContactMethodAsDefault(
     }
 }
 
-function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
+function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack: boolean, session: OnyxEntry<Session>) {
     // When toggling high contrast from the sign-in page, the user is not signed in. So persist the preference locally only.
-    if (!sessionAccountID || isAnonymousUser()) {
+    if (!sessionAccountID || isAnonymousUser(session)) {
         Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
         return;
     }
@@ -1311,6 +1329,55 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
         optimisticData,
         failureData,
     });
+}
+
+function joinExactOnlineWaitlist() {
+    const signupTimestamp = DateUtils.getDBTime();
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {exactOnlineWaitlist: null},
+            },
+        },
+    ];
+    // The confirmation modal must not treat a queued signup as confirmed membership.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST,
+            value: signupTimestamp,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {pendingFields: {exactOnlineWaitlist: null}},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST,
+            value: '',
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                pendingFields: {exactOnlineWaitlist: null},
+                errorFields: {exactOnlineWaitlist: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    // The queued request keeps this timestamp when it retries, preserving the original signup time.
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp}, {optimisticData, successData, failureData});
+}
+
+function clearExactOnlineWaitlistError() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {exactOnlineWaitlist: null}});
 }
 
 function dismissMarketingWindow(updateKey: string) {
@@ -1643,6 +1710,16 @@ function respondToProactiveAppReview(
             lastPrompt: originalLastPrompt,
         },
     });
+
+    // Record locally that this client prompted and got an answer. This is not optimistic data: the prompt
+    // happened regardless of what the request returns, and nvp_appReview is server-owned, so the timestamp
+    // we merge into it can be dropped by any authoritative push of that key.
+    // The record is scoped by the session's accountID, not userAccountID: the modal can be on screen before
+    // the personal details list hydrates, and until it does the caller's accountID is CONST.DEFAULT_NUMBER_ID,
+    // which would stamp a record that never matches the signed-in account again.
+    if (sessionAccountID) {
+        Onyx.set(ONYXKEYS.APP_REVIEW_LAST_PROMPT, {accountID: sessionAccountID, lastPrompt: DateUtils.getDBTime()});
+    }
 
     API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params, {optimisticData, successData, failureData});
 }
@@ -2021,6 +2098,8 @@ export {
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
+    joinExactOnlineWaitlist,
+    clearExactOnlineWaitlistError,
     setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,

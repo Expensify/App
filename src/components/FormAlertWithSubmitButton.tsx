@@ -1,4 +1,3 @@
-import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getPlatform from '@libs/getPlatform';
@@ -13,6 +12,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import type {ButtonProps} from './Button/types';
 
 import Button from './Button';
 import FormAlertWrapper from './FormAlertWrapper';
@@ -35,13 +36,14 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
     /**
      * Controls the submit button's optimistic loading state on press.
      *
-     * Shows the spinner the moment the button is pressed, ahead of `onSubmit` and any consumer-driven `isLoading`. Defaults to true.
+     * Forwarded to the submit `Button`. Shows the spinner the moment the button is pressed, ahead of `onSubmit` and any consumer-driven `isLoading`.
      * Set it to false when the consumer drives the press loading itself, for example through `usePressLoading`, or when `onSubmit` only changes local state.
      */
     shouldShowLoadingImmediatelyOnPress?: boolean;
 
     onFixTheErrorsLinkPressed?: () => void;
-    onSubmit: () => void;
+
+    onSubmit: NonNullable<ButtonProps['onPress']>;
 
     /** Should the button be enabled when offline */
     enabledWhenOffline?: boolean;
@@ -51,6 +53,9 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
 
     /** The visual variant of the submit button, which controls its color scheme */
     buttonVariant?: ButtonVariant;
+
+    /** Whether the submit button has the neutral color in place of `buttonVariant` */
+    isButtonNeutral?: boolean;
 
     /** Custom content to display in the footer after submit button */
     footerContent?: React.ReactNode;
@@ -93,11 +98,12 @@ function FormAlertWithSubmitButton({
     isDisabled = false,
     isMessageHtml = false,
     containerStyles,
-    isLoading: isOnyxLoading = false,
+    isLoading,
     onFixTheErrorsLinkPressed = () => {},
     enabledWhenOffline = false,
     disablePressOnEnter = false,
     buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
+    isButtonNeutral = false,
     footerContent,
     buttonRef,
     buttonStyles,
@@ -116,16 +122,7 @@ function FormAlertWithSubmitButton({
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
     const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : undefined, buttonStyles];
-
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
-
-    const submit = () => {
-        if (!shouldShowLoadingImmediatelyOnPress) {
-            onSubmit();
-            return;
-        }
-        startWithLoading(onSubmit);
-    };
+    const variant = isButtonNeutral ? undefined : buttonVariant;
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.
@@ -147,7 +144,7 @@ function FormAlertWithSubmitButton({
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
-                            variant={buttonVariant}
+                            variant={variant}
                             blendOpacity={blendButtonOpacity}
                             isDisabled
                             size={CONST.BUTTON_SIZE.LARGE}
@@ -160,13 +157,14 @@ function FormAlertWithSubmitButton({
                     ) : (
                         <Button
                             ref={buttonRef}
-                            variant={buttonVariant}
+                            variant={variant}
                             blendOpacity={blendButtonOpacity}
                             size={CONST.BUTTON_SIZE.LARGE}
                             style={style}
-                            onPress={submit}
+                            onPress={onSubmit}
                             isDisabled={isDisabled}
                             isLoading={isLoading}
+                            shouldShowLoadingImmediatelyOnPress={shouldShowLoadingImmediatelyOnPress}
                             onMouseDown={shouldPreventDefaultFocusOnPress ? (e) => e.preventDefault() : undefined}
                             sentryLabel={sentryLabel}
                         >

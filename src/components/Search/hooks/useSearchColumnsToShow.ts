@@ -5,6 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
 import {isDefaultExpensesQuery, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getValidGroupBy} from '@libs/SearchUIUtils';
@@ -31,6 +32,7 @@ function useSearchColumnsToShow(queryJSON: Readonly<SearchQueryJSON> | undefined
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
     const searchDataType = useSearchDataType(searchResults);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(searchDataType);
 
     if (!searchResults?.data) {
         return EMPTY_COLUMNS;
@@ -47,6 +49,7 @@ function useSearchColumnsToShow(queryJSON: Readonly<SearchQueryJSON> | undefined
         sortBy: queryJSON?.sortBy,
         shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
         isVendorColumnAvailable,
+        shouldReturnTripRooms,
     });
 }
 

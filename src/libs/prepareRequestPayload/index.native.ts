@@ -5,6 +5,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
+import CONST from '@src/CONST';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import RNFS from 'react-native-fs';
@@ -84,7 +85,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 }
             }
 
-            if (key === 'file' && initiatedOffline) {
+            if ((key === 'file' || CONST.ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX.test(key)) && initiatedOffline) {
                 const {uri: path = '', source, name, type} = value as File;
                 if (!source) {
                     validateFormDataParameter(command, key, value);
@@ -99,6 +100,9 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                         return;
                     }
 
+                    // A React Native File keeps its name and type on the prototype, and the multipart part is built from
+                    // the object's own properties, so without these the upload goes out unnamed and is stored as "file".
+                    Object.defineProperties(file, {name: {value: file.name, enumerable: true}, type: {value: file.type, enumerable: true}});
                     validateFormDataParameter(command, key, file);
                     formData.append(key, file);
                 });
