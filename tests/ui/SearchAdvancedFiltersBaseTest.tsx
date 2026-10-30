@@ -19,7 +19,7 @@ const MockView = View;
 // Stand-in for the filter list that only renders what the page puts inside its scroll area.
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/FilterList', () => ({
     __esModule: true,
-    default: ({footerContent}: {footerContent?: ReactNode}) => <MockView testID="filter-list">{footerContent}</MockView>,
+    default: ({children}: {children?: ReactNode}) => <MockView testID="filter-list">{children}</MockView>,
 }));
 
 jest.mock('@hooks/useShouldFooterBeInsideList', () => jest.fn(() => false));

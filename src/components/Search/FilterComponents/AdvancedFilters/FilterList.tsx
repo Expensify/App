@@ -55,7 +55,7 @@ type FilterListProps = FilterItemCallbacks & {
     headerContent?: ReactNode;
 
     /** Content below the rows, scrolled with them. */
-    footerContent?: ReactNode;
+    children?: ReactNode;
 
     /** Called as the cursor travels over the list. Web only - it reports the movement inside a row, which `onHoverIn` only reports entering. */
     onPointerMove?: (event: {clientX: number; clientY: number}) => void;
@@ -138,7 +138,7 @@ function FilterList({
     onSearchValueChange,
     searchInputRef,
     headerContent,
-    footerContent,
+    children,
     onHoverIn,
     onFocus,
     onPress,
@@ -200,7 +200,7 @@ function FilterList({
                         ))}
                     </View>
                 ))}
-                {footerContent}
+                {children}
             </ScrollView>
         </View>
     );

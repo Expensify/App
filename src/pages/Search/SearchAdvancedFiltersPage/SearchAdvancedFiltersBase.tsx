@@ -123,8 +123,9 @@ function SearchAdvancedFiltersBase() {
                     )
                 }
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
-                footerContent={shouldFooterBeInsideList && footer}
-            />
+            >
+                {shouldFooterBeInsideList && footer}
+            </FilterList>
             {!shouldFooterBeInsideList && footer}
         </ScreenWrapper>
     );
