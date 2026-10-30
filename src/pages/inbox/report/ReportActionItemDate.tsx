@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {memo} from 'react';
+import React from 'react';
 
 type ReportActionItemDateProps = {
     created: string;
@@ -22,4 +22,4 @@ function ReportActionItemDate({created}: ReportActionItemDateProps) {
     return <Text style={[styles.chatItemMessageHeaderTimestamp]}>{datetimeToCalendarTime(created, false, false)}</Text>;
 }
 
-export default memo(ReportActionItemDate);
+export default ReportActionItemDate;

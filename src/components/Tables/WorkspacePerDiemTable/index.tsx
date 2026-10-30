@@ -30,6 +30,7 @@ type PerDiemTableRowData = TableData & {
     formattedAmount: string;
     disabled?: boolean;
     pendingAction?: OnyxCommon.PendingAction;
+    errors?: OnyxCommon.Errors | null;
     canEditDestination: boolean;
     canEditSubrate: boolean;
     canEditAmount: boolean;
@@ -37,6 +38,7 @@ type PerDiemTableRowData = TableData & {
     onRenameDestination: (newName: string) => void;
     onRenameSubrate: (newName: string) => void;
     onChangeAmount: (newAmount: string) => void;
+    dismissError: () => void;
 };
 
 type WorkspacePerDiemTableProps = {

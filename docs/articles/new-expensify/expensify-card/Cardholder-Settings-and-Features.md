@@ -87,7 +87,7 @@ Get real-time alerts for purchases and declines by enabling push notifications.
 
 # The Virtual Card
 
-Virtual cards are great for online and mobile purchases. They share the same Smart Limit as your physical card.
+Virtual cards are great for online and mobile purchases. Each card has its own limit, so spending on a virtual card doesn't reduce the available limit on your physical card.
 
 ## Benefits of using a virtual card
 
