@@ -10922,6 +10922,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         mergeReports: {
             title: 'Unisci report',
             description: 'Seleziona il report da mantenere. Tutte le spese verranno spostate al suo interno e gli altri report verranno eliminati.',
+            exportedWarning: 'Uno o più report selezionati sono già stati esportati in un’integrazione contabile. Fonderli potrebbe causare dati duplicati se vengono esportati di nuovo.',
+            reportFieldsMismatch: '<strong>Questi report hanno valori diversi nei campi del report.</strong> Per unirli, prima fai in modo che i campi del report coincidano in ogni report.',
             listPage: {noEligibleReportsFound: 'Nessun report idoneo trovato', noEligibleReportsFoundSubtitle: 'Non hai nessun report che possa essere unito.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} finora`,

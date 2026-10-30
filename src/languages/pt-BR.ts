@@ -10893,6 +10893,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         mergeReports: {
             title: 'Mesclar relatórios',
             description: 'Selecione o relatório que você quer manter. Todas as despesas serão movidas para ele e os outros relatórios serão excluídos.',
+            exportedWarning: 'Um ou mais relatórios selecionados já foram exportados para uma integração contábil. Unificá-los pode causar dados duplicados se forem exportados novamente.',
+            reportFieldsMismatch:
+                '<strong>Esses relatórios têm valores diferentes nos campos do relatório.</strong> Para mesclá-los, faça com que os campos do relatório correspondam em cada relatório primeiro.',
             listPage: {noEligibleReportsFound: 'Nenhum relatório qualificado encontrado', noEligibleReportsFoundSubtitle: 'Você não tem nenhum relatório que possa ser mesclado.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} até agora`,

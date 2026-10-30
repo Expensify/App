@@ -10776,6 +10776,9 @@ ${reportName}`,
         mergeReports: {
             title: 'Combinar informes',
             description: 'Selecciona el informe que quieres conservar. Todos los gastos se moverán a él y los demás informes se eliminarán.',
+            exportedWarning: 'Uno o más informes seleccionados ya se han exportado a una integración contable. Combinarlos puede causar datos duplicados si se vuelven a exportar.',
+            reportFieldsMismatch:
+                '<strong>Estos informes tienen diferentes valores en los campos del informe.</strong> Para combinarlos, haz que los campos del informe coincidan en cada informe primero.',
             listPage: {noEligibleReportsFound: 'No se encontraron informes aptos', noEligibleReportsFoundSubtitle: 'No tienes ningún informe que se pueda combinar.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} hasta ahora`,

@@ -10891,6 +10891,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         mergeReports: {
             title: 'Rapporten samenvoegen',
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+            exportedWarning:
+                'Een of meer geselecteerde rapporten zijn al geëxporteerd naar een boekhoudintegratie. Deze samenvoegen kan dubbele gegevens veroorzaken als ze opnieuw worden geëxporteerd.',
+            reportFieldsMismatch:
+                '<strong>Deze rapporten hebben verschillende waarden voor rapportvelden.</strong> Om ze te combineren, zorg je er eerst voor dat de rapportvelden in elk rapport overeenkomen.',
             listPage: {noEligibleReportsFound: 'Geen in aanmerking komende rapporten gevonden', noEligibleReportsFoundSubtitle: 'Je hebt geen rapporten die kunnen worden samengevoegd.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} tot nu toe`,

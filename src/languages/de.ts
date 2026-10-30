@@ -10969,6 +10969,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         mergeReports: {
             title: 'Berichte zusammenführen',
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
+            exportedWarning:
+                'Ein oder mehrere ausgewählte Berichte wurden bereits an eine Buchhaltungsintegration exportiert. Das Zusammenführen kann zu doppelten Daten führen, wenn sie erneut exportiert werden.',
+            reportFieldsMismatch:
+                '<strong>Diese Berichte haben unterschiedliche Berichtsfeldwerte.</strong> Um sie zusammenzuführen, passen Sie zuerst die Berichtsfelder in jedem Bericht aneinander an.',
             listPage: {noEligibleReportsFound: 'Keine berechtigten Berichte gefunden', noEligibleReportsFoundSubtitle: 'Sie haben keine Berichte, die zusammengeführt werden können.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} bisher`,

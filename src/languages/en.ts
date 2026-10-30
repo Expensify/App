@@ -11221,6 +11221,8 @@ const translations = {
         mergeReports: {
             title: 'Merge reports',
             description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            exportedWarning: 'One or more selected reports have already been exported to an accounting integration. Merging them may cause duplicate data if they are exported again.',
+            reportFieldsMismatch: '<strong>These reports have different report field values.</strong> To merge them, make the report fields match on each report first.',
             listPage: {
                 noEligibleReportsFound: 'No eligible reports found',
                 noEligibleReportsFoundSubtitle: "You don't have any reports that can be merged.",

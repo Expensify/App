@@ -10485,6 +10485,8 @@ ${reportName}`,
         mergeReports: {
             title: '合并报表',
             description: '选择要保留的报表。所有费用都将移入该报表，其他报表将被删除。',
+            exportedWarning: '一个或多个选中的报表已导出到会计集成中。如果再次导出，合并它们可能会导致数据重复。',
+            reportFieldsMismatch: '<strong>这些报表包含不同的报表字段值。</strong>要合并它们，请先让每个报表中的报表字段保持一致。',
             listPage: {noEligibleReportsFound: '未找到符合条件的报表', noEligibleReportsFoundSubtitle: '您没有任何可合并的报表。'},
         },
         periodSoFar: ({period}: {period: string}) => `目前 ${period}`,
