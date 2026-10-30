@@ -7,14 +7,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 function WorkspaceConfirmationSuccessPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const closePage = useCallback(() => {
+    const closePage = () => {
         Navigation.closeRHPFlow();
-    }, []);
+    };
 
     return (
         <ScreenWrapper

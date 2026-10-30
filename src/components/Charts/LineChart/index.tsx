@@ -1,21 +1,27 @@
-import ChartWidthBox from '@components/Charts/components/ChartWidthBox';
+import ChartFrame from '@components/Charts/components/ChartFrame';
 import SkiaWebChart from '@components/Charts/SkiaWebChart';
+import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
 
 import React from 'react';
 
 import type {LineChartProps} from './LineChartContent';
 
 const getLineChartContent = () => import('./LineChartContent');
+
 function LineChart(props: LineChartProps) {
     return (
-        <ChartWidthBox>
+        <ChartFrame
+            isLoading={props.isLoading}
+            hasData={props.data.length > 0}
+            getLoadingHeight={() => getCartesianChartHeight()}
+        >
             {(chartWidth) => (
                 <SkiaWebChart
                     getComponent={getLineChartContent}
                     componentProps={{...props, chartWidth}}
                 />
             )}
-        </ChartWidthBox>
+        </ChartFrame>
     );
 }
 
