@@ -1,5 +1,6 @@
 import {setModalVisibility} from '@libs/actions/Modal';
-import Log, {setActiveTab} from '@libs/Log';
+import Log from '@libs/Log';
+import {setActiveTab} from '@libs/LogContext';
 
 import {setActiveClients} from '@userActions/ActiveClients';
 

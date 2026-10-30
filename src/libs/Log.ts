@@ -9,27 +9,12 @@ import AppLogs from 'react-native-app-logs';
 import pkg from '../../package.json';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
+import {addLogContext} from './LogContext';
 import MainQueueStore from './Network/MainQueueStore';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
 let timeout: NodeJS.Timeout;
-
-type ActiveTab = {clientID: string; isLeader: boolean};
-
-let activeTab: ActiveTab | undefined;
-
-function setActiveTab(tab: ActiveTab) {
-    activeTab = tab;
-}
-
-function tagMessage(message: string): string {
-    if (!activeTab) {
-        return message;
-    }
-
-    return `${message} [tab ${activeTab.clientID} leader:${activeTab.isLeader}]`;
-}
 
 type LogCommandParameters = {
     expensifyCashAppVersion: string;
@@ -125,13 +110,13 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
 // callback methods are passed in here so we can decouple the logging library from the logging methods.
-class TabTaggedLogger extends Logger {
+class ContextualLogger extends Logger {
     add(...[message, ...rest]: Parameters<Logger['add']>) {
-        super.add(tagMessage(message), ...rest);
+        super.add(addLogContext(message), ...rest);
     }
 }
 
-const Log = new TabTaggedLogger({
+const Log = new ContextualLogger({
     serverLoggingCallback,
     clientLoggingCallback: (message, extraData) => {
         console.debug(message, extraData);
@@ -161,7 +146,5 @@ AppLogs.registerHandler({
         }
     },
 });
-
-export {setActiveTab};
 
 export default Log;
