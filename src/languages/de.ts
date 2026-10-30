@@ -38,9 +38,15 @@ const translations: TranslationDeepObject<typeof en> = {
     billPay: {
         bill: 'Eingangsrechnung',
         bills: 'Eingangsrechnungen',
+        createBill: 'Eingangsrechnung erstellen',
+        vendorEmail: 'E-Mail des Lieferanten',
+        attachPDF: 'PDF anhängen',
         payByACH: 'Per ACH bezahlen',
         markAsPaid: 'Als bezahlt markieren',
         paymentFailed: 'Diese Rechnung konnte nicht bezahlt werden. Bitte versuche es erneut.',
+        createFailed: 'Diese Rechnung konnte nicht erstellt werden. Bitte versuche es erneut.',
+        primaryContactHint: (domain) =>
+            `Der Hauptkontakt ist die zentrale Kontaktperson für ${domain} und erhält Rechnungen, die an die Rechnungsadresse dieser Domain ${domain}@expensify.cash gesendet werden.`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

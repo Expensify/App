@@ -10,7 +10,7 @@ import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
-import payBill from '@libs/actions/BillPay';
+import {payBill} from '@libs/actions/BillPay';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';

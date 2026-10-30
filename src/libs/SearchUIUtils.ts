@@ -5032,6 +5032,7 @@ type TypeMenuSectionsParams = {
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
+    hasBills?: boolean;
     policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
 };
 
@@ -5049,6 +5050,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         draftTransactionIDs,
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
+        hasBills = false,
         policyCategories,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
@@ -5122,6 +5124,17 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         if (expenseReportsSection.menuItems.length > 0) {
             typeMenuSections.push(expenseReportsSection);
         }
+    }
+
+    if (hasBills) {
+        const billMenuItems = [suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS], suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]];
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.PAY]) {
+            billMenuItems.push(suggestedSearches[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]);
+        }
+        typeMenuSections.push({
+            translationPath: 'billPay.bills',
+            menuItems: billMenuItems,
+        });
     }
 
     // Travel section
@@ -5616,19 +5629,30 @@ function getViolationsForTransaction(
     return formatTransactionViolationNames(violationNames, translate);
 }
 
-function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
+function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string, hasBills = false) {
     const typeOptions: Array<SingleSelectItem<SearchDataTypes>> = [
         {text: translate('common.expense'), value: CONST.SEARCH.DATA_TYPES.EXPENSE},
         {text: translate('common.expenseReport'), value: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
         {text: translate('common.chat'), value: CONST.SEARCH.DATA_TYPES.CHAT},
         {text: translate('common.invoice'), value: CONST.SEARCH.DATA_TYPES.INVOICE},
+        {text: translate('billPay.bill'), value: CONST.SEARCH.DATA_TYPES.BILL},
         {text: translate('common.trip'), value: CONST.SEARCH.DATA_TYPES.TRIP},
         {text: translate('common.task'), value: CONST.SEARCH.DATA_TYPES.TASK},
     ];
     const shouldHideInvoiceOption = !canSendInvoice(policies, currentUserLogin) && !hasInvoiceReports();
 
-    // Remove the invoice option if the user is not allowed to send invoices
-    return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
+    return typeOptions.filter((typeOption) => {
+        // Remove the invoice option if the user is not allowed to send invoices
+        if (typeOption.value === CONST.SEARCH.DATA_TYPES.INVOICE) {
+            return !shouldHideInvoiceOption;
+        }
+
+        // Show the bill option only to users who see Spend > Bills
+        if (typeOption.value === CONST.SEARCH.DATA_TYPES.BILL) {
+            return hasBills;
+        }
+        return true;
+    });
 }
 
 function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate, type?: SearchDataTypes) {

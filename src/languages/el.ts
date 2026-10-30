@@ -35,9 +35,15 @@ const translations: TranslationDeepObject<typeof en> = {
     billPay: {
         bill: 'Λογαριασμός',
         bills: 'Λογαριασμοί',
+        createBill: 'Δημιουργία λογαριασμού',
+        vendorEmail: 'Email προμηθευτή',
+        attachPDF: 'Επισύναψη PDF',
         payByACH: 'Πληρωμή μέσω ACH',
         markAsPaid: 'Σήμανση ως πληρωμένο',
         paymentFailed: 'Δεν μπορέσαμε να πληρώσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
+        createFailed: 'Δεν μπορέσαμε να δημιουργήσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
+        primaryContactHint: (domain) =>
+            `Η κύρια επαφή είναι το βασικό σημείο επικοινωνίας για το ${domain} και θα λαμβάνει λογαριασμούς που αποστέλλονται στη διεύθυνση πληρωμών του τομέα ${domain}@expensify.cash.`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

@@ -4,7 +4,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import payBill from '@libs/actions/BillPay';
+import {payBill} from '@libs/actions/BillPay';
 import {isBillReport} from '@libs/BillPayUtils';
 import Navigation from '@libs/Navigation/Navigation';
 

@@ -1,5 +1,6 @@
 import type {SearchFilterCommonProps} from '@components/Search/types';
 
+import useBillPayCounts from '@hooks/useBillPayCounts';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -52,8 +53,9 @@ function TypeSelector({value = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListSty
     const {translate} = useLocalize();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: typeOptionsPoliciesSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const {hasBills} = useBillPayCounts();
 
-    const types = getTypeOptions(translate, allPolicies, sessionEmail);
+    const types = getTypeOptions(translate, allPolicies, sessionEmail, hasBills);
 
     return (
         <SingleSelect

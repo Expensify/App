@@ -46,9 +46,15 @@ const translations = {
     billPay: {
         bill: 'Bill',
         bills: 'Bills',
+        createBill: 'Create bill',
+        vendorEmail: 'Vendor email',
+        attachPDF: 'Attach PDF',
         payByACH: 'Pay by ACH',
         markAsPaid: 'Mark as paid',
         paymentFailed: 'We couldn’t pay this bill. Please try again.',
+        createFailed: 'We couldn’t create this bill. Please try again.',
+        primaryContactHint: (domain: string) =>
+            `The primary contact is the main point of contact for ${domain} and will receive bills sent to this domain's bill pay address ${domain}@expensify.cash.`,
     },
     bulkActionBar: {
         label: 'Bulk actions',
