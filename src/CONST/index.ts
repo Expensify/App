@@ -10118,22 +10118,25 @@ const CONST = {
             WORKSPACE_TAXES: 'workspaceTaxes',
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+
+            /** Prefix of the Search table IDs, one per data type. See `getSearchColumnResizingID`. */
+            SEARCH_PREFIX: 'search',
         },
 
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
-            DOUBLE_CLICK_INTERVAL: 150,
+            /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
+            GRIP_HEIGHT_RATIO: 0.4,
 
-            /** Share of the heading's height the grip spans, centred vertically. */
-            GRIP_HEIGHT_RATIO: 0.8,
+            /** Width of the strip centred on a column's edge that picks up a drag, the smallest comfortable desktop click target. */
+            HIT_AREA_WIDTH: 24,
 
             /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
 
-            /** What a click (`FIT`) or a double-click (`RESET`) on a column's edge sizes it to. */
+            /** What a click on a column's edge sizes it to: `FIT` its content, or `RESET` it when it already fits. */
             WIDTH_TARGET: {
                 FIT: 'fit',
                 RESET: 'reset',
