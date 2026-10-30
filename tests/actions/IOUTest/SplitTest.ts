@@ -3270,6 +3270,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         // Then the held expense stays out of the unheld totals, so "Approve only" still excludes it
         const report = await getOnyxValue(expenseReportKey);
         expect(report?.total).toBe(-(amount + heldAmount));
+        expect(report?.reimbursableTotal).toBe(-(amount + heldAmount));
         expect(report?.unheldTotal).toBe(-amount);
         expect(report?.unheldReimbursableTotal).toBe(-amount);
 

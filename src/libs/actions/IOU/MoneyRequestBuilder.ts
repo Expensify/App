@@ -1515,7 +1515,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                     }
                 } else if (isCurrencyMatching) {
                     // Reimbursable transaction: reflect the change in the freshly tracked reimbursableTotal too.
-                    iouReport.reimbursableTotal = newReportTotal ? newReportTotal - (iouReport.nonReimbursableTotal ?? 0) : previousReimbursableTotal - reportAmount;
+                    iouReport.reimbursableTotal = previousReimbursableTotal + reportTotalChange;
                 }
 
                 // The reimbursable totals are what the report preview and details actually read, so they are
