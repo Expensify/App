@@ -7,6 +7,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {LayoutChangeEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import type useReportActionsListData from './useReportActionsListData';
+
 type ReportActionsListProps = {
     /** The ID of the report to display actions for */
     reportID: string;
@@ -43,6 +45,28 @@ type UseReportActionsListScrollParams = Pick<
         onScrolledOverThresholdChange: (isOverThreshold: boolean) => void;
     };
 
+type UseReportActionsListRenderItemParams = Pick<
+    ReturnType<typeof useReportActionsListData>,
+    | 'renderedVisibleReportActions'
+    | 'listData'
+    | 'canonicalIndexByReportActionID'
+    | 'runsByAnchorReportActionID'
+    | 'expandedSystemMessageReportActionIDs'
+    | 'expandSystemMessageRun'
+    | 'focusRequestedReportActionID'
+    | 'onExpandedSystemMessageReady'
+    | 'draftMessageHTML'
+    | 'draftReportActionID'
+    | 'isDraftPendingCompletion'
+> &
+    Pick<UseReportActionsListDataParams, 'reportNameValuePairs' | 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
+    Pick<ReportActionsListProps, 'reportID'> & {
+        isReportArchived: boolean;
+        isOffline: boolean;
+        sortedReportActions: OnyxTypes.ReportAction[];
+        onShowPreviousMessages: () => void;
+    };
+
 type UseReportActionsListTelemetryParams = Pick<ReportActionsListProps, 'reportID' | 'onLayout'>;
 
-export type {ReportActionsListProps, UseReportActionsListDataParams, UseReportActionsListScrollParams, UseReportActionsListTelemetryParams};
+export type {ReportActionsListProps, UseReportActionsListDataParams, UseReportActionsListScrollParams, UseReportActionsListRenderItemParams, UseReportActionsListTelemetryParams};
