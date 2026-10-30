@@ -117,8 +117,10 @@ function AutoGrowHeightInputContainer({
         const didExactLayoutAccountForKeyboard = !!pendingNativeLayout && areHeightsEqual(pendingNativeLayout.layoutHeight, expectedLayoutHeight);
         keyboardHeightRef.current = nativeKeyboardHeight;
         pendingNativeLayoutRef.current = null;
-        nativeKeyboardFallbackRef.current = !didExactLayoutAccountForKeyboard;
-        const availableHeight = didExactLayoutAccountForKeyboard ? availableHeightRef.current : Math.max(availableHeightRef.current - keyboardHeightDelta, variables.componentSizeLarge);
+        const keyboardDerivedHeight = availableHeightRef.current - keyboardHeightDelta;
+        // A height floored at the minimum is not a real allocation, so waiting for onLayout to reach it would ignore every later layout and leave the input stuck at its minimum height.
+        nativeKeyboardFallbackRef.current = !didExactLayoutAccountForKeyboard && keyboardDerivedHeight >= variables.componentSizeLarge;
+        const availableHeight = didExactLayoutAccountForKeyboard ? availableHeightRef.current : Math.max(keyboardDerivedHeight, variables.componentSizeLarge);
         availableHeightRef.current = availableHeight;
         startMeasurement('clamp', availableHeight);
     }, [nativeKeyboardHeight, startMeasurement]);
@@ -222,6 +224,10 @@ function AutoGrowHeightInputContainer({
 
                 availableHeightRef.current = availableHeight;
                 viewportHeightRef.current = windowHeight;
+                // Android re-emits an unchanged allocation after the cap settles. Restarting the clamp would regrow the input and flicker in a clamp and probe loop.
+                if (!didWidthChange && areHeightsEqual(availableHeight, previousAvailableHeight)) {
+                    return;
+                }
                 startMeasurement('clamp', availableHeight, didWidthChange);
             }}
         >
