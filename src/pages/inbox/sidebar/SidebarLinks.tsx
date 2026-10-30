@@ -87,7 +87,6 @@ function SidebarLinks({insets, reportIDs, hasReportData, priorityMode = CONST.PR
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
 
-    // The gap above the first row goes below the list header when there is one, so it doesn't push the header down.
     const contentContainerStyles = StyleSheet.flatten([!listHeaderComponent && styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]);
 
     const shouldShowEmptyLHN = reportIDs.length === 0;

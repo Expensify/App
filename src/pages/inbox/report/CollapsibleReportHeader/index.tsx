@@ -51,8 +51,15 @@ function MobileWebCollapsibleReportHeader({children}: CollapsibleReportHeaderPro
                 return;
             }
 
-            // Ignore overscroll past either end, its bounce back would read as a scroll the other way.
-            if (distanceToNewestEnd < 0 || distanceToOldestEnd < 0) {
+            // Always show the header at the oldest end so it covers the spacer. < 1 for iOS Safari's fractional scrollTop.
+            if (distanceToOldestEnd < 1) {
+                anchorOffset.set(offset);
+                isHiddenByScroll.set(false);
+                return;
+            }
+
+            // Ignore overscroll past the newest end, its bounce back would read as a scroll the other way.
+            if (distanceToNewestEnd < 0) {
                 return;
             }
 

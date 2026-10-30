@@ -8,9 +8,8 @@ import React from 'react';
 import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
 
 /**
- * Pads the top of a non-inverted report list by the space the collapsed header gave up, so its rows don't jump when
- * the header collapses or expands. Disable FlashList's maintainVisibleContentPosition on that list, it scrolls the
- * padding back out of view.
+ * Pads the oldest end of a report list by the space the collapsed header gave up, so the header slides in over it.
+ * Disable FlashList's maintainVisibleContentPosition on a non-inverted list, it scrolls the padding back out of view.
  */
 function MobileWebCollapsedReportHeaderSpacer() {
     const {collapsedHeaderHeightSV} = useActionListContext();
