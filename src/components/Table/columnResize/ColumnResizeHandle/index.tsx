@@ -21,14 +21,14 @@ import React from 'react';
 const BAR_STYLE: React.CSSProperties = {
     position: 'absolute',
     left: 0,
-    width: CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH,
+    width: CONST.RESIZE_HANDLE.INDICATOR_WIDTH,
 };
 
 const GRIP_STYLE: React.CSSProperties = {
     ...BAR_STYLE,
     top: `${((1 - CONST.TABLES.COLUMN_RESIZE.GRIP_HEIGHT_RATIO) / 2) * 100}%`,
     height: `${CONST.TABLES.COLUMN_RESIZE.GRIP_HEIGHT_RATIO * 100}%`,
-    borderRadius: CONST.TABLES.COLUMN_RESIZE.INDICATOR_WIDTH / 2,
+    borderRadius: CONST.RESIZE_HANDLE.INDICATOR_WIDTH / 2,
     // Hidden while the line shows, since the line grew out of it.
     opacity: `calc(var(${RESIZE_GRIP_HOVER_VARIABLE}, 0) * (1 - var(${RESIZE_INDICATOR_OPACITY_VARIABLE}, 0)))`,
     transition: `opacity ${CONST.TABLES.COLUMN_RESIZE.INDICATOR_MORPH_DURATION}ms`,
@@ -70,7 +70,7 @@ function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
                     <div
                         aria-hidden
                         {...{[RESIZE_INDICATOR_DATA_ATTRIBUTE]: true}}
-                        style={{...INDICATOR_STYLE, ...styles.tableColumnResizeIndicator}}
+                        style={{...INDICATOR_STYLE, ...styles.resizeIndicator}}
                     />
                 </div>
             )}

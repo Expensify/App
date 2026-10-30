@@ -3,6 +3,7 @@ import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
+import getModalRouteOnTop from '@libs/Navigation/helpers/getModalRouteOnTop';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import hasNativeSwipeBackGesture from '@libs/Navigation/helpers/hasNativeSwipeBackGesture';
 import {isFullScreenName, isPreMountBufferHostName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -19,6 +20,7 @@ import type {CommonActions, NavigationState, PartialState, RouterConfigOptions, 
 import type {ParamListBase, Router} from '@react-navigation/routers';
 
 import {StackActions} from '@react-navigation/native';
+import {deepEqual} from 'fast-equals';
 
 import type {
     PushActionType,
@@ -538,10 +540,14 @@ function withPreMountedDestination(builtTabState: TabStateForReplacement, existi
     // A partial state would be rehydrated under a new key, which makes the navigator re-render all of its screens.
     const mountedNestedState = isRealizedNavigationState(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
 
-    // Params still come from the built routes, so both branches reveal the destination the action asked for.
+    // Params still come from the built routes, so both branches reveal the destination the action asked for. A route whose
+    // params already match is kept as is, because a new route object re-renders the revealed screen.
     const mountedRoutes = nestedRoutes.map((route) => {
         const existing = mountedNestedState?.routes.find((mountedRoute) => 'key' in route && mountedRoute.key === route.key);
-        return existing ? {...existing, params: route.params} : undefined;
+        if (!existing) {
+            return undefined;
+        }
+        return deepEqual(existing.params ?? {}, route.params ?? {}) ? existing : {...existing, params: route.params};
     });
     const routes = [...builtTabState.routes];
     if (mountedNestedState && mountedRoutes.every((route): route is NonNullable<typeof route> => !!route) && 'key' in targetTabRoute && typeof targetTabRoute.key === 'string') {
@@ -618,8 +624,8 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     // Only operates when a modal (e.g. RHP) sits on top of the stack.
-    const rhpRoute = state.routes.at(-1);
-    if (!rhpRoute || isFullScreenName(rhpRoute.name)) {
+    const rhpRoute = getModalRouteOnTop(state);
+    if (!rhpRoute) {
         return null;
     }
 
@@ -652,17 +658,17 @@ function handleReplaceFullscreenUnderRHP(
         // Writing module state from the router is safe here: the dispatch is synchronous and a wide pre-mount keeps every
         // root route key, so beforeRemove cannot reject the state after the outcome is written.
         lastPreMountReplaceOutcome = preMountedRouteKey ? {routeKey: preMountedRouteKey, isRevealed: !!preMountedTabState} : undefined;
-        let updatedTabState = builtTabState;
-        if (preMountedTabState) {
-            updatedTabState = preMountedTabState;
-        } else if (preMountedRouteKey) {
-            updatedTabState = withoutFocusedTabPreload(withoutPreMountedRoute(builtTabState, preMountedRouteKey));
+        // The target tab is focused now, so its preload mark (e.g. from the idle Reports tab preload) is dropped as a tab
+        // switch would drop it. A screen in a still preloaded tab holds work that assumes the user is looking.
+        let updatedTabState = preMountedTabState;
+        if (!updatedTabState) {
+            updatedTabState = withoutFocusedTabPreload(preMountedRouteKey ? withoutPreMountedRoute(builtTabState, preMountedRouteKey) : builtTabState);
         }
 
-        // The remount guards against a push-transition flash on narrow layout (#90985). A wide pre-mount reveal keeps the key,
-        // because a remount would drop the pre-mounted screen. Wide renders split screens without a push animation.
+        // The remount guards against a push-transition flash on narrow layout (#90985). Wide renders split screens without a
+        // push animation, so it keeps the key: a remount would drop a pre-mounted screen and re-render the whole tab.
         let tabStateForReplace = updatedTabState;
-        if (preMountedRouteKey && !getIsNarrowLayout()) {
+        if (!getIsNarrowLayout()) {
             tabStateForReplace = withFocusedTabInHistory(updatedTabState);
         } else if (existingTabState) {
             tabStateForReplace = markFocusedTabRouteForRemount(updatedTabState, existingTabState);
@@ -949,6 +955,7 @@ export {
     consumePreMountReplaceOutcome,
     clearPreInsertedOriginalTabRoute,
     MODAL_ROUTES_TO_DISMISS,
+    getFocusedRouteFromNavigatorState,
     getTargetTabRoute,
     // Exported for unit-test access; not used outside of testing.
     getTabStateWithFreshTarget,
