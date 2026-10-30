@@ -183,8 +183,9 @@ describe('withAgentAccessDenied', () => {
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the guard leaves navigation alone, so it can't race the switch's own reset
-        expect(screen.queryByTestId('protected-content')).toBeNull();
+        // Then the guard leaves navigation alone, so it can't race the switch's own reset, and keeps the page
+        // rendered so the user doesn't see a blank pane until the reset lands
+        expect(screen.getByTestId('protected-content')).toBeTruthy();
         expect(Navigation.popRootToTop).not.toHaveBeenCalled();
         expect(Navigation.dismissModal).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
