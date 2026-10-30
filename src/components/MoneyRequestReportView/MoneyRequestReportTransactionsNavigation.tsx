@@ -51,7 +51,6 @@ const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
-    isFromReviewDuplicates?: boolean;
     shouldDisplayNarrowVersion?: boolean;
 };
 
@@ -86,7 +85,7 @@ const collectParentReportActions = (
     }
 };
 
-function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
+function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldDisplayNarrowVersion}: MoneyRequestReportRHPNavigationButtonsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // Shared with the header, which uses the same filtered list to decide whether to render this carousel at all.
@@ -234,14 +233,12 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         return true;
     };
 
+    // Siblings replace this screen in place via setParams, so backTo must keep pointing at where the user entered the
+    // carousel from. Pointing it at the current expense would make Back step to the previous sibling instead of leaving.
     const getBackTo = () => {
-        let backTo = Navigation.getActiveRoute();
-        if (isFromReviewDuplicates) {
-            const currentRoute = navigationRef.getCurrentRoute();
-            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
-            backTo = params?.backTo ?? backTo;
-        }
-        return backTo;
+        const currentRoute = navigationRef.getCurrentRoute();
+        const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
+        return params?.backTo;
     };
 
     const resolveContext = {
@@ -442,26 +439,28 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     // The arrow keys mirror the on-screen arrows. Text inputs keep them for editing, and a key already handled by
     // whatever has focus (e.g. a menu) is left alone, so keyboard and assistive tech navigation keep working.
+    // The shortcuts stay active at the first and last expense so they still swallow the key there. Otherwise the
+    // browser's default arrow-key scrolling reaches whatever was focused last, such as the report table behind the RHP.
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT,
         (event) => {
-            if (event?.defaultPrevented) {
+            if (event?.defaultPrevented || !canNavigateToPrevious) {
                 return;
             }
             onPrevious(event);
         },
-        {captureOnInputs: false, isActive: isArrowKeyNavigationActive && canNavigateToPrevious},
+        {captureOnInputs: false, isActive: isArrowKeyNavigationActive},
     );
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT,
         (event) => {
-            if (event?.defaultPrevented) {
+            if (event?.defaultPrevented || !canNavigateToNext) {
                 return;
             }
             onNext(event);
         },
-        {captureOnInputs: false, isActive: isArrowKeyNavigationActive && canNavigateToNext},
+        {captureOnInputs: false, isActive: isArrowKeyNavigationActive},
     );
 
     // Two entries are the minimum for there to be anything to page between, and an anchor that isn't in the list
