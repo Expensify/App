@@ -187,7 +187,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -223,7 +223,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -291,7 +291,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                     callback: (actionsForReport) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actionsForReport);
                     },
                 });
@@ -308,7 +308,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
                     callback: (transactionResult) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(transactionResult);
                     },
                 });
@@ -326,7 +326,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                     callback: (actionsForReport) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actionsForReport);
                     },
                 });
@@ -342,7 +342,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
                     callback: (transactionResult) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(transactionResult);
                     },
                 });
@@ -380,7 +380,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
                     callback: (res) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(res);
                     },
                 });
@@ -397,7 +397,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
                     callback: (res) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(res);
                     },
                 });
@@ -471,7 +471,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -491,7 +491,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -548,7 +548,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -590,7 +590,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (reportData) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reportData);
                     },
                 });
@@ -604,7 +604,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (reportData) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reportData);
                     },
                 });
@@ -657,7 +657,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -718,7 +718,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                     callback: (reportActionsForReport) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
                         );
@@ -752,7 +752,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (reportData) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reportData);
                     },
                 });
@@ -800,7 +800,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -841,7 +841,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -877,7 +877,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report?.reportID).toBeFalsy();
                         resolve();
                     },
@@ -894,7 +894,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeFalsy();
                         resolve();
                     },
@@ -943,7 +943,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -979,7 +979,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                     callback: (reportActionsForReport) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
                         );
@@ -1076,7 +1076,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                     callback: (reportActionsForReport) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
                         );
@@ -1095,7 +1095,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
                     callback: (reportActionsForReport) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         createIOUAction = Object.values(reportActionsForReport ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                             isMoneyRequestAction(reportAction),
                         );
@@ -1275,7 +1275,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -1314,7 +1314,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -1331,7 +1331,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -1472,7 +1472,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -1511,7 +1511,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -1669,7 +1669,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -1832,7 +1832,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -1900,7 +1900,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -2047,7 +2047,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -2075,7 +2075,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -2126,7 +2126,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -2172,7 +2172,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -2226,7 +2226,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -2276,7 +2276,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -2309,7 +2309,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });

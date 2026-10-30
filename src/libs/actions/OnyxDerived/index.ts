@@ -64,7 +64,7 @@ function init() {
             const connection = Onyx.connectWithoutView({
                 key,
                 callback: (storedDerivedValue) => {
-                    Onyx.disconnect(connection);
+                    connection.unsubscribe();
                     resolve(storedDerivedValue);
                 },
             });

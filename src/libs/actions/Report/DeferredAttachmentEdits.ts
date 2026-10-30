@@ -44,14 +44,14 @@ function watchDeferredAttachmentEdit(reportActionID: string, deferredEdit: Defer
         hasStopped = true;
         deferredAttachmentEditWatchers.delete(reportActionID);
         for (const connection of connections.splice(0)) {
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
         }
     };
     // A subscriber can fire while it is still being connected, so a connection made after the watcher stopped is
     // disconnected rather than stored.
     const track = (connection: Connection) => {
         if (hasStopped) {
-            Onyx.disconnect(connection);
+            connection.unsubscribe();
             return;
         }
         connections.push(connection);
