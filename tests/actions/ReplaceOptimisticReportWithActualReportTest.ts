@@ -215,11 +215,14 @@ describe('replaceOptimisticReportWithActualReport', () => {
         const reportID = '1';
         const preexistingReportID = '2';
 
-        const existingReport = createRandomReport(Number(preexistingReportID), CONST.REPORT.CHAT_TYPE.POLICY_ROOM);
+        const existingErrors = getMicroSecondOnyxErrorWithMessage('Comment failed');
+        const existingErrorFields = {createChat: getMicroSecondOnyxErrorWithMessage('Create chat failed')};
+        const existingReport = createRandomReport(Number(preexistingReportID), undefined);
         existingReport.reportID = preexistingReportID;
         existingReport.type = CONST.REPORT.TYPE.CHAT;
         existingReport.reportName = 'Concierge';
-        existingReport.errorFields = undefined;
+        existingReport.errors = existingErrors;
+        existingReport.errorFields = existingErrorFields;
         existingReport.pendingFields = undefined;
 
         // And a leftover optimistic report that only carries a "Report not found" error, as a cache clear can leave behind
@@ -227,6 +230,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
             reportID,
             preexistingReportID,
             participants: existingReport.participants,
+            errors: getMicroSecondOnyxErrorWithMessage('Optimistic error'),
             errorFields: {notFound: getMicroSecondOnyxErrorWithMessage('Report not found')},
             pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         };
@@ -243,8 +247,9 @@ describe('replaceOptimisticReportWithActualReport', () => {
         expect(updatedReport?.type).toBe(CONST.REPORT.TYPE.CHAT);
         expect(updatedReport?.reportName).toBe('Concierge');
 
-        // And the optimistic report's errors and pending fields don't land on it, so it shows no Fix badge
-        expect(updatedReport?.errorFields).toBeUndefined();
+        // And it keeps its own errors and doesn't pick up the optimistic ones, so it shows no Fix badge
+        expect(updatedReport?.errors).toEqual(existingErrors);
+        expect(updatedReport?.errorFields).toEqual(existingErrorFields);
         expect(updatedReport?.pendingFields).toBeUndefined();
     });
 

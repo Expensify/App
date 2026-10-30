@@ -105,18 +105,20 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
             // Or we optimistically created a thread report under a comment that already has an associated child chat report.
             // In this case, the API will let us know by returning a preexistingReportID.
             // We should clear out the optimistically created report and re-route the user to the preexisting report.
-            const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
             const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-            // Keep the existing report's server fields (e.g. type) and its own errors, so an optimistic "Report not found" error never lands on it
-            const mergedReport = {
-                ...existingReport,
-                ...report,
-                reportID: preexistingReportID,
-                preexistingReportID: null,
-                errorFields: existingReport?.errorFields,
-                pendingFields: existingReport?.pendingFields,
-            };
             let callback = () => {
+                // Read at call time, since this callback can run after the draft is saved
+                const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+                // Keep the existing report's server fields (e.g. type) and its own errors, so an optimistic "Report not found" error never lands on it
+                const mergedReport = {
+                    ...existingReport,
+                    ...report,
+                    reportID: preexistingReportID,
+                    preexistingReportID: null,
+                    errors: existingReport?.errors,
+                    errorFields: existingReport?.errorFields,
+                    pendingFields: existingReport?.pendingFields,
+                };
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null);
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, null);
 
