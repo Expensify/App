@@ -47,10 +47,12 @@ jest.mock('@hooks/useReportScrollManager', () => ({
 // --- useReportUnreadMessageScrollTracking ---
 const mockSetIsFloatingMessageCounterVisible = jest.fn();
 const mockSetIsActionBadgeAboveViewport = jest.fn();
+const mockSetIsActionBadgeBelowViewport = jest.fn();
 const mockTrackVerticalScrolling = jest.fn();
 const mockOnViewableItemsChanged = jest.fn();
 let mockIsFloatingMessageCounterVisible = false;
 let mockIsActionBadgeAboveViewport = false;
+let mockIsActionBadgeBelowViewport = false;
 let mockShouldDisablePillTracking: boolean | undefined;
 jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
     __esModule: true,
@@ -61,6 +63,8 @@ jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
             setIsFloatingMessageCounterVisible: mockSetIsFloatingMessageCounterVisible,
             isActionBadgeAboveViewport: mockIsActionBadgeAboveViewport,
             setIsActionBadgeAboveViewport: mockSetIsActionBadgeAboveViewport,
+            isActionBadgeBelowViewport: mockIsActionBadgeBelowViewport,
+            setIsActionBadgeBelowViewport: mockSetIsActionBadgeBelowViewport,
             trackVerticalScrolling: mockTrackVerticalScrolling,
             onViewableItemsChanged: mockOnViewableItemsChanged,
         };
@@ -246,6 +250,7 @@ describe('useReportActionsScroll', () => {
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
         mockIsActionBadgeAboveViewport = false;
+        mockIsActionBadgeBelowViewport = false;
         mockShouldDisablePillTracking = undefined;
         mockIsScrollToBottomEnabled = false;
         mockIsTransactionThread = false;
@@ -437,6 +442,7 @@ describe('useReportActionsScroll', () => {
 
             // Then the pills are not hidden directly because the target scrolls into view and viewability tracking hides the pill
             expect(mockSetIsActionBadgeAboveViewport).not.toHaveBeenCalled();
+            expect(mockSetIsActionBadgeBelowViewport).not.toHaveBeenCalled();
             expect(mockSetIsFloatingMessageCounterVisible).not.toHaveBeenCalled();
         });
 
@@ -452,6 +458,7 @@ describe('useReportActionsScroll', () => {
 
             // Then both pills are hidden directly because the target can never become viewable to hide them, and the list still scrolls
             expect(mockSetIsActionBadgeAboveViewport).toHaveBeenCalledWith(false);
+            expect(mockSetIsActionBadgeBelowViewport).toHaveBeenCalledWith(false);
             expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
             expect(mockScrollToIndex).toHaveBeenCalledWith(5, {animated: true, viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
         });
@@ -735,6 +742,18 @@ describe('useReportActionsScroll', () => {
 
             result.current.onViewableItemsChanged({viewableItems: [], changed: []});
             expect(mockOnViewableItemsChanged).toHaveBeenCalled();
+        });
+
+        it('forwards isActionBadgeBelowViewport from the tracking hook', async () => {
+            // Given the tracking hook reports the action badge target below the viewport
+            mockIsActionBadgeBelowViewport = true;
+
+            // When the scroll hook renders
+            const {result} = await renderScroll();
+
+            // Then the below flag reaches the list so the pill can point down
+            expect(result.current.isActionBadgeBelowViewport).toBe(true);
+            expect(result.current.isActionBadgeAboveViewport).toBe(false);
         });
     });
 });

@@ -112,6 +112,9 @@ type UseReportActionsScrollResult = {
     /** Whether the action badge target is above the viewport */
     isActionBadgeAboveViewport: boolean;
 
+    /** Whether the action badge target is below the viewport */
+    isActionBadgeBelowViewport: boolean;
+
     /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
 
@@ -231,6 +234,8 @@ function useReportActionsScroll({
         setIsFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
         setIsActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
+        setIsActionBadgeBelowViewport,
         trackVerticalScrolling,
         onViewableItemsChanged,
         updatePillVisibility,
@@ -444,6 +449,7 @@ function useReportActionsScroll({
         // The expanded composer covers the list, so the target never becomes viewable to hide the pill
         if (isComposerFullSize) {
             setIsActionBadgeAboveViewport(false);
+            setIsActionBadgeBelowViewport(false);
             setIsFloatingMessageCounterVisible(false);
         }
         // `animated` is explicit because native defaults to an instant jump, which would teleport the list and lose the user's place.
@@ -514,6 +520,7 @@ function useReportActionsScroll({
         onViewableItemsChanged,
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
+        isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
         flushPendingScrollToBottom,

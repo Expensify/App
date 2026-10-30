@@ -85,6 +85,9 @@ type FloatingMessageCounterProps = {
     /** Callback when the action badge pill is clicked */
     onActionBadgePress?: () => void;
 
+    /** Whether the action badge target is below the viewport, so the pill points down instead of up */
+    isActionBadgeTargetBelow?: boolean;
+
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
     shouldShowMarkAsDoneCopy?: boolean;
 };
@@ -99,6 +102,7 @@ function FloatingMessageCounter({
     actionBadge,
     actionBadgeBrickRoadStatus,
     onActionBadgePress,
+    isActionBadgeTargetBelow = false,
     shouldShowMarkAsDoneCopy,
 }: FloatingMessageCounterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
@@ -111,11 +115,13 @@ function FloatingMessageCounter({
     const isVisible = isActive || shouldShowActionBadgePill;
 
     // Keep the last shown pill while it slides out so hiding the action badge pill does not flash the Latest messages pill
-    const visibleActionBadge = shouldShowActionBadgePill ? {actionBadge, actionBadgeBrickRoadStatus} : undefined;
+    const visibleActionBadge = shouldShowActionBadgePill ? {actionBadge, actionBadgeBrickRoadStatus, isActionBadgeTargetBelow} : undefined;
     const [lastVisibleActionBadge, setLastVisibleActionBadge] = useState(visibleActionBadge);
     if (
         isVisible &&
-        (lastVisibleActionBadge?.actionBadge !== visibleActionBadge?.actionBadge || lastVisibleActionBadge?.actionBadgeBrickRoadStatus !== visibleActionBadge?.actionBadgeBrickRoadStatus)
+        (lastVisibleActionBadge?.actionBadge !== visibleActionBadge?.actionBadge ||
+            lastVisibleActionBadge?.actionBadgeBrickRoadStatus !== visibleActionBadge?.actionBadgeBrickRoadStatus ||
+            lastVisibleActionBadge?.isActionBadgeTargetBelow !== visibleActionBadge?.isActionBadgeTargetBelow)
     ) {
         setLastVisibleActionBadge(visibleActionBadge);
     }
@@ -161,7 +167,7 @@ function FloatingMessageCounter({
                         <FloatingPillButton
                             variant={isError ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={onActionBadgePress}
-                            icon={icons.UpArrow}
+                            icon={renderedActionBadge.isActionBadgeTargetBelow ? icons.DownArrow : icons.UpArrow}
                             iconFill={theme.textLight}
                             label={actionBadgeText}
                             textStyle={styles.textWhite}

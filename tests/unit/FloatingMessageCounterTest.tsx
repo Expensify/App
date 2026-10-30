@@ -27,14 +27,26 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+// The arrow icons render inside an accessibility-hidden wrapper, so record which one rendered to assert the pill direction
+const mockRenderedArrows: string[] = [];
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({
-        DownArrow: () => null,
-        UpArrow: () => null,
+        DownArrow: () => {
+            mockRenderedArrows.push('DownArrow');
+            return null;
+        },
+        UpArrow: () => {
+            mockRenderedArrows.push('UpArrow');
+            return null;
+        },
     }),
 }));
 
 describe('FloatingMessageCounter', () => {
+    beforeEach(() => {
+        mockRenderedArrows.length = 0;
+    });
+
     it('renders the new messages pill when hasNewMessages is true and no action badge', () => {
         render(
             <FloatingMessageCounter
@@ -135,6 +147,79 @@ describe('FloatingMessageCounter', () => {
         );
 
         expect(screen.getByText('Submit')).toBeTruthy();
+    });
+
+    it('points the action badge pill up when the target is above the viewport', () => {
+        // Given an action badge whose target is above the viewport
+        render(
+            <FloatingMessageCounter
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                actionBadge={CONST.REPORT.ACTION_BADGE.APPROVE}
+                actionBadgeBrickRoadStatus={CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
+                onActionBadgePress={jest.fn()}
+            />,
+        );
+
+        // Then the pill points up, because the user has to scroll up to reach the target
+        expect(screen.getByText('Approve')).toBeTruthy();
+        expect(mockRenderedArrows).toContain('UpArrow');
+        expect(mockRenderedArrows).not.toContain('DownArrow');
+    });
+
+    it('points the action badge pill down and scrolls to the target when the target is below the viewport', () => {
+        // Given an action badge whose target is below the viewport while the user is scrolled up past the threshold
+        const onActionBadgePressMock = jest.fn();
+        render(
+            <FloatingMessageCounter
+                isActive
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                actionBadge={CONST.REPORT.ACTION_BADGE.APPROVE}
+                actionBadgeBrickRoadStatus={CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
+                onActionBadgePress={onActionBadgePressMock}
+                isActionBadgeTargetBelow
+            />,
+        );
+
+        // When the pill is pressed
+        fireEvent.press(screen.getByText('Approve'));
+
+        // Then the pill points down toward the target and scrolls to it instead of to the latest messages
+        expect(mockRenderedArrows).toContain('DownArrow');
+        expect(mockRenderedArrows).not.toContain('UpArrow');
+        expect(screen.queryByText('Latest messages')).toBeNull();
+        expect(onActionBadgePressMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the down arrow while the action badge pill slides out', () => {
+        // Given the action badge pill points down at a target below the viewport
+        const {rerender} = render(
+            <FloatingMessageCounter
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                actionBadge={CONST.REPORT.ACTION_BADGE.APPROVE}
+                actionBadgeBrickRoadStatus={CONST.BRICK_ROAD_INDICATOR_STATUS.INFO}
+                onActionBadgePress={jest.fn()}
+                isActionBadgeTargetBelow
+            />,
+        );
+        mockRenderedArrows.length = 0;
+
+        // When the target scrolls into view, so the list stops passing the badge and the below flag clears
+        rerender(
+            <FloatingMessageCounter
+                hasNewMessages={false}
+                onClick={jest.fn()}
+                onActionBadgePress={jest.fn()}
+                isActionBadgeTargetBelow={false}
+            />,
+        );
+
+        // Then the exiting pill still points down, because flipping the arrow during the exit animation would flash an up arrow
+        expect(screen.getByText('Approve')).toBeTruthy();
+        expect(mockRenderedArrows).toContain('DownArrow');
+        expect(mockRenderedArrows).not.toContain('UpArrow');
     });
 
     it('does not show action badge pill when only actionBadge is provided without actionBadgeBrickRoadStatus', () => {
