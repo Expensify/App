@@ -1,6 +1,7 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {SearchFilter} from '@libs/SearchUIUtils';
@@ -21,6 +22,7 @@ type SearchFiltersBarNarrowProps = {
 
 function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const scrollRef = useRef<FlatList<SearchFilter & FilterItem>>(null);
     const {filters, hasErrors, shouldShowFiltersBarLoading, canReset, canSave, resetFilters} = useSearchFiltersBar(queryJSON);
 
@@ -45,11 +47,11 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
             horizontal
             keyboardShouldPersistTaps="always"
             style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, (!!data.length || canSave || canReset) && styles.mb4]}
-            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5, styles.alignItemsCenter]}
+            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, pageGutter, styles.alignItemsCenter]}
             ref={scrollRef}
             showsHorizontalScrollIndicator={false}
             data={data}
-            keyExtractor={(item) => item.key}
+            keyExtractor={(item) => item.id}
             renderItem={renderFilterItem}
             onEndReached={adjustScroll}
             onEndReachedThreshold={0.75}

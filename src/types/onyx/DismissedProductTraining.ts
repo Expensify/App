@@ -11,6 +11,7 @@ const {
     MILEAGE_RATE_AUTO_UPDATED,
     MARK_ALL_AS_READ,
     ACCOUNT_MOVED_TO_TOP_BAR,
+    CONNECTIONS_MOVED,
     REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP,
     REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
@@ -33,11 +34,6 @@ type DismissedProductTraining = {
      * When user dismisses the nudgeMigration Welcome Modal, we store the timestamp here.
      */
     [CONST.MIGRATED_USER_WELCOME_MODAL]: DismissedProductTrainingElement;
-
-    /**
-     * When user dismisses the AI features promo modal, we store the timestamp here.
-     */
-    [CONST.AI_FEATURES_PROMO_MODAL]: DismissedProductTrainingElement;
 
     // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
     // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
@@ -77,6 +73,16 @@ type DismissedProductTraining = {
     [CONST.AGENTS_RULES_BANNER]: DismissedProductTrainingElement;
 
     /**
+     * When user dismisses the Wallet global reimbursements banner, or starts global reimbursements onboarding, we store the timestamp here.
+     */
+    [CONST.WISE_GLOBAL_REIMBURSEMENTS_WALLET_BANNER]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the Workspace Workflows global reimbursements banner, or starts global reimbursements onboarding, we store the timestamp here.
+     */
+    [CONST.WISE_GLOBAL_REIMBURSEMENTS_WORKSPACE_BANNER]: DismissedProductTrainingElement;
+
+    /**
      * When user dismisses the GPS tooltip, we store the timestamp here.
      */
     [GPS_TOOLTIP]: DismissedProductTrainingElement;
@@ -100,6 +106,11 @@ type DismissedProductTraining = {
      * When user dismisses the tooltip pointing at the account button in the top bar, we store the timestamp here.
      */
     [ACCOUNT_MOVED_TO_TOP_BAR]: DismissedProductTrainingElement;
+
+    /**
+     * When user dismisses the tooltip pointing at the Connections item in the workspace menu, we store the timestamp here.
+     */
+    [CONNECTIONS_MOVED]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the require fields rule tooltip explaining why Receipt is locked while

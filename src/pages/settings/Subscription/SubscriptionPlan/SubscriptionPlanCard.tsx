@@ -4,6 +4,7 @@ import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
 
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
@@ -43,6 +44,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding, cardPaddingHorizontal} = useLayoutSpacing();
     const currentSubscriptionPlan = useSubscriptionPlan();
     const privateSubscription = usePrivateSubscription();
     const preferredCurrency = usePreferredCurrency();
@@ -115,12 +117,12 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     return (
         <View style={[styles.borderedContentCard, styles.borderRadiusComponentLarge, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
             {!privateSubscription ? (
-                <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
+                <View style={[cardPadding, !shouldUseNarrowLayout && styles.pb6]}>
                     <ActivityIndicator />
                 </View>
             ) : (
                 <>
-                    <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
+                    <View style={[cardPadding, !shouldUseNarrowLayout && styles.pb6]}>
                         <View style={[styles.flexRow, styles.justifyContentBetween]}>
                             <Icon
                                 src={src}
@@ -154,7 +156,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                             subscriptionPlan={subscriptionPlan}
                             isFromComparisonModal={isFromComparisonModal}
                             isSelected={isSelected}
-                            style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                            style={cardPaddingHorizontal}
                             closeComparisonModal={closeComparisonModal}
                         />
                     </View>

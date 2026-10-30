@@ -23,6 +23,12 @@ type BaseVacationDelegate = {
     /** Previous delegate for rollback on failure */
     previousDelegate?: string;
 
+    /** When the backend clears the vacation delegate, as a UTC datetime (yyyy-MM-dd HH:mm:ss). No value means it never clears. */
+    clearAfter?: string;
+
+    /** Previous clearAfter for rollback on failure */
+    previousClearAfter?: string;
+
     /** Workspaces the delegate is missing from, captured from the 305 response. Client-only. */
     policyDiff?: VacationDelegatePolicyDiff;
 
@@ -31,6 +37,9 @@ type BaseVacationDelegate = {
      * Kept apart from `delegate` so an abandoned step never makes an unsaved pick read as saved. Client-only.
      */
     pendingDelegate?: string;
+
+    /** Clear after datetime picked with `pendingDelegate`, so the missing workspaces step can send it again. Client-only. */
+    pendingClearAfter?: string;
 };
 
 /** Information about vacation delegate with offline feedback */

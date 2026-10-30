@@ -3,7 +3,7 @@ import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksDesktopParams, 
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {isMergeConnectionName} from '@libs/merge/MergeUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {isCollectPolicy} from '@libs/PolicyUtils/policyType';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,7 +84,7 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
 
-    if (PolicyUtils.isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
+    if (isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -162,6 +162,12 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         }
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_CAMPFIRE, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.CAMPFIRE_SYNC_CONNECTION};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.DIGITS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_DIGITS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DIGITS_SYNC_CONNECTION};
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS: {
+            return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_ZOHO_BOOKS, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZOHO_BOOKS_SYNC_CONNECTION};
         }
         case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
             return {
@@ -386,6 +392,12 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.CAMPFIRE_SYNC_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.ZOHO_BOOKS_SYNC_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.DIGITS_SYNC_CONNECTION;
             break;
         default:
             stageInProgress = null;

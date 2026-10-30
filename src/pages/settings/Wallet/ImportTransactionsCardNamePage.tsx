@@ -19,7 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ImportTransactionsForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 
 function ImportTransactionsCardNamePage() {
@@ -28,27 +28,24 @@ function ImportTransactionsCardNamePage() {
     const {inputCallbackRef} = useAutoFocusInput();
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
-    const submit = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {
         setImportTransactionCardName(values.cardDisplayName.trim());
         Keyboard.dismiss();
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
-    }, []);
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM> = {};
-            const name = values.cardDisplayName.trim();
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.IMPORT_TRANSACTIONS_FORM> = {};
+        const name = values.cardDisplayName.trim();
 
-            const {isValid, byteLength} = isValidInputLength(name, CONST.TITLE_CHARACTER_LIMIT);
+        const {isValid, byteLength} = isValidInputLength(name, CONST.TITLE_CHARACTER_LIMIT);
 
-            if (!isValid) {
-                addErrorMessage(errors, 'cardDisplayName', translate('common.error.characterLimitExceedCounter', byteLength, CONST.TITLE_CHARACTER_LIMIT));
-            }
+        if (!isValid) {
+            addErrorMessage(errors, 'cardDisplayName', translate('common.error.characterLimitExceedCounter', byteLength, CONST.TITLE_CHARACTER_LIMIT));
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     return (
         <ScreenWrapper

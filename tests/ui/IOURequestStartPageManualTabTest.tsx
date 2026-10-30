@@ -3,6 +3,8 @@ import {act, render, screen} from '@testing-library/react-native';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import type * as OnyxTabNavigatorModule from '@libs/Navigation/OnyxTabNavigator';
+
 import IOURequestStartPage from '@pages/iou/request/IOURequestStartPage';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -14,6 +16,8 @@ import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
+
+import type * as CreateMockModule from '../utils/createMock';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -31,8 +35,12 @@ jest.mock('@rnmapbox/maps', () => ({
     setAccessToken: jest.fn(),
 }));
 
+jest.mock('react-native-tab-view', () => ({TabView: () => null, TabBar: () => null, SceneMap: jest.fn()}));
+
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
+    useCameraDevices: jest.fn(() => []),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 // The page is rendered outside a navigator screen, so give the hooks that read the route a static one.
@@ -45,13 +53,23 @@ jest.mock('@react-navigation/native', () => ({
 // Render every tab screen inline so the manual tab content is mounted without driving the real tab navigator.
 jest.mock('@libs/Navigation/OnyxTabNavigator', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
+    const actual = jest.requireActual<typeof OnyxTabNavigatorModule>('@libs/Navigation/OnyxTabNavigator');
+    const createMock = jest.requireActual<typeof CreateMockModule>('../utils/createMock').default;
+    const createNavigator = <const TTabName extends string>(names: Parameters<typeof actual.createOnyxTabNavigator<TTabName>>[0]) => {
+        const pair = actual.createOnyxTabNavigator(names);
+        const OnyxTabNavigator = ({children}: Parameters<typeof pair.OnyxTabNavigator>[0]) => ReactModule.createElement(ReactModule.Fragment, null, children);
+        // Production Screen is a null marker. This mock deliberately renders its children for page-content cases.
+        const Screen = <TRouteName extends TTabName>(props: Parameters<typeof pair.TopTab.Screen<TRouteName>>[0]) => {
+            const child = props.children;
+            const content = typeof child === 'function' ? child(createMock<Parameters<typeof child>[0]>({})) : child;
+            return ReactModule.createElement(ReactModule.Fragment, null, content);
+        };
+        return {...pair, OnyxTabNavigator, TopTab: {...pair.TopTab, Screen}};
+    };
     return {
-        __esModule: true,
-        default: ({children}: {children: React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, children),
-        TopTab: {
-            Screen: ({children}: {children: () => React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, typeof children === 'function' ? children() : children),
-        },
-        TabScreenWithFocusTrapWrapper: ({children}: {children: React.ReactNode}) => ReactModule.createElement(ReactModule.Fragment, null, children),
+        ...actual,
+        createOnyxTabNavigator: createNavigator,
+        TabScreenWithFocusTrapWrapper: ({children}: Parameters<typeof actual.TabScreenWithFocusTrapWrapper>[0]) => ReactModule.createElement(ReactModule.Fragment, null, children),
     };
 });
 

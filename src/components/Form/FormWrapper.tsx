@@ -90,6 +90,7 @@ function FormWrapper({
     submitFlexEnabled = true,
     enabledWhenOffline,
     buttonVariant,
+    isSubmitButtonNeutral = false,
     formID,
     shouldUseScrollView = true,
     scrollContextEnabled = false,
@@ -217,6 +218,7 @@ function FormWrapper({
             ]}
             enabledWhenOffline={enabledWhenOffline}
             buttonVariant={buttonVariant}
+            isButtonNeutral={isSubmitButtonNeutral}
             disablePressOnEnter={disablePressOnEnter}
             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}

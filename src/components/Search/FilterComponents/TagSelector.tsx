@@ -58,7 +58,7 @@ function TagSelector({value = [], policyID, selectionListTextInputStyle, selecti
 
     if (shouldUseOfflineFallback) {
         // Fall back to synced workspace tag data when the paginated search cache is empty offline.
-        const policyTagsLists = getAllPolicyValues(policyID?.value?.length ? policyID : undefined, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTags);
+        const policyTagsLists = getAllPolicyValues(policyID?.value?.length ? policyID : undefined, ONYXKEYS.COLLECTION.POLICY_TAGS, allPolicyTags, policies);
         for (const policyTagsList of policyTagsLists) {
             for (const tagName of getTagNamesFromTagsLists(policyTagsList)) {
                 addTagName(tagName);

@@ -2,7 +2,7 @@
 title: Claim and Verify a Domain
 description: Learn how to claim and verify a private domain in New Expensify to enable SAML login and unlock enhanced security features.
 internalScope: Audience is Domain Admins and IT admins. Covers claiming a domain, requesting admin access to a domain someone else already set up, and verifying domain ownership via DNS. Does not cover SAML configuration details, Domain Members management, Domain Groups, or login troubleshooting.
-keywords: [New Expensify, claim domain, verify domain, private domain, domain settings, enhanced security, SAML, domain admin, domain verification, DNS TXT record, verify domain for SAML, how to verify domain, SAML setup, domain already set up, domain exists, ask for admin access, request admin access, domain already exists in your account]
+keywords: [New Expensify, claim domain, verify domain, private domain, domain settings, enhanced security, SAML, domain admin, domain verification, DNS TXT record, verify domain for SAML, how to verify domain, SAML setup, domain already set up, domain exists, ask for admin access, request admin access, domain already exists in your account, admin access request denied, admin access request approved, access restricted, request sent]
 ---
 
 # Claim and Verify a Domain
@@ -61,7 +61,10 @@ To leave without sending a request, click **Never mind** instead. Both buttons r
 
 ## What happens after you ask for admin access
 
-- Your request goes to the existing Domain Admins for that domain. An admin has to add you before you can manage it.
+- Your request goes to the existing Domain Admins for that domain. An admin has to approve your request before you can manage the domain.
+- While your request is pending, selecting the domain opens the **Access restricted** page, where the **Request sent** button is disabled so you don’t send a duplicate request.
+- **If an admin approves your request**: You become a Domain Admin. If you have the **Access restricted** or **Domain exists** page open, Expensify closes it and returns you to the **Domains** tab, where you can select the domain to manage it.
+- **If an admin denies your request**: You lose access to the domain. If you have the **Access restricted** page open, Expensify takes you to the **Domain exists** page, where you can click **Ask for admin access** to send a new request.
 
 [Learn how to add and manage Domain Admins](/articles/new-expensify/domains/Domain-Admins) to see what you'll be able to do once an admin adds you.
 
@@ -89,13 +92,17 @@ Yes. Verifying the domain is required to enable and enforce SAML login. Without 
 
 Each private domain can only be set up once, and someone at your company got there first. Click **Ask for admin access** on the **Domain exists** page to request that a Domain Admin add you.
 
-## Why does the domain I requested access to not show on my Domains tab?
+## Why can’t I manage the domain I requested access to?
 
-Requesting access doesn't give you access. The domain only appears on your **Domains** tab after an existing Domain Admin adds you as a Domain Admin.
+Requesting access doesn't give you access. Until an existing Domain Admin approves your request, selecting the domain opens the **Access restricted** page instead of the domain settings.
 
 ## Why does the button say Request sent?
 
 You already asked for admin access to that domain and no admin has responded yet. The button is disabled so you don't send a duplicate request.
+
+## Why was I taken to the Domain exists page after requesting admin access?
+
+A Domain Admin denied your request. Click **Ask for admin access** on the **Domain exists** page to send a new request.
 
 ## Can I verify multiple domains?
 
