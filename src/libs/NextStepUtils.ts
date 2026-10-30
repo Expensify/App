@@ -1,7 +1,10 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, ReportAction, ReportActions, ReportMetadata, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -11,18 +14,24 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
+import Log from './Log';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, hasDynamicExternalWorkflow, isArchivedPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
+import {hasPendingDEWApprove, hasPendingDEWSubmit} from './ReportActionsUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getDisplayNameForParticipant,
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
+    getReasonAndReportActionThatRequiresAttention,
     isExpenseReport,
     isInvoiceReport,
     isOpenExpenseReport,
     isPayer,
+    isReportOwner,
     shouldBlockSubmitDueToPreventSelfApproval,
+    shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from './ReportUtils';
 import {
@@ -33,9 +42,9 @@ import {
     LAST_WEEKDAY_OFFSETS,
     sortSemiMonthlyOffsets,
 } from './SubmissionScheduleUtils';
-import {hasSubmissionBlockingViolations} from './TransactionUtils';
+import {hasSubmissionBlockingViolationInList} from './TransactionUtils';
 
-type BuildNextStepNewParams = {
+type BuildOptimisticNextStepParams = {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     currentUserAccountIDParam?: number;
@@ -54,17 +63,6 @@ type BuildNextStepNewParams = {
     bypassNextApproverID?: number;
     isTrackIntentUser: boolean | undefined;
     translate?: LocaleContextProps['translate'];
-    rules: OnyxCollection<Rule>;
-};
-
-type GetReportNextStepParams = {
-    moneyRequestReport: OnyxEntry<Report>;
-    moneyRequestReportOwnerLogin: string | undefined;
-    transactions: Array<OnyxEntry<Transaction>>;
-    policy: OnyxEntry<Policy>;
-    transactionViolations: OnyxCollection<TransactionViolations>;
-    currentUserEmail: string;
-    currentUserAccountID: number;
     rules: OnyxCollection<Rule>;
 };
 
@@ -127,6 +125,11 @@ function buildNextStepMessage(
     currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
+    if (!nextStep.messageKey) {
+        Log.warn('NextStep missing messageKey', {nextStep});
+        return '';
+    }
+
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
     const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
@@ -157,10 +160,12 @@ function buildNextStepMessage(
     }
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
-    const message =
-        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
-            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
-            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+
+    const message = translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType, requiredDepositCurrency});
+    if (!message) {
+        Log.warn('Built NextStep message is empty', {nextStep});
+        return '';
+    }
     return `<next-step>${message}</next-step>`;
 }
 
@@ -168,7 +173,7 @@ function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
     return (report?.transactionCount ?? 0) > 0;
 }
 
-function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
+function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportNextStep | null {
     const {
         report,
         policy,
@@ -400,55 +405,154 @@ function buildChangeWorkspaceNextStep(): ReportNextStep {
     };
 }
 
+function buildOptimisticNoFurtherActionNextStep(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+        icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+    };
+}
+
+function buildOptimisticNextStepForStrictPolicyRuleViolations(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.STRICT_POLICY_RULE_VIOLATIONS,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+    };
+}
+
+function buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(iconFill?: string): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR,
+        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+        iconFill,
+    };
+}
+function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?: string): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR,
+        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+        iconFill,
+    };
+}
+
+function buildOptimisticNextStepForDEWOffline(): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE,
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+    };
+}
+
+type GetReportNextStepParams = {
+    currentUserLogin: string;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    report: OnyxEntry<Report>;
+    reportMetadata: ReportMetadata | undefined;
+    reportActions: ReportAction[];
+    transactions: Record<string, Transaction>;
+    violations: Record<string, TransactionViolations>;
+    policy: OnyxEntry<Policy>;
+    rules: OnyxCollection<Rule>;
+    areStrictPolicyRulesEnabled: boolean;
+    isReportArchived: boolean;
+    theme: ThemeColors | undefined;
+    isOffline: boolean;
+};
+
 function getReportNextStep({
-    moneyRequestReport,
-    moneyRequestReportOwnerLogin,
-    transactions,
-    policy,
-    transactionViolations,
+    currentUserLogin,
     currentUserEmail,
     currentUserAccountID,
+    report,
+    reportMetadata,
+    reportActions,
+    transactions,
+    violations,
+    policy,
     rules,
-}: GetReportNextStepParams) {
+    areStrictPolicyRulesEnabled,
+    isReportArchived,
+    theme,
+    isOffline,
+}: GetReportNextStepParams): ReportNextStep | undefined {
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
         return buildChangeWorkspaceNextStep();
     }
 
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
-    const shouldShowNoFurtherAction =
-        reimbursableSpend === 0 &&
-        (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED ||
-            (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (isDEWPolicy && (report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
+        if (report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+            const reportActionsObject = reportActions.reduce<ReportActions>((acc, action) => {
+                if (action.reportActionID) {
+                    acc[action.reportActionID] = action;
+                }
+                return acc;
+            }, {});
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsObject, transactions, currentUserAccountID);
+            if (errors?.dewSubmitFailed) {
+                return buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme?.danger);
+            }
+            if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
+                return buildOptimisticNextStepForDEWOffline();
+            }
+        } else if (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            const gbrResult = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: report,
+                currentUserLogin,
+                currentUserAccountID,
+                transactionViolations: violations,
+                isReportArchived,
+                reportMetadata,
+            });
+            const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
+            if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {
+                return buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme?.danger);
+            }
+            if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+                return buildOptimisticNextStepForDEWOffline();
+            }
+        }
+    }
+
+    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
+        report?.reportID,
+        violations,
+        areStrictPolicyRulesEnabled,
+        currentUserAccountID,
+        currentUserEmail,
+        Object.values(transactions),
+    );
+    if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(report) && isOpenExpenseReport(report)) {
+        return buildOptimisticNextStepForStrictPolicyRuleViolations();
+    }
 
     if (
-        isOpenExpenseReport(moneyRequestReport) &&
-        transactions.length > 0 &&
-        transactions.every(
-            (transaction) =>
-                !!transaction &&
-                hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, moneyRequestReportOwnerLogin, policy),
+        isOpenExpenseReport(report) &&
+        Object.values(transactions).length > 0 &&
+        Object.values(transactions).every(
+            (transaction) => !!transaction && hasSubmissionBlockingViolationInList(violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]),
         )
     ) {
         // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
-        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? -1);
+        return buildOptimisticFixIssueNextStep(report?.ownerAccountID ?? -1);
     }
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    if (shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules)) {
+    if (shouldBlockSubmitDueToPreventSelfApproval(report, policy, rules)) {
         return buildOptimisticNextStepForPreventSelfApprovalsEnabled();
     }
 
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const shouldShowNoFurtherAction =
+        reimbursableSpend === 0 &&
+        (report?.statusNum === CONST.REPORT.STATUS_NUM.APPROVED || (report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL));
     if (shouldShowNoFurtherAction) {
-        return {
-            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
-            icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-        };
+        return buildOptimisticNoFurtherActionNextStep();
     }
 
-    return moneyRequestReport?.nextStep;
+    return report?.nextStep;
 }
 
 /**
@@ -466,11 +570,4 @@ function shouldShowDynamicExternalWorkflowApproveErrorNextStep(reportAction: Ony
     return !automaticAction;
 }
 
-export {
-    getReportNextStep,
-    buildNextStepMessage,
-    buildOptimisticNextStep,
-    buildOptimisticFixIssueNextStep,
-    buildOptimisticNextStepForPreventSelfApprovalsEnabled,
-    shouldShowDynamicExternalWorkflowApproveErrorNextStep,
-};
+export {getReportNextStep, buildNextStepMessage, buildOptimisticNextStep, buildOptimisticNextStepForPreventSelfApprovalsEnabled, shouldShowDynamicExternalWorkflowApproveErrorNextStep};

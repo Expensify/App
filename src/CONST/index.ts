@@ -2515,13 +2515,19 @@ const CONST = {
             SUBMITTING_TO_SELF: 'submittingToSelf',
             REJECTED_REPORT: 'rejectedReport',
             CHANGE_WORKSPACE: 'changeWorkspace',
+            STRICT_POLICY_RULE_VIOLATIONS: 'strictPolicyRuleViolations',
+            DYNAMIC_EXTERNAL_WORKFLOW_SUBMIT_ERROR: 'dynamicExternalWorkflowSubmitError',
+            DYNAMIC_EXTERNAL_WORKFLOW_APPROVE_ERROR: 'dynamicExternalWorkflowApproveError',
+            DYNAMIC_EXTERNAL_WORKFLOW_OFFLINE: 'dynamicExternalWorkflowOffline',
         },
         ICONS: {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
             BOX: 'box',
+            DOT_INDICATOR: 'dotIndicator',
         },
+
         ETA_KEY: {
             SHORTLY: 'shortly',
             TODAY: 'today',
@@ -2531,14 +2537,14 @@ const CONST = {
             LAST_DAY_OF_MONTH: 'lastDayOfMonth',
             END_OF_TRIP: 'endOfTrip',
         },
+        ETA_TYPE: {
+            KEY: 'key',
+            DATE_TIME: 'dateTime',
+        },
         ACTOR_TYPE: {
             CURRENT_USER: 'currentUser',
             OTHER_USER: 'otherUser',
             UNSPECIFIED_ADMIN: 'unspecifiedAdmin',
-        },
-        ETA_TYPE: {
-            KEY: 'key',
-            DATE_TIME: 'dateTime',
         },
     },
     REPORT_LAYOUT: {

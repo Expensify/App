@@ -897,7 +897,11 @@ function getPaymentMessageWithExpectedDate(translate: LocalizedTranslate, dateFn
     if (!formattedExpectedDate) {
         return paymentMessage;
     }
-    const expectedDateMessage = translate('nextStep.message.waitingForPayment', '', CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN, formattedExpectedDate, CONST.NEXT_STEP.ETA_TYPE.DATE_TIME);
+    const expectedDateMessage = translate('nextStep.message.waitingForPayment', {
+        actorType: CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN,
+        eta: formattedExpectedDate,
+        etaType: CONST.NEXT_STEP.ETA_TYPE.DATE_TIME,
+    });
     return translate('iou.paymentWithExpectedDate', {paymentMessage, expectedDateMessage});
 }
 
