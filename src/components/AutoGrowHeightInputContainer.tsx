@@ -224,7 +224,7 @@ function AutoGrowHeightInputContainer({
 
                 availableHeightRef.current = availableHeight;
                 viewportHeightRef.current = windowHeight;
-                // Android re-emits an unchanged allocation after the cap settles. Restarting the clamp would regrow the input and flicker in a clamp and probe loop.
+                // Native can re-emit an unchanged allocation after the cap settles, as seen on Android. Restarting the clamp would regrow the input and flicker in a clamp and probe loop.
                 if (isNativePlatform && !didWidthChange && areHeightsEqual(availableHeight, previousAvailableHeight)) {
                     return;
                 }
