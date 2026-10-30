@@ -351,6 +351,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
         });
 
         it('tracks an unread marker in a chronological list', () => {
+            // Given a chronological list whose unread marker sits below the visible rows.
             const offsetRef = {current: 0};
             const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
@@ -364,14 +365,20 @@ describe('useReportUnreadMessageScrollTracking', () => {
                 }),
             );
 
+            // When only older rows are visible.
             act(() => {
                 result.current.onViewableItemsChanged({viewableItems: [{index: 3, key: 'reportActions_3', isViewable: true, item: {}}], changed: []});
             });
+
+            // Then the pill offers a way to the unread message, which has a higher index in this order.
             expect(result.current.isFloatingMessageCounterVisible).toBe(true);
 
+            // When the unread message becomes visible.
             act(() => {
                 result.current.onViewableItemsChanged({viewableItems: [{index: 5, key: 'reportActions_5', isViewable: true, item: {}}], changed: []});
             });
+
+            // Then the pill hides and the message counts as read.
             expect(result.current.isFloatingMessageCounterVisible).toBe(false);
             expect(onUnreadActionVisibleMockFn).toHaveBeenCalled();
         });
@@ -523,6 +530,7 @@ describe('useReportUnreadMessageScrollTracking', () => {
         });
 
         it('returns isActionBadgeAboveViewport as true for a lower index above a chronological viewport', () => {
+            // Given a chronological list, where older rows have lower indexes, and a badge target at index 1.
             const offsetRef = {current: 0};
             const {result} = renderHook(() =>
                 useReportUnreadMessageScrollTracking({
@@ -537,10 +545,12 @@ describe('useReportUnreadMessageScrollTracking', () => {
                 }),
             );
 
+            // When the viewport starts at index 3.
             act(() => {
                 result.current.onViewableItemsChanged({viewableItems: [{index: 3, key: 'reportActions_3', isViewable: true, item: {}}], changed: []});
             });
 
+            // Then the badge target is above the viewport.
             expect(result.current.isActionBadgeAboveViewport).toBe(true);
         });
 
