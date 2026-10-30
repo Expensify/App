@@ -77,6 +77,84 @@ import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/Test
 
 const mockGetRootState = jest.fn();
 
+describe('currency-qualified amount filters', () => {
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips Any currency for %s using the legacy request format', (filterKey) => {
+        // Given an Any currency operand already expressed in legacy hundredths.
+        const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '10'};
+
+        // When the filter becomes a backend query and is reopened.
+        const query = buildFilterQueryWithSortDefaults(form, {}, {}) ?? '';
+        const queryJSON = buildSearchQueryJSON(getQueryWithUpdatedValues(query, true) ?? '');
+        if (!queryJSON) {
+            throw new Error('Expected the legacy amount query to parse');
+        }
+        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+        // Then the request has a bare operand and reopening does not add a currency or rescale it.
+        expect(query).toContain(`${filterKey}:10`);
+        expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"10"');
+        expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '10'});
+        expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:10`);
+    });
+
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips the selected currency for %s', (filterKey) => {
+        // Given a bare amount in the current query and a currency selected in its filter editor.
+        const currentQuery = buildSearchQueryJSON(`type:expense ${filterKey}:1199 total:1250`);
+        const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'};
+
+        // When the form becomes a backend query and is reopened from that query.
+        const query = buildFilterQueryWithSortDefaults(form, {}, currentQuery ?? {}) ?? '';
+        const updatedQuery = getQueryWithUpdatedValues(query, true);
+        const queryJSON = buildSearchQueryJSON(updatedQuery ?? '');
+        if (!queryJSON) {
+            throw new Error('Expected the currency-qualified query to parse');
+        }
+        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+        // Then the currency stays quoted, major units are not multiplied by 100, and legacy totals stay in hundredths.
+        expect(query).toContain(`${filterKey}:"11.99 GBP"`);
+        expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"11.99 GBP"');
+        expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'});
+        expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:"11.99 GBP"`);
+    });
+
+    it('preserves currencies on both range bounds and on negated purchase amounts', () => {
+        // Given a range whose bounds have their own currencies, plus a negated purchase amount.
+        const form: Partial<SearchAdvancedFiltersForm> = {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            amountGreaterThan: '10.00 USD',
+            amountLessThan: '20.00 GBP',
+            purchaseAmountNot: '-3.00 EUR',
+        };
+
+        // When the query is serialized and parsed back into filter form values.
+        const query = buildQueryStringFromFilterFormValues(form);
+        const queryJSON = buildSearchQueryJSON(query);
+        if (!queryJSON) {
+            throw new Error('Expected the currency-qualified range to parse');
+        }
+        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+        // Then each operand retains its amount, currency, and operator.
+        expect(query).toContain('amount>"10.00 USD" amount<"20.00 GBP"');
+        expect(query).toContain('-purchaseAmount:"-3.00 EUR"');
+        expect(reopenedForm).toMatchObject(form);
+    });
+
+    it('converts bare user-entered amounts but leaves qualified amounts in major units', () => {
+        // Given a typed query mixing qualified and legacy amounts.
+        const query = 'amount:"11.99 GBP" purchase-amount:"-3.00 EUR" total:12.50';
+
+        // When the search input prepares its operands for the backend.
+        const updatedQuery = getQueryWithUpdatedValues(query);
+
+        // Then only the bare amount is converted to hundredths.
+        expect(updatedQuery).toContain('amount:"11.99 GBP"');
+        expect(updatedQuery).toContain('purchaseAmount:"-3.00 EUR"');
+        expect(updatedQuery).toContain('total:1250');
+    });
+});
+
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {
