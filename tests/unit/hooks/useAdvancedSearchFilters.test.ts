@@ -541,6 +541,21 @@ describe('useAdvancedSearchFilters', () => {
         });
     });
 
+    describe('approver filter visibility', () => {
+        it('offers Approver on expenses but not on reports', async () => {
+            // Given the backend only translates the approver filter for expense searches, so a report search with it fails
+            // When the expense and report filters are listed
+            const {result: expenseResult} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
+            const {result: reportResult} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT), {wrapper});
+
+            // Then only the expense filters offer Approver
+            await waitFor(() => {
+                expect(expenseResult.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER);
+                expect(reportResult.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER);
+            });
+        });
+    });
+
     describe('section order', () => {
         it('groups expense filters into sections and keeps Keyword with the core filters', async () => {
             // Given no cards, so the card transactions section has nothing to show
