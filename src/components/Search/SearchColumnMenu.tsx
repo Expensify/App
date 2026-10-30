@@ -18,43 +18,26 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
-import type {StyleProp, ViewStyle} from 'react-native';
-
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 
-import type {SortOrder} from './types';
+import type {GetHideColumnHandler} from './hooks/useHideSearchColumn';
+
+import {useSortableColumn} from './SortableColumnContext';
+import {SortableHeaderLabel} from './SortableHeaderText';
 
 const MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-type SearchColumnMenuSorting = {
-    /** `undefined` when the table is sorted by another column. */
-    activeSortOrder: SortOrder | undefined;
-
-    onSort: (sortOrder: SortOrder) => void;
-};
-
 type SearchColumnMenuProps = {
-    /** The column's heading, which names the trigger for assistive technologies. */
-    columnLabel: string;
-
-    /** Lays out the heading cell, which is the trigger as a whole. */
-    style?: StyleProp<ViewStyle>;
-
-    /** `undefined` when the column doesn't sort. */
-    sorting: SearchColumnMenuSorting | undefined;
-
-    /** `undefined` when the column can't be hidden. */
-    onHideColumn: (() => void) | undefined;
-
-    /** The heading's label. Pressing it opens the menu rather than sorting, since sorting moved into the menu. */
-    children: React.ReactNode;
+    getHideColumnHandler: GetHideColumnHandler;
 };
 
-function SearchColumnMenuTrigger({columnLabel, style, children}: Pick<SearchColumnMenuProps, 'columnLabel' | 'style' | 'children'>) {
+/** Pressing the heading opens the menu rather than sorting, since sorting moved into the menu. */
+function SearchColumnMenuTrigger() {
+    const {label, style, labelProps} = useSortableColumn();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -65,7 +48,7 @@ function SearchColumnMenuTrigger({columnLabel, style, children}: Pick<SearchColu
     return (
         <PopoverMenu.Trigger>
             <PressableWithFeedback
-                accessibilityLabel={translate('search.columnMenu.openMenu', {columnName: columnLabel})}
+                accessibilityLabel={translate('search.columnMenu.openMenu', {columnName: label})}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
                 wrapperStyle={style}
@@ -74,7 +57,9 @@ function SearchColumnMenuTrigger({columnLabel, style, children}: Pick<SearchColu
             >
                 {({hovered}) => (
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <View style={styles.flexShrink1}>{children}</View>
+                        <View style={styles.flexShrink1}>
+                            <SortableHeaderLabel {...labelProps} />
+                        </View>
                         {/* Collapsed rather than transparent while hidden, so it doesn't take room from the label. */}
                         <View style={hovered && !isMenuVisible ? styles.ml1 : [StyleUtils.getWidthStyle(0), styles.overflowHidden]}>
                             <Icon
@@ -91,7 +76,10 @@ function SearchColumnMenuTrigger({columnLabel, style, children}: Pick<SearchColu
     );
 }
 
-function SearchColumnMenu({columnLabel, style, sorting, onHideColumn, children}: SearchColumnMenuProps) {
+/** A `SortableTableHeader` child that turns each column's heading into the column's menu. */
+function SearchColumnMenu({getHideColumnHandler}: SearchColumnMenuProps) {
+    const {columnName, sorting} = useSortableColumn();
+    const onHideColumn = getHideColumnHandler(columnName);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Checkmark', 'Columns', 'EyeDisabled']);
@@ -99,33 +87,34 @@ function SearchColumnMenu({columnLabel, style, sorting, onHideColumn, children}:
     // `success` colors the checkmark of the active order, and would color the arrow beside it too. The arrow keeps its usual colors.
     const getSortIconFill = (isHovered: boolean) => StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered}), isMenuIcon: true, isPane: true});
 
-    const sortItems = [
-        {sortOrder: CONST.SEARCH.SORT_ORDER.ASC, text: translate('search.columnMenu.sortAscending'), icon: icons.ArrowUpLong},
-        {sortOrder: CONST.SEARCH.SORT_ORDER.DESC, text: translate('search.columnMenu.sortDescending'), icon: icons.ArrowDownLong},
-    ];
+    const isAscendingActive = sorting?.activeSortOrder === CONST.SEARCH.SORT_ORDER.ASC;
+    const isDescendingActive = sorting?.activeSortOrder === CONST.SEARCH.SORT_ORDER.DESC;
 
     return (
         <PopoverMenu.Root>
-            <SearchColumnMenuTrigger
-                columnLabel={columnLabel}
-                style={style}
-            >
-                {children}
-            </SearchColumnMenuTrigger>
+            <SearchColumnMenuTrigger />
             <PopoverMenu.Content anchorAlignment={MENU_ANCHOR_ALIGNMENT}>
                 {!!sorting && (
                     <>
-                        {sortItems.map(({sortOrder, text, icon}) => (
-                            <PopoverMenu.Item
-                                key={sortOrder}
-                                text={text}
-                                icon={icon}
-                                rightIcon={sorting.activeSortOrder === sortOrder ? icons.Checkmark : undefined}
-                                success={sorting.activeSortOrder === sortOrder}
-                                iconFill={getSortIconFill}
-                                onSelect={() => sorting.onSort(sortOrder)}
-                            />
-                        ))}
+                        <PopoverMenu.Item
+                            text={translate('search.columnMenu.sortAscending')}
+                            icon={icons.ArrowUpLong}
+                            rightIcon={isAscendingActive ? icons.Checkmark : undefined}
+                            success={isAscendingActive}
+                            iconFill={getSortIconFill}
+                            // The checkmark only shows the active order visually.
+                            accessibilityState={{selected: isAscendingActive}}
+                            onSelect={() => sorting.onSort(CONST.SEARCH.SORT_ORDER.ASC)}
+                        />
+                        <PopoverMenu.Item
+                            text={translate('search.columnMenu.sortDescending')}
+                            icon={icons.ArrowDownLong}
+                            rightIcon={isDescendingActive ? icons.Checkmark : undefined}
+                            success={isDescendingActive}
+                            iconFill={getSortIconFill}
+                            accessibilityState={{selected: isDescendingActive}}
+                            onSelect={() => sorting.onSort(CONST.SEARCH.SORT_ORDER.DESC)}
+                        />
                         <PopoverMenu.Separator />
                     </>
                 )}

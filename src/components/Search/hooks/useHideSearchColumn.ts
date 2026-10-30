@@ -9,18 +9,15 @@ import {canEditSearchColumns, getCustomColumns, getRequiredSearchColumns, getVal
 
 import CONST from '@src/CONST';
 
-/** What the column menus of a Search table do beyond sorting, which the header already handles. */
-type SearchColumnMenuActions = {
-    /** `undefined` for a column users can't hide. */
-    getHideColumnHandler: (column: SearchColumnType) => (() => void) | undefined;
-};
+/** `undefined` for a column users can't hide. */
+type GetHideColumnHandler = (column: SearchColumnType) => (() => void) | undefined;
 
 /**
  * `undefined` when the table has no column menus: the beta is off, or users can't pick this type's columns.
  *
  * @param columns The columns the table shows, in order.
  */
-function useSearchColumnMenuActions(queryJSON: SearchQueryJSON, columns: SearchColumnType[]): SearchColumnMenuActions | undefined {
+function useHideSearchColumn(queryJSON: SearchQueryJSON, columns: SearchColumnType[]): GetHideColumnHandler | undefined {
     const {isBetaEnabled} = usePermissions();
     const {currentSearchKey} = useSearchQueryContext();
     const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON.type);
@@ -33,21 +30,24 @@ function useSearchColumnMenuActions(queryJSON: SearchQueryJSON, columns: SearchC
     const isGrouped = !!getValidGroupBy(queryJSON.groupBy);
     const selectableColumns = new Set<SearchColumnType>(getCustomColumns(queryJSON.type));
     const shownColumns = columns.filter((column): column is SearchCustomColumnIds => selectableColumns.has(column));
+    // The table drops some saved columns, e.g. Amount debited when no row has one, so hiding starts from the saved ones to keep those.
+    const savedColumns = [queryJSON.columns ?? []].flat().filter((column) => selectableColumns.has(column));
+    const columnsToSave = savedColumns.length > 0 ? savedColumns : shownColumns;
     const requiredColumns = new Set<SearchColumnType>(getRequiredSearchColumns(queryHasViolationFilter(queryJSON)));
 
-    const getHideColumnHandler = (column: SearchColumnType) => {
-        if (isGrouped || !selectableColumns.has(column) || requiredColumns.has(column) || shownColumns.length <= 1) {
+    const getHideColumnHandler: GetHideColumnHandler = (column) => {
+        if (isGrouped || !selectableColumns.has(column) || requiredColumns.has(column) || columnsToSave.length <= 1) {
             return undefined;
         }
 
         return () => {
-            const query = buildSearchQueryString({...queryJSON, columns: shownColumns.filter((shownColumn) => shownColumn !== column)});
+            const query = buildSearchQueryString({...queryJSON, columns: columnsToSave.filter((columnToSave) => columnToSave !== column)});
             navigateToSearchWithColumns(query, currentSearchKey);
         };
     };
 
-    return {getHideColumnHandler};
+    return getHideColumnHandler;
 }
 
-export default useSearchColumnMenuActions;
-export type {SearchColumnMenuActions};
+export default useHideSearchColumn;
+export type {GetHideColumnHandler};

@@ -123,3 +123,4 @@ export default function SortableHeaderText({
 }
 
 export {SortableHeaderLabel};
+export type {SortableHeaderLabelProps};

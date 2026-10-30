@@ -14,10 +14,8 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-import type {SearchColumnMenuActions} from './hooks/useSearchColumnMenuActions';
 import type {SearchColumnType, SearchGroupBy, SearchSortBy, SortOrder} from './types';
 
-import SearchColumnMenu from './SearchColumnMenu';
 import SortableTableHeader from './SortableTableHeader';
 
 type SearchColumnConfig = {
@@ -636,8 +634,8 @@ type SearchTableHeaderProps = {
     /** True when the action column should render in its wider variant (e.g. tasks, deleted expenses). */
     isActionColumnWide?: boolean;
 
-    /** Gives each labelled column a menu. Without it the headings have none. */
-    columnMenuActions?: SearchColumnMenuActions;
+    /** Replaces each labelled column's heading. See `SortableTableHeader`. */
+    children?: React.ReactNode;
 };
 
 function SearchTableHeader({
@@ -660,7 +658,7 @@ function SearchTableHeader({
     groupBy,
     isExpenseReportView,
     isActionColumnWide,
-    columnMenuActions,
+    children,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -740,23 +738,9 @@ function SearchTableHeader({
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl3]}
             onSortPress={sortByColumn}
-            renderColumnMenu={
-                columnMenuActions
-                    ? ({columnName, label, sortColumnName, style, children}) => (
-                          <SearchColumnMenu
-                              columnLabel={label}
-                              style={style}
-                              sorting={
-                                  sortColumnName ? {activeSortOrder: sortBy === sortColumnName ? sortOrder : undefined, onSort: (order) => sortByColumn(sortColumnName, order)} : undefined
-                              }
-                              onHideColumn={columnMenuActions.getHideColumnHandler(columnName)}
-                          >
-                              {children}
-                          </SearchColumnMenu>
-                      )
-                    : undefined
-            }
-        />
+        >
+            {children}
+        </SortableTableHeader>
     );
 }
 

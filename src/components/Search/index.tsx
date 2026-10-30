@@ -115,12 +115,13 @@ import ChatSearchView from './ChatSearchView';
 import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
+import useHideSearchColumn from './hooks/useHideSearchColumn';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
-import useSearchColumnMenuActions from './hooks/useSearchColumnMenuActions';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
+import SearchColumnMenu from './SearchColumnMenu';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -984,7 +985,7 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
-    const columnMenuActions = useSearchColumnMenuActions(queryJSON, columnsToShow);
+    const getHideColumnHandler = useHideSearchColumn(queryJSON, columnsToShow);
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -1594,8 +1595,9 @@ function Search({
                 // Trip rows share the expense report layout (Total without flex), so the header aligns the same way
                 isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
-                columnMenuActions={columnMenuActions}
-            />
+            >
+                {!!getHideColumnHandler && <SearchColumnMenu getHideColumnHandler={getHideColumnHandler} />}
+            </SearchTableHeader>
         </View>
     );
 

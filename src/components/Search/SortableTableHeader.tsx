@@ -14,7 +14,8 @@ import {View} from 'react-native';
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from './types';
 
 import {useSearchColumnStyles} from './SearchColumnWidthsContext';
-import SortableHeaderText, {SortableHeaderLabel} from './SortableHeaderText';
+import {SortableColumnProvider} from './SortableColumnContext';
+import SortableHeaderText from './SortableHeaderText';
 
 type ColumnConfig = {
     columnName: SearchColumnType;
@@ -24,20 +25,6 @@ type ColumnConfig = {
     sortColumnName?: SearchSortBy;
     canBeMissing?: boolean;
     canEdit?: boolean;
-};
-
-type ColumnMenuParams = {
-    columnName: SearchColumnType;
-    label: string;
-
-    /** `undefined` when the column doesn't sort. */
-    sortColumnName: SearchSortBy | undefined;
-
-    /** Lays out the heading cell. */
-    style: StyleProp<ViewStyle>;
-
-    /** The heading's label, without the sort button. */
-    children: React.ReactNode;
 };
 
 type SearchTableHeaderProps = {
@@ -61,8 +48,11 @@ type SearchTableHeaderProps = {
     isActionColumnWide?: boolean;
     isDateColumnCreated?: boolean;
 
-    /** Renders each labelled column's heading as a menu, which replaces sorting on press. Without it the headings sort when pressed. */
-    renderColumnMenu?: (params: ColumnMenuParams) => React.ReactNode;
+    /**
+     * Replaces each labelled column's heading, reading the column from `useSortableColumn`.
+     * Without it the headings sort when pressed.
+     */
+    children?: React.ReactNode;
 };
 
 function SortableTableHeader({
@@ -85,7 +75,7 @@ function SortableTableHeader({
     taxAmountColumnSize,
     shouldRemoveTotalColumnFlex,
     isActionColumnWide,
-    renderColumnMenu,
+    children,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -140,26 +130,18 @@ function SortableTableHeader({
                     const resolvedSortOrder = sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC;
                     const innerContainerStyle = canEdit && styles.editableCellHeader;
 
-                    if (renderColumnMenu && !!label) {
+                    if (children && !!label) {
                         return (
-                            <React.Fragment key={columnName}>
-                                {renderColumnMenu({
-                                    columnName,
-                                    label,
-                                    sortColumnName: isSortable ? sortByColumnName : undefined,
-                                    style: containerStyle,
-                                    children: (
-                                        <SortableHeaderLabel
-                                            text={label}
-                                            icon={icon}
-                                            isActive={isActive}
-                                            sortOrder={resolvedSortOrder}
-                                            innerContainerStyle={innerContainerStyle}
-                                            textStyle={textStyle}
-                                        />
-                                    ),
-                                })}
-                            </React.Fragment>
+                            <SortableColumnProvider
+                                key={columnName}
+                                columnName={columnName}
+                                label={label}
+                                style={containerStyle}
+                                sorting={isSortable ? {activeSortOrder: isActive ? sortOrder : undefined, onSort: (order) => onSortPress(sortByColumnName, order)} : undefined}
+                                labelProps={{text: label, icon, isActive, sortOrder: resolvedSortOrder, innerContainerStyle, textStyle}}
+                            >
+                                {children}
+                            </SortableColumnProvider>
                         );
                     }
 
