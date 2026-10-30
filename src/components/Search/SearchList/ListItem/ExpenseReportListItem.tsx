@@ -249,7 +249,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             chatReportPolicyID: chatReport?.policyID,
         });
 
-    // Only the actions need these, so read them on press rather than re-rendering every row when they change
     const handleOnButtonPress = async () => {
         const [conciergeReportID, introSelected, onboarding, amountOwed, bankAccountList] = await Onyx.multiGet([
             ONYXKEYS.CONCIERGE_REPORT_ID,

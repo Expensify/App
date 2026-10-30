@@ -191,7 +191,6 @@ describe('PayActionButton', () => {
             });
         });
 
-        // The payment reads its inputs from Onyx first, so wait for that read before checking the call
         await waitForBatchedUpdates();
 
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
@@ -212,7 +211,6 @@ describe('PayActionButton', () => {
             });
         });
 
-        // The payment reads its inputs from Onyx first, so wait for that read before checking the call
         await waitForBatchedUpdates();
 
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({methodID: undefined}));

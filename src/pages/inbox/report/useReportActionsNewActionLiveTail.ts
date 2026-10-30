@@ -88,7 +88,6 @@ function useReportActionsNewActionLiveTail({
     const liveTailJumpRef = useRef<{stage: LiveTailJumpStage}>({stage: 'idle'});
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
-    // Read openReport's inputs only when a jump happens, so the list does not subscribe to them
     const openReportAtLiveTail = async () => {
         const [conciergeReportID, introSelected, onboarding, session, fullPolicySnapshotData] = await Onyx.multiGet([
             ONYXKEYS.CONCIERGE_REPORT_ID,

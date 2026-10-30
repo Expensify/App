@@ -1788,7 +1788,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                           };
                       });
 
-            // Only paying needs these, so read them here rather than re-rendering the bulk actions when they change
             const [conciergeReportID, introSelected, onboarding] = await Onyx.multiGet([ONYXKEYS.CONCIERGE_REPORT_ID, ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.NVP_ONBOARDING]);
             const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
             const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;

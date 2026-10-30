@@ -52,7 +52,6 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
     const personalDetail = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
 
-    // Read the thread's inputs only when one has to be created, so each preview row does not subscribe to them
     const createAndOpenTransactionThread = async () => {
         const [introSelected, conciergeReportID, onboarding, fullPolicySnapshotData] = await Onyx.multiGet([
             ONYXKEYS.NVP_INTRO_SELECTED,

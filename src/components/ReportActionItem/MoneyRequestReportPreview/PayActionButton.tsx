@@ -98,7 +98,6 @@ function PayActionButton() {
         } else if (hasHeldExpensesReportUtils(transactions)) {
             openHoldMenu(type, methodID);
         } else if (chatReport && iouReport) {
-            // Only paying needs these, so read them on press rather than re-rendering every report preview when they change
             const [conciergeReportID, introSelected, onboarding, rules, bankAccountList] = await Onyx.multiGet([
                 ONYXKEYS.CONCIERGE_REPORT_ID,
                 ONYXKEYS.NVP_INTRO_SELECTED,

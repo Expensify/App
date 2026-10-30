@@ -50,7 +50,6 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const actionHasReasoning = hasReasoning(action);
     const computedMessage = actionHasReasoning ? `${message}${translate('iou.AskToExplain')}` : message;
 
-    // Read explain's inputs only when the link is pressed, so each row with reasoning does not subscribe to them
     const explainAction = async () => {
         const [introSelected, onboarding, conciergeReportID] = await Onyx.multiGet([ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.NVP_ONBOARDING, ONYXKEYS.CONCIERGE_REPORT_ID]);
         const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);

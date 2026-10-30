@@ -163,7 +163,6 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
-        // The payment reads the Concierge chat from Onyx first, so wait for that read before checking the call
         await waitForBatchedUpdates();
 
         // Then the invoice payment should use the supplied chat report because paying an invoice needs the real invoice chat data
@@ -225,7 +224,6 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
-        // The payment reads the Concierge chat from Onyx first, so wait for that read before checking the call
         await waitForBatchedUpdates();
 
         // Then the payment should proceed with a minimal fallback chat report built from the known IDs
@@ -260,7 +258,6 @@ describe('PayActionCell', () => {
                 payAsBusiness: false,
             });
         });
-        // The payment reads the Concierge chat from Onyx first, so wait for that read before checking the call
         await waitForBatchedUpdates();
 
         // Then the payment should use the loaded chat report

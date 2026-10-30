@@ -128,7 +128,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             const chatReportActions =
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
-            // Only paying needs these, so read them after the guards rather than re-rendering every row when they change
             const [conciergeReportID, rules, introSelected, onboarding] = await Onyx.multiGet([
                 ONYXKEYS.CONCIERGE_REPORT_ID,
                 ONYXKEYS.COLLECTION.RULE,

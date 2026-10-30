@@ -314,7 +314,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    // Only the actions need these, so read them on press rather than re-rendering every row when they change
     const handleOnButtonPress = async (event?: ModifiedMouseEvent) => {
         const [conciergeReportID, introSelected, onboarding, amountOwed, bankAccountList] = await Onyx.multiGet([
             ONYXKEYS.CONCIERGE_REPORT_ID,

@@ -137,7 +137,6 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             return;
         }
 
-        // Only paying needs these, so read them on press rather than re-rendering the header when they change
         const [conciergeReportID, introSelected, onboarding, rules, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd] = await Onyx.multiGet([
             ONYXKEYS.CONCIERGE_REPORT_ID,
             ONYXKEYS.NVP_INTRO_SELECTED,
