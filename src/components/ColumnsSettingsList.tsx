@@ -2,7 +2,6 @@ import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibil
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useListKeyboardNav from '@hooks/useListKeyboardNav';
 import useLocalize from '@hooks/useLocalize';
-import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -168,9 +167,6 @@ function ColumnsSettingsList({
 
     useDebouncedAccessibilityAnnouncement(noResultsFoundText, shouldShowNoResultsFound, searchValue);
 
-    // With no results there is no list to scroll the footer with.
-    const shouldFooterBeInsideList = useShouldFooterBeInsideList() && !shouldShowNoResultsFound;
-
     const isDefaultState =
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
@@ -247,20 +243,6 @@ function ColumnsSettingsList({
         onSave(selectedColumnIds);
     };
 
-    const footer = (
-        <View style={[styles.ph5, styles.pb5]}>
-            <Button
-                size={CONST.BUTTON_SIZE.LARGE}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={handleSave}
-            >
-                <Button.KeyboardShortcut />
-                <Button.Text>{translate('common.save')}</Button.Text>
-            </Button>
-        </View>
-    );
-    const listFooter = shouldFooterBeInsideList ? footer : undefined;
-
     const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
         return (
             <MultiSelectListItem
@@ -323,7 +305,6 @@ function ColumnsSettingsList({
                                             isItemDisabled={(item) => item.isDisabled}
                                             renderItem={renderItem}
                                             focusedIndex={groupFocusedIndex}
-                                            ListFooterComponent={visibleTypeColumnsList.length > 0 ? undefined : listFooter}
                                         />
                                     </>
                                 )}
@@ -346,7 +327,6 @@ function ColumnsSettingsList({
                                             isItemDisabled={(item) => item.isDisabled}
                                             renderItem={renderItem}
                                             focusedIndex={typeFocusedIndex}
-                                            ListFooterComponent={listFooter}
                                         />
                                     </>
                                 )}
@@ -361,13 +341,21 @@ function ColumnsSettingsList({
                                 isItemDragDisabled={(item) => item.isDragDisabled}
                                 isItemDisabled={(item) => item.isDisabled}
                                 renderItem={renderItem}
-                                ListFooterComponent={listFooter}
                             />
                         )}
                     </ScrollView>
                 )}
             </View>
-            {!shouldFooterBeInsideList && footer}
+            <View style={[styles.ph5, styles.pb5]}>
+                <Button
+                    size={CONST.BUTTON_SIZE.LARGE}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={handleSave}
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
+            </View>
         </ScreenWrapper>
     );
 }

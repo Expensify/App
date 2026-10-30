@@ -3,8 +3,6 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import ColumnsSettingsList from '@components/ColumnsSettingsList';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 
-import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
-
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
@@ -18,8 +16,6 @@ jest.mock('@hooks/useLocalize', () => {
     const {translateLocal, localeCompare} = jest.requireActual<typeof TestHelper>('../utils/TestHelper');
     return () => ({translate: translateLocal, localeCompare});
 });
-
-jest.mock('@hooks/useShouldFooterBeInsideList', () => jest.fn(() => false));
 
 const ALL_COLUMNS: SearchCustomColumnIds[] = [
     CONST.SEARCH.TABLE_COLUMNS.DATE,
@@ -52,10 +48,6 @@ function search(text: string) {
 
 beforeAll(async () => {
     await IntlStore.load('en');
-});
-
-beforeEach(() => {
-    jest.mocked(useShouldFooterBeInsideList).mockReturnValue(false);
 });
 
 describe('ColumnsSettingsList search', () => {
@@ -97,30 +89,5 @@ describe('ColumnsSettingsList search', () => {
         // The message is hidden from screen readers because it is announced separately.
         expect(screen.getByText('No results found', {includeHiddenElements: true})).toBeOnTheScreen();
         expect(screen.queryByText('Date')).not.toBeOnTheScreen();
-    });
-
-    it('keeps Save reachable when the footer scrolls with the list', () => {
-        // Given landscape mode with the keyboard open, where the footer moves into the list
-        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(true);
-        const onSave = renderColumnsList();
-
-        // When the user saves from the footer inside the list
-        fireEvent.press(screen.getByText('Save'));
-
-        // Then Save is rendered once and still saves the columns
-        expect(screen.getAllByText('Save')).toHaveLength(1);
-        expect(onSave).toHaveBeenCalledWith(DEFAULT_COLUMNS);
-    });
-
-    it('keeps Save on screen when no column matches and the footer would scroll with the list', () => {
-        // Given landscape mode with the keyboard open
-        jest.mocked(useShouldFooterBeInsideList).mockReturnValue(true);
-        renderColumnsList();
-
-        // When the search matches nothing, so there is no list to hold the footer
-        search('zzz');
-
-        // Then Save is still shown, because earlier selections may still need saving
-        expect(screen.getByText('Save')).toBeOnTheScreen();
     });
 });
