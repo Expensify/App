@@ -3,7 +3,7 @@ name: Verify HybridApp build
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths:
       - '**.kt'
       - '**.java'
@@ -79,7 +79,7 @@ jobs:
       contents: read
       id-token: write
       pull-requests: write
-    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && github.actor != 'os-botify[bot]' }}
     cache-mode: read
     uses: ./.github/workflows/buildAndroid.yml
     with:
@@ -93,7 +93,7 @@ jobs:
       contents: read
       id-token: write
       pull-requests: write
-    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' }}
+    if: ${{ !github.event.pull_request.head.repo.fork && github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && github.actor != 'os-botify[bot]' }}
     cache-mode: read
     uses: ./.github/workflows/buildIOS.yml
     with:

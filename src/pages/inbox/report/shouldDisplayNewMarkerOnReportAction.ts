@@ -1,4 +1,4 @@
-import {isReportActionUnread, isReportPreviewAction, shouldHideNewMarker} from '@libs/ReportActionsUtils';
+import {isReportActionFromCurrentUser, isReportActionUnread, shouldHideNewMarker} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -90,7 +90,7 @@ const shouldDisplayNewMarkerOnReportAction = ({
     };
 
     // If no unread marker exists, don't set an unread marker for newly added messages from the current user.
-    const isFromCurrentUser = currentUserAccountID === (isReportPreviewAction(message) ? message.childLastActorAccountID : message.actorAccountID);
+    const isFromCurrentUser = isReportActionFromCurrentUser(message, currentUserAccountID);
     const isNewMessage = !prevSortedVisibleReportActionsObjects[message.reportActionID];
 
     // The unread marker will show if the action's `created` time is later than `unreadMarkerTime`.

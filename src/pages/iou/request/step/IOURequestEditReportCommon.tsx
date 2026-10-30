@@ -20,6 +20,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 
 import {fetchOutstandingReports} from '@libs/actions/OutstandingReports';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import Navigation from '@libs/Navigation/Navigation';
 import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isPerDiemEnabled, isPolicyAdmin, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
@@ -33,10 +34,12 @@ import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef} from 'react';
 
+import navigateAwayFromReportPicker from './IOURequestStepReport/navigateAwayFromReportPicker';
 import StepScreenWrapper from './StepScreenWrapper';
 
 type TransactionGroupListItem = ListItem & {
@@ -44,8 +47,17 @@ type TransactionGroupListItem = ListItem & {
     value: string;
 };
 
-type Props = {
-    backTo: Route | undefined;
+type ReportListSize = {
+    /** How many rows the list has before any search filter, the create-report row included */
+    rowCount: number;
+
+    /** Whether the list shows its search input */
+    isSearchable: boolean;
+};
+
+type IOURequestEditReportCommonProps = {
+    /** Where the page goes back to. Unused without the page wrapper, where `onDismiss` closes the list instead */
+    backTo?: Route;
     transactionIDs?: string[];
     isManualDistanceRequest: boolean;
     isOdometerDistanceRequest: boolean;
@@ -69,6 +81,21 @@ type Props = {
     areAllManagedCardsResolvable?: boolean;
     /** Lets the backend pick a destination report per expense. Required to offer the action to multiple submitters */
     autoReport?: () => void;
+
+    /** Closes the list when the report it already shows is picked again. Defaults to going back to `backTo` */
+    onDismiss?: () => void;
+
+    /** Called before the list navigates somewhere else, e.g. to the restricted-action page, and when a pick is blocked by a modal whose button may navigate on. A container closes itself here, and the navigation waits for that close */
+    onNavigateAway?: () => void;
+
+    /** Whether the search input should auto-focus when the list mounts. Only opted into by the anchored pop-over. */
+    shouldAutoFocusSearchInput?: boolean;
+
+    /**
+     * Renders the list in a container of the caller's own instead of the step page, e.g. the container anchored to a field.
+     * Handed the list and the size it needs, in the same render, so the container never learns the size through an effect.
+     */
+    renderInContainer?: (list: ReactNode, size: ReportListSize) => ReactNode;
 };
 
 function IOURequestEditReportCommon({
@@ -93,7 +120,11 @@ function IOURequestEditReportCommon({
     hasMultipleSubmitters = false,
     areAllManagedCardsResolvable = false,
     autoReport,
-}: Props) {
+    onDismiss,
+    onNavigateAway,
+    shouldAutoFocusSearchInput = false,
+    renderInContainer,
+}: IOURequestEditReportCommonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Document', 'DocumentMagicWand']);
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
@@ -179,12 +210,11 @@ function IOURequestEditReportCommon({
 
     const reportOwnerLogin = personalDetails?.[resolvedReportOwnerAccountID]?.login;
     // Outstanding reports belong to one owner, so listing them would offer their reports for everyone else's expenses.
-    const reportOptions: TransactionGroupListItem[] =
+    const eligibleReports =
         outstandingReports.length === 0 || hasMultipleSubmitters
             ? []
             : outstandingReports
                   .sort((report1, report2) => sortOutstandingReportsBySelected(report1, report2, selectedReportID, localeCompare))
-                  .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
                   .filter((report): report is NonNullable<typeof report> => report !== undefined)
                   .filter((report) => {
                       const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
@@ -203,25 +233,29 @@ function IOURequestEditReportCommon({
                       const isReportPolicyAdmin = isPolicyAdmin(policy);
                       const isReportManager = report.managerID === currentUserPersonalDetails.accountID;
                       return isReportPolicyAdmin || isReportManager;
-                  })
-                  .map((report) => {
-                      const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                      return {
-                          brickRoadIndicator: null,
-                          alternateText: policy?.name,
-                          text: report.reportName,
-                          value: report.reportID,
-                          keyForList: report.reportID,
-                          isSelected: report.reportID === selectedReportID,
-                          policyID: report.policyID,
-                          reportID: report.reportID,
-                          icons: getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate),
-                      };
                   });
+    const reportOptions: TransactionGroupListItem[] = eligibleReports
+        .filter((report) => !debouncedSearchValue || report.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
+        .map((report) => {
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+            return {
+                brickRoadIndicator: null,
+                alternateText: policy?.name,
+                text: report.reportName,
+                value: report.reportID,
+                keyForList: report.reportID,
+                isSelected: report.reportID === selectedReportID,
+                policyID: report.policyID,
+                reportID: report.reportID,
+                icons: getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate),
+            };
+        });
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
     };
+
+    const dismiss = onDismiss ?? navigateBack;
 
     const checkIfPerDiemTransactionsCanBeMoved = (selectedReportPolicyID: string | undefined) => {
         const transactionDetails = transactionIDs?.map((transactionID) => {
@@ -271,10 +305,12 @@ function IOURequestEditReportCommon({
 
     const handleSelectReport = (item: TransactionGroupListItem) => {
         if (item.value === selectedReportID) {
-            navigateBack();
+            dismiss();
             return;
         }
         if (blockDistanceRequestIfNeeded(item.policyID)) {
+            // The block modal's button can open the personal details page, so a container closes now rather than staying under it.
+            onNavigateAway?.();
             return;
         }
         const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
@@ -283,7 +319,7 @@ function IOURequestEditReportCommon({
             itemPolicy &&
             shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
         ) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID));
+            navigateAwayFromReportPicker(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID), onNavigateAway);
             return;
         }
 
@@ -315,6 +351,7 @@ function IOURequestEditReportCommon({
 
     const handleCreateReport = () => {
         if (blockDistanceRequestIfNeeded(policyForMovingExpenses?.id)) {
+            onNavigateAway?.();
             return;
         }
         if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
@@ -381,6 +418,8 @@ function IOURequestEditReportCommon({
     }
 
     const listHeaderContent = createReportOption ?? autoReportOption;
+    const isSearchable = !hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const listSize: ReportListSize = {rowCount: eligibleReports.length + (listHeaderContent ? 1 : 0), isSearchable};
 
     let shouldShowNotFoundPage;
     if (listHeaderContent) {
@@ -396,6 +435,51 @@ function IOURequestEditReportCommon({
         shouldShowNotFoundPage = isOpen && !isAdmin && !isSubmitter;
     }
 
+    const list = (
+        <SelectionList
+            data={reportOptions}
+            onSelectRow={handleSelectReport}
+            titleNumberOfLines={2}
+            shouldShowTextInput={isSearchable}
+            textInputOptions={{
+                value: searchValue,
+                label: translate('common.search'),
+                headerMessage,
+                onChangeText: setSearchValue,
+                // Auto-focus is opt-in (anchored pop-over only) and skipped on touch surfaces to avoid popping the keyboard.
+                disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
+                ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
+            }}
+            shouldSingleExecuteRowSelect
+            initiallyFocusedItemKey={selectedReportID}
+            shouldScrollToFocusedIndexOnMount={!listHeaderContent}
+            ListItem={InviteMemberListItem}
+            customListHeaderContent={listHeaderContent}
+            listFooterContent={
+                shouldShowRemoveFromReport ? (
+                    <MenuItem.Root onPress={removeFromReport}>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.Icon src={icons.Close} />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
+                                <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                ) : undefined
+            }
+            listEmptyContent={listHeaderContent}
+            onEndReached={loadMoreOutstandingReports}
+            onEndReachedThreshold={0.75}
+        />
+    );
+
+    if (renderInContainer) {
+        return renderInContainer(list, listSize);
+    }
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.report')}
@@ -405,45 +489,10 @@ function IOURequestEditReportCommon({
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
-            <SelectionList
-                data={reportOptions}
-                onSelectRow={handleSelectReport}
-                titleNumberOfLines={2}
-                shouldShowTextInput={!hasMultipleSubmitters && outstandingReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
-                textInputOptions={{
-                    value: searchValue,
-                    label: translate('common.search'),
-                    headerMessage,
-                    onChangeText: setSearchValue,
-                    disableAutoFocus: true,
-                    ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
-                }}
-                shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={selectedReportID}
-                shouldScrollToFocusedIndexOnMount={!listHeaderContent}
-                ListItem={InviteMemberListItem}
-                customListHeaderContent={listHeaderContent}
-                listFooterContent={
-                    shouldShowRemoveFromReport ? (
-                        <MenuItem.Root onPress={removeFromReport}>
-                            <MenuItem.Row>
-                                <MenuItem.Leading>
-                                    <MenuItem.Icon src={icons.Close} />
-                                </MenuItem.Leading>
-                                <MenuItem.Content>
-                                    <MenuItem.Title>{translate('iou.removeFromReport')}</MenuItem.Title>
-                                    <MenuItem.Description>{translate('iou.moveToPersonalSpace')}</MenuItem.Description>
-                                </MenuItem.Content>
-                            </MenuItem.Row>
-                        </MenuItem.Root>
-                    ) : undefined
-                }
-                listEmptyContent={listHeaderContent}
-                onEndReached={loadMoreOutstandingReports}
-                onEndReachedThreshold={0.75}
-            />
+            {list}
         </StepScreenWrapper>
     );
 }
 
 export default IOURequestEditReportCommon;
+export type {IOURequestEditReportCommonProps, ReportListSize};
