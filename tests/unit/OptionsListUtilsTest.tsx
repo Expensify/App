@@ -6324,7 +6324,7 @@ describe('OptionsListUtils', () => {
     describe('Alternative text', () => {
         it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
             renderLocaleContextProvider();
-            // Given the English locale, report 10 in Onyx (the preview reads it from there) and an ADD_COMMENT report action
+            // Given the English locale, report 10 and an ADD_COMMENT report action in Onyx
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
                 [`${ONYXKEYS.COLLECTION.REPORT}10` as const]: REPORTS?.['10'],
@@ -6360,6 +6360,7 @@ describe('OptionsListUtils', () => {
                       archivedReport,
                       {showChatPreviewLine: true},
                       {
+                          report: REPORTS?.['10'],
                           isReportArchived: true,
                           personalDetails: PERSONAL_DETAILS,
                           dateFnsLocale: undefined,
@@ -6443,11 +6444,13 @@ describe('OptionsListUtils', () => {
         const setReport = async (report: Report) => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await waitForBatchedUpdates();
+            return report;
         };
 
         type AlternateTextConfig = Parameters<typeof getAlternateText>[2];
 
         const buildConfig = (overrides: Partial<AlternateTextConfig> = {}): AlternateTextConfig => ({
+            report: undefined,
             isReportArchived: false,
             personalDetails: PERSONAL_DETAILS,
             dateFnsLocale: undefined,
@@ -6475,7 +6478,7 @@ describe('OptionsListUtils', () => {
                 lastMessageText: '<b>test</b>',
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             // Then the markup is preserved as typed (https://github.com/Expensify/App/issues/82036)
             expect(result).toBe('<b>test</b>');
@@ -6494,7 +6497,7 @@ describe('OptionsListUtils', () => {
                 lastMessageText: '<b>test</b>',
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             // Then the stored text is returned untouched, which is what the LHN shows for the same report
             expect(result).toBe('<b>test</b>');
@@ -6503,7 +6506,7 @@ describe('OptionsListUtils', () => {
         it('should strip HTML from the last message when the last action is not ADD_COMMENT', async () => {
             // Given a report whose last action is not a comment and carries HTML in its message
             const reportID = '9251';
-            await setReport(
+            const report = await setReport(
                 buildDMReport({
                     reportID,
                     lastMessageText: '<b>test</b>',
@@ -6516,7 +6519,7 @@ describe('OptionsListUtils', () => {
                 keyForList: '',
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             // Then the markup is stripped (https://github.com/Expensify/App/issues/82036)
             expect(result).toBe('test');
@@ -6524,7 +6527,7 @@ describe('OptionsListUtils', () => {
 
         it('should prefix the room preview with the last actor display name', async () => {
             const reportID = '9351';
-            await setReport(buildRoomReport({reportID}));
+            const report = await setReport(buildRoomReport({reportID}));
             await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
             const option: OptionData = {
                 reportID,
@@ -6533,14 +6536,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Spider-Man: hello');
         });
 
         it('should use "You" as the prefix when the current user sent the last message', async () => {
             const reportID = '9352';
-            await setReport(
+            const report = await setReport(
                 buildRoomReport({
                     reportID,
                     lastActorAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -6554,14 +6557,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('You: hello');
         });
 
         it('should show the archive reason without an actor prefix when the report is archived', async () => {
             const reportID = '9353';
-            await setReport(buildRoomReport({reportID}));
+            const report = await setReport(buildRoomReport({reportID}));
             await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
             const option: OptionData = {
                 reportID,
@@ -6570,14 +6573,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({isReportArchived: true}));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report, isReportArchived: true}));
 
             expect(result).toBe('This chat room has been archived.');
         });
 
         it('should keep the actor prefix when currentUserAccountID is undefined', async () => {
             const reportID = '9354';
-            await setReport(buildRoomReport({reportID}));
+            const report = await setReport(buildRoomReport({reportID}));
             await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
             const option: OptionData = {
                 reportID,
@@ -6586,7 +6589,7 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({currentUserAccountID: undefined}));
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report, currentUserAccountID: undefined}));
 
             expect(result).toBe('Spider-Man: hello');
         });
@@ -6617,7 +6620,7 @@ describe('OptionsListUtils', () => {
             await waitForBatchedUpdates();
 
             const option: OptionData = {reportID, keyForList: '', isMoneyRequestReport: true};
-            return getAlternateText(option, {showChatPreviewLine: true}, buildConfig({currentUserAccountID}));
+            return getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report, currentUserAccountID}));
         };
 
         it('should address the current user directly when they own the reimbursed report', async () => {
@@ -6639,7 +6642,7 @@ describe('OptionsListUtils', () => {
 
         it('should omit the actor prefix when the last action is a report preview', async () => {
             const reportID = '9355';
-            await setReport(
+            const report = await setReport(
                 buildRoomReport({
                     reportID,
                     lastActionType: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -6654,14 +6657,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('owes $10');
         });
 
         it('should fall back to the report action person text when the actor is missing from personal details', async () => {
             const reportID = '9356';
-            await setReport(buildRoomReport({reportID, lastActorAccountID: 999}));
+            const report = await setReport(buildRoomReport({reportID, lastActorAccountID: 999}));
             // The fake action carries person: [{text: 'Email One'}] and account 999 is not in PERSONAL_DETAILS
             await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 999, undefined, 'hello'));
             const option: OptionData = {
@@ -6671,14 +6674,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Email One: hello');
         });
 
         it('should replace the preview with the rename message for a RENAMED last action', async () => {
             const reportID = '9357';
-            await setReport(
+            const report = await setReport(
                 buildRoomReport({
                     reportID,
                     lastActionType: CONST.REPORT.ACTIONS.TYPE.RENAMED,
@@ -6699,14 +6702,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Spider-Man renamed this room to "New Room" (previously "Old Room")');
         });
 
         it('should replace the preview with the leave message for a room LEAVE_ROOM last action', async () => {
             const reportID = '9358';
-            await setReport(buildRoomReport({reportID, lastMessageText: 'left the chat'}));
+            const report = await setReport(buildRoomReport({reportID, lastMessageText: 'left the chat'}));
             await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM, 3));
             const option: OptionData = {
                 reportID,
@@ -6715,14 +6718,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Spider-Man: left the chat');
         });
 
         it('should prefix the action message with the actor for a policy LEAVE_ROOM last action', async () => {
             const reportID = '9359';
-            await setReport(buildRoomReport({reportID, lastMessageText: 'left the workspace'}));
+            const report = await setReport(buildRoomReport({reportID, lastMessageText: 'left the workspace'}));
             // The fake action's message text is 'hey'
             await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM, 3));
             const option: OptionData = {
@@ -6732,14 +6735,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Spider-Man: hey');
         });
 
         it('should build the invite message with member count and room name', async () => {
             const reportID = '9360';
-            await setReport(buildRoomReport({reportID, lastMessageText: 'invited'}));
+            const report = await setReport(buildRoomReport({reportID, lastMessageText: 'invited'}));
             await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM, 3, {targetAccountIDs: [4, 5], roomName: '#galaxy'}));
             const option: OptionData = {
                 reportID,
@@ -6748,14 +6751,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Spider-Man: invited 2 members to #galaxy');
         });
 
         it('should build the remove message with a singular member and room name', async () => {
             const reportID = '9361';
-            await setReport(buildRoomReport({reportID, lastMessageText: 'removed'}));
+            const report = await setReport(buildRoomReport({reportID, lastMessageText: 'removed'}));
             await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_FROM_ROOM, 3, {targetAccountIDs: [4], roomName: '#galaxy'}));
             const option: OptionData = {
                 reportID,
@@ -6764,14 +6767,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Spider-Man: removed 1 member from #galaxy');
         });
 
         it('should count invited members from lastMessageHtml mentions when targetAccountIDs is empty', async () => {
             const reportID = '9362';
-            await setReport(
+            const report = await setReport(
                 buildRoomReport({
                     reportID,
                     lastMessageText: 'invited',
@@ -6786,7 +6789,7 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Spider-Man: invited 2 members');
         });
@@ -6796,7 +6799,7 @@ describe('OptionsListUtils', () => {
             [CONST.REPORT.ACTIONS.TYPE.RETRACTED, 'retracted'],
         ])('should suppress the actor prefix for %s because its text already embeds the actor', async (actionName, expectedText) => {
             const reportID = actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED ? '9363' : '9364';
-            await setReport(
+            const report = await setReport(
                 buildRoomReport({
                     reportID,
                     lastActionType: actionName,
@@ -6811,14 +6814,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe(expectedText);
         });
 
         it('should skip whisper actions when picking the last visible action', async () => {
             const reportID = '9365';
-            await setReport(buildRoomReport({reportID}));
+            const report = await setReport(buildRoomReport({reportID}));
             // getWhisperedTo prefers message.whisperedTo over originalMessage, so mark the whisper there
             const whisper = {
                 ...buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 4),
@@ -6848,14 +6851,14 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Spider-Man: hello');
         });
 
         it('should resolve the last action from the live report-action collection', async () => {
             const reportID = '9150';
-            await setReport(buildRoomReport({reportID}));
+            const report = await setReport(buildRoomReport({reportID}));
             await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
             const option: OptionData = {
                 reportID,
@@ -6864,13 +6867,13 @@ describe('OptionsListUtils', () => {
                 isChatRoom: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(result).toBe('Spider-Man: hello');
         });
 
         it('should fall back to type subtitles when showChatPreviewLine is false', async () => {
-            await setReport(buildRoomReport());
+            const report = await setReport(buildRoomReport());
             const roomOption: OptionData = {
                 reportID: ROOM_REPORT_ID,
                 keyForList: '',
@@ -6884,7 +6887,7 @@ describe('OptionsListUtils', () => {
                 isThread: true,
             };
 
-            expect(getAlternateText(roomOption, {showChatPreviewLine: false}, buildConfig())).toBe('Custom subtitle');
+            expect(getAlternateText(roomOption, {showChatPreviewLine: false}, buildConfig({report}))).toBe('Custom subtitle');
             expect(getAlternateText(threadOption, {showChatPreviewLine: false}, buildConfig())).toBe(translateLocal('threads.thread'));
         });
 
@@ -6988,7 +6991,7 @@ describe('OptionsListUtils', () => {
                 lastMessageText: 'hello',
                 isChatRoom: true,
             };
-            const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
             expect(lhnOption?.alternateText).toBe('Spider-Man: hello');
             expect(searchAlternateText).toBe(lhnOption?.alternateText);
@@ -7051,7 +7054,7 @@ describe('OptionsListUtils', () => {
                     lastMessageText: 'updated a custom unit',
                     isChatRoom: true,
                 };
-                const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+                const searchAlternateText = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report}));
 
                 expect(lhnOption?.alternateText).toBe('Spider-Man: updated a custom unit');
                 expect(searchAlternateText).toBe(lhnOption?.alternateText);
@@ -7133,10 +7136,134 @@ describe('OptionsListUtils', () => {
                 isMoneyRequestReport: true,
             };
 
-            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig());
+            const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report: expenseReport}));
 
             // Then the actor prefix comes from the transaction thread comment, not from the parent report's IOU action
             expect(result).toBe('Spider-Man: thread comment');
+        });
+
+        describe('report resolution', () => {
+            // getAlternateText used to look the report up by option.reportID in the module-level Onyx.connect() cache.
+            // These cases pin down that it now reads only the `report` the caller passes (https://github.com/Expensify/App/issues/66378).
+
+            it('should use the passed report instead of the Onyx copy that shares its reportID', async () => {
+                // Given Onyx holds a plain DM for a reportID, while the caller's snapshot says that report is the workspace admins room
+                const reportID = '9501';
+                await setReport(buildDMReport({reportID}));
+                const adminRoom = buildRoomReport({reportID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS});
+                const option: OptionData = {
+                    reportID,
+                    keyForList: '',
+                    lastMessageText: 'hello',
+                    subtitle: 'Workspace subtitle',
+                };
+
+                // When the policy name preview is forced, which only applies to admin, announce and workspace chats
+                const result = getAlternateText(option, {showChatPreviewLine: true, forcePolicyNamePreview: true}, buildConfig({report: adminRoom}));
+
+                // Then the passed report decides the room type, so the workspace subtitle is shown instead of the DM preview
+                expect(result).toBe('Workspace subtitle');
+            });
+
+            it('should not fall back to the Onyx reports collection when no report is passed', async () => {
+                // Given a room and its last comment are both in Onyx, so a lookup by reportID would find them and build `Name: message`
+                const reportID = '9503';
+                await setReport(buildRoomReport({reportID}));
+                await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
+                const option: OptionData = {
+                    reportID,
+                    keyForList: '',
+                    lastMessageText: '<b>hello</b>',
+                };
+
+                // When the caller passes no report
+                const result = getAlternateText(option, {showChatPreviewLine: true}, buildConfig({report: undefined}));
+
+                // Then the Onyx copy is ignored and only the option's own last message text is used
+                expect(result).toBe('hello');
+            });
+
+            it('should pass the option report through createOptionFromReport so a group chat outside Onyx is labelled', () => {
+                // Given a group chat with several participants that only exists in the caller's snapshot
+                const report: Report = {
+                    reportID: '9506',
+                    reportName: '',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                    participants: {
+                        [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        4: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                };
+
+                // When the option is built from it
+                const option = createOptionFromReport({
+                    dateFnsLocale: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    convertToDisplayString,
+                    report,
+                    personalDetails: PERSONAL_DETAILS,
+                    privateIsArchived: undefined,
+                    rules: undefined,
+                    policy: undefined,
+                    sortedActions: undefined,
+                    conciergeReportID: undefined,
+                    pendingDeleteMemberAccountIDs: undefined,
+                    formatPhoneNumber,
+                });
+
+                // Then createOption hands its report to getAlternateText, which labels the option as a group
+                expect(option.alternateText).toBe(translateLocal('common.group'));
+            });
+
+            it('should pass the option report through getValidOptions so the preview resolves without the Onyx reports collection', async () => {
+                // Given a room that is not in the Onyx reports collection and a resolver that knows no reports
+                const reportID = '9507';
+                const report = buildRoomReport({reportID});
+                await seedActions(reportID, buildAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, 3, undefined, 'hello'));
+                const optionList = createFilteredOptionList(
+                    PERSONAL_DETAILS,
+                    {[reportID]: report},
+                    undefined,
+                    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                    undefined,
+                    {
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                        dateFnsLocale: undefined,
+                        convertToDisplayString,
+                        conciergeReportID: undefined,
+                        isSearching: true,
+                        formatPhoneNumber,
+                    },
+                    undefined,
+                );
+
+                // When the search options are prepared with the chat preview line
+                const {options} = getValidOptions(
+                    {reports: optionList.reports, personalDetails: []},
+                    undefined,
+                    {},
+                    loginList,
+                    CURRENT_USER_ACCOUNT_ID,
+                    CURRENT_USER_EMAIL,
+                    undefined,
+                    {
+                        getReportByID: () => undefined,
+                        dateFnsLocale: undefined,
+                        convertToDisplayString,
+                        showChatPreviewLine: true,
+                        includeMultipleParticipantReports: true,
+                        personalDetails: PERSONAL_DETAILS,
+                    },
+                    {translate: translateLocal, formatPhoneNumber},
+                    undefined,
+                );
+
+                // Then the preview is built from the option's own report and keeps the `Name: message` format
+                const roomOption = options.recentReports.find((option) => option.reportID === reportID);
+                expect(roomOption?.alternateText).toBe('Spider-Man: hello');
+            });
         });
     });
 
