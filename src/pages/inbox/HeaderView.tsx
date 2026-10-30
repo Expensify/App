@@ -266,7 +266,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         accountGuideDetails?.email !== CONST.EMAIL.CONCIERGE &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
-    // Show the "Book a call" button in the 1:1 DM with the assigned support person
     const shouldShowBookCallInDM = (supportAccountID: number | undefined, calendarLink: string | undefined) =>
         !!supportAccountID &&
         !!calendarLink &&
@@ -282,7 +281,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall || shouldShowSupportTicketBookCall;
 
-    // The Concierge chat offers Talk to a human to everyone instead of Book a call
     const shouldShowTalkToHuman = isConciergeChat;
     const shouldShowCallAction = shouldShowTalkToHuman || shouldShowBookCall;
 

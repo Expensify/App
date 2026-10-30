@@ -358,6 +358,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
+        // When the chat header renders
         renderHeader(report.reportID);
         await waitForBatchedUpdatesWithAct();
 
@@ -376,6 +377,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
+        // When the chat header renders
         renderHeader(report.reportID);
         await waitForBatchedUpdatesWithAct();
 
@@ -393,6 +395,7 @@ describe('HeaderView', () => {
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
         });
 
+        // When the chat header renders
         renderHeader(report.reportID);
         await waitForBatchedUpdatesWithAct();
 
@@ -446,6 +449,7 @@ describe('HeaderView', () => {
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
         });
 
+        // When the chat header renders
         renderHeader(report.reportID);
         await waitForBatchedUpdatesWithAct();
 
