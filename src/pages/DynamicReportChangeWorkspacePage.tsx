@@ -86,7 +86,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
 
     const reportPreviewAction = useParentReportAction(report);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
@@ -306,7 +306,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                             initiallyFocusedItemKey={initialSelection}
                             shouldScrollToFocusedIndexOnMount={false}
                             shouldUpdateFocusedIndex
-                            shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                             addBottomSafeAreaPadding
                             shouldFooterBeInsideList={shouldFooterBeInsideList}

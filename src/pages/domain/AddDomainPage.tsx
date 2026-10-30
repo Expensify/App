@@ -22,7 +22,6 @@ import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
@@ -33,7 +32,7 @@ function AddDomainPage() {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
-    const [allDomains, allDomainsResult] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const isAppLoadPending = useIsAppLoadPending();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
@@ -129,9 +128,7 @@ function AddDomainPage() {
                     onSubmit={({domainName}) => {
                         const submitDomain = () => {
                             submittedDomainName.current = domainName;
-                            domainKeysBeforeCreation.current = isLoadingOnyxValue(allDomainsResult)
-                                ? undefined
-                                : new Set(Object.keys(allDomains ?? {}).filter((domainKey) => !!allDomains?.[domainKey]?.accountID));
+                            domainKeysBeforeCreation.current = new Set(Object.keys(allDomains ?? {}).filter((domainKey) => !!allDomains?.[domainKey]?.accountID));
                             createDomain(domainName, domainKeysBeforeCreation.current);
                         };
 

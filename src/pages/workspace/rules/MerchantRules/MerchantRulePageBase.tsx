@@ -68,7 +68,6 @@ import type {PolicyTagLists} from '@src/types/onyx';
 import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
@@ -216,10 +215,9 @@ function MerchantRulePageBase({
 
     // This route is deep linkable, so it can be the first screen mounted. Nothing else on the way in fetches the
     // rules collection, which would leave the not-found guard below reading an empty collection for a valid rule.
-    const {areRulesLoading: isRulesFetchPending} = useRulesPrefetch();
+    const {areRulesLoading} = useRulesPrefetch();
 
-    const [rules, rulesResult] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const areRulesLoading = isLoadingOnyxValue(rulesResult) || isRulesFetchPending;
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     // Get the existing rule from the rules collection (for edit mode)
     const existingRule = ruleID ? rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`] : undefined;
     const existingCategoryTaxID = editCategoryTaxRuleFor ? getCategoryTaxRuleTaxID(policy?.rules?.expenseRules, editCategoryTaxRuleFor) : undefined;
