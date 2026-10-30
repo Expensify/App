@@ -4,7 +4,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {createContext, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 
 import CaretBackHeader from './CaretBackHeader';
 import CollapsibleHeaderOnKeyboard from './CollapsibleHeaderOnKeyboard';
@@ -103,6 +103,13 @@ function RegisteredOnboardingHeader({
         shouldShowCloseButton,
     ]);
 
+    // On native platforms, the sticky header is directly interactive and accessible to touch and screen readers (VoiceOver/TalkBack).
+    // On web, ScreenWrapper's FocusTrapForScreen traps keyboard Tab navigation within the screen, so an interactive
+    // header must be rendered inside the screen flow for keyboard focus.
+    if (Platform.OS !== 'web') {
+        return <View style={styles.onboardingHeaderContainer} />;
+    }
+
     return (
         <View
             onFocus={() => setIsHeaderFocused(true)}
@@ -174,22 +181,23 @@ function OnboardingStickyHeader() {
         return null;
     }
 
+    const isWeb = Platform.OS === 'web';
     const header = (
         <CaretBackHeader
             onBackButtonPress={onBackButtonPress}
             onCloseButtonPress={onCloseButtonPress}
             shouldShowBackButton={shouldShowBackButton}
             shouldShowCloseButton={shouldShowCloseButton}
-            isFocusable={false}
+            isFocusable={!isWeb}
         />
     );
 
     return (
         <View
             pointerEvents="box-none"
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            aria-hidden
+            accessibilityElementsHidden={isWeb}
+            importantForAccessibility={isWeb ? 'no-hide-descendants' : undefined}
+            aria-hidden={isWeb}
             style={[styles.onboardingStickyHeaderContainer, {paddingTop}, shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, isHeaderFocused && styles.opacity0]}
         >
             {shouldCollapseOnKeyboard ? <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>{header}</CollapsibleHeaderOnKeyboard> : header}

@@ -3,6 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import OnboardingHeader, {OnboardingHeaderProvider, OnboardingStickyHeader} from '@components/OnboardingHeader';
 
 import React from 'react';
+import {Platform} from 'react-native';
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
@@ -48,11 +49,11 @@ function TestFlow({step = 1, showHeader = true, onBackStep1, onBackStep2, should
 }
 
 function getStickyBackButton() {
-    return screen.getAllByLabelText('common.back', {includeHiddenElements: true}).find((element) => element.props.tabIndex === -1);
+    return screen.getByLabelText('common.back');
 }
 
 function queryStickyBackButton() {
-    return screen.queryAllByLabelText('common.back', {includeHiddenElements: true}).find((element) => element.props.tabIndex === -1);
+    return screen.queryByLabelText('common.back');
 }
 
 describe('OnboardingHeader', () => {
@@ -106,7 +107,7 @@ describe('OnboardingHeader', () => {
             />,
         );
 
-        expect(queryStickyBackButton()).toBeDefined();
+        expect(queryStickyBackButton()).not.toBeNull();
 
         // Move to step 2 where shouldShowBackButton is false
         rerender(
@@ -116,7 +117,7 @@ describe('OnboardingHeader', () => {
             />,
         );
 
-        expect(queryStickyBackButton()).toBeUndefined();
+        expect(queryStickyBackButton()).toBeNull();
     });
 
     it('resets header state to default when unmounted', () => {
@@ -130,11 +131,52 @@ describe('OnboardingHeader', () => {
             />,
         );
 
-        expect(queryStickyBackButton()).toBeDefined();
+        expect(queryStickyBackButton()).not.toBeNull();
 
         // Unmount header
         rerender(<TestFlow showHeader={false} />);
 
-        expect(queryStickyBackButton()).toBeUndefined();
+        expect(queryStickyBackButton()).toBeNull();
+    });
+
+    describe('on web', () => {
+        const originalOS = Platform.OS;
+
+        beforeEach(() => {
+            Platform.OS = 'web';
+        });
+
+        afterEach(() => {
+            Platform.OS = originalOS;
+        });
+
+        it('renders accessible in-screen header and hides sticky header with aria-hidden', () => {
+            const onBackStep = jest.fn();
+
+            render(
+                <TestFlow
+                    step={1}
+                    onBackStep1={onBackStep}
+                />,
+            );
+
+            // On web, the sticky header is hidden from screen readers via aria-hidden
+            const visibleBackButtons = screen.getAllByLabelText('common.back');
+            expect(visibleBackButtons).toHaveLength(1);
+
+            // The hidden sticky header exists with aria-hidden and tabIndex = -1
+            const allBackButtons = screen.getAllByLabelText('common.back', {includeHiddenElements: true});
+            expect(allBackButtons).toHaveLength(2);
+            const stickyButton = allBackButtons.find((el) => el.props.tabIndex === -1);
+            expect(stickyButton).toBeDefined();
+
+            // Pressing the in-screen back button triggers onBackStep
+            const firstVisibleButton = visibleBackButtons.at(0);
+            expect(firstVisibleButton).toBeDefined();
+            if (firstVisibleButton) {
+                fireEvent.press(firstVisibleButton);
+            }
+            expect(onBackStep).toHaveBeenCalledTimes(1);
+        });
     });
 });
