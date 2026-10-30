@@ -25,6 +25,7 @@ import {
     setPolicyTagsRequired,
     setWorkspaceTagEnabled,
 } from '@libs/actions/Policy/Tag';
+import {WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -2487,6 +2488,41 @@ describe('actions/Policy', () => {
             expect(Object.keys(policyTags?.['Sub-projects']?.tags ?? {})).toEqual(['North America']);
             mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+
+        it('renamePolicyTagList keeps the list the server moves onto the renamed list key', async () => {
+            // Given two tag lists named "Sub-projects" at orderWeight 1 and 2
+            const {fakePolicy, fakePolicyTags} = await setUpPolicy();
+
+            // And a server that, after the rename, moves the remaining "Sub-projects" list from "Sub-projects_2" onto the freed "Sub-projects" key
+            mockFetch.mockAPICommand(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, () => ({
+                jsonCode: CONST.JSON_CODE.SUCCESS,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`,
+                        value: {
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- Onyx keys are tag list names from the server
+                            'Sub-projects_2': null,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- Onyx keys are tag names from the server
+                            Regions: {name: 'Regions', required: false, orderWeight: 1, tags: {'North America': {name: 'North America', enabled: true}}},
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- Onyx keys are tag list and tag names from the server
+                            'Sub-projects': {name: 'Sub-projects', orderWeight: 2, tags: {'Project Apollo': {name: 'Project Apollo', enabled: true}, 'North America': null}},
+                        },
+                    },
+                ],
+            }));
+
+            // When the list at index 1 is renamed to "Regions"
+            renamePolicyTagList(fakePolicy.id, {oldName: 'Sub-projects', newName: 'Regions'}, fakePolicyTags, 1);
+            await waitForBatchedUpdates();
+
+            // Then the success data, which is applied after the server response, doesn't remove the list the server moved onto "Sub-projects"
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+            expect(policyTags?.Regions?.pendingAction).toBeFalsy();
+            expect(policyTags?.['Sub-projects']?.orderWeight).toBe(2);
+            expect(Object.keys(policyTags?.['Sub-projects']?.tags ?? {})).toEqual(['Project Apollo']);
+            expect(policyTags?.['Sub-projects_2']).toBeUndefined();
         });
 
         it('setPolicyTagLevelsRequired updates each list by its own key, not the first list with the same name', async () => {
