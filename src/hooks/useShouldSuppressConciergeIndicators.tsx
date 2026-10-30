@@ -1,7 +1,6 @@
 import {hasUserMessageSinceQuestion} from '@libs/ReportActionFollowupUtils';
 import {isCreatedAction, isCurrentUserPendingAddAction} from '@libs/ReportActionsUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 
@@ -41,7 +40,7 @@ function useShouldSuppressConciergeIndicators(reportID: string | undefined): boo
     });
 
     const questionReportActionID = pendingFollowupList?.questionReportActionID;
-    const hasNewerUserTurnSelector = (actions: OnyxEntry<ReportActions>) => hasUserMessageSinceQuestion(actions, questionReportActionID, CONST.ACCOUNT_ID.CONCIERGE);
+    const hasNewerUserTurnSelector = (actions: OnyxEntry<ReportActions>) => hasUserMessageSinceQuestion(actions, questionReportActionID);
     const [hasNewerUserTurn] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         selector: hasNewerUserTurnSelector,
     });

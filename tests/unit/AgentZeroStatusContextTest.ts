@@ -378,6 +378,41 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
         });
 
+        it('keeps Concierge after the pending marker clears while the label stays on for the next turn', async () => {
+            // Given a revealed pregenerated reply that sorts after the user's typed message, with the label on throughout
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                userMessage: {
+                    reportActionID: 'userMessage',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: currentUserAccountID,
+                    created: '2026-10-23 12:41:08.159',
+                    message: [{type: 'TEXT', text: 'Will it also sync my tax rates?'}],
+                },
+            });
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is working on your request...'});
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                pregeneratedReply: {
+                    reportActionID: 'pregeneratedReply',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    created: '2026-10-23 12:41:08.803',
+                    message: [{type: 'TEXT', text: 'To keep QuickBooks Online in sync, use Auto-sync.'}],
+                },
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, {reportActionID: 'pregeneratedReply', createdAt: Date.now()});
+            await waitForBatchedUpdates();
+
+            // When the reply's followup list lands and clears the pending marker
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${reportID}`, null);
+            await waitForBatchedUpdates();
+
+            // Then the bubble stays, because the reply still answers the earlier question and the label is for the typed message
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
         it('drops Concierge as soon as a reply lands after the label turned on', async () => {
             // Given Concierge processing a user message that is the newest action
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
@@ -409,6 +444,41 @@ describe('AgentZeroStatusContext', () => {
 
             // Then the bubble hides without waiting for the label clear, so it never sits on top of the reply
             expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it("keeps Concierge dropped after its reply lands when another agent's label turns on", async () => {
+            // Given Concierge's reply landed while its label is still on, so the gate already dropped Concierge
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                userMessage: {
+                    reportActionID: 'userMessage',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: currentUserAccountID,
+                    created: '2026-10-23 12:10:39.426',
+                    message: [{type: 'TEXT', text: 'Is there a monthly limit?'}],
+                },
+            });
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is thinking...'});
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                reply: {
+                    reportActionID: 'reply',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                    created: '2026-10-23 12:12:36.000',
+                    message: [{type: 'TEXT', text: 'There is no monthly limit.'}],
+                },
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+
+            // When a custom agent's label turns on before the server clears Concierge's
+            await setProcessingIndicator({[CUSTOM_AGENT]: 'Thinking...'});
+
+            // Then Concierge stays dropped, because its own label did not change while the reply was newest
+            expect(result.current.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+            expect(result.current.candidateAgentIDs).toContain(CUSTOM_AGENT);
         });
 
         it('drops Concierge when the gate mounts after its reply landed but before the label cleared', async () => {

@@ -99,7 +99,7 @@ function usePendingConciergeResponse(reportID: string | undefined) {
             // Follow-up lists are a Concierge feature, so this clears Concierge's indicator slot.
             // Skip clearing when the user sent another message after this turn's question. The
             // server indicator now tracks that newer in-flight request, not the completed turn.
-            const hasNewerRequest = hasUserMessageSinceQuestion(getAllReportActions(reportID), pendingFollowupList.questionReportActionID, CONST.ACCOUNT_ID.CONCIERGE);
+            const hasNewerRequest = hasUserMessageSinceQuestion(getAllReportActions(reportID), pendingFollowupList.questionReportActionID);
             if (!hasNewerRequest) {
                 clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
             }

@@ -186,21 +186,33 @@ function AgentZeroStatusGate({
     // can arrive up to ~250ms after the reply Pusher event, leaving the bubble visible on top of
     // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
     // that flash without waiting for the NVP clear.
-    // A pregenerated followup reply, or an agent comment that was already newest when its label turned on, answers an
-    // earlier question. It can sort after the user's next message, so it does not mean the current turn is answered.
-    // The baseline is only taken on a label change seen while mounted, since a label that is already on at mount may
-    // belong to a reply that has landed and is just waiting for the server clear.
+    // A pregenerated followup reply, or an agent comment that was already newest when that agent's label turned on,
+    // answers an earlier question. It can sort after the user's next message, so it does not mean the current turn is
+    // answered. A baseline is only taken on a label change seen while mounted, since a label that is already on at
+    // mount may belong to a reply that has landed and is just waiting for the server clear.
     const serverAgentIDsKey = (serverAgentIDs ?? []).join(',');
-    const [labelBaseline, setLabelBaseline] = useState<{key: string; newestActionID: string | undefined}>({key: serverAgentIDsKey, newestActionID: undefined});
+    const [labelBaseline, setLabelBaseline] = useState<{key: string; newestActionIDByAgent: Record<number, string | undefined>}>({key: serverAgentIDsKey, newestActionIDByAgent: {}});
     if (labelBaseline.key !== serverAgentIDsKey) {
-        setLabelBaseline({key: serverAgentIDsKey, newestActionID: newestReportAction?.reportActionID});
+        const previousAgentIDs = new Set(labelBaseline.key ? labelBaseline.key.split(',').map(Number) : []);
+        const newestActionIDByAgent: Record<number, string | undefined> = {};
+        for (const agentID of serverAgentIDs ?? []) {
+            newestActionIDByAgent[agentID] = previousAgentIDs.has(agentID) ? labelBaseline.newestActionIDByAgent[agentID] : newestReportAction?.reportActionID;
+        }
+        setLabelBaseline({key: serverAgentIDsKey, newestActionIDByAgent});
     }
+    // The reply ID outlives the pending marker, which clears when the reply's followup list lands even if the user's
+    // next turn is still running. The marker clear also clears the label unless such a turn exists.
     const [pendingFollowupReplyID] = useOnyx(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${isActive ? reportID : undefined}`, {selector: pendingFollowupReplyIDSelector});
+    const [followupReplyID, setFollowupReplyID] = useState(pendingFollowupReplyID);
+    if (pendingFollowupReplyID && pendingFollowupReplyID !== followupReplyID) {
+        setFollowupReplyID(pendingFollowupReplyID);
+    }
     if (newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && newestReportAction.actorAccountID !== undefined) {
         const isLabelOn = (serverAgentIDs ?? []).includes(newestReportAction.actorAccountID);
-        const isNewestFromBeforeLabel = labelBaseline.key === serverAgentIDsKey && labelBaseline.newestActionID === newestReportAction.reportActionID;
-        const isPendingFollowupReply = !!pendingFollowupReplyID && pendingFollowupReplyID === newestReportAction.reportActionID;
-        if (!isLabelOn || (!isNewestFromBeforeLabel && !isPendingFollowupReply)) {
+        const isNewestFromBeforeLabel =
+            labelBaseline.key === serverAgentIDsKey && labelBaseline.newestActionIDByAgent[newestReportAction.actorAccountID] === newestReportAction.reportActionID;
+        const isFollowupReply = !!followupReplyID && followupReplyID === newestReportAction.reportActionID;
+        if (!isLabelOn || (!isNewestFromBeforeLabel && !isFollowupReply)) {
             candidateIDs.delete(newestReportAction.actorAccountID);
         }
     }

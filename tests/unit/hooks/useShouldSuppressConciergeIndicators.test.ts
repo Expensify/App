@@ -215,6 +215,26 @@ describe('useShouldSuppressConciergeIndicators', () => {
             });
         });
 
+        it('keeps suppressing when the only newer comment is from someone other than the asker', async () => {
+            // Given a followup turn where another agent commented after the question, but the asker did not
+            await seedFollowupTurn(
+                {
+                    [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                    [NEWER_MESSAGE_ID]: buildAction({reportActionID: NEWER_MESSAGE_ID, actorAccountID: OTHER_ACCOUNT_ID, created: '2026-06-29 10:00:02.000'}),
+                    [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+                },
+                QUESTION_ID,
+            );
+
+            // When the indicators are evaluated for that report
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            // Then the skeleton window still hides them, because only the asker starts a new turn
+            await waitFor(() => {
+                expect(result.current).toBe(true);
+            });
+        });
+
         it('keeps suppressing when the pending flag predates questionReportActionID', async () => {
             // Given a flag persisted by an older client, with no question anchor to compare against
             await seedFollowupTurn({

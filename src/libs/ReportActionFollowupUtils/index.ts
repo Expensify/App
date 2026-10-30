@@ -47,13 +47,12 @@ function parseFollowupsFromHtml(html: string): Followup[] | null {
 }
 
 /**
- * Whether someone other than the agent commented after the given question, meaning the user started
- * another agent request while this turn was still in flight. Compares identity plus `created`
- * within non-agent comments only: the pregenerated Concierge reply is future-stamped past its
- * display delay, so a message sent during that window sorts before the reply yet is still a
- * newer request.
+ * Whether the person who asked the given question commented again after it, meaning they started another agent
+ * request while this turn was still in flight. Compares `created` within the asker's comments only: the pregenerated
+ * Concierge reply is future-stamped past its display delay, so a message sent during that window sorts before the
+ * reply yet is still a newer request.
  */
-function hasUserMessageSinceQuestion(actions: OnyxEntry<ReportActions>, questionReportActionID: string | undefined, agentAccountID: number): boolean {
+function hasUserMessageSinceQuestion(actions: OnyxEntry<ReportActions>, questionReportActionID: string | undefined): boolean {
     if (!actions || !questionReportActionID) {
         return false;
     }
@@ -65,7 +64,7 @@ function hasUserMessageSinceQuestion(actions: OnyxEntry<ReportActions>, question
         (action) =>
             !!action &&
             action.reportActionID !== questionReportActionID &&
-            action.actorAccountID !== agentAccountID &&
+            action.actorAccountID === question.actorAccountID &&
             isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) &&
             action.created > question.created,
     );

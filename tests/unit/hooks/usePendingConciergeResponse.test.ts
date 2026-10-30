@@ -581,6 +581,7 @@ describe('usePendingConciergeResponse', () => {
             });
             await waitForBatchedUpdates();
 
+            // When the canonical reply with its followup list lands
             const {unmount} = renderHook(() => usePendingConciergeResponse(REPORT_ID));
             await waitForBatchedUpdates();
 
