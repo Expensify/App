@@ -7,17 +7,23 @@ import {
     isConnectedAsDelegate,
     removeDelegate,
     removeSelfAsDelegate,
+    restoreDelegateSession,
     resumeSelfRemovalAsDelegate,
     updateDelegateRole,
 } from '@libs/actions/Delegate';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import HttpUtils from '@libs/HttpUtils';
+import {clearPreservedNavigatorStates, getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {DelegatedAccess} from '@src/types/onyx/Account';
 
 import Onyx from 'react-native-onyx';
@@ -416,6 +422,51 @@ describe('actions/Delegate', () => {
             if (isDelegateSession) {
                 await expect(getOnyxValue(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL)).resolves.toBeUndefined();
             }
+        });
+    });
+
+    describe('restoreDelegateSession', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+            clearPreservedNavigatorStates();
+        });
+
+        it('resets navigation so the restored account does not land on screens of the account it switched from', async () => {
+            // Given a copilot who opened the delegator's workspace chat, so the Inbox tab still holds it
+            const preservedReportsNavigatorKey = `${NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}-key`;
+            setPreservedNavigatorState(preservedReportsNavigatorKey, {
+                key: 'reportsState',
+                index: 1,
+                routeNames: [SCREENS.INBOX, SCREENS.REPORT],
+                routes: [
+                    {key: 'inbox', name: SCREENS.INBOX},
+                    {key: 'report', name: SCREENS.REPORT, params: {reportID: '1'}},
+                ],
+                stale: false,
+                type: 'stack',
+            });
+            jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
+            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+            jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockResolvedValue(undefined);
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+
+            // When the copilot switches back to their own account
+            await restoreDelegateSession({
+                authToken: 'copilotAuthToken',
+                encryptedAuthToken: 'encrypted',
+                accountID: 2,
+                email: 'copilot@test.com',
+                stashedCredentials: {},
+                stashedSession: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the delegator's screens are dropped and the app starts again from the Settings tab, where accounts are switched
+            expect(getPreservedNavigatorState(preservedReportsNavigatorKey)).toBeUndefined();
+            expect(resetRootSpy).toHaveBeenCalledTimes(1);
+            const resetState = resetRootSpy.mock.calls.at(0)?.at(0);
+            const tabNavigatorState = resetState?.routes.at(resetState.index ?? -1)?.state;
+            expect(tabNavigatorState?.routes.at(tabNavigatorState.index ?? -1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
         });
     });
     /* eslint-enable rulesdir/no-multiple-api-calls */
