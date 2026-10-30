@@ -43,7 +43,7 @@ function renderHandle() {
     // The test renderer leaves refs empty, so the line's ref gets a real element to take the snapped width the handle sets on the DOM.
     const lineElement = document.createElement('div');
 
-    const scopeRef = {current: scopeElement};
+    const scopeRef: {current: HTMLElement | null} = {current: scopeElement};
     // Only the line holds a ref among the divs, so handing this element to every div reaches just the line.
     const screen = render(<RHPResizeHandle scopeRef={scopeRef} />, {createNodeMock: (element) => (element.type === 'div' ? lineElement : null)});
 
@@ -66,6 +66,11 @@ function renderHandle() {
 
     const rerenderHandle = () => screen.rerender(<RHPResizeHandle scopeRef={scopeRef} />);
 
+    /** Empties the scope's ref the way React does while it swaps a callback ref, which runs past the handle's layout effects. */
+    const detachScopeRef = () => {
+        scopeRef.current = null;
+    };
+
     const readLineWidth = () => {
         const lineStyle: unknown = screen.UNSAFE_root.findAll((node) => node.type === 'div').at(1)?.props.style;
         return lineStyle && typeof lineStyle === 'object' && 'width' in lineStyle ? lineStyle.width : undefined;
@@ -74,7 +79,7 @@ function renderHandle() {
     /** Reads the width set on the line's DOM node mid-drag, which overrides the one React renders. */
     const readPaintedLineWidth = () => lineElement.style.width;
 
-    return {...screen, firePointer, readLineWidth, readPaintedLineWidth, readLiveWidth, rerenderHandle};
+    return {...screen, detachScopeRef, firePointer, readLineWidth, readPaintedLineWidth, readLiveWidth, rerenderHandle};
 }
 
 describe('RHPResizeHandle', () => {
@@ -144,6 +149,22 @@ describe('RHPResizeHandle', () => {
         rerenderHandle();
 
         // Then the live width is dropped, since the saved width now renders as the fallback
+        expect(readLiveWidth()).toBe('');
+    });
+
+    it('clears the live width once the saved width renders while the scope ref is detached', () => {
+        // Given a drag released at 500px
+        const {detachScopeRef, firePointer, readLiveWidth, rerenderHandle} = renderHandle();
+        firePointer('pointerDown', 1000);
+        firePointer('pointerMove', 900);
+        firePointer('pointerUp', 900);
+
+        // When the saved width comes back from Onyx in a render where the scope's ref is momentarily empty, as NoDropZone's merged callback ref is on every render
+        detachScopeRef();
+        mockSavedWidth = 500;
+        rerenderHandle();
+
+        // Then the live width is still dropped from the element it was painted on, so a later reset to the default isn't hidden behind it
         expect(readLiveWidth()).toBe('');
     });
 
