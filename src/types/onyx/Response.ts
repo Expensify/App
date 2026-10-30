@@ -36,6 +36,12 @@ type Response<TKey extends OnyxKey> = {
 
     reportID?: string;
 
+    /** Authoritative transaction thread for an edit; 0 means Auth has no thread for the expense. */
+    transactionThreadReportID?: number | string;
+
+    /** Null means no action is included in this response; an action saved by an earlier retry may still exist. */
+    modifiedExpenseReportAction?: Record<string, unknown> | null;
+
     /**
      * Whether the sequential queue should not send any requests to the server.
      * Used when there's a gap between client and server updates.

@@ -3,6 +3,8 @@ import {addMiddleware} from '@libs/Request';
 
 import appSetup from '@src/setup';
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({isHybridApp: () => false}));
+
 jest.mock('@libs/Request', () => ({
     ...jest.requireActual<typeof RequestModule>('@libs/Request'),
     addMiddleware: jest.fn(),

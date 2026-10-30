@@ -59,10 +59,10 @@ describe('useDynamicColumnWidths', () => {
         // Given a table whose layout was saved after the user dragged the name column
         const {result, rerender} = renderDynamicColumnWidths({data: SHORT_DATA});
         const savedWidths = result.current.resolvedColumnWidths;
-        const stored = result.current.getStoredTableColumnWidths?.(savedWidths, 'name');
+        const stored = result.current.getStoredTableColumnWidths?.(savedWidths, 'name', true);
 
         // When a tax with a far longer name is added
-        rerender({data: LONG_DATA, storedTableColumnWidths: stored});
+        rerender({data: LONG_DATA, storedTableColumnWidths: stored ?? undefined});
 
         // Then every column paints at its saved width, since content never moves the columns of a frozen table
         expect(result.current.resolvedColumnWidths).toEqual(savedWidths);
@@ -87,16 +87,16 @@ describe('useDynamicColumnWidths', () => {
         const columnWidths = {name: 300, description: 592};
 
         // When the name column's drag ends
-        const firstSave = result.current.getStoredTableColumnWidths?.(columnWidths, 'name');
+        const firstSave = result.current.getStoredTableColumnWidths?.(columnWidths, 'name', true);
 
         // Then the save records the painted widths, the name column as resized and the 892px the columns had, so a
         // reload can tell how much room changed since
         expect(firstSave).toEqual({availableColumnsWidth: AVAILABLE_COLUMNS_WIDTH, columnWidths, resizedColumnKeys: ['name']});
 
         // When the name column is dragged again, and then the description column
-        rerender({data: SHORT_DATA, storedTableColumnWidths: firstSave});
-        const secondSave = result.current.getStoredTableColumnWidths?.(columnWidths, 'name');
-        const thirdSave = result.current.getStoredTableColumnWidths?.(columnWidths, 'description');
+        rerender({data: SHORT_DATA, storedTableColumnWidths: firstSave ?? undefined});
+        const secondSave = result.current.getStoredTableColumnWidths?.(columnWidths, 'name', true);
+        const thirdSave = result.current.getStoredTableColumnWidths?.(columnWidths, 'description', true);
 
         // Then a column already resized is listed once, and a newly dragged one joins it, since a save replaces the record
         expect(secondSave?.resizedColumnKeys).toEqual(['name']);
@@ -133,5 +133,26 @@ describe('useDynamicColumnWidths', () => {
         // Then there is no edge to drag and no layout to save, so content keeps sizing the columns
         expect(result.current.resizableColumnKeys).toEqual([]);
         expect(result.current.getStoredTableColumnWidths).toBeUndefined();
+    });
+
+    it('keeps the layout when a reset column leaves other resized columns, and drops it with the last one', () => {
+        // Given a table whose name and description columns were both dragged
+        const columnWidths = {name: 300, description: 592};
+        const {result, rerender} = renderDynamicColumnWidths({
+            data: SHORT_DATA,
+            storedTableColumnWidths: {availableColumnsWidth: AVAILABLE_COLUMNS_WIDTH, columnWidths, resizedColumnKeys: ['name', 'description']},
+        });
+
+        // When the name column is reset
+        const resetSave = result.current.getStoredTableColumnWidths?.(columnWidths, 'name', false);
+
+        // Then the layout is saved with only the description column resized, so the name column absorbs room changes again
+        expect(resetSave).toEqual({availableColumnsWidth: AVAILABLE_COLUMNS_WIDTH, columnWidths, resizedColumnKeys: ['description']});
+
+        // When the description column, the last resized one, is reset too
+        rerender({data: SHORT_DATA, storedTableColumnWidths: resetSave ?? undefined});
+
+        // Then there is no layout left to save, so the table goes back to sizing every column from its content
+        expect(result.current.getStoredTableColumnWidths?.(columnWidths, 'description', false)).toBeNull();
     });
 });
