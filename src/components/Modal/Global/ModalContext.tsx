@@ -8,6 +8,7 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 const ModalActions = {
     CONFIRM: 'CONFIRM',
     CLOSE: 'CLOSE',
+    DISMISS: 'DISMISS',
 } as const;
 
 type ModalAction = (typeof ModalActions)[keyof typeof ModalActions];
