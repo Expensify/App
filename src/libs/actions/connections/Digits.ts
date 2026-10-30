@@ -630,7 +630,7 @@ function updateDigitsSyncTravelInvoicingSettlements(policyID: string, enabled: D
         policyID,
         enabled,
     };
-    write(WRITE_COMMANDS.UPDATE_DIGITS_SYNC_TRAVEL_INVOICING_SETTLEMENTS, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_DIGITS_SYNC_TRAVEL_BILLING_SETTLEMENTS, parameters, onyxData);
 }
 
 function updateDigitsTravelInvoicingSettlementsAccount(
@@ -648,7 +648,7 @@ function updateDigitsTravelInvoicingSettlementsAccount(
         policyID,
         travelInvoicingSettlementsBankAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
 function updateDigitsTravelInvoicingPayableAccount(
@@ -666,7 +666,7 @@ function updateDigitsTravelInvoicingPayableAccount(
         policyID,
         travelInvoicingPayableAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
 function updateDigitsExportToMultipleAccounts(policyID: string, enabled: DigitsExport['exportToMultipleAccounts'], oldEnabled?: DigitsExport['exportToMultipleAccounts']) {
