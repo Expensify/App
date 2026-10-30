@@ -965,7 +965,12 @@ function getQueryHashWithoutFilters(query: SearchQueryJSON, exclude: ReadonlySet
         .map((filter) => {
             const filterKey = filter.key;
             const isDateFilter = (DATE_FILTER_KEYS as readonly string[]).includes(filterKey);
-            const filters = cloneDeep(filter.filters).map((queryFilter) => (isDateFilter ? {...queryFilter, value: normalizeDatePreset(queryFilter.value.toString())} : queryFilter));
+            const isReportField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
+            const filters = cloneDeep(filter.filters).map((queryFilter) => {
+                // The filter form reads equal-to report field values as dates and negated ones as text
+                const canBeDatePreset = isDateFilter || (isReportField && queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+                return canBeDatePreset ? {...queryFilter, value: normalizeDatePreset(queryFilter.value.toString())} : queryFilter;
+            });
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
