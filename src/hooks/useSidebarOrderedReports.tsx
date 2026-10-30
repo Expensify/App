@@ -58,6 +58,7 @@ type ReportsToDisplayInLHN = Record<
         hasErrorsOtherThanFailedReceipt?: boolean;
         requiresAttention?: boolean;
         isUnreadReport?: boolean;
+        lastVisibleActionCreatedWithThread?: string;
     }
 >;
 
@@ -155,6 +156,12 @@ function SidebarOrderedReportsContextProvider({
         if (reportUpdates) {
             for (const key of Object.keys(reportUpdates ?? {})) {
                 reportsToUpdate.add(key);
+
+                // The parent's unread state folds in its one-transaction thread, so any change to the thread must recheck the parent too.
+                const parentReportID = chatReports?.[key]?.parentReportID;
+                if (parentReportID && reportAttributes?.[parentReportID]?.oneTransactionThreadReportID === chatReports?.[key]?.reportID) {
+                    reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
+                }
             }
         }
         if (reportNameValuePairsUpdates) {
@@ -210,6 +217,7 @@ function SidebarOrderedReportsContextProvider({
         reportUpdates,
         reportNameValuePairsUpdates,
         reportAttributesUpdates,
+        reportAttributes,
         transactionsUpdates,
         transactionViolationsUpdates,
         reportsDraftsUpdates,

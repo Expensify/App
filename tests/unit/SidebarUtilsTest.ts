@@ -4817,6 +4817,50 @@ describe('SidebarUtils', () => {
             });
         });
 
+        const createIOUReportWithNewerThreadComment = () => {
+            const otherAccountID = 18921695;
+            const participants = {
+                [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                [otherAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            };
+            const iouReport: Report = {
+                ...createRandomReport(9001, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: otherAccountID,
+                managerID: CURRENT_USER_ACCOUNT_ID,
+                lastActorAccountID: otherAccountID,
+                lastReadTime: '2026-10-26 13:08:37.939',
+                lastVisibleActionCreated: '2026-10-26 13:02:58.094',
+                lastMentionedTime: undefined,
+                participants,
+            };
+            const transactionThread: Report = {
+                ...createRandomReport(9002, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID: iouReport.reportID,
+                lastActorAccountID: otherAccountID,
+                lastReadTime: '2026-10-26 13:04:27.655',
+                lastVisibleActionCreated: '2026-10-26 13:10:13.580',
+                lastMentionedTime: undefined,
+                participants,
+            };
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+            };
+            const reportAttributes: Record<string, ReportAttributes> = {
+                [iouReport.reportID]: {
+                    reportName: '',
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                    oneTransactionThreadReportID: transactionThread.reportID,
+                },
+            };
+            return {iouReport, transactionThread, reports, reportAttributes};
+        };
+
         describe('updateReportsToDisplayInLHN', () => {
             it('should return the same reference when no entries actually change', () => {
                 const reports: OnyxCollection<Report> = {
@@ -4871,6 +4915,66 @@ describe('SidebarUtils', () => {
 
                 expect(result).not.toBe(displayedReports);
                 expect(result['0']).toBeUndefined();
+            });
+
+            it('should flag an IOU report as unread when its one-transaction thread has a newer comment', () => {
+                // Given an IOU report already displayed as read, and its one-transaction thread now holding a newer comment
+                const {iouReport, reports, reportAttributes} = createIOUReportWithNewerThreadComment();
+                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`;
+
+                // When the IOU report is rechecked incrementally
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports: {[iouReportKey]: {...iouReport, isUnreadReport: false}},
+                    reports,
+                    updatedReportsKeys: [iouReportKey],
+                    currentReportId: iouReport.reportID,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    draftComments: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+
+                // Then the incremental recheck flags it for the Unread tab, the same result as the full build
+                expect(result[iouReportKey]?.isUnreadReport).toBe(true);
+            });
+
+            it('should clear the Unread tab flag on an IOU report once its one-transaction thread is read', () => {
+                // Given an IOU report flagged for the Unread tab because of a newer thread comment
+                const {iouReport, transactionThread, reports, reportAttributes} = createIOUReportWithNewerThreadComment();
+                const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`;
+                const readThread: Report = {...transactionThread, lastReadTime: '2026-10-26 13:11:00.000'};
+
+                // When the user reads the thread and the IOU report is rechecked incrementally
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports: {[iouReportKey]: {...iouReport, isUnreadReport: true}},
+                    reports: {...reports, [`${ONYXKEYS.COLLECTION.REPORT}${readThread.reportID}`]: readThread},
+                    updatedReportsKeys: [iouReportKey],
+                    currentReportId: iouReport.reportID,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    draftComments: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+
+                // Then it leaves the Unread tab instead of staying stuck there
+                expect(result[iouReportKey]).toBeDefined();
+                expect(result[iouReportKey]?.isUnreadReport).toBeFalsy();
             });
         });
 
@@ -5054,6 +5158,95 @@ describe('SidebarUtils', () => {
                 // without it a report missing from the set entirely would satisfy the isUnreadReport check.
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]).toBeDefined();
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.isUnreadReport).toBeFalsy();
+            });
+
+            it('should flag an IOU report as unread for the Unread tab when only its one-transaction thread has a newer comment', () => {
+                // Given an IOU report read after its own last action, and its one-transaction thread holding a newer comment from the other participant
+                const {iouReport, reports, reportAttributes} = createIOUReportWithNewerThreadComment();
+
+                // When the LHN report set is built
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: iouReport.reportID,
+                    reports,
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+
+                // Then the IOU report belongs in the Unread tab, matching the bold LHN row
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]?.isUnreadReport).toBe(true);
+            });
+
+            it('should not treat an old IOU report as stale unread when its unread comment is a recent one in the one-transaction thread', () => {
+                // Given an IOU report last active months ago and already read, whose one-transaction thread has a comment from today
+                const {iouReport, transactionThread, reports, reportAttributes} = createIOUReportWithNewerThreadComment();
+                const monthsAgo = DateUtils.getDBTime(subMonths(new Date(), 5).valueOf());
+                const oldIOUReport: Report = {...iouReport, lastVisibleActionCreated: monthsAgo, lastReadTime: monthsAgo};
+                const recentThread: Report = {...transactionThread, lastVisibleActionCreated: DateUtils.getDBTime()};
+
+                // When the LHN report set is built and summarized for the Inbox tabs
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: iouReport.reportID,
+                    reports: {
+                        ...reports,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${oldIOUReport.reportID}`]: oldIOUReport,
+                        [`${ONYXKEYS.COLLECTION.REPORT}${recentThread.reportID}`]: recentThread,
+                    },
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+                const summary = SidebarUtils.getInboxTabSummary([iouReport.reportID], result);
+
+                // Then it counts as unread but not stale, since the message that made it unread is recent
+                expect(summary.counts[CONST.INBOX_TAB.UNREAD]).toBe(1);
+                expect(summary.hasStaleUnreadReport).toBe(false);
+            });
+
+            it('should not flag an IOU report as unread when its one-transaction thread is already read', () => {
+                // Given the same IOU report, but its thread was read after the newer comment landed
+                const {iouReport, transactionThread, reports, reportAttributes} = createIOUReportWithNewerThreadComment();
+                const readThread: Report = {...transactionThread, lastReadTime: '2026-10-26 13:11:00.000'};
+
+                // When the LHN report set is built
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: iouReport.reportID,
+                    reports: {...reports, [`${ONYXKEYS.COLLECTION.REPORT}${readThread.reportID}`]: readThread},
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+
+                // Then it stays out of the Unread tab, because reading the thread clears the unread state its comment caused
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]).toBeDefined();
+                expect(result[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]?.isUnreadReport).toBeFalsy();
             });
 
             it('should pass isOffline=false to shouldDisplayReportInLHN', () => {

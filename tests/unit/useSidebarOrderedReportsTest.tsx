@@ -483,6 +483,110 @@ describe('useSidebarOrderedReports', () => {
         );
     });
 
+    it('should recheck the parent report when only its one-transaction thread changes', async () => {
+        // Given a displayed IOU report whose derived attributes point at its one-transaction thread
+        const displayedReports = createMockReports({
+            report1: {reportName: 'IOU', type: CONST.REPORT.TYPE.IOU},
+        });
+        const transactionThread = {
+            reportID: '2',
+            reportName: 'Transaction thread',
+            lastVisibleActionCreated: '2024-01-01 10:00:00',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: '1',
+        } as Report;
+        const iouReportAttributes: ReportAttributesDerivedValue['reports'][string] = {
+            reportName: 'IOU',
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+            oneTransactionThreadReportID: transactionThread.reportID,
+        };
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, transactionThread);
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[displayedReports['1'].reportID]: iouReportAttributes}, locale: null});
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When a comment lands in the thread, which moves only the thread's timestamp and leaves the IOU report untouched
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {lastVisibleActionCreated: '2024-01-01 11:00:00'});
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the IOU report is rechecked too, since its Unread tab flag folds in the thread
+        expect(mockSidebarUtils.updateReportsToDisplayInLHN).toHaveBeenCalledWith(
+            expect.objectContaining({
+                updatedReportsKeys: expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}1`, `${ONYXKEYS.COLLECTION.REPORT}2`]),
+            }),
+        );
+    });
+
+    it('should not recheck the parent report when a child thread that is not its one-transaction thread changes', async () => {
+        // Given a displayed report whose derived attributes point at a different one-transaction thread than its child
+        const displayedReports = createMockReports({
+            report1: {reportName: 'Expense report', type: CONST.REPORT.TYPE.EXPENSE},
+        });
+        const childThread = {
+            reportID: '2',
+            reportName: 'Child thread',
+            lastVisibleActionCreated: '2024-01-01 10:00:00',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: '1',
+        } as Report;
+        const parentAttributes: ReportAttributesDerivedValue['reports'][string] = {
+            reportName: 'Expense report',
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+            oneTransactionThreadReportID: '3',
+        };
+
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, displayedReports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, childThread);
+            await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[displayedReports['1'].reportID]: parentAttributes}, locale: null});
+        });
+
+        renderHook(() => useSidebarOrderedReports(), {
+            wrapper: TestWrapper,
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+
+        // When a comment lands in the child thread
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {lastVisibleActionCreated: '2024-01-01 11:00:00'});
+        });
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the child is rechecked, since the parent's unread state does not fold in this thread
+        const updatedReportsKeys = mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls.flatMap((call) => call[0]?.updatedReportsKeys ?? []);
+        expect(updatedReportsKeys).toContain(`${ONYXKEYS.COLLECTION.REPORT}2`);
+        expect(updatedReportsKeys).not.toContain(`${ONYXKEYS.COLLECTION.REPORT}1`);
+    });
+
     it('should only recheck reports whose derived attributes actually changed', async () => {
         // Given two reports whose derived attributes are stored in Onyx, with report 1 remaining unchanged
         const displayedReports = createMockReports({
