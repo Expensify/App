@@ -1,7 +1,7 @@
 /**
  * Finds `eslint-disable` directives and `eslint` config comments that silence one of the Onyx lint bans in `BANNED_RULES`:
  * `rulesdir/no-onyx-connect`, `rulesdir/no-unsafe-onyx-read`, and the
- * `@typescript-eslint/no-restricted-imports` entry for `react-native-onyx/dist/OnyxUtils`.
+ * `no-restricted-imports` entry for `react-native-onyx/dist/OnyxUtils`.
  * None of these may be disabled inline. Directives beyond each ban's grandfathered count fail the lint run.
  *
  * A directive counts when it names the ban's rule, or when it is a blanket disable over a banned
@@ -125,8 +125,9 @@ const ONYX_READ_BAN: BannedRule = {
 };
 
 const ONYX_UTILS_IMPORT_BAN: BannedRule = {
-    id: '@typescript-eslint/no-restricted-imports',
-    name: '@typescript-eslint/no-restricted-imports',
+    // oxlint reports the core rule id; a directive naming the old `@typescript-eslint/` id still counts.
+    id: 'no-restricted-imports',
+    name: 'no-restricted-imports',
     objects: new Set(),
     methods: new Set(),
     importSources: new Set(['react-native-onyx/dist/OnyxUtils']),
@@ -134,7 +135,7 @@ const ONYX_UTILS_IMPORT_BAN: BannedRule = {
     appliesTo: isCheckedSourceFile,
     searchTerms: ['OnyxUtils', 'eslint'],
     message:
-        'An eslint-disable or eslint config comment silences the @typescript-eslint/no-restricted-imports ban on react-native-onyx/dist/OnyxUtils. Reads through OnyxUtils skip no-unsafe-onyx-read and no-onyx-get-snapshot-key. Remove the comment and read with useOnyx(), Onyx.get() or Onyx.multiGet(). Type-only imports of OnyxUtils are still allowed.',
+        'An eslint-disable or eslint config comment silences the no-restricted-imports ban on react-native-onyx/dist/OnyxUtils. Reads through OnyxUtils skip no-unsafe-onyx-read and no-onyx-get-snapshot-key. Remove the comment and read with useOnyx(), Onyx.get() or Onyx.multiGet(). Type-only imports of OnyxUtils are still allowed.',
 };
 
 const BANNED_RULES: BannedRule[] = [ONYX_CONNECT_BAN, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN];

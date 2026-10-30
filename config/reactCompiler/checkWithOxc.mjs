@@ -1,7 +1,7 @@
 /**
  * React Compiler analysis via oxc-transform-react (sync).
  *
- * Shared 3-state API for the ESLint processor and the CI compliance check.
+ * Shared 3-state API for the lint pipeline and the CI compliance check.
  * Options come from config/babel/oxcReactCompilerConfig.js, the same object the build lanes compile
  * with. Only `panicThreshold` differs here, for the reason below.
  *
@@ -12,7 +12,7 @@
  *
  * A file where one function violates the Rules of React reports `memoized: false`,
  * rather than the partial memoization the compiler would otherwise emit for its remaining functions.
- * The ESLint processor relies on that, since it will only suppress manual-memoization lint rules when the whole file is memoized.
+ * The lint pipeline relies on that, since it will only suppress manual-memoization lint rules when the whole file is memoized.
  *
  * `status` and `memoized` answer different questions and are derived separately. `memoized` comes
  * only from the emitted memo cache: targeting React 19 the compiler can memoize solely by importing

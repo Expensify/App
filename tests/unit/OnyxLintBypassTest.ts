@@ -675,6 +675,14 @@ describe('OnyxUtils import bypasses', () => {
         expect(scan(['/* eslint-disable @typescript-eslint/no-restricted-imports */', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
     });
 
+    it('flags a disable that names the core rule id oxlint reports', () => {
+        // Given a src file that silences `no-restricted-imports` under the id oxlint uses, without the `@typescript-eslint/` prefix
+        // When the OnyxUtils ban scans it
+        // Then the directive counts as a bypass, the same as one naming the old id
+        expect(scan(['// eslint-disable-next-line no-restricted-imports', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+        expect(scan(['/* eslint no-restricted-imports: off */', onyxUtilsImport])).toEqual([{file: 'src/libs/Foo.ts', line: 1}]);
+    });
+
     it('flags a blanket disable over an OnyxUtils import', () => {
         // Given a blanket disable over the import
         // When the OnyxUtils ban scans it
@@ -862,7 +870,7 @@ describe('findForbiddenSeatbeltRows', () => {
 
     it('finds no forbidden row in the committed seatbelt TSV', () => {
         // Given the seatbelt TSV checked into the repo
-        const tsv = fs.readFileSync(path.resolve(__dirname, '../../config/eslint/eslint.seatbelt.tsv'), 'utf8');
+        const tsv = fs.readFileSync(path.resolve(__dirname, '../../config/oxlint/oxlint.seatbelt.tsv'), 'utf8');
 
         // When it is scanned for the forbidden rules
         // Then nothing is reported, so a row added through SEATBELT_INCREASE fails this suite as well as the lint run
