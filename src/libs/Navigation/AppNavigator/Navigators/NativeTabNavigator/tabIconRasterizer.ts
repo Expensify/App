@@ -2,21 +2,20 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 
 import type {NativeBottomTabIcon, NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
-import type {SkCanvas, SkImage, SkParagraph, SkPath} from '@shopify/react-native-skia';
+import type {SkCanvas, SkParagraph, SkPath} from '@shopify/react-native-skia';
 
-import {BlendMode, ClipOp, FillType, FilterMode, FontWeight, ImageFormat, MipmapMode, Skia, TextAlign} from '@shopify/react-native-skia';
+import {BlendMode, FillType, FontWeight, ImageFormat, Skia, TextAlign} from '@shopify/react-native-skia';
 import {PixelRatio} from 'react-native';
 
 import type {NativeTabGlyph, NativeTabName} from './NATIVE_TAB_GLYPHS';
-import type {TabAvatarImage} from './useTabAvatarImage';
 
 import NATIVE_TAB_GLYPHS from './NATIVE_TAB_GLYPHS';
 
 type TabIconLayout = {
     /** Side of a glyph's box. */
     glyphSize: number;
-    /** Side of the account avatar's box. */
-    avatarSize: number;
+    /** Side of the box that aligns a glyph with its label. */
+    iconBoxSize: number;
     /** Whether the label is drawn under the glyph or beside it, as UIKit lays out a tab in landscape. */
     direction: 'stacked' | 'inline';
 };
@@ -33,10 +32,8 @@ type TabIconLabel = {
 };
 
 type TabIconParams = {
-    /** The glyph drawn unless an avatar is given. */
     name: NativeTabName;
     color: string;
-    avatar?: TabAvatarImage;
     dotColor?: string;
     label?: TabIconLabel;
 };
@@ -99,27 +96,6 @@ function drawGlyph(canvas: SkCanvas, name: NativeTabName, left: number, top: num
     paint.dispose();
 }
 
-function drawCircularImage(canvas: SkCanvas, image: SkImage, left: number, top: number, size: number) {
-    const sourceSize = Math.min(image.width(), image.height());
-    const circle = Skia.Path.Make();
-    circle.addCircle(left + size / 2, top + size / 2, size / 2);
-    const paint = Skia.Paint();
-
-    canvas.save();
-    canvas.clipPath(circle, ClipOp.Intersect, true);
-    canvas.drawImageRectOptions(
-        image,
-        Skia.XYWHRect((image.width() - sourceSize) / 2, (image.height() - sourceSize) / 2, sourceSize, sourceSize),
-        Skia.XYWHRect(left, top, size, size),
-        FilterMode.Linear,
-        MipmapMode.Linear,
-        paint,
-    );
-    canvas.restore();
-    paint.dispose();
-    circle.dispose();
-}
-
 /** A cutout rather than a border in the bar's color, because the iOS 26 bar is glass and has no single color. */
 function drawStatusDot(canvas: SkCanvas, right: number, top: number, scale: number, color: string) {
     const radius = variables.nativeTabIconDotRadius * scale;
@@ -145,11 +121,11 @@ type TabIconFrame = {
 };
 
 /**
- * With a label, every tab gives its glyph or avatar a box as big as the avatar, so glyphs and the avatar share a centre
- * and every label starts at the same place: under that box, or beside it in landscape.
+ * With a label, every tab gives its glyph the same box, so every label starts at the same place:
+ * under that box, or beside it in landscape.
  */
 function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: number, labelWidth: number, labelHeight: number, hasLabel: boolean, scale: number): TabIconFrame {
-    const boxSize = hasLabel ? Math.max(layout.glyphSize, layout.avatarSize) * scale : contentSize;
+    const boxSize = hasLabel ? Math.max(layout.glyphSize, layout.iconBoxSize) * scale : contentSize;
 
     if (layout.direction === 'inline') {
         const canvasHeight = Math.ceil(Math.max(boxSize, labelHeight));
@@ -165,19 +141,20 @@ function getTabIconFrame(layout: TabIconLayout, contentSize: number, labelGap: n
 
     const canvasWidth = Math.ceil(Math.max(contentSize, labelWidth));
     const labelTop = (boxSize + layout.glyphSize * scale) / 2 + labelGap;
+    const contentTop = (boxSize - contentSize) / 2;
     return {
         canvasWidth,
-        canvasHeight: Math.ceil(hasLabel ? labelTop + labelHeight : boxSize),
+        canvasHeight: Math.ceil(hasLabel ? Math.max(labelTop + labelHeight, contentTop + contentSize) : boxSize),
         contentLeft: (canvasWidth - contentSize) / 2,
-        contentTop: (boxSize - contentSize) / 2,
+        contentTop,
         labelLeft: (canvasWidth - labelWidth) / 2,
         labelTop,
     };
 }
 
-function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, label}: TabIconParams): NativeBottomTabIcon | undefined {
+function drawTabIcon(layout: TabIconLayout, {name, color, dotColor, label}: TabIconParams): NativeBottomTabIcon | undefined {
     const scale = PixelRatio.get();
-    const contentSize = (avatar ? layout.avatarSize : layout.glyphSize) * scale;
+    const contentSize = layout.glyphSize * scale;
     const paragraph = label ? makeLabelParagraph(label, scale) : undefined;
     // The label is bold only when selected, so both states are framed for the larger weight and the glyph stays put.
     const otherWeightParagraph = label ? makeLabelParagraph({...label, isBold: !label.isBold}, scale) : undefined;
@@ -201,11 +178,7 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
     }
 
     const canvas = surface.getCanvas();
-    if (avatar) {
-        drawCircularImage(canvas, avatar.image, contentLeft, contentTop, contentSize);
-    } else {
-        drawGlyph(canvas, name, contentLeft, contentTop, contentSize, color);
-    }
+    drawGlyph(canvas, name, contentLeft, contentTop, contentSize, color);
     if (dotColor) {
         drawStatusDot(canvas, contentLeft + contentSize, contentTop, scale, dotColor);
     }
@@ -236,9 +209,9 @@ function drawTabIcon(layout: TabIconLayout, {name, color, avatar, dotColor, labe
  * stays the same. A status, theme or language change redraws only the icons it reaches.
  */
 function getTabIcon(layout: TabIconLayout, params: TabIconParams): NativeBottomTabIcon | undefined {
-    const {name, color, avatar, dotColor, label} = params;
+    const {name, color, dotColor, label} = params;
     // The label's font is fixed per platform, so it is left out of the key.
-    const key = [layout.direction, name, avatar?.uri ?? color, dotColor, label?.text, label?.color, label?.isBold, label?.maxWidth].join('|');
+    const key = [layout.direction, name, color, dotColor, label?.text, label?.color, label?.isBold, label?.maxWidth].join('|');
     if (iconCache.has(key)) {
         return iconCache.get(key);
     }

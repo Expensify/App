@@ -2,6 +2,7 @@ import BookTravelButton from '@components/BookTravelButton';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import type {EmptyStateButton, HeaderMedia} from '@components/EmptyStateComponent/types';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
+import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from '@components/Search/SearchListScrollLockContext';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
@@ -25,8 +26,8 @@ import {startTestDrive} from '@libs/actions/Tour';
 import DateUtils from '@libs/DateUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {canSendInvoice} from '@libs/PolicyUtils';
-import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {canSendInvoice, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
@@ -131,19 +132,24 @@ function EmptySearchViewContent({
     onScroll,
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate, dateFnsLocale} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
     const tabRootScrollProps = useTabRootScrollProps([styles.flexGrow1, styles.flexShrink0, contentContainerStyle], {fillsVisibleArea: true});
+    const scrollLockStyle = useSearchListScrollLockStyle();
+    const scrollViewRef = useRegisterSearchScrollView();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {accountID} = useCurrentUserPersonalDetails();
+    // With the travelApproval beta, Book a trip shows once the workspace is set up in Spotnana, like the other Book travel entry points.
+    // Without the beta, it keeps showing whenever the Travel switch is on.
+    const shouldShowBookTrip = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL) ? isWorkspaceProvisionedForTravel(activePolicy?.travelSettings) : !!activePolicy?.isTravelEnabled;
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
+    // A new report has no expenses yet, so it can't have violations.
+    const hasViolations = false;
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
@@ -195,7 +201,7 @@ function EmptySearchViewContent({
     const handleCreateMoneyRequest = (iouType: typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE) => {
         interceptAnonymousUser(() => {
             startMoneyRequest(iouType, generateReportID(), draftTransactionIDs);
-        });
+        }, session);
     };
 
     const typeMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
@@ -261,7 +267,7 @@ function EmptySearchViewContent({
                             {translate('travel.toLearnMore')}
                         </Text>
                     ),
-                    children: activePolicy?.isTravelEnabled ? (
+                    children: shouldShowBookTrip ? (
                         <View style={[styles.mt6, styles.alignSelfCenter]}>
                             <SearchScopeProvider isOnSearch={false}>
                                 <BookTravelButton
@@ -414,7 +420,9 @@ function EmptySearchViewContent({
 
     return (
         <Animated.ScrollView
+            ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
+            style={scrollLockStyle}
             {...tabRootScrollProps}
             scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             onScroll={onScroll}

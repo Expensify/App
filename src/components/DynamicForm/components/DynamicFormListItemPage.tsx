@@ -29,7 +29,8 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
     const styles = useThemeStyles();
     const page = parseListItemPageName(currentPageName);
     const listField = allFields.find((field): field is DynamicFormListField => field.type === 'list' && field.key === page?.listKey);
-    const item = listField ? getListItems(values[listField.key]).find((candidate) => candidate.id === page?.itemID) : undefined;
+    const items = listField ? getListItems(values[listField.key]) : [];
+    const item = items.find((candidate) => candidate.id === page?.itemID);
     const [filledPageName, setFilledPageName] = useState<string>();
     // The entries of a sensitive list are never drafted, so the editor starts empty and its inputs take the entry's answers from memory
     const isSensitiveList = !!listField && isSensitiveField(listField);
@@ -66,7 +67,7 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
     const withInputValues = (inputValues: unknown) => ({...keptAnswers, ...toDynamicFormValues(inputValues)});
     const itemLabel = getLocalizedText(translate, listField.itemLabelKey, listField.itemLabel);
     const addTitle = itemLabel ? translate('dynamicForm.addItem', {item: itemLabel}) : translate('common.add');
-    const title = item ? summarizeListItem(item, listField.itemFields, translate, getListItemFallbackTitle(listField, translate)).title : addTitle;
+    const title = item ? summarizeListItem(item, listField.itemFields, translate, getListItemFallbackTitle(listField, items.indexOf(item), translate)).title : addTitle;
 
     return (
         <FormProvider
@@ -85,6 +86,7 @@ function DynamicFormListItemPage({currentPageName, allFields, values, currency, 
                     <Text
                         style={[styles.textHeadlineLineHeightXXL, styles.mb3]}
                         accessibilityRole={CONST.ROLE.HEADER}
+                        aria-level={2}
                     >
                         {title}
                     </Text>
