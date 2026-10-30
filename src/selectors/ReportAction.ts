@@ -1,4 +1,12 @@
-import {filterOutDeprecatedReportActions, getIOUActionForTransactionID, getLinkedTransactionID, getOriginalMessage, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {
+    filterOutDeprecatedReportActions,
+    getIOUActionForTransactionID,
+    getLatestConciergeFeedbackActionIDFromReportActions,
+    getLinkedTransactionID,
+    getOriginalMessage,
+    getSortedReportActions,
+    isActionOfType,
+} from '@libs/ReportActionsUtils';
 import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -144,6 +152,10 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+/** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
+const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
+    authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
+
 // IDs of reports forwarded since their last submit, so re-renders only happen on a yes/no flip per report.
 function forwardedSinceLastSubmitReportIDsSelector(allReportActions: OnyxCollection<ReportActions>): Record<string, true> | undefined {
     if (!allReportActions) {
@@ -175,6 +187,7 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
 }
 
 export {
+    getLatestFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,
     getNewestReportActionSelector,

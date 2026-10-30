@@ -1,4 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -9,11 +10,12 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -36,7 +38,7 @@ function CardAddedToWalletPage({
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardAppleWalletIllustration']);
     const icons = useMemoizedLazyExpensifyIcons(['Contactless', 'ApplePayMark']);
 
-    const goToCardDetails = () => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+    const goToCardDetails = () => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID), ROUTES.SETTINGS_WALLET));
 
     return (
         <ScreenWrapper
@@ -47,11 +49,10 @@ function CardAddedToWalletPage({
                 title={translate('cardPage.cardAddedToWalletPage.title')}
                 onBackButtonPress={goToCardDetails}
             />
-            <ConfirmationPage
-                heading={translate('cardPage.cardAddedToWalletPage.description')}
-                illustration={illustrations.ExpensifyCardAppleWalletIllustration}
-                shouldShowButton
-                descriptionComponent={
+            <ConfirmationPage>
+                <ConfirmationPage.Content>
+                    <ConfirmationPage.Illustration illustration={illustrations.ExpensifyCardAppleWalletIllustration} />
+                    <ConfirmationPage.Heading style={styles.ph8}>{translate('cardPage.cardAddedToWalletPage.description')}</ConfirmationPage.Heading>
                     <View style={[styles.alignItemsCenter, styles.w100, styles.ph8]}>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.mb2]}>{translate('cardPage.cardAddedToWalletPage.firstSupportingText')}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('cardPage.cardAddedToWalletPage.secondSupportingText')}</Text>
@@ -73,11 +74,14 @@ function CardAddedToWalletPage({
                             />
                         </View>
                     </View>
-                }
-                onButtonPress={goToCardDetails}
-                buttonText={translate('cardPage.cardAddedToWalletPage.buttonText')}
-                headingStyle={styles.ph8}
-            />
+                </ConfirmationPage.Content>
+                <FixedFooter>
+                    <ConfirmationPage.PrimaryButton
+                        text={translate('cardPage.cardAddedToWalletPage.buttonText')}
+                        onPress={goToCardDetails}
+                    />
+                </FixedFooter>
+            </ConfirmationPage>
         </ScreenWrapper>
     );
 }
