@@ -23,6 +23,9 @@ type InsightsGraph = {
 
     /** Hash of the snapshot holding the data for the "Average" compare mode */
     averageSnapshotHash?: number;
+
+    /** Average group total over the selected period, in the same units as the snapshot's totals, which the "Average" compare mode draws */
+    average?: number;
 };
 
 /** What the backend returns for one dashboard and set of filters */
