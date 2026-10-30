@@ -1,22 +1,17 @@
 import {useFullScreenBlockingViewState} from '@components/FullScreenBlockingViewContextProvider';
 
-import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
 import {getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import isTabRouteAtRoot from '@libs/Navigation/helpers/isTabRouteAtRoot';
-import Navigation from '@libs/Navigation/Navigation';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type {NavigationAction, NavigationState, PartialState, Router, TabNavigationState} from '@react-navigation/native';
@@ -25,7 +20,7 @@ import {findFocusedRoute, useNavigation, useNavigationState, useRoute} from '@re
 import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
-import getTabWithoutBarItem from './getTabWithoutBarItem';
+import getActiveTabRoute from './getActiveTabRoute';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
@@ -44,14 +39,11 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
 function useNativeTabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
-    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const {translate} = useLocalize();
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
-    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
-    const tabWithoutBarItem = getTabWithoutBarItem(isInsightsTabVisible);
+    const tabWithoutBarItem = NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const {indicatorColor: inboxDotColor} = useInboxTabIndicatorStatus();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
-    const {indicatorColor: accountIndicatorColor, status: accountIndicatorStatus} = useAccountTabIndicatorStatus();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const isFocusedRouteTabRoot = useNavigationState((state) => TAB_ROOT_SCREENS_WITHOUT_GESTURE.has(findFocusedRoute(state)?.name ?? ''));
@@ -60,10 +52,8 @@ function useNativeTabNavigator() {
     // `useNavigationState((s) => s)` here because the navigator's body runs before <Tab.Navigator>
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
-    const activeTabRoute = isRealizedNavigationState(tabState) ? tabState.routes[tabState.index] : undefined;
-    // A tab with no item in the bar is drawn over the other tabs as a full screen, so the bar hides while it is focused.
-    const isActiveTabWithoutBarItem = activeTabRoute?.name === tabWithoutBarItem;
-    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible && !isActiveTabWithoutBarItem;
+    const activeTabRoute = getActiveTabRoute(tabState);
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible;
     const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
     const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
@@ -71,7 +61,6 @@ function useNativeTabNavigator() {
     const dotColors: Record<string, string | undefined> = {
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
         [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesIndicatorStatus ? workspacesIndicatorColor : undefined,
-        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: accountIndicatorStatus ? accountIndicatorColor : undefined,
     };
     const tabLabels: Record<string, string> = {
         [SCREENS.HOME]: translate('common.home'),
@@ -79,7 +68,6 @@ function useNativeTabNavigator() {
         [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
         [SCREENS.INSIGHTS]: translate('common.insights'),
         [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
-        [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: translate('initialSettingsPage.account'),
     };
 
     useEffect(() => {
@@ -96,17 +84,6 @@ function useNativeTabNavigator() {
         setPreservedNavigatorState(route.key, tabState);
     }, [tabState, route.key]);
 
-    // Without the beta, Insights has no bar item and its page is not found, so a restored or deep-linked Insights tab
-    // would be a full screen with no way out. Home replaces it, so going back does not return to it. Betas that are
-    // still loading are not a missing beta.
-    const isInsightsTabFocusedWithoutBeta = isBetaEnabledOrUnknown(CONST.BETAS.INSIGHTS_PAGE) === false && activeTabRoute?.name === SCREENS.INSIGHTS;
-    useEffect(() => {
-        if (!isInsightsTabFocusedWithoutBeta) {
-            return;
-        }
-        Navigation.navigate(ROUTES.HOME, {forceReplace: true});
-    }, [isInsightsTabFocusedWithoutBeta]);
-
     // The slicing optimization in useCustomRootStackNavigatorState can unmount and later remount
     // this TAB_NAVIGATOR. Without restoration it would default to index 0. We restore the saved
     // state by overriding the bottom-tab router's getInitialState, the same pattern SplitRouter
@@ -120,11 +97,9 @@ function useNativeTabNavigator() {
         },
     });
 
-    const isAccountAvatarShown = shouldUseNarrowLayout && tabWithoutBarItem !== NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
-
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    return {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
 }
 
 export default useNativeTabNavigator;

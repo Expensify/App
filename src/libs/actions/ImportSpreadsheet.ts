@@ -20,6 +20,7 @@ function setSpreadsheetData(
     fileName: string,
     isImportingMultiLevelTags: boolean,
     importTransactionSettings?: ImportTransactionSettings,
+    isAppendingToExistingLists = false,
 ): Promise<void | void[]> {
     // Validate that data is a non-empty array
     if (!Array.isArray(data) || data.length === 0) {
@@ -56,6 +57,7 @@ function setSpreadsheetData(
         fileType,
         fileName,
         isImportingMultiLevelTags,
+        isAppendingToExistingLists,
         // Preserve transaction import settings that were configured before file upload
         importTransactionSettings,
         containsHeader: true,

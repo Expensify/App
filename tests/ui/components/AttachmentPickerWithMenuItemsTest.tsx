@@ -14,7 +14,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import React from 'react';
+import React, {Profiler} from 'react';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
@@ -271,5 +271,44 @@ describe('AttachmentPickerWithMenuItems - empty report confirmation', () => {
 
         // Then no confirmation opens, because the report is no longer empty
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+});
+
+describe('AttachmentPickerWithMenuItems - transaction violations', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    afterEach(async () => {
+        jest.clearAllMocks();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('does not re-render when a transaction violation changes', async () => {
+        // Given the composer is rendered inside a Profiler and has settled, so the render count is a stable baseline
+        const onRender = jest.fn();
+        render(
+            <Profiler
+                id="AttachmentPickerWithMenuItems"
+                onRender={onRender}
+            >
+                {renderPicker(false)}
+            </Profiler>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        const renderCountBeforeChange = onRender.mock.calls.length;
+
+        // When a violation changes on any transaction, which the composer never reads because a new report has no expenses
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}123`, [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the composer does not re-render, so a violation change anywhere in the app doesn't cost it a render
+        expect(renderCountBeforeChange).toBeGreaterThan(0);
+        expect(onRender).toHaveBeenCalledTimes(renderCountBeforeChange);
     });
 });
