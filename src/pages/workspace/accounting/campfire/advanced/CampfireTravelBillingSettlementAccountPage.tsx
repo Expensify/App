@@ -33,7 +33,7 @@ type AccountListItem = ListItem & {
     value: CampfireAccount['id'];
 };
 
-function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
+function CampfireTravelBillingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -91,7 +91,7 @@ function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnec
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
-            displayName="CampfireTravelInvoicingSettlementAccountPage"
+            displayName="CampfireTravelBillingSettlementAccountPage"
             title="workspace.campfire.travelBillingSettlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
@@ -110,4 +110,4 @@ function CampfireTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnec
     );
 }
 
-export default withPolicyConnections(CampfireTravelInvoicingSettlementAccountPage);
+export default withPolicyConnections(CampfireTravelBillingSettlementAccountPage);

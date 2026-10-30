@@ -33,7 +33,7 @@ type AccountListItem = ListItem & {
     value: DualEntryAccount['id'];
 };
 
-function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
+function DualEntryTravelBillingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -91,7 +91,7 @@ function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
-            displayName="DualEntryTravelInvoicingSettlementAccountPage"
+            displayName="DualEntryTravelBillingSettlementAccountPage"
             title="workspace.dualEntry.travelBillingSettlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
@@ -110,4 +110,4 @@ function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
     );
 }
 
-export default withPolicyConnections(DualEntryTravelInvoicingSettlementAccountPage);
+export default withPolicyConnections(DualEntryTravelBillingSettlementAccountPage);
