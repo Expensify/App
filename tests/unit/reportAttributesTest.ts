@@ -1,6 +1,3 @@
-// eslint-disable-next-line no-restricted-imports -- type-only, to type the jest.requireMock calls below
-import type computeReportName from '@libs/computeReportName';
-
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {getOldestPreviewActionID, hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
 
@@ -414,7 +411,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        const computeReportNameMock = jest.mocked(jest.requireMock<{default: typeof computeReportName}>('@libs/computeReportName').default);
+        const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
         computeReportNameMock.mockClear();
 
         const result = config.compute(buildArgs(updatedPolicies), {
@@ -454,7 +451,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             locale: null,
         };
 
-        const computeReportNameMock = jest.mocked(jest.requireMock<{default: typeof computeReportName}>('@libs/computeReportName').default);
+        const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
         computeReportNameMock.mockReturnValue('New Name');
 
         const result = config.compute(buildArgs(updatedPolicies), {
@@ -916,7 +913,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             ['no card list', undefined],
         ])('recomputes persisted fraud alert green dots on the first compute after app start with %s', (_, cardList: CardList | undefined) => {
             const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
-            const computeReportNameMock = jest.mocked(jest.requireMock<{default: typeof computeReportName}>('@libs/computeReportName').default);
+            const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
             computeReportNameMock.mockClear();
 
             // Given REPORT_ATTRIBUTES restored from disk with a fraud alert green dot no card points at anymore, and an approval green dot
@@ -940,7 +937,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             ['a locale change', ONYXKEYS.NVP_PREFERRED_LOCALE],
             ['a currency list load', ONYXKEYS.CURRENCY_LIST],
         ])('recomputes the fraud alert report name when %s runs in the same compute as a card change', (_, triggeredKey: OnyxKey) => {
-            const computeReportNameMock = jest.mocked(jest.requireMock<{default: typeof computeReportName}>('@libs/computeReportName').default);
+            const computeReportNameMock = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
             computeReportNameMock.mockClear();
 
             // Given a stored fraud alert report with a stale name that the card's live fraud points at
