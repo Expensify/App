@@ -96,9 +96,11 @@ function DynamicContactMethodsPage() {
                         key={getLoginKey(login)}
                     >
                         <MenuItem.Root
-                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.INTEGRATION_SERVER_LOGIN_DETAILS.getRoute(login.partnerUserID)))}
+                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(login.partnerUserID)))}
                             isDisabled={!!login.pendingAction}
-                            accessibilityLabel={[translate('contacts.integrationServerLogin.title'), login.partnerUserID, translate('contacts.integrationServerLogin.description')].join(', ')}
+                            accessibilityLabel={[translate('contacts.integrationServerLogin.title'), login.partnerUserID, translate('contacts.integrationServerLogin.description')].join(
+                                ', ',
+                            )}
                         >
                             <MenuItem.Row>
                                 <MenuItem.Content>
