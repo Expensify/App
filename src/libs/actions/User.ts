@@ -68,6 +68,7 @@ import Onyx from 'react-native-onyx';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {getDeviceInfoWithID} from './Device';
+import {getResetSignInFlowOnyxData} from './HybridApp';
 import {openOldDotLink} from './Link';
 import {showReportActionNotification} from './Report';
 import {isAnonymousUser, resendValidateCode as sessionResendValidateCode} from './Session';
@@ -197,10 +198,15 @@ function closeAccount(reason: string, validateCode: string) {
         },
     ];
 
+    // The server-driven clear wipes the HybridApp sign-in flags, which leaves the next sign-in stuck on the magic code page.
+    // successData is applied after the response's clear, so restore the flags here to start the HybridApp sign-in flow from the beginning.
+    const successData = getResetSignInFlowOnyxData();
+
     const parameters: CloseAccountParams = {message: reason, validateCode};
 
     API.write(WRITE_COMMANDS.CLOSE_ACCOUNT, parameters, {
         optimisticData,
+        successData,
         failureData,
     }).then((response) => {
         // The account stays open when the validateCode is rejected, so OldDot must stay signed in to keep the state of both apps in sync

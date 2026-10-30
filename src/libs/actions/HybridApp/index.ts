@@ -7,7 +7,7 @@ import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session, TryNewDot} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
@@ -142,6 +142,11 @@ function setUseNewDotSignInPage(useNewDotSignInPage: boolean) {
     return Onyx.merge(ONYXKEYS.HYBRID_APP, {useNewDotSignInPage});
 }
 
+const RESET_SIGN_IN_FLOW_VALUE = {
+    readyToShowAuthScreens: false,
+    useNewDotSignInPage: true,
+};
+
 /*
  * Starts HybridApp sign-in flow from the beginning.
  */
@@ -151,10 +156,19 @@ function resetSignInFlow() {
         return Promise.resolve();
     }
 
-    return Onyx.merge(ONYXKEYS.HYBRID_APP, {
-        readyToShowAuthScreens: false,
-        useNewDotSignInPage: true,
-    });
+    return Onyx.merge(ONYXKEYS.HYBRID_APP, RESET_SIGN_IN_FLOW_VALUE);
 }
 
-export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, setUseNewDotSignInPage, closeReactNativeApp};
+/*
+ * Returns the Onyx updates that start HybridApp sign-in flow from the beginning, for requests that must apply them after their response.
+ */
+function getResetSignInFlowOnyxData(): Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP>> {
+    // This value is only relevant for HybridApp, so we can skip it in other environments.
+    if (!CONFIG.IS_HYBRID_APP) {
+        return [];
+    }
+
+    return [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HYBRID_APP, value: RESET_SIGN_IN_FLOW_VALUE}];
+}
+
+export {getHybridAppSettings, setReadyToShowAuthScreens, resetSignInFlow, getResetSignInFlowOnyxData, setUseNewDotSignInPage, closeReactNativeApp};
