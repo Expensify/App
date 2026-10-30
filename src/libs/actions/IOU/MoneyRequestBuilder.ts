@@ -1495,6 +1495,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         // precisely why an expense in another currency otherwise never reaches the total.
         // Compared with `!== undefined` so a legitimate total of 0 is applied instead of being read as "no override".
         const hasReportTotalOverride = newReportTotal !== undefined;
+        // The override is the full report total, which also counts held expenses, so the unheld totals only move by the change in total
+        const reportTotalChange = hasReportTotalOverride ? newReportTotal - (iouReport.total ?? 0) : -reportAmount;
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (isCurrencyMatching || hasReportTotalOverride) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
@@ -1527,14 +1529,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 didUpdateOptimisticTotal = true;
             }
             if (typeof iouReport.unheldTotal === 'number') {
-                // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
-                if (hasReportTotalOverride) {
-                    iouReport.unheldTotal = newReportTotal;
-                } else {
-                    iouReport.unheldTotal -= reportAmount;
-                }
+                iouReport.unheldTotal += reportTotalChange;
                 if (reimbursable && newUnheldReimbursableTotal === undefined && isCurrencyMatching) {
-                    iouReport.unheldReimbursableTotal = newReportTotal ? newReportTotal - (iouReport.unheldNonReimbursableTotal ?? 0) : previousUnheldReimbursableTotal - reportAmount;
+                    iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal + reportTotalChange;
                 }
             }
         }
