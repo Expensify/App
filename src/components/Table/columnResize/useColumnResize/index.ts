@@ -144,7 +144,7 @@ function useColumnResize({
     const pointerDrag = usePointerDrag<Drag>({
         dragRef,
         onMove: (drag, clientX) => {
-            // Nothing is painted inside the slop, so a click fits from the width the column already had. A mouse click rarely
+            // Nothing is painted inside the slop, so a click fits or resets from the width the column already had. A mouse click rarely
             // lands on the exact pixel it started from.
             if (!drag.hasMovedPointer) {
                 if (Math.abs(clientX - drag.startClientX) <= CONST.RESIZE_HANDLE.DRAG_SLOP) {

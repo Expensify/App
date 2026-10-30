@@ -84,7 +84,7 @@ describe('getPersistedColumnLayout', () => {
             rowChromeWidths: NO_ROW_CHROME,
         });
 
-        // Then a single click fits it to its content and a double click puts it back where a reload would
+        // Then a click fits it to its content and a second click puts it back where a reload would
         expect(layout.getTargetColumnWidth('merchant', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.FIT)).toBe(260);
         expect(layout.getTargetColumnWidth('merchant', CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET.RESET)).toBe(210);
     });
