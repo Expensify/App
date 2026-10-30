@@ -41,7 +41,8 @@ function ExactOnlineWaitlistRow({policy, style, titleWrapperStyle, isBadgeConden
     const [pendingAction] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.pendingFields?.exactOnlineWaitlist});
     const title = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline;
     const comingSoon = translate('workspace.accounting.exactOnline.comingSoon');
-    const accessibilityLabel = [title, comingSoon, signupTimestamp && !pendingAction && translate('workspace.accounting.exactOnline.onWaitlist')].filter(Boolean).join(', ');
+    const isOnWaitlist = !!signupTimestamp && !pendingAction;
+    const accessibilityLabel = [title, comingSoon, isOnWaitlist && translate('workspace.accounting.exactOnline.onWaitlist')].filter(Boolean).join(', ');
 
     return (
         <OfflineWithFeedback
@@ -69,13 +70,15 @@ function ExactOnlineWaitlistRow({policy, style, titleWrapperStyle, isBadgeConden
                             <Badge
                                 text={comingSoon}
                                 isCondensed={isBadgeCondensed}
-                                badgeStyles={[styles.alignSelfStart, styles.ml0]}
+                                badgeStyles={[styles.alignSelfStart, styles.ml0, styles.mw100]}
                             />
                         </View>
                     </MenuItem.Content>
-                    <MenuItem.Trailing>
-                        <ExactOnlineWaitlistButton policy={policy} />
-                    </MenuItem.Trailing>
+                    <View style={[isOnWaitlist && styles.flex1, styles.justifyContentCenter]}>
+                        <MenuItem.Trailing>
+                            <ExactOnlineWaitlistButton policy={policy} />
+                        </MenuItem.Trailing>
+                    </View>
                 </MenuItem.Row>
             </MenuItem.Root>
         </OfflineWithFeedback>

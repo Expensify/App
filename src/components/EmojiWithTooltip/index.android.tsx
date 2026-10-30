@@ -4,12 +4,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {containsCustomEmoji} from '@libs/EmojiUtils';
 
-import {useMemo} from 'react';
-
 import type EmojiWithTooltipProps from './types';
 
 function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
-    const isCustomEmoji = useMemo(() => containsCustomEmoji(emojiCode), [emojiCode]);
+    const isCustomEmoji = containsCustomEmoji(emojiCode);
     const styles = useThemeStyles();
     return <Text style={[style, isCustomEmoji && styles.customEmojiFont]}>{emojiCode}</Text>;
 }

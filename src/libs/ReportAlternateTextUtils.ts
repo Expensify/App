@@ -508,6 +508,7 @@ function getLastMessageTextForReport({
     rules,
     bankAccountList,
     formatPhoneNumber,
+    lastActionTransaction,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -538,6 +539,9 @@ function getLastMessageTextForReport({
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
     bankAccountList?: OnyxEntry<BankAccountList>;
+
+    /** The transaction of `lastAction`. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -600,15 +604,21 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(translate, convertToDisplayString, {
-            personalDetails,
-            reportOrID: report,
-            iouReportAction: lastReportAction,
-            shouldConsiderScanningReceiptOrPendingRoute: true,
-            policy,
-            isForListPreview: true,
-            bankAccountList,
-        });
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(
+            translate,
+            convertToDisplayString,
+            {
+                personalDetails,
+                reportOrID: report,
+                iouReportAction: lastReportAction,
+                shouldConsiderScanningReceiptOrPendingRoute: true,
+                policy,
+                isForListPreview: true,
+                bankAccountList,
+                linkedTransaction: lastActionTransaction,
+            },
+            formatPhoneNumber,
+        );
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
@@ -625,20 +635,25 @@ function getLastMessageTextForReport({
             const reportName = reportAttributesDerived?.[iouReport.reportID]?.reportName ?? '';
             lastMessageTextFromReport = formatReportLastMessageText(reportName);
         } else {
-            const reportPreviewMessage = getReportPreviewMessage(translate, convertToDisplayString, {
-                personalDetails,
-                reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
-                iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
-                shouldConsiderScanningReceiptOrPendingRoute: true,
-                isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
-                // `policy` is the containing report's policy. A group-policy expense report renders its preview in the
-                // policy expense chat, which is handled by the branch above, so every report that reaches here shares
-                // its policy with `report` (DM/group personal reports have none; invoice rooms share the room's policy).
-                policy,
-                isForListPreview: true,
-                originalReportAction: lastReportAction,
-                bankAccountList,
-            });
+            const reportPreviewMessage = getReportPreviewMessage(
+                translate,
+                convertToDisplayString,
+                {
+                    personalDetails,
+                    reportOrID: !isEmptyObject(iouReport) ? iouReport : null,
+                    iouReportAction: lastIOUMoneyReportAction ?? lastReportAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                    isPreviewMessageForParentChatReport: reportUtilsIsChatReport(report),
+                    // `policy` is the containing report's policy. A group-policy expense report renders its preview in the
+                    // policy expense chat, which is handled by the branch above, so every report that reaches here shares
+                    // its policy with `report` (DM/group personal reports have none; invoice rooms share the room's policy).
+                    policy,
+                    isForListPreview: true,
+                    originalReportAction: lastReportAction,
+                    bankAccountList,
+                },
+                formatPhoneNumber,
+            );
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
@@ -998,15 +1013,20 @@ function getLastMessageTextForReport({
                 lastMessageTextFromReport =
                     formatReportLastMessageText(
                         Parser.htmlToText(
-                            getReportPreviewMessage(translate, convertToDisplayString, {
-                                personalDetails,
-                                reportOrID: report,
-                                iouReportAction: lastReportAction,
-                                shouldConsiderScanningReceiptOrPendingRoute: true,
-                                policy,
-                                isForListPreview: true,
-                                bankAccountList,
-                            }),
+                            getReportPreviewMessage(
+                                translate,
+                                convertToDisplayString,
+                                {
+                                    personalDetails,
+                                    reportOrID: report,
+                                    iouReportAction: lastReportAction,
+                                    shouldConsiderScanningReceiptOrPendingRoute: true,
+                                    policy,
+                                    isForListPreview: true,
+                                    bankAccountList,
+                                },
+                                formatPhoneNumber,
+                            ),
                         ),
                     ) || lastVisibleMessage?.lastMessageText;
             }
@@ -1226,6 +1246,9 @@ type GetReportAlternateTextParams = {
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
     bankAccountList?: OnyxEntry<BankAccountList>;
+
+    /** The transaction of `lastAction`, see `getLastMessageTextForReport`. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 };
 
 /**
@@ -1265,6 +1288,7 @@ function getReportAlternateText({
     convertToDisplayStringWithoutCurrency,
     rules,
     bankAccountList,
+    lastActionTransaction,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
     const isChatRoomReport = isChatRoom(report);
@@ -1329,6 +1353,7 @@ function getReportAlternateText({
             rules,
             bankAccountList,
             formatPhoneNumber,
+            lastActionTransaction,
         });
 
     const getLastActorDisplayNamePrefix = () =>
@@ -1412,7 +1437,7 @@ function getReportAlternateText({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
             alternateText = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getWorkspaceDescriptionUpdatedMessage(translate, lastAction)));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT)) {
-            alternateText = getWorkspaceRulesDocumentUpdatedMessage(translate, lastAction);
+            alternateText = Parser.htmlToText(getWorkspaceRulesDocumentUpdatedMessage(translate, lastAction, true));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY)) {
             alternateText = getWorkspaceCurrencyUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY)) {
@@ -1566,7 +1591,7 @@ function getReportAlternateText({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             alternateText = getPolicyChangeLogAddEmployeeMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-            alternateText = getPolicyChangeLogUpdateEmployee(translate, lastAction);
+            alternateText = getPolicyChangeLogUpdateEmployee(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
             alternateText = getPolicyChangeLogDeleteMemberMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {

@@ -17,7 +17,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import ConstantPicker from './ConstantPicker';
@@ -38,7 +38,7 @@ function DynamicDebugDetailsConstantPickerPage({
         Navigation.goBack(appendParam(backPath, fieldName ?? '', value), {compareParams: false});
     };
 
-    const renderPicker = useCallback(() => {
+    const renderPicker = () => {
         if (([TRANSACTION_FORM_INPUT_IDS.CURRENCY, TRANSACTION_FORM_INPUT_IDS.MODIFIED_CURRENCY, TRANSACTION_FORM_INPUT_IDS.ORIGINAL_CURRENCY] as string[]).includes(fieldName)) {
             return (
                 <CurrencySelectionList
@@ -82,7 +82,7 @@ function DynamicDebugDetailsConstantPickerPage({
                 onSubmit={onSubmit}
             />
         );
-    }, [fieldName, fieldValue, formType, onSubmit, policyID, translate]);
+    };
 
     return (
         <ScreenWrapper testID="DebugDetailsConstantPickerPage">
