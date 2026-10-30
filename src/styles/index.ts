@@ -2481,6 +2481,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingTop: 20,
         },
 
+        conciergeAskColumn: {
+            width: '100%',
+            maxWidth: variables.conciergeAskColumnMaxWidth,
+            alignSelf: 'center',
+        },
+
         chatItemDraft: {
             display: 'flex',
             flexDirection: 'row',
@@ -6276,6 +6282,10 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 20, // must be greater than floatingCameraButton.zIndex
         },
 
+        twoFARequiredTestToolsHost: {
+            zIndex: 22, // must be greater than twoFARequiredOverlay.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -7078,6 +7088,13 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: '50%',
             width: 8,
             height: 8,
+        },
+        chartTooltipAverageDash: {
+            width: 7,
+            height: 1,
+            borderRadius: 0.5,
+            backgroundColor: theme.text,
+            opacity: VictoryTheme.averageLine.opacity,
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,

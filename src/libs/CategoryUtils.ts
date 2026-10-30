@@ -5,7 +5,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ApprovalRule, MccGroup} from '@src/types/onyx/Policy';
+import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -46,6 +46,27 @@ function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: st
         rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
     );
     return approverRule;
+}
+
+function getCategoryExpenseRule(expenseRules: ExpenseRule[], categoryName: string) {
+    const expenseRule = expenseRules?.find((rule) =>
+        rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
+    );
+    return expenseRule;
+}
+
+function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
+    // Matched the same way the rules are written: on a `category matches <name>` condition rather than on the value
+    // alone. Matching any condition carrying the name could read a rule that a save or delete never targets, so the
+    // rate an expense picks up would not be the one the admin set.
+    const categoryDefaultTaxRate = getCategoryExpenseRule(expenseRules, categoryName)?.tax?.field_id_TAX?.externalID;
+
+    // If the default taxRate is not found in expenseRules, use the default value for policy
+    if (!categoryDefaultTaxRate) {
+        return defaultTaxRate;
+    }
+
+    return categoryDefaultTaxRate;
 }
 
 function updateCategoryInMccGroup(mccGroups: Record<string, MccGroup>, oldCategoryName: string, newCategoryName: string, shouldClearPendingAction?: boolean) {
@@ -264,6 +285,7 @@ function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean 
 export {
     formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
+    getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     isCategoryMissing,
