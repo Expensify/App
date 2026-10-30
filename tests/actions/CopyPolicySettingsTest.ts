@@ -66,6 +66,10 @@ function makeSourcePolicy(overrides: Partial<Policy> = {}): Policy {
         eReceipts: true,
         preventSelfApproval: true,
         preventPayoutNonReimbursableReports: true,
+        isReceiptVisibilityPublic: true,
+        requireMapOrGPS: true,
+        mccGroup: {dining: {category: 'Meals', groupID: 'dining'}},
+        exportLayouts: {sourceLayout: {name: 'Source layout', templateName: 'sourceLayout', type: 'csv', policyID: SOURCE_POLICY_ID, description: ''}},
         ...overrides,
     };
 }
@@ -159,9 +163,9 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 ['overview', ['address', 'description']],
                 ['currency', ['outputCurrency']],
                 ['members', ['employeeList']],
-                ['reports', ['fieldList', 'areReportFieldsEnabled']],
+                ['reports', ['fieldList', 'areReportFieldsEnabled', 'exportLayouts']],
                 ['accounting', ['connections', 'areConnectionsEnabled']],
-                ['categories', ['areCategoriesEnabled']],
+                ['categories', ['areCategoriesEnabled', 'mccGroup']],
                 ['tags', ['areTagsEnabled']],
                 ['taxes', ['tax', 'taxRates']],
                 ['workflows', ['areWorkflowsEnabled', 'autoReportingFrequency', 'autoReporting', 'autoReportingOffset', 'harvesting', 'approvalMode', 'autoApproval', 'reimbursementChoice']],
@@ -181,9 +185,10 @@ describe('actions/Policy/CopyPolicySettings', () => {
                         'preventPayoutNonReimbursableReports',
                         'shouldShowAutoApprovalOptions',
                         'shouldShowAutoReimbursementLimitOption',
+                        'isReceiptVisibilityPublic',
                     ],
                 ],
-                ['distanceRates', ['areDistanceRatesEnabled']],
+                ['distanceRates', ['areDistanceRatesEnabled', 'requireMapOrGPS']],
                 ['perDiem', ['arePerDiemRatesEnabled']],
                 ['invoices', ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList']],
                 ['travel', ['isTravelEnabled']],
@@ -214,6 +219,58 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['invoices'], {}, {}, {});
                 // Then only markup changes, because billing identity belongs to the target.
                 expect(getOptimisticPolicy(optimisticData)?.invoice).toEqual({...targetPolicy.invoice, markUp: 25});
+            });
+
+            it('removes target invoice markup when the source has none', () => {
+                // Given a source without markup and a target with its own invoicing identity.
+                const source = makeSourcePolicy({invoice: {companyName: 'Source'}});
+                const target = makeTargetPolicy({invoice: {markUp: 10, companyName: 'Target'}});
+
+                // When Invoices is copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['invoices'], {}, {}, {});
+
+                // Then markup is removed while the target identity is retained, as Auth does.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toEqual({companyName: 'Target'});
+            });
+
+            it('does not create invoice settings when neither workspace has markup or invoice settings', () => {
+                // Given no invoice settings on either workspace.
+                const source = makeSourcePolicy({invoice: undefined});
+                const target = makeTargetPolicy({invoice: undefined});
+
+                // When Invoices is copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['invoices'], {}, {}, {});
+
+                // Then no empty invoice object is fabricated.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toBeUndefined();
+            });
+
+            it('does not create invoice settings from source identity alone', () => {
+                // Given a source identity without markup and an unconfigured target.
+                const source = makeSourcePolicy({invoice: {companyName: 'Source'}});
+                const target = makeTargetPolicy({invoice: undefined});
+
+                // When Invoices is copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['invoices'], {}, {}, {});
+
+                // Then the target remains unconfigured, matching Auth's invoice copy.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toBeUndefined();
+            });
+
+            it('leaves government-rate flags to the server eligibility check', () => {
+                // Given source government rates that may be invalid for the target currency or unit.
+                const source = makeSourcePolicy({shouldAutoUpdateGovernmentDistanceRates: true, autoUpdateGovernmentRateCountry: 'FR'});
+                const target = makeTargetPolicy({shouldAutoUpdateGovernmentDistanceRates: false, autoUpdateGovernmentRateCountry: 'DE'});
+
+                // When Distance rates is copied optimistically.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['distanceRates'], {}, {}, {});
+                const copied = getOptimisticPolicy(optimisticData);
+
+                // Then source eligibility flags are not copied or marked pending before Auth resolves them.
+                expect(copied?.shouldAutoUpdateGovernmentDistanceRates).toBe(false);
+                expect(copied?.autoUpdateGovernmentRateCountry).toBe('DE');
+                expect(copied?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
+                expect(copied?.pendingFields?.autoUpdateGovernmentRateCountry).toBeUndefined();
             });
 
             it('keeps bulk-copy progress untouched when copying into a new policy', () => {

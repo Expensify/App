@@ -82,7 +82,8 @@ const PARTS_TO_POLICY_FIELDS = {
     // Merchant rules are copied into the `rules_` collection rather than onto the policy, so this part patches
     // no policy field. It stays listed because the map has to cover every part.
     codingRules: [],
-    distanceRates: ['areDistanceRatesEnabled', 'customUnits', 'commuterExclusions', 'requireMapOrGPS', 'shouldAutoUpdateGovernmentDistanceRates', 'autoUpdateGovernmentRateCountry'],
+    // Auth resolves government-rate eligibility for each target; use its push for those flags.
+    distanceRates: ['areDistanceRatesEnabled', 'customUnits', 'commuterExclusions', 'requireMapOrGPS'],
     perDiem: ['arePerDiemRatesEnabled', 'customUnits'],
     invoices: ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList'],
     // travelSettings is handled separately (buildTravelSettingsPatch): the Spotnana identity
@@ -298,7 +299,12 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
     for (const part of parts) {
         for (const field of PARTS_TO_POLICY_FIELDS[part]) {
             if (field === 'invoice') {
-                patch.invoice = targetPolicy.invoice || sourcePolicy.invoice ? {...targetPolicy.invoice, markUp: sourcePolicy.invoice?.markUp} : undefined;
+                const invoice = {...targetPolicy.invoice};
+                delete invoice.markUp;
+                const sourceMarkUp = sourcePolicy.invoice?.markUp;
+                if (sourceMarkUp !== undefined || targetPolicy.invoice) {
+                    patch.invoice = sourceMarkUp === undefined ? invoice : {...invoice, markUp: sourceMarkUp};
+                }
                 continue;
             }
             if (field === 'customUnits') {
