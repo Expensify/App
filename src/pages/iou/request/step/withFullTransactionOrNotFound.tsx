@@ -47,6 +47,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
+    | typeof SCREENS.MONEY_REQUEST.STEP_REUSE_ROUTE
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT
@@ -117,7 +118,7 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
                 <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         ) : (
-            <FullScreenLoadingIndicator shouldUseGoBackButton />
+            <FullScreenLoadingIndicator />
         );
     }
     return (

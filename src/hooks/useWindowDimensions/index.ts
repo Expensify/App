@@ -4,6 +4,7 @@ import {FullScreenActionsContext, FullScreenStateContext} from '@components/Vide
 import useDebouncedState from '@hooks/useDebouncedState';
 
 import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
+import isHTMLElement from '@libs/isHTMLElement';
 
 import variables from '@styles/variables';
 
@@ -63,7 +64,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
 
     const handleFocusIn = useRef((event: FocusEvent) => {
         const targetElement = event.target;
-        if (targetElement instanceof Element && tagNamesOpenKeyboard.includes(targetElement.tagName)) {
+        if (isHTMLElement(targetElement) && tagNamesOpenKeyboard.includes(targetElement.tagName)) {
             setCachedViewportHeight(cachedViewportHeightWithKeyboardRef.current);
         }
     });
@@ -82,7 +83,7 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
 
     const handleFocusOut = useRef((event: FocusEvent) => {
         const targetElement = event.target;
-        if (targetElement instanceof Element && tagNamesOpenKeyboard.includes(targetElement.tagName)) {
+        if (isHTMLElement(targetElement) && tagNamesOpenKeyboard.includes(targetElement.tagName)) {
             setCachedViewportHeight(initialViewportHeight);
         }
     });

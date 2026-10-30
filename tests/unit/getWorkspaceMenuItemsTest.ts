@@ -17,6 +17,7 @@ const icons = {
     Hashtag: mockIcon,
     Document: mockIcon,
     Sync: mockIcon,
+    Connect: mockIcon,
     Receipt: mockIcon,
     Briefcase: mockIcon,
     Folder: mockIcon,
@@ -79,10 +80,11 @@ describe('getWorkspaceMenuItems', () => {
             convertToDisplayString: () => '',
         });
 
-        expect(items.map((item) => item.translationKey)).toEqual(['workspace.common.profile', 'workspace.common.members', 'workspace.common.rooms']);
+        expect(items.map((item) => item.translationKey)).toEqual(['workspace.common.profile', 'workspace.common.members', 'agentsPage.title', 'workspace.common.rooms']);
         expect(items.map((item) => item.getRoute())).toEqual([
             ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id),
             ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id),
+            ROUTES.WORKSPACE_AGENTS.getRoute(policy.id),
             ROUTES.WORKSPACE_ROOMS.getRoute(policy.id),
         ]);
     });
@@ -265,6 +267,25 @@ describe('getWorkspaceMenuItems', () => {
         });
 
         expect(items.find((item) => item.translationKey === 'workspace.common.workflows')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows an error indicator on workflows only when a workflow the user can fix has an approver who left the workspace', () => {
+        // Given a workspace with workflows enabled
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areWorkflowsEnabled: true});
+        const getWorkflowsIndicator = (hasApprovalWorkflowWithNonMemberApprover: boolean) =>
+            getWorkspaceMenuItems({
+                policy,
+                policyID: policy.id,
+                currentUserLogin,
+                icons,
+                hasApprovalWorkflowWithNonMemberApprover,
+                convertToDisplayString: () => '',
+            }).find((item) => item.translationKey === 'workspace.common.workflows')?.brickRoadIndicator;
+
+        // When the menu is built with and without such a workflow
+        // Then only the broken workflow puts an error on the Workflows row
+        expect(getWorkflowsIndicator(true)).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        expect(getWorkflowsIndicator(false)).toBeUndefined();
     });
 
     it('shows an error indicator when a merchant rule failed to save', () => {
@@ -510,6 +531,7 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.map((item) => item.translationKey)).toEqual([
             'workspace.common.profile',
             'workspace.common.members',
+            'agentsPage.title',
             'workspace.common.rooms',
             'common.reports',
             'workspace.common.accounting',
@@ -535,6 +557,7 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.map((item) => item.getRoute())).toEqual([
             ROUTES.WORKSPACE_OVERVIEW.getRoute(policy.id),
             ROUTES.WORKSPACE_MEMBERS.getRoute(policy.id),
+            ROUTES.WORKSPACE_AGENTS.getRoute(policy.id),
             ROUTES.WORKSPACE_ROOMS.getRoute(policy.id),
             ROUTES.WORKSPACE_REPORTS.getRoute(policy.id),
             ROUTES.POLICY_ACCOUNTING.getRoute(policy.id),
@@ -560,6 +583,7 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.map((item) => item.screenName)).toEqual([
             SCREENS.WORKSPACE.PROFILE,
             SCREENS.WORKSPACE.MEMBERS,
+            SCREENS.WORKSPACE.AGENTS,
             SCREENS.WORKSPACE.ROOMS,
             SCREENS.WORKSPACE.REPORTS,
             SCREENS.WORKSPACE.ACCOUNTING.ROOT,
@@ -585,5 +609,94 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.icon).toBe(icons.Bolt);
         expect(items.find((item) => item.translationKey === 'workspace.common.invoices')?.badgeText).toBe('$1.23');
         expect(convertToDisplayString).toHaveBeenCalledWith(123, policy.outputCurrency);
+    });
+});
+
+describe('getWorkspaceMenuItems with the unified Connections beta', () => {
+    it('replaces the separate integration rows with a single Connections row', () => {
+        // Given an admin on a workspace with every integration feature turned on
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areConnectionsEnabled: true,
+            isHREnabled: true,
+            isRecruitingEnabled: true,
+            receiptPartners: {enabled: true},
+            isMCPEnabled: true,
+        });
+
+        // When the Workspace menu is built with the beta on
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            isRecruitingBetaEnabled: true,
+            isUnifiedConnectionsBetaEnabled: true,
+            convertToDisplayString: () => '',
+        });
+
+        // Then the integrations are reached from one Connections row, which also owns the old pages' screens so their links stay in the menu
+        const connectionsItem = items.find((item) => item.translationKey === 'workspace.common.connections');
+        expect(connectionsItem?.getRoute()).toBe(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policy.id));
+        expect(connectionsItem?.aliasScreenNames).toEqual([
+            SCREENS.WORKSPACE.ACCOUNTING.ROOT,
+            SCREENS.WORKSPACE.HR,
+            SCREENS.WORKSPACE.RECRUITING,
+            SCREENS.WORKSPACE.RECEIPT_PARTNERS,
+            SCREENS.WORKSPACE.MCP,
+        ]);
+        const translationKeys = items.map((item) => item.translationKey);
+        for (const replacedKey of [
+            'workspace.common.accounting',
+            'workspace.common.hr',
+            'workspace.common.recruiting',
+            'workspace.common.receiptPartners',
+            'workspace.common.mcp',
+        ] as const) {
+            expect(translationKeys).not.toContain(replacedKey);
+        }
+    });
+
+    it('shows the Connections row even when no integration feature is enabled', () => {
+        // Given an admin on a workspace that has none of the integration features turned on
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areConnectionsEnabled: false,
+            isHREnabled: false,
+            isRecruitingEnabled: false,
+            receiptPartners: {enabled: false},
+        });
+
+        // When the Workspace menu is built with the beta on
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            isUnifiedConnectionsBetaEnabled: true,
+            convertToDisplayString: () => '',
+        });
+
+        // Then the row is still there, because connecting an integration turns its feature on
+        expect(items.find((item) => item.translationKey === 'workspace.common.connections')?.screenName).toBe(SCREENS.WORKSPACE.CONNECTIONS);
+    });
+
+    it("surfaces each replaced row's indicator on the Connections row", () => {
+        // Given a workspace whose receipt partner credentials need attention
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), receiptPartners: {enabled: true}});
+
+        // When the Workspace menu is built with the beta on
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            shouldShowEnterCredentialsError: true,
+            isUnifiedConnectionsBetaEnabled: true,
+            convertToDisplayString: () => '',
+        });
+
+        // Then the error shows on Connections, since the Receipt partners row it used to show on is gone
+        expect(items.find((item) => item.translationKey === 'workspace.common.connections')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 });

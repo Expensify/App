@@ -9,6 +9,7 @@ import type {WriteReadyBarrier} from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
@@ -28,11 +29,10 @@ import {
     buildOptimisticReportPreview,
     generateReportID,
     getChatByParticipants,
+    getChatReportFromMoneyRequestReport,
     getParsedComment,
     getReimbursableTotal,
     getReportNotificationPreference,
-    getReportOrDraftReport,
-    getReportTransactions,
     getTransactionDetails,
     getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
@@ -51,11 +51,13 @@ import {
     getUpdatedTransaction,
     isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
+    isMapDistanceRequest,
     isScanRequest as isScanRequestTransactionUtils,
 } from '@libs/TransactionUtils';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report/reportActionSubscribers';
+import {getLocallyCreatedRouteOnyxData} from '@userActions/ReusableDistanceRoutes';
 import {sanitizeWaypointsForAPI} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -162,6 +164,10 @@ type CreateDistanceRequestInformation = {
     writeBarrier?: WriteReadyBarrier;
     rules: OnyxCollection<OnyxTypes.Rule>;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    moneyRequestReportTransactions: OnyxTypes.Transaction[];
+
+    /** Current "Reuse route" list value, so the just used route can be saved locally */
+    reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
 };
 
 type CreateSplitsTransactionParams = BaseTransactionParams & {
@@ -778,7 +784,6 @@ function startSplitBill({
 
     for (const participant of participants) {
         // Disabling this line since participant.login can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const email = participant.isOwnPolicyExpenseChat ? '' : addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
         const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
@@ -801,10 +806,8 @@ function startSplitBill({
                     [accountID]: {
                         accountID,
                         // Disabling this line since participant.displayName can be an empty string
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         displayName: formatPhoneNumber(participant.displayName || email),
                         // Disabling this line since participant.login can be an empty string
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: participant.login || participant.text,
                         isOptimisticPersonalDetail: true,
                     },
@@ -948,6 +951,9 @@ function completeSplitBill({
                 receipt: {
                     state: CONST.IOU.RECEIPT_STATE.OPEN,
                 },
+                // The user filled the fields in by hand, so the receipt is no longer scanned. Mirror what the server returns
+                // so the split details page renders the manual layout while offline instead of waiting for the response.
+                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
             },
         },
         {
@@ -1909,7 +1915,6 @@ function createSplitsAndOnyxData({
                   [accountID]: {
                       accountID,
                       // Disabling this line since participant.displayName can be an empty string
-                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                       displayName: formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
@@ -2075,6 +2080,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         writeBarrier,
         rules,
         isVendorMatchingBetaEnabled,
+        moneyRequestReportTransactions,
+        reusableDistanceRoutes,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2111,7 +2118,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isManualDistanceRequest = isEmptyObject(validWaypoints);
 
@@ -2340,6 +2347,32 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         };
     }
 
+    const isMapDistance =
+        (distanceRequestType ? distanceRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP : isMapDistanceRequest(existingTransaction)) ||
+        (!distanceRequestType && !gpsCoordinates && odometerStart === undefined && odometerEnd === undefined && !isManualDistanceRequest);
+
+    if (isMapDistance && validWaypoints && reusableDistanceRoutes !== undefined) {
+        const distanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: existingTransaction, policy});
+        const effectiveDistance =
+            modifiedDistance ??
+            distance ??
+            existingTransaction?.comment?.customUnit?.quantity ??
+            (selectedRouteDistance ? Number(DistanceRequestUtils.convertDistanceUnit(selectedRouteDistance, distanceUnit).toFixed(CONST.DISTANCE_DECIMAL_PLACES)) : 0);
+
+        const reusableRouteOnyxData = getLocallyCreatedRouteOnyxData(
+            {
+                transactionID: parameters.transactionID,
+                waypoints: validWaypoints,
+                distance: effectiveDistance,
+                routeDistanceMeters: selectedRouteDistance,
+                inserted: created ?? DateUtils.getDBTime(),
+            },
+            reusableDistanceRoutes ?? [],
+        );
+        onyxData?.optimisticData?.push(...reusableRouteOnyxData.optimisticData);
+        onyxData?.failureData?.push(...reusableRouteOnyxData.failureData);
+    }
+
     if (previousOdometerDraft !== undefined && (odometerStart !== undefined || odometerEnd !== undefined)) {
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -2366,7 +2399,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
+    if (isOneToTwoTransactionTransition(isMoneyRequestReport, moneyRequestReportTransactions)) {
         addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
     }
 

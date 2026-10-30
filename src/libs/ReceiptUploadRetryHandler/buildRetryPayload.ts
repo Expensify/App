@@ -1,17 +1,19 @@
 /** Decides whether a failed receipt upload can be retried and rebuilds its `RequestMoney` call from Onyx. */
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
+import {getAllReportActions, isCreatedAction} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
-import {getAllPersonalDetails, getAllReports, getAllTransactionViolations, getCurrentUserAccountIDFromSession, getCurrentUserPersonalDetails} from '@userActions/IOU';
+import {getAllPersonalDetails, getAllReports, getAllTransactionViolations} from '@userActions/IOU';
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {getReportPreviewReportAction} from '@userActions/IOU/MoneyRequestBuilder';
 import type {RequestMoneyInformation} from '@userActions/IOU/MoneyRequestBuilder';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {Receipt} from '@src/types/onyx/Transaction';
+import type {Receipt, ReceiptError} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -41,12 +43,8 @@ function isRetryableFlow(context: ReceiptRetryContext): boolean {
     return !transaction.receipt?.isTestReceipt && !transaction.receipt?.isTestDriveReceipt;
 }
 
-function getCurrentUserAccountID(): number {
-    return getCurrentUserPersonalDetails()?.accountID ?? getCurrentUserAccountIDFromSession();
-}
-
-function resolveParticipant(iouReport: OnyxEntry<Report>): Participant | undefined {
-    const participants = getMoneyRequestParticipantsFromReport(iouReport, getCurrentUserAccountID());
+function resolveParticipant(iouReport: OnyxEntry<Report>, currentUserAccountID: number): Participant | undefined {
+    const participants = getMoneyRequestParticipantsFromReport(iouReport, currentUserAccountID);
     if (participants.length !== 1) {
         return undefined;
     }
@@ -59,6 +57,16 @@ function resolveParticipant(iouReport: OnyxEntry<Report>): Participant | undefin
     const login = getAllPersonalDetails()[participant.accountID]?.login;
     return login ? {...participant, login} : undefined;
 }
+function parseRetryParams(retryParams: ReceiptError['retryParams']): unknown {
+    if (typeof retryParams !== 'string') {
+        return retryParams;
+    }
+    try {
+        return JSON.parse(retryParams);
+    } catch {
+        return undefined;
+    }
+}
 
 function getMerchantForRetry(merchant: string | undefined): string {
     if (!merchant || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
@@ -67,13 +75,39 @@ function getMerchantForRetry(merchant: string | undefined): string {
     return merchant;
 }
 
+function buildRetryTransactionParams(context: ReceiptRetryContext, receiptFile: FileObject) {
+    const {transaction} = context;
+    const details = getTransactionDetails(transaction);
+    if (!transaction || !details) {
+        return undefined;
+    }
+    const receipt: Receipt = {...receiptFile, source: context.receiptError.source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY};
+
+    return {
+        amount: details.amount,
+        currency: details.currency,
+        created: details.created,
+        merchant: getMerchantForRetry(details.merchant),
+        comment: details.comment,
+        category: details.category,
+        tag: details.tag,
+        taxCode: details.taxCode,
+        taxAmount: details.taxAmount,
+        billable: details.billable,
+        reimbursable: details.reimbursable,
+        attendees: transaction.comment?.attendees,
+        isFromGlobalCreate: getIsFromGlobalCreate(transaction),
+        receipt,
+    };
+}
+
 /** Checks the action here too, not only in `retryReceiptUpload`, so the button is hidden instead of doing nothing. */
 function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
-    const {transaction, iouReport, receiptError} = context;
+    const {transaction, iouReport, receiptError, currentUserPersonalDetails} = context;
     if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST) {
         return false;
     }
-    return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport);
+    return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport, currentUserPersonalDetails.accountID);
 }
 
 /** Rebuilds the `RequestMoney` call behind a failed receipt upload from the records the failure left in Onyx. */
@@ -93,48 +127,33 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         delegateAccountID,
         formatPhoneNumber,
         getCurrencyDecimals,
+        currentUserPersonalDetails: currentUser,
     } = context;
-    const participant = resolveParticipant(iouReport);
+    const participant = resolveParticipant(iouReport, currentUser.accountID);
     if (!canBuildRetryPayload(context) || !transaction || !iouReport || !participant) {
         return undefined;
     }
 
-    const currentUser = getCurrentUserPersonalDetails();
-    const details = getTransactionDetails(transaction);
-    if (!details) {
+    const transactionParams = buildRetryTransactionParams(context, receiptFile);
+    if (!transactionParams) {
         return undefined;
     }
-    const receipt: Receipt = {...receiptFile, source: context.receiptError.source, state: CONST.IOU.RECEIPT_STATE.SCAN_READY};
 
     return {
         report: iouReport,
         participantParams: {
-            payeeEmail: currentUser?.login,
-            payeeAccountID: getCurrentUserAccountID(),
+            payeeEmail: currentUser.login,
+            payeeAccountID: currentUser.accountID,
             participant,
         },
         policyParams,
-        transactionParams: {
-            amount: details.amount,
-            currency: details.currency,
-            created: details.created,
-            merchant: getMerchantForRetry(details.merchant),
-            comment: details.comment,
-            category: details.category,
-            tag: details.tag,
-            taxCode: details.taxCode,
-            taxAmount: details.taxAmount,
-            billable: details.billable,
-            reimbursable: details.reimbursable,
-            // Read from the transaction because `details` widens this to `string | Attendee[]`.
-            attendees: transaction.comment?.attendees,
-            isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-            receipt,
-        },
+        transactionParams,
         // Same ID, so if the first attempt reached Auth the retry gets `Transaction already created.` instead of a second expense.
         optimisticTransactionID: transaction.transactionID,
         optimisticIOUReportID: iouReport.reportID,
         optimisticChatReportID: iouReport.chatReportID,
+        optimisticReportPreviewActionID: getReportPreviewReportAction(iouReport.chatReportID, iouReport.reportID)?.reportActionID ?? iouReport.parentReportActionID,
+        optimisticIOUCreatedReportActionID: Object.values(getAllReportActions(iouReport.reportID)).find((action) => isCreatedAction(action))?.reportActionID,
         // Without these two, the retry creates a second IOU action and thread for the same transaction.
         currentReportActionID: iouActionID,
         existingTransactionThreadReportID: transactionThreadReportID,
@@ -152,8 +171,8 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         delegateAccountID,
-        currentUserAccountIDParam: getCurrentUserAccountID(),
-        currentUserEmailParam: currentUser?.login ?? '',
+        currentUserAccountIDParam: currentUser.accountID,
+        currentUserEmailParam: currentUser.login ?? '',
         quickAction: undefined,
         policyRecentlyUsedCurrencies: [],
         formatPhoneNumber,
@@ -162,4 +181,4 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
 }
 
 export default buildRetryPayload;
-export {canBuildRetryPayload};
+export {buildRetryTransactionParams, canBuildRetryPayload, isRetryableFlow, parseRetryParams, resolveParticipant};

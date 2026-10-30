@@ -2,8 +2,6 @@ import {isSafari} from '@libs/Browser';
 
 import CONST from '@src/CONST';
 
-import type {KebabCase} from 'type-fest';
-
 import {Str} from 'expensify-common';
 import deburr from 'lodash/deburr';
 
@@ -229,25 +227,21 @@ function camelToHyphenCase(str: string) {
     return str.replaceAll(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
 }
 
-/**
- * Converts a string to lowercase.
- * In addition to the standard toLowerCase behavior, this function ensures
- * that if a const string is provided, it is not converted to a primitive type.
- */
-function toLowerCase<T extends string>(str: T) {
-    return str.toLowerCase() as Lowercase<T>;
-}
-
-/**
- * Converts camelCase string to kebab-case format.
- */
-function camelToKebabCase<T extends string>(str: T) {
-    return str.replaceAll(/([a-z])([A-Z])/g, '$1-$2').toLowerCase() as KebabCase<T>;
-}
-
 /** Escapes special regex characters in a string so it can be used as a literal pattern in a RegExp. */
 function escapeRegExp(str: string): string {
     return str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Cuts a string to at most maxLength UTF-16 code units, without splitting a surrogate pair (for example an emoji) in half.
+ */
+function truncate(str: string, maxLength: number): string {
+    if (str.length <= maxLength) {
+        return str;
+    }
+    const lastCharCode = str.charCodeAt(maxLength - 1);
+    const isHighSurrogate = lastCharCode >= 0xd800 && lastCharCode <= 0xdbff;
+    return str.slice(0, isHighSurrogate ? maxLength - 1 : maxLength);
 }
 
 export default {
@@ -272,7 +266,6 @@ export default {
     countWhiteSpaces,
     startsWithVowel,
     camelToHyphenCase,
-    camelToKebabCase,
-    toLowerCase,
     escapeRegExp,
+    truncate,
 };

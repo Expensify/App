@@ -1,8 +1,9 @@
 import cleanupPreMountedDraftReports from '@libs/cleanupPreMountedDraftReports';
-import {finishCloudflareSignInFromURL} from '@libs/CloudflareAccess/finishSignInFromURL';
+import finishCloudflareSignInFromURL from '@libs/CloudflareAccess/finishSignInFromURL';
 import intlPolyfill from '@libs/IntlPolyfill';
 import registerMiddlewares from '@libs/Middleware/register';
 import {startMainQueue} from '@libs/Network';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 
 import {setDeviceID} from '@userActions/Device';
@@ -65,6 +66,7 @@ export default function () {
             [ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED]: false,
             // Ensure the Supportal permission modal doesn't persist across reloads
             [ONYXKEYS.SUPPORTAL_PERMISSION_DENIED]: null,
+            [ONYXKEYS.BLOCKED_ROLE_CHANGE]: null,
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
             // Without a default this server-owned NVP has no row until it arrives, and its loading status holds the Search router behind a skeleton
             [ONYXKEYS.RECENT_SEARCHES]: {},
@@ -89,26 +91,34 @@ export default function () {
             ONYXKEYS.RAM_ONLY_HAS_FRESH_WALLET_DATA,
             ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED,
             ONYXKEYS.RAM_ONLY_IS_LOADING_RULES,
+            ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CARD_DATA,
             ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA,
-            ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_VENDOR_DATA,
-            ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION,
-            ONYXKEYS.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+            ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_PAGINATION,
+            ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_TAG_FILTERS_RESULTS,
+            ONYXKEYS.COLLECTION.RAM_ONLY_SEARCH_ROW_FOCUS,
             ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE,
             ONYXKEYS.RAM_ONLY_MERCHANT_RULE_SUGGESTION,
             ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE,
             ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE,
+            ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT,
             ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN,
             ONYXKEYS.RAM_ONLY_MERGE_HR_LINK_TOKEN,
+            ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK,
             ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
+            ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT,
+            ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE,
             ONYXKEYS.RAM_ONLY_HAS_DISMISSED_CONCIERGE_NOTIFICATION_BANNER,
-            ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL,
+            ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL,
+            ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS,
         ],
     });
 
     cleanupPreMountedDraftReports();
+
+    ReceiptStorage.sweepLeftovers();
 
     // The carousel's sibling list belongs to the screen that seeded it, and that ownership lives in module state
     // which dies with the JS runtime. A list that survives in storage is therefore orphaned the moment the app
@@ -124,9 +134,7 @@ export default function () {
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
 
-    // The QA auth callback arrives as a full page load, so no component is around to receive it: the code is
-    // picked up and the URL restored here, before React Navigation resolves the initial route. After
-    // Onyx.init() because a completed exchange persists the session. No-op on every other load.
+    // Must run after Onyx.init(): a completed exchange persists the session
     finishCloudflareSignInFromURL();
 
     startMainQueue();

@@ -6,9 +6,12 @@ const addCSS = (css: string, styleId: string) => {
     const existingStyle = document.getElementById(styleId);
 
     if (existingStyle) {
-        if ('styleSheet' in existingStyle && typeof existingStyle.styleSheet === 'object' && existingStyle.styleSheet !== null && 'cssText' in existingStyle.styleSheet) {
+        if ('styleSheet' in existingStyle) {
             // Supports IE8 and below
-            existingStyle.styleSheet.cssText = css;
+            const {styleSheet} = existingStyle;
+            if (typeof styleSheet === 'object' && styleSheet !== null && 'cssText' in styleSheet) {
+                styleSheet.cssText = css;
+            }
         } else {
             existingStyle.innerHTML = css;
         }
@@ -17,9 +20,12 @@ const addCSS = (css: string, styleId: string) => {
         styleElement.setAttribute('id', styleId);
         styleElement.setAttribute('type', 'text/css');
 
-        if ('styleSheet' in styleElement && typeof styleElement.styleSheet === 'object' && styleElement.styleSheet !== null && 'cssText' in styleElement.styleSheet) {
+        if ('styleSheet' in styleElement) {
             // Supports IE8 and below
-            styleElement.styleSheet.cssText = css;
+            const {styleSheet} = styleElement;
+            if (typeof styleSheet === 'object' && styleSheet !== null && 'cssText' in styleSheet) {
+                styleSheet.cssText = css;
+            }
         } else {
             styleElement.appendChild(document.createTextNode(css));
         }

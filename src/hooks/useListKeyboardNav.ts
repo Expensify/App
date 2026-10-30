@@ -1,3 +1,5 @@
+import isHTMLElement from '@libs/isHTMLElement';
+
 import type {ComponentRef} from 'react';
 import type React from 'react';
 import type {View} from 'react-native';
@@ -45,14 +47,14 @@ function useListKeyboardNav<T extends ComponentRef<typeof View> | HTMLElement>({
             return;
         }
         const container = containerRef.current;
-        if (!container || !('addEventListener' in container)) {
+        if (!isHTMLElement(container)) {
             return;
         }
         const handleFocusIn = (event: FocusEvent) => {
             setHasBeenFocused(true);
             setHasFocus(true);
             const target = event.target;
-            if (target instanceof Element && target.id) {
+            if (typeof Element !== 'undefined' && target instanceof Element && target.id) {
                 const index = itemKeysRef.current.indexOf(target.id);
                 if (index >= 0) {
                     setFocusedIndex(index);

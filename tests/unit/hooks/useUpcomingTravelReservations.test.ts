@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {Pnr, PnrData, PnrTraveler} from '@src/types/onyx/TripData';
 
+import unset from 'lodash/unset';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -425,7 +426,7 @@ function makeTripRoomReport(reportID: string, ownerAccountID: number = TEST_ACCO
     } as Report;
 }
 
-function makeTraveler(email?: string): PnrData['travelers'][number] {
+function makeTraveler(email?: string): NonNullable<PnrData['travelers']>[number] {
     return {
         travelerPersonalInfo: {loyaltyInfos: []},
         user: email ? {email, addresses: [], identityDocs: [], paymentInfos: [], phoneNumbers: []} : undefined,
@@ -716,6 +717,36 @@ describe('useUpcomingTravelReservations', () => {
         await waitFor(() => {
             expect(result.current).toEqual([]);
         });
+    });
+
+    it.each(['travelers', 'travelers.0.user', 'airPnr.legs.0.flights.0.departureDateTime', 'airPnr.legs.0.flights.0.duration'])('should tolerate missing %s', async (field) => {
+        // Given an incomplete booking and a valid upcoming booking in separate trip rooms
+        const validPnr = makeAirPnr('PNR_VALID', daysFromNow(2), daysFromNow(2, 15));
+        const incompletePnr = makeAirPnr('PNR_INCOMPLETE', daysFromNow(1), daysFromNow(1, 15));
+        const incompleteTrip = makeTripRoomReportNameValuePairs('851', [incompletePnr]);
+        const incompleteData = incompleteTrip.tripData?.payload?.pnrs.at(0)?.data;
+        expect(incompleteData).toBeDefined();
+        unset(incompleteData, field);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}851`, makeTripRoomReport('851'));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}852`, makeTripRoomReport('852'));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}851`, incompleteTrip);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}852`, makeTripRoomReportNameValuePairs('852', [validPnr]));
+        await waitForBatchedUpdates();
+
+        // When the Home page selects upcoming travel using the actual Onyx data and reservation parser
+        const {result} = renderHook(() => useUpcomingTravelReservations());
+
+        // Then the valid booking stays visible, and missing durations do not hide otherwise valid bookings
+        await waitFor(() => {
+            expect(result.current).toHaveLength(field.endsWith('duration') ? 2 : 1);
+        });
+        expect(result.current.find((item) => item.reservation.reservationID === validPnr.pnrId)).toBeDefined();
+        const incompleteBooking = result.current.find((item) => item.reservation.reservationID === incompletePnr.pnrId);
+        if (field.endsWith('duration')) {
+            expect(incompleteBooking?.reservation.duration).toBe(0);
+        } else {
+            expect(incompleteBooking).toBeUndefined();
+        }
     });
 
     it('should return empty when all trips belong to other users', async () => {

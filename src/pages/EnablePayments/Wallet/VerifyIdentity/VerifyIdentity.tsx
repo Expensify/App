@@ -24,7 +24,7 @@ import {updateCurrentStep} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const ONFIDO_ERROR_DISPLAY_DURATION = 10000;
@@ -35,23 +35,23 @@ function VerifyIdentity() {
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const [walletOnfidoData] = useOnyx(ONYXKEYS.RAM_ONLY_WALLET_ONFIDO);
 
-    const handleOnfidoSuccess = useCallback(
-        (onfidoData: OnfidoData) => {
-            verifyIdentity({
-                onfidoData: JSON.stringify({
-                    ...onfidoData,
-                    applicantID: walletOnfidoData?.applicantID,
-                }),
-            });
-            updateAddPersonalBankAccountDraft({isOnfidoSetupComplete: true});
-        },
-        [walletOnfidoData?.applicantID],
-    );
+    const handleOnfidoSuccess = (onfidoData: OnfidoData) => {
+        verifyIdentity({
+            onfidoData: JSON.stringify({
+                ...onfidoData,
+                applicantID: walletOnfidoData?.applicantID,
+            }),
+        });
+        updateAddPersonalBankAccountDraft({isOnfidoSetupComplete: true});
+    };
 
     const onfidoError = getLatestErrorMessage(walletOnfidoData) ?? '';
 
+    // Onfido is initialized only once on mount, so wait for a usable token instead of starting it with an empty one
+    const shouldShowOnfido = walletOnfidoData?.hasAcceptedPrivacyPolicy && !walletOnfidoData?.isLoading && !walletOnfidoData?.errors && !!walletOnfidoData?.sdkToken;
+
     const handleOnfidoError = () => {
-        Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
+        Growl.error({bodyText: translate('onfidoStep.genericError'), duration: ONFIDO_ERROR_DISPLAY_DURATION});
     };
 
     const goBack = () => {
@@ -73,7 +73,7 @@ function VerifyIdentity() {
             </View>
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={styles.flex1}>
-                    {walletOnfidoData?.hasAcceptedPrivacyPolicy ? (
+                    {shouldShowOnfido ? (
                         <Onfido
                             sdkToken={walletOnfidoData?.sdkToken ?? ''}
                             onUserExit={goBack}

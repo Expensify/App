@@ -1,3 +1,4 @@
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 
 import {updateGustoFinalApprover} from '@libs/actions/connections/Gusto';
@@ -5,11 +6,11 @@ import {isGustoConnected} from '@libs/merge/HRUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
+import {getHRSettingsRoute} from '@pages/workspace/connections/utils';
 import MergeFinalApproverPageBase from '@pages/workspace/merge/MergeFinalApproverPageBase';
 import type {MergeFinalApproverProviderConfig} from '@pages/workspace/merge/MergeFinalApproverPageBase';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -22,12 +23,13 @@ function GustoFinalApproverPage({
     },
 }: GustoFinalApproverPageProps) {
     const {translate} = useLocalize();
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
 
     const config: MergeFinalApproverProviderConfig = {
         testID: 'GustoFinalApproverPage',
         isConnected: isGustoConnected,
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-        backRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
+        backRoute: getHRSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID),
         getCurrentFinalApprover: (policy) => policy?.connections?.gusto?.config?.finalApprover ?? null,
         getProviderName: () => translate('workspace.hr.gusto.title'),
         getHeaderTitle: () => translate('workspace.merge.finalApprover'),

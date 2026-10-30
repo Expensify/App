@@ -1,86 +1,86 @@
-import {render} from '@testing-library/react-native';
+/** Exercises writable DOM scrolling and the native input boundary. */
+import type * as InputUtilsModule from '@libs/InputUtils/index';
+import {scrollToBottom as scrollNativeToBottom, scrollToRight as scrollNativeToRight} from '@libs/InputUtils/index.native';
+import type {ScrollInput} from '@libs/InputUtils/types';
 
-import {moveSelectionToEnd, scrollToBottom, scrollToRight} from '@libs/InputUtils';
-import type * as InputUtilsModule from '@libs/InputUtils';
+import type {TextInput} from 'react-native';
 
-import {createElement, createRef} from 'react';
-import {TextInput} from 'react-native';
+import createMock from '../utils/createMock';
 
-// Jest prefers index.native.ts, so load the web implementation for DOM scrolling.
-jest.mock('@libs/InputUtils', () => jest.requireActual<typeof InputUtilsModule>('@libs/InputUtils/index.ts'));
+const {moveSelectionToEnd, scrollToBottom, scrollToRight} = jest.requireActual<typeof InputUtilsModule>('@libs/InputUtils/index.ts');
 
 describe('InputUtils', () => {
-    it('leaves a native TextInput without DOM scroll properties alone', () => {
-        // Given a mounted native TextInput ref without DOM scrolling capabilities
-        const ref = createRef<TextInput>();
-        const screen = render(createElement(TextInput, {ref}));
-        const input = ref.current;
-        expect(input).not.toBeNull();
-        if (!input) {
-            screen.unmount();
-            return;
-        }
-        // When the web scroll helpers receive the native ref
-        // Then they return without adding DOM scroll properties
-        expect(() => scrollToBottom(input)).not.toThrow();
-        expect(() => scrollToRight(input)).not.toThrow();
-        expect('scrollTop' in input).toBe(false);
-        expect('scrollLeft' in input).toBe(false);
-        screen.unmount();
-    });
-    it('scrolls DOM inputs to their vertical and horizontal limits', () => {
-        // Given an input with nonzero offsets and scroll dimensions
-        const input = document.createElement('input');
-        input.scrollTop = 4;
-        input.scrollLeft = 7;
-        Object.defineProperties(input, {scrollHeight: {value: 90}, scrollWidth: {value: 120}});
-        // When both scroll operations run
+    it.each(['input', 'textarea', 'div'] as const)('scrolls an actual %s to its bottom and right edges', (tagName) => {
+        // Given RN Web inputs/textarea elements and live-markdown divs expose writable scroll offsets.
+        const input = document.createElement(tagName);
+        Object.defineProperties(input, {scrollHeight: {value: 120}, scrollWidth: {value: 230}});
+
+        // When both existing scrolling operations execute against the host node.
         scrollToBottom(input);
         scrollToRight(input);
-        // Then each offset equals its own dimension
-        expect(input.scrollTop).toBe(90);
-        expect(input.scrollLeft).toBe(120);
+
+        // Then each operation uses its own dimension, including the markdown and multiline producers.
+        expect(input.scrollTop).toBe(120);
+        expect(input.scrollLeft).toBe(230);
     });
 
-    it('scrolls multiline web TextInput textarea hosts to both limits', () => {
-        // Given the textarea host produced by a multiline React Native Web TextInput
-        const textarea = document.createElement('textarea');
-        textarea.scrollTop = 4;
-        textarea.scrollLeft = 7;
-        Object.defineProperties(textarea, {scrollHeight: {value: 90}, scrollWidth: {value: 120}});
-        // When both scroll operations run on that web host
-        // @ts-expect-error -- The native TextInput ref type omits its runtime web textarea host.
-        scrollToBottom(textarea);
-        // @ts-expect-error -- The native TextInput ref type omits its runtime web textarea host.
-        scrollToRight(textarea);
-        // Then each offset equals its own dimension
-        expect(textarea.scrollTop).toBe(90);
-        expect(textarea.scrollLeft).toBe(120);
-    });
-
-    it('preserves zero scroll dimensions', () => {
-        // Given an input with zero scroll dimensions and old offsets
+    it('assigns zero dimensions instead of retaining a prior scroll offset', () => {
+        // Given an emptied input still has offsets from its previous content.
         const input = document.createElement('input');
-        input.scrollTop = 4;
-        input.scrollLeft = 7;
-        Object.defineProperties(input, {scrollHeight: {value: 0}, scrollWidth: {value: 0}});
-        // When both scroll operations run
+        input.scrollTop = 12;
+        input.scrollLeft = 34;
+
+        // When the current dimensions are zero.
         scrollToBottom(input);
         scrollToRight(input);
-        // Then zero is assigned, rather than treated as an absent capability
+
+        // Then zero is a real assignment, not an absent dimension.
         expect(input.scrollTop).toBe(0);
         expect(input.scrollLeft).toBe(0);
     });
 
-    it('moves the DOM selection to the end of its value', () => {
-        // Given an input with a selection before the end
+    it('does not write getter-only native scroll fields or scroll in the native sibling', () => {
+        // Given ReactNativeElement inherits getter-only scroll fields from ReadOnlyElement.
+        const nativeInput = createMock<TextInput>({
+            get scrollTop() {
+                return 11;
+            },
+            get scrollLeft() {
+                return 22;
+            },
+            scrollHeight: 120,
+            scrollWidth: 230,
+        });
+        const input: Parameters<ScrollInput>[0] = nativeInput;
+
+        // When property presence could otherwise admit a native ref into DOM scrolling.
+        expect(() => {
+            scrollToBottom(input);
+            scrollToRight(input);
+            scrollNativeToBottom(input);
+            scrollNativeToRight(input);
+        }).not.toThrow();
+
+        // Then no native write occurs despite the fields being present.
+        expect(nativeInput.scrollTop).toBe(11);
+        expect(nativeInput.scrollLeft).toBe(22);
+    });
+
+    it('moves an input selection to its end and leaves native selection alone', () => {
+        // Given the existing selection operation owns only setSelectionRange inputs.
         const input = document.createElement('input');
         input.value = 'hello';
-        input.setSelectionRange(1, 2);
-        // When the selection helper runs
+        input.setSelectionRange(0, 2);
+        const setSelection = jest.fn<ReturnType<TextInput['setSelection']>, Parameters<TextInput['setSelection']>>();
+        const nativeInput = createMock<TextInput>({setSelection});
+
+        // When selection-to-end runs on each supported category.
         moveSelectionToEnd(input);
-        // Then both endpoints move to the value length
+        moveSelectionToEnd(nativeInput);
+
+        // Then the DOM caret moves to the exact text length without a native dispatch.
         expect(input.selectionStart).toBe(5);
         expect(input.selectionEnd).toBe(5);
+        expect(setSelection).not.toHaveBeenCalled();
     });
 });

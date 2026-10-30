@@ -6,14 +6,15 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getWorkflowApprovalsUnavailable, isAutoPayApprovedReportsAvailable, isControlPolicy} from '@libs/PolicyUtils';
+import {arePaymentsEnabled, getWorkflowApprovalsUnavailable, isAutoPayApprovedReportsAvailable, isControlPolicy} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
+import {enableAutoApprovalOptions, enablePolicyAutoReimbursementLimit, setPolicyPreventPayoutNonReimbursableReports, setPolicyPreventSelfApproval} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -31,11 +32,13 @@ type ExpenseReportRulesSectionProps = {
 function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayments, withApprovalsReadOnlyFallback, withPaymentsReadOnlyFallback}: ExpenseReportRulesSectionProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const autoPayApprovedReportsUnavailable = !isAutoPayApprovedReportsAvailable(policy);
+    const paymentsUnavailable = !arePaymentsEnabled(policy);
     // Auto-pay that is already on (e.g. kept after a downgrade) stays usable so admins can still turn it off.
     // Users who can't write payments (e.g. on an archived workspace) can't upgrade either, so they don't get the upgrade link.
     const autoPayApprovedReportsRequiresUpgrade = canWritePayments && !isControlPolicy(policy) && !policy?.shouldShowAutoReimbursementLimitOption;
@@ -84,8 +87,20 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     return;
                 }
 
-                setPolicyPreventSelfApproval(policyID, isEnabled, policy?.preventSelfApproval);
+                setPolicyPreventSelfApproval(policyID, isEnabled, policy?.preventSelfApproval, getReviewWorkspaceSettingsTaskCompletion());
             },
+        },
+        {
+            title: translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsTitle'),
+            subtitle: translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsSubtitle'),
+            shouldParseSubtitle: false,
+            switchAccessibilityLabel: translate('workspace.rules.expenseReportRules.preventPayoutNonReimbursableReportsTitle'),
+            isActive: policy?.preventPayoutNonReimbursableReports && !paymentsUnavailable,
+            disabled: paymentsUnavailable || !canWritePayments,
+            disabledAction: withPaymentsReadOnlyFallback(),
+            showLockIcon: paymentsUnavailable || !canWritePayments,
+            pendingAction: policy?.pendingFields?.preventPayoutNonReimbursableReports ?? policy?.pendingAction,
+            onToggle: (isEnabled: boolean) => setPolicyPreventPayoutNonReimbursableReports(policyID, isEnabled, policy?.preventPayoutNonReimbursableReports),
         },
         {
             title: translate('workspace.rules.expenseReportRules.autoApproveCompliantReportsTitle'),
@@ -108,7 +123,7 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                 }
 
                 const effectiveIsActive = !!policy?.shouldShowAutoApprovalOptions || (policy?.autoApproval?.limit ?? 0) > 0;
-                enableAutoApprovalOptions(policyID, isEnabled, effectiveIsActive, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate);
+                enableAutoApprovalOptions(policyID, isEnabled, effectiveIsActive, policy?.autoApproval?.limit, policy?.autoApproval?.auditRate, getReviewWorkspaceSettingsTaskCompletion());
             },
             subMenuItems: [
                 <OfflineWithFeedback
@@ -152,7 +167,13 @@ function ExpenseReportRulesSection({policyID, canWriteApprovals, canWritePayment
                     return;
                 }
 
-                enablePolicyAutoReimbursementLimit(policyID, isEnabled, policy?.shouldShowAutoReimbursementLimitOption, policy?.autoReimbursement?.limit);
+                enablePolicyAutoReimbursementLimit(
+                    policyID,
+                    isEnabled,
+                    policy?.shouldShowAutoReimbursementLimitOption,
+                    policy?.autoReimbursement?.limit,
+                    getReviewWorkspaceSettingsTaskCompletion(),
+                );
             },
             // Leave the switch pressable on non-Control workspaces so it can route to the upgrade page.
             disabled: (!autoPayApprovedReportsRequiresUpgrade && autoPayApprovedReportsUnavailable) || !canWritePayments,

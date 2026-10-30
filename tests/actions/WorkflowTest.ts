@@ -15,6 +15,7 @@ import {
     setApprovalWorkflowApprover,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
+    validateApprovalWorkflow,
 } from '@src/libs/actions/Workflow';
 import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
@@ -24,6 +25,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     extractSubmitterEmails,
     getApprovalWorkflowRulesForPolicy,
+    getApproverPendingActionByMemberEmail,
 } from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
@@ -190,7 +192,105 @@ describe('actions/Workflow', () => {
         });
     });
 
+    describe('validateApprovalWorkflow', () => {
+        const removedApprover: Approver = {email: 'removed@example.com', displayName: 'removed@example.com', isNotWorkspaceMember: true};
+
+        it('should block saving a workflow whose approver is no longer a workspace member', async () => {
+            // Given a custom workflow whose only approver was removed from the workspace
+            const approvalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [removedApprover],
+            };
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+
+            // When the admin tries to save it
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then the save is blocked and the approver shows the error offering to replace them or delete the workflow
+            expect(isValid).toBe(false);
+            const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            expect(workflowState?.errors?.['approver-0']).toBe('workflowsPage.approverNotWorkspaceMember');
+        });
+
+        it('should not offer deleting the default workflow when its approver is no longer a workspace member', async () => {
+            // Given the default workflow, whose approver was removed from the workspace
+            const approvalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                isDefault: true,
+                approvers: [removedApprover],
+            };
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+
+            // When the admin tries to save it
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then the save is blocked, and since the default workflow can't be deleted the error only asks for a new approver
+            expect(isValid).toBe(false);
+            const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            expect(workflowState?.errors?.['approver-0']).toBe('workflowsPage.defaultWorkflowApproverNotWorkspaceMember');
+        });
+
+        it('should block saving a workflow whose additional approver for reports over the limit is no longer a workspace member', async () => {
+            // Given a workflow whose approver is a member, but whose reports over the limit go to someone who was removed
+            const approvalWorkflow: ApprovalWorkflowOnyx = {
+                ...INITIAL_APPROVAL_WORKFLOW,
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: ownerEmail, displayName: ownerEmail, approvalLimit: 1000, overLimitForwardsTo: 'removed@example.com', isOverLimitForwardsToNotWorkspaceMember: true}],
+            };
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
+
+            // When the admin tries to save it
+            const isValid = validateApprovalWorkflow(approvalWorkflow);
+            await waitForBatchedUpdates();
+
+            // Then the save is blocked and the approver shows the error asking for a new additional approver
+            expect(isValid).toBe(false);
+            const workflowState = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+            expect(workflowState?.errors?.['approver-0']).toBe('workflowsPage.overLimitApproverNotWorkspaceMember');
+        });
+    });
+
     describe('setApprovalWorkflowApprover', () => {
+        it('should clear the over-limit flag once a member is picked as the additional approver', async () => {
+            // Given an approver whose reports over the limit go to someone no longer on the workspace
+            const removedEmail = 'removed@example.com';
+            const flaggedApprover: Approver = {
+                email: ownerEmail,
+                displayName: ownerEmail,
+                approvalLimit: 1000,
+                overLimitForwardsTo: removedEmail,
+                isOverLimitForwardsToNotWorkspaceMember: true,
+            };
+            const currentApprovalWorkflow: ApprovalWorkflowOnyx = {...INITIAL_APPROVAL_WORKFLOW, approvers: [flaggedApprover]};
+            await Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
+            const policy = createMock<PolicyType>({
+                id: generatePolicyID(),
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, role: 'user', submitsTo: ownerEmail},
+                },
+            });
+
+            // When the admin picks a member as the new additional approver
+            setApprovalWorkflowApprover({
+                approver: {...flaggedApprover, overLimitForwardsTo: employee1Email},
+                approverIndex: 0,
+                policy,
+                currentApprovalWorkflow,
+                personalDetailsByEmail: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the approver is no longer flagged, so the workflow can be saved
+            const approvalWorkflow = await getApprovalWorkflowState();
+            expect(approvalWorkflow?.approvers.at(0)?.overLimitForwardsTo).toBe(employee1Email);
+            expect(approvalWorkflow?.approvers.at(0)?.isOverLimitForwardsToNotWorkspaceMember).toBeFalsy();
+        });
+
         it('should add an approver at an empty index', async () => {
             mockFetch.pause();
 
@@ -573,6 +673,57 @@ describe('actions/Workflow', () => {
     });
 
     describe('removeApprovalWorkflow', () => {
+        it('should optimistically point the removed workflow members at the default approver instead of leaving submitsTo empty', async () => {
+            mockFetch.pause();
+
+            // Given a policy whose default approver is not the owner, so the test also proves the value comes from
+            // `getDefaultApprover` rather than falling back to the owner
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: employee2Email,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: employee2Email},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: 'user', submitsTo: employee2Email},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: 'user', submitsTo: employee1Email},
+                },
+            });
+
+            // The non-default workflow being removed: employee3 submits to employee1
+            const approvalWorkflow = {
+                members: [{email: employee3Email, displayName: employee3Email}],
+                approvers: [{email: employee1Email, displayName: employee1Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [employee2Email],
+                isDefault: false,
+                action: 'remove',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When removing that workflow while the request is still in flight
+            removeApprovalWorkflow(approvalWorkflow, policy);
+            await waitForBatchedUpdates();
+
+            // Then the member reads as submitting to the default approver rather than to nobody. Storing the empty
+            // string the request carries would blank this member's approver until the response lands, and for as long
+            // as the user stays offline.
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee3Email]?.submitsTo).toBe(employee2Email);
+            expect(updatedPolicy?.employeeList?.[employee3Email]?.pendingFields?.submitsTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('should keep ADVANCED approval mode when default approver has forwardsTo chain', async () => {
             mockFetch.pause();
 
@@ -779,6 +930,60 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
         });
+
+        it('should drop to BASIC mode without sending the non-member when a workflow whose approver left the workspace is deleted', async () => {
+            mockFetch.pause();
+
+            // Given an ADVANCED policy where employee3 still submits to someone no longer on the workspace
+            const removedApproverEmail = 'removed@gmail.com';
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: 'admin', submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: 'user', submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: 'user', submitsTo: removedApproverEmail},
+                },
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When the admin deletes the flagged workflow shown on the Workflows page
+            const {approvalWorkflows} = convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails: {}, localeCompare: (a: string, b: string) => a.localeCompare(b)});
+            const brokenWorkflow = approvalWorkflows.find((workflow) => workflow.approvers.at(0)?.isNotWorkspaceMember);
+            expect(brokenWorkflow?.members.map((member) => member.email)).toEqual([employee3Email]);
+            if (!brokenWorkflow) {
+                return;
+            }
+            removeApprovalWorkflow(brokenWorkflow, policy);
+            await waitForBatchedUpdates();
+
+            // Then the workspace drops to BASIC, the member is shown submitting to the default approver, and the
+            // request carries no entry for the non-member approver. The request itself clears `submitsTo`, which the
+            // backend resolves to that same approver, so the optimistic copy states the resolved value.
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+            expect(updatedPolicy?.employeeList?.[employee3Email]?.submitsTo).toBe(ownerEmail);
+            expect(updatedPolicy?.employeeList?.[removedApproverEmail]).toBeUndefined();
+
+            const requestBody = getFetchMockCalls(WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL).at(0)?.[1]?.body;
+            const sentEmployees = requestBody instanceof FormData ? requestBody.get('employees') : undefined;
+            expect(typeof sentEmployees === 'string' ? sentEmployees : '').toContain(employee3Email);
+            expect(typeof sentEmployees === 'string' ? sentEmployees : '').not.toContain(removedApproverEmail);
+
+            // And once the request succeeds, the member is no longer shown as pending
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            const settledPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(settledPolicy?.employeeList?.[employee3Email]?.pendingAction).toBeFalsy();
+            expect(settledPolicy?.employeeList?.[employee3Email]?.pendingFields).toBeFalsy();
+        });
     });
 
     describe('updateApprovalWorkflow', () => {
@@ -845,6 +1050,73 @@ describe('actions/Workflow', () => {
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+
+        it('should clear pendingFields when the API fails', async () => {
+            // Given a custom workflow that two members submit to
+            const policy = createMock<Policy>({
+                id: '123456789',
+                name: 'Test Workspace',
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: '',
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: employee3Email,
+                    },
+                    [employee2Email]: {
+                        email: employee2Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: employee3Email,
+                    },
+                    [employee3Email]: {
+                        email: employee3Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                },
+            });
+
+            const approvalWorkflow = {
+                members: [{email: employee1Email, displayName: employee1Email}],
+                approvers: [{email: employee3Email, displayName: employee3Email, isCircularReference: false}],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail, employee3Email],
+                isDefault: false,
+                action: 'update',
+                originalApprovers: [{email: employee3Email}],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When a member is taken off the workflow and the backend rejects the save
+            mockFetch.fail?.();
+            updateApprovalWorkflow(approvalWorkflow, [{email: employee2Email, displayName: employee2Email}], [], policy);
+            await waitForBatchedUpdates();
+
+            // Then the rollback restores the approver and leaves nothing marked pending, so the member is not shown
+            // as mid-change for good on the surfaces that read these fields
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.submitsTo).toBe(employee3Email);
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.pendingFields).toBeFalsy();
+            expect(updatedPolicy?.employeeList?.[employee2Email]?.pendingAction).toBeFalsy();
+
+            mockFetch.succeed?.();
         });
 
         it('should keep ADVANCED approval mode when default approver has overLimitForwardsTo after removing second approver', async () => {
@@ -1644,6 +1916,74 @@ describe('actions/Workflow', () => {
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
+        });
+        it('E2E: marks a member taken out of a workflow as pending when no rule of theirs records the change', async () => {
+            mockFetch.pause();
+
+            // Given a custom workflow for employee1 and employee2 approved by employee3, on a policy whose default
+            // workflow has no rules of its own, so employeeList still routes everyone to the owner
+            const policyID = '123456789';
+            const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+            const basePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                owner: ownerEmail,
+                approver: ownerEmail,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, forwardsTo: '', role: CONST.POLICY.ROLE.ADMIN, submitsTo: ownerEmail},
+                    [employee1Email]: {email: employee1Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee2Email]: {email: employee2Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                    [employee3Email]: {email: employee3Email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo: ownerEmail},
+                },
+                rules: {},
+            };
+            await Onyx.set(policyKey, basePolicy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            const buildMember = (email: string) => ({email, displayName: email});
+            const buildApprover = (email: string) => ({email, displayName: email, isCircularReference: false});
+            const customWorkflow = {members: [buildMember(employee1Email), buildMember(employee2Email)], approvers: [buildApprover(employee3Email)], isDefault: false};
+            createApprovalWorkflowRules({
+                approvalWorkflow: customWorkflow,
+                policy: await getOnyxValue(policyKey),
+                addExpenseApprovalsTaskReport: undefined,
+                rules: await getRulesCollection(),
+            });
+            await waitForBatchedUpdates();
+
+            // When employee2 is taken out of it, falling back to the default approver
+            const policyAfterCreate = await getOnyxValue(policyKey);
+            const {approvalWorkflows} = convertApprovalWorkflowRulesToWorkflows({
+                policy: policyAfterCreate,
+                personalDetails: {},
+                localeCompare: (a: string, b: string) => a.localeCompare(b),
+                rules: getApprovalWorkflowRulesForPolicy(await getRulesCollection(), policyID),
+            });
+            updateApprovalWorkflowRules({
+                approvalWorkflow: {...customWorkflow, members: [buildMember(employee1Email)]},
+                initialApprovalWorkflow: customWorkflow,
+                policy: policyAfterCreate,
+                rules: await getRulesCollection(),
+                defaultApprovalWorkflow: approvalWorkflows.find((workflow) => workflow.isDefault),
+            });
+            await waitForBatchedUpdates();
+
+            // Then employee2 is reported as mid-change. The rules they left no longer list them and the default
+            // workflow has no rules to join, so nothing else would show their row as pending.
+            const policyAfterUpdate = await getOnyxValue(policyKey);
+            const rulesAfterUpdate = await getRulesCollection();
+            expect(policyAfterUpdate?.employeeList?.[employee2Email]?.pendingFields?.submitsTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(getApproverPendingActionByMemberEmail(policyAfterUpdate, [], rulesAfterUpdate)).toMatchObject({
+                [employee2Email]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+
+            // And the marker is cleared once the request lands
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            const settledPolicy = await getOnyxValue(policyKey);
+            expect(settledPolicy?.employeeList?.[employee2Email]?.pendingFields?.submitsTo).toBeFalsy();
         });
     });
 

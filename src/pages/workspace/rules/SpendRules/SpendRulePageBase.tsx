@@ -29,10 +29,17 @@ import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getSpendRuleFormValuesFromCardRule, getTruncatedSpendRuleSummary} from '@libs/SpendRulesUtils';
+import {
+    getEligibleSpendRuleCards,
+    getSpendRuleDraftFromGeneratedValues,
+    getSpendRuleFormValuesFromCardRule,
+    getTruncatedSpendRuleSummary,
+    hasSpendRuleMerchantRestrictions,
+} from '@libs/SpendRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
 import variables from '@styles/variables';
@@ -43,11 +50,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type SpendRulePageBaseProps = {
@@ -94,15 +102,19 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
     const isNewRule = currentRuleID === ROUTES.NEW;
     const isEditingRule = currentRuleID !== ROUTES.NEW;
     const existingRule = isEditingRule ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
-    const existingFormValues = useMemo(() => getSpendRuleFormValuesFromCardRule(existingRule), [existingRule]);
+    const existingFormValues = getSpendRuleFormValuesFromCardRule(existingRule);
 
     const [isErrorVisible, setIsErrorVisible] = useState(false);
-    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => {
-        const hasNoMerchantRestrictions = !existingFormValues?.merchantNames.length && !existingFormValues?.categories?.length;
-        return isNewRule || hasNoMerchantRestrictions;
-    });
+    const [isRestrictMerchantsOff, setIsRestrictMerchantsOff] = useState(() => !hasSpendRuleMerchantRestrictions(isNewRule ? spendRuleForm : existingFormValues));
 
     useEffect(() => () => clearDraftSpendRule(), []);
+
+    const applyGeneratedRule = (values: GeneratedRuleValues) => {
+        const eligibleCardIDs = expensifyCardSettings ? getEligibleSpendRuleCards(cardsList, expensifyCardSettings).map((card) => String(card.cardID)) : undefined;
+        const draft = getSpendRuleDraftFromGeneratedValues(values, eligibleCardIDs, spendRuleForm?.cardIDs);
+        setDraftSpendRule(draft);
+        setIsRestrictMerchantsOff(!hasSpendRuleMerchantRestrictions(draft));
+    };
 
     useEffect(() => {
         if (!isEditingRule || !existingFormValues) {
@@ -462,7 +474,19 @@ function SpendRulePageBase({policyID, ruleID, testID, upgradeBackTo}: SpendRuleP
                         shouldShowLoadingImmediatelyOnPress={false}
                         enabledWhenOffline
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                        buttonStyles={styles.flex1}
+                        buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
                         shouldRenderFooterAboveSubmit
+                        footerContent={
+                            isNewRule && (
+                                <DescribeRuleButton
+                                    policyID={policyID}
+                                    ruleType={CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_DESCRIBE}
+                                    onRuleGenerated={applyGeneratedRule}
+                                />
+                            )
+                        }
                     />
                 )}
             </ScreenWrapper>
