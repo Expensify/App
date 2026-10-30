@@ -1536,6 +1536,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
+                    filterKey === FILTER_KEYS.APPROVER ||
                     filterKey === FILTER_KEYS.TO ||
                     filterKey === FILTER_KEYS.PAID_BY ||
                     filterKey === FILTER_KEYS.FEED ||
@@ -1977,6 +1978,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
@@ -2291,6 +2293,7 @@ function getFilterDisplayValue({
 }: GetFilterDisplayValueParams) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||

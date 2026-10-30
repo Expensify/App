@@ -177,6 +177,7 @@ function MoneyRequestReceiptView({
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const reportsParentHierarchy = useReportsParentHierarchy(report?.reportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
+    const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
@@ -543,6 +544,7 @@ function MoneyRequestReceiptView({
                     isOffline,
                     isSingleTransactionView: true,
                     policy,
+                    chatReportActions: chatIOUReportActions,
                 });
                 return;
             }
