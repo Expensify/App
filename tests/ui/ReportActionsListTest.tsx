@@ -965,6 +965,25 @@ describe('ReportActionsList (body)', () => {
         expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
     });
 
+    it('covers cached offline messages until the list is positioned without waiting for OpenReport', () => {
+        // Given cached messages and an initial request that cannot finish while offline.
+        mockUseNetwork.mockReturnValue({isOffline: true});
+        mockHasOnceLoadedReportActions = false;
+        mockIsLoadingInitialReportActions = true;
+        mockShouldCallLegendListOnLoad = false;
+
+        // When the report opens before LegendList finishes positioning its cached messages.
+        renderReportActionsList();
+
+        // Then the skeleton hides the unfinished viewport until the list is ready, regardless of the queued request.
+        expect(getCapturedVisibleActions()).toHaveLength(mockReportActions.length);
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        act(() => getCapturedListProps()?.onLoad?.());
+        expect(screen.getByTestId('ReportActionsSkeletonCover')).toBeTruthy();
+        act(() => getCapturedListProps()?.onReady?.());
+        expect(screen.queryByTestId('ReportActionsSkeletonCover')).toBeNull();
+    });
+
     it('keeps the positioned list mounted when sending a message clears the linked action', async () => {
         // Given a linked message has finished its initial positioning.
         mockUseNetwork.mockReturnValue({isOffline: false});

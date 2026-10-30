@@ -223,7 +223,8 @@ function useReportActionsListScroll({
 
     const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
     // Cover every initial LegendList layout, including cached chats, until the rows are positioned.
-    const shouldShowInitialViewportSkeleton = !isOffline && (isInitialReportLoadPending || loadedInitialViewportListID !== listID);
+    // Offline reports still need their cached rows positioned, but cannot wait for OpenReport.
+    const shouldShowInitialViewportSkeleton = loadedInitialViewportListID !== listID || (!isOffline && isInitialReportLoadPending);
 
     const readyEndListIDRef = useRef<string | undefined>(undefined);
     const lastScrollMetricsRef = useRef<ReportActionsListScrollMetrics | undefined>(undefined);
