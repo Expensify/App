@@ -338,7 +338,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     showConfirmModal({
                         title: translate('workflowsPage.disablePaymentsTitle'),
                         prompt: translate('workflowsPage.disablePaymentsPrompt'),
-                        confirmText: translate('workflowsPage.disablePaymentsConfirm'),
+                        confirmText: translate('common.confirm'),
                         cancelText: translate('common.cancel'),
                         buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     }).then((result) => {

@@ -3282,12 +3282,10 @@ ${amount} für ${merchant} – ${date}`,
         makeOrTrackPaymentsTitle: 'Zahlungen',
         makeOrTrackPaymentsDescription:
             'Fügen Sie eine bevollmächtigte zahlende Person für in Expensify getätigte Zahlungen hinzu oder verfolgen Sie Zahlungen, die andernorts getätigt wurden.',
-        collectEmployeeBankDetails: 'Bankdaten der Mitarbeitenden erfassen',
-        collectEmployeeBankDetailsDescription: 'Erfassen Sie die Bankdaten Ihrer Mitarbeitenden, damit Sie ihnen Auslagen außerhalb von Expensify erstatten können.',
+        collectEmployeeBankDetails: 'Bankkontodaten erfassen',
+        collectEmployeeBankDetailsDescription: 'Erfassen Sie die Bankdaten von Workspace-Mitgliedern, damit Sie ihnen Auslagen außerhalb von Expensify erstatten können.',
         disablePaymentsTitle: 'Zahlungen deaktivieren?',
-        disablePaymentsPrompt:
-            'Für diesen Workspace sind ein Geschäftsbankkonto oder Erstattungsländer eingerichtet. Wenn Sie Zahlungen deaktivieren, erhalten Mitglieder keine Erstattungen über Expensify, bis Sie Zahlungen wieder aktivieren.',
-        disablePaymentsConfirm: 'Deaktivieren',
+        disablePaymentsPrompt: 'Dadurch wird auch die Funktion zum Erfassen von Bankkonten deaktiviert.',
         businessBankAccountCountries: 'Länder für Geschäftskonten',
         businessBankAccountCountriesDescription: 'Mitarbeitende in diesen Ländern geben lokale Überweisungsdaten an. Alle anderen geben internationale Überweisungsdaten an.',
         customApprovalWorkflowEnabled:

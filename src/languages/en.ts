@@ -3498,12 +3498,10 @@ const translations = {
         manager: 'Manager',
         makeOrTrackPaymentsTitle: 'Payments',
         makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
-        collectEmployeeBankDetails: 'Collect employee bank details',
-        collectEmployeeBankDetailsDescription: 'Gather bank account details from employees, so you can reimburse them outside of Expensify.',
-        disablePaymentsTitle: 'Turn off payments?',
-        disablePaymentsPrompt:
-            'This workspace has a business bank account or reimbursement countries set up. If you turn off payments, members won’t be reimbursed through Expensify until you turn payments back on.',
-        disablePaymentsConfirm: 'Turn off',
+        collectEmployeeBankDetails: 'Collect bank account details',
+        collectEmployeeBankDetailsDescription: 'Gather bank details from workspace members, so you can reimburse them outside of Expensify.',
+        disablePaymentsTitle: 'Disable payments?',
+        disablePaymentsPrompt: 'This will also turn off the feature to collect bank accounts.',
         businessBankAccountCountries: 'Business bank account countries',
         businessBankAccountCountriesDescription: 'Employees in these countries provide local transfer details. Everyone else provides international wire details.',
         customApprovalWorkflowEnabled:
