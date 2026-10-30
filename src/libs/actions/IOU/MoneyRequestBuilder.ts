@@ -239,6 +239,9 @@ type MoneyRequestInformationParams = {
     newReimbursableTotal?: number;
     newNonReimbursableTotal?: number;
     newUnheldReimbursableTotal?: number;
+
+    /** The change in the report total belongs to held expenses, so the unheld totals stay the same. */
+    isReportTotalChangeOnHold?: boolean;
     testDriveCommentReportActionID?: string;
     optimisticChatReportID?: string;
     optimisticCreatedReportActionID?: string;
@@ -1313,6 +1316,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         newReimbursableTotal,
         newNonReimbursableTotal,
         newUnheldReimbursableTotal,
+        isReportTotalChangeOnHold = false,
         testDriveCommentReportActionID,
         optimisticChatReportID,
         optimisticCreatedReportActionID,
@@ -1528,7 +1532,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 }
                 didUpdateOptimisticTotal = true;
             }
-            if (typeof iouReport.unheldTotal === 'number') {
+            if (typeof iouReport.unheldTotal === 'number' && !isReportTotalChangeOnHold) {
                 iouReport.unheldTotal += reportTotalChange;
                 if (reimbursable && newUnheldReimbursableTotal === undefined && isCurrencyMatching) {
                     iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal + reportTotalChange;
