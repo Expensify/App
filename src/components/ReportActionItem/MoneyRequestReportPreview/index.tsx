@@ -234,7 +234,7 @@ function MoneyRequestReportPreview({
         }
         let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
         if (childReportID) {
-            const existingThread = getReportOrDraftReport(childReportID);
+            const existingThread = getReportOrDraftReport({reportID: childReportID});
             if (existingThread && !existingThread.reportID) {
                 return undefined;
             }

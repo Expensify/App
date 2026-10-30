@@ -149,7 +149,7 @@ function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport
     const chatReportID = snapshotReport.chatReportID ?? snapshotReport.parentReportID;
     const snapshotChatReport = chatReportID ? searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
 
-    return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport(chatReportID) : undefined);
+    return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport({reportID: chatReportID}) : undefined);
 }
 
 /**

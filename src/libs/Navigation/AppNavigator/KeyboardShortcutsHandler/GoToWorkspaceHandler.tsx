@@ -30,8 +30,8 @@ function GoToWorkspaceHandler() {
                         return;
                     }
 
-                    const report = getReportOrDraftReport(reportID);
-                    const policyID = report?.policyID ?? (report?.parentReportID ? getReportOrDraftReport(report.parentReportID)?.policyID : undefined);
+                    const report = getReportOrDraftReport({reportID});
+                    const policyID = report?.policyID ?? (report?.parentReportID ? getReportOrDraftReport({reportID: report.parentReportID})?.policyID : undefined);
                     if (!policyID || policyID === CONST.POLICY.ID_FAKE) {
                         return;
                     }

@@ -1819,7 +1819,7 @@ function isReportActionVisible(
         return false;
     }
 
-    const isSupportTicketReport = getReportOrDraftReport(reportID)?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
+    const isSupportTicketReport = getReportOrDraftReport({reportID})?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
 
     // Actions with pendingAction are optimistic or in-flight, so their visibility may differ
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
@@ -3152,7 +3152,7 @@ function hasRequestFromCurrentAccount(report: OnyxEntry<Report>, currentAccountI
     const reportActions = Object.values(getAllReportActions(reportID));
     if (reportActions.length === 0) {
         // In case the reportActions of the report have not been loaded, we will check based on the transactions.
-        const resolvedReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, report);
+        const resolvedReport = getReportOrDraftReport({reportID, report});
         return doesReportContainRequestsFromMultipleUsers(resolvedReport, true);
     }
 

@@ -19495,56 +19495,56 @@ describe('ReportUtils', () => {
 
         test('returns search report when found in searchReports array', () => {
             const searchReports = [mockSearchReport];
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toEqual(mockSearchReport);
         });
 
         test('returns onyx report when search report is not found but onyx report exists', async () => {
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toEqual(mockOnyxReport);
         });
 
         test('returns draft report when neither search nor onyx report exists but draft exists', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports, undefined, mockDraftReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports, reportDraft: mockDraftReport});
             expect(result).toEqual(mockDraftReport);
         });
 
         test('returns fallback report when no other reports exist', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
+            const result = getReportOrDraftReport({reportID: 'unknownReportID', searchReports, fallbackReport: mockFallbackReport});
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('returns undefined when no reports exist and no fallback provided', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toBeUndefined();
         });
 
         test('returns undefined when reportID is undefined', () => {
             const searchReports = [mockSearchReport];
-            const result = getReportOrDraftReport(undefined, searchReports);
+            const result = getReportOrDraftReport({reportID: undefined, searchReports});
             expect(result).toBeUndefined();
         });
 
         test('returns undefined when only reportID is provided and it is not found', () => {
-            const result = getReportOrDraftReport('unknownReportID');
+            const result = getReportOrDraftReport({reportID: 'unknownReportID'});
             expect(result).toBeUndefined();
         });
 
         test('returns fallback report when reportID is undefined', () => {
             const searchReports = [mockSearchReport];
-            const result = getReportOrDraftReport(undefined, searchReports, mockFallbackReport);
+            const result = getReportOrDraftReport({reportID: undefined, searchReports, fallbackReport: mockFallbackReport});
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('prioritizes search report over onyx report when both exist', async () => {
             const searchReports = [mockSearchReport];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toEqual(mockSearchReport);
             expect(result).not.toEqual(mockOnyxReport);
         });
@@ -19552,21 +19552,21 @@ describe('ReportUtils', () => {
         test('prioritizes onyx report over draft report when both exist', async () => {
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports, undefined, mockDraftReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports, reportDraft: mockDraftReport});
             expect(result).toEqual(mockOnyxReport);
             expect(result).not.toEqual(mockDraftReport);
         });
 
         test('prioritizes draft report over fallback when both exist', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport, mockDraftReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports, fallbackReport: mockFallbackReport, reportDraft: mockDraftReport});
             expect(result).toEqual(mockDraftReport);
             expect(result).not.toEqual(mockFallbackReport);
         });
 
         test('handles empty searchReports array gracefully', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID);
+            const result = getReportOrDraftReport({reportID: mockReportID});
             expect(result).toEqual(mockOnyxReport);
         });
 
@@ -19577,19 +19577,19 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, explicitReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, report: explicitReport});
             expect(result).toEqual(explicitReport);
             expect(result).not.toEqual(mockOnyxReport);
         });
 
         test('falls back to Onyx state when 5th param is undefined', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, undefined);
+            const result = getReportOrDraftReport({reportID: mockReportID});
             expect(result).toEqual(mockOnyxReport);
         });
 
         test('still finds draft report when 5th param is undefined', () => {
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, mockDraftReport, undefined);
+            const result = getReportOrDraftReport({reportID: mockReportID, reportDraft: mockDraftReport});
             expect(result).toEqual(mockDraftReport);
         });
     });

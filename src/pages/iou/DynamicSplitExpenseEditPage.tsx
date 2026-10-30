@@ -197,7 +197,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const canRemoveSplit = !requiresExactSum || otherSplitExpenses.some((item) => !frozenSplitTransactionIDs.has(item.transactionID));
     const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
 
-    const draftTransactionReport = getReportOrDraftReport(splitExpenseDraftTransaction?.reportID);
+    const draftTransactionReport = getReportOrDraftReport({reportID: splitExpenseDraftTransaction?.reportID});
     const isSelfDMSplit = isSelfDM(draftTransactionReport);
     const isExpenseUnreported = isSelfDMSplit;
     const [draftTransactionPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${draftTransactionReport?.policyID}`, {

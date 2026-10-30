@@ -198,7 +198,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
               getCurrencySymbol,
               reportAction: undefined,
               linkedTransaction: targetTransaction,
-              report: getReportOrDraftReport(targetTransaction?.reportID, targetTransactionReport ? [targetTransactionReport] : [], undefined, undefined, targetTransactionReport),
+              report: getReportOrDraftReport({
+                  reportID: targetTransaction?.reportID,
+                  searchReports: targetTransactionReport ? [targetTransactionReport] : [],
+                  report: targetTransactionReport,
+              }),
           })
         : '';
 

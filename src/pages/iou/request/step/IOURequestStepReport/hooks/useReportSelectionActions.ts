@@ -141,7 +141,7 @@ function useReportSelectionActions({
         if (!transaction) {
             return;
         }
-        const reportOrDraftReportFromValue = getReportOrDraftReport(item.value, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`]);
+        const reportOrDraftReportFromValue = getReportOrDraftReport({reportID: item.value, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`]});
         const participants = buildParticipants(reportOrDraftReportFromValue);
 
         const currentPolicyID = perDiemOriginalPolicy?.id;

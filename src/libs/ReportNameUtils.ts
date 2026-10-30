@@ -528,7 +528,7 @@ function getMoneyRequestReportName({
         const parentReport = getParentReport(report);
         payerOrApproverName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     } else if (isInvoiceReport(report)) {
-        const chatReport = getReportOrDraftReport(report?.chatReportID);
+        const chatReport = getReportOrDraftReport({reportID: report?.chatReportID});
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(chatReport, personalDetailsList);
         payerOrApproverName = getInvoicePayerName(chatReport, translate, formatPhoneNumber, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
     } else {

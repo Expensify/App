@@ -216,7 +216,7 @@ function SubmitExpenseOrchestrator({
             isReportInRHP: isReportOpenInRHP(rootState),
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
             isSearchTopmostFullScreen: isSearchTopmostFullScreenRoute(),
-            isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID,
+            isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport({reportID: destinationReportID, report: destinationReport})?.reportID,
             isLookingAroundUser,
             isSelfDMDestination,
         };
@@ -384,7 +384,7 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
 
-        const report = getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport);
+        const report = getReportOrDraftReport({reportID: destinationReportID, report: destinationReport});
         const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
         // The write runs after the reveal transition, so there is nothing to wait on. The barrier only exists so the
         // pending-write signal clears when the write attaches, which a GPS lookup can push seconds past createTransaction.
@@ -424,7 +424,7 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
 
-        const report = destinationReportID ? getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport) : undefined;
+        const report = destinationReportID ? getReportOrDraftReport({reportID: destinationReportID, report: destinationReport}) : undefined;
         const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
         // No wait here, the barrier resolves at once. It exists so the pending-write signal clears when the write
         // actually goes out, which can be seconds later if a GPS lookup runs first.

@@ -7393,7 +7393,7 @@ function clearChatIOUReportID(
     // Multiple reports are currently only used by `mergeReports`.
     // `mergeReports` currently only supports merging reports with the same policy and the same `ownerAccountID`,
     // so they will always belong to the same parentReportID.
-    const chatReport = getReportOrDraftReport(reports.find((report) => !!report?.parentReportID)?.parentReportID);
+    const chatReport = getReportOrDraftReport({reportID: reports.find((report) => !!report?.parentReportID)?.parentReportID});
     // Only clear the pointer when the chat still references the report being deleted, so we don't nullify a different active expense report.
     const shouldClearChatIOUReportID = reports.some((report) => chatReport?.iouReportID === report?.reportID);
     if (chatReport) {

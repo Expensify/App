@@ -165,7 +165,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             return;
         }
 
-        const report = getReportOrDraftReport(item.value);
+        const report = getReportOrDraftReport({reportID: item.value});
         // Handle regular report selection
         handleRegularReportSelection(item, report);
     };

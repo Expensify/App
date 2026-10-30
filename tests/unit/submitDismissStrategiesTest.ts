@@ -35,7 +35,7 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 }));
 jest.mock('@libs/ReportUtils', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    getReportOrDraftReport: (id: string) => mockGetReportOrDraftReport(id),
+    getReportOrDraftReport: ({reportID}: {reportID: string}) => mockGetReportOrDraftReport(reportID),
     isMoneyRequestReport: (report: unknown) => mockIsMoneyRequestReport(report),
 }));
 jest.mock('@libs/SearchQueryUtils', () => ({

@@ -1286,17 +1286,28 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
     return report?.chatType;
 }
 
+type GetReportOrDraftReportParams = {
+    /** The report to resolve */
+    reportID: string | undefined;
+
+    /** Reports from a search snapshot, checked ahead of Onyx */
+    searchReports?: Array<OnyxEntry<Report>>;
+
+    /** Returned when nothing else resolves */
+    fallbackReport?: Report;
+
+    /** The report's REPORT_DRAFT entry. Pass an empty object to mean "checked, this report has no draft" */
+    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
+    reportDraft?: OnyxEntry<Report> | EmptyObject;
+
+    /** The report itself, when the caller already has it */
+    report?: OnyxEntry<Report>;
+};
+
 /**
  * Get the report or draft report given a reportID
  */
-function getReportOrDraftReport(
-    reportID: string | undefined,
-    searchReports?: Array<OnyxEntry<Report>>,
-    fallbackReport?: Report,
-    // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
-    reportDraft?: OnyxEntry<Report> | EmptyObject,
-    report?: OnyxEntry<Report>,
-): OnyxEntry<Report> {
+function getReportOrDraftReport({reportID, searchReports, fallbackReport, reportDraft, report}: GetReportOrDraftReportParams): OnyxEntry<Report> {
     const searchReport = searchReports?.find((searchItem) => searchItem?.reportID === reportID);
     const onyxReport = report ?? deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     // TODO: Remove shouldSkipDraft and deprecatedAllReportsDraft fallback once all callers are migrated (https://github.com/Expensify/App/issues/66414).
@@ -1401,7 +1412,7 @@ function getRootParentReport({
     }
     visitedReportIDs.add(report.reportID);
 
-    const parentReport = getReportOrDraftReport(report?.parentReportID, reports);
+    const parentReport = getReportOrDraftReport({reportID: report?.parentReportID, searchReports: reports});
 
     // Runs recursion to iterate a parent report
     return getRootParentReport({report: !isEmptyObject(parentReport) ? parentReport : undefined, visitedReportIDs, reports});
@@ -3200,7 +3211,7 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
         return childReportNotificationPreference;
     }
 
-    const childReport = getReportOrDraftReport(reportAction?.childReportID);
+    const childReport = getReportOrDraftReport({reportID: reportAction?.childReportID});
     if (childReport) {
         return getReportNotificationPreference(childReport);
     }
@@ -3296,7 +3307,7 @@ function isMoneyRequestReportEligibleForMerge(
     reportOwnerLogin: string | undefined,
     currentUserAccountID?: number,
 ): boolean {
-    const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
+    const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport({reportID: reportOrReportID}) : reportOrReportID;
 
     if (!isMoneyRequestReport(report) || isIOUReport(report)) {
         return false;
@@ -3642,7 +3653,7 @@ function getIOUReportActionWithBadge({
         }
         // Prefer the report from the fresh `allReports` snapshot (when supplied by the reportAttributes derived value)
         // over the module-level Onyx cache, which can be stale mid-recompute and surface a deleted report's badge.
-        const iouReport = getReportOrDraftReport(action.childReportID, undefined, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`]);
+        const iouReport = getReportOrDraftReport({reportID: action.childReportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`]});
 
         // A report deleted offline still lives in Onyx (pendingFields.preview === DELETE) until the queue flushes,
         // so skip it here — otherwise its preview keeps surfacing a stale "Mark as done"/action badge in the LHN.
@@ -3729,7 +3740,7 @@ function hasOutstandingChildRequest(
         const iouReport =
             typeof iouReportOrIDorArray !== 'string' && !Array.isArray(iouReportOrIDorArray) && iouReportOrIDorArray?.reportID === iouReportID
                 ? iouReportOrIDorArray
-                : getReportOrDraftReport(iouReportID);
+                : getReportOrDraftReport({reportID: iouReportID});
         const transactions = getReportTransactions(iouReportID);
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`];
         const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
@@ -3892,7 +3903,7 @@ function canDeleteReportAction(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     cardList: OnyxEntry<CardList>,
 ): boolean {
-    const report = getReportOrDraftReport(reportID);
+    const report = getReportOrDraftReport({reportID});
     const isActionOwner = reportAction?.actorAccountID === currentUserAccountID;
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`] ?? undefined;
 
@@ -4660,7 +4671,7 @@ function getIconsForInvoiceReport(
     if (!report) {
         return [];
     }
-    const invoiceRoomReport = getReportOrDraftReport(report.chatReportID);
+    const invoiceRoomReport = getReportOrDraftReport({reportID: report.chatReportID});
     const icons = [invoiceRoomReport ? getWorkspaceIcon(invoiceRoomReport, translate, policy) : getWorkspaceIcon(report, translate, policy)];
 
     if (invoiceRoomReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
@@ -5073,7 +5084,7 @@ function getLastVisibleMessage(
     isReportArchived: boolean | undefined,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
 ): LastVisibleMessage {
-    const report = getReportOrDraftReport(reportID);
+    const report = getReportOrDraftReport({reportID});
     const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
 
     // For Chat Report with deleted parent actions, let us fetch the correct message
@@ -5278,7 +5289,7 @@ function getReasonAndReportActionThatRequiresAttention({
     const transactions = getReportTransactions(iouReportID);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
-    const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport(iouReportID);
+    const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport({reportID: iouReportID});
     const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? getAllReportActions(iouReportID);
     // This only has to run on the fallback path: when a candidate was found, getBadgeFromIOUReport has already applied
     // the same exclusion while picking it, so the chat is known to have an actionable child even when a sibling of that
@@ -5822,7 +5833,7 @@ function getTransactionDetails(
         return;
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
+    const report = getReportOrDraftReport({reportID: transaction?.reportID, fallbackReport: 'report' in transaction ? transaction.report : undefined});
     const isFromExpenseReport = isTransactionFromExpenseReport(report, policy);
 
     return {
@@ -5926,7 +5937,7 @@ function canEditMoneyRequest(
         return actionType === CONST.IOU.REPORT_ACTION_TYPE.TRACK && isActionRequestor;
     }
 
-    const moneyRequestReport = report ?? getReportOrDraftReport(String(moneyRequestReportID));
+    const moneyRequestReport = report ?? getReportOrDraftReport({reportID: String(moneyRequestReportID)});
     // Without an IOU action, the submitter of an expense report stands in for the requester, because only they can add expenses to it.
     // This function has no current-user parameter, so it passes the same module-level account ID that isActionRequestor uses.
     const isRequestor = isActionlessReportedExpense ? isExpenseReport(moneyRequestReport) && isCurrentUserSubmitter(moneyRequestReport, deprecatedCurrentUserAccountID) : isActionRequestor;
@@ -6402,7 +6413,7 @@ function canEditReportAction(
         // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882. See https://github.com/Expensify/App/issues/93882.
         const moneyRequestReportID = reportAction?.reportID ?? getOriginalMessage(reportAction)?.IOUReportID;
         if (moneyRequestReportID) {
-            const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
+            const moneyRequestReport = getReportOrDraftReport({reportID: String(moneyRequestReportID)});
             if (isSettled(moneyRequestReport?.reportID) || isReportApproved({report: moneyRequestReport}) || isClosedReport(moneyRequestReport)) {
                 return false;
             }
@@ -7518,7 +7529,7 @@ function getParsedComment(
     currentUserEmailParam?: string,
 ): string {
     let isGroupPolicyReport = false;
-    const currentReport = getReportOrDraftReport(parsingDetails?.reportID);
+    const currentReport = getReportOrDraftReport({reportID: parsingDetails?.reportID});
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(parsingDetails?.policyID ?? currentReport?.policyID);
     if (parsingDetails?.reportID) {
@@ -8311,7 +8322,7 @@ function buildOptimisticExpenseReport({
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
     const storedNonReimbursableTotal = nonReimbursableTotal * -1;
-    const report = chatReportID ? getReportOrDraftReport(chatReportID) : undefined;
+    const report = chatReportID ? getReportOrDraftReport({reportID: chatReportID}) : undefined;
     // The report name below is stored in English (see the `reportName` comment), so its workspace fallback is the raw English copy too.
     const policyName = getPolicyName({report, unavailableTranslation: 'Unavailable workspace'});
     const formattedTotal = convertToDisplayStringEnLocale(storedTotal, currency, getCurrencyDecimals);
@@ -8642,7 +8653,7 @@ function getIOUReportActionMessage(
     bankAccountID?: number | undefined,
     payAsBusiness = false,
 ): Message[] {
-    const report = getReportOrDraftReport(iouReportID);
+    const report = getReportOrDraftReport({reportID: iouReportID});
     const isInvoice = isInvoiceReport(report);
     // Formatted with the `en` locale because this message is stored on the report action and must be
     // in English regardless of the viewer's locale.
@@ -10534,7 +10545,7 @@ function buildTransactionThread(
     optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean);
-    const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
+    const existingTransactionThreadReport = getReportOrDraftReport({reportID: existingTransactionThreadReportID});
 
     if (existingTransactionThreadReportID && existingTransactionThreadReport) {
         return {
@@ -10857,7 +10868,7 @@ function shouldHideReport(
     isReportArchived: boolean | undefined,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): boolean {
-    const currentReport = getReportOrDraftReport(currentReportId);
+    const currentReport = getReportOrDraftReport({reportID: currentReportId});
     const parentReport = getParentReport(!isEmptyObject(currentReport) ? currentReport : undefined);
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
     const reportID = report?.reportID;
@@ -11592,7 +11603,7 @@ function getChatReportFromMoneyRequestReport(report: OnyxEntry<Report>, chatRepo
         return report;
     }
 
-    const chatReport = getReportOrDraftReport(report?.chatReportID, undefined, undefined, chatReportDraft);
+    const chatReport = getReportOrDraftReport({reportID: report?.chatReportID, reportDraft: chatReportDraft});
     if (chatReport) {
         return chatReport;
     }
@@ -11645,12 +11656,12 @@ function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, repor
         return false;
     }
 
-    let report = getReportOrDraftReport(reportID);
+    let report = getReportOrDraftReport({reportID});
 
     // If the childReportID exists in reportAction and is equal to the reportID,
     // the report action being evaluated is the parent report action in a thread, and we should get the parent report to evaluate instead.
     if (reportAction?.childReportID?.toString() === reportID?.toString()) {
-        report = getReportOrDraftReport(report?.parentReportID);
+        report = getReportOrDraftReport({reportID: report?.parentReportID});
     }
 
     return !!(
@@ -12508,7 +12519,7 @@ function getIOUReportActionDisplayMessage(
     const originalMessage = getOriginalMessage(reportAction);
     const {automaticAction, payAsBusiness} = originalMessage ?? {};
     const IOUReportID = reportAction?.reportID;
-    const iouReport = getReportOrDraftReport(IOUReportID);
+    const iouReport = getReportOrDraftReport({reportID: IOUReportID});
     const isInvoice = isInvoiceReport(iouReport);
 
     let translationKey: TranslationPaths;

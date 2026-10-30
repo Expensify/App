@@ -23,7 +23,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockReports: Record<string, {isMoneyRequest?: boolean}> = {};
 type ReportUtilsMock = Record<string, unknown> & {
-    getReportOrDraftReport: (reportID: string) => {isMoneyRequest?: boolean} | undefined;
+    getReportOrDraftReport: (params: {reportID: string}) => {isMoneyRequest?: boolean} | undefined;
     isMoneyRequestReport: (report: {isMoneyRequest?: boolean} | undefined) => boolean;
 };
 
@@ -59,7 +59,7 @@ jest.mock('@libs/ReportUtils', () => {
 
     return {
         ...actual,
-        getReportOrDraftReport: jest.fn((reportID: string) => mockReports[reportID]),
+        getReportOrDraftReport: jest.fn(({reportID}: {reportID: string}) => mockReports[reportID]),
         isMoneyRequestReport: jest.fn((report: {isMoneyRequest?: boolean} | undefined) => !!report?.isMoneyRequest),
     };
 });

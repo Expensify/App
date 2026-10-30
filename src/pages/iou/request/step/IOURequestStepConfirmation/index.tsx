@@ -356,7 +356,7 @@ function IOURequestStepConfirmationContent({
             return (
                 !!participant?.reportID &&
                 isPolicyExpenseChatUtils(
-                    getReportOrDraftReport(participant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {}),
+                    getReportOrDraftReport({reportID: participant.reportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${participant.reportID}`] ?? {}}),
                 )
             );
         });

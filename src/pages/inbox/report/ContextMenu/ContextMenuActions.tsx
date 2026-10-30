@@ -1810,7 +1810,7 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // Hide Delete for per-diem expense split children in selfDM — users must edit the
             // splits instead (matches the secondary "More" menu behavior).
-            const chatReport = getReportOrDraftReport(reportIDParam);
+            const chatReport = getReportOrDraftReport({reportID: reportIDParam});
             if (isSelfDM(chatReport) && iouTransaction) {
                 const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransaction.comment?.originalTransactionID}`];
                 if (isExpenseSplit(iouTransaction, originalTransaction) && isPerDiemRequest(originalTransaction ?? iouTransaction)) {
