@@ -1,4 +1,4 @@
-import {isClientTheLeader} from '@libs/ActiveClientManager';
+import {init as initActiveClientManager} from '@libs/ActiveClientManager';
 
 import type {OnyxInput, OnyxKey} from 'react-native-onyx';
 
@@ -12,9 +12,15 @@ import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
-jest.mock('@libs/ActiveClientManager', () => ({
-    isClientTheLeader: jest.fn(() => true),
-}));
+jest.mock('@libs/ActiveClientManager', () => jest.requireActual<Record<string, unknown>>('../../src/libs/ActiveClientManager/index.ts'));
+
+async function registerAsFollowerTab() {
+    initActiveClientManager();
+    await waitForBatchedUpdates();
+    const activeClients = await OnyxUtils.get(ONYXKEYS.ACTIVE_CLIENTS);
+    await Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, [...(activeClients ?? []), 'newer-tab']);
+    await waitForBatchedUpdates();
+}
 
 const request: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
     command: 'OpenReport',
@@ -53,7 +59,6 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-    jest.mocked(isClientTheLeader).mockReturnValue(true);
     PersistedRequests.clear();
     Onyx.clear();
 });
@@ -327,7 +332,7 @@ describe('PersistedRequests persistence guarantees', () => {
     });
 
     it('Follower tab should reconcile processed requests from leader via cross-tab callback', async () => {
-        jest.mocked(isClientTheLeader).mockReturnValue(false);
+        await registerAsFollowerTab();
         PersistedRequests.clear();
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll()).toHaveLength(0);
@@ -381,7 +386,7 @@ describe('PersistedRequests persistence guarantees', () => {
 
     it('Follower tab should not write its stale copy back to storage when it merges a request from another tab', async () => {
         // Given a follower tab that holds two requests
-        jest.mocked(isClientTheLeader).mockReturnValue(false);
+        await registerAsFollowerTab();
         PersistedRequests.clear();
         await waitForBatchedUpdates();
         const requestA: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
