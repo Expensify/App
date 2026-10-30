@@ -36,23 +36,24 @@ const CURRENT_USER_LOGIN = 'creator@example.com';
 const creator: Attendee = {email: CURRENT_USER_LOGIN, displayName: 'Creator', avatarUrl: ''};
 const guest: Attendee = {email: 'guest@example.com', displayName: 'Guest', avatarUrl: ''};
 
-const renderDropdown = (onClose = jest.fn()) =>
-    render(
-        <OnyxListItemProvider>
-            <AttendeeFieldDropdown
-                isVisible
-                onClose={onClose}
-                anchorPosition={{horizontal: 0, vertical: 0}}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
-                shouldMeasureAnchorPositionFromTop
-                shouldSwitchPositionIfOverflow={false}
-                popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
-                popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
-                transactionID={TRANSACTION_ID}
-                iouType={CONST.IOU.TYPE.SUBMIT}
-            />
-        </OnyxListItemProvider>,
-    );
+const buildDropdown = (onClose = jest.fn(), isVisible = true) => (
+    <OnyxListItemProvider>
+        <AttendeeFieldDropdown
+            isVisible={isVisible}
+            onClose={onClose}
+            anchorPosition={{horizontal: 0, vertical: 0}}
+            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+            shouldMeasureAnchorPositionFromTop
+            shouldSwitchPositionIfOverflow={false}
+            popoverWidth={CONST.POPOVER_DROPDOWN_WIDTH}
+            popoverHeight={CONST.POPOVER_DROPDOWN_MAX_HEIGHT}
+            transactionID={TRANSACTION_ID}
+            iouType={CONST.IOU.TYPE.SUBMIT}
+        />
+    </OnyxListItemProvider>
+);
+
+const renderDropdown = (onClose = jest.fn()) => render(buildDropdown(onClose));
 
 describe('AttendeeFieldDropdown', () => {
     beforeAll(() => {
@@ -121,6 +122,29 @@ describe('AttendeeFieldDropdown', () => {
 
         // Then the list closes and the draft is left alone, as the full page skips the write when nothing changed
         expect(onClose).toHaveBeenCalledTimes(1);
+        expect(setMoneyRequestAttendees).not.toHaveBeenCalled();
+    });
+
+    it('reopens from the draft after being dismissed with an unapplied selection', async () => {
+        // Given a draft expense with the creator as its only attendee
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+            comment: {attendees: [creator]},
+        });
+        await waitForBatchedUpdates();
+        const onClose = jest.fn();
+
+        // When the user adds a guest, dismisses the list without applying, and opens it again. The row keeps the dropdown
+        // mounted once it has been opened, so it is the same component instance each time.
+        const {rerender} = render(buildDropdown(onClose));
+        await waitForBatchedUpdates();
+        act(() => mockModalProps?.onAttendeesChanged([creator, guest]));
+        rerender(buildDropdown(onClose, false));
+        rerender(buildDropdown(onClose, true));
+
+        // Then the list starts from the draft again, as the dismissed selection was never applied
+        expect(mockModalProps?.attendees).toEqual([creator]);
         expect(setMoneyRequestAttendees).not.toHaveBeenCalled();
     });
 

@@ -1,3 +1,6 @@
+/**
+ * The attendee list in the container anchored to a field's row, with an Apply button in place of the full page's Save.
+ */
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
 import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
@@ -60,6 +63,7 @@ function AttendeePickerModal({attendees, onAttendeesChanged, onApply, iouType, .
                     iouType={iouType}
                     searchInputLabel={translate('selectionList.searchForSomeone')}
                     confirmButtonText={translate('common.apply')}
+                    confirmButtonSize={CONST.BUTTON_SIZE.MEDIUM}
                 />
             </ScreenWrapperStatusContext.Provider>
         </AnchoredSelectionListPopover>

@@ -27,6 +27,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
+import type {ValueOf} from 'type-fest';
+
 import {SafeString} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
@@ -51,6 +53,9 @@ type MoneyRequestAttendeesSelectorProps = {
 
     /** Text of the button that confirms the selection. Defaults to "Save" */
     confirmButtonText?: string;
+
+    /** Size of the button that confirms the selection. Defaults to large, as in the footer of a full page */
+    confirmButtonSize?: ValueOf<typeof CONST.BUTTON_SIZE>;
 };
 
 function MoneyRequestAttendeeSelector({
@@ -61,6 +66,7 @@ function MoneyRequestAttendeeSelector({
     shouldDeferEmptySelectionError = false,
     searchInputLabel,
     confirmButtonText,
+    confirmButtonSize = CONST.BUTTON_SIZE.LARGE,
 }: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -177,7 +183,7 @@ function MoneyRequestAttendeeSelector({
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={confirmSelection}
-                    size={CONST.BUTTON_SIZE.MEDIUM}
+                    size={confirmButtonSize}
                     isDisabled={shouldShowErrorMessage}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_SAVE_BUTTON}
                 >

@@ -1,5 +1,6 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 import UserPills from '@components/UserPills';
@@ -49,6 +50,7 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     const personalDetailsList = usePersonalDetails();
     const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
     const {isBetaEnabled} = usePermissions();
+    const {didConfirm} = useConfirmationFields();
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const attendeeSlice = useTransactionSelector(transactionID, attendeeSliceSelector);
@@ -82,9 +84,10 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID)));
     };
 
-    // The dropdown writes each toggle to the draft. A saved expense being edited keeps the full page, which saves once
-    // through the API with the expense's report and policy in hand.
-    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !isReadOnly && action !== CONST.IOU.ACTION.EDIT;
+    // The dropdown writes the applied selection to the draft, so it stays closed once the expense is submitted and the
+    // draft is on its way out, as the category, tag and tax dropdowns do. A saved expense being edited keeps the full page,
+    // which saves once through the API with the expense's report and policy in hand.
+    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !isReadOnly && !didConfirm && action !== CONST.IOU.ACTION.EDIT;
 
     if (shouldUseDropdownRows) {
         return (

@@ -71,13 +71,14 @@ describe('AttendeePickerModal', () => {
         renderModal({onAttendeesChanged});
 
         // Then it is the full page's list, started from the expense's attendees, with its button reading Apply rather than
-        // Save and its search input asking for someone, and it reads the screen as settled, as it would on its page once the
+        // Save at the medium size of a pop-over footer, and its search input asking for someone, and it reads the screen as settled, as it would on its page once the
         // transition ended, so it builds its options rather than waiting for a transition the container never has
         expect(mockSelectorProps?.attendees).toEqual(attendees);
         expect(mockSelectorProps?.onAttendeesAdded).toBe(onAttendeesChanged);
         expect(mockSelectorProps?.iouType).toBe(CONST.IOU.TYPE.SUBMIT);
         expect(mockSelectorProps?.confirmButtonText).toBe('common.apply');
         expect(mockSelectorProps?.searchInputLabel).toBe('selectionList.searchForSomeone');
+        expect(mockSelectorProps?.confirmButtonSize).toBe(CONST.BUTTON_SIZE.MEDIUM);
         expect(mockDidScreenTransitionEnd).toBe(true);
     });
 

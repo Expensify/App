@@ -58,9 +58,10 @@ type RenderParams = {
     action?: IOUAction;
     isReadOnly?: boolean;
     transactionID?: string;
+    didConfirm?: boolean;
 };
 
-const renderAttendeesRow = ({action = CONST.IOU.ACTION.CREATE, isReadOnly = false, transactionID = TRANSACTION_ID}: RenderParams = {}) =>
+const renderAttendeesRow = ({action = CONST.IOU.ACTION.CREATE, isReadOnly = false, transactionID = TRANSACTION_ID, didConfirm = false}: RenderParams = {}) =>
     render(
         <OnyxListItemProvider>
             <ConfirmationFieldsProvider
@@ -68,6 +69,7 @@ const renderAttendeesRow = ({action = CONST.IOU.ACTION.CREATE, isReadOnly = fals
                 reportID={REPORT_ID}
                 action={action}
                 iouType={CONST.IOU.TYPE.SUBMIT}
+                didConfirm={didConfirm}
             >
                 <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
                     <AttendeeField
@@ -140,6 +142,17 @@ describe('AttendeeField', () => {
         renderAttendeesRow({isReadOnly: true});
 
         // Then the row opens nothing, in place or otherwise
+        await waitFor(() => {
+            expect(mockShouldOpenInDropdown).toBe(false);
+        });
+    });
+
+    it('does not open the list in place once the expense is submitted', async () => {
+        // Given a form whose Submit button has been pressed, so its draft is being submitted and cleared
+        // When the form renders the attendees row
+        renderAttendeesRow({didConfirm: true});
+
+        // Then the row no longer opens the list in place, which would write to that draft on Apply
         await waitFor(() => {
             expect(mockShouldOpenInDropdown).toBe(false);
         });
