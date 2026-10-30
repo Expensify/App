@@ -663,52 +663,6 @@ describe('AutoGrowHeightInputContainer', () => {
         await waitFor(() => expect(screen.getByTestId('expanded-native-height').props.accessibilityLabel).toBe('776'));
     });
 
-    it('normalizes the Android active keyboard height by the bottom safe-area inset', async () => {
-        platformReplaceProperty.restore();
-        platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'android');
-        mockUseSafeAreaInsets.mockReturnValue({top: 0, right: 0, bottom: 20, left: 0});
-
-        let isKeyboardActive = false;
-        let keyboardActiveHeight = 0;
-        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
-        mockUseKeyboardState.mockImplementation(() => ({
-            isKeyboardShown: false,
-            isKeyboardActive,
-            keyboardHeight: 0,
-            keyboardActiveHeight,
-            isKeyboardAnimatingRef: {current: false},
-        }));
-        mockMeasureContent.mockImplementation((_content, callback) => {
-            callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
-        });
-
-        const renderInput = () => (
-            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
-                {(maxAutoGrowHeight) => {
-                    renderedMaxAutoGrowHeight = maxAutoGrowHeight;
-                    return (
-                        <View
-                            testID="android-keyboard-height"
-                            accessibilityLabel={String(maxAutoGrowHeight)}
-                        />
-                    );
-                }}
-            </AutoGrowHeightInputContainer>
-        );
-
-        const {rerender} = render(renderInput());
-        const container = screen.UNSAFE_getByType(ScrollView);
-        fireEvent(container, 'layout', {
-            nativeEvent: {layout: {height: 800, width: 300}},
-        });
-        await waitFor(() => expect(screen.getByTestId('android-keyboard-height').props.accessibilityLabel).toBe('776'));
-
-        isKeyboardActive = true;
-        keyboardActiveHeight = 300;
-        rerender(renderInput());
-        await waitFor(() => expect(screen.getByTestId('android-keyboard-height').props.accessibilityLabel).toBe('496'));
-    });
-
     it('keeps an in-flight measurement valid when the same layout repeats', async () => {
         const measurementCallbacks: Array<(contentHeight: number) => void> = [];
         mockMeasureContent.mockImplementation((_content, callback) => {
@@ -827,15 +781,16 @@ describe('AutoGrowHeightInputContainer', () => {
         expect(mockMeasureContent).toHaveBeenCalledTimes(measurementCount);
     });
 
-    it('adopts the exact layout when the keyboard arrives before the container has a usable height', async () => {
-        // Given a screen whose first layout is collapsed during its transition, so the keyboard-derived height is floored at the minimum.
+    it('follows only exact layouts on Android so the keyboard is never counted twice', async () => {
+        // Given an Android screen whose layout shrinks for the keyboard before the keyboard state updates.
         platformReplaceProperty.replaceValue('android');
         let isKeyboardActive = false;
+        let isKeyboardShown = false;
         let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
         mockUseKeyboardState.mockImplementation(() => ({
-            isKeyboardShown: isKeyboardActive,
+            isKeyboardShown,
             isKeyboardActive,
-            keyboardHeight: isKeyboardActive ? 300 : 0,
+            keyboardHeight: isKeyboardShown ? 300 : 0,
             keyboardActiveHeight: isKeyboardActive ? 300 : 0,
             isKeyboardAnimatingRef: {current: false},
         }));
@@ -848,7 +803,7 @@ describe('AutoGrowHeightInputContainer', () => {
                     renderedMaxAutoGrowHeight = maxAutoGrowHeight;
                     return (
                         <View
-                            testID="floored-height"
+                            testID="android-exact-height"
                             accessibilityLabel={String(maxAutoGrowHeight)}
                         />
                     );
@@ -857,16 +812,62 @@ describe('AutoGrowHeightInputContainer', () => {
         );
         const {rerender} = render(renderInput());
         const container = screen.UNSAFE_getByType(ScrollView);
-        fireEvent(container, 'layout', {nativeEvent: {layout: {height: 0, width: 300}}});
+        fireEvent(container, 'layout', {nativeEvent: {layout: {height: 800, width: 300}}});
+        await waitFor(() => expect(screen.getByTestId('android-exact-height').props.accessibilityLabel).toBe('776'));
+        fireEvent(container, 'layout', {nativeEvent: {layout: {height: 500, width: 300}}});
+        await waitFor(() => expect(screen.getByTestId('android-exact-height').props.accessibilityLabel).toBe('476'));
+
+        // When the keyboard state arrives after that layout.
         isKeyboardActive = true;
+        isKeyboardShown = true;
         rerender(renderInput());
-        await waitFor(() => expect(screen.getByTestId('floored-height').props.accessibilityLabel).toBe(String(variables.componentSizeLarge)));
 
-        // When the container then receives its real allocation above the keyboard.
-        fireEvent(container, 'layout', {nativeEvent: {layout: {height: 322, width: 300}}});
+        // Then the height is not reduced a second time, which would leave the input stuck at its minimum.
+        expect(screen.getByTestId('android-exact-height').props.accessibilityLabel).toBe('476');
 
-        // Then the input can grow into that allocation instead of waiting forever for a layout matching the floored height.
-        await waitFor(() => expect(screen.getByTestId('floored-height').props.accessibilityLabel).toBe('298'));
+        // When the keyboard starts hiding and the layout expands while the keyboard is still reported as shown.
+        isKeyboardActive = false;
+        rerender(renderInput());
+        fireEvent(container, 'layout', {nativeEvent: {layout: {height: 800, width: 300}}});
+
+        // Then the input follows the exact layout rather than ignoring it until dismissal completes.
+        await waitFor(() => expect(screen.getByTestId('android-exact-height').props.accessibilityLabel).toBe('776'));
+    });
+
+    it('does not re-measure when settled content differs from the allocation only by rounding', async () => {
+        // Given a settled input whose content layout rounds to a fraction above the allocation.
+        platformReplaceProperty.replaceValue('android');
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
+        mockMeasureContent.mockImplementation((_content, callback) => {
+            callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
+        });
+        render(
+            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+                {(maxAutoGrowHeight) => {
+                    renderedMaxAutoGrowHeight = maxAutoGrowHeight;
+                    return (
+                        <View
+                            testID="rounded-height"
+                            accessibilityLabel={String(maxAutoGrowHeight)}
+                        />
+                    );
+                }}
+            </AutoGrowHeightInputContainer>,
+        );
+        const content = screen.getByTestId('rounded-height').parent;
+        if (!content) {
+            throw new Error('Expected the rounded input to have a content container');
+        }
+        fireEvent(screen.UNSAFE_getByType(ScrollView), 'layout', {nativeEvent: {layout: {height: 339.84, width: 300}}});
+        await waitFor(() => expect(screen.getByTestId('rounded-height').props.accessibilityLabel).toBe('315.84'));
+        const measurementCount = mockMeasureContent.mock.calls.length;
+
+        // When the content reports a height a fraction of a pixel from the allocation.
+        fireEvent(content, 'layout', {nativeEvent: {layout: {height: 340, width: 300}}});
+
+        // Then the cap holds, because probing here would repeat forever and flicker.
+        expect(screen.getByTestId('rounded-height').props.accessibilityLabel).toBe('315.84');
+        expect(mockMeasureContent).toHaveBeenCalledTimes(measurementCount);
     });
 
     it('ignores a pending callback when the measurement dependency changes', async () => {

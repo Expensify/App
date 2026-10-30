@@ -61,8 +61,10 @@ function AutoGrowHeightInputContainer({
     const {isKeyboardActive, isKeyboardShown, isKeyboardAnimatingRef, keyboardActiveHeight, keyboardHeight} = useKeyboardState();
     const {bottom} = useSafeAreaInsets();
     const isNativePlatform = Platform.OS !== 'web';
+    // Android resizes the screen for the keyboard, so its exact layout already includes the keyboard. Subtracting it again would double-count it when the layout arrives first.
+    const isIOS = Platform.OS === 'ios';
     const nativeKeyboardHeight =
-        isNativePlatform && (isKeyboardActive || isKeyboardShown) ? Math.max(keyboardActiveHeight > 0 ? getKeyboardHeight(keyboardActiveHeight, bottom) : keyboardHeight, 0) : 0;
+        isIOS && (isKeyboardActive || isKeyboardShown) ? Math.max(keyboardActiveHeight > 0 ? getKeyboardHeight(keyboardActiveHeight, bottom) : keyboardHeight, 0) : 0;
     const availableHeightRef = useRef<number>(variables.textInputAutoGrowMaxHeight);
     const viewportHeightRef = useRef(windowHeight);
     const keyboardHeightRef = useRef(nativeKeyboardHeight);
@@ -117,10 +119,8 @@ function AutoGrowHeightInputContainer({
         const didExactLayoutAccountForKeyboard = !!pendingNativeLayout && areHeightsEqual(pendingNativeLayout.layoutHeight, expectedLayoutHeight);
         keyboardHeightRef.current = nativeKeyboardHeight;
         pendingNativeLayoutRef.current = null;
-        const keyboardDerivedHeight = availableHeightRef.current - keyboardHeightDelta;
-        // A height floored at the minimum is not a real allocation, so waiting for onLayout to reach it would ignore every later layout and leave the input stuck at its minimum height.
-        nativeKeyboardFallbackRef.current = !didExactLayoutAccountForKeyboard && keyboardDerivedHeight >= variables.componentSizeLarge;
-        const availableHeight = didExactLayoutAccountForKeyboard ? availableHeightRef.current : Math.max(keyboardDerivedHeight, variables.componentSizeLarge);
+        nativeKeyboardFallbackRef.current = !didExactLayoutAccountForKeyboard;
+        const availableHeight = didExactLayoutAccountForKeyboard ? availableHeightRef.current : Math.max(availableHeightRef.current - keyboardHeightDelta, variables.componentSizeLarge);
         availableHeightRef.current = availableHeight;
         startMeasurement('clamp', availableHeight);
     }, [nativeKeyboardHeight, startMeasurement]);
@@ -174,7 +174,7 @@ function AutoGrowHeightInputContainer({
                 const isKeyboardTransitioning = isKeyboardAnimatingRef.current;
                 containerWidthRef.current = width;
 
-                if (isNativePlatform) {
+                if (isIOS) {
                     if (isKeyboardShown && !isKeyboardActive) {
                         // On iOS, keyboardWillHide clears the active height before the view finishes animating back to its expanded allocation.
                         // Ignore those intermediate layouts until keyboardDidHide so they cannot become the next keyboard-open baseline.
@@ -225,7 +225,7 @@ function AutoGrowHeightInputContainer({
                 availableHeightRef.current = availableHeight;
                 viewportHeightRef.current = windowHeight;
                 // Android re-emits an unchanged allocation after the cap settles. Restarting the clamp would regrow the input and flicker in a clamp and probe loop.
-                if (!didWidthChange && areHeightsEqual(availableHeight, previousAvailableHeight)) {
+                if (isNativePlatform && !didWidthChange && areHeightsEqual(availableHeight, previousAvailableHeight)) {
                     return;
                 }
                 startMeasurement('clamp', availableHeight, didWidthChange);
@@ -247,6 +247,11 @@ function AutoGrowHeightInputContainer({
                         if (didContentLayoutChange) {
                             startMeasurement(activeMeasurementPhase, activeMaxAutoGrowHeight, true);
                         }
+                        return;
+                    }
+
+                    // The settled cap can round a fraction of a pixel away from the allocation. Treating that as a change would measure forever.
+                    if (areHeightsEqual(contentHeight, availableHeight)) {
                         return;
                     }
 
