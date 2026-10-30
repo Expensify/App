@@ -1,5 +1,7 @@
+/** Displays expense participants with the amount per person and editing or copy actions. */
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import UserPills from '@components/UserPills';
 
@@ -35,30 +37,39 @@ function AttendeesField({attendees, title, formattedPerAttendeeAmount, canEdit, 
     }`;
 
     return (
-        <EditableField
+        <EditableField.Root
             pendingAction={pendingAction}
-            name={description}
             accessibilityLabel={`${translate('iou.attendees')}, ${title}`}
             onPress={canEdit ? onPress : undefined}
-            isValueSelectable={!!copyValue}
-            error={errorText}
-            valueComponent={
-                Array.isArray(attendees) && attendees.length > 0 ? (
-                    <UserPills
-                        users={attendees.map((attendee) => ({
-                            avatar: attendee?.avatarUrl,
-                            displayName: attendee?.displayName ?? attendee?.email ?? '',
-                            accountID: attendee?.accountID,
-                            email: attendee?.email,
-                        }))}
-                        maxVisible={canEdit ? undefined : attendees.length}
-                        isSelectable={!!copyValue}
-                    />
-                ) : undefined
-            }
+            shouldAllowTextSelection={!!copyValue}
         >
-            {!canEdit && !!copyValue && <MenuItem.Copy value={copyValue} />}
-        </EditableField>
+            <MenuItem.Row>
+                <MenuItemField.Content name={description}>
+                    {Array.isArray(attendees) && attendees.length > 0 ? (
+                        <UserPills
+                            users={attendees.map((attendee) => ({
+                                avatar: attendee?.avatarUrl,
+                                displayName: attendee?.displayName ?? attendee?.email ?? '',
+                                accountID: attendee?.accountID,
+                                email: attendee?.email,
+                            }))}
+                            maxVisible={canEdit ? undefined : attendees.length}
+                            isSelectable={!!copyValue}
+                        />
+                    ) : undefined}
+                </MenuItemField.Content>
+                <EditableField.Actions>
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    {!canEdit && !!copyValue && <MenuItem.Copy value={copyValue} />}
+                </EditableField.Actions>
+            </MenuItem.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </EditableField.Root>
     );
 }
 

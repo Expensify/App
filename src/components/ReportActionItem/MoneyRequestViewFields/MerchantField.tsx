@@ -1,6 +1,8 @@
+/** Displays the expense merchant with editing, copy and external search actions. */
 import Icon from '@components/Icon';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
@@ -62,18 +64,35 @@ function MerchantField({pendingAction, title, errorText, copyValue, onPress, can
     const {translate} = useLocalize();
 
     return (
-        <EditableField
+        <EditableField.Root
             pendingAction={pendingAction}
-            name={translate('common.merchant')}
-            value={title}
-            numberOfLinesValue={0}
             onPress={canEdit ? onPress : undefined}
-            isValueSelectable={!!copyValue}
-            error={errorText}
-            footer={googleSearchMerchant ? <GoogleMerchantSearchLink merchant={googleSearchMerchant} /> : undefined}
+            shouldAllowTextSelection={!!copyValue}
         >
-            {!canEdit && !!copyValue && <MenuItem.Copy value={copyValue} />}
-        </EditableField>
+            <MenuItem.Row>
+                <MenuItemField.Content name={translate('common.merchant')}>
+                    {!!title && (
+                        <MenuItem.FieldValue
+                            numberOfLines={0}
+                            isSelectable={!!copyValue}
+                        >
+                            {title}
+                        </MenuItem.FieldValue>
+                    )}
+                </MenuItemField.Content>
+                <EditableField.Actions>
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    {!canEdit && !!copyValue && <MenuItem.Copy value={copyValue} />}
+                </EditableField.Actions>
+            </MenuItem.Row>
+            {!!googleSearchMerchant && <GoogleMerchantSearchLink merchant={googleSearchMerchant} />}
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </EditableField.Root>
     );
 }
 

@@ -1,3 +1,4 @@
+/** Shares the labeled switch layout and offline feedback used by expense flags. */
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import Switch from '@components/Switch';

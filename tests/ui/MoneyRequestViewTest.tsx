@@ -3,7 +3,10 @@ import {act, render, screen, waitFor} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
-import type EditableField from '@components/ReportActionItem/MoneyRequestViewFields/EditableField';
+import type AmountField from '@components/ReportActionItem/MoneyRequestViewFields/AmountField';
+import type AttendeesField from '@components/ReportActionItem/MoneyRequestViewFields/AttendeesField';
+import type DescriptionField from '@components/ReportActionItem/MoneyRequestViewFields/DescriptionField';
+import type MerchantField from '@components/ReportActionItem/MoneyRequestViewFields/MerchantField';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -110,17 +113,47 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
     return (props: MockMenuItemWithTopDescriptionProps) => mockMenuItemWithTopDescription(props);
 });
 
-// Keep these tests focused on field visibility and edit permissions across the compound field boundary.
-jest.mock('@components/ReportActionItem/MoneyRequestViewFields/EditableField', () => {
-    const {default: ActualField} = jest.requireActual<{default: typeof EditableField}>('@components/ReportActionItem/MoneyRequestViewFields/EditableField');
-    return (props: React.ComponentProps<typeof ActualField>) => {
-        const {name, value, valueComponent, onPress, error} = props;
-        if (!name.startsWith('iou.amount') && !name.startsWith('iou.attendees') && name !== 'common.description' && name !== 'common.merchant') {
-            return <ActualField {...props} />;
-        }
-        return mockMenuItemWithTopDescription({description: name, title: valueComponent ?? value ?? '', interactive: !!onPress, errorText: typeof error === 'string' ? error : undefined});
-    };
-});
+// Keep these tests focused on field visibility and edit permissions at the expense field boundary.
+jest.mock(
+    '@components/ReportActionItem/MoneyRequestViewFields/AmountField',
+    () => (props: React.ComponentProps<typeof AmountField>) =>
+        mockMenuItemWithTopDescription({
+            description: props.description,
+            title: props.title,
+            interactive: !!props.canEdit,
+            errorText: typeof props.errorText === 'string' ? props.errorText : undefined,
+        }),
+);
+jest.mock(
+    '@components/ReportActionItem/MoneyRequestViewFields/AttendeesField',
+    () => (props: React.ComponentProps<typeof AttendeesField>) =>
+        mockMenuItemWithTopDescription({
+            description: 'iou.attendees',
+            title: props.title,
+            interactive: !!props.canEdit,
+            errorText: typeof props.errorText === 'string' ? props.errorText : undefined,
+        }),
+);
+jest.mock(
+    '@components/ReportActionItem/MoneyRequestViewFields/DescriptionField',
+    () => (props: React.ComponentProps<typeof DescriptionField>) =>
+        mockMenuItemWithTopDescription({
+            description: 'common.description',
+            title: props.title,
+            interactive: !!props.canEdit,
+            errorText: typeof props.errorText === 'string' ? props.errorText : undefined,
+        }),
+);
+jest.mock(
+    '@components/ReportActionItem/MoneyRequestViewFields/MerchantField',
+    () => (props: React.ComponentProps<typeof MerchantField>) =>
+        mockMenuItemWithTopDescription({
+            description: 'common.merchant',
+            title: props.title,
+            interactive: !!props.canEdit,
+            errorText: typeof props.errorText === 'string' ? props.errorText : undefined,
+        }),
+);
 
 jest.mock('@components/MenuItem/presets/MenuItemField', () => {
     const {default: actualField} = jest.requireActual<{default: Record<string, unknown>}>('@components/MenuItem/presets/MenuItemField');

@@ -1,3 +1,4 @@
+/** Keeps the billable switch and its validation messages together. */
 import ViolationMessages from '@components/ViolationMessages';
 import type {ViolationMessagesProps} from '@components/ViolationMessages';
 

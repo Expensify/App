@@ -23,11 +23,13 @@ import type * as ReactNavigation from '@react-navigation/native';
 
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
-import {Button, View} from 'react-native';
+import {Button, View as MockView} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import createMock from '../../../utils/createMock';
 
 jest.mock('@components/ColumnsSettingsList', () => jest.fn(() => null));
+jest.mock('@components/FullscreenLoadingIndicator', () => () => <MockView testID="report-fields-loading" />);
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1})));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/usePermissions', () => jest.fn());
@@ -45,10 +47,15 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const {TOTAL_AMOUNT, DESCRIPTION, MERCHANT, DATE, CATEGORY_GL_CODE, ATTENDEES, RECEIPT, HELD, POSTED, TOTAL_PER_ATTENDEE, MCC, VENDOR} = CONST.SEARCH.TABLE_COLUMNS;
+
+type PreferenceValues = [string[] | undefined, string | undefined];
+const mockReadPreferences = jest.fn<Promise<PreferenceValues>, []>();
 let mockSavedColumns: string[] | undefined;
+let mockSavedColumnsStatus: 'loading' | 'loaded' = 'loaded';
 let mockExpenseFields: string | undefined;
 let mockExpenseFieldsStatus: 'loading' | 'loaded' = 'loaded';
 let mockReportTransactions: Transaction[] = [];
+let mockAreReportTransactionsReady = true;
 let mockReport: Report | undefined;
 let mockPolicy: Policy | undefined;
 let mockReportStatus: 'loading' | 'loaded' = 'loaded';
@@ -74,11 +81,13 @@ function renderFields(savedColumns?: string[], expenseFields?: string) {
 jest.mocked(useOnyx).mockImplementation((key) => {
     switch (key) {
         case ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS:
-            return [mockSavedColumns, {status: 'loaded'}];
+            return [mockSavedColumns, {status: mockSavedColumnsStatus}];
         case ONYXKEYS.NVP_EXPENSE_FIELDS:
             return [mockExpenseFields, {status: mockExpenseFieldsStatus}];
         case ONYXKEYS.COLLECTION.TRANSACTION:
             return [mockReportTransactions, {status: 'loaded'}];
+        case ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS:
+            return [mockAreReportTransactionsReady, {status: 'loaded'}];
         case `${ONYXKEYS.COLLECTION.REPORT}report-1`:
             return [mockReport, {status: mockReportStatus}];
         case `${ONYXKEYS.COLLECTION.POLICY}policy-1`:
@@ -90,19 +99,31 @@ jest.mocked(useOnyx).mockImplementation((key) => {
 
 function MockPicker(props: Parameters<typeof ColumnsSettingsList>[0]) {
     const [selection] = React.useState(props.currentColumns);
+    const [availableColumns] = React.useState(props.allColumns);
     return (
-        <Button
-            title="Save fields"
-            onPress={() => props.onSave(selection)}
-        />
+        <MockView>
+            {availableColumns.includes(VENDOR) && <MockView testID="vendor-option" />}
+            <Button
+                title="Save fields"
+                onPress={() => {
+                    props.onSave(selection);
+                }}
+            />
+        </MockView>
     );
 }
 
 beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(ColumnsSettingsList).mockImplementation(() => <View />);
+    jest.mocked(ColumnsSettingsList).mockImplementation(() => <MockView />);
+    mockReadPreferences.mockImplementation(async () => [mockSavedColumns, mockExpenseFields]);
+    jest.spyOn(Onyx, 'multiGet').mockImplementation(mockReadPreferences);
+    mockSavedColumns = undefined;
+    mockExpenseFields = undefined;
     mockExpenseFieldsStatus = 'loaded';
+    mockSavedColumnsStatus = 'loaded';
     mockReportTransactions = [];
+    mockAreReportTransactionsReady = true;
     jest.mocked(useReportTransactions).mockImplementation(() => mockReportTransactions);
     mockReport = undefined;
     mockPolicy = undefined;
@@ -136,7 +157,7 @@ it('uses table defaults when none of the saved columns are supported', () => {
     expect(props.currentColumns).toContain(TOTAL_AMOUNT);
 });
 
-it('saves table columns with their previous value for rollback', () => {
+it('saves table columns with their previous value for rollback', async () => {
     // Given a table selection that must survive if the save request fails.
     const savedColumns = [DATE, TOTAL_AMOUNT];
     const expenseFields = JSON.stringify([TOTAL_AMOUNT, DESCRIPTION]);
@@ -144,7 +165,7 @@ it('saves table columns with their previous value for rollback', () => {
     const selectedColumns = [MERCHANT, TOTAL_AMOUNT];
 
     // When the user changes the table selection.
-    props.onSave(selectedColumns);
+    await props.onSave(selectedColumns);
 
     // Then only the table preference changes, with its old value available for rollback.
     expect(setReportDetailsColumns).toHaveBeenCalledWith(selectedColumns, savedColumns);
@@ -152,13 +173,13 @@ it('saves table columns with their previous value for rollback', () => {
     expect(Navigation.goBack).toHaveBeenCalledTimes(1);
 });
 
-it('keeps the table automatic column selection when saved without edits', () => {
+it('keeps the table automatic column selection when saved without edits', async () => {
     // Given an expense whose MCC automatically appears in the table without a saved preference.
     mockReportTransactions = [{transactionID: 'transaction-1', reportID: 'report-1', amount: 1000, currency: 'USD', created: '2026-10-29', merchant: 'Market', mcc: '5411'}];
     const props = renderColumns();
 
     // When the user saves the existing table selection.
-    props.onSave(props.currentColumns);
+    await props.onSave(props.currentColumns);
 
     // Then no explicit preference replaces the automatic column behavior.
     expect(props.currentColumns).toContain(MCC);
@@ -178,6 +199,117 @@ it('shows the same initial selection as the expense view', () => {
     expect(props.currentColumns).toEqual(fieldsInExpense.filter((column) => column !== VENDOR));
     expect(props.currentColumns).toContain(DESCRIPTION);
     expect(props.currentColumns).toContain(ATTENDEES);
+});
+
+it('waits for the current preferences before writing an edited selection', async () => {
+    // Given a preference read still waiting for Onyx initialization.
+    const pendingRead = Promise.withResolvers<PreferenceValues>();
+    mockReadPreferences.mockReturnValueOnce(pendingRead.promise);
+    const props = renderFields();
+
+    // When the user saves before the read has completed.
+    const saving = props.onSave([TOTAL_AMOUNT, DESCRIPTION]);
+    expect(setNameValuePair).not.toHaveBeenCalled();
+    expect(Navigation.goBack).not.toHaveBeenCalled();
+    pendingRead.resolve([undefined, undefined]);
+    await saving;
+
+    // Then the selection is written only after the current preference is known.
+    expect(setNameValuePair).toHaveBeenCalledTimes(1);
+    expect(Navigation.goBack).toHaveBeenCalledTimes(1);
+});
+
+it('does not overwrite an expense preference that arrives after the picker renders', async () => {
+    // Given a picker initialized before an existing preference becomes available.
+    const props = renderFields();
+    const existingFields = JSON.stringify([TOTAL_AMOUNT, MCC]);
+    mockReadPreferences.mockResolvedValueOnce([undefined, existingFields]);
+
+    // When the user saves a change based on the earlier default selection.
+    await props.onSave([TOTAL_AMOUNT, DESCRIPTION]);
+
+    // Then the existing preference is preserved and the picker stays open to receive the updated selection.
+    expect(setNameValuePair).not.toHaveBeenCalled();
+    expect(Navigation.goBack).not.toHaveBeenCalled();
+});
+
+it.each([SCREENS.REPORT_SETTINGS.COLUMNS, SCREENS.REPORT_SETTINGS.FIELDS])('preserves table preferences that change while %s is open', async (screenName) => {
+    // Given a picker whose table preference has changed since it was rendered.
+    jest.mocked(useRoute).mockReturnValue({key: 'columns', name: screenName, params: {reportID: 'report-1'}});
+    const props = renderColumns();
+    mockReadPreferences.mockResolvedValueOnce([[DATE, MCC, TOTAL_AMOUNT], undefined]);
+
+    // When an edit is saved from the stale selection.
+    await props.onSave([TOTAL_AMOUNT, MERCHANT]);
+
+    // Then neither preference is overwritten and the updated selection can arrive through the subscription.
+    expect(setReportDetailsColumns).not.toHaveBeenCalled();
+    expect(setNameValuePair).not.toHaveBeenCalled();
+    expect(Navigation.goBack).not.toHaveBeenCalled();
+});
+
+it('waits for transaction initialization before offering automatic table columns', async () => {
+    // Given a report whose transactions have not reached the derived key yet.
+    mockSavedColumns = undefined;
+    mockAreReportTransactionsReady = false;
+    const {rerender} = render(<ReportDetailsColumnsPage />);
+    expect(screen.getByTestId('report-fields-loading')).toBeOnTheScreen();
+    expect(ColumnsSettingsList).not.toHaveBeenCalled();
+
+    // When the report transactions arrive with an MCC column that should be selected automatically.
+    mockReportTransactions = [{transactionID: 'transaction-1', reportID: 'report-1', amount: 1000, currency: 'USD', created: '2026-10-29', merchant: 'Market', mcc: '5411'}];
+    mockAreReportTransactionsReady = true;
+    rerender(<ReportDetailsColumnsPage />);
+    const props = jest.mocked(ColumnsSettingsList).mock.calls.at(-1)?.at(0);
+    await props?.onSave(props.currentColumns);
+
+    // Then the first editable selection reflects transaction data and saving it keeps the automatic behavior.
+    expect(props?.currentColumns).toContain(MCC);
+    expect(setReportDetailsColumns).not.toHaveBeenCalled();
+});
+
+it('allows an initialized report with no transactions to use the default table columns', () => {
+    // Given a loaded report with an empty transaction list, rather than a pending derived key.
+    mockReportTransactions = [];
+    mockAreReportTransactionsReady = true;
+
+    // When the table picker opens.
+    const props = renderColumns();
+
+    // Then it remains usable with the default columns instead of waiting for a nonexistent transaction.
+    expect(props.currentColumns).toEqual(props.defaultSelectedColumns);
+    expect(screen.queryByTestId('report-fields-loading')).not.toBeOnTheScreen();
+});
+
+it('does not wait for transactions or expense preferences when the table selection is already saved', () => {
+    // Given explicit table columns whose selection does not depend on expense preferences or transaction data.
+    mockAreReportTransactionsReady = false;
+    mockExpenseFieldsStatus = 'loading';
+
+    // When the table picker opens before those unrelated values arrive.
+    const props = renderColumns([DATE, TOTAL_AMOUNT]);
+
+    // Then the saved table selection is available immediately.
+    expect(props.currentColumns).toEqual([DATE, TOTAL_AMOUNT]);
+});
+
+it('adds an unselected Vendor option when workspace availability changes', () => {
+    // Given a customized expense selection that omits Vendor before its workspace becomes available.
+    mockExpenseFields = JSON.stringify([TOTAL_AMOUNT, DESCRIPTION]);
+    mockReport = {reportID: 'report-1', policyID: 'policy-1'};
+    jest.mocked(useRoute).mockReturnValue({key: 'fields', name: SCREENS.REPORT_SETTINGS.FIELDS, params: {reportID: 'report-1'}});
+    jest.mocked(ColumnsSettingsList).mockImplementation(MockPicker);
+    const {rerender} = render(<ReportDetailsColumnsPage />);
+    expect(screen.queryByTestId('vendor-option')).not.toBeOnTheScreen();
+
+    // When the workspace enables Vendor without changing the selected fields.
+    mockPolicy = createMock<Policy>({id: 'policy-1', connections: {xero: {config: {isConfigured: true}}}});
+    rerender(<ReportDetailsColumnsPage />);
+
+    // Then the open picker offers Vendor as an unchecked option, without requiring navigation away and back.
+    expect(screen.getByTestId('vendor-option')).toBeOnTheScreen();
+    const props = jest.mocked(ColumnsSettingsList).mock.calls.at(-1)?.at(0);
+    expect(props?.currentColumns).toEqual([TOTAL_AMOUNT, DESCRIPTION]);
 });
 
 it.each(['preference', 'report', 'policy', 'beta'] as const)('preserves Vendor when %s data loads after the expense preference', (pendingData) => {
@@ -214,14 +346,14 @@ it.each(['preference', 'report', 'policy', 'beta'] as const)('preserves Vendor w
     expect(Navigation.goBack).toHaveBeenCalledTimes(1);
 });
 
-it('adds an expense field without hiding existing editors or changing the table', () => {
+it('adds an expense field without hiding existing editors or changing the table', async () => {
     // Given an expense with its usual fields and no saved table or expense preference.
     const props = renderFields();
     const selectedFields = [...props.currentColumns, CATEGORY_GL_CODE];
     const storedFields = [...getMoneyRequestViewFields(), CATEGORY_GL_CODE];
 
     // When the user adds only Category GL code and reopens the saved selection.
-    props.onSave(selectedFields);
+    await props.onSave(selectedFields);
     const savedPreference = jest.mocked(setNameValuePair).mock.calls.at(-1)?.at(1);
     const reopened = renderFields(undefined, typeof savedPreference === 'string' ? savedPreference : undefined);
 
@@ -234,12 +366,12 @@ it('adds an expense field without hiding existing editors or changing the table'
     expect(getMoneyRequestViewFields([], JSON.stringify(storedFields)).filter((column) => column !== VENDOR)).toEqual(selectedFields);
 });
 
-it.each([undefined, JSON.stringify([TOTAL_AMOUNT, DESCRIPTION])])('does not rewrite an unchanged expense preference (%s)', (expenseFields) => {
+it.each([undefined, JSON.stringify([TOTAL_AMOUNT, DESCRIPTION])])('does not rewrite an unchanged expense preference (%s)', async (expenseFields) => {
     // Given an expense using either its initial selection or a saved selection.
     const props = renderFields(undefined, expenseFields);
 
     // When the user saves without editing any field.
-    props.onSave(props.currentColumns);
+    await props.onSave(props.currentColumns);
 
     // Then both preferences remain unchanged and the picker closes.
     expect(setNameValuePair).not.toHaveBeenCalled();
@@ -247,7 +379,7 @@ it.each([undefined, JSON.stringify([TOTAL_AMOUNT, DESCRIPTION])])('does not rewr
     expect(Navigation.goBack).toHaveBeenCalledTimes(1);
 });
 
-it('saves the expense selection with its previous serialized value for rollback', () => {
+it('saves the expense selection with its previous serialized value for rollback', async () => {
     // Given an explicit expense selection that differs from the table selection.
     const tableColumns = [RECEIPT, DATE, MERCHANT, TOTAL_AMOUNT];
     const expenseFields = JSON.stringify([TOTAL_AMOUNT, DESCRIPTION]);
@@ -255,7 +387,7 @@ it('saves the expense selection with its previous serialized value for rollback'
     const selectedFields = [DESCRIPTION, TOTAL_AMOUNT, ATTENDEES];
 
     // When the user changes the expense selection and order.
-    props.onSave(selectedFields);
+    await props.onSave(selectedFields);
 
     // Then only the expense preference changes, with the previous JSON available for rollback.
     expect(props.currentColumns).toEqual([TOTAL_AMOUNT, DESCRIPTION]);
@@ -263,14 +395,14 @@ it('saves the expense selection with its previous serialized value for rollback'
     expect(setReportDetailsColumns).not.toHaveBeenCalled();
 });
 
-it('keeps table aliases and header columns outside the expense preference', () => {
+it('keeps table aliases and header columns outside the expense preference', async () => {
     // Given table choices whose values already appear in expense editors or the header.
     const tableColumns = [RECEIPT, HELD, POSTED, TOTAL_PER_ATTENDEE, VENDOR, TOTAL_AMOUNT];
     const props = renderFields(tableColumns);
     const selectedFields = [TOTAL_AMOUNT, DESCRIPTION];
 
     // When the user hides other expense fields.
-    props.onSave(selectedFields);
+    await props.onSave(selectedFields);
 
     // Then the expense saves only its own fields without rewriting any table choice.
     expect(props.allColumns).not.toContain(RECEIPT);
@@ -281,13 +413,13 @@ it('keeps table aliases and header columns outside the expense preference', () =
     expect(setReportDetailsColumns).not.toHaveBeenCalled();
 });
 
-it('preserves an expense Vendor selection unavailable in the current workspace', () => {
+it('preserves an expense Vendor selection unavailable in the current workspace', async () => {
     // Given an account preference whose Vendor field is available in another workspace.
     const expenseFields = JSON.stringify([TOTAL_AMOUNT, VENDOR, DESCRIPTION]);
     const props = renderFields(undefined, expenseFields);
 
     // When the user adds an accounting field without being able to change Vendor here.
-    props.onSave([...props.currentColumns, CATEGORY_GL_CODE]);
+    await props.onSave([...props.currentColumns, CATEGORY_GL_CODE]);
 
     // Then the Vendor selection and position survive for the other workspace.
     expect(props.currentColumns).toEqual([TOTAL_AMOUNT, DESCRIPTION]);
@@ -322,13 +454,13 @@ it('ignores data-driven table fields until they are explicitly selected', () => 
     expect(props.currentColumns).toContain(DESCRIPTION);
 });
 
-it('falls back to the visible expense fields when stored JSON is invalid', () => {
+it('falls back to the visible expense fields when stored JSON is invalid', async () => {
     // Given a malformed expense preference and an explicitly configured accounting field.
     const tableColumns = [TOTAL_AMOUNT, CATEGORY_GL_CODE];
     const props = renderFields(tableColumns, '{invalid');
 
     // When the user saves the fallback selection without changes.
-    props.onSave(props.currentColumns);
+    await props.onSave(props.currentColumns);
 
     // Then the picker still matches the expense and does not replace a preference merely by opening it.
     expect(props.currentColumns).toEqual(getMoneyRequestViewFields(tableColumns, '{invalid').filter((column) => column !== VENDOR));
@@ -336,7 +468,7 @@ it('falls back to the visible expense fields when stored JSON is invalid', () =>
     expect(setReportDetailsColumns).not.toHaveBeenCalled();
 });
 
-it('resets only the expense fields to their original editor order', () => {
+it('resets only the expense fields to their original editor order', async () => {
     // Given custom expense fields alongside a separate table selection.
     const tableColumns = [RECEIPT, TOTAL_AMOUNT, MCC];
     const expenseFields = JSON.stringify([MCC, TOTAL_AMOUNT]);
@@ -344,7 +476,7 @@ it('resets only the expense fields to their original editor order', () => {
     const resetFields = props.defaultSelectedColumns.filter((column) => column !== VENDOR);
 
     // When the Reset selection is saved.
-    props.onSave(resetFields);
+    await props.onSave(resetFields);
 
     // Then the expense restores its standard editors while the table remains unchanged.
     expect(resetFields).toEqual(getMoneyRequestViewFields().filter((column) => column !== VENDOR));

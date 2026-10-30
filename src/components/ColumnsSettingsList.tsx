@@ -54,8 +54,8 @@ type ColumnsSettingsListProps = {
     /** The default columns for the active group-by mode when no customization has been applied */
     defaultGroupColumns?: SearchCustomColumnIds[];
 
-    /** Callback fired with the updated column list when the user saves changes */
-    onSave: (columns: SearchCustomColumnIds[]) => void;
+    /** Async handlers can validate current preferences before closing the picker. */
+    onSave: (columns: SearchCustomColumnIds[]) => void | Promise<void>;
 
     /** The active Search type, used to resolve type-specific column labels */
     type?: SearchDataTypes;
