@@ -1,6 +1,7 @@
 import {getApiRoot} from '@libs/ApiUtils';
 import {splitCardFeedWithDomainID} from '@libs/CardUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
+import {getObjectKeys, hasKey} from '@libs/ObjectUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -21,7 +22,7 @@ type PersonalCardBankConnection = {
 };
 
 function getCompanyCardBankConnection(policyID?: string, bankName?: string | null, feed?: CompanyCardFeedWithDomainID) {
-    const bankConnection = Object.keys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key as keyof typeof CONST.COMPANY_CARDS.BANKS] === bankName);
+    const bankConnection = getObjectKeys(CONST.COMPANY_CARDS.BANKS).find((key) => CONST.COMPANY_CARDS.BANKS[key] === bankName);
 
     if (!bankName || !bankConnection || !policyID) {
         return null;
@@ -46,7 +47,7 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string | nul
         queryParams.feed = selectedFeed.feedName;
     }
 
-    const bank = CONST.COMPANY_CARDS.BANK_CONNECTIONS[bankConnection as keyof typeof CONST.COMPANY_CARDS.BANK_CONNECTIONS];
+    const bank = hasKey(CONST.COMPANY_CARDS.BANK_CONNECTIONS, bankConnection) ? CONST.COMPANY_CARDS.BANK_CONNECTIONS[bankConnection] : undefined;
 
     // The Amex connection whitelists only our production servers, so we need to always use the production API for American Express
     const forceProductionAPI = bank === CONST.COMPANY_CARDS.BANK_CONNECTIONS.AMEX;
@@ -60,7 +61,7 @@ function getCompanyCardBankConnection(policyID?: string, bankName?: string | nul
 }
 
 function getPersonalCardBankConnection(bankName?: string | null) {
-    const bankConnection = Object.keys(CONST.PERSONAL_CARDS.BANKS).find((key) => CONST.PERSONAL_CARDS.BANKS[key as keyof typeof CONST.PERSONAL_CARDS.BANKS] === bankName);
+    const bankConnection = getObjectKeys(CONST.PERSONAL_CARDS.BANKS).find((key) => CONST.PERSONAL_CARDS.BANKS[key] === bankName);
 
     if (!bankName || !bankConnection) {
         return null;
@@ -71,7 +72,7 @@ function getPersonalCardBankConnection(bankName?: string | null) {
         isNewDot: 'true',
         scrapeMinDate: '',
     };
-    const bank = CONST.PERSONAL_CARDS.BANK_CONNECTIONS[bankConnection as keyof typeof CONST.PERSONAL_CARDS.BANK_CONNECTIONS];
+    const bank = hasKey(CONST.PERSONAL_CARDS.BANK_CONNECTIONS, bankConnection) ? CONST.PERSONAL_CARDS.BANK_CONNECTIONS[bankConnection] : undefined;
 
     // The Amex connection whitelists only our production servers, so we need to always use the production API for American Express
     const forceProductionAPI = bank === CONST.PERSONAL_CARDS.BANK_CONNECTIONS.AMEX;
