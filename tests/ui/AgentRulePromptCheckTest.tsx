@@ -32,7 +32,7 @@ let mockIsOffline = false;
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: (key: string) => key,
+        translate: (key: string, ...params: unknown[]) => [key, ...params].join(' '),
     })),
 );
 jest.mock('@hooks/useThemeStyles', () =>
@@ -105,11 +105,13 @@ jest.mock('@components/Form/FormProvider', () => {
         children,
         onSubmit,
         submitButtonText,
+        footerContent,
         ref,
     }: {
         children: React.ReactNode;
         onSubmit: (values: {prompt: string}) => void;
         submitButtonText: string;
+        footerContent?: React.ReactNode;
         ref?: React.Ref<{resetForm: (values: {prompt: string}) => void}>;
     }) => {
         ReactModule.useImperativeHandle(ref, () => ({
@@ -127,6 +129,7 @@ jest.mock('@components/Form/FormProvider', () => {
                 {accessibilityLabel: submitButtonText, onPress: () => onSubmit({prompt: mockPrompt})},
                 ReactModule.createElement(Text, null, submitButtonText),
             ),
+            footerContent,
         );
     };
 });
@@ -136,7 +139,8 @@ const RULE_ID = 'rule1';
 const TYPED_PROMPT = "Text the approver's phone when a report is submitted";
 const SUGGESTED_PROMPT = 'When a report is submitted, send the approver a direct message';
 const CREATE_RULE = 'workspace.rules.agentRules.createRule';
-const CREATE_ANYWAY = 'workspace.rules.agentRules.createAnyway';
+const CREATE_ANYWAY = 'workspace.rules.newRule.impossible.createAnyway';
+const USE_SUGGESTION = 'workspace.rules.newRule.impossible.useSuggestion';
 
 type WriteSpy = jest.SpiedFunction<typeof API.write>;
 type EditAgentRulePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_AGENT_EDIT>;
@@ -243,9 +247,9 @@ describe('Agent rule prompt check', () => {
 
         // Then the rule does not save, and the form shows why with the suggested rule
         expect(onSave).not.toHaveBeenCalled();
-        expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeTruthy();
-        expect(screen.getByText("Agents can't send text messages.")).toBeTruthy();
-        expect(screen.getByText(SUGGESTED_PROMPT)).toBeTruthy();
+        expect(screen.getByText("workspace.rules.newRule.impossible.explanationWithSuggestion Agents can't send text messages.")).toBeTruthy();
+        expect(screen.getByText(`workspace.rules.newRule.impossible.quotedSuggestion ${SUGGESTED_PROMPT}`)).toBeTruthy();
+        expect(screen.getByText(USE_SUGGESTION)).toBeTruthy();
 
         // When the admin taps Create anyway
         await submit(TYPED_PROMPT, CREATE_ANYWAY);
@@ -255,15 +259,15 @@ describe('Agent rule prompt check', () => {
         expect(getGenerateRuleRequests(writeSpy)).toHaveLength(1);
     });
 
-    it('checks the suggested rule when the admin taps Try this instead', async () => {
+    it('checks the suggested rule when the admin taps Use suggestion', async () => {
         // Given Concierge refused the typed rule
         const onSave = jest.fn();
         await renderWriteTab(onSave);
         await submit(TYPED_PROMPT);
         await answerCheck(buildImpossibleAnswer(getLastGenerationID(writeSpy)));
 
-        // When the admin taps Try this instead, and Concierge answers that RuleBot can do the suggestion
-        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.tryThisInstead'));
+        // When the admin taps Use suggestion, and Concierge answers that RuleBot can do the suggestion
+        fireEvent.press(screen.getByText(USE_SUGGESTION));
         await waitForBatchedUpdatesWithAct();
         await answerCheck({generationID: getLastGenerationID(writeSpy), state: CONST.GENERATED_RULE.STATE.AGENT_RULE});
 

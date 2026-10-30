@@ -10,8 +10,10 @@ import TextCell from '@components/Search/SearchList/ListItem/TextCell';
 import TotalCell from '@components/Search/SearchList/ListItem/TotalCell';
 import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
+import YesNoCell from '@components/Search/SearchList/ListItem/YesNoCell';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import {useListItemContext, useListItemHovered} from '@components/SelectionList/ListItemContext';
+import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
@@ -65,7 +67,14 @@ function ExpenseReportListItemRowWide({
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: <ExpenseReportListItemAvatar item={item} />,
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {isDateColumnWide: item.shouldShowYear, isDateColumnCreated: true})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, {
+                        isDateColumnWide: item.shouldShowYear,
+                        isDateColumnCreated: true,
+                    }),
+                ]}
+            >
                 <DateCell
                     date={item.created ?? ''}
                     showTooltip
@@ -74,7 +83,13 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isSubmittedColumnWide: item.shouldShowYearSubmitted})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {
+                        isSubmittedColumnWide: item.shouldShowYearSubmitted,
+                    }),
+                ]}
+            >
                 <DateCell
                     date={item.submitted ?? ''}
                     showTooltip
@@ -84,7 +99,13 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide: item.shouldShowYearApproved})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {
+                        isApprovedColumnWide: item.shouldShowYearApproved,
+                    }),
+                ]}
+            >
                 <DateCell
                     date={item.approved ?? ''}
                     showTooltip
@@ -137,7 +158,13 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {isExportedColumnWide: item.shouldShowYearExported})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, {
+                        isExportedColumnWide: item.shouldShowYearExported,
+                    }),
+                ]}
+            >
                 <DateCell
                     date={item.exported ?? ''}
                     showTooltip
@@ -166,6 +193,11 @@ function ExpenseReportListItemRowWide({
                     text={item.formattedPaidStatus ?? ''}
                     isLargeScreenWidth
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.DECLINED]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DECLINED)]}>
+                <YesNoCell value={!!item.declined} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
@@ -201,7 +233,14 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL, {
+                        isAmountColumnWide: item.isAmountColumnWide,
+                        shouldRemoveTotalColumnFlex: true,
+                    }),
+                ]}
+            >
                 <TotalCell
                     total={reimbursableSpend}
                     currency={currency}
@@ -226,7 +265,14 @@ function ExpenseReportListItemRowWide({
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: (
-            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {isAmountColumnWide: item.isAmountColumnWide, shouldRemoveTotalColumnFlex: true})]}>
+            <View
+                style={[
+                    getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, {
+                        isAmountColumnWide: item.isAmountColumnWide,
+                        shouldRemoveTotalColumnFlex: true,
+                    }),
+                ]}
+            >
                 <TotalCell
                     total={totalDisplaySpend}
                     currency={currency}
@@ -307,6 +353,7 @@ function ExpenseReportListItemRowWide({
                         chatReport={chatReport}
                         shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         shouldDisablePointerEvents={isDisabled || shouldDisableActionPointerEvents}
+                        snapshotTransactions={item.transactions}
                     />
                 </ReportSubmitToPopoverMeasurableAnchor>
             </View>
@@ -322,7 +369,11 @@ function ExpenseReportListItemRowWide({
     };
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+        <View
+            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+            // The resize line reads this marker to find the rows it spans.
+            dataSet={TABLE_ROW_DATA_SET}
+        >
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox

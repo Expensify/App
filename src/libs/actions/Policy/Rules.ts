@@ -403,7 +403,7 @@ function checkAgentRulePrompt(formID: AgentRuleFormID, policyID: string, prompt:
     return generationID;
 }
 
-/** Stops the loading state of an agent rule form after Concierge answers the check */
+/** Stops the loading state of an agent rule form */
 function stopAgentRuleCheckLoading(formID: AgentRuleFormID) {
     Onyx.merge(formID, {isLoading: false});
 }

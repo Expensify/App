@@ -20,6 +20,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ImpossibleRuleNotice from '@pages/workspace/rules/ImpossibleRuleNotice';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
+import useSuggestionButtonRow from '@pages/workspace/rules/useSuggestionButtonRow';
 
 import {deletePolicyAgentRule, updatePolicyAgentRule} from '@userActions/Policy/Rules';
 
@@ -87,6 +88,7 @@ function EditAgentRulePage({
         checkedPrompt: agentRule?.prompt,
         savePrompt: saveRule,
     });
+    const suggestionButtonRow = useSuggestionButtonRow(refusal?.suggestedPrompt, trySuggestedPrompt);
 
     const inputWrapperStyles = useAgentPromptInputStyles();
 
@@ -136,6 +138,10 @@ function EditAgentRulePage({
                     submitFlexEnabled={false}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    isSubmitButtonNeutral={suggestionButtonRow.isSubmitButtonNeutral}
+                    submitButtonAndFooterContainerStyles={suggestionButtonRow.containerStyles}
+                    submitButtonInnerStyles={suggestionButtonRow.submitButtonStyles}
+                    footerContent={suggestionButtonRow.footerContent}
                     shouldValidateOnChange
                     shouldValidateOnBlur
                     keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
@@ -160,12 +166,7 @@ function EditAgentRulePage({
                                 inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                             />
                         </View>
-                        {!!refusal && (
-                            <ImpossibleRuleNotice
-                                refusal={refusal}
-                                onTrySuggestion={trySuggestedPrompt}
-                            />
-                        )}
+                        {!!refusal && <ImpossibleRuleNotice refusal={refusal} />}
                         <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>
                             {translate(isChecking ? 'workspace.rules.agentRules.checkingRule' : 'workspace.rules.agentRules.disclaimer')}
                         </Text>

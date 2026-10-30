@@ -113,6 +113,7 @@ function useAgentRulePromptCheck({policyID, formID, formRef, checkedPrompt, save
             return;
         }
         const isUnchanged = !!checkedPrompt && prompt.trim() === checkedPrompt.trim();
+        // GenerateRule needs a connection. Offline, the rule saves without a check.
         if (isUnchanged || isOffline) {
             savePrompt(prompt);
             return;
@@ -122,7 +123,7 @@ function useAgentRulePromptCheck({policyID, formID, formRef, checkedPrompt, save
 
     /** Shows the suggested rule of the refusal in place of the admin's text, and checks it */
     const trySuggestedPrompt = (suggestedPrompt: string) => {
-        Log.info('[GenerateRule] Tried the suggested description', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
+        Log.info('[GenerateRule] Tried the suggested agent rule', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
         formRef.current?.resetForm({[PROMPT_INPUT_ID]: suggestedPrompt});
 
         // Start the check after the reset, so that a text change from the reset cannot stop it

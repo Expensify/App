@@ -24,6 +24,7 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPrompt = '';
+let mockIsSubmitButtonNeutral: boolean | undefined;
 
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -36,7 +37,7 @@ jest.mock('@react-navigation/native', () => {
 });
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: (key: string) => key,
+        translate: (key: string, ...params: unknown[]) => [key, ...params].join(' '),
     })),
 );
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
@@ -81,17 +82,32 @@ jest.mock('@components/Form/FormProvider', () => {
         Pressable: React.ComponentType<{accessibilityLabel?: string; onPress?: () => void; children?: React.ReactNode}>;
         Text: React.ComponentType<{children?: React.ReactNode}>;
     }>('react-native');
-    return ({children, onSubmit, submitButtonText}: {children: React.ReactNode; onSubmit: (values: {prompt: string}) => void; submitButtonText: string}) =>
-        ReactModule.createElement(
+    return ({
+        children,
+        onSubmit,
+        submitButtonText,
+        footerContent,
+        isSubmitButtonNeutral,
+    }: {
+        children: React.ReactNode;
+        onSubmit: (values: {prompt: string}) => void;
+        submitButtonText: string;
+        footerContent?: React.ReactNode;
+        isSubmitButtonNeutral?: boolean;
+    }) => {
+        mockIsSubmitButtonNeutral = isSubmitButtonNeutral;
+        return ReactModule.createElement(
             ReactModule.Fragment,
             null,
             children,
+            footerContent,
             ReactModule.createElement(
                 Pressable,
                 {accessibilityLabel: submitButtonText, onPress: () => onSubmit({prompt: mockPrompt})},
                 ReactModule.createElement(Text, null, submitButtonText),
             ),
         );
+    };
 });
 
 const POLICY_ID = 'policy1';
@@ -266,9 +282,16 @@ describe('DescribeRuleModal', () => {
         // Then the modal stays open with the reason, the explanation and the suggestion, and nothing reaches the editor form
         expect(onRuleGenerated).not.toHaveBeenCalled();
         expect(onClose).not.toHaveBeenCalled();
-        expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
-        expect(screen.getByText(IMPOSSIBLE_ANSWER.explanation)).toBeOnTheScreen();
-        expect(screen.getByText(IMPOSSIBLE_ANSWER.suggestedPrompt)).toBeOnTheScreen();
+        expect(screen.getByText(`workspace.rules.newRule.impossible.explanationWithSuggestion ${IMPOSSIBLE_ANSWER.explanation}`)).toBeOnTheScreen();
+        expect(screen.queryByText('workspace.rules.newRule.impossible.noCapability')).toBeNull();
+        expect(screen.getByText(`workspace.rules.newRule.impossible.quotedSuggestion ${IMPOSSIBLE_ANSWER.suggestedPrompt}`)).toBeOnTheScreen();
+
+        // And Use suggestion is the suggested action, so Next turns neutral
+        expect(screen.getByText('workspace.rules.newRule.impossible.useSuggestion')).toBeOnTheScreen();
+        expect(mockIsSubmitButtonNeutral).toBe(true);
+
+        // And the submit button keeps Next, because an editor has no agent rule to create anyway
+        expect(screen.getByLabelText('common.next')).toBeOnTheScreen();
 
         // And the form stops loading without an error, because the answer is shown in the form
         const form = await getOnyxValue(ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM);
@@ -276,15 +299,15 @@ describe('DescribeRuleModal', () => {
         expect(await getPromptErrors()).toEqual([]);
     });
 
-    it('describes the suggested rule when the admin taps Try this instead', async () => {
+    it('describes the suggested rule when the admin taps Use suggestion', async () => {
         // Given Concierge answered that the description cannot be done and suggested another one
         const logSpy = jest.spyOn(Log, 'info');
         await renderFlagForReviewModal(jest.fn(), jest.fn());
         const generationID = describeRule(writeSpy, 'Text the approver when a report is submitted');
         await answerGeneration({...IMPOSSIBLE_ANSWER, generationID});
 
-        // When the admin taps Try this instead
-        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.tryThisInstead'));
+        // When the admin taps Use suggestion
+        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.useSuggestion'));
         await waitForBatchedUpdatesWithAct();
 
         // Then Concierge gets the suggested description for the same editor, so the admin does not retype it
@@ -294,11 +317,11 @@ describe('DescribeRuleModal', () => {
         expect(logSpy).toHaveBeenCalledWith('[GenerateRule] Tried the suggested description', false, {policyID: POLICY_ID, generationID, reason: IMPOSSIBLE_ANSWER.reason});
 
         // And the refusal goes away, because it belongs to the earlier description
-        expect(screen.queryByText(IMPOSSIBLE_ANSWER.explanation)).toBeNull();
+        expect(screen.queryByText(`workspace.rules.newRule.impossible.explanationWithSuggestion ${IMPOSSIBLE_ANSWER.explanation}`)).toBeNull();
         logSpy.mockRestore();
     });
 
-    it('disables Try this instead and sends no request while offline', async () => {
+    it('disables Use suggestion and sends no request while offline', async () => {
         // Given the admin is offline when Concierge answers that the description cannot be done and suggests another one.
         // The mocked network hook cannot re-render the refusal, so the refusal shows for the first time while offline.
         await renderFlagForReviewModal(jest.fn(), jest.fn());
@@ -306,31 +329,35 @@ describe('DescribeRuleModal', () => {
         mockedUseNetwork.mockReturnValue({isOffline: true});
         await answerGeneration({...IMPOSSIBLE_ANSWER, generationID});
 
-        // When the admin taps Try this instead
-        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.tryThisInstead'));
+        // When the admin taps Use suggestion
+        fireEvent.press(screen.getByText('workspace.rules.newRule.impossible.useSuggestion'));
         await waitForBatchedUpdatesWithAct();
 
         // Then no new GenerateRule request is sent, because generating a rule needs a connection, like the form's own submit
         expect(getGenerateRuleRequests(writeSpy)).toHaveLength(1);
-        expect(screen.getByText(IMPOSSIBLE_ANSWER.explanation)).toBeOnTheScreen();
+        expect(screen.getByText(`workspace.rules.newRule.impossible.explanationWithSuggestion ${IMPOSSIBLE_ANSWER.explanation}`)).toBeOnTheScreen();
     });
 
-    it('shows the general title and no suggestion when the reason is unknown and nothing is suggested', async () => {
+    it('shows the general text and no suggestion when the reason is unknown and nothing is explained or suggested', async () => {
         // Given the flag for review editor asked for a rule
         await renderFlagForReviewModal(jest.fn(), jest.fn());
         const generationID = describeRule(writeSpy, 'Text the approver when a report is submitted');
 
-        // When Concierge answers with a reason that this app version does not know, and with no suggestion
+        // When Concierge answers with a reason that this app version does not know, with no explanation and no suggestion
         await answerGeneration({
             ...IMPOSSIBLE_ANSWER,
             generationID,
+            explanation: '',
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- simulates an answer from a server that knows more reasons than this app version
             reason: 'futureReason' as GeneratedRuleImpossibleReason,
             suggestedPrompt: '',
         });
 
-        // Then the modal shows the general title and no Try this instead button, because there is nothing to try
+        // Then the modal still says why with the general text, and shows no Use suggestion button, because there is nothing to try
         expect(screen.getByText('workspace.rules.newRule.impossible.noCapability')).toBeOnTheScreen();
-        expect(screen.queryByText('workspace.rules.newRule.impossible.tryThisInstead')).toBeNull();
+        expect(screen.queryByText('workspace.rules.newRule.impossible.useSuggestion')).toBeNull();
+
+        // And Next stays the suggested action
+        expect(mockIsSubmitButtonNeutral).toBe(false);
     });
 });

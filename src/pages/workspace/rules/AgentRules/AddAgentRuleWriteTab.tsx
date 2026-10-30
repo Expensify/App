@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import ImpossibleRuleNotice from '@pages/workspace/rules/ImpossibleRuleNotice';
+import useSuggestionButtonRow from '@pages/workspace/rules/useSuggestionButtonRow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,6 +48,7 @@ function AddAgentRuleWriteTab({policyID, checkedPrompt, onSave}: AddAgentRuleWri
         checkedPrompt,
         savePrompt: (prompt) => onSave({[INPUT_IDS.PROMPT]: prompt}),
     });
+    const suggestionButtonRow = useSuggestionButtonRow(refusal?.suggestedPrompt, trySuggestedPrompt);
     const describeRuleLabel = translate('workspace.rules.agentRules.describeRuleForConcierge');
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
@@ -76,12 +78,16 @@ function AddAgentRuleWriteTab({policyID, checkedPrompt, onSave}: AddAgentRuleWri
             formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
             validate={validate}
             onSubmit={(values) => checkThenSavePrompt(values[INPUT_IDS.PROMPT])}
-            submitButtonText={translate(refusal ? 'workspace.rules.agentRules.createAnyway' : 'workspace.rules.agentRules.createRule')}
+            submitButtonText={translate(refusal ? 'workspace.rules.newRule.impossible.createAnyway' : 'workspace.rules.agentRules.createRule')}
             style={[styles.flex1, styles.ph5]}
             submitFlexEnabled={false}
             shouldUseScrollView={false}
             enabledWhenOffline
             shouldHideFixErrorsAlert
+            isSubmitButtonNeutral={suggestionButtonRow.isSubmitButtonNeutral}
+            submitButtonAndFooterContainerStyles={suggestionButtonRow.containerStyles}
+            submitButtonInnerStyles={suggestionButtonRow.submitButtonStyles}
+            footerContent={suggestionButtonRow.footerContent}
             shouldValidateOnChange
             shouldValidateOnBlur
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
@@ -106,12 +112,7 @@ function AddAgentRuleWriteTab({policyID, checkedPrompt, onSave}: AddAgentRuleWri
                         inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                     />
                 </View>
-                {!!refusal && (
-                    <ImpossibleRuleNotice
-                        refusal={refusal}
-                        onTrySuggestion={trySuggestedPrompt}
-                    />
-                )}
+                {!!refusal && <ImpossibleRuleNotice refusal={refusal} />}
                 <Text style={[styles.textMicroSupporting, styles.textAlignCenter, styles.mt2]}>
                     {translate(isChecking ? 'workspace.rules.agentRules.checkingRule' : 'workspace.rules.agentRules.disclaimer')}
                 </Text>
