@@ -6979,6 +6979,76 @@ describe('updateSplitTransactions', () => {
         expect(Object.values(latestSplitTransactionFailureErrors).at(0)).toBe(localizedFallback);
     });
 
+    it('should send each split description as a plain string when updating existing split transactions', async () => {
+        // Given an expense that is already split in two
+        const {expenseReport, originalTransactionID} = await createBaseExpense();
+        if (!originalTransactionID || !expenseReport?.reportID) {
+            throw new Error('Missing original transaction data');
+        }
+        const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+        const {splitTransactionID1, splitTransactionID2} = await splitToTwo(expenseReport, originalTransactionID, iouAction);
+        const splitTransaction1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
+        const splitTransaction2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID2}`);
+        const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
+        const allPolicyTags = await getAllPolicyTags();
+        const reports = getTransactionAndExpenseReports(expenseReport.reportID);
+        const writeSpy = jest.spyOn(APIlib, 'write');
+
+        // When the splits are saved with one description and one empty description
+        updateSplitTransactions({
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            allTransactionsList: allTransactions,
+            allReportsList: allReports,
+            reportDrafts: {},
+            allReportActionsList: undefined,
+            allReportNameValuePairsList: allReportNameValuePairs,
+            transactionData: {
+                reportID: expenseReport.reportID,
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: splitTransactionID1, reportID: splitTransaction1?.reportID, amount: amount / 2, created: DateUtils.getDBTime(), description: 'Team lunch'},
+                    {transactionID: splitTransactionID2, reportID: splitTransaction2?.reportID, amount: amount / 2, created: DateUtils.getDBTime(), description: ''},
+                ],
+                splitExpensesTotal: amount,
+            },
+            searchContext: {currentSearchHash: -2},
+            policyCategories: undefined,
+            policy: undefined,
+            policyRecentlyUsedCategories: [],
+            iouReport: expenseReport,
+            firstIOU: undefined,
+            isASAPSubmitBetaEnabled: false,
+            currentUserPersonalDetails,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            allPolicyTags,
+            personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            transactionReport: reports.transactionReport,
+            expenseReport: reports.expenseReport,
+            isOffline: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+        });
+        const updateSplitTransactionCall = writeSpy.mock.calls.find(([command]) => command === WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION);
+        writeSpy.mockRestore();
+        if (!updateSplitTransactionCall) {
+            throw new Error('Expected API.write call for updating split transactions.');
+        }
+        const [, params] = getRequiredWriteCall([updateSplitTransactionCall], 0);
+        if (!isObject(params)) {
+            throw new Error('Expected update split transaction params to be an object.');
+        }
+
+        // Then each description is sent as the plain text, so the server never stores a JSON-encoded {"comment":""} as the expense comment
+        expect(params['splits[0][comment]']).toBe('Team lunch');
+        expect(params['splits[1][comment]']).toBe('');
+    });
+
     it('should remove the new split transactions and restore the original expense with an error when the first split fails', async () => {
         // Given an existing expense on an expense report
         const {expenseReport, originalTransactionID} = await createBaseExpense();
