@@ -337,8 +337,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItemAction
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
-                                // The agent can't use its own Agents pages, so copiloting from here starts over from Home
-                                onPress={() => switchToDelegator(login, ROUTES.HOME)}
+                                onPress={() => switchToDelegator(login)}
                             />
                         )}
                         {!!accountID && !isAnonymousUserSession() && (
