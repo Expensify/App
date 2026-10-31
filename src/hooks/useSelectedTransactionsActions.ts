@@ -386,7 +386,6 @@ function useSelectedTransactionsActions({
                             continue;
                         }
                         const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
-                        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
                         unholdRequest({
                             transactionID,
                             transaction,

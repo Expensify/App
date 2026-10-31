@@ -1099,6 +1099,8 @@ describe('actions/IOU/Hold', () => {
                 transactionID: transaction.transactionID,
                 transaction: heldTransaction,
                 reportID: transactionThread.reportID,
+                transactionReport: iouReport,
+                report: transactionThread,
                 policy,
                 isOffline: true,
                 currentUserLogin: RORY_EMAIL,
