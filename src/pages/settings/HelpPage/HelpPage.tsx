@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
+import useOpenSupportTicket from '@hooks/useOpenSupportTicket';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,8 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
-import {isNoSupportRepAvailableResponse, navigateToAndOpenReportWithAccountIDs, openSupportTicket} from '@libs/actions/Report';
-import Growl from '@libs/Growl';
+import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 
 import colors from '@styles/theme/colors';
@@ -64,20 +64,8 @@ function HelpPage() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+    const {openSupportTicketOrConcierge} = useOpenSupportTicket();
     const {isOffline} = useNetwork();
-
-    const openSupportTicketOrConcierge = () => {
-        openSupportTicket()
-            .then((response) => {
-                if (!isNoSupportRepAvailableResponse(response)) {
-                    return;
-                }
-
-                Growl.error({bodyText: translate('supportTicket.noSupportRepAvailable')});
-                Navigation.goBack(undefined, {afterTransition: () => openConciergeAnywhere({forceConcierge: true})});
-            })
-            .catch(() => undefined);
-    };
 
     // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested
     // Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
@@ -217,7 +205,7 @@ function HelpPage() {
         icon: icons.ChatBubbles,
         iconType: CONST.ICON_TYPE_ICON,
         onPress: openSupportTicketOrConcierge,
-        isDisabled: isOffline,
+        disabled: isOffline,
         shouldShowRightIcon: true,
         wrapperStyle: [styles.sectionMenuItemTopDescription],
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.SUPPORT_TICKET,

@@ -83,6 +83,7 @@ import {
     isConsecutiveActionMadeByPreviousActor,
     isIOUActionMatchingTransactionList,
     isNewerReportAction,
+    isReportActionFromCurrentUser,
     shouldHideNewMarker,
     wasActionTakenByCurrentUser,
 } from '../../src/libs/ReportActionsUtils';
@@ -2791,6 +2792,52 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isReportActionFromCurrentUser', () => {
+        const currentUserAccountID = 42;
+        const otherUserAccountID = 99;
+
+        it('returns true for a regular action whose actor is the current user', () => {
+            // Given a comment written by the current user
+            const action = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, actorAccountID: currentUserAccountID} as ReportAction;
+
+            // When checking whether the action is from the current user
+            // Then it matches because actorAccountID equals currentUserAccountID
+            expect(isReportActionFromCurrentUser(action, currentUserAccountID)).toBe(true);
+        });
+
+        it('returns false for a regular action whose actor is another user', () => {
+            // Given a comment written by someone else
+            const action = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, actorAccountID: otherUserAccountID} as ReportAction;
+
+            // When checking whether the action is from the current user
+            // Then it does not match because actorAccountID belongs to another user
+            expect(isReportActionFromCurrentUser(action, currentUserAccountID)).toBe(false);
+        });
+
+        it('uses childLastActorAccountID for a report preview', () => {
+            // Given a report preview where actorAccountID belongs to another user
+            // and childLastActorAccountID belongs to the current user
+            const action = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                actorAccountID: otherUserAccountID,
+                childLastActorAccountID: currentUserAccountID,
+            } as ReportAction;
+
+            // When checking whether each preview is from the current user
+            // Then childLastActorAccountID determines the result, regardless of actorAccountID
+            expect(isReportActionFromCurrentUser(action, currentUserAccountID)).toBe(true);
+            expect(isReportActionFromCurrentUser({...action, childLastActorAccountID: otherUserAccountID, actorAccountID: currentUserAccountID}, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns false for an undefined action', () => {
+            // Given no report action
+            // When checking whether it is from the current user
+            // Then the check returns false because there is no author to match
+            expect(isReportActionFromCurrentUser(undefined, currentUserAccountID)).toBe(false);
+        });
+    });
+
     describe('isPushScopedToOthers', () => {
         const cardholderAccountID = 1;
         const auditorAccountID = 2;
@@ -5202,6 +5249,25 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
             const result = getAddedCardFeedMessage(translateLocal, action);
             expect(result).toBe('added card feed "Visa Commercial"');
+        });
+
+        it('should return the Expensify Card message when feedType is ExpensifyCard', () => {
+            // Given an added card feed action for an Expensify Card feed shared to the workspace
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'acme.com',
+                    feedType: CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD,
+                },
+            } as ReportAction;
+
+            // When the message is built
+            const result = getAddedCardFeedMessage(translateLocal, action);
+
+            // Then it uses the Expensify Card wording so admins can tell it apart from a company card feed
+            expect(result).toBe('added "acme.com" Expensify Card feed');
         });
     });
 
@@ -7915,6 +7981,38 @@ describe('ReportActionsUtils', () => {
             ).toEqual(['unread-newer', 1]);
         });
 
+        it.each([null, 'older-unread'])('keeps older unread actions before the offline boundary with manual anchor %s', (manuallyMarkedUnreadReportActionID) => {
+            // Given an older unread action before the remembered offline row in an oldest-first list
+            const visibleReportActions = [makeAction({reportActionID: 'older-unread'}), makeAction({reportActionID: 'offline-newer', created: '2023-01-01 12:00:00.000'})];
+
+            // When either the timestamp or an explicit manual anchor selects that older action
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    earliestReceivedOfflineMessageIndex: 1,
+                    isReversed: true,
+                    manuallyMarkedUnreadReportActionID,
+                }),
+            ).toEqual(['older-unread', 0]);
+        });
+
+        it('still marks the first offline row when earlier visible actions are already read', () => {
+            // Given a remembered offline message and a read older row
+            const visibleReportActions = [makeAction({reportActionID: 'read-older'}), makeAction({reportActionID: 'offline-anchor', created: '2023-01-01 12:00:00.000'})];
+
+            // Then scanning all visible rows still preserves the existing offline marker rule
+            expect(
+                getUnreadMarkerReportAction({
+                    ...baseScanParams,
+                    visibleReportActions,
+                    unreadMarkerTime: '2023-01-01 13:00:00.000',
+                    earliestReceivedOfflineMessageIndex: 1,
+                    isReversed: true,
+                }),
+            ).toEqual(['offline-anchor', 1]);
+        });
+
         it("clears the marker entirely when the only unread action is the current user's own new message", () => {
             const ownNew = makeAction({reportActionID: 'own-new', actorAccountID: currentUserAccountID});
             const olderRead = makeAction({reportActionID: 'older-read', created: '2023-01-01 09:00:00.000'});
@@ -8556,6 +8654,88 @@ describe('ReportActionsUtils', () => {
             // Then each author gets its own newest comment, so the agent's comments do not hide Concierge's
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, agentAccountID)).toBe('300');
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionIDFromReportActions(collection, CONST.ACCOUNT_ID.CONCIERGE)).toBe('100');
+        });
+    });
+    describe('getReportActionMessageText', () => {
+        it('reads an edited file attachment as the attachment token', () => {
+            // Given an edited text-and-file comment as the server returns it, which drops data-expensify-source but keeps the attachment ID
+            const html =
+                'test 2<br /><br /><a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" data-attachment-id="456" target="_blank" rel="noreferrer noopener">renamed.csv</a>';
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html, text: 'test 2 renamed.csv'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            const text = ReportActionsUtils.getReportActionMessageText(reportAction);
+
+            // Then the file reads as an attachment, as it does before the edit, instead of its file name
+            expect(text).toContain(CONST.ATTACHMENT_MESSAGE_TEXT);
+            expect(text).not.toContain('renamed.csv');
+        });
+
+        it('keeps a plain link as its label', () => {
+            // Given a comment with an ordinary link
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: '<a href="https://example.com/a.csv">a.csv</a>', text: 'a.csv'}],
+            } as ReportAction;
+
+            // When the text is read
+            // Then the label is kept
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('a.csv');
+        });
+
+        it('keeps a link to another host as its label even when it carries an attachment ID', () => {
+            // Given a file anchor edited to point at another host, which the server returns with only the attachment ID
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'see <a href="https://example.com/file.csv" data-attachment-id="456">the file</a>', text: 'see the file'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the label is kept, because the chat draws it as a link and not a file card
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('see the file');
+        });
+
+        it("reads a link to the action's own uploaded file as the attachment token", () => {
+            // Given an edited file anchor with no attachment attributes left, whose URL names the action it was uploaded to
+            const reportAction = {
+                reportActionID: '123',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [{type: 'COMMENT', html: '<a href="https://www.expensify.com/chat-attachments/123/w_abc.csv">renamed.csv</a><br />notes', text: 'renamed.csv\nnotes'}],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the file reads as an attachment and the text after it stays on its own line
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe(`${CONST.ATTACHMENT_MESSAGE_TEXT}\nnotes`);
+        });
+
+        it('keeps a pasted attachment link as its label', () => {
+            // Given a typed link to an uploaded file, which the server stores without an attachment ID
+            const reportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-09-21 10:00:00.000',
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'see <a href="https://www.expensify.com/chat-attachments/123/w_abc.csv" target="_blank" rel="noreferrer noopener">old sheet</a>',
+                        text: 'see old sheet',
+                    },
+                ],
+            } as ReportAction;
+
+            // When the text for the chat list row is read
+            // Then the link keeps its label, because only an uploaded file is an attachment
+            expect(ReportActionsUtils.getReportActionMessageText(reportAction)).toBe('see old sheet');
         });
     });
 
