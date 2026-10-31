@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import EditReportFieldDropdown from '@pages/EditReportFieldDropdown';
@@ -12,6 +13,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => ({
@@ -28,7 +30,7 @@ const fieldOptions = ['Alpha', 'Bravo', 'Charlie'];
 
 const renderDropdown = async (props: Partial<React.ComponentProps<typeof EditReportFieldDropdown>> = {}) => {
     const rendered = render(
-        <ComposeProviders components={[OnyxListItemProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <EditReportFieldDropdown
                 fieldKey={fieldKey}
                 fieldValue="Alpha"
@@ -101,7 +103,7 @@ describe('EditReportFieldDropdown', () => {
         expect(screen.getAllByTestId('base-list-item-Bravo')).toHaveLength(1);
     });
 
-    it('submits the option that was picked', async () => {
+    it('does not submit when an option is picked, only when Save is pressed', async () => {
         // Given a dropdown whose field currently holds "Alpha"
         const onSubmit = jest.fn();
         await renderDropdown({onSubmit});
@@ -110,22 +112,31 @@ describe('EditReportFieldDropdown', () => {
         fireEvent.press(screen.getByTestId('base-list-item-Charlie'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then it is submitted under the field's own key, which is what both the editor page and the inline field
+        // Then nothing is submitted yet, because closing the page as soon as a row is tapped changes context on input (WCAG 3.2.2)
+        expect(onSubmit).not.toHaveBeenCalled();
+
+        // When Save is pressed
+        fireEvent.press(screen.getByText(translateLocal('common.save')));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the picked option is submitted under the field's own key, which is what both the editor page and the inline field
         // rely on to know which field the value belongs to
         expect(onSubmit).toHaveBeenCalledWith({[fieldKey]: 'Charlie'});
     });
 
-    it('submits the current value rather than an empty string when the option already selected is picked again', async () => {
+    it('does not submit when the option already selected is picked again and Save is pressed', async () => {
         // Given a dropdown whose field currently holds "Alpha"
         const onSubmit = jest.fn();
         await renderDropdown({onSubmit});
 
-        // When that same option is pressed again
+        // When that same option is pressed again and then Save is pressed
         fireEvent.press(screen.getByTestId('base-list-item-Alpha'));
         await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText(translateLocal('common.save')));
+        await waitForBatchedUpdatesWithAct();
 
-        // Then the current value is submitted, not an empty string. Callers skip a no-op save by comparing this
-        // against the stored value, so an empty string would be read as the user having cleared the field
-        expect(onSubmit).toHaveBeenCalledWith({[fieldKey]: 'Alpha'});
+        // Then nothing is submitted. Re-picking the stored value stages that same value rather than an empty string,
+        // so Save stays disabled instead of being read as the user having cleared the field
+        expect(onSubmit).not.toHaveBeenCalled();
     });
 });
