@@ -102,6 +102,8 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
                         <MoneyRequestReportTransactionItem
                             transactionID={transaction.transactionID}
                             reportOwnerLogin={undefined}
+                            reportID={report.reportID}
+                            policyID={report.policyID}
                             report={report}
                             policy={undefined}
                             isSelectionModeEnabled={false}
@@ -115,7 +117,6 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             columns={[CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]}
                             shouldBeHighlighted={false}
-                            nonPersonalAndWorkspaceCards={{}}
                         />
                     </PortalProvider>
                 </ScreenWrapper>

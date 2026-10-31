@@ -2,7 +2,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-import {reportAvatarFieldsSelector, reportAvatarKindSelector, reportParentChainSelector, reportPolicyFieldsSelector} from '@selectors/Report';
+import {reportAvatarFieldsSelector, reportAvatarKindSelector, reportParentChainSelector, reportPolicyFieldsSelector, reportViolationVisibilitySelector} from '@selectors/Report';
+
+import createMock from '../../utils/createMock';
 
 const REPORT_ID = 'report123';
 const PARENT_REPORT_ID = 'parentReport123';
@@ -166,5 +168,42 @@ describe('reportParentChainSelector', () => {
         // Then nothing is returned, so the caller's walk does not fall back to stale data
         expect(reportParentChainSelector(undefined)({[reportKey(REPORT_ID)]: createReport(threadFields)})).toEqual({});
         expect(reportParentChainSelector(REPORT_ID)(undefined)).toEqual({});
+    });
+});
+
+describe('reportViolationVisibilitySelector', () => {
+    it('should keep only the fields violation visibility reads', () => {
+        // Given a report with the fields violation visibility reads, plus totals and last-activity fields
+        const fullReport = createMock<Report>({
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ownerAccountID: 1,
+            managerID: 2,
+            total: 1000,
+            lastMessageText: 'Hi',
+            lastReadTime: '2026-01-01',
+        });
+
+        // When the row builds the report for violation visibility
+        const violationReport = reportViolationVisibilitySelector(fullReport);
+
+        // Then a new message or total can't re-render the row, while the state, type and roles the violation check reads stay
+        expect(violationReport).toEqual({
+            reportID: '1',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            ownerAccountID: 1,
+            managerID: 2,
+        });
+    });
+
+    it('should return undefined when the report is not loaded', () => {
+        // Given a report that is not in Onyx
+        // When the row builds the report for violation visibility
+        // Then it gets undefined, like the full report read would
+        expect(reportViolationVisibilitySelector(undefined)).toBeUndefined();
     });
 });
