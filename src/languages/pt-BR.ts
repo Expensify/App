@@ -5384,6 +5384,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'da OpenAI',
             },
+            grok: {
+                title: 'Grok',
+                subtitle: 'da xAI',
+            },
         },
         connections: {
             tabs: {
