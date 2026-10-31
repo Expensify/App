@@ -47,7 +47,7 @@ import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
 
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
 import {View} from 'react-native';
@@ -55,7 +55,7 @@ import {View} from 'react-native';
 // without triggering the wrapper's additional logic, ensuring violations
 // sync immediately when category settings change
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+import Onyx, {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import type {ExpenseReportListItemProps, ExpenseReportListItemType} from './types';
 
@@ -212,7 +212,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress, shouldIgnoreSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = Object.values(reportTransactions);
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
@@ -244,25 +244,24 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [liveViolationsForSnapshotTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(snapshotTransactionIDs),
     });
-    const {
-        currentUserAccountID,
-        currentUserLogin,
-        introSelected,
-        isASAPSubmitBetaEnabled,
-        isWiseReimbursementsBetaEnabled,
-        isSelfTourViewed,
-        activePolicy,
-        chatReportPolicy,
-        amountOwed,
-        delegateEmail,
-        delegateAccountID,
-        conciergeChat,
-        bankAccountList,
-    } = useReportPaymentContext({
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
 
-    const handleOnButtonPress = () => {
+    const handleOnButtonPress = async () => {
+        if (shouldIgnoreSearchSubmitPress(liveReportItem.action)) {
+            return;
+        }
+        const [conciergeReportID, introSelected, onboarding, amountOwed, bankAccountList] = await Onyx.multiGet([
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ONYXKEYS.BANK_ACCOUNT_LIST,
+        ]);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -284,8 +283,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             ownerBillingGracePeriodEnd,
             amountOwed,
             openReportSubmitToPopover,
-            shouldDisableSearchSubmitPress,
-            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,

@@ -2,6 +2,7 @@ import useReportSubmitToPopover from '@hooks/useReportSubmitToPopover';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
 import CONST from '@src/CONST';
+import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 import type {ComponentRef, RefObject} from 'react';
@@ -35,14 +36,15 @@ type SearchSubmitPopoverGuardContextValue = {
     isReportSubmitToPopoverVisible: boolean;
     isReportSubmitToDismissGuardActive: boolean;
     shouldDisableSearchSubmitPress: boolean;
-    consumeIgnoreNextSearchSubmitPress: () => boolean;
+    /** Returns true when a Search row press must be dropped because the submit-to popover is open or was just dismissed. */
+    shouldIgnoreSearchSubmitPress: (action: SearchTransactionAction | undefined) => boolean;
 };
 
 const defaultSearchSubmitPopoverGuard: SearchSubmitPopoverGuardContextValue = {
     isReportSubmitToPopoverVisible: false,
     isReportSubmitToDismissGuardActive: false,
     shouldDisableSearchSubmitPress: false,
-    consumeIgnoreNextSearchSubmitPress: () => false,
+    shouldIgnoreSearchSubmitPress: () => false,
 };
 
 const SearchSubmitPopoverGuardContext = createContext<SearchSubmitPopoverGuardContextValue>(defaultSearchSubmitPopoverGuard);
@@ -141,7 +143,7 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
         openReportSubmitToPopover: openPopoverForActiveReport,
         isReportSubmitToPopoverVisible,
         isReportSubmitToDismissGuardActive,
-        consumeIgnoreNextSearchSubmitPress,
+        shouldIgnoreSearchSubmitPress,
     } = useReportSubmitToPopover({
         reportID: activeReportID,
         anchorAlignment,
@@ -152,7 +154,7 @@ function ReportSubmitToPopoverHost({children, anchorAlignment}: ReportSubmitToPo
         isReportSubmitToPopoverVisible,
         isReportSubmitToDismissGuardActive,
         shouldDisableSearchSubmitPress: isReportSubmitToPopoverVisible || isReportSubmitToDismissGuardActive,
-        consumeIgnoreNextSearchSubmitPress,
+        shouldIgnoreSearchSubmitPress,
     };
 
     const openReportSubmitToPopoverForHost = (reportID: string | undefined, options?: ReportSubmitToPopoverOpenOptions, anchorRef?: RefObject<ComponentRef<typeof View> | null>) => {
@@ -240,7 +242,7 @@ function ReportSubmitToPopoverRootWithHost({reportID, host, children}: {reportID
 }
 
 function ReportSubmitToPopoverRootWithLocalPopover({reportID, onSubmitSuccess, anchorAlignment, children}: ReportSubmitToPopoverRootProps) {
-    const {anchorRef, openReportSubmitToPopover, reportSubmitToPopover, isReportSubmitToPopoverVisible, isReportSubmitToDismissGuardActive, consumeIgnoreNextSearchSubmitPress} =
+    const {anchorRef, openReportSubmitToPopover, reportSubmitToPopover, isReportSubmitToPopoverVisible, isReportSubmitToDismissGuardActive, shouldIgnoreSearchSubmitPress} =
         useReportSubmitToPopover({
             reportID,
             onSubmitSuccess,
@@ -251,7 +253,7 @@ function ReportSubmitToPopoverRootWithLocalPopover({reportID, onSubmitSuccess, a
         isReportSubmitToPopoverVisible,
         isReportSubmitToDismissGuardActive,
         shouldDisableSearchSubmitPress: isReportSubmitToPopoverVisible || isReportSubmitToDismissGuardActive,
-        consumeIgnoreNextSearchSubmitPress,
+        shouldIgnoreSearchSubmitPress,
     };
 
     return (

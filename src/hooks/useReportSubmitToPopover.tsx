@@ -7,6 +7,7 @@ import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import calculateModalHeightInLandscapeMode from '@src/utils/calculateModalHeightInLandscapeMode';
 
@@ -132,6 +133,10 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         clearDismissGuard();
         return true;
     };
+
+    // Search rows must call this before any await in their press handler because the ref above resets in a microtask.
+    const shouldIgnoreSearchSubmitPress = (action: SearchTransactionAction | undefined) =>
+        action === CONST.SEARCH.ACTION_TYPES.SUBMIT && (isVisible || isDismissGuardActive || consumeIgnoreNextSearchSubmitPress());
 
     const closeReportSubmitToPopover = () => {
         canSubmitRef.current = false;
@@ -293,7 +298,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         closeReportSubmitToPopover,
         isReportSubmitToPopoverVisible: isVisible,
         isReportSubmitToDismissGuardActive: isDismissGuardActive,
-        consumeIgnoreNextSearchSubmitPress,
+        shouldIgnoreSearchSubmitPress,
         reportSubmitToPopover,
     };
 }
