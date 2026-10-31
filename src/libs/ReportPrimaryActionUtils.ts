@@ -10,6 +10,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
+    canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
     getManagerAccountID,
     getSubmitToAccountID,
@@ -182,6 +183,10 @@ function isSubmitAction(
         !!ownerLogin &&
         !isSubmitAndClose(policy) &&
         currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
+    // A role that cannot create expenses cannot submit its own report.
+    if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return false;
+    }
     const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }

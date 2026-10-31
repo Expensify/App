@@ -887,6 +887,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -909,6 +910,86 @@ describe('getSecondaryAction', () => {
             rules: undefined,
             cardList: undefined,
         });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
+    });
+
+    it('excludes SUBMIT option for an approve-only member', async () => {
+        // Given an open expense report owned by the current user, who has the approve-only role on the policy
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // When the secondary actions are resolved
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then SUBMIT is excluded
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(false);
+    });
+
+    it('includes SUBMIT option for an admin when the report owner has the approve-only role', async () => {
+        // Given an open expense report owned by an approve-only member, viewed by the current admin
+        const report = createMock<Report>({
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: APPROVER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            total: 10,
+        });
+        const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.ADMIN,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            harvesting: {
+                enabled: true,
+            },
+            type: CONST.POLICY.TYPE.CORPORATE,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        // When the secondary actions are resolved
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            rules: undefined,
+            cardList: undefined,
+        });
+
+        // Then SUBMIT is included
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT)).toBe(true);
     });
 
@@ -958,6 +1039,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -998,6 +1080,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1186,6 +1269,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1230,6 +1314,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1268,6 +1353,7 @@ describe('getSecondaryAction', () => {
             total: 10,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1338,6 +1424,7 @@ describe('getSecondaryAction', () => {
             total: 0,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -1380,6 +1467,7 @@ describe('getSecondaryAction', () => {
             total: 0,
         });
         const policy = createMock<Policy>({
+            role: CONST.POLICY.ROLE.USER,
             autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
             harvesting: {
                 enabled: true,
@@ -2503,7 +2591,12 @@ describe('getSecondaryAction', () => {
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
-            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+            policyData: {
+                role: CONST.POLICY.ROLE.USER,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                harvesting: {enabled: true},
+                type: CONST.POLICY.TYPE.CORPORATE,
+            },
         },
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
@@ -2582,7 +2675,12 @@ describe('getSecondaryAction', () => {
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
             reportData: {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, total: 10},
-            policyData: {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT, harvesting: {enabled: true}, type: CONST.POLICY.TYPE.CORPORATE},
+            policyData: {
+                role: CONST.POLICY.ROLE.USER,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                harvesting: {enabled: true},
+                type: CONST.POLICY.TYPE.CORPORATE,
+            },
         },
         {
             action: CONST.REPORT.SECONDARY_ACTIONS.RETRACT,

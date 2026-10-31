@@ -8,7 +8,7 @@ import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {isArchivedPolicy, isControlPolicy, isSubmitPolicy} from './policyType';
+import {isArchivedPolicy, isControlPolicy, isGroupPolicy, isSubmitPolicy} from './policyType';
 
 type PolicyFeature = ValueOf<typeof CONST.POLICY.POLICY_FEATURE>;
 type PolicyFeatureAccess = ValueOf<typeof CONST.POLICY.POLICY_FEATURE_ACCESS>;
@@ -331,6 +331,11 @@ function canCreateExpensesOnPolicy(policy: OnyxInputOrEntry<Policy>, login?: str
     return canRoleCreateExpenses(getPolicyRole(policy, login, false) ?? policy?.role);
 }
 
+/** Whether the submitter's role lets them submit their own report. Non-group policies always allow it. */
+function canSubmitOwnReportOnPolicy(policy: OnyxInputOrEntry<Policy>, submitterLogin?: string): boolean {
+    return !isGroupPolicy(policy) || canCreateExpensesOnPolicy(policy, submitterLogin);
+}
+
 /** Check if the passed employee is an approver in the policy's employeeList */
 function isPolicyApprover(policy: OnyxInputOrEntry<Policy>, employeeLogin: string) {
     if (policy?.approver === employeeLogin) {
@@ -417,6 +422,7 @@ export {
     canRolePay,
     canRoleCreateExpenses,
     canCreateExpensesOnPolicy,
+    canSubmitOwnReportOnPolicy,
     PAYER_ROLES,
     isPolicyApprover,
     getPolicyApproverLogins,
