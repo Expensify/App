@@ -1,5 +1,3 @@
-import NAVIGATORS from '@src/NAVIGATORS';
-
 import type {NavigationState, ParamListBase, RouteProp, StackNavigationState} from '@react-navigation/native';
 
 import {useEffect} from 'react';
@@ -29,16 +27,8 @@ const cleanPreservedNavigatorStates = (state: NavigationState) => {
     }
 };
 
-const clearPreservedSearchNavigatorStates = () => {
-    for (const key of Object.keys(preservedNavigatorStates)) {
-        if (key.startsWith(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)) {
-            delete preservedNavigatorStates[key];
-        }
-    }
-};
-
-// Preserved states belong to the authenticated session. They must be dropped on logout so the next
-// session can't restore them — e.g. restoreTabNavigatorRoutes reattaching a previous user's tab
+// Preserved states belong to the authenticated session. They must be dropped on logout and on copilot
+// account switches so the next session can't restore them — e.g. restoreTabNavigatorRoutes reattaching a previous user's tab
 // subtree to the public sign-in route (which shares the TAB_NAVIGATOR name).
 const clearPreservedNavigatorStates = () => {
     for (const key of Object.keys(preservedNavigatorStates)) {
@@ -63,4 +53,4 @@ function usePreserveNavigatorState(state: StackNavigationState<ParamListBase>, r
 
 export default usePreserveNavigatorState;
 
-export {getPreservedNavigatorState, setPreservedNavigatorState, cleanPreservedNavigatorStates, clearPreservedSearchNavigatorStates, clearPreservedNavigatorStates};
+export {getPreservedNavigatorState, setPreservedNavigatorState, cleanPreservedNavigatorStates, clearPreservedNavigatorStates};

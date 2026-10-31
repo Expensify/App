@@ -1,5 +1,6 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isCreatedDateType} from '@libs/SearchUIUtils';
@@ -63,6 +64,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.APPROVED,
         translationKey: 'search.filters.approved',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID,
+        translationKey: 'search.filters.paid',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
@@ -139,6 +144,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.HELD,
         translationKey: 'search.filters.held',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DECLINED,
+        translationKey: 'search.filters.rejected',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.MCC,
@@ -253,6 +262,45 @@ const taskHeaders: SearchColumnConfig[] = [
     },
 ];
 
+// The dates render in DateCell's editable cell frame, so their headers take the same inset to line up
+const tripHeaders: SearchColumnConfig[] = [
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.START_DATE,
+        translationKey: 'iou.startDate',
+        sortColumnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        canEdit: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.END_DATE,
+        translationKey: 'iou.endDate',
+        isColumnSortable: false,
+        canEdit: true,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
+        translationKey: 'common.status',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME,
+        translationKey: 'search.trip.tripName',
+        sortColumnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TRAVELER,
+        translationKey: 'search.trip.traveler',
+        sortColumnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        translationKey: 'common.total',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        translationKey: 'common.action',
+        isColumnSortable: false,
+    },
+];
+
 const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
@@ -281,6 +329,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'search.filters.firstApproved',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PAID,
+        translationKey: 'search.filters.paid',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_BY,
         translationKey: 'search.filters.paidBy',
     },
@@ -295,6 +347,10 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.PAID_STATUS,
         translationKey: 'common.paidStatus',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DECLINED,
+        translationKey: 'search.filters.rejected',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
@@ -521,12 +577,33 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 },
                 ...commonGroupHeaders,
             ];
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.Profile,
+                    isColumnSortable: false,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER,
+                    translationKey: 'search.filters.groupBy.approver',
+                    isColumnSortable: true,
+                },
+                ...commonGroupHeaders,
+            ];
         default:
             return [];
     }
 };
 
-function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: SearchHeaderIcons, groupBy?: SearchGroupBy, isExpenseReportView?: boolean): SearchColumnConfig[] | null {
+function getSearchColumns(
+    type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>,
+    icons: SearchHeaderIcons,
+    groupBy?: SearchGroupBy,
+    isExpenseReportView?: boolean,
+    shouldReturnTripRooms?: boolean,
+): SearchColumnConfig[] | null {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             if (!isExpenseReportView && groupBy) {
@@ -536,7 +613,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: 
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return getExpenseHeaders(groupBy);
+            return shouldReturnTripRooms ? tripHeaders : getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
@@ -558,6 +635,7 @@ type SearchTableHeaderProps = {
     shouldShowYearApproved?: boolean;
     shouldShowYearPosted?: boolean;
     shouldShowYearExported?: boolean;
+    shouldShowYearPaid?: boolean;
     shouldShowYearWithdrawn?: boolean;
     isAmountColumnWide: boolean;
     isTaxAmountColumnWide: boolean;
@@ -583,6 +661,7 @@ function SearchTableHeader({
     shouldShowYearApproved,
     shouldShowYearPosted,
     shouldShowYearExported,
+    shouldShowYearPaid,
     shouldShowYearWithdrawn,
     shouldShowSorting,
     canSelectMultiple,
@@ -596,6 +675,7 @@ function SearchTableHeader({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
     const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard'] : []) satisfies SearchHeaderIcons;
@@ -604,7 +684,7 @@ function SearchTableHeader({
         return columns.includes(columnName);
     };
 
-    const columnConfig = getSearchColumns(type, icons, groupBy, isExpenseReportView);
+    const columnConfig = getSearchColumns(type, icons, groupBy, isExpenseReportView, shouldReturnTripRooms);
 
     let orderedColumnConfig;
     if (!columnConfig) {
@@ -650,6 +730,7 @@ function SearchTableHeader({
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             postedColumnSize={shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             exportedColumnSize={shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+            paidColumnSize={shouldShowYearPaid ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             withdrawnColumnSize={shouldShowYearWithdrawn ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             amountColumnSize={isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             taxAmountColumnSize={isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}

@@ -17,9 +17,11 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
+    isPolicyAccessible,
     isPolicyAdmin,
     isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
+    isPolicyProvisionedForTravel,
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
@@ -45,6 +47,7 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
     | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
@@ -255,6 +258,15 @@ const createHasAdminPolicyWithXeroConnectionSelector =
         hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+/**
+ * Creates a selector for whether the user belongs to any workspace with Travel enabled and provisioned, so subscribers only
+ * re-render when that answer changes rather than on every policy collection change.
+ */
+const createHasTravelEnabledPolicySelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some((policy) => policy?.isTravelEnabled && isPolicyProvisionedForTravel(policy) && isPolicyAccessible(policy, currentUserLogin ?? ''));
 
 /**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
@@ -478,6 +490,9 @@ const adminPoliciesConnectedToDualEntrySelector = (policies: OnyxCollection<Poli
 const adminPoliciesConnectedToCampfireSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE));
 
+const adminPoliciesConnectedToZohoBooksSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS));
+
 const adminPoliciesConnectedToDigitsSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DIGITS));
 
@@ -489,6 +504,7 @@ const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (po
     [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
     [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: adminPoliciesConnectedToDualEntrySelector,
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: adminPoliciesConnectedToCampfireSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: adminPoliciesConnectedToZohoBooksSelector,
     [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: adminPoliciesConnectedToDigitsSelector,
 };
 
@@ -621,6 +637,7 @@ export {
     hasActiveAdminPoliciesSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
+    createHasTravelEnabledPolicySelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForAssignedCardsSelector,
     createPoliciesByIDsSelector,
