@@ -8,7 +8,23 @@ import type {TupleToUnion} from 'type-fest';
 /**
  * Names of Fields where violations can occur.
  */
-const validationFields = ['amount', 'billable', 'category', 'comment', 'date', 'merchant', 'receipt', 'tag', 'tax', 'attendees', 'customUnitRateID', 'vendor', 'waypoints', 'none'] as const;
+const validationFields = [
+    'amount',
+    'billable',
+    'category',
+    'comment',
+    'date',
+    'merchant',
+    'receipt',
+    'reimbursable',
+    'tag',
+    'tax',
+    'attendees',
+    'customUnitRateID',
+    'vendor',
+    'waypoints',
+    'none',
+] as const;
 
 type ViolationField = TupleToUnion<typeof validationFields>;
 
@@ -34,6 +50,14 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     missingComment: () => 'comment',
     missingAttendees: () => 'attendees',
     missingTag: () => 'tag',
+    nonDefaultAmount: () => 'amount',
+    nonDefaultBillable: () => 'billable',
+    nonDefaultCategory: () => 'category',
+    nonDefaultComment: () => 'comment',
+    nonDefaultMerchant: () => 'merchant',
+    nonDefaultReimbursable: () => 'reimbursable',
+    nonDefaultTag: () => 'tag',
+    nonDefaultTax: () => 'tax',
     modifiedAmount: () => 'amount',
     modifiedDate: () => 'date',
     increasedDistance: () => 'waypoints',
