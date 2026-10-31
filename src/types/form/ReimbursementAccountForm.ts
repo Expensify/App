@@ -2,6 +2,8 @@ import type {Country} from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
+import type {CONST as COMMON_CONST} from 'expensify-common';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -207,7 +209,7 @@ type CompanyStepProps = {
     [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE]: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE]: keyof typeof COMMON_CONST.STATES | '';
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_CODE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.HAS_NO_CONNECTION_TO_CANNABIS]: boolean;
 };
