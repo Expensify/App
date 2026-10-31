@@ -4,7 +4,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useUserSecurityGroup from '@hooks/useUserSecurityGroup';
 
 import {clearMoneyRequest, clearMoneyRequestPolicyFields} from '@libs/actions/IOU/MoneyRequest';
 import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
@@ -22,13 +21,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Report, Transaction} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useRef, useState} from 'react';
 
-const emptySelector = () => null;
 const hasReportsSelector = (reports: OnyxCollection<Report>) => Object.keys(reports ?? {}).length > 0;
 const transactionAmountSelector = (transaction: OnyxEntry<Transaction>) => transaction?.amount;
 
@@ -45,14 +42,11 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
 
     const isSubmitFlow = detailsPageRouteObject === ROUTES.SHARE_SUBMIT_DETAILS;
 
-    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    const {isLoadingSecurityGroup} = useUserSecurityGroup();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID, isLoadingPreferredPolicy} = usePreferredPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const [, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: emptySelector});
-    const [amountOwed, amountOwedMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [userBillingGracePeriodEnds, userBillingGracePeriodEndsMetadata] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const canUseDefaultPolicy =
         isSubmitFlow &&
@@ -68,19 +62,16 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
 
     // Subscribe to the matching expense chat instead of reading it only from ReportUtils' cache. On a cold start the
     // policy can resolve before its report hydrates; this selector rerenders when that specific destination arrives.
-    const [autoNavigateReportID, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+    const [autoNavigateReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getPolicyExpenseChat(currentUserAccountID, autoNavigatePolicyID, reports)?.reportID,
     });
     const [hasHydratedReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: hasReportsSelector});
 
     const isPersonalDetailsReady = !!currentUserAccountID && currentUserAccountID !== CONST.DEFAULT_NUMBER_ID;
-    const isDestinationReady =
-        isPersonalDetailsReady &&
-        !isLoadingOnyxValue(activePolicyIDMetadata, policiesMetadata, reportsMetadata, amountOwedMetadata, userBillingGracePeriodEndsMetadata, ownerBillingGracePeriodEndMetadata);
     // An empty report collection can still be streaming from storage. Once reports have hydrated, a missing candidate is
     // treated as terminal so the user can use the picker instead of remaining on a blank loading state indefinitely.
     const isAwaitingExpenseChat = !!autoNavigatePolicyID && !autoNavigateReportID && !hasHydratedReports;
-    const shouldWaitForDestination = isSubmitFlow && (isLoadingSecurityGroup || !isDestinationReady || isAwaitingExpenseChat);
+    const shouldWaitForDestination = isSubmitFlow && (isLoadingPreferredPolicy || !isPersonalDetailsReady || isAwaitingExpenseChat);
 
     // Synchronous one-shot guard for the auto-navigation effect. A ref (rather than the render state below) is used so
     // the guard flips immediately: clearing the draft transaction mutates draftTransactionIDs, which re-runs the effect
