@@ -841,6 +841,7 @@ const SCREENS = {
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
         COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: 'Workspace_CompanyCards_Settings_Statement_Close_Date',
+        COMPANY_CARDS_SETTINGS_REIMBURSABLE: 'Workspace_CompanyCards_Settings_Reimbursable',
         DYNAMIC_COMPANY_CARD_DETAILS: 'Dynamic_Workspace_CompanyCard_Details',
         COMPANY_CARD_EDIT_CARD_NAME: 'Workspace_CompanyCard_Edit_Card_Name',
         COMPANY_CARD_ADD_WORK_EMAIL: 'Workspace_CompanyCard_Add_Work_Email',

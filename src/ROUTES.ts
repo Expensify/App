@@ -4142,6 +4142,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/settings/statement-close-date',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/statement-close-date` as const,
     },
+    WORKSPACE_COMPANY_CARDS_SETTINGS_REIMBURSABLE: {
+        route: 'workspaces/:policyID/company-cards/settings/reimbursable',
+        getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings/reimbursable` as const,
+    },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
         /** @param tab preselects a Rules tab. The page otherwise restores the last one used. */
