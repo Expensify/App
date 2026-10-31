@@ -1081,6 +1081,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Πορτοφόλι',
             },
+            validateBankAccount: {
+                title: 'Επαληθεύστε τον τραπεζικό σας λογαριασμό',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Πορτοφόλι',
+            },
             enterSignerInfo: {
                 title: 'Απαιτούνται στοιχεία υπογράφοντος',
                 subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Τραπεζικός λογαριασμός ${bankAccountLastFour}`,

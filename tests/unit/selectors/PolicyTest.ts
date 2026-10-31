@@ -244,7 +244,13 @@ describe('createTimeSensitiveAdminPoliciesSelector', () => {
             policy1: buildSelectorPolicy(1, {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN, connections: undefined}),
         };
 
-        expect(Object.keys(createTimeSensitiveAdminPoliciesSelector(TEST_LOGIN, undefined)(policies).policies.at(0) ?? {}).sort()).toEqual(['achAccount', 'id', 'name', 'policyAccountID']);
+        expect(Object.keys(createTimeSensitiveAdminPoliciesSelector(TEST_LOGIN, undefined)(policies).policies.at(0) ?? {}).sort()).toEqual([
+            'achAccount',
+            'id',
+            'name',
+            'outputCurrency',
+            'policyAccountID',
+        ]);
     });
 
     it('reports the connection in an error state', () => {

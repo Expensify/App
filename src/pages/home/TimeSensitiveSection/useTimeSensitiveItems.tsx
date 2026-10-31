@@ -20,6 +20,7 @@ import useTimeSensitiveHomeAddress from './hooks/useTimeSensitiveHomeAddress';
 import useTimeSensitiveLockedBankAccount from './hooks/useTimeSensitiveLockedBankAccount';
 import useTimeSensitiveNetSuiteMigration from './hooks/useTimeSensitiveNetSuiteMigration';
 import useTimeSensitiveOverdueInvoice from './hooks/useTimeSensitiveOverdueInvoice';
+import useTimeSensitivePendingBankAccount from './hooks/useTimeSensitivePendingBankAccount';
 import useTimeSensitiveSignerInfo from './hooks/useTimeSensitiveSignerInfo';
 import useTimeSensitiveSubscriptionExpiring from './hooks/useTimeSensitiveSubscriptionExpiring';
 import ActivateCard from './items/ActivateCard';
@@ -41,6 +42,7 @@ import RenewSubscription from './items/RenewSubscription';
 import ReviewCardFraud from './items/ReviewCardFraud';
 import UnlockBankAccount from './items/UnlockBankAccount';
 import UpgradeNetSuiteConnection from './items/UpgradeNetSuiteConnection';
+import ValidateBankAccount from './items/ValidateBankAccount';
 
 type BrokenPersonalCardConnection = {
     /** The card ID associated with this connection */
@@ -87,6 +89,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const adminPolicies = adminPoliciesData?.policies;
     const brokenPolicyConnections = adminPoliciesData?.brokenConnections ?? CONST.EMPTY_ARRAY;
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
+    const {pendingBankAccounts} = useTimeSensitivePendingBankAccount(adminPolicies);
     const {pendingSignerInfo} = useTimeSensitiveSignerInfo();
     const {netSuiteMigrationPolicies} = useTimeSensitiveNetSuiteMigration();
 
@@ -122,11 +125,12 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     // 11. Add home address (commuter exclusions, homeAndOffice method)
     // 12. Add payment card (trial ended, no payment card)
     // 13. Add bank account for a queued reimbursement, or a deposit account for a workspace collecting details
-    // 14. Enter signer info for global bank accounts
-    // 15. Expensify card shipping
-    // 16. Expensify card activation
-    // 17. Virtual Expensify card needs personal details
-    // 18. Digital wallet addition needs confirming
+    // 14. Validate a US business bank account by confirming its test transactions (including accounts shared with the user)
+    // 15. Enter signer info for global bank accounts
+    // 16. Expensify card shipping
+    // 17. Expensify card activation
+    // 18. Virtual Expensify card needs personal details
+    // 19. Digital wallet addition needs confirming
     const items: React.ReactNode[] = [];
 
     // Priority 1: Failed billing for existing customers
@@ -245,7 +249,18 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         // Priority 13: Add a deposit account so a workspace with reimbursements enabled can pay the user.
         items.push(<AddDepositAccount key="add-deposit-account" />);
     }
-    // Priority 14: Enter signer info for global bank accounts
+    // Priority 14: Validate a US business bank account by confirming its test transactions
+    for (const pendingBankAccount of pendingBankAccounts) {
+        items.push(
+            <ValidateBankAccount
+                key={pendingBankAccount.key}
+                bankAccountID={pendingBankAccount.bankAccountID}
+                policyID={pendingBankAccount.policyID}
+                policyName={pendingBankAccount.policyName}
+            />,
+        );
+    }
+    // Priority 15: Enter signer info for global bank accounts
     for (const item of pendingSignerInfo) {
         items.push(
             <EnterSignerInfo
@@ -256,7 +271,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             />,
         );
     }
-    // Priority 15: Expensify card shipping
+    // Priority 16: Expensify card shipping
     if (shouldShowAddShippingAddress) {
         for (const card of cardsNeedingShippingAddress) {
             items.push(
@@ -267,7 +282,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 16: Expensify card activation
+    // Priority 17: Expensify card activation
     if (shouldShowActivateCard) {
         for (const card of cardsNeedingActivation) {
             items.push(
@@ -278,7 +293,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 17: Virtual Expensify card needs personal details before reveal
+    // Priority 18: Virtual Expensify card needs personal details before reveal
     if (shouldShowAddVirtualCardPersonalDetails) {
         for (const card of virtualCardsNeedingPersonalDetails) {
             items.push(
@@ -289,7 +304,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
             );
         }
     }
-    // Priority 18: Confirm a digital wallet addition
+    // Priority 19: Confirm a digital wallet addition
     if (shouldShowConfirmDigitalWalletAddition) {
         for (const card of cardsPendingDigitalWalletApproval) {
             items.push(

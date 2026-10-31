@@ -1190,6 +1190,12 @@ const translations = {
                 workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
                 personalSubtitle: 'Wallet',
             },
+            validateBankAccount: {
+                // @context Home reminder shown when a US business bank account (including one shared with the user) is waiting for them to confirm its test transactions.
+                title: 'Validate your bank account',
+                workspaceSubtitle: ({policyName}: {policyName: string}) => policyName,
+                personalSubtitle: 'Wallet',
+            },
             enterSignerInfo: {
                 title: 'Signer info needed',
                 subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Bank account ${bankAccountLastFour}`,
