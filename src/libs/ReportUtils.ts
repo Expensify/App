@@ -3442,15 +3442,6 @@ function canIOUBePaid(
         return false;
     }
 
-    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
-        if (!onlyShowPayElsewhere) {
-            return false;
-        }
-        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            return false;
-        }
-    }
-
     if (isInvoiceReport(iouReport)) {
         if (isChatReportArchived || iouSettled || isOpenInvoiceReport(iouReport)) {
             return false;
@@ -3459,6 +3450,15 @@ function canIOUBePaid(
             return chatReport?.invoiceReceiver?.accountID === currentUserAccountID;
         }
         return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    }
+
+    if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        if (!onlyShowPayElsewhere) {
+            return false;
+        }
+        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            return false;
+        }
     }
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
