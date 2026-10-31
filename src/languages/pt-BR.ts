@@ -9143,9 +9143,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 describeRuleForConcierge: 'Descreva sua regra e o Concierge vai criá-la',
                 gotIt: 'Entendi',
                 createRule: 'Criar regra',
-                fallbackBanner:
-                    'Esta não é uma regra padrão, então a criamos como uma regra de agente. As regras de agente entram em ação depois que uma despesa ou um relatório é alterado, por exemplo, ao reter a despesa ou rejeitar o relatório.',
-                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então nós a elaboramos como uma regra de agente. ${explanation}`,
+                fallbackBanner: 'Esta não é uma regra padrão, então criamos uma regra de agente.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta não é uma regra padrão, então criamos uma regra de agente. ${explanation}`,
             },
             tabs: {
                 general: 'Geral',
