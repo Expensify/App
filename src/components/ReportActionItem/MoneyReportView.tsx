@@ -137,7 +137,7 @@ function MoneyReportView({
     const {fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
     const policyReportFields = Object.values(fieldsByName).filter((field) => isReportFieldTargetMatchingReport(report, field));
 
-    const isOnlyTitleFieldEnabled = policyReportFields.every(shouldHideSingleReportField);
+    const isOnlyTitleFieldEnabled = policyReportFields.every((field) => shouldHideSingleReportField(field, policy?.fieldList));
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report, transactions.length > 0);
     const shouldDisplayReportFields = shouldDisplayReportFieldsUtils(report, policy);
     const shouldShowReportField = !isClosedExpenseReportWithNoExpenses && shouldDisplayReportFields && !isOnlyTitleFieldEnabled;
