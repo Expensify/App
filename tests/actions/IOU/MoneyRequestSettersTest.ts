@@ -1,5 +1,7 @@
 import {
     copyScanResultsToMovedExpenseDraft,
+    getMoneyRequestDraftParticipantsFromReport,
+    getSyncedParticipantAccountIDs,
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
@@ -9,6 +11,9 @@ import {
     setMoneyRequestDateAttribute,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
+    setMoneyRequestParticipantsFromReport,
+    setMultipleMoneyRequestParticipantsFromReport,
+    setMoneyRequestParticipantsSyncedAccountIDs,
     setMoneyRequestTag,
 } from '@libs/actions/IOU/MoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -754,6 +759,177 @@ describe('actions/IOU', () => {
             expect(draft?.amount).toBe(500);
             expect(draft?.currency).toBe('EUR');
             expect(draft?.shouldShowOriginalAmount).toBe(true);
+        });
+
+        describe('draft participants from a 1:1 chat with a recipient created offline', () => {
+            const recipientAccountID = 9999995;
+            const recipientLogin = 'new.login@expensifail.com';
+            const chatReport = {
+                reportID: 'chatReport123',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [recipientAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            } as Report;
+
+            beforeEach(async () => {
+                // Given a 1:1 chat with a recipient created offline, whose optimistic personal details have a login
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin, isOptimisticPersonalDetail: true}});
+                await waitForBatchedUpdates();
+            });
+
+            it('setMoneyRequestParticipantsFromReport should store the login and the chat of the recipient with their accountID', async () => {
+                // When the draft's participants are set from that chat
+                await setMoneyRequestParticipantsFromReport(transactionID, chatReport, RORY_ACCOUNT_ID);
+                await waitForBatchedUpdates();
+
+                // Then the login and the chat are stored too, so the real account can still be found from the draft if the accountID is replaced on sync
+                const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+                expect(draft?.participants).toEqual([{accountID: recipientAccountID, login: recipientLogin, reportID: chatReport.reportID, selected: true}]);
+            });
+
+            it('setMultipleMoneyRequestParticipantsFromReport should store the login and the chat of the recipient in every draft', async () => {
+                // When the participants of several drafts, like a multi-scan, are set from that chat
+                const secondTransactionID = `${transactionID}-2`;
+                await setMultipleMoneyRequestParticipantsFromReport([transactionID, secondTransactionID], chatReport, RORY_ACCOUNT_ID);
+                await waitForBatchedUpdates();
+
+                // Then every draft stores the login and the chat, so none of them is submitted against the optimistic accountID after sync
+                const expectedParticipants = [{accountID: recipientAccountID, login: recipientLogin, reportID: chatReport.reportID, selected: true}];
+                const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+                const secondDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`);
+                expect(draft?.participants).toEqual(expectedParticipants);
+                expect(secondDraft?.participants).toEqual(expectedParticipants);
+            });
+        });
+
+        describe('draft participants from a report without a recipient created offline', () => {
+            it('getMoneyRequestDraftParticipantsFromReport should return a workspace chat participant unchanged', () => {
+                // Given a workspace chat, whose participant has no accountID and so has no login to add
+                const policyID = 'policy789';
+                const policyExpenseChat = {
+                    reportID: 'policyExpenseChat789',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID,
+                    participants: {[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+                } as Report;
+
+                // When the draft participants are built from that chat
+                const participants = getMoneyRequestDraftParticipantsFromReport(policyExpenseChat, RORY_ACCOUNT_ID);
+
+                // Then the workspace chat participant passes through unchanged, so the expense still goes to that workspace chat
+                expect(participants).toEqual([{accountID: 0, reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true, selected: true, policyID, isSelfDM: false}]);
+            });
+
+            it('getMoneyRequestDraftParticipantsFromReport should add the login but not the chat for a recipient who was not created offline', async () => {
+                // Given a 1:1 chat with a recipient whose personal details came from the server, so they are not optimistic
+                const recipientAccountID = 9999994;
+                const recipientLogin = 'synced.recipient@expensifail.com';
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin}});
+                await waitForBatchedUpdates();
+                const chatReport = {
+                    reportID: 'chatReport789',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [recipientAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                } as Report;
+
+                // When the draft participants are built from that chat
+                const participants = getMoneyRequestDraftParticipantsFromReport(chatReport, RORY_ACCOUNT_ID);
+
+                // Then only the login is added, because the recipient's accountID is already real and won't need the chat to find it
+                expect(participants).toEqual([{accountID: recipientAccountID, login: recipientLogin, selected: true}]);
+                expect(participants.at(0)).not.toHaveProperty('reportID');
+            });
+        });
+
+        describe('synced participant accountIDs', () => {
+            const optimisticAccountID = 9999996;
+            const realAccountID = 9999997;
+            const recipientLogin = 'existing.user@expensifail.com';
+            const chatReport = {
+                reportID: 'chatReport456',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            } as Report;
+
+            it('getSyncedParticipantAccountIDs should find the real account through the 1:1 chat when the server left its login off', () => {
+                // Given a draft recipient whose optimistic accountID was dropped on sync, and a real account with no login,
+                // which is how the server can return an existing Expensify user
+                const personalDetails = {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                    [realAccountID]: {accountID: realAccountID, displayName: 'Existing User'},
+                };
+
+                // When the real accountIDs are looked up with the chat the draft saved as the recipient's chat
+                const participants = [{accountID: optimisticAccountID, login: recipientLogin, reportID: chatReport.reportID, selected: true}];
+                const syncedAccountIDs = getSyncedParticipantAccountIDs(participants, personalDetails, chatReport, RORY_ACCOUNT_ID);
+
+                // Then the chat's other participant replaces the optimistic accountID, so the existing chat can be found
+                expect(syncedAccountIDs).toEqual({[optimisticAccountID]: realAccountID});
+            });
+
+            it('getSyncedParticipantAccountIDs should not swap a recipient whose draft does not point to the chat for the chat recipient', () => {
+                // Given a newly picked phone contact, whose optimistic accountID was never in personal details, on a draft that still points to another 1:1 chat
+                const phoneContactAccountID = 9999998;
+                const personalDetails = {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                    [realAccountID]: {accountID: realAccountID, displayName: 'Existing User'},
+                };
+
+                // When the real accountIDs are looked up, and the phone contact was not saved with that chat
+                const participants = [{accountID: phoneContactAccountID, login: '+15005550006', selected: true}];
+                const syncedAccountIDs = getSyncedParticipantAccountIDs(participants, personalDetails, chatReport, RORY_ACCOUNT_ID);
+
+                // Then the phone contact is kept, so the expense isn't sent to the chat's recipient instead
+                expect(syncedAccountIDs).toEqual({});
+            });
+
+            it('getSyncedParticipantAccountIDs should leave a recipient alone while its accountID is still in personal details', () => {
+                // Given a draft recipient whose optimistic accountID has not synced yet
+                const personalDetails = {[optimisticAccountID]: {accountID: optimisticAccountID, login: recipientLogin}};
+
+                // When the real accountIDs are looked up
+                const participants = [{accountID: optimisticAccountID, login: recipientLogin, reportID: chatReport.reportID}];
+                const syncedAccountIDs = getSyncedParticipantAccountIDs(participants, personalDetails, chatReport, RORY_ACCOUNT_ID);
+
+                // Then nothing is replaced, because the optimistic accountID is still the right one
+                expect(syncedAccountIDs).toEqual({});
+            });
+
+            it('setMoneyRequestParticipantsSyncedAccountIDs should move the participant and its split share to the real accountID', async () => {
+                // Given a split draft whose shares were saved under the recipient's optimistic accountID
+                const transaction: Transaction = {
+                    ...createRandomTransaction(1),
+                    transactionID,
+                    participants: [{accountID: optimisticAccountID, login: recipientLogin, selected: true}],
+                    splitShares: {
+                        [RORY_ACCOUNT_ID]: {amount: 1500, isModified: false},
+                        [optimisticAccountID]: {amount: 1500, isModified: false},
+                    },
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                // When the draft is moved to the real accountID after sync
+                setMoneyRequestParticipantsSyncedAccountIDs(transaction, {[optimisticAccountID]: realAccountID});
+                await waitForBatchedUpdates();
+
+                // Then the participant and the recipient's share both use the real accountID, so the split row still shows $15
+                const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+                expect(draft?.participants).toEqual([{accountID: realAccountID, login: recipientLogin, selected: true}]);
+                expect(draft?.splitShares).toEqual({
+                    [RORY_ACCOUNT_ID]: {amount: 1500, isModified: false},
+                    [realAccountID]: {amount: 1500, isModified: false},
+                });
+            });
         });
 
         it('setMoneyRequestCreated should set created on transaction draft', async () => {
