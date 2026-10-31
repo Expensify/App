@@ -104,7 +104,8 @@ function buildRetryTransactionParams(context: ReceiptRetryContext, receiptFile: 
 /** Checks the action here too, not only in `retryReceiptUpload`, so the button is hidden instead of doing nothing. */
 function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
     const {transaction, iouReport, receiptError, currentUserPersonalDetails} = context;
-    if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST || !isMoneyRequestReport(iouReport)) {
+    const wouldOverwriteReportWithExpense = !isMoneyRequestReport(iouReport);
+    if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST || wouldOverwriteReportWithExpense) {
         return false;
     }
     return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport, currentUserPersonalDetails.accountID);
