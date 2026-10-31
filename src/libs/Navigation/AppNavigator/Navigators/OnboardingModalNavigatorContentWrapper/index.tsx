@@ -1,3 +1,5 @@
+import HorizontalSafeArea from '@components/HorizontalSafeArea';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -14,9 +16,9 @@ function OnboardingModalNavigatorContentWrapper({children, onboardingIsMediumOrL
     return (
         <View
             onClick={(e) => e.stopPropagation()}
-            style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)]}
+            style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.appBG, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)]}
         >
-            {children}
+            <HorizontalSafeArea>{children}</HorizontalSafeArea>
         </View>
     );
 }

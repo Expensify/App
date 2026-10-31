@@ -34,15 +34,17 @@ const LANDSCAPE_TAB_ICON_LAYOUT: TabIconLayout = {
  * in the color of the selected tab, so each icon is drawn with its own colors, its status dot and its label. Both
  * selection states are images, because RNScreens rejects a tab whose icon and selectedIcon differ in type.
  */
-function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: NativeTabBarOptionsParams) {
+function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels}: NativeTabBarOptionsParams) {
     const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
     const {isInLandscapeMode} = useResponsiveLayout();
-    const tabIconLayout = isInLandscapeMode ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;
+    // A column has the height for a stacked tab whatever the orientation.
+    const isInline = isInLandscapeMode && !isTabBarVertical;
+    const tabIconLayout = isInline ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT;
     const barItemCount = Object.keys(tabLabels).length;
     const itemWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
     // In landscape the label shares the item's width with the glyph's box beside it.
-    const labelMaxWidth = isInLandscapeMode ? itemWidth - tabIconLayout.iconBoxSize - variables.nativeTabIconLabelGap : itemWidth;
+    const labelMaxWidth = isInline ? itemWidth - tabIconLayout.iconBoxSize - variables.nativeTabIconLabelGap : itemWidth;
 
     const screenOptions: NativeBottomTabNavigationOptions = {
         // The labels are drawn into the icons.
@@ -62,14 +64,17 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
             name,
             color: isSelected ? theme.iconMenu : theme.icon,
             dotColor: dotColors[name],
-            label: {
-                text: tabLabels[name],
-                color: isSelected ? theme.text : theme.textSupporting,
-                isBold: isSelected,
-                fontSize: fontScale.micro,
-                gap: variables.nativeTabIconLabelGap,
-                maxWidth: labelMaxWidth,
-            },
+            // A column is too narrow for the labels, so it shows the icons alone.
+            label: isTabBarVertical
+                ? undefined
+                : {
+                      text: tabLabels[name],
+                      color: isSelected ? theme.text : theme.textSupporting,
+                      isBold: isSelected,
+                      fontSize: fontScale.micro,
+                      gap: variables.nativeTabIconLabelGap,
+                      maxWidth: labelMaxWidth,
+                  },
         })),
         // The label is drawn into the icon, so VoiceOver reads it from here.
         tabBarAccessibilityLabel: tabLabels[name],
