@@ -27,6 +27,7 @@ import {
     getMerchantFilterFormValues,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
+    getQueryWithoutGroupBy,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
     getDateFilterRange,
@@ -3330,6 +3331,32 @@ describe('SearchQueryUtils', () => {
             expect(getFooterSelectionFromQuery(junk).footerCount).toBeUndefined();
             expect(getFooterSelectionFromQuery(junk).footerTotal).toBeUndefined();
             expect(junk?.hash).toEqual(noSelection?.hash);
+        });
+
+        it('drops a group-by and the group sort it brought, landing on the plain query', () => {
+            // Given a trip query saved with a group-by, which trip rooms can't use
+            const grouped = buildSearchQueryJSON('type:trip status:upcoming group-by:from');
+
+            // When the group-by is dropped
+            const stripped = grouped ? buildSearchQueryJSON(getQueryWithoutGroupBy(grouped)) : undefined;
+
+            // Then it's the plain trip query, sorted by date again instead of by the group
+            expect(stripped?.groupBy).toBeUndefined();
+            expect(stripped?.sortBy).toEqual(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(stripped?.hash).toEqual(buildSearchQueryJSON('type:trip status:upcoming')?.hash);
+        });
+
+        it('keeps a non-group sort when the group-by is dropped', () => {
+            // Given a grouped trip query sorted by trip name on purpose
+            const grouped = buildSearchQueryJSON('type:trip group-by:from sortBy:title sortOrder:asc');
+
+            // When the group-by is dropped
+            const stripped = grouped ? buildSearchQueryJSON(getQueryWithoutGroupBy(grouped)) : undefined;
+
+            // Then the chosen sort stays
+            expect(stripped?.groupBy).toBeUndefined();
+            expect(stripped?.sortBy).toEqual(CONST.SEARCH.TABLE_COLUMNS.TITLE);
+            expect(stripped?.sortOrder).toEqual(CONST.SEARCH.SORT_ORDER.ASC);
         });
 
         it('reads the footer currency back in upper case, so the same currency in either case is one selection', () => {

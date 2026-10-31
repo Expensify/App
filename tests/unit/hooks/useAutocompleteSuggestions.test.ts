@@ -421,6 +421,38 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.STATUS);
     });
 
+    it('suggests the trip room statuses for a trip search with the TravelApproval beta', () => {
+        // Given a trip search typing a status, with and without the TravelApproval beta
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.TRIP, start: 0, length: 9}],
+        });
+
+        // When the suggestions are built
+        const {result: withBeta} = renderHook(() => useAutocompleteSuggestions({...defaultParams, isTravelApprovalBetaEnabled: true, autocompleteQueryValue: 'type:trip status:'}));
+        const {result: withoutBeta} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:trip status:'}));
+
+        // Then trip rooms suggest upcoming, done and canceled, and the expense search keeps current and past
+        expect(withBeta.current.map((suggestion) => suggestion.text)).toEqual(['canceled', 'done', 'upcoming']);
+        expect(withoutBeta.current.map((suggestion) => suggestion.text)).toEqual(['current', 'past']);
+    });
+
+    it('suggests no group-by for a trip search with the TravelApproval beta', () => {
+        // Given a trip search typing a group-by, since trip rooms can't be grouped
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.TRIP, start: 0, length: 9}],
+        });
+
+        // When the suggestions are built with and without the beta
+        const {result: withBeta} = renderHook(() => useAutocompleteSuggestions({...defaultParams, isTravelApprovalBetaEnabled: true, autocompleteQueryValue: 'type:trip group-by:'}));
+        const {result: withoutBeta} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:trip group-by:'}));
+
+        // Then trip rooms get none, and the expense search keeps its group-by options
+        expect(withBeta.current).toHaveLength(0);
+        expect(withoutBeta.current.length).toBeGreaterThan(0);
+    });
+
     it('returns empty array for date key (presets filter)', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, value: 'to'},
