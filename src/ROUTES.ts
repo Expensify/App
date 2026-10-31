@@ -4118,6 +4118,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/expensify-card/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/settings` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD_REQUEST_LIMIT_INCREASE: {
+        route: 'workspaces/:policyID/expensify-card/:domainAccountID/request-limit-increase',
+        getRoute: (policyID: string, domainAccountID: number) => `workspaces/${policyID}/expensify-card/${domainAccountID}/request-limit-increase` as const,
+    },
     WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL: {
         route: 'workspaces/:policyID/expensify-card/:fundID/work-email',
         getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email` as const,

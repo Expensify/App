@@ -6914,6 +6914,18 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             remaining: 'Verbleibend',
             remainingLimit: 'Verbleibendes Limit',
             requestLimitIncrease: 'Anhebung des Anfragelimits',
+            limitIncreaseFormDescription: "Please fill out the following fields so we can set your company's Expensify Card limit.",
+            limitIncreaseDesiredLimit: 'Desired limit',
+            limitIncreaseAnnualRevenue: 'Annual revenue',
+            limitIncreaseTaxReturn: 'Most recent business tax return (PDF, up to 5MB)',
+            limitIncreaseAuthorization:
+                'I authorize Expensify to obtain business credit reports and other financial information about my company from Equifax and other third-party providers for underwriting, account review, and ongoing monitoring purposes.',
+            limitIncreaseInvalidAmount: 'Enter an amount greater than zero, with no more than two decimal places.',
+            limitIncreaseInvalidFile: 'Choose a PDF file no larger than 5MB.',
+            limitIncreaseUnavailable: 'Limit increase requests are not available yet.',
+            limitIncreaseOffline: 'Connect to the internet to request a limit increase.',
+            limitIncreaseRequestReceived: 'Request received',
+            limitIncreaseReviewing: "We're reviewing your request and we'll reach out as soon as we are finished. This can take 24-48 hours.",
             remainingLimitDescription:
                 'Wir berücksichtigen mehrere Faktoren, wenn wir Ihr verbleibendes Limit berechnen: Ihre Dauer als Kund*in, die geschäftsbezogenen Angaben, die Sie bei der Registrierung gemacht haben, sowie das verfügbare Guthaben auf Ihrem Geschäftskonto. Ihr verbleibendes Limit kann täglich schwanken.',
             earnedCashback: 'Cashback',

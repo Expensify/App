@@ -6865,6 +6865,18 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             remaining: 'Rimanente',
             remainingLimit: 'Limite rimanente',
             requestLimitIncrease: 'Richiedi aumento limite',
+            limitIncreaseFormDescription: "Please fill out the following fields so we can set your company's Expensify Card limit.",
+            limitIncreaseDesiredLimit: 'Desired limit',
+            limitIncreaseAnnualRevenue: 'Annual revenue',
+            limitIncreaseTaxReturn: 'Most recent business tax return (PDF, up to 5MB)',
+            limitIncreaseAuthorization:
+                'I authorize Expensify to obtain business credit reports and other financial information about my company from Equifax and other third-party providers for underwriting, account review, and ongoing monitoring purposes.',
+            limitIncreaseInvalidAmount: 'Enter an amount greater than zero, with no more than two decimal places.',
+            limitIncreaseInvalidFile: 'Choose a PDF file no larger than 5MB.',
+            limitIncreaseUnavailable: 'Limit increase requests are not available yet.',
+            limitIncreaseOffline: 'Connect to the internet to request a limit increase.',
+            limitIncreaseRequestReceived: 'Request received',
+            limitIncreaseReviewing: "We're reviewing your request and we'll reach out as soon as we are finished. This can take 24-48 hours.",
             remainingLimitDescription:
                 'Consideriamo diversi fattori quando calcoliamo il tuo limite residuo: la tua anzianità come cliente, le informazioni aziendali fornite durante la registrazione e la liquidità disponibile sul conto bancario della tua azienda. Il tuo limite residuo può variare su base giornaliera.',
             earnedCashback: 'Cashback',

@@ -849,6 +849,7 @@ const SCREENS = {
         COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE: 'Workspace_CompanyCards_Bulk_Edit_Transaction_Start_Date',
         DYNAMIC_COMPANY_CARD_EXPORT: 'Dynamic_Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
+        EXPENSIFY_CARD_REQUEST_LIMIT_INCREASE: 'Workspace_ExpensifyCard_Request_Limit_Increase',
         DYNAMIC_EXPENSIFY_CARD_DETAILS: 'Dynamic_Workspace_ExpensifyCard_Details',
         EXPENSIFY_CARD_ADD_WORK_EMAIL: 'Workspace_ExpensifyCard_Add_Work_Email',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW: 'Dynamic_Workspace_ExpensifyCard_New',

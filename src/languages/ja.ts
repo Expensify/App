@@ -6781,6 +6781,18 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             remaining: '残り',
             remainingLimit: '残りの上限',
             requestLimitIncrease: 'リクエスト上限の引き上げ',
+            limitIncreaseFormDescription: "Please fill out the following fields so we can set your company's Expensify Card limit.",
+            limitIncreaseDesiredLimit: 'Desired limit',
+            limitIncreaseAnnualRevenue: 'Annual revenue',
+            limitIncreaseTaxReturn: 'Most recent business tax return (PDF, up to 5MB)',
+            limitIncreaseAuthorization:
+                'I authorize Expensify to obtain business credit reports and other financial information about my company from Equifax and other third-party providers for underwriting, account review, and ongoing monitoring purposes.',
+            limitIncreaseInvalidAmount: 'Enter an amount greater than zero, with no more than two decimal places.',
+            limitIncreaseInvalidFile: 'Choose a PDF file no larger than 5MB.',
+            limitIncreaseUnavailable: 'Limit increase requests are not available yet.',
+            limitIncreaseOffline: 'Connect to the internet to request a limit increase.',
+            limitIncreaseRequestReceived: 'Request received',
+            limitIncreaseReviewing: "We're reviewing your request and we'll reach out as soon as we are finished. This can take 24-48 hours.",
             remainingLimitDescription:
                 '残りの限度額を算出する際には、お客様としてのご利用期間、登録時にご提供いただいた事業関連情報、およびビジネス用銀行口座の利用可能残高など、複数の要素を考慮します。残りの限度額は日々変動する可能性があります。',
             earnedCashback: 'キャッシュバック',

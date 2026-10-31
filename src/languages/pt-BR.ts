@@ -6864,6 +6864,18 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             remaining: 'Restante',
             remainingLimit: 'Limite restante',
             requestLimitIncrease: 'Solicitar aumento de limite',
+            limitIncreaseFormDescription: "Please fill out the following fields so we can set your company's Expensify Card limit.",
+            limitIncreaseDesiredLimit: 'Desired limit',
+            limitIncreaseAnnualRevenue: 'Annual revenue',
+            limitIncreaseTaxReturn: 'Most recent business tax return (PDF, up to 5MB)',
+            limitIncreaseAuthorization:
+                'I authorize Expensify to obtain business credit reports and other financial information about my company from Equifax and other third-party providers for underwriting, account review, and ongoing monitoring purposes.',
+            limitIncreaseInvalidAmount: 'Enter an amount greater than zero, with no more than two decimal places.',
+            limitIncreaseInvalidFile: 'Choose a PDF file no larger than 5MB.',
+            limitIncreaseUnavailable: 'Limit increase requests are not available yet.',
+            limitIncreaseOffline: 'Connect to the internet to request a limit increase.',
+            limitIncreaseRequestReceived: 'Request received',
+            limitIncreaseReviewing: "We're reviewing your request and we'll reach out as soon as we are finished. This can take 24-48 hours.",
             remainingLimitDescription:
                 'Levamos em conta vários fatores ao calcular seu limite restante: seu tempo como cliente, as informações comerciais fornecidas durante o cadastro e o dinheiro disponível na conta bancária da sua empresa. Seu limite restante pode variar diariamente.',
             earnedCashback: 'Cashback',
