@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePersonalDetailsByEmail from '@hooks/usePersonalDetailsByEmail';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -42,6 +43,8 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params.policyID;
@@ -51,6 +54,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const employeeList = policy?.employeeList;
     const isDefault = approvalWorkflow?.isDefault;
     const membersEmail = approvalWorkflow?.members.map((member) => member.email);
+    const workflowApproverEmails = new Set(approvalWorkflow?.approvers?.map((approver) => approver?.email));
 
     const currentApproverEmail = currentApprover?.email;
 
@@ -85,6 +89,11 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
                 }
 
                 if (email === currentApproverEmail) {
+                    return null;
+                }
+
+                // Someone who already approves in this workflow approves every report anyway, so the limit can't add them
+                if (isMultipleApproversBetaEnabled && workflowApproverEmails.has(email)) {
                     return null;
                 }
 
