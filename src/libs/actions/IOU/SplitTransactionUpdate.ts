@@ -483,9 +483,7 @@ function updateSplitTransactions({
                 merchant: split?.merchant ?? '',
                 transactionID: split.transactionID,
                 reportID: split.reportID,
-                comment: {
-                    comment: currentDescription,
-                },
+                comment: currentDescription,
                 reimbursable: split?.reimbursable,
                 billable: split?.billable,
                 taxCode: split?.taxCode,
@@ -1072,7 +1070,6 @@ function updateSplitTransactions({
         if (splitTransaction) {
             const transactionChanges = {
                 ...currentSplit,
-                comment: currentSplit?.comment?.comment,
                 customUnitRateID: currentSplit?.customUnitRateID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID,
             } as TransactionChanges;
             delete transactionChanges.reportID;
@@ -2307,7 +2304,6 @@ function updateSplitTransactions({
     if (isReverseSplitOperation) {
         const parameters = {
             ...splits.at(0),
-            comment: splits.at(0)?.comment?.comment,
             waypoints: splits.at(0)?.waypoints ? JSON.stringify(splits.at(0)?.waypoints) : undefined,
             copiedComments: splits.at(0)?.copiedComments ? JSON.stringify(splits.at(0)?.copiedComments) : undefined,
         } as RevertSplitTransactionParams;
