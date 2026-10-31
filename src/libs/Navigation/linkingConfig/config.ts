@@ -956,6 +956,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_BANK_ACCOUNT_SUCCESS]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT_SUCCESS.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.route,
                         },

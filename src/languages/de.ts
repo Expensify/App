@@ -6914,6 +6914,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             remaining: 'Verbleibend',
             remainingLimit: 'Verbleibendes Limit',
             requestLimitIncrease: 'Anhebung des Anfragelimits',
+            bankAccountSuccessTitle: 'Glückwunsch! Du kannst jetzt Expensify Cards zuweisen.',
+            bankAccountSuccessLimit: (limit) => `Dein gesamtes Kartenlimit beträgt ${limit}. Bei Bedarf kannst du eine Erhöhung beantragen.`,
+            bankAccountSuccessReviewingPrefix: 'Dein gesamtes Kartenlimit wird ',
+            bankAccountSuccessReviewingSuffix: '. Bei Bedarf kannst du eine Erhöhung beantragen.',
+            bankAccountSuccessReviewingStatus: 'überprüft',
+            bankAccountSuccessReviewingExplanation: 'Unser Team überprüft deine Angaben. Wir melden uns, sobald dein Kartenlimit feststeht.',
             remainingLimitDescription:
                 'Wir berücksichtigen mehrere Faktoren, wenn wir Ihr verbleibendes Limit berechnen: Ihre Dauer als Kund*in, die geschäftsbezogenen Angaben, die Sie bei der Registrierung gemacht haben, sowie das verfügbare Guthaben auf Ihrem Geschäftskonto. Ihr verbleibendes Limit kann täglich schwanken.',
             earnedCashback: 'Cashback',

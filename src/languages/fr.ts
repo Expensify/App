@@ -6920,6 +6920,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             remaining: 'Restant',
             remainingLimit: 'Plafond restant',
             requestLimitIncrease: 'Demander une augmentation de la limite',
+            bankAccountSuccessTitle: 'Félicitations ! Vous pouvez maintenant attribuer des cartes Expensify.',
+            bankAccountSuccessLimit: (limit) => `La limite totale accordée est de ${limit}, mais vous pouvez demander une augmentation si nécessaire.`,
+            bankAccountSuccessReviewingPrefix: 'La limite totale accordée est ',
+            bankAccountSuccessReviewingSuffix: ', mais vous pouvez demander une augmentation si nécessaire.',
+            bankAccountSuccessReviewingStatus: 'en cours d’examen',
+            bankAccountSuccessReviewingExplanation: 'Notre équipe examine vos informations. Nous vous informerons dès que votre limite sera définie.',
             remainingLimitDescription:
                 'Nous prenons en compte plusieurs facteurs pour calculer votre plafond restant : votre ancienneté en tant que client, les informations liées à votre entreprise fournies lors de l’inscription et la trésorerie disponible sur votre compte bancaire professionnel. Votre plafond restant peut fluctuer quotidiennement.',
             earnedCashback: 'Remise en argent',
