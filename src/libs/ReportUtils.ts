@@ -10795,7 +10795,9 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     const drivingActorAccountID =
         (oneTransactionThreadReport?.lastVisibleActionCreated ?? '') > (report?.lastVisibleActionCreated ?? '') ? oneTransactionThreadReport?.lastActorAccountID : report?.lastActorAccountID;
 
-    if (isUnreadFromTimestamp && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime)) {
+    // A manual mark-as-unread wins over the "last actor is me" rule, so a report where only the current user has written
+    // (e.g. a new thread) still shows as unread. Reading the report moves lastReadTime forward, so this can't stick.
+    if (isUnreadFromTimestamp && drivingActorAccountID === deprecatedCurrentUserAccountID && !(lastReadTime < lastMentionedTime) && !report.manuallyMarkedUnreadReportActionID) {
         return false;
     }
 
