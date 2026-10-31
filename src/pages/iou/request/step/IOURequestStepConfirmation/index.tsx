@@ -75,8 +75,8 @@ import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableRe
 import {copyScanResultsToMovedExpenseDraft, getIOURequestPolicyID, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 
-import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -91,7 +91,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
+import type IOURequestStepConfirmationProps from './types';
 import type {ConfirmationSubmissionParams, ConfirmationVariantProps} from './variants/types';
 
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
@@ -157,7 +157,8 @@ function IOURequestStepConfirmationContent({
     const {convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
-    const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
+    const participantsAutoAssignedFromRoute =
+        route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION && 'participantsAutoAssigned' in route.params ? route.params.participantsAutoAssigned : undefined;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -580,11 +581,15 @@ function IOURequestStepConfirmationContent({
      */
     const setReceiptOnDrop = (files: FileObject[]) => {
         const file = files.at(0);
+        const receiptFile = file;
         if (!file) {
             return;
         }
-        const source = URL.createObjectURL(file as Blob);
-        setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true, file.type);
+        if (!(file instanceof Blob)) {
+            return;
+        }
+        const source = URL.createObjectURL(file);
+        setMoneyRequestReceipt(currentTransactionID, source, receiptFile?.name ?? '', true, file.type);
     };
 
     const {validateFiles, PDFValidationComponent} = useFilesValidation(setReceiptOnDrop);

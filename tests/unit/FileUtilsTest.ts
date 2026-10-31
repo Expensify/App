@@ -6,6 +6,11 @@ import {
     appendExtensionFromMimeType,
     appendTimeToFileName,
     canvasFallback,
+    cleanFileObject,
+    cleanFileObjectName,
+    getFilesFromClipboardEvent,
+    isValidReceiptExtension,
+    validateReceipt,
     createFile,
     getConvertedJpegFileName,
     getDownloadFileName,
@@ -24,6 +29,7 @@ import getImageManipulator from '@libs/fileDownload/getImageManipulator';
 import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 import {Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
@@ -842,5 +848,102 @@ describe('FileUtils', () => {
             // Then nothing is produced, since a bare ".mp4" is not a usable file name
             expect(appendExtensionFromMimeType('', 'video/mp4')).toBe('');
         });
+    });
+});
+
+describe('file boundary categories', () => {
+    it('retains nullable getter output and precise nonnull name-cleaning categories', () => {
+        // Given the declared getter can produce either a real File or null.
+        const file = new File(['content'], 'receipt.text', {type: 'text/plain'});
+        file.uri = 'blob:existing';
+        const metadata: FileObject = {uri: 'file://native.text', name: 'native.text', type: 'text/plain'};
+        // When extraction and name cleaning run through their real public contracts.
+        const nullResult: null = cleanFileObjectName(null);
+        const validResult: FileObject = cleanFileObjectName(file);
+        // Then truthful overloads preserve identity and never replace null with the original wrapper.
+        expect(cleanFileObject({getAsFile: () => null})).toBeNull();
+        expect(cleanFileObjectName(cleanFileObject({getAsFile: () => null}))).toBeNull();
+        expect(cleanFileObject({getAsFile: () => file})).toBe(file);
+        expect(cleanFileObject(metadata)).toBe(metadata);
+        expect(cleanFileObjectName(metadata)).toBe(metadata);
+        expect(nullResult).toBeNull();
+        expect(validResult).toBe(file);
+    });
+
+    it('keeps actual clipboard Files and assigns URIs in original order', () => {
+        // Given browser DataTransfer files own their original bytes.
+        const first = new File(['first'], 'first.text', {type: 'text/plain'});
+        const second = new File(['second'], 'second.text', {type: 'text/plain'});
+        const url = jest.spyOn(URL, 'createObjectURL').mockReturnValueOnce('blob:first').mockReturnValueOnce('blob:second');
+        const files = createMock<FileList>([first, second]);
+        const event = createMock<DragEvent>({dataTransfer: {files}});
+        try {
+            // When the public clipboard helper extracts those Files.
+            const result = getFilesFromClipboardEvent(event);
+            // Then no File reconstruction or ordering change occurs.
+            expect(result).toEqual([first, second]);
+            expect(result.at(0)).toBe(first);
+            expect(result.at(1)).toBe(second);
+            expect(first.uri).toBe('blob:first');
+            expect(second.uri).toBe('blob:second');
+            expect(url.mock.calls).toEqual([[first], [second]]);
+        } finally {
+            url.mockRestore();
+        }
+    });
+
+    it.each([
+        ['receipt.TEXT', true],
+        ['receipt.PdF', true],
+        ['receipt.xyz', false],
+        ['receipt', false],
+        ['', false],
+    ])('preserves extension membership for %s', (name, expected) => {
+        // Given receipt extension matching is case insensitive but never accepts unknown or absent extensions.
+        const file: FileObject = {name, type: 'text/plain', size: 240};
+        // When the actual exported extension decision checks the constant tuple.
+        const result = isValidReceiptExtension(file);
+        // Then accepted and rejected cases retain their original result.
+        expect(result).toBe(expected);
+    });
+
+    it.each([
+        [{name: 'bad.xyz', type: 'text/plain', size: 1}, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension'],
+        [{name: 'small.text', type: 'text/plain', size: 1}, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet'],
+        [
+            {name: 'large.text', type: 'text/plain', size: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE + 1},
+            'attachmentPicker.attachmentTooLarge',
+            'attachmentPicker.sizeExceededWithLimit',
+        ],
+    ] as const)('retains receipt error priority for %j', async (file, title, reason) => {
+        // Given non-image metadata reaches the real extension and size checks without image decoding.
+        const error = jest.fn<ReturnType<Parameters<typeof validateReceipt>[1]>, Parameters<Parameters<typeof validateReceipt>[1]>>();
+        // When the real receipt validator processes conflicting or single invalid categories.
+        const result = await validateReceipt(file, error);
+        // Then the original first error and exact callback ordering are retained.
+        expect(result).toBe(false);
+        expect(error.mock.calls).toEqual([[true, title, reason]]);
+    });
+
+    it.each([null, 'unexpected string'])('uses header fallback for a defensive malformed FileReader result %j', async (result) => {
+        // Given readAsArrayBuffer normally produces bytes, but this case deliberately injects a malformed callback result.
+        const blob = new Blob(['header']);
+        const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue(createMock<Response>({blob: async () => blob}));
+        const read = jest.spyOn(FileReader.prototype, 'readAsArrayBuffer').mockImplementation(function (this: FileReader) {
+            Object.defineProperty(this, 'result', {configurable: true, value: result});
+            this.onload?.(createMock<ProgressEvent<FileReader>>({target: this}));
+        });
+        jest.mocked(ImageSize.getSize).mockResolvedValue({width: 800, height: 600});
+        try {
+            // When the public dimensions helper executes the actual header callback and fallback.
+            const dimensions = await getImageDimensionsAfterResize({uri: 'blob:malformed-header', name: 'header.png', type: 'image/png'});
+            // Then malformed output never becomes fabricated header bytes and the established fallback remains.
+            expect(read).toHaveBeenCalledTimes(1);
+            expect(ImageSize.getSize).toHaveBeenCalledWith('blob:malformed-header');
+            expect(dimensions).toEqual({width: CONST.MAX_IMAGE_DIMENSION, height: (CONST.MAX_IMAGE_DIMENSION * 600) / 800});
+        } finally {
+            read.mockRestore();
+            fetchSpy.mockRestore();
+        }
     });
 });

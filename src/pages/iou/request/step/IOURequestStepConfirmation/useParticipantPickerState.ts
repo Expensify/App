@@ -27,7 +27,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useEffect, useRef, useState} from 'react';
 
-import type {IOURequestStepConfirmationProps} from './types';
+import type IOURequestStepConfirmationProps from './types';
 
 type UseParticipantPickerStateParams = {
     transaction: OnyxEntry<Transaction>;
