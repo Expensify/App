@@ -29,7 +29,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
+import useSplitEffectivePolicy, {findSplitPolicyForCustomUnit} from '@hooks/useSplitEffectivePolicy';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -84,8 +84,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Transaction} from '@src/types/onyx';
+import type {Policy, Transaction} from '@src/types/onyx';
 
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
@@ -94,7 +95,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import {billingRestrictionPolicySelector, createFilteredPoliciesInfoSelector, createHasWorkspaceToSubmitToSelector} from '@selectors/Policy';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 
@@ -188,6 +189,15 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const splitEffectivePolicy = useSplitEffectivePolicy(report, undefined, transaction);
+    // Only the workspace that owns the expense's distance rate is needed to tell whether the rate is $0
+    const distanceRatePoliciesSelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>) => {
+            const distanceRatePolicy = findSplitPolicyForCustomUnit(allPolicies, transaction);
+            return distanceRatePolicy ? {[`${ONYXKEYS.COLLECTION.POLICY}${distanceRatePolicy.id}`]: distanceRatePolicy} : undefined;
+        },
+        [transaction],
+    );
+    const [distanceRatePolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: distanceRatePoliciesSelector});
     const personalPolicy = usePersonalPolicy();
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
@@ -395,6 +405,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             isRestrictedToPreferredPolicy,
             rules,
             cardList,
+            policies: distanceRatePolicies,
         });
     })();
 

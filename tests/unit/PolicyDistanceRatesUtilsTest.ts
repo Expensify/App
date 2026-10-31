@@ -9,6 +9,7 @@ import {
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
+    validateRateValue,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
@@ -20,6 +21,41 @@ import createRandomPolicy from '../utils/collections/policies';
 import {translateLocal} from '../utils/TestHelper';
 
 describe('PolicyDistanceRatesUtils', () => {
+    describe('validateRateValue', () => {
+        const toLocaleDigit = (digit: string) => digit;
+        const validate = (rate: string) => validateRateValue({rate, startDate: '', endDate: ''}, toLocaleDigit, translateLocal).rate;
+
+        it('should allow a rate of 0', () => {
+            // Given a distance rate value of exactly 0
+            // When validateRateValue checks it
+            // Then no error is returned, since workspaces can now use a $0 distance rate
+            expect(validate('0')).toBeUndefined();
+            expect(validate('0.00')).toBeUndefined();
+        });
+
+        it('should allow a positive rate', () => {
+            // Given a positive distance rate value
+            // When validateRateValue checks it
+            // Then no error is returned
+            expect(validate('0.725')).toBeUndefined();
+        });
+
+        it('should reject a negative rate', () => {
+            // Given a negative distance rate value
+            // When validateRateValue checks it
+            // Then the "can't be negative" error is returned, since only negative rates are invalid now
+            expect(validate('-1')).toBe(translateLocal('common.error.lowRateError'));
+        });
+
+        it('should reject a value that is not a number', () => {
+            // Given a rate value that isn't a number
+            // When validateRateValue checks it
+            // Then the invalid-rate error is returned
+            expect(validate('.')).toBe(translateLocal('common.error.invalidRateError'));
+            expect(validate('abc')).toBe(translateLocal('common.error.invalidRateError'));
+        });
+    });
+
     describe('validateTaxClaimableValue', () => {
         it('should return an error when taxClaimableValue is equal to tax rate', () => {
             // Given a tax claimable value inserted for a distance rate
@@ -305,8 +341,18 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getDistanceRateValueError('abc', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
         });
 
-        it('should return tooLow when the rate is zero or negative', () => {
-            expect(getDistanceRateValueError('0', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LOW);
+        it('should accept a rate of 0', () => {
+            // Given a distance rate value of exactly 0
+            // When getDistanceRateValueError checks it
+            // Then no error is returned, since workspaces can now use a $0 distance rate
+            expect(getDistanceRateValueError('0', toLocaleDigit)).toBeUndefined();
+            expect(getDistanceRateValueError('0.00', toLocaleDigit)).toBeUndefined();
+        });
+
+        it('should return tooLow when the rate is negative', () => {
+            // Given a negative distance rate value
+            // When getDistanceRateValueError checks it
+            // Then the tooLow validation error is returned, since only negative rates are invalid now
             expect(getDistanceRateValueError('-1', toLocaleDigit)).toBe(CONST.INPUT_VALIDATION_ERRORS.TOO_LOW);
         });
 

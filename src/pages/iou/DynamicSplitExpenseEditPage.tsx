@@ -224,7 +224,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const isSplitAvailable =
         report &&
         transaction &&
-        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport);
+        isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, rules, currentReportOwnerLogin, effectivePolicy, parentReport, allPolicies);
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
     const categoryValue = getDecodedLeafCategoryName(splitExpenseDraftTransactionDetails?.category ?? '');
@@ -289,12 +289,14 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
     });
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
+    const currentRateID = getRateID(splitExpenseDraftTransaction);
+    // A split still on the expense's rate, changed to or from $0 after the expense was created, is calculated with the rate the expense was
+    const amountRate = currentRateID === getRateID(transaction) ? (DistanceRequestUtils.getRateBeforeZeroRateChange(transaction, rate) ?? rate) : rate;
     const currentAmount =
-        isDistance && distance && rate
-            ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, rate) * originalSign
+        isDistance && distance && amountRate !== undefined
+            ? DistanceRequestUtils.getDistanceRequestAmount(distance, unit, amountRate) * originalSign
             : Math.abs(Number(splitExpenseDraftTransaction?.amount)) * originalSign;
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, translate, false, isManualDistance);
-    const currentRateID = getRateID(splitExpenseDraftTransaction);
     const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
 
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
@@ -303,21 +305,23 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     // so that a stale stored merchant (e.g. "Pending..." set before the MAP route was calculated)
     // does not appear in the title. Falls back to the stored merchant otherwise.
     const merchantToDisplay =
-        isDistance && distance && rate && unit
-            ? DistanceRequestUtils.getDistanceMerchant(true, distance, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, true)
+        isDistance && distance && amountRate !== undefined && unit
+            ? DistanceRequestUtils.getDistanceMerchant(true, distance, unit, amountRate, currency, translate, toLocaleDigit, getCurrencySymbol, true)
             : (splitExpenseDraftTransactionDetails?.merchant ?? '');
 
     const isP2PRate = currentRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
     const rawPolicyRate = !isP2PRate && currentRateID && effectivePolicy ? getDistanceRateCustomUnitRate(effectivePolicy, currentRateID) : undefined;
     const isRateBroken =
-        isDistance && !isP2PRate && (!rates[currentRateID] || !rate || rawPolicyRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate?.enabled === false);
+        isDistance &&
+        !isP2PRate &&
+        (!rates[currentRateID] || rate === undefined || rawPolicyRate?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || rawPolicyRate?.enabled === false);
     const policyWithAvailableRates = effectivePolicy ?? policyForMovingExpenses;
     const hasAvailableEnabledRates = Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0;
 
     // `shouldSelectPolicy` means rates exist across workspaces but none is resolved yet — keep it flagged out-of-policy.
     const isCustomUnitOutOfPolicy = isSelfDMSplit
         ? isRateBroken || (isDistance && isP2PRate && (hasAvailableEnabledRates || shouldSelectPolicy))
-        : !rates[currentRateID] || (isDistance && !rate);
+        : !rates[currentRateID] || (isDistance && rate === undefined);
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
     const getErrorForField = (field: ViolationField) => {

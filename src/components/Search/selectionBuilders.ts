@@ -5,7 +5,7 @@ import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Policy, Report, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
 import type {SearchGroupBase, SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -133,6 +133,9 @@ type MapTransactionItemToSelectedEntryParams = {
 
     /** Approval workflow rules, used for split eligibility */
     rules: OnyxCollection<Rule>;
+
+    /** Workspaces to look up a distance rate in for split eligibility, when the row's policy doesn't own it */
+    policies?: OnyxCollection<Policy>;
 };
 
 /**
@@ -152,6 +155,7 @@ function mapTransactionItemToSelectedEntry({
     allowNegativeAmount,
     parentReport,
     rules,
+    policies,
 }: MapTransactionItemToSelectedEntryParams): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy, currentUserAccountID, rules);
     const canRejectRequest = item.report ? canRejectReportAction(item.report, currentUserAccountID, item.policy) : false;
@@ -170,7 +174,18 @@ function mapTransactionItemToSelectedEntry({
             canUnhold: canUnholdRequest,
             // TODO: Pass reportOwnerLogin in Part 8. This runs once per search result, so it needs the personal details list and a per row lookup rather than a hook.
             // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-            canSplit: isSplitAction(reportForSplit, [itemTransaction], originalItemTransaction, currentUserLogin, currentUserAccountID, rules, undefined, item.policy, parentReport),
+            canSplit: isSplitAction(
+                reportForSplit,
+                [itemTransaction],
+                originalItemTransaction,
+                currentUserLogin,
+                currentUserAccountID,
+                rules,
+                undefined,
+                item.policy,
+                parentReport,
+                policies,
+            ),
             hasBeenSplit: getOriginalTransactionWithSplitInfo(itemTransaction, originalItemTransaction).isExpenseSplit,
             canChangeReport: canEditFieldOfMoneyRequest({
                 reportAction: item.reportAction,
@@ -283,6 +298,9 @@ type PrepareTransactionsListParams = {
 
     /** Approval workflow rules, used for split eligibility */
     rules: OnyxCollection<Rule>;
+
+    /** Workspaces to look up a distance rate in for split eligibility, when the row's policy doesn't own it */
+    policies?: OnyxCollection<Policy>;
 };
 
 /**
@@ -301,6 +319,7 @@ function prepareTransactionsList({
     selfDMReport,
     parentReport,
     rules,
+    policies,
 }: PrepareTransactionsListParams) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -320,6 +339,7 @@ function prepareTransactionsList({
         allowNegativeAmount: false,
         parentReport,
         rules,
+        policies,
     });
 
     return {

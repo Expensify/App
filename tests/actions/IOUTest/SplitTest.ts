@@ -8389,6 +8389,250 @@ describe('initSplitExpense', () => {
         expect(splitExpenses?.[1].merchant).toContain('50');
     });
 
+    it('splits the distance evenly for a $0 rate distance expense', async () => {
+        const customUnitRateID = 'rate-zero';
+        const customUnitID = 'distance-unit';
+        const effectivePolicy: Policy = {
+            ...createRandomPolicy(3),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        [customUnitRateID]: {
+                            customUnitRateID,
+                            currency: CONST.CURRENCY.USD,
+                            rate: 0,
+                            enabled: true,
+                            name: 'Untracked',
+                            subRates: [],
+                        },
+                    },
+                },
+            },
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${effectivePolicy.id}`, effectivePolicy);
+        await waitForBatchedUpdates();
+
+        const transaction: Transaction = {
+            transactionID: 'distance-zero-rate',
+            amount: 0,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                comment: 'Distance expense',
+                splitExpenses: [],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    customUnitRateID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 201,
+                },
+            },
+            category: 'Car',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        initSplitExpense(transaction, undefined, effectivePolicy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+
+        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+        const splitExpenses = draftTransaction?.comment?.splitExpenses;
+        expect(splitExpenses).toHaveLength(2);
+        expect(splitExpenses?.[0].amount).toBe(0);
+        expect(splitExpenses?.[1].amount).toBe(0);
+        expect(splitExpenses?.[0].customUnit?.quantity).toBe(100.5);
+        expect(splitExpenses?.[1].customUnit?.quantity).toBe(100.5);
+        expect(splitExpenses?.[0].merchant).toContain('100.50');
+        expect(splitExpenses?.[0].merchant).toContain('$0.00');
+    });
+
+    it('keeps the amounts of a nonzero distance expense whose rate is now $0', async () => {
+        // Given a nonzero distance expense whose rate was changed to $0 after the expense was created
+        const customUnitRateID = 'rate-now-zero';
+        const customUnitID = 'distance-unit';
+        const effectivePolicy: Policy = {
+            ...createRandomPolicy(4),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        [customUnitRateID]: {
+                            customUnitRateID,
+                            currency: CONST.CURRENCY.USD,
+                            rate: 0,
+                            enabled: true,
+                            name: 'Untracked',
+                            subRates: [],
+                        },
+                    },
+                },
+            },
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${effectivePolicy.id}`, effectivePolicy);
+        await waitForBatchedUpdates();
+
+        const transaction: Transaction = {
+            transactionID: 'distance-rate-now-zero',
+            amount: 13467,
+            currency: 'USD',
+            merchant: '201.00 mi @ $0.67 / mi',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                comment: 'Distance expense',
+                splitExpenses: [],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    customUnitRateID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 201,
+                },
+            },
+            category: 'Car',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        // When the expense is split
+        initSplitExpense(transaction, undefined, effectivePolicy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+
+        // Then the splits keep their share of the amount and aren't relabelled with the $0 rate
+        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+        const splitExpenses = draftTransaction?.comment?.splitExpenses;
+        expect(splitExpenses).toHaveLength(2);
+        expect(splitExpenses?.[0].amount).not.toBe(0);
+        expect(splitExpenses?.[1].amount).not.toBe(0);
+        expect(Math.abs(splitExpenses?.[0].amount ?? 0) + Math.abs(splitExpenses?.[1].amount ?? 0)).toBe(13467);
+        expect(splitExpenses?.[0].merchant).not.toContain('$0.00');
+        expect(splitExpenses?.[1].merchant).not.toContain('$0.00');
+
+        // And the distance is divided between them with the rate the expense was calculated with, instead of each keeping all of it
+        expect(splitExpenses?.[0].customUnit?.quantity).toBeCloseTo(100.5, 1);
+        expect(splitExpenses?.[1].customUnit?.quantity).toBeCloseTo(100.5, 1);
+        expect(splitExpenses?.[0].merchant).toContain('$0.67');
+    });
+
+    it('puts the remainder of a $0 rate distance on the first split, the same split "Make splits even" puts it on', async () => {
+        // Given a 12.01 mile distance expense on a $0 rate
+        const customUnitRateID = 'rate-zero-remainder';
+        const customUnitID = 'distance-unit';
+        const effectivePolicy: Policy = {
+            ...createRandomPolicy(5),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        [customUnitRateID]: {customUnitRateID, currency: CONST.CURRENCY.USD, rate: 0, enabled: true, name: 'Untracked', subRates: []},
+                    },
+                },
+            },
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${effectivePolicy.id}`, effectivePolicy);
+        await waitForBatchedUpdates();
+
+        const transaction: Transaction = {
+            transactionID: 'distance-zero-rate-remainder',
+            amount: 0,
+            currency: 'USD',
+            merchant: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    customUnitRateID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 12.01,
+                },
+            },
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        // When the expense is split
+        initSplitExpense(transaction, undefined, effectivePolicy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+
+        // Then the first split gets the extra 0.01 mile, so "Make splits even" doesn't swap the distances
+        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+        const splitExpenses = draftTransaction?.comment?.splitExpenses;
+        expect(splitExpenses?.[0].customUnit?.quantity).toBe(6.01);
+        expect(splitExpenses?.[1].customUnit?.quantity).toBe(6);
+    });
+
+    it('gives a $0 split of a positive rate distance expense no distance', async () => {
+        // Given a 1 mile €0.01 distance expense on a €0.01 rate, which splits into €0.01 and €0.00
+        const customUnitRateID = 'rate-one-cent';
+        const customUnitID = 'distance-unit';
+        const effectivePolicy: Policy = {
+            ...createRandomPolicy(6),
+            outputCurrency: CONST.CURRENCY.EUR,
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        [customUnitRateID]: {customUnitRateID, currency: CONST.CURRENCY.EUR, rate: 1, enabled: true, name: 'Cent', subRates: []},
+                    },
+                },
+            },
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${effectivePolicy.id}`, effectivePolicy);
+        await waitForBatchedUpdates();
+
+        const transaction: Transaction = {
+            transactionID: 'distance-one-cent',
+            amount: 1,
+            currency: CONST.CURRENCY.EUR,
+            merchant: '1.00 mi @ €0.01 / mi',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    customUnitRateID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 1,
+                },
+            },
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        // When the expense is split
+        initSplitExpense(transaction, undefined, effectivePolicy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+
+        // Then the €0.00 split has no distance, rather than repeating the whole mile at €0.00
+        const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`);
+        const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+        const zeroSplit = splitExpenses.find((split) => split.amount === 0);
+        const centSplit = splitExpenses.find((split) => split.amount !== 0);
+        expect(zeroSplit?.customUnit?.quantity).toBe(0);
+        expect(centSplit?.customUnit?.quantity).toBe(1);
+    });
+
     it('should thread personalPolicyOutputCurrency into the split mileage rate for a P2P distance expense', async () => {
         // A P2P distance expense (FAKE_P2P_ID) has no policy rate, so the rate comes from getRateForP2P,
         // which only honors the transaction's defaultP2PRate when the resolved currency matches the
@@ -9493,6 +9737,72 @@ describe('evenlyDistributeSplitExpenseAmounts', () => {
         expect(splitExpenses.at(1)?.merchant).toContain('100');
     });
 
+    it('keeps the amount of an expense whose rate was changed to $0 when distributing it evenly', async () => {
+        // Given a $10, 10 mile expense whose $1/mi rate was changed to $0 after it was created
+        const customUnitRateID = 'rate-now-zero-even';
+        const customUnitID = 'distance-unit';
+        const originalTransactionID = 'orig-now-zero-even';
+        const policy: Policy = {
+            ...createRandomPolicy(1),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {
+                        [customUnitRateID]: {customUnitRateID, currency: CONST.CURRENCY.USD, rate: 0, enabled: true, name: 'QA Historical Rate', subRates: []},
+                    },
+                },
+            },
+        };
+        const customUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            customUnitID,
+            customUnitRateID,
+            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: -1000,
+            currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {...customUnit, quantity: 10}},
+        });
+        await waitForBatchedUpdates();
+
+        const draftTransaction: Transaction = {
+            transactionID: 'draft-now-zero-even',
+            amount: 1000,
+            currency: 'USD',
+            merchant: '10.00 mi @ $1.00 / mi',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL,
+            comment: {
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: 'x', amount: 700, created: DateUtils.getDBTime(), customUnit: {...customUnit, quantity: 7}},
+                    {transactionID: 'y', amount: 300, created: DateUtils.getDBTime(), customUnit: {...customUnit, quantity: 3}},
+                ],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            created: DateUtils.getDBTime(),
+            reportID: 'rep-now-zero-even',
+        };
+
+        // When the splits are made even
+        const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
+        await waitForBatchedUpdates();
+
+        // Then each split gets half of the $10 and of the distance, at the $1/mi the expense was calculated with
+        const updatedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const splitExpenses = updatedDraft?.comment?.splitExpenses ?? [];
+        expect(splitExpenses.map((split) => split.amount)).toEqual([500, 500]);
+        expect(splitExpenses.map((split) => split.customUnit?.quantity)).toEqual([5, 5]);
+    });
+
     it('should distribute the splits on the rate each one is calculated with', async () => {
         // Given an expense stored in miles whose splits were switched to a rate that another workspace keeps in kilometers
         const originalTransactionID = 'even-selected-rate-original';
@@ -10044,6 +10354,194 @@ describe('updateSplitExpenseAmountField', () => {
         expect(splitExpenses?.[0].customUnit?.quantity).toBe(150);
         expect(splitExpenses?.[0].merchant).toBeTruthy();
         expect(splitExpenses?.[0].merchant).toContain('150');
+    });
+
+    it('keeps the split distance when the amount changes on a $0 rate', async () => {
+        const customUnitRateID = 'rate-zero-update';
+        const customUnitID = 'distance-unit';
+        const originalTransactionID = 'orig-zero-rate';
+        const currentTransactionID = 'split-zero-rate';
+        const policy: Policy = {
+            ...createRandomPolicy(1),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    rates: {
+                        [customUnitRateID]: {
+                            customUnitRateID,
+                            currency: CONST.CURRENCY.USD,
+                            rate: 0,
+                            enabled: true,
+                            name: 'Untracked',
+                            subRates: [],
+                        },
+                    },
+                },
+            },
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
+            transactionID: originalTransactionID,
+            amount: 0,
+            currency: 'USD',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitID,
+                    customUnitRateID,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    quantity: 200,
+                },
+            },
+        });
+        await waitForBatchedUpdates();
+
+        const draftTransaction: Transaction = {
+            transactionID: '235',
+            amount: 0,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                comment: 'Test comment',
+                originalTransactionID,
+                splitExpenses: [
+                    {
+                        transactionID: currentTransactionID,
+                        amount: 0,
+                        description: 'Test comment',
+                        category: 'Car',
+                        tags: [],
+                        created: DateUtils.getDBTime(),
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID,
+                            customUnitRateID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 100,
+                        },
+                    },
+                ],
+                attendees: [],
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+            },
+            category: 'Car',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+        };
+
+        updateSplitExpenseAmountField(draftTransaction, currentTransactionID, 500, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
+        await waitForBatchedUpdates();
+
+        const updatedDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const splitExpenses = updatedDraftTransaction?.comment?.splitExpenses;
+        expect(splitExpenses?.[0].amount).toBe(0);
+        expect(splitExpenses?.[0].taxAmount).toBe(0);
+        expect(splitExpenses?.[0].customUnit?.quantity).toBe(100);
+        expect(Number.isFinite(splitExpenses?.[0].customUnit?.quantity)).toBe(true);
+        expect(splitExpenses?.[0].merchant).toContain('100.00');
+
+        // Making the splits even spreads the distance instead, since every split stays $0
+        const draftWithTwoSplits: Transaction = {
+            ...draftTransaction,
+            comment: {
+                ...draftTransaction.comment,
+                splitExpenses: [
+                    ...(draftTransaction.comment?.splitExpenses ?? []),
+                    {
+                        transactionID: 'split-zero-rate-2',
+                        amount: 0,
+                        created: DateUtils.getDBTime(),
+                        customUnit: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID,
+                            customUnitRateID,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            quantity: 30,
+                        },
+                    },
+                ],
+            },
+        };
+        const originalZeroRateTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+        evenlyDistributeSplitExpenseAmounts(draftWithTwoSplits, originalZeroRateTransaction, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
+        await waitForBatchedUpdates();
+
+        const evenDraftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`);
+        const evenSplits = evenDraftTransaction?.comment?.splitExpenses;
+        expect(evenSplits?.map((split) => split.amount)).toEqual([0, 0]);
+        expect(evenSplits?.map((split) => split.customUnit?.quantity)).toEqual([100, 100]);
+    });
+
+    it('recalculates a split moved to a positive rate when making the splits of a $0 distance expense even', async () => {
+        // Given a $0 distance expense on a $0 rate, split in two, where the user moved one split to a positive rate
+        const customUnitID = 'distance-unit';
+        const zeroRateID = 'rate-zero-even';
+        const positiveRateID = 'rate-positive-even';
+        const originalTransactionID = 'orig-zero-rate-even';
+        const policy: Policy = {
+            ...createRandomPolicy(1),
+            customUnits: {
+                [customUnitID]: {
+                    customUnitID,
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    enabled: true,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    rates: {
+                        [zeroRateID]: {customUnitRateID: zeroRateID, currency: CONST.CURRENCY.USD, rate: 0, enabled: true, name: 'Untracked', subRates: []},
+                        [positiveRateID]: {customUnitRateID: positiveRateID, currency: CONST.CURRENCY.USD, rate: 70, enabled: true, name: 'Default', subRates: []},
+                    },
+                },
+            },
+        };
+        const distanceCustomUnit = {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitID, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES};
+        const originalTransaction: Transaction = {
+            transactionID: originalTransactionID,
+            amount: 0,
+            currency: 'USD',
+            merchant: '',
+            created: DateUtils.getDBTime(),
+            reportID: '456',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {...distanceCustomUnit, customUnitRateID: zeroRateID, quantity: 200},
+            },
+        };
+        const draftTransaction: Transaction = {
+            ...originalTransaction,
+            transactionID: '235',
+            comment: {
+                ...originalTransaction.comment,
+                originalTransactionID,
+                splitExpenses: [
+                    {transactionID: 'split-zero', amount: 0, created: DateUtils.getDBTime(), customUnit: {...distanceCustomUnit, customUnitRateID: zeroRateID, quantity: 150}},
+                    {transactionID: 'split-positive', amount: 3500, created: DateUtils.getDBTime(), customUnit: {...distanceCustomUnit, customUnitRateID: positiveRateID, quantity: 50}},
+                ],
+            },
+        };
+
+        // When the user makes the splits even
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, originalTransaction, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
+        await waitForBatchedUpdates();
+
+        // Then the distance is evened out and the positive-rate split's amount and merchant follow its own share of the
+        // distance, so it isn't saved as a $0 split whose positive rate and distance contradict its amount
+        const evenSplits = (await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`))?.comment?.splitExpenses;
+        expect(evenSplits?.map((split) => split.customUnit?.quantity)).toEqual([100, 100]);
+        expect(evenSplits?.map((split) => split.amount)).toEqual([0, 7000]);
+        expect(evenSplits?.at(1)?.merchant).toContain('100.00');
+        expect(evenSplits?.at(1)?.merchant).toContain('$0.70');
     });
 
     it('should keep the unit the expense is stored with when the workspace distance unit changed', async () => {
