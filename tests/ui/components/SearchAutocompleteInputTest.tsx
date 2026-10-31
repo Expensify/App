@@ -34,8 +34,14 @@ jest.mock('@hooks/useThemeStyles', () => () => ({searchRouterTextInputContainer:
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({displayName: 'Current User'}));
-jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListState: () => ({currencyList: {}})}));
-jest.mock('@hooks/useExportedToFilterOptions', () => () => ({exportedToFilterOptions: []}));
+jest.mock('@hooks/useCurrencyList', () => {
+    const currencyListState = {currencyList: {}};
+    return {useCurrencyListState: () => currencyListState};
+});
+jest.mock('@hooks/useExportedToFilterOptions', () => {
+    const exportedToFilterData = {exportedToFilterOptions: []};
+    return () => exportedToFilterData;
+});
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/useFocusAfterNav', () => jest.fn(() => false));
 jest.mock('@libs/actions/Search', () => ({setSearchContext: jest.fn()}));
@@ -225,5 +231,31 @@ describe('SearchAutocompleteInput', () => {
         }
         expect(changes.mock.invocationCallOrder.at(0)).toBeLessThan(contextCallOrder);
         expect(props?.autoFocus).toBe(true);
+    });
+
+    it('keeps the same markdown parser while the query changes', () => {
+        // Given the input rendered with a query and unchanged autocomplete data
+        const substitutionMap = {};
+        const {rerender} = render(
+            <SearchAutocompleteInput
+                value="from:"
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+        const firstParser = input.mock.lastCall?.[0].parser;
+
+        // When the user types and the query changes
+        rerender(
+            <SearchAutocompleteInput
+                value="from:me"
+                onSearchQueryChange={jest.fn()}
+                substitutionMap={substitutionMap}
+            />,
+        );
+
+        // Then the input gets the same parser, so Live Markdown doesn't register a new one on every keystroke
+        expect(firstParser).toBeDefined();
+        expect(input.mock.lastCall?.[0].parser).toBe(firstParser);
     });
 });
