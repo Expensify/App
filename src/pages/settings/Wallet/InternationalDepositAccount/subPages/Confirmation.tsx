@@ -199,7 +199,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
             >
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
-                    aria-label={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
+                    accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')}`}
                     inputID="acceptTerms"
                     LabelComponent={TermsAndConditionsLabel}
                     style={[styles.mt3]}
