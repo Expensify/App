@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
 
+import type {ThemeColors} from '@styles/theme/types';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -14,12 +16,23 @@ type DayProps = {
     selected?: boolean;
     pressed?: boolean;
     hovered?: boolean;
+    today?: boolean;
 
     /** date to show */
     children?: number;
 };
 
-function Day({disabled, selected, pressed, hovered, children}: DayProps) {
+function getBackgroundColor(theme: ThemeColors, selected?: boolean, today?: boolean) {
+    if (selected) {
+        return theme.success;
+    }
+    if (today) {
+        return theme.buttonDefaultBG;
+    }
+    return theme.transparent;
+}
+
+function Day({disabled, selected, pressed, hovered, today, children}: DayProps) {
     const theme = useTheme();
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -30,7 +43,7 @@ function Day({disabled, selected, pressed, hovered, children}: DayProps) {
                 // Always provide an explicit backgroundColor so Android (which
                 // does not reset a property when the style changes to {})
                 // correctly transitions the selection highlight on every render.
-                {backgroundColor: selected ? theme.success : theme.transparent},
+                {backgroundColor: getBackgroundColor(theme, selected, today)},
                 !disabled && !selected ? StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: hovered, isPressed: pressed}), true) : {},
             ]}
         >
