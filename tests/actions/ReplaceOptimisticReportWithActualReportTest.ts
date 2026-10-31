@@ -29,6 +29,7 @@ const mockSetParams = jest.fn<ReturnType<Navigation['setParams']>, Parameters<Na
 const mockIsReady = jest.fn(() => false);
 const mockGetActiveRoute = jest.fn(() => '');
 const mockGetCurrentRoute = jest.fn(() => undefined as {name: string; params: Record<string, unknown>} | undefined);
+const mockGetRootState = jest.fn(() => ({key: 'root', routes: [{key: 'editor', name: 'Editor', params: {reportID: '1234'}}]}));
 
 jest.mock('@libs/Navigation/Navigation', () => {
     const mockNavigation = {
@@ -38,6 +39,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
         navigationRef: {
             isReady: () => mockIsReady(),
             getCurrentRoute: () => mockGetCurrentRoute(),
+            getRootState: () => mockGetRootState(),
         },
     };
 
@@ -101,6 +103,82 @@ describe('replaceOptimisticReportWithActualReport', () => {
 
         const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}1`);
         expect(updatedReport).toBeUndefined();
+    });
+
+    it('preserves a reference-only scan replacement for offline recovery after reload', async () => {
+        // Given scan cleanup kept only a replacement reference, without report identity or parent fields
+        const reportID = '8100';
+        const preexistingReportID = '8200';
+
+        // When that entry reaches the collection observer, as persisted entries do during hydration
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {preexistingReportID});
+        await waitForBatchedUpdates();
+
+        // Then the observer neither deletes the reference nor copies it over the surviving report
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toEqual({preexistingReportID});
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`)).toBeUndefined();
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockSetParams).not.toHaveBeenCalled();
+        expect(mockOpenReport).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT,
+        SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION,
+        SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE,
+        SCREENS.MONEY_REQUEST.STEP_AMOUNT,
+        SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY,
+        SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAG,
+    ])('replaces a thread under the open %s editor without dismissing or remounting it', async (screen) => {
+        // Given an editor points at a temporary thread whose replacement already has real parent metadata
+        const reportID = '1234';
+        const preexistingReportID = '5555';
+        mockIsReady.mockReturnValue(true);
+        mockGetCurrentRoute.mockReturnValue({name: screen, params: {reportID, transactionID: 'expense-transaction', action: CONST.IOU.ACTION.EDIT}});
+        mockGetActiveRoute.mockReturnValue('/e/9999');
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`, {
+            reportID: preexistingReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: '9999',
+            parentReportActionID: 'real-action',
+        });
+        await waitForBatchedUpdates();
+
+        // When the temporary thread receives a replacement marker, even without its original parent fields
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, preexistingReportID});
+        await waitForBatchedUpdates();
+
+        // Then update the existing route key, preserving the editor instance and canonical parent identity
+        expect(mockSetParams).toHaveBeenCalledWith({reportID: preexistingReportID}, 'editor', 'root');
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`)).toMatchObject({
+            reportID: preexistingReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: '9999',
+            parentReportActionID: 'real-action',
+        });
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toBeFalsy();
+    });
+
+    it.each([
+        {name: SCREENS.REPORT, params: {reportID: '1234', transactionID: 'expense-transaction', action: CONST.IOU.ACTION.EDIT}},
+        {name: SCREENS.MONEY_REQUEST.STEP_AMOUNT, params: {reportID: '1234', transactionID: 'expense-transaction', action: CONST.IOU.ACTION.CREATE}},
+        {name: SCREENS.MONEY_REQUEST.STEP_AMOUNT, params: {reportID: '1234', action: CONST.IOU.ACTION.EDIT}},
+    ])('does not apply expense-editor recovery to unrelated or non-edit routes: %j', async (route) => {
+        // Given the focused route is not editing a specific expense, even if some parameters match
+        mockIsReady.mockReturnValue(true);
+        mockGetCurrentRoute.mockReturnValue(route);
+        mockGetActiveRoute.mockReturnValue('/e/9999');
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}5555`, {reportID: '5555'});
+        await waitForBatchedUpdates();
+
+        // When a background thread is replaced
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1234`, {reportID: '1234', preexistingReportID: '5555'});
+        await waitForBatchedUpdates();
+
+        // Then leave navigation to the existing non-editor handling
+        expect(mockSetParams).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('should be triggered automatically when report with preexistingReportID is set in Onyx', async () => {

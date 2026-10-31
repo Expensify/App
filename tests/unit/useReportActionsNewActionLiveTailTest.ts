@@ -257,6 +257,111 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(mockOpenReport).toHaveBeenCalledTimes(1);
         expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
     });
+
+    describe('pending preview scroll', () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.clearAllTimers();
+            jest.useRealTimers();
+        });
+
+        function buildPreviewParams(actions: ReportAction[]): HookParams {
+            return buildParams({hasNewerActions: false, hasNewestReportAction: true, sortedVisibleReportActions: actions});
+        }
+
+        it('does not scroll to a preview removed before the timer fires', () => {
+            // Given a preview below the newest row has a delayed scroll scheduled
+            const newest = getFakeReportAction(1);
+            const preview = getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW});
+            const {rerender, unmount} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildPreviewParams([newest, preview])});
+            act(() => newActionHandler?.(true, preview));
+            expect(jest.getTimerCount()).toBe(1);
+
+            // When reconciliation removes the preview before its 100ms layout timer fires
+            rerender(buildPreviewParams([newest]));
+            act(() => jest.advanceTimersByTime(100));
+
+            // Then neither a stale index nor a bottom scroll is used
+            expect(reportScrollManager.scrollToIndex).not.toHaveBeenCalled();
+            expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
+            unmount();
+        });
+
+        it('uses the current index when reconciliation moves the preview', () => {
+            // Given the preview originally occupies index 1
+            const newest = getFakeReportAction(1);
+            const preview = getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW});
+            const inserted = getFakeReportAction(3);
+            const {rerender, unmount} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildPreviewParams([newest, preview])});
+            act(() => newActionHandler?.(true, preview));
+
+            // When another row pushes it to index 2 before the timeout
+            rerender(buildPreviewParams([inserted, newest, preview]));
+            act(() => jest.advanceTimersByTime(100));
+
+            // Then the latest index is used, not the eagerly captured index 1
+            expect(reportScrollManager.scrollToIndex).toHaveBeenCalledTimes(1);
+            expect(reportScrollManager.scrollToIndex).toHaveBeenCalledWith(2);
+            unmount();
+        });
+
+        it('scrolls to the bottom when the pending preview becomes the newest row', () => {
+            // Given a pending scroll for a preview at index 1
+            const newest = getFakeReportAction(1);
+            const preview = getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW});
+            const {rerender, unmount} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildPreviewParams([newest, preview])});
+            act(() => newActionHandler?.(true, preview));
+
+            // When the preview moves to index 0 before the timer fires
+            rerender(buildPreviewParams([preview, newest]));
+            act(() => jest.advanceTimersByTime(100));
+
+            // Then the list uses its bottom-scroll behavior for the newest row
+            expect(reportScrollManager.scrollToIndex).not.toHaveBeenCalled();
+            expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
+            unmount();
+        });
+
+        it('cancels the old timer when a newer current-user action takes over', () => {
+            // Given an older preview has a delayed scroll scheduled
+            const newest = getFakeReportAction(1);
+            const preview = getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW});
+            const {unmount} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildPreviewParams([newest, preview])});
+            act(() => newActionHandler?.(true, preview));
+            expect(jest.getTimerCount()).toBe(1);
+
+            // When a newer comment from the current user requests the bottom position
+            act(() => newActionHandler?.(true, getFakeReportAction(3, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})));
+            expect(jest.getTimerCount()).toBe(0);
+            act(() => jest.advanceTimersByTime(100));
+
+            // Then the cancelled preview scroll cannot override the newer scroll
+            expect(reportScrollManager.scrollToIndex).not.toHaveBeenCalled();
+            expect(reportScrollManager.scrollToBottom).toHaveBeenCalledTimes(1);
+            unmount();
+        });
+
+        it('clears its pending timer on unmount', () => {
+            // Given a report with a pending preview-scroll timer
+            const newest = getFakeReportAction(1);
+            const preview = getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW});
+            const {unmount} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildPreviewParams([newest, preview])});
+            act(() => newActionHandler?.(true, preview));
+            expect(jest.getTimerCount()).toBe(1);
+
+            // When the report is unmounted before the timer fires
+            unmount();
+            expect(jest.getTimerCount()).toBe(0);
+            act(() => jest.advanceTimersByTime(100));
+
+            // Then no scroll runs against the unmounted report
+            expect(reportScrollManager.scrollToIndex).not.toHaveBeenCalled();
+            expect(reportScrollManager.scrollToBottom).not.toHaveBeenCalled();
+        });
+    });
 });
 
 describe('withNavigationFallback stub', () => {

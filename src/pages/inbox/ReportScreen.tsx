@@ -1,5 +1,6 @@
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import ReportReplacementGuard from '@components/ReportReplacementGuard';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
@@ -73,7 +74,7 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
     return <ReportScreenEditMessageProviderWithTransactionThread reportID={reportID}>{children}</ReportScreenEditMessageProviderWithTransactionThread>;
 }
 
-function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
+function ReportScreenContent({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportIDFromRoute);
@@ -174,6 +175,16 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                 </ActionListContextProvider>
             </WideRHPOverlayWrapper>
         </ReportScreenEditMessageProvider>
+    );
+}
+
+function ReportScreen(props: ReportScreenProps) {
+    // Browser history can restore a retired /r/ report after a reload. Resolve its
+    // replacement before mounting handlers that would fetch or navigate away from it.
+    return (
+        <ReportReplacementGuard reportID={getNonEmptyStringOnyxID(props.route.params?.reportID)}>
+            <ReportScreenContent {...props} />
+        </ReportReplacementGuard>
     );
 }
 

@@ -2,6 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ReportReplacementGuard from '@components/ReportReplacementGuard';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
@@ -432,4 +433,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     );
 }
 
-export default SearchMoneyRequestReportPage;
+function SearchMoneyRequestReportPageWithReplacementGuard(props: SearchMoneyRequestPageProps) {
+    return (
+        <ReportReplacementGuard reportID={getNonEmptyStringOnyxID(props.route.params?.reportID)}>
+            <SearchMoneyRequestReportPage {...props} />
+        </ReportReplacementGuard>
+    );
+}
+
+export default SearchMoneyRequestReportPageWithReplacementGuard;
