@@ -2611,10 +2611,12 @@ function createAndOpenSearchTransactionThread({
     // An unreported expense lives in its owner's self DM, which is not the viewer's when an admin opens a member's expense
     const actionReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
     const ownerSelfDMReportID = actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? actionReportID : undefined;
-    const selfDMReportID = isUnreportedTransaction ? (ownerSelfDMReportID ?? findSelfDMReportID()) : undefined;
+    const isOwnExpense = (item.reportAction?.actorAccountID ?? currentUserAccountID) === currentUserAccountID;
+    const ownSelfDMReportID = findSelfDMReportID() ?? ownerSelfDMReportID;
+    const selfDMReportID = isUnreportedTransaction ? (isOwnExpense ? ownSelfDMReportID : ownerSelfDMReportID) : undefined;
     const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
-    const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;
-    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID && !ownerSelfDMReportID) {
+    // Another member's unreported expense can only open in their self DM
+    if (isUnreportedTransaction && !selfDMReportID) {
         return;
     }
 

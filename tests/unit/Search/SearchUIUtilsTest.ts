@@ -14340,8 +14340,9 @@ describe('SearchUIUtils', () => {
             );
         });
 
-        test("Should create a transaction thread in the current user's self DM for their own unreported expense", () => {
-            // Given an unreported expense owned by the current user, whose IOU action Search returns from their own self DM
+        test("Should create a transaction thread in the current user's self DM from Search when it is not loaded locally", () => {
+            // Given the current user's self DM is not in Onyx, and Search returns their own unreported expense's IOU action from that self DM
+            expect(findSelfDMReportID()).toBeUndefined();
             jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
             const currentUserSelfDMReportID = 'current-user-self-dm';
             const unreportedTransaction = {
@@ -14354,7 +14355,7 @@ describe('SearchUIUtils', () => {
             // When the current user opens the expense from Search
             const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
 
-            // Then the transaction thread is created in their self DM using the unreported transaction data
+            // Then the transaction thread is still created in their self DM using the unreported transaction data, instead of the click doing nothing
             expect(targetReportID).toBe(threadReportID);
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             expect(createTransactionThreadReport).toHaveBeenCalledWith(
