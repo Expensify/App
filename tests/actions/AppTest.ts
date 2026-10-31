@@ -21,6 +21,7 @@ import type {MockFetch} from '../utils/TestHelper';
 
 import * as App from '../../src/libs/actions/App';
 import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
+import {onServerDataReady, resetAllChecks} from '../../src/libs/actions/Welcome';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
@@ -237,6 +238,55 @@ describe('actions/App', () => {
             );
             expect((await getOnyxValue(ONYXKEYS.PERSISTED_ONGOING_REQUESTS)) == null).toBe(true);
         });
+    });
+
+    test('clearOnyxAndResetApp makes onServerDataReady wait for the next OpenApp', async () => {
+        // Given server data that already finished loading once, so onServerDataReady() is resolved
+        jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        await waitForBatchedUpdates();
+        await expect(onServerDataReady()).resolves.toBeUndefined();
+
+        // When the cache is cleared while offline, so the follow-up OpenApp cannot finish
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await App.clearOnyxAndResetApp();
+        await waitForBatchedUpdates();
+
+        // Then onServerDataReady() stays pending, so navigateToConciergeChat cannot create a duplicate Concierge chat
+        let isServerDataReady = false;
+        onServerDataReady().then(() => {
+            isServerDataReady = true;
+        });
+        await waitForBatchedUpdates();
+        expect(isServerDataReady).toBe(false);
+
+        // When the app goes back online and the queued OpenApp finishes
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        SequentialQueue.flush();
+        await waitForBatchedUpdates();
+
+        // Then onServerDataReady() resolves, so callers waiting to open Concierge are not stuck forever
+        await waitFor(() => expect(isServerDataReady).toBe(true));
+    });
+
+    test('a caller waiting on onServerDataReady before sign-out does not run after the next sign-in', async () => {
+        // Given a caller that started waiting on onServerDataReady() before server data loaded
+        resetAllChecks();
+        let isServerDataReady = false;
+        onServerDataReady().then(() => {
+            isServerDataReady = true;
+        });
+
+        // When the user signs out and another account signs in and finishes loading
+        resetAllChecks();
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        await waitForBatchedUpdates();
+
+        // Then the old caller does not run, so it cannot open a Concierge chat with the previous account's ID
+        expect(isServerDataReady).toBe(false);
+        await expect(onServerDataReady()).resolves.toBeUndefined();
     });
 
     describe('getNonOptimisticPolicyIDs', () => {
