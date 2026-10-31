@@ -6045,8 +6045,21 @@ ${amount} para ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Conta de cartão de crédito',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Usaremos esta conta para cartões que não têm sua própria conta de exportação.'
+                    : 'Escolha uma conta padrão. A usaremos para cartões que não têm sua própria conta de exportação.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'Usaremos este fornecedor para despesas que não têm um fornecedor.' : 'Escolha um fornecedor padrão. O usaremos para despesas que não têm um fornecedor.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Cobranças de cartão de crédito',
+                        nonReimbursableDescription:
+                            'As despesas de cartão corporativo serão exportadas para o NetSuite como cobranças individuais de cartão de crédito, com a data de cada compra.',
+                        legacyTaxHelper: 'As cobranças de cartão de crédito não são compatíveis com o NetSuite legacy tax. Se você usa legacy tax, escolha outro tipo de exportação.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Relatórios de despesas',
                         reimbursableDescription: 'Despesas pagas do próprio bolso serão exportadas como relatórios de despesas para o NetSuite.',

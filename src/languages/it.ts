@@ -6044,8 +6044,21 @@ ${amount} per ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Conto carta di credito',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Useremo questo conto per le carte che non hanno un proprio conto di esportazione.'
+                    : 'Scegli un conto predefinito. Lo useremo per le carte che non hanno un proprio conto di esportazione.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'Useremo questo fornitore per le spese che non hanno un fornitore.' : 'Scegli un fornitore predefinito. Lo useremo per le spese che non hanno un fornitore.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Addebiti sulla carta di credito',
+                        nonReimbursableDescription:
+                            'Le spese con le carte aziendali verranno esportate in NetSuite come singoli addebiti sulla carta di credito, con la data di ogni acquisto.',
+                        legacyTaxHelper: 'Gli addebiti sulla carta di credito non supportano il NetSuite legacy tax. Se usi il legacy tax, scegli un altro tipo di esportazione.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Note spese',
                         reimbursableDescription: 'Le spese anticipate dal dipendente verranno esportate come note spese in NetSuite.',

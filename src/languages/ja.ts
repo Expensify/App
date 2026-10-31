@@ -5982,8 +5982,20 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     },
                 },
             },
+            creditCardAccount: 'クレジットカードアカウント',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? '独自のエクスポートアカウントを持たないカードには、このアカウントを使用します。'
+                    : 'デフォルトのアカウントを選択してください。独自のエクスポートアカウントを持たないカードに使用されます。',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? '仕入先のない経費には、この仕入先を使用します。' : 'デフォルトの仕入先を選択してください。仕入先のない経費に使用されます。',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'クレジットカード請求',
+                        nonReimbursableDescription: '法人カードの経費は、購入ごとの日付付きでNetSuiteに個別のクレジットカード請求としてエクスポートされます。',
+                        legacyTaxHelper: 'クレジットカード請求はNetSuiteのレガシー税に対応していません。レガシー税を使用する場合は、別のエクスポートタイプを選択してください。',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: '経費精算書',
                         reimbursableDescription: '自己負担経費は、経費レポートとして NetSuite にエクスポートされます。',

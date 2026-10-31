@@ -5994,8 +5994,21 @@ ${amount} para ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Cuenta de tarjeta de crédito',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Usaremos esta cuenta para tarjetas que no tienen su propia cuenta de exportación.'
+                    : 'Elige una cuenta predeterminada. La usaremos para tarjetas que no tienen su propia cuenta de exportación.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'Usaremos este proveedor para gastos que no tienen un proveedor.' : 'Elige un proveedor predeterminado. Lo usaremos para gastos que no tienen un proveedor.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Cargos de tarjeta de crédito',
+                        nonReimbursableDescription:
+                            'Los gastos de tarjetas corporativas se exportarán a NetSuite como cargos individuales de tarjeta de crédito, con la fecha de cada compra.',
+                        legacyTaxHelper: 'Los cargos de tarjeta de crédito no admiten el NetSuite legacy tax. Si usas legacy tax, elige otro tipo de exportación.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Informes de gastos',
                         reimbursableDescription: 'Los gastos reembolsables se exportarán como informes de gastos a NetSuite.',

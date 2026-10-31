@@ -6074,8 +6074,18 @@ ${amount} dla ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Konto karty kredytowej',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet ? 'Użyjemy tego konta dla kart, które nie mają własnego konta eksportu.' : 'Wybierz konto domyślne. Użyjemy go dla kart, które nie mają własnego konta eksportu.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'Użyjemy tego dostawcy dla wydatków bez dostawcy.' : 'Wybierz domyślnego dostawcę. Użyjemy go dla wydatków bez dostawcy.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Obciążenia kartą kredytową',
+                        nonReimbursableDescription: 'Wydatki z kart firmowych zostaną wyeksportowane do NetSuite jako pojedyncze obciążenia kartą kredytową, z datą każdego zakupu.',
+                        legacyTaxHelper: 'Obciążenia kartą kredytową nie obsługują NetSuite legacy tax. Jeśli używasz legacy tax, wybierz inny typ eksportu.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Raporty wydatków',
                         reimbursableDescription: 'Wydatki z własnej kieszeni zostaną wyeksportowane do NetSuite jako raporty wydatków.',

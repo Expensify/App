@@ -6084,8 +6084,20 @@ ${amount} für ${merchant} – ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Kreditkartenkonto',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Wir verwenden dieses Konto für Karten, die kein eigenes Exportkonto haben.'
+                    : 'Wähle ein Standardkonto. Wir verwenden es für Karten, die kein eigenes Exportkonto haben.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'Wir verwenden diesen Lieferanten für Ausgaben ohne Lieferanten.' : 'Wähle einen Standardlieferanten. Wir verwenden ihn für Ausgaben ohne Lieferanten.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Kreditkartenbuchungen',
+                        nonReimbursableDescription: 'Ausgaben von Firmenkarten werden als einzelne Kreditkartenbuchungen in NetSuite exportiert, mit dem Datum des jeweiligen Kaufs.',
+                        legacyTaxHelper: 'Kreditkartenbuchungen unterstützen die NetSuite-Legacy-Steuer nicht. Wenn du Legacy-Steuer verwendest, wähle einen anderen Exporttyp.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Spesenabrechnungen',
                         reimbursableDescription: 'Auslagen aus eigener Tasche werden als Spesenberichte nach NetSuite exportiert.',

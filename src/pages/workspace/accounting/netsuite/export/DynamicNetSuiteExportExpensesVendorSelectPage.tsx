@@ -15,6 +15,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getNetSuiteVendorOptions} from '@libs/NetSuiteUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import {shouldHideReimbursableDefaultVendor} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -93,7 +94,7 @@ function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConne
             title="workspace.accounting.defaultVendor"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldBeBlocked={isReimbursable || config?.nonreimbursableExpensesExportDestination !== CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL}
+            shouldBeBlocked={shouldHideReimbursableDefaultVendor(isReimbursable, config)}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.DEFAULT_VENDOR], config?.pendingFields)}
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR)}
             errorRowStyles={[styles.ph5, styles.pv3]}

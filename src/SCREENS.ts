@@ -655,6 +655,7 @@ const SCREENS = {
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Destination_Select',
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Vendor_Select',
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Payable_Account_Select',
+            DYNAMIC_NETSUITE_EXPORT_EXPENSES_CREDIT_CARD_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Credit_Card_Account_Select',
             DYNAMIC_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Export_Expenses_Journal_Posting_Preference_Select',
             DYNAMIC_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Receivable_Account_Select',
             DYNAMIC_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: 'Dynamic_Policy_Accounting_NetSuite_Invoice_Item_Preference_Select',

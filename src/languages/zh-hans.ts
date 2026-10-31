@@ -5845,8 +5845,16 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     },
                 },
             },
+            creditCardAccount: '信用卡账户',
+            creditCardAccountHelperText: (isSet: boolean) => (isSet ? '对于没有自己导出账户的卡片，我们将使用此账户。' : '选择一个默认账户。对于没有自己导出账户的卡片，我们将使用它。'),
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) => (isSet ? '对于没有供应商的支出，我们将使用此供应商。' : '选择一个默认供应商。对于没有供应商的支出，我们将使用它。'),
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: '信用卡费用',
+                        nonReimbursableDescription: '公司卡支出将作为单独的信用卡费用导出到 NetSuite，并标注每次购买的日期。',
+                        legacyTaxHelper: '信用卡费用不支持 NetSuite legacy tax。如果您使用 legacy tax，请选择其他导出类型。',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: '报销报告',
                         reimbursableDescription: '自掏腰包的报销费用会作为费用报表导出到 NetSuite。',

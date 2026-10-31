@@ -6091,8 +6091,24 @@ ${amount} pour ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Compte de carte de crédit',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? "Nous utiliserons ce compte pour les cartes qui n'ont pas leur propre compte d'exportation."
+                    : "Choisissez un compte par défaut. Nous l'utiliserons pour les cartes qui n'ont pas leur propre compte d'exportation.",
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet
+                    ? "Nous utiliserons ce fournisseur pour les dépenses qui n'ont pas de fournisseur."
+                    : "Choisissez un fournisseur par défaut. Nous l'utiliserons pour les dépenses qui n'ont pas de fournisseur.",
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Frais de carte de crédit',
+                        nonReimbursableDescription:
+                            "Les dépenses des cartes d'entreprise seront exportées vers NetSuite en tant que frais de carte de crédit individuels, datés de chaque achat.",
+                        legacyTaxHelper:
+                            "Les frais de carte de crédit ne prennent pas en charge le NetSuite legacy tax. Si vous utilisez le legacy tax, choisissez un autre type d'exportation.",
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Notes de frais',
                         reimbursableDescription: 'Les dépenses payées de votre poche seront exportées sous forme de notes de frais vers NetSuite.',

@@ -3930,6 +3930,7 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
+        CREDIT_CARD_ACCOUNT: 'creditCardAccount',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
@@ -3977,6 +3978,9 @@ const CONST = {
                 'enable-oauth': 'enableOAuth',
                 'enable-rest': 'enableRestWebServices',
             },
+        },
+        AUTH_TYPE: {
+            OAUTH2: 'oauth2',
         },
         IMPORT_CUSTOM_FIELDS: {
             CUSTOM_SEGMENTS: 'customSegments',
@@ -4062,12 +4066,14 @@ const CONST = {
     },
 
     NETSUITE_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
         EXPENSE_REPORT: 'EXPENSE_REPORT',
         VENDOR_BILL: 'VENDOR_BILL',
         JOURNAL_ENTRY: 'JOURNAL_ENTRY',
     },
 
     NETSUITE_MAP_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'creditCardCharge',
         EXPENSE_REPORT: 'expenseReport',
         VENDOR_BILL: 'vendorBill',
         JOURNAL_ENTRY: 'journalEntry',
@@ -6128,6 +6134,11 @@ const CONST = {
             NVP_NETSUITE_EXPORT_ACCOUNT: 'netsuite_export_payable_account',
 
             /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT: 'netsuite_export_credit_card_account',
+
+            /**
              * Name of Card NVP for NetSuite custom vendors
              */
             NVP_NETSUITE_EXPORT_VENDOR: 'netsuite_export_vendor',
@@ -6193,6 +6204,11 @@ const CONST = {
              * Name of Card NVP for NetSuite custom export accounts
              */
             NVP_NETSUITE_EXPORT_ACCOUNT_POLICY_ID: 'netsuite_export_payable_account_policy_id',
+
+            /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT_POLICY_ID: 'netsuite_export_credit_card_account_policy_id',
 
             /**
              * Name of Card NVP for NetSuite custom vendors
