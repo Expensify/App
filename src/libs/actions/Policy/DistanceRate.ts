@@ -1156,29 +1156,17 @@ function clearPolicyRequireMapOrGPSErrors(policyID: string) {
  * Turns government rate auto-update on or off for a workspace. The rate copying, unit correction and missing `customUnit`
  * behavior are documented on buildOnyxDataForGovernmentRateAutoUpdate, which provides the Onyx data used here.
  */
-function setWorkspaceDistanceAutoUpdate(
-    policyID: string,
-    customUnit: CustomUnit | undefined,
-    shouldAutoUpdateGovernmentDistanceRates: boolean,
-    governmentMileageRates: GovernmentMileageRate[],
-    outputCurrency: string | undefined,
-    countryCode?: string,
-    previousAutoUpdateEnabled?: boolean,
-    previousCountryCode?: string,
-) {
+function setWorkspaceDistanceAutoUpdate(policy: Policy, shouldAutoUpdateGovernmentDistanceRates: boolean, governmentMileageRates: GovernmentMileageRate[], countryCode?: string) {
     const {optimisticRateIDs, onyxData} = buildOnyxDataForGovernmentRateAutoUpdate(
-        policyID,
-        customUnit,
+        policy,
         shouldAutoUpdateGovernmentDistanceRates,
         governmentMileageRates,
-        outputCurrency,
+        policy.outputCurrency,
         countryCode,
-        previousAutoUpdateEnabled,
-        previousCountryCode,
     );
 
     const parameters: SetWorkspaceDistanceAutoUpdateParams = {
-        policyID,
+        policyID: policy.id,
         shouldAutoUpdateGovernmentDistanceRates,
         ...(Object.keys(optimisticRateIDs).length > 0 ? {optimisticRateIDs: JSON.stringify(optimisticRateIDs)} : {}),
         ...(countryCode ? {countryCode} : {}),

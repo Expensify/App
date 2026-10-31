@@ -259,14 +259,6 @@ describe('DistanceRate', () => {
             };
         }
 
-        function getDistanceCustomUnit(policy: Policy): CustomUnit {
-            const distanceCustomUnit = policy.customUnits?.[customUnitID];
-            if (!distanceCustomUnit) {
-                throw new Error('The test policy is missing its distance custom unit');
-            }
-            return distanceCustomUnit;
-        }
-
         afterEach(() => {
             resetQueue();
             return Onyx.clear();
@@ -277,7 +269,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, usGovernmentRates, policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, usGovernmentRates);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -327,7 +319,7 @@ describe('DistanceRate', () => {
             const canadianRate: GovernmentMileageRate = {sourceRateID: 'CA_2026-01-01', currency: 'CAD', name: '2026 Canada', rate: 73, startDate: '2026-01-01', enabled: true};
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [...usGovernmentRates, canadianRate], policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, [...usGovernmentRates, canadianRate]);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -346,7 +338,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [], policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, []);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -359,7 +351,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [], policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, true, []);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -381,7 +373,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), false, usGovernmentRates, policy.outputCurrency);
+            setWorkspaceDistanceAutoUpdate(policy, false, usGovernmentRates);
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -401,7 +393,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [deRate, frRate, usRate], policy.outputCurrency, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, true, [deRate, frRate, usRate], 'DE');
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -417,7 +409,7 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             pause();
-            setWorkspaceDistanceAutoUpdate(policy.id, undefined, true, [deRate], policy.outputCurrency, 'DE');
+            setWorkspaceDistanceAutoUpdate({...policy, customUnits: undefined}, true, [deRate], 'DE');
             await waitForBatchedUpdates();
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
@@ -439,7 +431,7 @@ describe('DistanceRate', () => {
             const originalFetch = global.fetch;
             global.fetch = mockFetch;
             mockFetch.fail();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [deRate], policy.outputCurrency, 'FR', true, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, true, [deRate], 'FR');
             await waitForBatchedUpdates();
             global.fetch = originalFetch;
 
@@ -459,7 +451,7 @@ describe('DistanceRate', () => {
             const originalFetch = global.fetch;
             global.fetch = mockFetch;
             mockFetch.fail();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), true, [deRate], policy.outputCurrency, 'DE', false, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, true, [deRate], 'DE');
             await waitForBatchedUpdates();
             global.fetch = originalFetch;
 
@@ -479,13 +471,232 @@ describe('DistanceRate', () => {
             const originalFetch = global.fetch;
             global.fetch = mockFetch;
             mockFetch.fail();
-            setWorkspaceDistanceAutoUpdate(policy.id, getDistanceCustomUnit(policy), false, [], policy.outputCurrency, undefined, true, 'DE');
+            setWorkspaceDistanceAutoUpdate(policy, false, []);
             await waitForBatchedUpdates();
             global.fetch = originalFetch;
 
             const onyxPolicy = await getPolicyFromOnyx(policy.id);
             expect(onyxPolicy.shouldAutoUpdateGovernmentDistanceRates).toBe(true);
             expect(onyxPolicy.autoUpdateGovernmentRateCountry).toBe('DE');
+        });
+
+        describe('UK fuel-band rates', () => {
+            const ukStandardRate: GovernmentMileageRate = {sourceRateID: 'GB_2011-04-06', currency: 'GBP', name: 'United Kingdom', rate: 45, startDate: '2011-04-06', enabled: true};
+            const petrolBandJune: GovernmentMileageRate = {
+                sourceRateID: 'GB_PETROL_UP_TO_1400_2026-06-01',
+                currency: 'GBP',
+                name: 'Cars & Vans (Petrol/Hybrid) - Up to 1400cc',
+                rate: 45,
+                startDate: '2026-06-01',
+                endDate: '2026-08-31',
+                enabled: true,
+                taxClaimablePercentage: 12 / 45,
+            };
+            const petrolBandSeptember: GovernmentMileageRate = {
+                ...petrolBandJune,
+                sourceRateID: 'GB_PETROL_UP_TO_1400_2026-09-01',
+                startDate: '2026-09-01',
+                endDate: undefined,
+                taxClaimablePercentage: 13 / 45,
+            };
+            const dieselBand: GovernmentMileageRate = {
+                sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-09-01',
+                currency: 'GBP',
+                name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                rate: 45,
+                startDate: '2026-09-01',
+                enabled: true,
+                taxClaimablePercentage: 11 / 45,
+            };
+            const ukGovernmentRates = [ukStandardRate, petrolBandJune, petrolBandSeptember, dieselBand];
+
+            function buildUKPolicy(isTrackingTax: boolean, isDistanceTaxEnabled: boolean, rates: CustomUnit['rates'] = {}): Policy {
+                return buildPolicy({
+                    outputCurrency: 'GBP',
+                    tax: {trackingEnabled: isTrackingTax},
+                    customUnits: {
+                        [customUnitID]: {
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: isDistanceTaxEnabled},
+                            customUnitID,
+                            enabled: true,
+                            name: 'Distance',
+                            rates,
+                        },
+                    },
+                });
+            }
+
+            async function enableAutoUpdate(policy: Policy, governmentMileageRates: GovernmentMileageRate[] = ukGovernmentRates): Promise<Rate[]> {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                pause();
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates);
+                await waitForBatchedUpdates();
+                const onyxPolicy = await getPolicyFromOnyx(policy.id);
+                return Object.values(onyxPolicy.customUnits?.[customUnitID].rates ?? {});
+            }
+
+            const getRateBySourceID = (rates: Rate[], sourceRateID: string) => rates.find((rate) => rate.attributes?.governmentRate?.sourceRateID === sourceRateID);
+
+            it('should copy only the fuel bands, with their reclaimable fraction, when the workspace tracks distance tax', async () => {
+                // Given a GBP workspace with tax tracking and distance tax on
+                const policy = buildUKPolicy(true, true);
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(policy);
+
+                // Then only the fuel bands are copied, since the server gives these workspaces the bands instead of the standard rate
+                expect(rates.map((rate) => rate.attributes?.governmentRate?.sourceRateID).sort()).toEqual([
+                    'GB_DIESEL_UP_TO_1600_2026-09-01',
+                    'GB_PETROL_UP_TO_1400_2026-06-01',
+                    'GB_PETROL_UP_TO_1400_2026-09-01',
+                ]);
+
+                // And each band keeps its reclaimable fraction on the rate and the snapshot, so it shows the lightning bolt
+                const dieselRate = getRateBySourceID(rates, dieselBand.sourceRateID);
+                expect(dieselRate?.attributes?.taxClaimablePercentage).toBe(11 / 45);
+                expect(dieselRate?.attributes?.governmentRate?.taxClaimablePercentage).toBe(11 / 45);
+                expect(dieselRate?.attributes?.taxRateExternalID).toBeUndefined();
+                expect(dieselRate && isGovernmentRateUnmodified(dieselRate, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBe(true);
+            });
+
+            it('should copy only the standard rate when the workspace does not track distance tax', async () => {
+                // Given GBP workspaces where tax tracking or distance tax is off
+                const distanceTaxOffPolicy = buildUKPolicy(true, false);
+                const taxTrackingOffPolicy = buildUKPolicy(false, true);
+
+                // When auto-update is turned on
+                const distanceTaxOffRates = await enableAutoUpdate(distanceTaxOffPolicy);
+                resetQueue();
+                await Onyx.clear();
+                const taxTrackingOffRates = await enableAutoUpdate(taxTrackingOffPolicy);
+
+                // Then only the standard rate is copied, with no reclaimable fraction
+                for (const rates of [distanceTaxOffRates, taxTrackingOffRates]) {
+                    expect(rates.map((rate) => rate.attributes?.governmentRate?.sourceRateID)).toEqual(['GB_2011-04-06']);
+                    expect(rates.at(0)?.attributes?.taxClaimablePercentage).toBeUndefined();
+                }
+            });
+
+            it('should copy the standard rate when the workspace tracks distance tax but no fuel bands are published', async () => {
+                // Given a GBP workspace with tax tracking and distance tax on, and reference rates with only the standard rate
+                const policy = buildUKPolicy(true, true);
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(policy, [ukStandardRate]);
+
+                // Then the standard rate is copied, since the server copies it to every workspace until it publishes fuel bands
+                expect(rates.map((rate) => rate.attributes?.governmentRate?.sourceRateID)).toEqual(['GB_2011-04-06']);
+                expect(rates.at(0)?.attributes?.taxClaimablePercentage).toBeUndefined();
+            });
+
+            it('should still copy the rates of other countries when the workspace tracks distance tax', async () => {
+                // Given a USD workspace with tax tracking and distance tax on
+                const usPolicy = {...buildUKPolicy(true, true), outputCurrency: 'USD'};
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(usPolicy, usGovernmentRates);
+
+                // Then the US rates are copied as before, because only the UK publishes fuel bands
+                expect(rates).toHaveLength(2);
+            });
+
+            it('should keep a disabled fuel band disabled for every later rate of its series in the same request', async () => {
+                // Given an eligible GBP workspace whose earlier petrol band an admin disabled, and whose earlier diesel band an
+                // admin edited to their own amount and disabled
+                const editedDieselRateID = '5A1D3C8E9F0B2';
+                const policy = buildUKPolicy(true, true, {
+                    [existingRateID]: {
+                        customUnitRateID: existingRateID,
+                        name: 'Cars & Vans (Petrol/Hybrid) - Up to 1400cc',
+                        rate: 45,
+                        currency: 'GBP',
+                        enabled: false,
+                        startDate: '2026-03-01',
+                        endDate: '2026-05-31',
+                        attributes: {
+                            taxClaimablePercentage: 12 / 45,
+                            governmentRate: {sourceRateID: 'GB_PETROL_UP_TO_1400_2026-03-01', rate: 45, startDate: '2026-03-01', endDate: '2026-05-31', taxClaimablePercentage: 12 / 45},
+                        },
+                    },
+                    [editedDieselRateID]: {
+                        customUnitRateID: editedDieselRateID,
+                        name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                        rate: 50,
+                        currency: 'GBP',
+                        enabled: false,
+                        startDate: '2026-03-01',
+                        endDate: '2026-08-31',
+                        attributes: {
+                            taxClaimablePercentage: 11 / 45,
+                            governmentRate: {sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-03-01', rate: 45, startDate: '2026-03-01', endDate: '2026-08-31', taxClaimablePercentage: 11 / 45},
+                        },
+                    },
+                });
+
+                // When auto-update copies two later petrol periods and a diesel band, listed out of date order
+                const rates = await enableAutoUpdate(policy, [dieselBand, petrolBandSeptember, petrolBandJune]);
+
+                // Then both petrol periods stay disabled, the later one inheriting from the earlier one copied in this request
+                expect(getRateBySourceID(rates, petrolBandJune.sourceRateID)?.enabled).toBe(false);
+                expect(getRateBySourceID(rates, petrolBandSeptember.sourceRateID)?.enabled).toBe(false);
+
+                // And the September diesel band is enabled, because the earlier diesel rate was edited and is the admin's own,
+                // so its disabled state doesn't opt the workspace out of the government rate
+                expect(getRateBySourceID(rates, dieselBand.sourceRateID)?.enabled).toBe(true);
+            });
+
+            it('should enable a copied fuel band when its latest previous rate was edited, even if an older one was disabled', async () => {
+                // Given an eligible GBP workspace whose March diesel band is unmodified and disabled, and whose June diesel band an
+                // admin edited to their own amount
+                const marchDieselRateID = '3B7E0A9C4D1F6';
+                const juneDieselRateID = '8C2F5E1A7B3D0';
+                const policy = buildUKPolicy(true, true, {
+                    [marchDieselRateID]: {
+                        customUnitRateID: marchDieselRateID,
+                        name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                        rate: 45,
+                        currency: 'GBP',
+                        enabled: false,
+                        startDate: '2026-03-01',
+                        endDate: '2026-05-31',
+                        attributes: {
+                            taxClaimablePercentage: 11 / 45,
+                            governmentRate: {sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-03-01', rate: 45, startDate: '2026-03-01', endDate: '2026-05-31', taxClaimablePercentage: 11 / 45},
+                        },
+                    },
+                    [juneDieselRateID]: {
+                        customUnitRateID: juneDieselRateID,
+                        name: 'Cars & Vans (Diesel) - Up to 1600cc',
+                        rate: 50,
+                        currency: 'GBP',
+                        enabled: true,
+                        startDate: '2026-06-01',
+                        endDate: '2026-08-31',
+                        attributes: {
+                            taxClaimablePercentage: 11 / 45,
+                            governmentRate: {sourceRateID: 'GB_DIESEL_UP_TO_1600_2026-06-01', rate: 45, startDate: '2026-06-01', endDate: '2026-08-31', taxClaimablePercentage: 11 / 45},
+                        },
+                    },
+                });
+
+                // When auto-update copies the September diesel band
+                const rates = await enableAutoUpdate(policy, [dieselBand]);
+
+                // Then the September band is enabled, because only the latest previous rate counts and the admin edited it, so the
+                // disabled March rate further back doesn't opt the workspace out
+                expect(getRateBySourceID(rates, dieselBand.sourceRateID)?.enabled).toBe(true);
+            });
+
+            it('should copy a reference rate listed twice only once', async () => {
+                // Given an eligible GBP workspace and a reference list that contains the same fuel band twice
+                const policy = buildUKPolicy(true, true);
+
+                // When auto-update is turned on
+                const rates = await enableAutoUpdate(policy, [dieselBand, dieselBand]);
+
+                // Then the band is copied once, since the server de-dupes by sourceRateID and would leave a second copy orphaned
+                expect(rates.filter((rate) => rate.attributes?.governmentRate?.sourceRateID === dieselBand.sourceRateID)).toHaveLength(1);
+            });
         });
     });
 

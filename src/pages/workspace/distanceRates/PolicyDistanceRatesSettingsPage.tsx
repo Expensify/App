@@ -153,7 +153,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     }, []);
 
     const toggleAutoUpdateGovernmentRate = (isOn: boolean) => {
-        if (!customUnit) {
+        if (!policy || !customUnit) {
             return;
         }
 
@@ -171,16 +171,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
         // The stored country tells the optimistic copy which rates to use, since the mileage rate key is shared by every policy.
         // The server ignores the country on disable, so it is only sent when turning on.
-        setWorkspaceDistanceAutoUpdate(
-            policyID,
-            customUnit,
-            isOn,
-            governmentMileageRates ?? [],
-            policy?.outputCurrency,
-            isOn && isSharedCurrency ? autoUpdateCountry : undefined,
-            !!policy?.shouldAutoUpdateGovernmentDistanceRates,
-            isSharedCurrency ? autoUpdateCountry : undefined,
-        );
+        setWorkspaceDistanceAutoUpdate(policy, isOn, governmentMileageRates ?? [], isOn && isSharedCurrency ? autoUpdateCountry : undefined);
     };
 
     // Commuter exclusions are computed from the mapped route, so they enforce the requirement on their own. The

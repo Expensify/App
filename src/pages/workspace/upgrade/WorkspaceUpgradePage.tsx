@@ -311,17 +311,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.id: {
                 const storedGovernmentRateCountry = getAutoUpdateGovernmentRateCountry(policy);
                 const isSharedCurrency = isSharedGovernmentRateCurrency(policy?.outputCurrency);
-                if (!distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
+                if (!policy || !distanceRateCustomUnit || (isSharedCurrency && !storedGovernmentRateCountry)) {
                     break;
                 }
-                setWorkspaceDistanceAutoUpdate(
-                    policyID,
-                    distanceRateCustomUnit,
-                    true,
-                    governmentMileageRates ?? [],
-                    policy?.outputCurrency,
-                    isSharedCurrency ? storedGovernmentRateCountry : undefined,
-                );
+                setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], isSharedCurrency ? storedGovernmentRateCountry : undefined);
                 break;
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.publicReceiptVisibility.id:
