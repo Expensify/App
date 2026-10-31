@@ -780,7 +780,6 @@ const WRITE_COMMANDS = {
     FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING: 'FinishCorpayBankAccountOnboarding',
     ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT: 'EnableGlobalReimbursementsForUSDBankAccount',
     REOPEN_REPORT: 'ReopenReport',
-    TRAVEL_SIGNUP_REQUEST: 'RequestTravelAccess',
     SET_VACATION_DELEGATE: 'SetVacationDelegate',
     DELETE_VACATION_DELEGATE: 'DeleteVacationDelegate',
     IMPORT_PLAID_ACCOUNTS: 'ImportPlaidAccounts',
@@ -1638,7 +1637,6 @@ type WriteCommandParameters = {
     // Change transaction report
     [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
     [WRITE_COMMANDS.UNDELETE_TRANSACTIONS]: Parameters.UndeleteTransactionsParams;
-    [WRITE_COMMANDS.TRAVEL_SIGNUP_REQUEST]: null;
     [WRITE_COMMANDS.ASSIGN_REPORT_TO_ME]: Parameters.AssignReportToMeParams;
     [WRITE_COMMANDS.ADD_REPORT_APPROVER]: Parameters.AddReportApproverParams;
     [WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT]: Parameters.LockAccountParams;
@@ -1972,6 +1970,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     CALCULATE_BILL_NEW_DOT: 'CalculateBillNewDot',
 
     ACCEPT_SPOTNANA_TERMS: 'AcceptSpotnanaTerms',
+    REQUEST_TRAVEL_ACCESS: 'RequestTravelAccess',
     COMPLETE_GUIDED_SETUP: 'CompleteGuidedSetup',
 
     GET_STATEMENT_PDF: 'GetStatementPDF',
@@ -2021,6 +2020,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE]: Parameters.SetVacationDelegateParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CALCULATE_BILL_NEW_DOT]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.ACCEPT_SPOTNANA_TERMS]: Parameters.AcceptSpotnanaTermsParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_TRAVEL_ACCESS]: null;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN]: Parameters.GetScimTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.PARSE_EXPENSE_FILTERS]: Parameters.ParseExpenseFiltersParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;

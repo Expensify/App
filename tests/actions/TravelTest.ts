@@ -1,9 +1,9 @@
-import {acceptSpotnanaTerms, setTravelProvisioningTaxID} from '@libs/actions/Travel';
+import {acceptSpotnanaTerms, requestTravelAccess, setTravelProvisioningTaxID} from '@libs/actions/Travel';
 import {makeRequestWithSideEffects} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TravelProvisioning} from '@src/types/onyx';
+import type {TravelProvisioning, TravelSettings} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -63,6 +63,47 @@ describe('actions/Travel', () => {
                     ]),
                 }),
             );
+        });
+    });
+
+    describe('requestTravelAccess', () => {
+        const getTravelSettings = () =>
+            new Promise<OnyxEntry<TravelSettings>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+        it('resolves true and clears a pending request when the account can skip verification', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {lastTravelSignupRequestTime: '1759152000000'});
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 200, canSkipVerification: true});
+
+            await expect(requestTravelAccess()).resolves.toBe(true);
+            await waitForBatchedUpdates();
+
+            expect((await getTravelSettings())?.lastTravelSignupRequestTime).toBeUndefined();
+        });
+
+        it('resolves false and records the request time when the account needs a guide review', async () => {
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 200, canSkipVerification: false});
+
+            await expect(requestTravelAccess()).resolves.toBe(false);
+            await waitForBatchedUpdates();
+
+            expect((await getTravelSettings())?.lastTravelSignupRequestTime).toBeTruthy();
+        });
+
+        it('rejects without recording a request time when the server returns an error', async () => {
+            mockMakeRequestWithSideEffects.mockResolvedValueOnce({jsonCode: 401, message: 'You must be an admin to request travel access'});
+
+            await expect(requestTravelAccess()).rejects.toThrow('You must be an admin to request travel access');
+            await waitForBatchedUpdates();
+
+            expect((await getTravelSettings())?.lastTravelSignupRequestTime).toBeUndefined();
         });
     });
 
