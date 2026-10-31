@@ -1,16 +1,19 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type {ExpenseFieldDropdownHandle, ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import Text from '@components/Text';
 
+import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
+
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
-import React from 'react';
+import React, {createRef} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -74,7 +77,7 @@ describe('ExpenseFieldDropdown', () => {
         jest.restoreAllMocks();
     });
 
-    const renderField = (shouldOpenInDropdown = true, onPress: () => void = jest.fn()) =>
+    const renderField = (shouldOpenInDropdown = true, onPress: () => void = jest.fn(), listHeaderHeight?: number) =>
         render(
             <ExpenseFieldDropdown
                 name={FIELD_NAME}
@@ -82,8 +85,98 @@ describe('ExpenseFieldDropdown', () => {
                 shouldOpenInDropdown={shouldOpenInDropdown}
                 onPress={onPress}
                 renderDropdown={renderDropdown}
+                listHeaderHeight={listHeaderHeight}
             />,
         );
+
+    describe('with a header above the list', () => {
+        const HEADER_HEIGHT = variables.componentSizeNormal;
+
+        it('grows the container by the header so it still fits as many options', () => {
+            // Given a row with plenty of room below, whose list shows a header above its options
+            mockRowAt(ROW_TOP);
+            renderField(true, jest.fn(), HEADER_HEIGHT);
+
+            // When the row is pressed
+            act(() => pressRow());
+
+            // Then the container is taller by the header, so the header doesn't take the place of an option
+            expect(renderedProps?.popoverHeight).toBe(getSelectionListPopoverContentHeight({optionCount: 4}) + HEADER_HEIGHT);
+        });
+
+        it('grows the bottom sheet by the header too, so a long list loses no row to it on a phone', () => {
+            // Given a phone, where the list opens as a bottom sheet, whose list shows a header above its options
+            mockIsSmallScreenWidth = true;
+            mockRowAt(ROW_TOP);
+            renderField(true, jest.fn(), HEADER_HEIGHT);
+
+            // When the row is pressed
+            act(() => pressRow());
+
+            // Then the sheet may be taller than the standard dropdown height by the header, just like the pop-over
+            expect(renderedProps?.popoverHeight).toBe(CONST.POPOVER_DROPDOWN_MAX_HEIGHT + HEADER_HEIGHT);
+        });
+
+        it('falls back to the full page when the room left fits one option but not the header too', () => {
+            // Given a row with room below for one option, but not for one option and the header
+            const onPress = jest.fn();
+            mockWindowHeight = ROW_TOP + ROW_HEIGHT + 6 + getSelectionListPopoverContentHeight({optionCount: 1}) + HEADER_HEIGHT / 2;
+            mockRowAt(ROW_TOP);
+            renderField(true, onPress, HEADER_HEIGHT);
+
+            // When the row is pressed
+            act(() => pressRow());
+
+            // Then it opens the page, rather than a container showing the header and no categories
+            expect(onPress).toHaveBeenCalledTimes(1);
+            expect(renderCount).toBe(0);
+        });
+    });
+
+    describe('open()', () => {
+        const renderFieldWithRef = (shouldOpenInDropdown: boolean, onPress: () => void) => {
+            const ref = createRef<ExpenseFieldDropdownHandle>();
+            render(
+                <ExpenseFieldDropdown
+                    ref={ref}
+                    name={FIELD_NAME}
+                    testID={ROW_TEST_ID}
+                    shouldOpenInDropdown={shouldOpenInDropdown}
+                    onPress={onPress}
+                    renderDropdown={renderDropdown}
+                />,
+            );
+            return ref;
+        };
+
+        it('opens the list in the container without a press', () => {
+            // Given a field whose list can open in place, opened by its parent rather than by the user
+            const onPress = jest.fn();
+            mockRowAt(ROW_TOP);
+            const ref = renderFieldWithRef(true, onPress);
+
+            // When the parent opens it
+            act(() => ref.current?.open());
+
+            // Then the list opens in the container and the full-page selector is never reached
+            expect(screen.getByText(DROPDOWN_TEXT)).toBeOnTheScreen();
+            expect(onPress).not.toHaveBeenCalled();
+        });
+
+        it('falls back to the full-page selector when the list cannot open in place', () => {
+            // Given a field whose list cannot open in place, e.g. because there is no workspace to list categories from
+            const onPress = jest.fn();
+            mockRowAt(ROW_TOP);
+            const ref = renderFieldWithRef(false, onPress);
+
+            // When the parent opens it
+            act(() => ref.current?.open());
+
+            // Then it does what a press would and hands over to the full-page selector, never mounting the list
+            expect(onPress).toHaveBeenCalledTimes(1);
+            expect(renderCount).toBe(0);
+        });
+    });
 
     it('does not mount the list until the row is pressed', () => {
         // Given a field whose list opens in the container anchored to the row

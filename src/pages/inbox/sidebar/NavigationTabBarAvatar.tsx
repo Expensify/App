@@ -11,7 +11,7 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type NavigationTabBarAvatarProps = {
@@ -30,34 +30,49 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {status} = useAccountTabIndicatorStatus();
 
-    const accountAccessibilityState = useMemo(() => ({selected: isSelected}), [isSelected]);
+    const accountAccessibilityState = {selected: isSelected};
 
     return (
         <PressableWithFeedback
             onPress={onPress}
             accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
             role={CONST.ROLE.TAB}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={shouldUseNarrowLayout ? styles.navigationTabBarSlot : styles.flex1}
             accessibilityState={accountAccessibilityState}
             aria-selected={accountAccessibilityState.selected}
             style={({hovered}) => [style, !shouldUseNarrowLayout && hovered && styles.navigationTabBarItemHovered]}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
         >
             {({hovered}) => (
-                <>
-                    <View style={styles.tn0Half}>
+                <View
+                    style={[
+                        styles.navigationTabBarItem,
+                        shouldUseNarrowLayout && styles.navigationTabBarItemNarrow,
+                        shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected,
+                    ]}
+                >
+                    <View style={shouldUseNarrowLayout ? styles.navigationTabBarAvatar : styles.tn0Half}>
                         <AccountNavigationAvatar
-                            isSelected={isSelected || (!shouldUseNarrowLayout && hovered)}
+                            // The floating bar marks the selected tab with a pill behind the whole item, so the
+                            // avatar's own ring would double up on it. The side bar has no pill and keeps it.
+                            isSelected={!shouldUseNarrowLayout && (isSelected || hovered)}
                             isHovered={hovered}
+                            size={shouldUseNarrowLayout ? CONST.AVATAR_SIZE.X_SMALL : CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
                     <Text
-                        numberOfLines={2}
-                        style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}
+                        numberOfLines={shouldUseNarrowLayout ? 1 : 2}
+                        style={[
+                            styles.textSmall,
+                            styles.textAlignCenter,
+                            isSelected ? styles.textBold : styles.textSupporting,
+                            shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half,
+                            styles.navigationTabBarLabel,
+                        ]}
                     >
                         {translate('initialSettingsPage.account')}
                     </Text>
-                </>
+                </View>
             )}
         </PressableWithFeedback>
     );

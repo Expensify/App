@@ -19,6 +19,7 @@ import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -201,6 +202,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         },
     });
 
+    useOpenRecipientPicker();
+
     // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
     useEffect(() => {
         if (!pendingPolicySelection) {
@@ -268,7 +271,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         label: usersWorkspaces.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined,
         value: searchTerm,
         onChangeText: setSearchTerm,
-        headerMessage: getHeaderMessageForNonUserList(areResultsFound, debouncedSearchTerm),
+        headerMessage: getHeaderMessageForNonUserList(translate, areResultsFound, debouncedSearchTerm),
     };
 
     return (

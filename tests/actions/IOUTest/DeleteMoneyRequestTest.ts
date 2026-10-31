@@ -5,7 +5,6 @@ import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoney
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportActionMessage, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildTransactionThread, isIOUReport} from '@libs/ReportUtils';
@@ -34,6 +33,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
 import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -525,11 +525,10 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given User logins from the participant accounts
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             // When Opening a thread report with the given details
             openReport({
                 conciergeChat: undefined,
@@ -634,11 +633,10 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given User logins from the participant accounts
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
 
             // When Opening a thread report with the given details
             openReport({
@@ -774,12 +772,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,
@@ -924,11 +921,10 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,
@@ -1258,11 +1254,10 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,
@@ -1449,12 +1444,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,
@@ -1916,6 +1910,128 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         });
     });
 
+    describe('deleteMoneyRequest with chatReportActions', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
+        const PREVIEW_ACTION_ID = 'report-preview-action-threading-test';
+
+        function buildDeleteScenario(seed: number) {
+            const chatReport: Report = {
+                ...createRandomReport(seed, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const expenseReport: Report = {
+                ...createRandomReport(seed + 1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: chatReport.reportID,
+                total: 100,
+                currency: CONST.CURRENCY.USD,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(seed),
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+                reimbursable: true,
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(seed),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: expenseReport.reportID,
+                childReportID: String(seed),
+                originalMessage: {
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: undefined,
+                previousMessage: undefined,
+            };
+            const reportPreviewAction = {
+                ...createRandomReportAction(seed + 1),
+                reportActionID: PREVIEW_ACTION_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                reportID: chatReport.reportID,
+                originalMessage: {linkedReportID: expenseReport.reportID},
+                message: undefined,
+                previousMessage: undefined,
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>;
+            return {chatReport, expenseReport, transaction, moneyRequestAction, reportPreviewAction};
+        }
+
+        it('updates the report preview action supplied via chatReportActions', async () => {
+            // Given a chat report whose REPORT_PREVIEW action exists only in the `chatReportActions` param and is
+            // deliberately never written to Onyx, so the deprecated `getAllReportActionsFromIOU` fallback inside
+            // `getReportPreviewReportAction` cannot be its source.
+            const {chatReport, expenseReport, transaction, moneyRequestAction, reportPreviewAction} = buildDeleteScenario(70);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When the last expense on the report is deleted with the threaded chatReportActions.
+            mockFetch?.pause?.();
+            deleteMoneyRequest({
+                transactionThreadReportActions: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: transaction.transactionID,
+                reportAction: moneyRequestAction,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                iouReportTransactions: [transaction],
+                chatReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+                chatReportActions: {[reportPreviewAction.reportActionID]: reportPreviewAction},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the supplied preview action is found and optimistically marked for deletion on the chat report,
+            // proving the threaded param is used instead of the deprecated connection cache.
+            const chatReportActionsInOnyx = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`);
+            expect(chatReportActionsInOnyx?.[PREVIEW_ACTION_ID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            mockFetch?.resume?.();
+        });
+
+        it('leaves the chat report actions untouched when chatReportActions is not passed and Onyx has none', async () => {
+            // Given the same scenario but without the chatReportActions param, and no report actions in Onyx,
+            // so neither the param nor the deprecated fallback can find the preview action.
+            const {chatReport, expenseReport, transaction, moneyRequestAction} = buildDeleteScenario(73);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When the expense is deleted without the threaded data.
+            mockFetch?.pause?.();
+            deleteMoneyRequest({
+                transactionThreadReportActions: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: transaction.transactionID,
+                reportAction: moneyRequestAction,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                iouReportTransactions: [transaction],
+                chatReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+            await waitForBatchedUpdates();
+
+            // Then no preview action update is written for the chat report, confirming the first test's
+            // update really came from the threaded param.
+            const chatReportActionsInOnyx = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`);
+            expect(chatReportActionsInOnyx?.[PREVIEW_ACTION_ID]).toBeUndefined();
+            mockFetch?.resume?.();
+        });
+    });
+
     describe('deleteMoneyRequest formula title recompute', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@email.com';
@@ -2371,6 +2487,93 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             expect(result.optimisticData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
             expect(result.failureData.some((entry) => entry.key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS))).toBe(false);
+        });
+
+        it("resolves the report preview's last visible action from the acting user's own visibility", async () => {
+            const CHAT_REPORT_ID = '70001';
+            const IOU_REPORT_ID = '70002';
+            const WHISPER_TARGET_ACCOUNT_ID = 808;
+
+            const olderIOUAction: ReportAction = {
+                ...createRandomReportAction(10),
+                reportActionID: 'deleteOlderAction',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-10-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            };
+            /** Newer than `olderIOUAction`, and only the whispered-to account can see it. */
+            const whisper: ReportAction = {
+                ...createRandomReportAction(11),
+                reportActionID: 'deleteWhisper',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2026-10-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            const previewAction: ReportAction = {
+                ...createRandomReportAction(12),
+                reportActionID: 'deletePreview',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childVisibleActionCount: 2,
+                originalMessage: {linkedReportID: IOU_REPORT_ID},
+            };
+            // The money-request action being deleted. Its reportID is what resolves the IOU report below.
+            const deletedIOUAction: ReportAction = {
+                ...createRandomReportAction(13),
+                reportActionID: 'deletedIOU',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childVisibleActionCount: 1,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: '70003', amount: 100, currency: 'USD', IOUReportID: IOU_REPORT_ID},
+            };
+
+            const chatReport: Report = {...createRandomReport(70001, undefined), reportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT};
+            const iouReport: Report = {
+                ...createRandomReport(70002, undefined),
+                reportID: IOU_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: CHAT_REPORT_ID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {[previewAction.reportActionID]: previewAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {
+                [olderIOUAction.reportActionID]: olderIOUAction,
+                [whisper.reportActionID]: whisper,
+                [deletedIOUAction.reportActionID]: deletedIOUAction,
+            });
+            await waitForBatchedUpdates();
+
+            const getPreviewCreated = (currentUserAccountID: number) => {
+                const result = getCleanUpTransactionThreadReportOnyxData({
+                    shouldDeleteTransactionThread: false,
+                    reportAction: deletedIOUAction,
+                    iouReport,
+                    chatReport,
+                    currentUserAccountID,
+                });
+                const entry = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`);
+                const value: unknown = entry && 'value' in entry ? entry.value : undefined;
+                if (!isObject(value)) {
+                    return undefined;
+                }
+                const updatedPreview = value[previewAction.reportActionID];
+                if (!isObject(updatedPreview) || typeof updatedPreview.childLastVisibleActionCreated !== 'string') {
+                    return undefined;
+                }
+                return updatedPreview.childLastVisibleActionCreated;
+            };
+
+            // Given the whisper targets the deleting user, it is the newest action they can see
+            expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // Given the whisper targets somebody else, it is invisible and the older comment wins
+            expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderIOUAction.created);
         });
     });
 });

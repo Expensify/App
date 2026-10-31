@@ -58,7 +58,6 @@ type IntroSelected = {
     /** Report action ID for the post-onboarding no-joinable-workspaces message */
     noJoinableWorkspacesMessage?: string;
 
-    /** The previous onboarding choices of the user */
     previousChoices?: OnboardingPurpose[];
 
     /** The personal track goal selected during onboarding */

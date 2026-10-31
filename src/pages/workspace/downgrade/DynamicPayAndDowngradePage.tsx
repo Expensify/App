@@ -25,7 +25,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type BillingItem = {
@@ -45,10 +45,10 @@ function DynamicPayAndDowngradePage() {
 
     const errorMessage = billingDetails?.errors;
 
-    const items: BillingItem[] = useMemo(() => {
-        if (isEmptyObject(billingDetails)) {
-            return [];
-        }
+    let items: BillingItem[];
+    if (isEmptyObject(billingDetails)) {
+        items = [];
+    } else {
         const results = [...billingDetails.receiptsWithoutDiscount, ...billingDetails.discounts].map((item) => {
             return {
                 key: item.description,
@@ -56,14 +56,13 @@ function DynamicPayAndDowngradePage() {
                 isTotal: false,
             };
         });
-
         results.push({
             key: translate('common.total'),
             value: billingDetails.formattedSubtotal,
             isTotal: true,
         });
-        return results;
-    }, [billingDetails, translate]);
+        items = results;
+    }
 
     useEffect(() => {
         if (billingDetails?.isLoading || !prevIsLoading || billingDetails?.errors) {
@@ -77,7 +76,7 @@ function DynamicPayAndDowngradePage() {
     }, []);
 
     if (isLoadingOnyxValue(metadata)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(backPath)} />;
     }
 
     return (

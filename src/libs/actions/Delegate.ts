@@ -8,7 +8,7 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
@@ -17,11 +17,14 @@ import {requestPusherReinitialize} from '@libs/requestPusherReinitialize';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
 import type Credentials from '@src/types/onyx/Credentials';
 import type Session from '@src/types/onyx/Session';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxMultiSetInput, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
@@ -39,6 +42,7 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.HAS_LOADED_APP,
     ONYXKEYS.STASHED_CREDENTIALS,
+    ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL,
     ONYXKEYS.HYBRID_APP,
 
     // Otherwise it's wiped and refetched by OpenApp, letting the product-marketing window flash back in
@@ -61,9 +65,45 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.PERSONAL_DETAILS_LIST,
 ];
 
-/** Atomically reset Onyx for a delegate-access transition. */
-function clearOnyxForDelegateTransition(): Promise<void> {
-    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+/** Atomically reset Onyx for a delegate-access transition. `extraSeeds` are written in the same step as the clear. */
+function clearOnyxForDelegateTransition(extraSeeds?: OnyxMultiSetInput): Promise<void> {
+    return clearOnyxAndSeedFullReconnect(KEYS_TO_PRESERVE_DELEGATE_ACCESS, extraSeeds);
+}
+
+/**
+ * Navigation state belongs to the account it was built for, so drop it on a delegate-access transition like we do on sign-out.
+ * By default the fresh navigation state lands on the Settings tab, where accounts are usually switched.
+ */
+function resetNavigationForDelegateTransition(route: Route = ROUTES.SETTINGS) {
+    Navigation.resetForSessionChange(route);
+}
+
+type LoadAccountAfterDelegateTransitionParams = {
+    /** Account to reinitialize Pusher for */
+    accountID: number | undefined;
+
+    /** Email to reinitialize Pusher for */
+    email: string | undefined;
+
+    /** Account to switch OldDot to, omitted to leave OldDot as is */
+    hybridAppAccount?: Parameters<typeof HybridAppModule.switchAccount>[0];
+};
+
+/**
+ * Loads the account after a delegate-access transition and syncs OldDot to it. Pusher is not awaited: on Android it can
+ * stall right after the transition's disconnect, which would block the switch. See Expensify/App#93458.
+ */
+function loadAccountAfterDelegateTransition({accountID, email, hybridAppAccount}: LoadAccountAfterDelegateTransitionParams): Promise<void> {
+    return openApp().then(() => {
+        requestPusherReinitialize({accountID, email}).catch((error: unknown) => {
+            Log.hmmm('[Delegate] Failed to reinitialize Pusher after a delegate-access transition', {error: ErrorUtils.getErrorMessage(error)});
+        });
+
+        if (!CONFIG.IS_HYBRID_APP || !hybridAppAccount) {
+            return;
+        }
+        HybridAppModule.switchAccount(hybridAppAccount);
+    });
 }
 
 type WithDelegatedAccess = {
@@ -92,10 +132,6 @@ type WithFieldName = {
     fieldName: 'addDelegate' | 'updateDelegateRole' | 'connect' | 'removeDelegator' | 'removeDelegate';
 };
 
-type WithOldDotFlag = {
-    isFromOldDot?: boolean;
-};
-
 type WithStashedCredentials = {
     stashedCredentials: Credentials | undefined;
 };
@@ -112,7 +148,27 @@ type WithActivePolicyID = {
     activePolicyID: OnyxEntry<string>;
 };
 
+type WithRouteAfterSwitch = {
+    routeAfterSwitch?: Route;
+};
+
 type DisconnectParams = WithStashedCredentials & WithStashedSession;
+
+const DISCONNECT_RESULT = {
+    /** Session ended, original session restored with fresh tokens */
+    RESTORED: 'restored',
+
+    /** Incomplete response, original session restored from the stash */
+    RESTORED_FROM_STASH: 'restoredFromStash',
+
+    /** Session ended but the restore threw partway. SESSION is written first, so it is most likely restored. */
+    RESTORE_INTERRUPTED: 'restoreInterrupted',
+
+    /** Request failed, copilot session still active */
+    FAILED: 'failed',
+} as const;
+
+type DisconnectResult = ValueOf<typeof DISCONNECT_RESULT>;
 
 // Clear delegator-level errors
 type ClearDelegatorErrorsParams = WithDelegatedAccess;
@@ -133,17 +189,13 @@ type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDe
 type IsConnectedAsDelegateParams = WithDelegatedAccess;
 
 // Connect as delegate
-type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession & WithActivePolicyID;
+type ConnectParams = WithEmail & WithDelegatedAccess & WithCredentials & WithSession & WithActivePolicyID & WithRouteAfterSwitch;
 
 /**
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect({email, delegatedAccess, credentials, session, activePolicyID, isFromOldDot = false}: ConnectParams) {
-    if (!delegatedAccess?.delegators && !isFromOldDot) {
-        return;
-    }
-
+function connect({email, delegatedAccess, credentials, session, activePolicyID, routeAfterSwitch = ROUTES.SETTINGS}: ConnectParams) {
     if (isConnectedAsDelegate({delegatedAccess})) {
         Log.info('[Delegate] Already connected as a delegate, skipping connect');
         return;
@@ -224,7 +276,6 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 Onyx.update(failureData);
                 return;
             }
-            clearPreservedSearchNavigatorStates();
             const restrictedToken = response.restrictedToken;
             const policyID = activePolicyID;
 
@@ -235,25 +286,24 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
                 })
                 .then(() => {
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
+                    resetNavigationForDelegateTransition(routeAfterSwitch);
                     Pusher.disconnect();
                     return clearOnyxForDelegateTransition();
                 })
-                .then(() => {
-                    return openApp()
-                        .then(() => requestPusherReinitialize({accountID: response.accountID, email: response.email}))
-                        .then(() => {
-                            if (!CONFIG.IS_HYBRID_APP || !policyID) {
-                                return true;
-                            }
-                            HybridAppModule.switchAccount({
-                                newDotCurrentAccountEmail: email,
-                                authToken: restrictedToken,
-                                policyID,
-                                accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
-                            });
-                            return true;
-                        });
-                });
+                .then(() =>
+                    loadAccountAfterDelegateTransition({
+                        accountID: response.accountID,
+                        email: response.email,
+                        hybridAppAccount: policyID
+                            ? {
+                                  newDotCurrentAccountEmail: email,
+                                  authToken: restrictedToken,
+                                  policyID,
+                                  accountID: String(session?.accountID ?? CONST.DEFAULT_NUMBER_ID),
+                              }
+                            : undefined,
+                    }).then(() => true),
+                );
         })
         .catch((error) => {
             Log.alert('[Delegate] Error connecting as delegate', {error});
@@ -262,7 +312,7 @@ function connect({email, delegatedAccess, credentials, session, activePolicyID, 
         });
 }
 
-function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
+function disconnect({stashedCredentials, stashedSession}: DisconnectParams): Promise<DisconnectResult> {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -302,11 +352,10 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
     ];
 
     // We need to access the authToken directly from the response to update the session
-    // The promise resolves to true only once the original session is fully restored, so callers can gate
-    // follow-up work that must run under the original user's identity (e.g. deleting the agent).
+    // Resolves to a DISCONNECT_RESULT so callers can gate work that must run as the original user (e.g. deleting the agent)
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData})
-        .then((response) => {
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.DISCONNECT_AS_DELEGATE, {}, {optimisticData, successData, failureData}).then(
+        (response) => {
             const restoreToStashed = () =>
                 restoreDelegateSession({
                     authToken: stashedSession?.authToken,
@@ -318,37 +367,44 @@ function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
                     creationDate: stashedSession?.creationDate,
                 });
 
-            if (!response?.authToken || !response?.encryptedAuthToken) {
-                Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
-                return restoreToStashed().then(() => false);
-            }
+            const restoreOriginalSession = (): Promise<DisconnectResult> => {
+                if (!response?.authToken || !response?.encryptedAuthToken) {
+                    Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
+                    return restoreToStashed().then(() => DISCONNECT_RESULT.RESTORED_FROM_STASH);
+                }
 
-            if (!response?.requesterID || !response?.requesterEmail) {
-                Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
-                return restoreToStashed().then(() => false);
-            }
+                if (!response?.requesterID || !response?.requesterEmail) {
+                    Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
+                    return restoreToStashed().then(() => DISCONNECT_RESULT.RESTORED_FROM_STASH);
+                }
 
-            clearPreservedSearchNavigatorStates();
+                const requesterEmail = response.requesterEmail;
+                const authToken = response.authToken;
+                return SequentialQueue.waitForIdle()
+                    .then(() =>
+                        restoreDelegateSession({
+                            authToken,
+                            encryptedAuthToken: response.encryptedAuthToken,
+                            accountID: response.requesterID,
+                            email: requesterEmail,
+                            stashedCredentials,
+                            stashedSession,
+                        }),
+                    )
+                    .then(() => DISCONNECT_RESULT.RESTORED);
+            };
 
-            const requesterEmail = response.requesterEmail;
-            const authToken = response.authToken;
-            return SequentialQueue.waitForIdle()
-                .then(() =>
-                    restoreDelegateSession({
-                        authToken,
-                        encryptedAuthToken: response.encryptedAuthToken,
-                        accountID: response.requesterID,
-                        email: requesterEmail,
-                        stashedCredentials,
-                        stashedSession,
-                    }),
-                )
-                .then(() => true);
-        })
-        .catch((error) => {
+            return restoreOriginalSession().catch((error) => {
+                Log.alert('[Delegate] Error restoring the original session after disconnecting as a delegate', {error});
+                return DISCONNECT_RESULT.RESTORE_INTERRUPTED;
+            });
+        },
+        // Only a failed request leaves the copilot session active
+        (error) => {
             Log.alert('[Delegate] Error disconnecting as a delegate', {error});
-            return false;
-        });
+            return DISCONNECT_RESULT.FAILED;
+        },
+    );
 }
 
 function clearDelegatorErrors({delegatedAccess}: ClearDelegatorErrorsParams) {
@@ -688,6 +744,127 @@ function removeDelegator({email, delegatedAccess}: RemoveDelegateParams) {
     });
 }
 
+type RemoveSelfAsDelegateParams = WithStashedCredentials &
+    WithStashedSession & {
+        /** Delegator the copilot is acting as */
+        delegatorEmail: string;
+
+        /** Acting copilot, whose row shows the error if the session can't be ended */
+        delegateEmail: string;
+    };
+
+// Set while removeSelfAsDelegate runs, so resuming a pending removal can't queue it twice
+let isRemovingSelfAsDelegate = false;
+
+/** Queues the restored copilot's removal from the delegator's copilots, clearing the pending removal with it */
+function queueSelfRemovalFromDelegator(delegatorEmail: string) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL,
+            value: null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    errorFields: {
+                        removeDelegator: {
+                            [delegatorEmail]: null,
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                delegatedAccess: {
+                    errorFields: {
+                        removeDelegator: {
+                            [delegatorEmail]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: APIRemoveDelegatorParams = {delegatorEmail};
+
+    // The restored account's delegators aren't known here, so refetch them after the removal
+    API.write(WRITE_COMMANDS.REMOVE_DELEGATOR, parameters, {
+        optimisticData,
+        failureData,
+    });
+    openSecuritySettingsPage();
+}
+
+/**
+ * Removes the acting copilot from the delegator's copilots, restoring the original session first: revoking first
+ * invalidates the token the app runs on, and a kill before the restore persists it. See Expensify/App#93458.
+ * The removal is saved as pending first, so a kill before it is queued doesn't lose it.
+ */
+function removeSelfAsDelegate({delegatorEmail, delegateEmail, stashedCredentials, stashedSession}: RemoveSelfAsDelegateParams) {
+    isRemovingSelfAsDelegate = true;
+    return Onyx.set(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL, delegatorEmail)
+        .then(() => disconnect({stashedCredentials, stashedSession}))
+        .then((disconnectResult) => {
+            // Only a failed request leaves the copilot on the delegator's account
+            if (disconnectResult === DISCONNECT_RESULT.FAILED) {
+                Log.alert('[Delegate] Unable to restore the original session, skipping copilot removal');
+                Onyx.set(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL, null);
+
+                // Still acting as the delegator, so show the error on the copilot's own row
+                Onyx.merge(ONYXKEYS.ACCOUNT, {
+                    delegatedAccess: {
+                        errorFields: {
+                            removeDelegate: {
+                                [delegateEmail]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('delegate.genericError'),
+                            },
+                        },
+                    },
+                });
+                return;
+            }
+
+            queueSelfRemovalFromDelegator(delegatorEmail);
+        })
+        .finally(() => {
+            isRemovingSelfAsDelegate = false;
+        });
+}
+
+type ResumeSelfRemovalAsDelegateParams = {
+    /** Delegator saved as pending by an interrupted removeSelfAsDelegate */
+    delegatorEmail: string;
+
+    /** Whether the session still holds the delegator's restricted token */
+    isDelegateSession: boolean;
+};
+
+/**
+ * Finishes a removeSelfAsDelegate a kill interrupted. Back on their own account, the copilot's removal is queued;
+ * still acting as the delegator, the restore never happened, so the removal counts as cancelled.
+ */
+function resumeSelfRemovalAsDelegate({delegatorEmail, isDelegateSession}: ResumeSelfRemovalAsDelegateParams) {
+    if (isRemovingSelfAsDelegate) {
+        return;
+    }
+
+    if (isDelegateSession) {
+        Onyx.set(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL, null);
+        return;
+    }
+
+    queueSelfRemovalFromDelegator(delegatorEmail);
+}
+
 function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldParams) {
     if (!delegatedAccess) {
         return;
@@ -836,50 +1013,42 @@ function restoreDelegateSession({authToken, encryptedAuthToken, accountID, email
     // Write SESSION before the clear: SESSION is in KEYS_TO_PRESERVE_DELEGATE_ACCESS, so clearing
     // preserves the value at clear time. If we cleared first, an interrupted flow would leave
     // SESSION holding the prior delegate-restricted auth token. See Expensify/App#80073.
-    return (
-        Onyx.set(ONYXKEYS.SESSION, {
-            ...(stashedSession ?? {}),
-            accountID,
-            email,
-            authToken,
-            encryptedAuthToken,
-            creationDate,
-        })
-            .then(() => {
-                NetworkStore.setAuthToken(authToken ?? null);
-                // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
-                // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
-                Pusher.disconnect();
-                return clearOnyxForDelegateTransition();
-            })
-            .then(() => {
-                Onyx.set(ONYXKEYS.CREDENTIALS, {
+    return Onyx.set(ONYXKEYS.SESSION, {
+        ...(stashedSession ?? {}),
+        accountID,
+        email,
+        authToken,
+        encryptedAuthToken,
+        creationDate,
+    })
+        .then(() => {
+            NetworkStore.setAuthToken(authToken ?? null);
+            resetNavigationForDelegateTransition();
+            // Disconnect Pusher before the transition so it cannot keep pushing updates for the delegate
+            // account; it is reinitialized for the restored account after `openApp()`. See Expensify/App#93265.
+            Pusher.disconnect();
+
+            // Seeded with the clear: written after it, an interrupted restore would leave the session without credentials
+            return clearOnyxForDelegateTransition({
+                [ONYXKEYS.CREDENTIALS]: {
                     ...(stashedCredentials ?? {}),
                     accountID,
-                });
-                Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
-                Onyx.set(ONYXKEYS.STASHED_SESSION, {});
+                },
+                [ONYXKEYS.STASHED_CREDENTIALS]: {},
+                [ONYXKEYS.STASHED_SESSION]: {},
+            });
+        })
+        .then(() => {
+            NetworkStore.setIsAuthenticating(false);
 
-                NetworkStore.setIsAuthenticating(false);
-
-                return openApp();
-            })
-            // Reinitialize Pusher for the restored account so realtime updates resume on the correct session.
-            .then(() => requestPusherReinitialize({accountID, email}))
-            .then(() => {
-                // Sync the account switch to the classic mobile app experience of HybridApp; otherwise the
-                // two experiences disagree about which account is active after a reauth-driven restoration.
-                if (!CONFIG.IS_HYBRID_APP || !email || !authToken) {
-                    return;
-                }
-                HybridAppModule.switchAccount({
-                    newDotCurrentAccountEmail: email,
-                    authToken,
-                    policyID: '',
-                    accountID: '',
-                });
-            })
-    );
+            // Sync the account switch to the classic mobile app experience of HybridApp; otherwise the
+            // two experiences disagree about which account is active after a reauth-driven restoration.
+            return loadAccountAfterDelegateTransition({
+                accountID,
+                email,
+                hybridAppAccount: email && authToken ? {newDotCurrentAccountEmail: email, authToken, policyID: '', accountID: ''} : undefined,
+            });
+        });
 }
 
 function openSecuritySettingsPage() {
@@ -888,6 +1057,7 @@ function openSecuritySettingsPage() {
 
 export {
     KEYS_TO_PRESERVE_DELEGATE_ACCESS,
+    DISCONNECT_RESULT,
     connect,
     disconnect,
     clearDelegatorErrors,
@@ -898,6 +1068,8 @@ export {
     updateDelegateRole,
     removeDelegate,
     removeDelegator,
+    removeSelfAsDelegate,
+    resumeSelfRemovalAsDelegate,
     openSecuritySettingsPage,
     clearOnyxForDelegateTransition,
 };

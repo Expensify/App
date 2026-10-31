@@ -1,8 +1,8 @@
 ---
 title: Manage Vendor Matching for Campfire
 description: Learn how Campfire vendor matching assigns vendors to non-reimbursable company card expenses, including automatic matching, manual selection, and which Campfire vendors are eligible.
-keywords: [Campfire, vendor matching, vendor, company card expenses, credit cards, no vendors found, vendor no longer valid]
-internalScope: Audience is workspace admins using the Campfire connection for company card expenses. Covers imported Campfire vendors, automatic and manual vendor assignment, which Campfire vendor records are eligible, and vendors that are no longer valid. Does not cover Campfire connection setup, other Campfire configuration settings, or vendor matching for other accounting connections.
+keywords: [Campfire, vendor matching, vendor, company card expenses, credit cards, default vendor for all company cards, Credit Card Misc, no vendors found, vendor no longer valid]
+internalScope: Audience is workspace admins using the Campfire connection for company card expenses. Covers imported Campfire vendors, automatic and manual vendor assignment, which Campfire vendor records are eligible, default vendor behavior, the Credit Card Misc export fallback, and vendors that are no longer valid. Does not cover Campfire connection setup, other Campfire configuration settings, or vendor matching for other accounting connections.
 order: 4
 ---
 
@@ -42,6 +42,7 @@ The **Vendor** field appears only on non-reimbursable expenses. It isn't shown o
 2. Select **Vendor**.
 3. Search for the vendor by name.
 4. Select the vendor you want to assign.
+5. Select **Save**.
 
 Once a vendor is selected manually, Expensify preserves that selection and won't overwrite it with automatic matching.
 
@@ -51,7 +52,27 @@ Once a vendor is selected manually, Expensify preserves that selection and won't
 2. Select **Vendors**.
 3. Use **Find vendor** to search the list by name.
 
-Vendors are managed in Campfire, so the list is read-only in Expensify and refreshes when the connection syncs.
+Vendors are managed in Campfire, and the list refreshes when the connection syncs. To stop a vendor from appearing in the **Vendor** field on expenses, disable it in the **Enabled** column.
+
+## How to set a default vendor for all company cards in Campfire
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [workspace name]**.
+2. Select **Accounting**.
+3. On the Campfire connection, select **Export**.
+4. Select **Default vendor for all company cards**.
+5. Select a vendor from your imported Campfire vendor list.
+
+The default vendor is used only when an expense doesn't already have a vendor assigned.
+
+## How vendors export to Campfire
+
+When company card expenses are exported, Expensify assigns vendors in the following order:
+
+1. The vendor selected on the expense.
+2. The **Default vendor for all company cards** configured in the Campfire export settings.
+3. A vendor named **Credit Card Misc**, if neither of the above is available.
+
+If no active **Credit Card Misc** vendor exists in Campfire, Expensify reactivates an inactive one or creates a new one on the first export that needs it, and reuses it afterward. Expensify does not set it as your **Default vendor for all company cards**, so that setting stays empty until you choose a vendor yourself.
 
 ## How vendors that are no longer valid affect expenses
 
@@ -63,7 +84,7 @@ Select an active vendor on the expense to clear the error.
 
 ## Do I have to set a vendor?
 
-No. The **Vendor** field is optional. Expensify automatically attempts to match a vendor using your imported Campfire vendor list, and the field can remain blank if no match is found.
+No. The **Vendor** field is optional. Expensify automatically attempts to match a vendor using your imported Campfire vendor list. If no match is found, the field can remain blank, and the expense exports using the **Default vendor for all company cards** configured in your Campfire export settings, or **Credit Card Misc** if no default is set.
 
 ## Does manually assigning a vendor stop automatic matching?
 

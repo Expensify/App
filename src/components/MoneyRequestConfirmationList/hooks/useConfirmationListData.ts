@@ -7,7 +7,7 @@ import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 
-import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
+import {getCategoryDescriptionHint, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import {shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
@@ -18,7 +18,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import type {ConfirmationDistanceState, ConfirmationListData, UseConfirmationListDataParams} from './types';
 
@@ -100,9 +100,9 @@ function useConfirmationListDataWithPolicy({
 
     // In the new manual expense flow the inline fields live in the list footer, so they can be hidden behind the keyboard.
     // We let those fields ask the list to scroll them into view when focused.
-    const scrollFocusedInputIntoView = useCallback((input: MeasurableInput) => {
+    const scrollFocusedInputIntoView = (input: MeasurableInput) => {
         listRef.current?.scrollInputIntoView(input);
-    }, []);
+    };
 
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouCurrencyCode = getCurrency(transaction);
@@ -188,7 +188,12 @@ function useConfirmationListDataWithPolicy({
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
 
-    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, iouCategory, arePolicyRulesEnabled(policy, policyCategories));
+    const areRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
+    const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, iouCategory, areRulesEnabled);
+
+    // Only show the hint when the expense goes to a workspace with Rules on, matching when categories are shown,
+    // so a track expense in Self DM doesn't pick up the hint from the fallback default workspace.
+    const descriptionHint = getCategoryDescriptionHint(policyCategories, iouCategory, (isPolicyExpenseChat || isTypeInvoice) && areRulesEnabled);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -248,6 +253,7 @@ function useConfirmationListDataWithPolicy({
         isTimeRequest,
         routeError,
         canEnterScanFieldsManually,
+        isPolicyExpenseChat,
         partiallyManuallyFilledScanID,
         isReadOnly,
         shouldShowDate,
@@ -279,7 +285,7 @@ function useConfirmationListDataWithPolicy({
     });
 
     const amountDisplay = {amount: amountToBeUsed, formattedAmount, formattedAmountPerAttendee};
-    const requiredFlags = {isCategoryRequired, isMerchantRequired, isDescriptionRequired};
+    const requiredFlags = {isCategoryRequired, isMerchantRequired, isDescriptionRequired, descriptionHint};
     const visibilityFlags = {
         shouldShowSmartScanFields,
         shouldShowAmountField: !isPerDiemRequest,

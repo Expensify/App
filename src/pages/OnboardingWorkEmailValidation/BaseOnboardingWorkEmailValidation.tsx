@@ -5,6 +5,7 @@ import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceOnboarding';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
@@ -40,7 +41,7 @@ import ROUTES from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingWorkEmailValidationProps} from './types';
@@ -80,6 +81,21 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const continueJoinWorkspaceOnboarding = useContinueJoinWorkspaceOnboarding({
+        session,
+        loginList,
+        onboardingValues,
+        onboardingPersonalDetails,
+        introSelected,
+        conciergeReportID,
+        conciergeChat,
+        reportNameValuePairs,
+        delegateAccountID,
+    });
+    const continueJoinWorkspaceOnboardingFromEffect = useEffectEvent(continueJoinWorkspaceOnboarding);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -123,7 +139,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         }
 
         if (onboardingIntent === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
-            Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+            continueJoinWorkspaceOnboardingFromEffect({forceReplace: true});
             return;
         }
 
@@ -210,7 +226,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
         );
     };
 
-    const handleConciergeTaskExit = useCallback(() => {
+    const handleConciergeTaskExit = () => {
         shouldContinueAfterAccountMerge.current = false;
         setOnboardingErrorMessage(null);
         if (!isConciergeTaskFlow) {
@@ -242,16 +258,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles, route}: BaseO
             return;
         }
         returnToOriginReport();
-    }, [
-        account?.delegatedAccess?.delegate,
-        conciergeChat,
-        delegateAccountID,
-        isConciergeTaskFlow,
-        onboardingValues?.isMergingAccountBlocked,
-        returnToOriginReport,
-        validateEmailTaskReport,
-        workEmail,
-    ]);
+    };
 
     return (
         <ScreenWrapper

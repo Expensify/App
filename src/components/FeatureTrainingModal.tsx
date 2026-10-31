@@ -36,6 +36,9 @@ type FeatureTrainingModalProps = {
 
     modalInnerContainerStyle?: ViewStyle;
 
+    /** Whether the modal should close when the user navigates back */
+    shouldHandleNavigationBack?: boolean;
+
     /** Composed feature training content */
     children?: ReactNode;
 };
@@ -47,6 +50,7 @@ function FeatureTrainingModal({
     shouldCloseOnConfirm = true,
     shouldUseScrollView: shouldUseScrollViewProp = false,
     width,
+    shouldHandleNavigationBack,
     children,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
@@ -96,6 +100,7 @@ function FeatureTrainingModal({
             shouldTreatModalAsCovering
             type={onboardingIsMediumOrLargerScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE : CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
             onClose={closeModal}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             innerContainerStyle={{
                 boxShadow: 'none',
                 ...(shouldUseScrollView ? styles.pb0 : styles.pb5),
@@ -131,3 +136,4 @@ function FeatureTrainingModal({
 }
 
 export default FeatureTrainingModal;
+export type {FeatureTrainingModalProps};

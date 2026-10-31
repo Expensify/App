@@ -1,10 +1,11 @@
-import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -39,6 +40,8 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
+import tooltipPlatformStyle from './utils/generators/TooltipStyleUtils/tooltipPlatformStyles';
+import getSearchNarrowHeaderHeight from './utils/getSearchNarrowHeaderHeight';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -310,6 +313,13 @@ const compactPopoverMenuItemBaseStyle = {
 // composerSizeButton and the concierge prompt box so its button column stays in sync.
 const COMPOSER_SIZE_BUTTON_SIZE = 40;
 const COMPOSER_SIZE_BUTTON_MARGIN = 3;
+
+// Shared by receiptPageCountBadge and receiptPageNavigator so the two can't drift apart.
+const RECEIPT_PAGE_BADGE_POSITION = {
+    position: 'absolute' as const,
+    bottom: 12,
+    left: 12,
+};
 
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
@@ -757,20 +767,70 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'visible',
         },
 
+        // Only the mobile web bar uses this; iOS and Android draw native tab bars.
         navigationTabBarContainer: {
-            flexDirection: 'row',
-            height: variables.bottomTabHeight,
-            borderTopWidth: 1,
-            borderTopColor: theme.border,
+            // Grows every tab by the same amount until its label fits, then shares what is left between them, so a long
+            // label gets the room it needs and, once the labels no longer all fit, the long ones truncate to the same
+            // width while the short ones keep theirs.
+            display: 'grid',
+            gridTemplateColumns: `repeat(${variables.floatingTabBarTabCount}, minmax(0, auto))`,
+            // react-native-web defaults alignContent to flex-start, which would leave the row at its content's height.
+            alignContent: 'stretch',
+            height: variables.floatingTabBarHeight,
+            marginHorizontal: variables.floatingTabBarHorizontalInset,
+            borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.appBG,
+            borderWidth: variables.hairlineBorderWidth,
+            borderColor: theme.border,
+            // Insets the row so the selected item's capsule keeps the same margin inside the bar's rounded edge on
+            // every side, past the overhang it reaches beyond the first and last tabs.
+            ...spacing.pv1,
+            paddingHorizontal: spacing.p1.padding + variables.floatingTabBarSelectedOverhang,
+            // Clips each item's hover and press background to the capsule's rounded ends.
+            overflow: 'hidden',
         },
 
+        // A grid item is otherwise never narrower than its label, so the label could not truncate.
+        navigationTabBarSlot: {
+            minWidth: 0,
+        },
+
+        // Stretches every tab to its slot, so a long label truncates inside the slot instead of spilling into its neighbors.
+        navigationTabBarItemNarrow: {
+            alignSelf: 'stretch',
+            paddingHorizontal: variables.floatingTabBarLabelInset,
+        },
+
+        navigationTabBarItemSelected: {
+            backgroundColor: theme.floatingTabBarSelectedBG,
+            borderRadius: variables.componentBorderRadiusCircle,
+            // The extra padding matches the negative margin, so the label keeps the same width selected or not.
+            paddingHorizontal: variables.floatingTabBarLabelInset + variables.floatingTabBarSelectedOverhang,
+            marginHorizontal: -variables.floatingTabBarSelectedOverhang,
+        },
+
+        androidNativeTabBarSpacer: {
+            height: variables.androidNativeTabBarHeight,
+        },
+
+        // The gap between the floating bar and the bottom edge of the screen.
+        floatingTabBarBottomInset: {
+            paddingBottom: variables.floatingTabBarBottomInset,
+        },
+
+        // Used both for a tab's pressable and for the wrapper around its icon and label.
         navigationTabBarItem: {
             height: '100%',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            paddingHorizontal: 4,
+        },
+
+        // Sits the avatar's bottom edge where the glyphs next to it end, inside their box, and lets its extra height
+        // reach above the box, so its label lines up with theirs and is the same distance from the avatar.
+        navigationTabBarAvatar: {
+            marginTop: variables.iconFloatingTabBar - variables.avatarFloatingTabBar - variables.floatingTabBarGlyphBottomInset,
+            marginBottom: variables.floatingTabBarGlyphBottomInset,
         },
 
         navigationTabBarFABItem: {
@@ -1147,6 +1207,15 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.badgeDangerBG,
         },
 
+        badgeOffer: {
+            backgroundColor: theme.badgeOfferBG,
+            borderColor: theme.badgeOfferBG,
+        },
+
+        badgeOfferText: {
+            color: theme.badgeOfferText,
+        },
+
         badgeDangerStrong: {
             backgroundColor: theme.danger,
             borderColor: theme.danger,
@@ -1320,26 +1389,18 @@ const staticStyles = (theme: ThemeColors) =>
          * visually aligned with their editable cells.
          */
         editableCellHeader: {
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            paddingHorizontal: 4,
-        },
-
-        /**
-         * Cancels editableCell's horizontal chrome so the value lines up with a
-         * sibling that has no edit padding, such as a card title under a cardholder name.
-         */
-        editableCellFlushWithSibling: {
-            marginHorizontal: -(variables.editableCellChromeWidth / 2),
+            paddingHorizontal: variables.editableCellPadding,
         },
 
         editableCell: {
             width: '100%',
-            borderWidth: 1,
+            borderWidth: variables.editableCellBorderWidth,
             borderRadius: variables.componentBorderRadius,
             borderColor: 'transparent',
-            padding: 4,
+            padding: variables.editableCellPadding,
             height: 'auto',
             minHeight: variables.editableCellHeight,
             overflow: 'hidden',
@@ -1359,16 +1420,16 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         editableCellEditButtonContainerLeft: {
-            left: 4,
+            left: variables.editableCellPadding,
         },
 
         editableCellEditButtonContainerRight: {
-            right: 4,
+            right: variables.editableCellPadding,
         },
 
         editableCellEditButton: {
-            width: 28,
-            height: 28,
+            width: variables.editableCellEditButtonSize,
+            height: variables.editableCellEditButtonSize,
             borderRadius: variables.componentBorderRadiusCircle,
             backgroundColor: theme.buttonDefaultBG,
             justifyContent: 'center',
@@ -2218,6 +2279,26 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 12,
         },
 
+        optionRowCompactMinHeight: {
+            minHeight: variables.optionRowHeightCompact,
+        },
+
+        // Sits flush against the right edge of a report field whose input has `noRightBorderRadius`, so the input's
+        // right border reads as a divider and the two look like one segmented field.
+        reportFieldDeleteButton: {
+            width: variables.componentSizeLarge,
+            // Matches the input beside it, whose height follows the device font scale
+            height: variables.inputHeight,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: theme.appBG,
+            borderWidth: 1,
+            borderLeftWidth: 0,
+            borderTopRightRadius: variables.componentBorderRadiusNormal,
+            borderBottomRightRadius: variables.componentBorderRadiusNormal,
+            borderColor: theme.bordersBold,
+        },
+
         optionsListSectionHeader: {
             marginTop: 8,
             marginBottom: 4,
@@ -2398,6 +2479,12 @@ const staticStyles = (theme: ThemeColors) =>
         chatFooterFullCompose: {
             height: '100%',
             paddingTop: 20,
+        },
+
+        conciergeAskColumn: {
+            width: '100%',
+            maxWidth: variables.conciergeAskColumnMaxWidth,
+            alignSelf: 'center',
         },
 
         chatItemDraft: {
@@ -2796,6 +2883,10 @@ const staticStyles = (theme: ThemeColors) =>
         tableBorder: {
             borderWidth: 1,
             borderColor: 'transparent',
+        },
+
+        resizeIndicator: {
+            backgroundColor: theme.iconMenu,
         },
 
         tableRowHeightCompact: {
@@ -3342,6 +3433,14 @@ const staticStyles = (theme: ThemeColors) =>
             transform: [{rotate: '180deg'}],
         },
 
+        // Use this instead of `flipUpsideDown` when the element being flipped has asymmetric horizontal padding.
+        // `rotate(180deg)` turns the whole box about its centre, so it mirrors that padding too and the content
+        // visibly slides sideways. Mirroring on the vertical axis leaves the box where it is, and looks identical
+        // for content that is already symmetric left-to-right (a caret, a chevron, a tooltip pointer).
+        flipUpsideDownInPlace: {
+            transform: [{scaleY: -1}],
+        },
+
         navigationScreenCardStyle: {
             height: '100%',
         },
@@ -3881,6 +3980,10 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXXLarge,
         },
 
+        cardLabelTooltipContainer: {
+            maxWidth: variables.modalContentMaxWidth,
+        },
+
         longTermsRow: {
             flexDirection: 'row',
             marginTop: 20,
@@ -4172,10 +4275,39 @@ const staticStyles = (theme: ThemeColors) =>
 
         // Float above the receipt to avoid zooming with it.
         receiptPageCountBadge: {
-            position: 'absolute',
-            bottom: 12,
-            left: 12,
+            ...RECEIPT_PAGE_BADGE_POSITION,
             marginLeft: 0,
+        },
+
+        // The pill grows with its label, so longer translations are never clipped and the buttons' focus outlines stay visible.
+        receiptPageNavigator: {
+            ...RECEIPT_PAGE_BADGE_POSITION,
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.componentSizeSmall,
+            paddingHorizontal: 4,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.badgeDefaultBG,
+        },
+
+        receiptPageNavigatorLabelContainer: {
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // Overlays the hidden widest label that sizes the pill
+        receiptPageNavigatorCurrentLabel: {
+            ...StyleSheet.absoluteFill,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        // A real tap target around the small arrow glyph; react-native-web's Pressable doesn't support hitSlop
+        receiptPageNavigatorButton: {
+            height: 24,
+            width: 24,
+            alignItems: 'center',
+            justifyContent: 'center',
         },
 
         reuseRouteCard: {
@@ -5054,6 +5186,26 @@ const staticStyles = (theme: ThemeColors) =>
             scrollMarginInline: variables.tabSelectorScrollMarginInline,
         },
 
+        // Rows are spaced by each card's top margin so the zero-height fillers add no space. The negative margin cancels the first row's.
+        connectionsGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            columnGap: 12,
+            marginTop: -12,
+        },
+
+        // Cards wrap by their minimum width. Three 26% bases fit a row with the gaps, while a fourth does not.
+        connectionCard: {
+            flexBasis: '26%',
+            minWidth: variables.connectionCardMinWidth,
+        },
+
+        connectionsTabButton: {
+            height: 'auto',
+            paddingVertical: 10,
+            paddingHorizontal: 16,
+        },
+
         tabSelector: {
             flexDirection: 'row',
             paddingHorizontal: 20,
@@ -5676,6 +5828,13 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: bulkActionBarHeight + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
         },
 
+        // Keeps a row the browser scrolls into view, such as one reached with Tab, from settling underneath the bar
+        // (WCAG 2.4.11). The content spacing above only lifts the end of the list clear of it. Applied to the scrolling
+        // container, which is what the browser measures that scroll against.
+        bulkActionBarScrollPadding: {
+            scrollPaddingBottom: bulkActionBarHeight + CONST.BULK_ACTION_BAR.BOTTOM_OFFSET + CONST.BULK_ACTION_BAR.LIST_GAP,
+        },
+
         // Wide enough for a three-digit count, so the bar does not resize as the selection grows past 9 or 99. A
         // selection can cover far more rows than are on screen. Also keeps the width steady while the count loads.
         bulkActionBarCount: {
@@ -6123,6 +6282,10 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 20, // must be greater than floatingCameraButton.zIndex
         },
 
+        twoFARequiredTestToolsHost: {
+            zIndex: 22, // must be greater than twoFARequiredOverlay.zIndex
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -6176,6 +6339,18 @@ const staticStyles = (theme: ThemeColors) =>
 
         agentRulePromptInput: {
             maxHeight: variables.agentRulePromptInputHeight,
+        },
+
+        describeRulePromptInput: {
+            height: variables.describeRulePromptInputHeight,
+        },
+
+        describeNewRulePromptInput: {
+            height: variables.describeNewRulePromptInputHeight,
+        },
+
+        describeRulePromptInputNarrow: {
+            height: variables.textInputAutoGrowMaxHeight,
         },
 
         emptyStateSamlIllustration: {
@@ -6626,6 +6801,16 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.rhpWidth,
         },
 
+        // The floating card is the containing block (translateZ0), so a resizable single RHP's card fills it at whatever width
+        // it is dragged to, independent of the box react-navigation measures (singleRHPStackBox).
+        singleRHPCardInterpolatorStyles: {
+            ...positioning.pFixed,
+            top: 0,
+            right: 0,
+            width: '100%',
+            height: '100%',
+        },
+
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
@@ -6873,26 +7058,43 @@ const staticStyles = (theme: ThemeColors) =>
             ...textVariants.textStrong,
             color: theme.text,
         },
-        chartTooltipWrapper: {
-            alignItems: 'center',
-        },
         chartTooltipBox: {
-            backgroundColor: theme.heading,
-            borderRadius: variables.componentBorderRadiusSmall,
-            paddingVertical: 4,
-            paddingHorizontal: 8,
+            backgroundColor: theme.appBG,
+            borderColor: theme.border,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
+            boxShadow: theme.shadow,
+            padding: 12,
+            rowGap: 8,
+        },
+        chartTooltipLayer: {
+            ...tooltipPlatformStyle,
+            zIndex: variables.tooltipZIndex,
+        },
+        chartTooltipOrigin: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+        },
+        chartTooltipTitle: {
+            ...textVariants.labelStrong,
+            color: theme.text,
         },
         chartTooltipText: {
-            color: theme.textReversed,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: variables.lineHeightSmall,
-            whiteSpace: 'nowrap',
+            ...textVariants.label,
+            color: theme.text,
         },
-        chartTooltipPointer: {
-            width: 0,
-            height: 0,
-            backgroundColor: theme.transparent,
-            borderStyle: 'solid',
+        chartTooltipDot: {
+            borderRadius: '50%',
+            width: 8,
+            height: 8,
+        },
+        chartTooltipAverageDash: {
+            width: 7,
+            height: 1,
+            borderRadius: 0.5,
+            backgroundColor: theme.text,
+            opacity: VictoryTheme.averageLine.opacity,
         },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
@@ -6909,8 +7111,8 @@ const staticStyles = (theme: ThemeColors) =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            marginHorizontal: variables.qrShareHorizontalPadding,
-            marginTop: variables.qrShareHorizontalPadding,
+            marginHorizontal: variables.pieChartLegendMargin,
+            marginTop: variables.pieChartLegendMargin,
             flexDirection: 'row',
             flexWrap: 'wrap',
             rowGap: 8,
@@ -6930,6 +7132,36 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: '50%',
             width: 12,
             height: 12,
+        },
+        // `getPieChartLoadingHeight` sizes the loading chart from the responsive legend styles below, so update it with them.
+        pieChartResponsiveRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            columnGap: VictoryTheme.pie.legendGap,
+        },
+        pieChartResponsiveColumn: {
+            flexDirection: 'column',
+            alignItems: 'center',
+        },
+        pieChartLegendSide: {
+            width: VictoryTheme.pie.legendMinWidth,
+            justifyContent: 'center',
+            rowGap: VictoryTheme.pie.legendRowGap,
+        },
+        pieChartLegendBelow: {
+            alignSelf: 'stretch',
+            marginTop: VictoryTheme.pie.legendStackGap,
+            rowGap: VictoryTheme.pie.legendRowGap,
+        },
+        pieChartLegendRow: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            columnGap: 8,
+        },
+        pieChartLegendDotColumn: {
+            height: variables.lineHeightXLarge,
+            justifyContent: 'center',
         },
         chartInlineTable: {
             marginTop: 32,
@@ -6956,6 +7188,83 @@ const staticStyles = (theme: ThemeColors) =>
 
 const dynamicStyles = (theme: ThemeColors) =>
     ({
+        // Fixed width so the stack never re-measures mid-drag, and always rendered because adding or removing it remounts the stack.
+        singleRHPStackBox: (isResizable: boolean) =>
+            (isResizable
+                ? {
+                      ...positioning.pAbsolute,
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      width: variables.rhpWidth,
+                  }
+                : flex.flex1) satisfies ViewStyle,
+
+        // Straddles the left edge of the single RHP card (RHPFloatingCard), which shares its containing block.
+        rhpResizeHandle: (singleRHPWidth: number) =>
+            ({
+                ...positioning.pAbsolute,
+                top: variables.rhpFloatingCardMargin,
+                bottom: variables.rhpFloatingCardMargin,
+                width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+            }) satisfies ViewStyle,
+
+        // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
+        // content that runs under the footer.
+        offlineIndicatorAboveFooter: (footerHeight: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom: footerHeight,
+                left: 0,
+                zIndex: variables.searchFooterZIndex,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
+        // Fills the screen from the top of the tab bar down to the bottom edge, so no content shows between the
+        // offline indicator and the bar.
+        tabBarOfflineIndicator: (tabBarCoveredHeight: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                left: 0,
+                height: CONST.OFFLINE_INDICATOR_HEIGHT + tabBarCoveredHeight,
+                paddingBottom: tabBarCoveredHeight,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
+        // Runs a footer's background down under the tab bar that covers the bottom of a tab root screen, so the
+        // footer's content sits above the bar.
+        tabRootFooter: (tabBarCoveredHeight: number) =>
+            ({
+                paddingBottom: tabBarCoveredHeight,
+                backgroundColor: theme.appBG,
+            }) satisfies ViewStyle,
+
+        // Zero-height strip anchored above the native tab bar, so the floating buttons can be positioned
+        // against it without taking part in the tab screen's layout.
+        nativeTabBarFloatingButtons: (bottom: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom,
+                left: 0,
+                height: 0,
+            }) satisfies ViewStyle,
+
+        // Covers Material's bar and the gesture inset under it, and casts the shadow up over the screen content.
+        androidNativeTabBarShadow: (bottomInset: number) =>
+            ({
+                position: 'absolute',
+                right: 0,
+                bottom: 0,
+                left: 0,
+                height: variables.androidNativeTabBarHeight + bottomInset,
+                boxShadow: theme.androidTabBarShadow,
+            }) satisfies ViewStyle,
+
         getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
@@ -7338,6 +7647,16 @@ const dynamicStyles = (theme: ThemeColors) =>
             };
         },
 
+        getCardAuthenticationModalInnerView: (shouldUseNarrowLayout: boolean) =>
+            ({
+                flex: 1,
+                margin: shouldUseNarrowLayout ? 0 : 20,
+                borderRadius: shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge,
+                overflow: 'hidden',
+                boxShadow: shouldUseNarrowLayout ? undefined : theme.shadow,
+                backgroundColor: theme.componentBG,
+            }) satisfies ViewStyle,
+
         getTestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
             justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
         }),
@@ -7368,7 +7687,7 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
-            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+            paddingTop: getSearchNarrowHeaderHeight(hasFilterBars),
         }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
@@ -7545,6 +7864,10 @@ const plainStyles = (theme: ThemeColors) =>
         },
         searchTopBarZIndexStyle: {
             zIndex: variables.searchTopBarZIndex,
+        },
+
+        searchFooterZIndexStyle: {
+            zIndex: variables.searchFooterZIndex,
         },
 
         getWidgetContainerTitleStyle: (color: string) =>

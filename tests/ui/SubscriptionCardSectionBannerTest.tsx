@@ -8,6 +8,9 @@ import CardSection from '@pages/settings/Subscription/CardSection/CardSection';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+
+import type * as NativeNavigation from '@react-navigation/native';
 
 import {addDays, format} from 'date-fns';
 import React from 'react';
@@ -20,6 +23,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {
         navigate: jest.fn(),
         goBackToHome: jest.fn(),
+    },
+}));
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useRoute: () => {
+        const SCREENS_MOCK = jest.requireActual<{default: typeof SCREENS}>('@src/SCREENS').default;
+        return {key: 'test-key', name: SCREENS_MOCK.SETTINGS.SUBSCRIPTION.ROOT};
     },
 }));
 

@@ -3,8 +3,10 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import useOnyx from '@hooks/useOnyx';
 
+import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -21,11 +23,11 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 const isFocused = useIsFocused();
                 const [isSwitchingToDelegator] = useOnyx(ONYXKEYS.IS_SWITCHING_TO_DELEGATOR);
                 const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);
-                const shouldRedirect = isAgent === true && !isAlreadyOnRedirectTarget;
+                const shouldRedirect = isAgent === true && !isSwitchingToDelegator && !isAlreadyOnRedirectTarget;
                 const shouldShowNotFoundPage = !isSwitchingToDelegator && isAgent === true;
 
                 const redirectAgentAway = useCallback(() => {
-                    if (isAgent !== true) {
+                    if (isAgent !== true || isSwitchingToDelegator) {
                         return;
                     }
 
@@ -46,6 +48,13 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                                 forceReplace: true,
                             });
                         };
+                        const resetWorkspaceTabAndNavigateToHome = () => {
+                            Navigation.popRootToTop();
+                            Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(), {
+                                forceReplace: true,
+                                afterTransition: () => Navigation.navigate(ROUTES.HOME),
+                            });
+                        };
 
                         // The guarded screen can be open inside a modal/RHP (e.g. the agent-edit page the owner was
                         // on when they tapped "Copilot into account"), or an unguarded RHP (e.g. the agent DM) can be
@@ -59,9 +68,15 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                             return;
                         }
 
+                        const topmostFullScreenRoute = getTopmostFullScreenRoute();
+                        if (topmostFullScreenRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR || topmostFullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                            resetWorkspaceTabAndNavigateToHome();
+                            return;
+                        }
+
                         redirectToProfile();
                     });
-                }, [isAgent]);
+                }, [isAgent, isSwitchingToDelegator]);
 
                 // Redirect on every focus (not just the initial transition from false to true) so navigating back
                 // onto a guarded screen that the split navigator keeps mounted (e.g. a stale agents route

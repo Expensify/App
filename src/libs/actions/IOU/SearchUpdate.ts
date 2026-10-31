@@ -1,9 +1,10 @@
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryJSON} from '@components/Search/types';
 
-import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
+import {getTransactionDisplayAmount, isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchSuggestionUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
+import {getCurrency} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
@@ -92,17 +93,23 @@ function shouldOptimisticallyUpdateSearch(
 
     const validSearchTypes =
         (!isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (isInvoice && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.INVOICE) ||
         (iouReport?.type === CONST.REPORT.TYPE.EXPENSE && currentSearchQueryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
 
+    // The Spend footer's selections restrict nothing — they pick which figures the footer prints — so the query is judged
+    // as if they were not there, and a new expense still lands on the list, which matters most offline.
+    const FOOTER_FILTER_KEYS = new Set<SearchFilterKey>([
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+        CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+    ]);
+    const flatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key));
+
     // `status` and `policyID` are regular filters now, but they used to be root keys. They are already accounted for by the
     // status/policyID checks above, so they don't count as restrictive flat filters when deciding whether to optimistically update.
-    const hasNoFlatFilters = currentSearchQueryJSON.flatFilters.every(
-        (filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS || filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-    );
+    const hasNoFlatFilters = flatFilters.every((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS || filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
 
-    const onlyFromFilter = currentSearchQueryJSON.flatFilters.length === 1 ? currentSearchQueryJSON.flatFilters.at(0) : undefined;
+    const onlyFromFilter = flatFilters.length === 1 ? flatFilters.at(0) : undefined;
     const matchesFromQuery: boolean =
         onlyFromFilter?.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM &&
         onlyFromFilter.filters.some((f) => f.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && String(f.value) === String(currentUserAccountID));
@@ -241,11 +248,15 @@ function getSearchOnyxUpdate({
         if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.FROM && !alreadyInSnapshot) {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}${fromAccountID}` as const;
             const existingGroup = existingSnapshot?.data?.[groupKey];
+
+            // The group total is in the group's currency, so we can't add an amount in a different currency to it
+            const transactionCurrency = getCurrency(transaction);
+            const isSameCurrencyAsGroup = !existingGroup?.currency || transactionCurrency === existingGroup.currency;
             snapshotData[groupKey] = {
                 accountID: fromAccountID,
                 count: (existingGroup?.count ?? 0) + 1,
-                total: (existingGroup?.total ?? 0) + (transaction.amount ?? 0),
-                currency: existingGroup?.currency ?? transaction.currency ?? CONST.CURRENCY.USD,
+                total: (existingGroup?.total ?? 0) + (isSameCurrencyAsGroup ? getTransactionDisplayAmount(transaction, iouReport, policy) : 0),
+                currency: existingGroup?.currency ?? transactionCurrency,
             };
         }
 

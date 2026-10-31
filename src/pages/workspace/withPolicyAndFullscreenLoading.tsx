@@ -2,6 +2,7 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
@@ -40,9 +41,10 @@ function WithPolicyAndFullscreenLoadingImpl<TProps extends WithPolicyAndFullscre
 }: WithPolicyAndFullscreenLoadingImplProps<TProps>) {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [personalDetails] = useAllPersonalDetails();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
 
     return (
