@@ -4352,6 +4352,20 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 20,
         },
 
+        receiptScanningLine: {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            borderTopWidth: CONST.RECEIPT.TRANSLATION_SCAN_LINE_HEIGHT,
+            borderTopColor: theme.success,
+        },
+
+        translatedReceiptCard: {
+            width: '100%',
+            maxWidth: 400,
+        },
+
         bgGreenSuccess: {
             backgroundColor: colors.green400,
         },

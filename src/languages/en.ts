@@ -1517,6 +1517,14 @@ const translations = {
         addAdditionalReceipt: 'Add additional receipt',
         scanFailed: "The receipt couldn't be scanned, as it's missing a merchant, date, or amount.",
         crop: 'Crop',
+        translate: 'Translate',
+        viewOriginal: 'View original',
+        translationDisclaimer: 'AI can make mistakes. Please double-check the original.',
+        translationError: {
+            unreadable: "We couldn't read this receipt clearly enough to translate it.",
+            sameLanguage: 'This receipt is already in your language.',
+            generic: "We couldn't translate this receipt. Please try again.",
+        },
         pageCount: ({page, pageCount}: {page: number; pageCount: number}) => `Page ${page} of ${pageCount}`,
         addAReceipt: {
             phrase1: 'Add a receipt',
