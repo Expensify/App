@@ -1,5 +1,3 @@
-import MobileBackgroundImage from '@assets/images/home-background--mobile.svg';
-
 import {useSession} from '@components/OnyxListItemProvider';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -11,14 +9,14 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
 
-import type {ImageProps as ExpoImageProps} from 'expo-image';
-import type {ImageSourcePropType} from 'react-native';
-
 import {Image} from 'expo-image';
 import React, {useEffect, useState} from 'react';
 import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
 import type BackgroundImageProps from './types';
+
+// The native bundler registers this SVG as a numeric asset for Expo Image.
+const MobileBackgroundImage = require<number>('@assets/images/home-background--mobile.svg');
 
 function BackgroundImage({width}: BackgroundImageProps) {
     const styles = useThemeStyles();
@@ -65,10 +63,10 @@ function BackgroundImage({width}: BackgroundImageProps) {
         <Reanimated.View style={[styles.signInBackground, StyleUtils.getWidthStyle(width), animatedStyle]}>
             <Image
                 accessibilityIgnoresInvertColors
-                source={MobileBackgroundImage as ImageSourcePropType}
+                source={MobileBackgroundImage}
                 onLoadEnd={() => setOpacityAnimation()}
                 pointerEvents="none"
-                style={[styles.signInBackground, StyleUtils.getWidthStyle(width) as ExpoImageProps['style']]}
+                style={[styles.signInBackground, {width}]}
                 transition={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
             />
         </Reanimated.View>
