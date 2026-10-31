@@ -15481,6 +15481,45 @@ describe('ReportUtils', () => {
             expect(canInviteMembersToReport(groupChat, undefined, false, otherAccountID)).toBe(true);
         });
 
+        it('only lets the customer and assigned rep invite on an open support ticket', () => {
+            // Given a ticket with a customer, assigned rep, and invited participant
+            const supportTicket: Report = {
+                ...createRandomReport(80206, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                participants: buildParticipantsFromAccountIDs([submitterAccountID, otherAccountID, 80003]),
+            };
+
+            // When invite permissions are checked for each role
+            // Then only the customer and assigned rep can invite, regardless of workspace role
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, adminPolicy, false, 80003)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, 80004)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, undefined)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, true, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks the customer and assigned rep from inviting on a closed support ticket', () => {
+            // Given a ticket that has been resolved
+            const supportTicket: Report = {
+                ...createRandomReport(80207, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+
+            // When either authorized inviter opens its Members page
+            // Then inviting is unavailable while the ticket is closed
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(false);
+        });
+
         it('lets the submitter invite on an open expense report', () => {
             // Given an open expense report owned by the current user on a workspace where they are only a member
             // Then the submitter can invite

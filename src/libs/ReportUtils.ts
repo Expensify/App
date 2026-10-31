@@ -1922,10 +1922,19 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
  *
  * Any member of a group chat can invite. On an expense report an invited member gains visibility of every expense on it,
  * so inviting is limited to the submitter and policy admins, and only while the report is still open.
+ * On an open support ticket, only the customer and assigned support rep can invite.
  */
 function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean, currentUserAccountID?: number): boolean {
-    if (isReportArchived || isSupportTicket(report)) {
+    if (isReportArchived) {
         return false;
+    }
+    if (isSupportTicket(report)) {
+        return (
+            report?.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
+            report.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
+            !!currentUserAccountID &&
+            (report.ownerAccountID === currentUserAccountID || report.managerID === currentUserAccountID)
+        );
     }
     if (isGroupChat(report)) {
         return true;
