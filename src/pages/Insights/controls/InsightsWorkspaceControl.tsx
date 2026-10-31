@@ -8,6 +8,7 @@ import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspace
 import {advancedSearchPoliciesSelector, useAdvancedSearchFiltersWorkspaces} from '@hooks/useAdvancedSearchFilters';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +30,7 @@ type InsightsWorkspacePopupProps = {
 };
 
 function InsightsWorkspacePopup({label, value, onChange, closeOverlay}: InsightsWorkspacePopupProps) {
+    const styles = useThemeStyles();
     const [selectedPolicyIDs, setSelectedPolicyIDs] = useState(value);
 
     const applyChanges = () => {
@@ -44,6 +46,7 @@ function InsightsWorkspacePopup({label, value, onChange, closeOverlay}: Insights
     return (
         <BasePopup
             label={label}
+            style={styles.pt2}
             onApply={applyChanges}
             onReset={resetChanges}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_MULTI_SELECT}
@@ -53,6 +56,7 @@ function InsightsWorkspacePopup({label, value, onChange, closeOverlay}: Insights
                 <WorkspaceSelector
                     value={selectedPolicyIDs}
                     onChange={(policyIDs) => setSelectedPolicyIDs(policyIDs ?? [])}
+                    shouldShowActiveSectionTitle={false}
                 />
             </ListFilterHeightContextProvider>
         </BasePopup>
