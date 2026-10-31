@@ -74,7 +74,7 @@ type ColumnsSettingsListProps = {
     /** Callback fired when the user resets the columns. When provided, it replaces resetting the selection in place */
     onReset?: () => void;
 
-    /** Whether to show the reset columns link when `onReset` is provided */
+    /** Whether to show the reset columns link */
     shouldShowResetColumns?: boolean;
 
     /** The active Search type, used to resolve type-specific column labels */
@@ -91,7 +91,7 @@ function ColumnsSettingsList({
     defaultGroupColumns = [],
     onSave,
     onReset,
-    shouldShowResetColumns = false,
+    shouldShowResetColumns,
     type,
 }: ColumnsSettingsListProps) {
     const theme = useTheme();
@@ -243,7 +243,7 @@ function ColumnsSettingsList({
         onSave(selectedColumnIds);
     };
 
-    const isResetColumnsVisible = onReset ? shouldShowResetColumns : !isDefaultState;
+    const isResetColumnsVisible = shouldShowResetColumns ?? !isDefaultState;
 
     const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
         return (
