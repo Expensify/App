@@ -104,7 +104,6 @@ jest.mock('@libs/ComponentUtils', () => jest.requireActual<typeof ComponentUtils
 jest.mock('@libs/Navigation/TransitionTracker', () => ({runAfterTransitions: jest.fn(() => ({cancel: jest.fn<void, []>()}))}));
 jest.mock('@libs/canFocusInputOnScreenFocus', () => () => false);
 jest.mock('@libs/willBlurTextInputOnTapOutside', () => () => false);
-jest.mock('@pages/Share/getFileSize', () => () => Promise.resolve(7));
 jest.mock('@pages/inbox/report/ReportActionEditMessageContext', () => ({
     useReportActionActiveEditActions: () => ({
         setEditingMessage: jest.fn<
@@ -462,8 +461,8 @@ describe('Composer imperative refs', () => {
         expect(Object.keys(absent)).toEqual(Object.keys(handle));
     });
 
-    it('preserves native clear values and MIME-derived attachment filenames', async () => {
-        // Given clipboard files without extensions rely on their MIME type, while plain text is ignored.
+    it('preserves native clear values and passes pasted files through', () => {
+        // Given native code already resolves each pasted file's name, MIME type, and size, and pastes text by itself.
         mockMarkdownInput = createMock<TextInput>({isFocused: () => false});
         const onClear = jest.fn<ReturnType<NonNullable<ComposerProps['onClear']>>, Parameters<NonNullable<ComposerProps['onClear']>>>();
         const onPasteFile = jest.fn<ReturnType<NonNullable<ComposerProps['onPasteFile']>>, Parameters<NonNullable<ComposerProps['onPasteFile']>>>();
@@ -481,18 +480,22 @@ describe('Composer imperative refs', () => {
             throw new Error('Expected native clear and paste callbacks');
         }
 
-        // When native notifications pass through Composer without a ref wrapper.
-        await act(async () => {
+        const files = [
+            {uri: 'file:///tmp/PastedFiles/1/IMG_0001.heic', name: 'IMG_0001.heic', type: 'image/heic', size: 2048},
+            {uri: 'file:///tmp/PastedFiles/2/Report.pdf', name: 'Report.pdf', type: 'application/pdf', size: 4096},
+        ];
+
+        // When native notifications pass through Composer without a ref wrapper, including a paste whose files couldn't be read.
+        act(() => {
             clear(createMock<Parameters<typeof clear>[0]>({nativeEvent: {text: 'draft'}}));
-            paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'text/plain', data: 'hello'}]}}));
-            paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {items: [{type: 'image/png', data: 'file:///photo'}]}}));
-            await Promise.resolve();
+            paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {files: []}}));
+            paste(createMock<Parameters<typeof paste>[0]>({nativeEvent: {files}}));
         });
 
-        // Then text absence is not coerced and the attachment keeps its MIME-derived extension and observed size.
+        // Then the empty paste opens nothing and all files reach the attachment flow unchanged, in pasting order.
         expect(onClear).toHaveBeenCalledWith('draft');
         expect(onPasteFile).toHaveBeenCalledTimes(1);
-        expect(onPasteFile).toHaveBeenCalledWith({uri: 'file:///photo', name: 'photo.png', type: 'image/png', size: 7});
+        expect(onPasteFile).toHaveBeenCalledWith(files);
     });
 
     it.each([
