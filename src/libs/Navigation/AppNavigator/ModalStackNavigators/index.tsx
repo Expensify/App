@@ -1039,6 +1039,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireExistingConnectionsPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_OAUTH]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/DigitsOAuthPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXISTING_CONNECTIONS]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/DigitsExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/import/CampfireImportPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/export/CampfireExportPage').default,

@@ -104,6 +104,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'BusinessCentralSquare',
         'ZohoBooksSquare',
     ]);
@@ -503,9 +504,11 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
+        // Digits import, export, and advanced screens are added in a later release, so hide their entry points until then.
+        const shouldShowConfigurationOptions = canWriteAccounting && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.DIGITS;
         // Zoho Books export and advanced screens are added in a later release, so hide their entry points until then.
         const shouldShowExportAndAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
-        const configurationOptions = canWriteAccounting
+        const configurationOptions = shouldShowConfigurationOptions
             ? [
                   {
                       icon: icons.Pencil,
