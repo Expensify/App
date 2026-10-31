@@ -27,7 +27,7 @@ type NavigationTabBarAvatarProps = {
 function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {status} = useAccountTabIndicatorStatus();
 
     const accountAccessibilityState = {selected: isSelected};
@@ -49,9 +49,10 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
                         styles.navigationTabBarItem,
                         shouldUseNarrowLayout && styles.navigationTabBarItemNarrow,
                         shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected,
+                        isInLandscapeMode && [styles.flexRow, styles.gap1Half],
                     ]}
                 >
-                    <View style={shouldUseNarrowLayout ? styles.navigationTabBarAvatar : styles.tn0Half}>
+                    <View style={!isInLandscapeMode && (shouldUseNarrowLayout ? styles.navigationTabBarAvatar : styles.tn0Half)}>
                         <AccountNavigationAvatar
                             // The floating bar marks the selected tab with a pill behind the whole item, so the
                             // avatar's own ring would double up on it. The side bar has no pill and keeps it.
@@ -66,7 +67,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
                             styles.textSmall,
                             styles.textAlignCenter,
                             isSelected ? styles.textBold : styles.textSupporting,
-                            shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half,
+                            !isInLandscapeMode && (shouldUseNarrowLayout ? styles.mt1 : styles.mt0Half),
                             styles.navigationTabBarLabel,
                         ]}
                     >

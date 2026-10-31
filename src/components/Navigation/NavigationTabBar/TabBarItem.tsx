@@ -34,11 +34,18 @@ function getIconFill(isSelected: boolean, isHovered: boolean, theme: ReturnType<
 function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicatorColor, numberOfLines = 2}: TabBarItemProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const iconSize = shouldUseNarrowLayout ? variables.iconFloatingTabBar : variables.iconBottomBar;
 
     return (
-        <View style={[styles.navigationTabBarItem, shouldUseNarrowLayout && styles.navigationTabBarItemNarrow, shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected]}>
+        <View
+            style={[
+                styles.navigationTabBarItem,
+                shouldUseNarrowLayout && styles.navigationTabBarItemNarrow,
+                shouldUseNarrowLayout && isSelected && styles.navigationTabBarItemSelected,
+                isInLandscapeMode && [styles.flexRow, styles.gap1Half],
+            ]}
+        >
             <View>
                 <Icon
                     src={icon}
@@ -55,7 +62,7 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                 style={[
                     styles.textSmall,
                     styles.textAlignCenter,
-                    shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half,
+                    !isInLandscapeMode && (shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half),
                     isSelected ? styles.textBold : styles.textSupporting,
                     styles.navigationTabBarLabel,
                 ]}
