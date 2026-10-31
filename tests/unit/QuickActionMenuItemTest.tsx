@@ -204,7 +204,7 @@ describe('QuickActionMenuItem', () => {
         );
         await waitForBatchedUpdates();
 
-        // getIcons only returns the Concierge icon for a thread when it knows which report is the Concierge DM, so it has to arrive in the last slot.
-        expect(mockGetIcons.mock.calls.at(-1)?.at(11)).toBe(CONCIERGE_REPORT_ID);
+        // getIcons only returns the Concierge icon for a thread when it knows which report is the Concierge DM, so it has to be passed in.
+        expect(mockGetIcons).toHaveBeenLastCalledWith(expect.objectContaining({conciergeReportID: CONCIERGE_REPORT_ID}));
     });
 });

@@ -33,7 +33,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReportsDefaultTitleModalForm';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE>;
@@ -58,20 +58,17 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     // The default report title is a single-line value, so show any title saved with line breaks on one line.
     const customNameDefaultValue = StringUtils.lineBreaksToSpaces(Str.htmlDecode(titleField?.defaultValue ?? ''));
 
-    const validateCustomName = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
-            // Validate the same single-line value that submitForm saves.
-            const defaultTitle = StringUtils.lineBreaksToSpaces(values.defaultTitle).trim();
-            if (!defaultTitle) {
-                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
-            } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
-                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', defaultTitle.length, CONST.REPORT_TITLE_FORMULA_LIMIT);
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validateCustomName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
+        // Validate the same single-line value that submitForm saves.
+        const defaultTitle = StringUtils.lineBreaksToSpaces(values.defaultTitle).trim();
+        if (!defaultTitle) {
+            errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
+        } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
+            errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', defaultTitle.length, CONST.REPORT_TITLE_FORMULA_LIMIT);
+        }
+        return errors;
+    };
 
     const clearTitleFieldError = () => {
         clearPolicyTitleFieldError(policyID);

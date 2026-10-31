@@ -21,10 +21,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useState} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 function ImportTransactionsPage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
@@ -35,15 +37,15 @@ function ImportTransactionsPage() {
     const [flipAmountSign, setFlipAmountSign] = useState(importedSpreadsheet?.importTransactionSettings?.flipAmountSign ?? false);
     const [shouldShowError, setShouldShowError] = useState(false);
 
-    const navigateToCardNameSelection = useCallback(() => {
+    const navigateToCardNameSelection = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_CARD_NAME);
-    }, []);
+    };
 
-    const navigateToCurrencySelection = useCallback(() => {
+    const navigateToCurrencySelection = () => {
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_CURRENCY);
-    }, []);
+    };
 
-    const handleNext = useCallback(() => {
+    const handleNext = () => {
         if (!cardDisplayName) {
             setShouldShowError(true);
             return;
@@ -52,7 +54,7 @@ function ImportTransactionsPage() {
         setImportTransactionSettings(cardDisplayName, currency, isReimbursable, flipAmountSign);
         // No cardID = creating a new card
         Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute());
-    }, [cardDisplayName, currency, isReimbursable, flipAmountSign]);
+    };
 
     const shouldShowCardDisplayNameError = shouldShowError && !cardDisplayName;
 
@@ -65,7 +67,7 @@ function ImportTransactionsPage() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}>
                 <View>
                     <Text style={[styles.textNormal, styles.mh5, styles.mb5]}>{translate('workspace.companyCards.importTransactions.description')}</Text>
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(navigateToCardNameSelection)}>
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(navigateToCardNameSelection, false, session)}>
                         <MenuItemField.Row
                             name={translate('workspace.companyCards.importTransactions.cardDisplayName')}
                             value={cardDisplayName || undefined}
