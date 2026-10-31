@@ -1351,7 +1351,6 @@ function setDraftSplitTransaction(
               policies,
               isSplitTransaction: true,
               personalPolicyOutputCurrency,
-              getCurrencyDecimals,
               getCurrencySymbol,
           })
         : null;

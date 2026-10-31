@@ -25,6 +25,7 @@ import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -74,6 +75,10 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
+    // Category rules come from the rules collection, which only a GetRules call fills. This page is reachable
+    // without passing one that makes it, so without this the section reads empty on a fresh session.
+    useRulesPrefetch();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
@@ -84,6 +89,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         : getCategoryContextualRules({
               policy,
               policyCategories,
+              policyRules: rules,
               category: policyCategory,
               categoryName: policyCategory.name,
               translate,
@@ -383,6 +389,8 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     <MenuItem
                                         icon={expensifyIcons.Bolt}
                                         title={rule.summary}
+                                        description={rule.conditionSummary}
+                                        shouldShowDescriptionOnTop={false}
                                         numberOfLinesTitle={3}
                                         shouldShowBasicTitle
                                         onPress={() => navigateToCategoryRule(rule.dynamicRoutePath)}
