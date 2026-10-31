@@ -41,7 +41,7 @@ import {isHiddenForCurrentUser, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithPreservedSort, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     beginSearchRouterQuerySession,
@@ -416,9 +416,15 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const submitSearch = (queryString: SearchQueryString, shouldSkipAmountConversion = false) => {
         const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions, currentUserAccountID, getPersonalDetailsByLogin());
-        const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, policies);
+        let updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, shouldSkipAmountConversion, policies);
         if (!updatedQuery) {
             return;
+        }
+
+        // Readable input omits sorting. Restore it only for edits to the active saved search,
+        // not when selecting a separate search suggestion with its own query.
+        if (isFromSearchPageSearchButton && !shouldSkipAmountConversion && searchKeyToSavedSearchID(currentSearchKey) && currentSearchQueryJSON) {
+            updatedQuery = getQueryWithPreservedSort(updatedQuery, currentSearchQueryJSON, queryWithSubstitutions);
         }
 
         // Reset the search query flag when performing a new search
