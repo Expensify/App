@@ -128,6 +128,7 @@ const WRITE_COMMANDS = {
     LINK_PLAID_TO_BANK_ACCOUNT: 'LinkPlaidToBankAccount',
     ADD_PERSONAL_BANK_ACCOUNT: 'AddPersonalBankAccount',
     CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT: 'CreateCollectOnlyDepositAccount',
+    CREATE_WITHDRAWAL_ABA_ACCOUNT: 'CreateWithdrawalABAAccount',
     UPDATE_PERSONAL_BANK_ACCOUNT_INFO: 'UpdatePersonalBankAccountInfo',
     UPDATE_BANK_ACCOUNT: 'UpdateBankAccount',
     RESTART_BANK_ACCOUNT_SETUP: 'RestartBankAccountSetup',
@@ -940,6 +941,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.LINK_PLAID_TO_BANK_ACCOUNT]: Parameters.LinkPlaidToBankAccountParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
     [WRITE_COMMANDS.CREATE_COLLECT_ONLY_DEPOSIT_ACCOUNT]: Parameters.CreateCollectOnlyDepositAccountParams;
+    [WRITE_COMMANDS.CREATE_WITHDRAWAL_ABA_ACCOUNT]: Parameters.CreateWithdrawalABAAccountParams;
     [WRITE_COMMANDS.UPDATE_PERSONAL_BANK_ACCOUNT_INFO]: Parameters.UpdatePersonalBankAccountInfoParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
     [WRITE_COMMANDS.INITIATE_BANK_ACCOUNT_UNLOCK]: Parameters.InitiateBankAccountUnlockParams;

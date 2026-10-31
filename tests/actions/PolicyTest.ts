@@ -5836,6 +5836,51 @@ describe('actions/Policy', () => {
             expect(policy?.achAccount?.bankAccountID).toBe(FAKE_BANK_ACCOUNT_ID);
         });
 
+        it('does not make an ABA account the workspace bank account', async () => {
+            // Given a workspace without a bank account, and an AU account that's only used to pay with ABA files
+            mockFetch?.pause?.();
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.id = FAKE_POLICY_ID;
+            fakePolicy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+            fakePolicy.achAccount = undefined;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the ABA account is connected to the workspace
+            Policy.setWorkspaceReimbursement({
+                policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                bankAccountID: FAKE_BANK_ACCOUNT_ID,
+                reimburserEmail: FAKE_REIMBURSER_EMAIL,
+                accountNumber: FAKE_ACCOUNT_NUMBER,
+                addressName: FAKE_ADDRESS_NAME,
+                bankName: FAKE_BANK_NAME,
+                state: FAKE_BANK_STATE,
+                bankAccountList: {
+                    [FAKE_BANK_ACCOUNT_ID]: {
+                        methodID: FAKE_BANK_ACCOUNT_ID,
+                        bankCurrency: CONST.CURRENCY.AUD,
+                        bankCountry: CONST.COUNTRY.AU,
+                        accountData: {bankAccountID: FAKE_BANK_ACCOUNT_ID, state: FAKE_BANK_STATE, additionalData: {isForABA: true}},
+                    },
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then it isn't shown as the account Expensify pays from while the request is in flight, since Expensify can't pay from it
+            let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            expect(policy?.achAccount).toBeUndefined();
+            expect(policy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
+
+            // And it still isn't once the request succeeds
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+            policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`);
+            expect(policy?.achAccount).toBeUndefined();
+        });
+
         it('does not send the request when the selected bank account is already the workspace bank account', async () => {
             // Given a workspace that already points at the selected account, which lists the workspace in its policyIDs
             const fakePolicy = createRandomPolicy(0);
