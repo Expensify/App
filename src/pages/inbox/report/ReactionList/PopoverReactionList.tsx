@@ -3,6 +3,7 @@ import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {getEmojiReactionDetails, mergeReactionsByEmoji} from '@libs/EmojiUtils';
 
@@ -30,6 +31,8 @@ type PopoverReactionListProps = {
 
 function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPosition, anchorRef, onClose}: PopoverReactionListProps) {
     const {accountID} = useCurrentUserPersonalDetails();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
 
@@ -65,9 +68,11 @@ function PopoverReactionList({isVisible, emojiName, reportActionID, anchorPositi
             fullscreen
             anchorRef={anchorRef}
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <BaseReactionList
                 isVisible
+                addBottomSafeAreaPadding={isSmallScreenWidth}
                 users={users}
                 emojiName={emojiName}
                 emojiCodes={emojiCodes}

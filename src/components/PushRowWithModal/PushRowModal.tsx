@@ -91,10 +91,11 @@ function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, on
             onModalHide={handleClose}
             shouldUseCustomBackdrop
             shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID="PushRowModal"
             >
                 <HeaderWithBackButton
@@ -114,6 +115,7 @@ function PushRowModal({isVisible, selectedOptions, canSelectMultiple = false, on
                     disableMaintainingScrollPosition
                     shouldShowTooltips={false}
                     showScrollIndicator
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>

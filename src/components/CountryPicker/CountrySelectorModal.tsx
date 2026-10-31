@@ -69,11 +69,12 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
             onClose={onClose}
             onModalHide={onClose}
             onBackdropPress={onBackdropPress}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID="CountrySelectorModal"
             >
                 <HeaderWithBackButton
@@ -90,6 +91,7 @@ function CountrySelectorModal({isVisible, currentCountry, onCountrySelected, onC
                     initiallyFocusedItemKey={initialSelectedValue}
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>
