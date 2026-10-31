@@ -1,11 +1,11 @@
 import {changeMoneyRequestHoldStatus, getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest} from '@libs/actions/IOU/Hold';
-import * as Hold from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+// eslint-disable-next-line no-restricted-imports -- namespace import only types jest.requireActual for the PolicyUtils mock, so there is no runtime use of the billing helper
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessage, getSortedReportActions} from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -817,8 +817,6 @@ describe('actions/IOU/Hold', () => {
             jest.mocked(Navigation.navigate).mockClear();
             const heldTransaction = {...transaction, comment: {...transaction.comment, hold: 'holdActionID'}};
 
-            const unholdRequestSpy = jest.spyOn(Hold, 'unholdRequest').mockImplementation(() => undefined);
-
             // When the hold status is changed
             changeMoneyRequestHoldStatus({
                 reportAction: iouAction,
@@ -834,12 +832,9 @@ describe('actions/IOU/Hold', () => {
                 delegateAccountID: undefined,
                 rules: undefined,
             });
-
-            expect(unholdRequestSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: iouAction.childReportID, transactionReport: iouReport, report: transactionThread}));
-
             await waitForBatchedUpdates();
 
-            // Then an unhold action is added to the transaction thread and no navigation happens
+            // Then an unhold action is added to the transaction thread report the IOU action points at, and no navigation happens
             const threadActions = await getReportActions(transactionThread.reportID);
             const unholdAction = Object.values(threadActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD);
             expect(unholdAction).toBeDefined();
