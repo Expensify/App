@@ -37,7 +37,7 @@ const INCORPORATION_CASES = {
     COOPERATIVE: {incorporationType: 'COOPERATIVE', incorporationState: 'WA'},
     SOLE_PROPRIETORSHIP: {incorporationType: 'SOLE_PROPRIETORSHIP', incorporationState: 'CA'},
     OTHER: {incorporationType: 'OTHER', incorporationState: 'NY'},
-} satisfies Record<keyof typeof CONST.INCORPORATION_TYPES, Pick<CompanyStepProps, 'incorporationType' | 'incorporationState'>>;
+} as const satisfies Record<keyof typeof CONST.INCORPORATION_TYPES, Pick<CompanyStepProps, 'incorporationType' | 'incorporationState'>>;
 
 async function renderBusinessConfirmation(draft: Partial<ReimbursementAccountForm> = {}, shouldSeedAccount = true) {
     await act(async () => {
@@ -96,6 +96,17 @@ describe('ConfirmationBusiness incorporation summary and confirmation', () => {
         // Then every picker type key and representative state keys have their production labels
         expect(screen.getByText(translateLocal(`businessInfoStep.incorporationType.${incorporation.incorporationType}`))).toBeOnTheScreen();
         expect(screen.getByText(translateLocal(`allStates.${incorporation.incorporationState}.stateName`))).toBeOnTheScreen();
+    });
+
+    it('shows no incorporation type for a saved value without a label', async () => {
+        // Given a saved value that is not one of the picker's type keys
+        // When the summary rows render
+        await renderBusinessConfirmation({incorporationType: 'Corp', incorporationState: 'NY'});
+
+        // Then the row has no raw translation path, and the state label still renders
+        expect(screen.queryByText('businessInfoStep.incorporationType.Corp')).toBeNull();
+        expect(screen.queryByText(translateLocal('businessInfoStep.incorporationType.CORPORATION'))).toBeNull();
+        expect(screen.getByText(translateLocal('allStates.NY.stateName'))).toBeOnTheScreen();
     });
 
     it('falls back to ACH incorporation when the draft omits the fields', async () => {

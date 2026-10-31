@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {hasKey} from '@libs/ObjectUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -20,7 +21,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 const BUSINESS_INFO_STEP_KEYS = INPUT_IDS.BUSINESS_INFO_STEP;
 const BUSINESS_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.BUSINESS_INFO;
@@ -43,20 +44,17 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS], translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, [BUSINESS_INFO_STEP_KEYS.HAS_NO_CONNECTION_TO_CANNABIS], translate);
 
-            if (!values.hasNoConnectionToCannabis) {
-                errors.hasNoConnectionToCannabis = translate('bankAccount.error.restrictedBusiness');
-            }
+        if (!values.hasNoConnectionToCannabis) {
+            errors.hasNoConnectionToCannabis = translate('bankAccount.error.restrictedBusiness');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const values = useMemo(() => getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = getSubStepValues(BUSINESS_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount);
     const incorporationType = values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE];
     const incorporationState = values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE];
 
@@ -105,7 +103,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_TYPE);
                 }}
-                value={incorporationType ? translate(`businessInfoStep.incorporationType.${incorporationType}`) : undefined}
+                value={hasKey(CONST.INCORPORATION_TYPES, incorporationType) ? translate(`businessInfoStep.incorporationType.${incorporationType}`) : undefined}
             />
             <MenuItemField
                 name={translate('businessInfoStep.incorporationDate')}

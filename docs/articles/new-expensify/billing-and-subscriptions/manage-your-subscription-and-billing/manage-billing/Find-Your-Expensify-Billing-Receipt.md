@@ -25,7 +25,8 @@ If a billing receipt is added to a report, other Workspace Admins can also view 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) go to **Account > Subscription**.
 2. Select **View payment history**.
-3. Select any expense to view its billing receipt.
+3. Select a payment.
+4. Select **View receipt**.
 
 ![Account > Subscription page with the "View payment history" link/button highlighted]({{site.url}}/assets/images/ExpensiHelp-Find-Your-Expensify-Billing-Receipt.png){:width="100%"}
 

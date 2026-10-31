@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -30,14 +30,12 @@ function ReportDetailsMenuGoToRoomItem({reportID}: ReportDetailsMenuGoToRoomItem
     }
 
     return (
-        <MenuItem
+        <MenuItemNavigation
             title={translate('reportDetailsPage.goToRoom')}
             icon={expensifyIcons.Hashtag}
             onPress={() => {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report?.reportID));
             }}
-            isAnonymousAction={false}
-            shouldShowRightIcon
         />
     );
 }

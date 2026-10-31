@@ -1,4 +1,3 @@
-import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -208,7 +207,7 @@ type CompanyStepProps = {
     [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_PHONE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_WEBSITE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.COMPANY_TAX_ID]: string;
-    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]: keyof typeof CONST.INCORPORATION_TYPES | '';
+    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE]: keyof typeof COMMON_CONST.STATES | '';
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_CODE]: string;

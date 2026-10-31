@@ -12,12 +12,10 @@ function useTouchPinnedTooltip(hideTooltip: () => void) {
     /** True while a tooltip opened by a touch tap is shown */
     const [isTouchPinned, setIsTouchPinned] = useState(false);
 
-    const dismissTouchTooltip = () => {
+    const dismissTooltip = () => {
         hideTooltip();
         setIsTouchPinned(false);
     };
-
-    const onTooltipDismiss = isTouchPinned ? dismissTouchTooltip : undefined;
 
     const onTapFinalize = (e: {pointerType: PointerType; canceled: boolean}) => {
         'worklet';
@@ -25,20 +23,18 @@ function useTouchPinnedTooltip(hideTooltip: () => void) {
         if (!e.canceled || e.pointerType !== PointerType.TOUCH || !isTouchPinned) {
             return;
         }
-        scheduleOnRN(dismissTouchTooltip);
+        scheduleOnRN(dismissTooltip);
     };
 
     return {
         /** Sets whether the tooltip is pinned by a touch tap */
         setIsTouchPinned,
         /** Hides the tooltip and unpins it */
-        dismissTouchTooltip,
-        /** Hides the pinned tooltip, undefined while nothing is pinned */
-        onTooltipDismiss,
+        dismissTooltip,
         /** Pass to the tap gesture's onFinalize */
         onTapFinalize,
         /** Marks a touch on this chart, so the screen's touch start keeps the tooltip and lets the tap switch it */
-        onChartTouchStart: () => markChartTouch(onTooltipDismiss),
+        onChartTouchStart: () => markChartTouch(dismissTooltip),
     };
 }
 
