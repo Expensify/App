@@ -63,6 +63,7 @@ function TransactionPreviewContent({
     report,
     policy,
     transaction,
+    displayTransaction,
     violations,
     transactionRawAmount,
     offlineWithFeedbackOnClose,
@@ -87,7 +88,7 @@ function TransactionPreviewContent({
     const {environmentURL} = useEnvironment();
     const buildDynamicRoute = useScreenBoundDynamicRoute();
     const isParentPolicyExpenseChat = isPolicyExpenseChat(chatReport);
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, policy, isParentPolicyExpenseChat) ?? {};
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(displayTransaction, undefined, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     // Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked

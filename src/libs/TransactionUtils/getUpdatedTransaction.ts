@@ -135,6 +135,7 @@ function getUpdatedTransaction({
     policy = undefined,
     policies = undefined,
     isSplitTransaction = false,
+    shouldApplyCommuterExclusion = true,
     personalPolicyOutputCurrency,
     getCurrencyDecimals,
     getCurrencySymbol,
@@ -146,6 +147,7 @@ function getUpdatedTransaction({
     policy?: OnyxEntry<Policy>;
     policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
+    shouldApplyCommuterExclusion?: boolean;
     personalPolicyOutputCurrency: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
@@ -228,15 +230,16 @@ function getUpdatedTransaction({
                 lodashSet(updatedTransaction, 'comment.customUnit.routeDistanceMeters', distanceInMeters);
             }
 
-            const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
-                ? DistanceRequestUtils.getTransactionCommuterExclusionData({
-                      transaction: updatedTransaction,
-                      policy,
-                      storedCustomUnit: transaction?.comment?.customUnit,
-                      personalPolicyOutputCurrency,
-                      hasTripChanged: waypointsActuallyChanged,
-                  })
-                : undefined;
+            const commuterExclusionTransactionData =
+                shouldApplyCommuterExclusion && hasAppliedCommuterExclusion(updatedTransaction)
+                    ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                          transaction: updatedTransaction,
+                          policy,
+                          storedCustomUnit: transaction?.comment?.customUnit,
+                          personalPolicyOutputCurrency,
+                          hasTripChanged: waypointsActuallyChanged,
+                      })
+                    : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
@@ -347,14 +350,15 @@ function getUpdatedTransaction({
             // The commuter exclusion is expressed in distance units, so it has to be re-derived against the new
             // rate's unit and the converted quantity. The amount and merchant then describe the reimbursable
             // distance, matching what the backend stores for modifiedAmount/modifiedMerchant.
-            const commuterExclusionTransactionData = hasAppliedCommuterExclusion(updatedTransaction)
-                ? DistanceRequestUtils.getTransactionCommuterExclusionData({
-                      transaction: updatedTransaction,
-                      policy,
-                      storedCustomUnit: transaction?.comment?.customUnit,
-                      personalPolicyOutputCurrency,
-                  })
-                : undefined;
+            const commuterExclusionTransactionData =
+                shouldApplyCommuterExclusion && hasAppliedCommuterExclusion(updatedTransaction)
+                    ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+                          transaction: updatedTransaction,
+                          policy,
+                          storedCustomUnit: transaction?.comment?.customUnit,
+                          personalPolicyOutputCurrency,
+                      })
+                    : undefined;
 
             if (commuterExclusionTransactionData) {
                 lodashSet(updatedTransaction, 'comment.customUnit', commuterExclusionTransactionData.customUnit);
@@ -373,7 +377,9 @@ function getUpdatedTransaction({
                 DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 
-            updatedTransaction.amount = updatedAmount;
+            if (!commuterExclusionTransactionData) {
+                updatedTransaction.amount = updatedAmount;
+            }
             updatedTransaction.modifiedAmount = updatedAmount;
             updatedTransaction.modifiedMerchant = updatedMerchant;
             updatedTransaction.modifiedCurrency = updatedCurrency;

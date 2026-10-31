@@ -15,7 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import type {Card, Policy, Report, ReviewDuplicates, Transaction} from '../../src/types/onyx';
-import type {Routes, TransactionCustomUnit} from '../../src/types/onyx/Transaction';
+import type {Routes, TransactionChanges, TransactionCustomUnit} from '../../src/types/onyx/Transaction';
 import type {TransactionViolation} from '../../src/types/onyx/TransactionViolation';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -1165,6 +1165,122 @@ describe('TransactionUtils', () => {
             },
         );
 
+        it('does not apply a saved commuter exclusion when changing a distance rate in Self DM', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            custom: {customUnitRateID: 'custom', currency: CONST.CURRENCY.USD, rate: 0.02},
+                            default: {customUnitRateID: 'default', currency: CONST.CURRENCY.USD, rate: 1.5},
+                        },
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'custom',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 1.97,
+                        commuterExclusion: 1,
+                        reimbursableDistance: 0.97,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+                currency: CONST.CURRENCY.USD,
+            });
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                shouldApplyCommuterExclusion: false,
+                policy: fakePolicy,
+                transactionChanges: {customUnitRateID: 'default'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            expect(updatedTransaction.modifiedAmount).toBe(3);
+            expect(updatedTransaction.modifiedMerchant).toBe('1.97 mi @ $0.015 / mi');
+        });
+
+        it('preserves the full amount through offline workspace distance and rate edits', () => {
+            // Given a workspace expense with a one-mile commuter exclusion and separate full/reduced snapshots
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0),
+                commuterExclusions: {
+                    method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    fixedDistance: 1,
+                    fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rateA: {customUnitRateID: 'rateA', currency: CONST.CURRENCY.USD, rate: 100},
+                            rateB: {customUnitRateID: 'rateB', currency: CONST.CURRENCY.USD, rate: 200},
+                        },
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    },
+                },
+            };
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: -1015,
+                modifiedAmount: -915,
+                currency: CONST.CURRENCY.USD,
+                merchant: '10.15 mi @ $1.00 / mi',
+                modifiedMerchant: '9.15 mi @ $1.00 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rateA',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10.15,
+                        commuterExclusion: 1,
+                        reimbursableDistance: 9.15,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+            });
+            const updateWorkspaceTransaction = (transactionToUpdate: Transaction, transactionChanges: TransactionChanges) =>
+                TransactionUtils.getUpdatedTransaction({
+                    transaction: transactionToUpdate,
+                    isFromExpenseReport: true,
+                    policy: fakePolicy,
+                    transactionChanges,
+                    personalPolicyOutputCurrency: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                });
+
+            // When offline optimistic edits change the distance away and back, then switch rate A to B and back to A
+            const longerTransaction = updateWorkspaceTransaction(transaction, {distance: 11.15});
+            const originalDistanceTransaction = updateWorkspaceTransaction(longerTransaction, {distance: 10.15});
+            const rateBTransaction = updateWorkspaceTransaction(originalDistanceTransaction, {customUnitRateID: 'rateB'});
+            const restoredRateATransaction = updateWorkspaceTransaction(rateBTransaction, {customUnitRateID: 'rateA'});
+            const personalDisplayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction: restoredRateATransaction,
+                isPolicyExpenseChat: false,
+                policy: fakePolicy,
+                translate: (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters),
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the workspace keeps its reduced amount while Self DM can restore the preserved full snapshot
+            expect(rateBTransaction.amount).toBe(-1015);
+            expect(rateBTransaction.modifiedAmount).toBe(-1830);
+            expect(restoredRateATransaction.modifiedAmount).toBe(-915);
+            expect(personalDisplayTransaction?.amount).toBe(-1015);
+            expect(personalDisplayTransaction?.merchant).toBe('10.15 mi @ $1.00 / mi');
+        });
+
         it('does not apply a newly enabled commuter exclusion when a historical manual distance is changed', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
@@ -1506,7 +1622,11 @@ describe('TransactionUtils', () => {
             }
         });
 
-        it('preserves the saved commuter exclusion when recalculating edited waypoints', () => {
+        it.each([
+            {context: 'with commuter exclusion enabled by default', shouldApplyCommuterExclusion: undefined, expectedAmount: 170, expectedDistance: 17},
+            {context: 'in Self DM with commuter exclusion disabled', shouldApplyCommuterExclusion: false, expectedAmount: 200, expectedDistance: 20},
+        ])('recalculates edited waypoints $context', ({shouldApplyCommuterExclusion, expectedAmount, expectedDistance}) => {
+            // Given a saved three-mile deduction and a policy that still enables commuter exclusion
             const fakePolicy: Policy = {
                 ...createRandomPolicy(0),
                 commuterExclusions: {
@@ -1538,16 +1658,24 @@ describe('TransactionUtils', () => {
                 },
             });
 
+            // When new waypoints and route geometry replace the original ten-mile trip with a twenty-mile trip
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
                 transaction,
                 isFromExpenseReport: false,
+                shouldApplyCommuterExclusion,
                 policy: fakePolicy,
                 transactionChanges: {
                     waypoints: {waypoint0: {address: 'New A'}, waypoint1: {address: 'New B'}},
                     routes: {
                         route0: {
                             distance: 32186.88,
-                            geometry: {coordinates: [[0, 0]], type: 'LineString'},
+                            geometry: {
+                                coordinates: [
+                                    [0, 0],
+                                    [0.1, 0.1],
+                                ],
+                                type: 'LineString',
+                            },
                         },
                     },
                 },
@@ -1556,8 +1684,18 @@ describe('TransactionUtils', () => {
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
-            expect(updatedTransaction.comment?.customUnit).toMatchObject({quantity: 20, commuterExclusion: 3, reimbursableDistance: 17});
-            expect(updatedTransaction.modifiedAmount).toBe(170);
+            // Then Self DM restores the entire new trip and clears deductions; the default behavior preserves the saved exclusion
+            expect(updatedTransaction.comment?.customUnit?.quantity).toBe(20);
+            expect(updatedTransaction.comment?.customUnit?.routeDistanceMeters).toBe(32186.88);
+            expect(updatedTransaction.modifiedAmount).toBe(expectedAmount);
+            expect(updatedTransaction.modifiedMerchant).toBe(`${expectedDistance.toFixed(2)} mi @ $0.10 / mi`);
+            if (shouldApplyCommuterExclusion === false) {
+                expect(updatedTransaction.comment?.customUnit?.commuterExclusion).toBeNull();
+                expect(updatedTransaction.comment?.customUnit?.reimbursableDistance).toBeNull();
+                expect(updatedTransaction.comment?.customUnit?.commuterExclusionMethod).toBeNull();
+            } else {
+                expect(updatedTransaction.comment?.customUnit).toMatchObject({commuterExclusion: 3, reimbursableDistance: 17});
+            }
         });
 
         it('does not carry a home and office exclusion onto edited waypoints', () => {
@@ -1949,6 +2087,24 @@ describe('TransactionUtils', () => {
             },
         };
 
+        const historicalTransaction = generateTransaction({
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+            amount: -12158,
+            modifiedAmount: -11758,
+            currency: 'AFN',
+            merchant: '60.79 mi @ Af2.00 / mi',
+            modifiedMerchant: '58.79 mi @ Af2.00 / mi',
+            comment: {
+                customUnit: {
+                    customUnitRateID: 'rate1',
+                    quantity: 60.79,
+                    reimbursableDistance: 58.79,
+                    commuterExclusion: 2,
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            },
+        });
+
         it('rebuilds full-route amount and merchant for personal distance expenses with commuter metadata', () => {
             const transaction = generateTransaction({
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
@@ -1988,6 +2144,431 @@ describe('TransactionUtils', () => {
             expect(displayTransaction.merchant).not.toContain('5.46 mi');
             expect(displayTransaction.modifiedMerchant).toBeUndefined();
             expect(displayTransaction.currency).toBe(CONST.CURRENCY.USD);
+        });
+
+        it('rebuilds a rounded full-route amount when a low rate makes historical rate inference ambiguous', () => {
+            // Given a low-rate expense whose full and commuter-reduced totals both lose precision when rounded to cents
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 3,
+                modifiedAmount: 1,
+                currency: CONST.CURRENCY.USD,
+                merchant: '1.97 mi @ $0.015 / mi',
+                modifiedMerchant: '0.97 mi @ $0.015 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 1.97,
+                        reimbursableDistance: 0.97,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+            const lowRatePolicy: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {
+                                customUnitRateID: 'rate1',
+                                currency: CONST.CURRENCY.USD,
+                                rate: 1.5,
+                            },
+                        },
+                    },
+                },
+            };
+
+            // When the commuter exclusion is removed for display in a personal report
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: lowRatePolicy,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the exact resolved rate identifies the reduced cent as automatic and restores the rounded full total
+            expect(displayTransaction?.amount).toBe(3);
+            expect(displayTransaction?.merchant).toBe('1.97 mi @ $0.015 / mi');
+            expect(displayTransaction?.modifiedAmount).toBeUndefined();
+            expect(displayTransaction?.modifiedMerchant).toBeUndefined();
+        });
+
+        it.each([
+            {fromLocale: CONST.LOCALES.EN, toLocale: CONST.LOCALES.FR, savedRateText: '$0.50', liveRate: 50},
+            {fromLocale: CONST.LOCALES.FR, toLocale: CONST.LOCALES.EN, savedRateText: '$0,50', liveRate: 50},
+            {fromLocale: CONST.LOCALES.EN, toLocale: CONST.LOCALES.FR, savedRateText: '$0.50', liveRate: 100},
+            {fromLocale: CONST.LOCALES.FR, toLocale: CONST.LOCALES.EN, savedRateText: '$0,50', liveRate: 100},
+        ])('keeps the full amount from $fromLocale to $toLocale with live rate $liveRate after a manual distance edit', ({fromLocale, toLocale, savedRateText, liveRate}) => {
+            // Given a saved expense whose manual distance edit left an old base merchant and a rounded commuter amount
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 541,
+                modifiedAmount: -2,
+                currency: CONST.CURRENCY.USD,
+                modifiedCurrency: CONST.CURRENCY.USD,
+                merchant: `10.82 mi @ ${savedRateText} / mi`,
+                modifiedMerchant: `0.03 mi @ ${savedRateText} / mi`,
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'custom',
+                        quantity: 1.03,
+                        reimbursableDistance: 0.03,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+            const customRatePolicy: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {custom: {customUnitRateID: 'custom', currency: CONST.CURRENCY.USD, rate: liveRate}},
+                    },
+                },
+            };
+            const currentLocale = jest.spyOn(IntlStore, 'getCurrentLocale');
+
+            // When Self DM renders the saved transaction before and after switching languages
+            currentLocale.mockReturnValue(fromLocale);
+            const originalDisplay = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: customRatePolicy,
+                translate: (path, ...parameters) => translateWithLocale(fromLocale, path, ...parameters),
+                getCurrencySymbol: () => '$',
+            });
+            currentLocale.mockReturnValue(toLocale);
+            const translatedDisplay = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: customRatePolicy,
+                translate: (path, ...parameters) => translateWithLocale(toLocale, path, ...parameters),
+                getCurrencySymbol: () => '$',
+            });
+            currentLocale.mockRestore();
+
+            // Then both locales use the selected rate, not a ratio of the already rounded two cents
+            expect(originalDisplay?.amount).toBe(-52);
+            expect(translatedDisplay?.amount).toBe(-52);
+            if (liveRate !== 50) {
+                expect(originalDisplay?.merchant).toBe(`1.03 mi @ ${savedRateText} / mi`);
+                expect(translatedDisplay?.merchant).toBe(`1.03 mi @ ${savedRateText} / mi`);
+            }
+        });
+
+        it('preserves the restored amount for a saved ISO currency prefix when currency data loads', () => {
+            // Given a reduced snapshot saved with an ISO currency prefix and a rounded two-cent amount
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 541,
+                modifiedAmount: -2,
+                currency: CONST.CURRENCY.USD,
+                merchant: '10.82 mi @ USD 0.50 / mi',
+                modifiedMerchant: '0.03 mi @ USD 0.50 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'custom',
+                        quantity: 1.03,
+                        reimbursableDistance: 0.03,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+
+            // When the same saved transaction renders before and after its currency symbol loads
+            const displays = [undefined, '$'].map((symbol) =>
+                TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    translate: (path, ...parameters) => translateWithLocale(CONST.LOCALES.EN, path, ...parameters),
+                    getCurrencySymbol: () => symbol,
+                }),
+            );
+
+            // Then loading currency data does not change the restored total or historical rate
+            for (const display of displays) {
+                expect(display?.amount).toBe(-52);
+                expect(display?.merchant).toBe('1.03 mi @ USD 0.50 / mi');
+            }
+        });
+
+        it('keeps the saved transaction when the rate currency has the same symbol', () => {
+            // Given a saved CNY distance expense whose current policy rate uses JPY, which shares the same currency symbol
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                amount: 415,
+                modifiedAmount: 415,
+                currency: 'CNY',
+                merchant: '5.46 mi @ ¥0.76 / mi',
+                modifiedMerchant: '5.46 mi @ ¥0.76 / mi',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        quantity: 6.46,
+                        reimbursableDistance: 5.46,
+                        commuterExclusion: 1,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                },
+            });
+            const policyWithMatchingCurrencySymbol: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {
+                                customUnitRateID: 'rate1',
+                                currency: 'JPY',
+                                rate: 76,
+                            },
+                        },
+                    },
+                },
+            };
+
+            // When the personal-report display attempts to rebuild the full-route values
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithMatchingCurrencySymbol,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then it keeps the saved transaction to avoid silently replacing CNY values with JPY values
+            expect(displayTransaction).toBe(transaction);
+        });
+
+        it.each([
+            {fullDistance: 2.06, reducedDistance: 1.06, amount: 3, modifiedAmount: -2, liveRate: 2, expectedAmount: -3},
+            {fullDistance: 56.64, reducedDistance: 55.64, amount: 85, modifiedAmount: -83, liveRate: 2, expectedAmount: -85},
+            {fullDistance: 2.06, reducedDistance: 1.06, amount: 3, modifiedAmount: -2, liveRate: 100, expectedAmount: -3},
+            {fullDistance: 2.06, reducedDistance: 1.06, amount: 3, modifiedAmount: -50, liveRate: 2, expectedAmount: -50},
+            {fullDistance: 2.06, reducedDistance: 1.06, amount: -2, modifiedAmount: -2, liveRate: 2, expectedAmount: -2},
+        ])(
+            'validates paired snapshots at $fullDistance miles with live rate $liveRate and modified amount $modifiedAmount',
+            ({fullDistance, reducedDistance, amount, modifiedAmount, liveRate, expectedAmount}) => {
+                // Given matching historical rate labels, including manual-override and pre-sync reduced-only controls
+                const transaction = generateTransaction({
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    amount,
+                    modifiedAmount,
+                    currency: CONST.CURRENCY.USD,
+                    merchant: `${fullDistance.toFixed(2)} mi @ $0.015 / mi`,
+                    modifiedMerchant: `${reducedDistance.toFixed(2)} mi @ $0.015 / mi`,
+                    comment: {
+                        customUnit: {
+                            customUnitRateID: 'rate1',
+                            quantity: fullDistance,
+                            reimbursableDistance: reducedDistance,
+                            commuterExclusion: 1,
+                            distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        },
+                    },
+                });
+                const policy: Policy = {
+                    ...policyWithDistanceRate,
+                    customUnits: {
+                        distance: {
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            customUnitID: 'distance',
+                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            rates: {rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: liveRate}},
+                        },
+                    },
+                };
+
+                // When Self DM normalizes the expense after the workspace rate changes
+                const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                    transaction,
+                    isPolicyExpenseChat: false,
+                    policy,
+                    translate,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                });
+
+                // Then only verified full/reduced pairs restore the full amount; other saved amounts remain protected
+                expect(displayTransaction?.amount).toBe(expectedAmount);
+                expect(displayTransaction?.merchant).toBe(transaction.merchant);
+                expect(displayTransaction?.modifiedAmount).toBeUndefined();
+            },
+        );
+
+        it('preserves the saved rate when the workspace rate changes', () => {
+            // Given a personal distance expense saved at Af2 per mile before its workspace rate changed to Af3
+            const policyWithChangedRate: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            rate1: {
+                                customUnitRateID: 'rate1',
+                                currency: 'AFN',
+                                rate: 300,
+                            },
+                        },
+                    },
+                },
+            };
+
+            // When the commuter exclusion is removed for display in a personal report
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction: historicalTransaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithChangedRate,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the full route uses the saved Af2 rate instead of repricing the expense at Af3
+            expect(displayTransaction?.amount).toBe(-12158);
+            expect(displayTransaction?.merchant).toBe('60.79 mi @ Af2.00 / mi');
+            expect(displayTransaction?.modifiedAmount).toBeUndefined();
+            expect(displayTransaction?.modifiedMerchant).toBeUndefined();
+        });
+
+        it('preserves a selected custom rate after the live custom rate changes', () => {
+            // Given an expense whose base fields use the old default rate while its modified fields contain the selected custom rate
+            const transactionAfterSelectingCustomRate = generateTransaction({
+                ...historicalTransaction,
+                amount: -18237,
+                merchant: '60.79 mi @ Af3.00 / mi',
+                modifiedAmount: -4468,
+                modifiedMerchant: '58.79 mi @ Af0.76 / mi',
+                comment: {
+                    customUnit: {
+                        ...historicalTransaction.comment?.customUnit,
+                        customUnitRateID: 'customRate',
+                    },
+                },
+            });
+            const policyWithChangedCustomRate: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            customRate: {
+                                customUnitRateID: 'customRate',
+                                currency: 'AFN',
+                                rate: 900,
+                            },
+                        },
+                    },
+                },
+            };
+
+            // When the personal-report display is rebuilt after the live custom rate changes from Af0.76 to Af9
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction: transactionAfterSelectingCustomRate,
+                isPolicyExpenseChat: false,
+                policy: policyWithChangedCustomRate,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the full route retains the selected Af0.76 rate instead of using the live Af9 rate
+            expect(displayTransaction?.amount).toBe(-4620);
+            expect(displayTransaction?.merchant).toBe('60.79 mi @ Af0.76 / mi');
+            expect(displayTransaction?.modifiedAmount).toBeUndefined();
+            expect(displayTransaction?.modifiedMerchant).toBeUndefined();
+        });
+
+        it('preserves the reassigned default rate when saved fields already contain the full route', () => {
+            // Given an expense reassigned to the default rate after its custom rate was deleted, leaving full-route values alongside commuter metadata
+            const transactionReassignedToDefaultRate = generateTransaction({
+                ...historicalTransaction,
+                amount: -18237,
+                modifiedAmount: -18237,
+                merchant: '60.79 mi @ Af3.00 / mi',
+                modifiedMerchant: '60.79 mi @ Af3.00 / mi',
+                comment: {
+                    customUnit: {
+                        ...historicalTransaction.comment?.customUnit,
+                        customUnitRateID: 'defaultRate',
+                    },
+                },
+            });
+            const policyWithUpdatedDefaultRate: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {
+                            defaultRate: {
+                                customUnitRateID: 'defaultRate',
+                                currency: 'AFN',
+                                rate: 100,
+                            },
+                        },
+                    },
+                },
+            };
+
+            // When the expense returns to the personal report and the live default rate has changed from Af3 to Af1
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction: transactionReassignedToDefaultRate,
+                isPolicyExpenseChat: false,
+                policy: policyWithUpdatedDefaultRate,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the already-saved full-route Af3 values remain authoritative
+            expect(displayTransaction?.amount).toBe(-18237);
+            expect(displayTransaction?.merchant).toBe('60.79 mi @ Af3.00 / mi');
+            expect(displayTransaction?.modifiedAmount).toBeUndefined();
+            expect(displayTransaction?.modifiedMerchant).toBeUndefined();
+        });
+
+        it('restores the saved full-route values when the workspace rate was deleted', () => {
+            // Given a personal distance expense whose original workspace rate no longer exists
+            const policyWithoutRate: Policy = {
+                ...policyWithDistanceRate,
+                customUnits: {
+                    distance: {
+                        ...policyWithDistanceRate.customUnits?.distance,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        rates: {},
+                    },
+                },
+            };
+
+            // When the commuter exclusion is removed for display in a personal report
+            const displayTransaction = TransactionUtils.getDisplayTransactionWithoutInvalidCommuterExclusion({
+                transaction: historicalTransaction,
+                isPolicyExpenseChat: false,
+                policy: policyWithoutRate,
+                translate,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the saved full-route amount and merchant are restored without the missing policy rate
+            expect(displayTransaction?.amount).toBe(-12158);
+            expect(displayTransaction?.merchant).toBe('60.79 mi @ Af2.00 / mi');
+            expect(displayTransaction?.modifiedAmount).toBeUndefined();
+            expect(displayTransaction?.modifiedMerchant).toBeUndefined();
         });
 
         it('returns an ordinary transaction unchanged when no commuter exclusion is applied', () => {

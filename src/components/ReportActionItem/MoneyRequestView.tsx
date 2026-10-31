@@ -25,7 +25,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
+import useDisplayTransaction from '@hooks/useDisplayTransaction';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -67,7 +67,6 @@ import {
     canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
     findVendorByID,
-    getDistanceRateCustomUnitRate,
     getLengthOfTag,
     getPerDiemCustomUnit,
     getPolicyByCustomUnitID,
@@ -107,7 +106,6 @@ import {
     getCurrency,
     getDescription,
     getDetailedExpenseTypeTranslationKey,
-    getDisplayTransactionWithoutInvalidCommuterExclusion,
     getDistanceInMeters,
     getFormattedCreated,
     getOriginalAmountForDisplay,
@@ -257,9 +255,9 @@ function MoneyRequestView({
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
 
-    const customUnitRateID = isDistanceRequestTransactionUtils(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
-    const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(expensePolicy, customUnitRateID);
-    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
+    const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${parentReport?.policyID}`, {selector: policyTypeSelector});
+    // Collect/Control (group) policies are always tied to an expense chat, so a group policy type means this is a policy expense chat.
+    const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
 
     let policy;
     let policyID;
@@ -275,6 +273,8 @@ function MoneyRequestView({
         policy = expensePolicy;
         policyID = parentReport?.policyID;
     }
+
+    const {displayTransaction, distanceOriginalPolicy} = useDisplayTransaction(transaction, isPolicyExpenseChat, policy, expensePolicy);
 
     // Use the report's real policy, not `policy` above (swapped to an unrelated workspace for
     // unreported expenses), else self-DM split editing wrongly redirects to RESTRICTED_ACTION.
@@ -307,10 +307,6 @@ function MoneyRequestView({
     const isApproved = isReportApproved({report: moneyRequestReport});
     const isInvoice = isInvoiceReport(moneyRequestReport);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(transactionThreadReport, moneyRequestReport, parentReportAction);
-    const [reportPolicyType] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${moneyRequestReport?.policyID}`, {selector: policyTypeSelector});
-    // Collect/Control (group) policies are always tied to an expense chat, so a group policy type means this is a policy expense chat.
-    const isPolicyExpenseChat = isGroupPolicyByType(reportPolicyType);
-
     let iouType: ValueOf<typeof CONST.IOU.TYPE>;
     if (isTrackExpense) {
         iouType = CONST.IOU.TYPE.TRACK;
@@ -321,14 +317,6 @@ function MoneyRequestView({
     }
 
     const allowNegativeAmount = shouldEnableNegative(parentReport, policy, iouType);
-    const displayTransaction = getDisplayTransactionWithoutInvalidCommuterExclusion({
-        transaction,
-        isPolicyExpenseChat,
-        policy: distanceOriginalPolicy ?? policy,
-        translate,
-        getCurrencySymbol,
-    });
-
     const {
         created: transactionDate,
         amount: transactionAmount,

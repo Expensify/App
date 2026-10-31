@@ -10,6 +10,7 @@ import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {createNewReport} from '@libs/actions/Report';
 import '@libs/actions/IOU/MoneyRequest';
+import * as API from '@libs/API';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -765,6 +766,118 @@ describe('actions/Transaction', () => {
             expect(updated?.modifiedCurrency).toBe('GBP');
             expect(Math.abs(Number(updated?.modifiedAmount ?? 0))).toBe(2000);
             expect(updated?.modifiedMerchant).toContain('mi');
+        });
+
+        it.each([
+            {distance: 56.66, amount: -11332, savedRateText: '2.00', liveRate: 200, expectedAmount: -11132},
+            {distance: 13.53, amount: -2706, savedRateText: '2.00', liveRate: 200, expectedAmount: -2506},
+            {distance: 56.66, amount: -5000, savedRateText: '2.00', liveRate: 200, expectedAmount: -5000},
+            {distance: 56.66, amount: -11332, savedRateText: '2.00', liveRate: 300, expectedAmount: -11332},
+            {distance: 13.53, amount: -392, savedRateText: '0.29', liveRate: 29, expectedAmount: -363},
+            {distance: 13.53, amount: -392, savedRateText: '0.29', liveRate: 30, expectedAmount: -392},
+            {distance: 1.5, amount: -44, savedRateText: '0.29', liveRate: 29, expectedAmount: -15},
+            {distance: 1.5, amount: -43, savedRateText: '0.29', liveRate: 29, expectedAmount: -43},
+        ])('moves a tracked distance expense offline at $distance miles with amount $amount and live rate $liveRate', async ({distance, amount, savedRateText, liveRate, expectedAmount}) => {
+            // Given a Self DM rate edit with full-route values and retained commuter metadata
+            const policyID = 'commuter-move-policy';
+            const mockPolicy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                outputCurrency: CONST.CURRENCY.USD,
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, fixedDistance: 1, fixedDistanceUnit: 'mi'},
+                customUnits: {
+                    distance: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitID: 'distance',
+                        enabled: true,
+                        attributes: {unit: 'mi'},
+                        rates: {selected: {customUnitRateID: 'selected', rate: liveRate, currency: 'USD', enabled: true}},
+                    },
+                },
+            };
+            const reducedDistance = Number((distance - 1).toFixed(2));
+            const transaction: Transaction = {
+                transactionID: 'commuter-move-transaction',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount,
+                modifiedAmount: amount,
+                currency: 'USD',
+                modifiedCurrency: 'USD',
+                merchant: `${distance.toFixed(2)} mi @ $1.00 / mi`,
+                modifiedMerchant: `${distance.toFixed(2)} mi @ $${savedRateText} / mi`,
+                created: '2026-10-23',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'selected',
+                        quantity: distance,
+                        distanceUnit: 'mi',
+                        commuterExclusion: 1,
+                        reimbursableDistance: reducedDistance,
+                        commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                    },
+                },
+            };
+            const report: Report = {
+                reportID: 'commuter-move-report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                currency: 'USD',
+                total: 0,
+                chatReportID: 'commuter-move-chat',
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, mockPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            // When moving to the workspace without a server response to reconcile its values
+            const writeSpy = jest.spyOn(API, 'write');
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                newReport: report,
+                policy: mockPolicy,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                policyTagList: {},
+                transactionViolations: {},
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report},
+                isTrackIntentUser: false,
+                cardList: undefined,
+            });
+            const failureData = writeSpy.mock.calls.at(-1)?.[2]?.failureData;
+            writeSpy.mockRestore();
+            await waitForBatchedUpdates();
+
+            // Then a verified automatic amount receives the deduction, but overrides and historical rates are untouched
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(updated?.modifiedAmount).toBe(expectedAmount);
+            expect(updated?.amount).toBe(amount);
+            expect(updated?.comment?.customUnit).toEqual(transaction.comment?.customUnit);
+            expect(updated?.modifiedMerchant).toBe(expectedAmount === amount ? transaction.modifiedMerchant : `${reducedDistance.toFixed(2)} mi @ $${savedRateText} / mi`);
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`);
+            expect(updatedReport?.total).toBe(expectedAmount);
+
+            // When the request fails, its rollback restores the original Self DM fields and report total
+            expect(failureData).toBeDefined();
+            await Onyx.update(failureData ?? []);
+            await waitForBatchedUpdates();
+            const restored = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(restored?.reportID).toBe(transaction.reportID);
+            expect(restored?.amount).toBe(transaction.amount);
+            expect(restored?.modifiedAmount).toBe(transaction.modifiedAmount);
+            expect(restored?.merchant).toBe(transaction.merchant);
+            expect(restored?.modifiedMerchant).toBe(transaction.modifiedMerchant);
+            expect(restored?.comment?.customUnit).toEqual(transaction.comment?.customUnit);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`))?.total).toBe(0);
         });
 
         it('does not save Search row display fields on the moved transaction', async () => {

@@ -58,6 +58,7 @@ import {
     shouldClearConvertedAmount,
     waypointHasValidAddress,
 } from '@libs/TransactionUtils';
+import parseDistanceMerchant from '@libs/TransactionUtils/parseDistanceMerchant';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
@@ -1389,6 +1390,83 @@ function getChangeTransactionsReportOnyxData({
                         ...updatedTransaction,
                         ...optimisticValue,
                     };
+                }
+            } else if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID && !isFetchingWaypointsFromServer(transaction)) {
+                const customUnit = transaction.comment?.customUnit;
+                const currency = transaction.modifiedCurrency || transaction.currency;
+                const fullMerchant = transaction.modifiedMerchant ?? transaction.merchant;
+                const savedRate = parseDistanceMerchant({
+                    merchant: fullMerchant,
+                    distance: customUnit?.quantity,
+                    unit: customUnit?.distanceUnit,
+                    currency,
+                    currencySymbol: getCurrencySymbol(currency),
+                })?.rate;
+                const selectedRate = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: currentRateID, policy});
+                const storedAmount = Number(transaction.modifiedAmount ?? transaction.amount);
+                // Only restore a saved deduction for a verified full-route calculation. Do not reprice
+                // historical rates or replace amounts that differ from the selected rate's calculation.
+                if (
+                    customUnit?.distanceUnit &&
+                    typeof customUnit.quantity === 'number' &&
+                    (customUnit.commuterExclusion ?? 0) > 0 &&
+                    savedRate !== undefined &&
+                    selectedRate?.rate !== undefined &&
+                    Math.abs(savedRate - selectedRate.rate) < 1e-8 &&
+                    currency === selectedRate.currency &&
+                    customUnit.distanceUnit === selectedRate.unit &&
+                    Math.abs(storedAmount) ===
+                        DistanceRequestUtils.getDistanceRequestAmount(
+                            DistanceRequestUtils.convertToDistanceInMeters(customUnit.quantity, customUnit.distanceUnit),
+                            customUnit.distanceUnit,
+                            selectedRate.rate,
+                        )
+                ) {
+                    const exclusionData = DistanceRequestUtils.getTransactionCommuterExclusionData({
+                        transaction,
+                        policy,
+                        storedCustomUnit: customUnit,
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        translate: translateLocal,
+                        toLocaleDigit: (digit) => toLocaleDigit(IntlStore.getCurrentLocale(), digit),
+                        getCurrencySymbol,
+                        personalPolicyOutputCurrency,
+                    });
+                    if (exclusionData && (exclusionData.customUnit.commuterExclusion ?? 0) > 0) {
+                        const exclusionFields = {
+                            commuterExclusion: exclusionData.customUnit.commuterExclusion,
+                            reimbursableDistance: exclusionData.customUnit.reimbursableDistance,
+                            commuterExclusionMethod: exclusionData.customUnit.commuterExclusionMethod,
+                        };
+                        const optimisticValue = {
+                            merchant: fullMerchant,
+                            modifiedAmount: isExpenseReport(newReport) ? -exclusionData.modifiedAmount : exclusionData.modifiedAmount,
+                            modifiedMerchant: exclusionData.modifiedMerchant,
+                            comment: {customUnit: exclusionFields},
+                        };
+                        optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, value: optimisticValue});
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                            value: {
+                                merchant: transaction.merchant,
+                                modifiedAmount: transaction.modifiedAmount ?? null,
+                                modifiedMerchant: transaction.modifiedMerchant ?? null,
+                                comment: {
+                                    customUnit: {
+                                        commuterExclusion: customUnit.commuterExclusion ?? null,
+                                        reimbursableDistance: customUnit.reimbursableDistance ?? null,
+                                        commuterExclusionMethod: customUnit.commuterExclusionMethod ?? null,
+                                    },
+                                },
+                            },
+                        });
+                        transactionForViolations = {
+                            ...transaction,
+                            ...optimisticValue,
+                            comment: {...transaction.comment, customUnit: {...customUnit, ...exclusionFields}},
+                        };
+                    }
                 }
             }
         }
