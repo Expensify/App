@@ -958,6 +958,10 @@ const translations: TranslationDeepObject<typeof en> = {
             isReportDeleted
                 ? `utworzono ten raport dla wszystkich wstrzymanych wydatków z usuniętego raportu nr ${reportID}`
                 : `utworzył(-a) ten raport dla wszystkich wstrzymanych wydatków z <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForPartialApproval: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
+            isReportDeleted
+                ? `utworzono ten raport dla wydatków oczekujących na weryfikację z usuniętego raportu nr ${reportID}`
+                : `utworzono ten raport dla wydatków oczekujących na weryfikację z <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Powiadom wszystkich w tej konwersacji',

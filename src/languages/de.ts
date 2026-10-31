@@ -951,6 +951,10 @@ const translations: TranslationDeepObject<typeof en> = {
             isReportDeleted
                 ? `hat diesen Bericht für alle zurückgehaltenen Ausgaben aus dem gelöschten Bericht #${reportID} erstellt`
                 : `hat diesen Bericht für alle zurückgehaltenen Ausgaben aus <a href="${reportUrl}">${reportName}</a> erstellt`,
+        createdReportForPartialApproval: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
+            isReportDeleted
+                ? `hat diesen Bericht für die noch zu prüfenden Ausgaben aus dem gelöschten Bericht #${reportID} erstellt`
+                : `hat diesen Bericht für die noch zu prüfenden Ausgaben aus <a href="${reportUrl}">${reportName}</a> erstellt`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Alle in dieser Unterhaltung benachrichtigen',

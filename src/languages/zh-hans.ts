@@ -925,6 +925,8 @@ const translations: TranslationDeepObject<typeof en> = {
         harvestCreatedExpenseReport: (reportUrl: string, reportName: string) => `创建了此报销单，用于保存所有来自 <a href="${reportUrl}">${reportName}</a> 且无法按照你选择的频率提交的费用`,
         createdReportForUnapprovedTransactions: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
             isReportDeleted ? `为已删除报销单 #${reportID} 中的所有暂挂报销创建了此报销单` : `为从<a href="${reportUrl}">${reportName}</a>中被暂挂的任何报销创建了此报表`,
+        createdReportForPartialApproval: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
+            isReportDeleted ? `为已删除报销单 #${reportID} 中待审核的费用创建了此报销单` : `为<a href="${reportUrl}">${reportName}</a>中待审核的费用创建了此报销单`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此会话中的所有人',

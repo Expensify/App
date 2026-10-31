@@ -931,6 +931,10 @@ const translations: TranslationDeepObject<typeof en> = {
             isReportDeleted
                 ? `creó este informe para cualquier gasto retenido del informe eliminado #${reportID}`
                 : `creó este informe para cualquier gasto retenido de <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForPartialApproval: (reportUrl, reportName, reportID, isReportDeleted) =>
+            isReportDeleted
+                ? `creó este informe para los gastos pendientes de revisión del informe eliminado #${reportID}`
+                : `creó este informe para los gastos pendientes de revisión de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar a todos en esta conversación',

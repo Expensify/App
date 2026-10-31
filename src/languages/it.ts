@@ -951,6 +951,10 @@ const translations: TranslationDeepObject<typeof en> = {
             isReportDeleted
                 ? `ha creato questo rendiconto per tutte le spese in sospeso dal rendiconto eliminato n. ${reportID}`
                 : `ha creato questo report per tutte le spese in sospeso da <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForPartialApproval: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
+            isReportDeleted
+                ? `ha creato questo report per le spese ancora da esaminare del report eliminato n. ${reportID}`
+                : `ha creato questo report per le spese ancora da esaminare di <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notifica tutti in questa conversazione',

@@ -1581,13 +1581,14 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReportOriginalID, harvestReportName, translate);
                     setClipboardMessage(displayMessage);
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
-                    const {originalID} = getOriginalMessage(reportAction) ?? {};
+                    const {originalID, isPartialApproval} = getOriginalMessage(reportAction) ?? {};
                     const reportName = getReportName(originalReportOfUnapprovedTransaction);
                     const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(
                         originalID,
                         reportName,
                         isOriginalReportDeleted(reportAction, originalReportOfUnapprovedTransaction),
                         translate,
+                        isPartialApproval,
                     );
                     setClipboardMessage(displayMessage);
                 } else if (isDynamicExternalWorkflowSubmitFailedAction(reportAction)) {

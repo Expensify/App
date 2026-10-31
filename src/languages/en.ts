@@ -1045,6 +1045,10 @@ const translations = {
             isReportDeleted
                 ? `created this report for any held expenses from deleted report #${reportID}`
                 : `created this report for any held expenses from <a href="${reportUrl}">${reportName}</a>`,
+        createdReportForPartialApproval: (reportUrl: string, reportName: string, reportID: string, isReportDeleted: boolean) =>
+            isReportDeleted
+                ? `created this report for expenses left for review from deleted report #${reportID}`
+                : `created this report for expenses left for review from <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone in this conversation',
