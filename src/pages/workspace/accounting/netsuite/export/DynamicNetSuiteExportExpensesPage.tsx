@@ -32,7 +32,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -51,14 +51,14 @@ function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps)
 
     const {vendors, payableList} = policy?.connections?.netsuite?.options?.data ?? {};
 
-    const defaultVendor = useMemo(() => vendors?.find(({id}) => id === config?.defaultVendor), [vendors, config?.defaultVendor]);
+    const defaultVendor = vendors?.find(({id}) => id === config?.defaultVendor);
     const isDefaultVendorSet = !!defaultVendor?.name;
     const isCreditCardChargeExport = isNonReimbursableCreditCardChargeExport(config);
 
-    const selectedPayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.payableAcct), [payableList, config?.payableAcct]);
-    const selectedCreditCardAccount = useMemo(() => getNetSuiteCreditCardAccounts(policy ?? undefined).find(({id}) => id === config?.creditCardAccount), [policy, config?.creditCardAccount]);
+    const selectedPayableAccount = payableList?.find(({id}) => id === config?.payableAcct);
+    const selectedCreditCardAccount = getNetSuiteCreditCardAccounts(policy ?? undefined).find(({id}) => id === config?.creditCardAccount);
 
-    const selectedReimbursablePayableAccount = useMemo(() => payableList?.find(({id}) => id === config?.reimbursablePayableAccount), [payableList, config?.reimbursablePayableAccount]);
+    const selectedReimbursablePayableAccount = payableList?.find(({id}) => id === config?.reimbursablePayableAccount);
 
     const navigateToStep = (path: Parameters<typeof createDynamicRoute>[0]) => {
         if (!policyID) {

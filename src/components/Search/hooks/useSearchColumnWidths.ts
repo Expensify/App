@@ -3,6 +3,11 @@ import type {SearchListItem} from '@components/Search/SearchList/ListItem/types'
 import type {SearchColumnType} from '@components/Search/types';
 import type {DynamicColumnConstraints} from '@components/Table/calculateDynamicColumnWidths';
 import calculateDynamicColumnWidths from '@components/Table/calculateDynamicColumnWidths';
+import type {PersistedColumnLayout} from '@components/Table/columnResize/getPersistedColumnLayout';
+import getPersistedColumnLayout from '@components/Table/columnResize/getPersistedColumnLayout';
+import {getAvailableColumnsWidth, getFreshColumnWidths} from '@components/Table/columnResize/getResizableColumnLayout';
+import type {ResizableColumn} from '@components/Table/columnResize/resolveDraggedColumnWidths';
+import {getFixedColumn, isColumnResizable} from '@components/Table/columnResize/resolveDraggedColumnWidths';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,15 +23,16 @@ import getSearchColumnContentToMeasure, {
 } from '@libs/getSearchColumnContentToMeasure';
 import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
 import createWidestTextMeasurer from '@libs/measureTextWidth/widestTextMeasurer';
-import {getSearchTableRowInsetWidth} from '@libs/SearchUIUtils';
+import {getSearchTableRowChromeWidths, getSearchTableRowInsetWidth} from '@libs/SearchUIUtils';
 
 import {textVariants} from '@styles/typography';
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
-const {MIN_FREE_TEXT_COLUMN_WIDTH, MAX_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
+const {MIN_FREE_TEXT_COLUMN_WIDTH, SCROLLED_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
 /** How wide a dynamically sized column was resolved to, and how far it may be squeezed before the table scrolls. */
 type SearchColumnSizing = {
@@ -83,6 +89,20 @@ type UseSearchColumnWidthsParams = {
 
     /** Data some columns need to resolve their text, read once at the list level rather than per row. */
     measurementContext?: SearchColumnMeasurementContext;
+
+    /** When on, free-text columns read their px width from a CSS custom property. Fixed and hugged columns keep their declared widths. */
+    isColumnResizingEnabled: boolean;
+
+    /** `undefined` until the first drag. After it, content no longer sizes the columns. */
+    storedTableColumnWidths: StoredTableColumnWidths | undefined;
+};
+
+type SearchColumnWidthsResult = {
+    /** Empty to leave the columns as they are styled. */
+    columnWidths: Partial<Record<SearchColumnType, SearchColumnSizing>>;
+
+    /** `undefined` unless resizing is enabled and some column resizes. */
+    resizableLayout: PersistedColumnLayout | undefined;
 };
 
 /**
@@ -97,6 +117,8 @@ type UseSearchColumnWidthsParams = {
  *
  * Returns an empty map to leave the columns as they are: sizing is off, text can't be measured (native), or the table
  * hasn't been measured yet.
+ *
+ * With resizing on, it also lays the columns out like a resizable `Table`, replaying the saved widths after the first drag.
  */
 function useSearchColumnWidths({
     columns,
@@ -105,12 +127,14 @@ function useSearchColumnWidths({
     isEnabled,
     columnSizeOptions,
     measurementContext,
-}: UseSearchColumnWidthsParams): Partial<Record<SearchColumnType, SearchColumnSizing>> {
+    isColumnResizingEnabled,
+    storedTableColumnWidths,
+}: UseSearchColumnWidthsParams): SearchColumnWidthsResult {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const noColumnSizing: Partial<Record<SearchColumnType, SearchColumnSizing>> = {};
+    const noColumnSizing: SearchColumnWidthsResult = {columnWidths: {}, resizableLayout: undefined};
 
     // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
     if (!isEnabled || tableWidth <= 0 || !canMeasureText()) {
@@ -124,6 +148,7 @@ function useSearchColumnWidths({
     }
 
     let fixedColumnsWidth = 0;
+    const declaredColumnWidths = new Map<SearchColumnType, number>();
 
     for (const column of columns) {
         if (DYNAMICALLY_SIZED_SEARCH_COLUMNS.has(column)) {
@@ -139,10 +164,11 @@ function useSearchColumnWidths({
         }
 
         fixedColumnsWidth += declaredWidth;
+        declaredColumnWidths.set(column, declaredWidth);
     }
 
     // What the dynamic columns share: the table, less what the row spends on anything that is not a column, less the
-    // columns pinned to a width of their own. The inset comes from the same helper the horizontal scroller subtracts,
+    // columns held at a width of their own. The inset comes from the same helper the horizontal scroller subtracts,
     // so the two cannot disagree about whether the columns fit.
     //
     // It does not have to be exact. The resolved widths are applied as a flex basis that still grows and shrinks, so an
@@ -187,7 +213,7 @@ function useSearchColumnWidths({
 
         contentWidths.push(contentWidth);
 
-        // A column holding a fixed-size element is pinned to its content: it takes no share of the spare room and is
+        // A column holding a fixed-size element is held at its content width: it takes no share of the spare room and is
         // never squeezed, so its three constraints are the same number and the resolver settles it there immediately.
         if (HUGGED_SEARCH_COLUMNS.has(column)) {
             constraints.push({contentWidth, minWidth: contentWidth, maxWidth: contentWidth});
@@ -223,7 +249,7 @@ function useSearchColumnWidths({
         // scrolls either way, and letting one unusually long value set the width would push every column after it out
         // of view for the sake of a single row. Below the cap nothing is capped at all, which is why this is applied
         // here rather than as the constraint the resolver sees.
-        const scrolledWidth = shouldHug ? contentWidth : Math.max(Math.min(contentWidth, MAX_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), constraint.minWidth);
+        const scrolledWidth = shouldHug ? contentWidth : Math.max(Math.min(contentWidth, SCROLLED_FREE_TEXT_COLUMN_WIDTH + getSearchColumnExtraWidth(column)), constraint.minWidth);
 
         columnSizing[column] = {
             shouldHug,
@@ -235,7 +261,55 @@ function useSearchColumnWidths({
         };
     }
 
-    return columnSizing;
+    if (!isColumnResizingEnabled) {
+        return {columnWidths: columnSizing, resizableLayout: undefined};
+    }
+
+    const rowChromeWidths = getSearchTableRowChromeWidths(columns.length);
+
+    // Fixed and hugged columns are held at one width and passed headless, since the leftover room goes to the last headed column
+    // and it should land on a free-text one rather than a date or a badge. Their real headers still render.
+    const resizableColumns: ResizableColumn[] = columns.map((column) => {
+        const sizing = columnSizing[column];
+
+        if (!sizing || sizing.shouldHug) {
+            return getFixedColumn(column, sizing?.contentWidth ?? declaredColumnWidths.get(column) ?? 0);
+        }
+
+        return {
+            key: column,
+            label: column,
+            declaredWidth: undefined,
+            // Uncapped, unlike the scrolled width, so a fit shows the whole value.
+            contentWidth: contentWidths.at(dynamicColumns.indexOf(column)) ?? 0,
+            minWidth: sizing.minWidth,
+            maxWidth: Number.POSITIVE_INFINITY,
+        };
+    });
+
+    if (!resizableColumns.some(isColumnResizable)) {
+        return {columnWidths: columnSizing, resizableLayout: undefined};
+    }
+
+    // Floored to whole px, the leftover fraction going to the last free-text column. Free-text columns get no resolved
+    // width when they share the row equally, so the fresh widths split it equally too, as their flex growth does.
+    const freeTextWidths = columns.flatMap((column) => {
+        const sizing = columnSizing[column];
+
+        return !sizing || sizing.shouldHug || sizing.width === undefined ? [] : [Math.floor(sizing.width)];
+    });
+    const freshColumnWidths = getFreshColumnWidths(resizableColumns, freeTextWidths, getAvailableColumnsWidth(tableWidth, rowChromeWidths));
+
+    return {
+        columnWidths: columnSizing,
+        resizableLayout: getPersistedColumnLayout({
+            columns: resizableColumns,
+            freshColumnWidths,
+            storedTableColumnWidths,
+            tableWidth,
+            rowChromeWidths,
+        }),
+    };
 }
 
 export default useSearchColumnWidths;

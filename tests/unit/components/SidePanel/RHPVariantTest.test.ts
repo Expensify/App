@@ -62,35 +62,40 @@ describe('handleRHPVariantNavigation', () => {
         mockIsReportTopmostSplitNavigator.mockReturnValue(false);
     });
 
-    it('preserves the topmost report for the rhpHomePage variant', () => {
+    it('preserves the topmost report for the rhpHomePage variant without opening the side panel', () => {
+        // Given an account that still has the retired rhpHomePage arm and already shows a report
         mockIsReportTopmostSplitNavigator.mockReturnValue(true);
 
+        // When onboarding finishes
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
+        // Then the report stays on screen, and the side panel stays closed because onboarding should only happen on Home
         expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
-    it('navigates home for the rhpHomePage variant when no report is topmost', () => {
+    it('navigates home for the rhpHomePage variant when no report is topmost, without opening the side panel', () => {
+        // Given an account that still has the retired rhpHomePage arm and no report on screen
+
+        // When onboarding finishes
         handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE);
 
+        // Then it keeps landing on Home, but without a second onboarding chat in the side panel
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 
-    it('preserves the topmost report for the trackExpensesWithConcierge variant and opens the side panel on top of it', () => {
-        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+    it.each([CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM, CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM])(
+        'navigates to the workspace overview for the retired %s variant without opening the side panel',
+        (variant) => {
+            // Given an account that still has one of the retired arms that used to show the side panel next to the workspace
 
-        handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
+            // When onboarding finishes
+            handleRHPVariantNavigation('policyID', variant);
 
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
-    });
-
-    it('navigates home for the trackExpensesWithConcierge variant when no report is topmost', () => {
-        handleRHPVariantNavigation('policyID', CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE);
-
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, undefined);
-        expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(true);
-    });
+            // Then it keeps landing on the workspace overview, but the side panel stays closed
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute('policyID'), undefined);
+            expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
+        },
+    );
 });

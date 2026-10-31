@@ -41,7 +41,7 @@ function getTaxByID(policy: OnyxEntry<Policy>, taxID: string): TaxRate | undefin
 
 /** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
-function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Policy>): Record<string, string[]> {
+function getAllTaxRatesNamesAndKeys(policies: OnyxCollection<Pick<Policy, 'taxRates'>>): Record<string, string[]> {
     const allTaxRates: Record<string, string[]> = {};
     const seenKeys: Record<string, Set<string>> = {};
 
