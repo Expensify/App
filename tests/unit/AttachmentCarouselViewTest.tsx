@@ -57,7 +57,18 @@ jest.mock('react-native-reanimated', () => {
     const animated = jest.requireActual<typeof Reanimated>('react-native-reanimated/mock');
     return {
         ...animated,
-        default: {...animated.default, FlatList: (props: FlatListProps<Attachment>) => mockFlatList(props)},
+        default: {
+            ...animated.default,
+            FlatList: (props: FlatListProps<Attachment>) => mockFlatList(props),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Mirror the carousel wrapper so its list props can be inspected.
+            createAnimatedComponent: (...args: Parameters<typeof animated.default.createAnimatedComponent>) => {
+                if (args[0] === jest.requireActual<{FlatList: typeof FlatList}>('react-native').FlatList) {
+                    return (props: FlatListProps<Attachment>) => mockFlatList(props);
+                }
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- Preserve the mock factory for components other than the carousel.
+                return animated.default.createAnimatedComponent(...args);
+            },
+        },
         useAnimatedRef: () => mockScrollRef,
     };
 });
