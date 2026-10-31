@@ -74,7 +74,7 @@ function renderTextInput(
 const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' | 'amount' | 'percent'> = {
     text: (field, context, inputProps) => renderTextInput(field, context, inputProps, getTextInputMode(field), field.multiline),
     number: (field, context, inputProps) => renderTextInput(field, context, inputProps, CONST.INPUT_MODE.NUMERIC),
-    date: (field, {translate}, inputProps) => {
+    date: (field, {translate, styles}, inputProps) => {
         const isDateOfBirth = field.rule === 'dateOfBirth';
         return {
             isMenuRow: false,
@@ -86,6 +86,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                     label={getInputLabel(field, translate)}
                     hint={getLocalizedText(translate, field.descriptionKey, field.description)}
                     placeholder={translate('common.dateFormat')}
+                    // DatePicker adds its own vertical margin, while the field row already spaces it like every other input
+                    wrapperStyle={styles.mv0}
                     // A date of birth can only be picked within the ages getDynamicFieldErrors accepts
                     minDate={isDateOfBirth ? subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE) : undefined}
                     maxDate={isDateOfBirth ? subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT) : undefined}
@@ -116,7 +118,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
             isMenuRow: false,
             input: (
                 <>
-                    <View style={[styles.mhn5, styles.mb2]}>
+                    {/* The picker is a push row, so it pulls into the field row's padding to sit as far from its neighbors as a push row does */}
+                    <View style={[styles.mhn5, styles.mtn1, styles.mb3]}>
                         <InputWrapper
                             InputComponent={CurrencyPicker}
                             inputID={field.currencyKey}

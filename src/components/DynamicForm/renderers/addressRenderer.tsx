@@ -8,7 +8,7 @@ import React from 'react';
 import type {DynamicFieldRenderer} from './types';
 
 /** An address drawn as one input per part, each under its own draft key. Every part has its own label, so no heading is drawn above them */
-const renderAddress: DynamicFieldRenderer<'address'> = (field, {values}, {shouldSaveDraft, forwardedFSClass, onValueChange, defaultValue}) => {
+const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles}, {shouldSaveDraft, forwardedFSClass, onValueChange, defaultValue}) => {
     const addressKeys = getAddressInputKeys(field.key);
     const country = getAddressCountry(field.key, values);
     // The street arrives as the field's answer. The other parts of a sensitive address are not drafted either, so they start from memory too.
@@ -30,6 +30,8 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values}, {should
                     country,
                 }}
                 streetTranslationKey="common.streetAddress"
+                // The city sits as far below the street as the field rows space any two inputs
+                cityContainerStyles={styles.mt4}
                 shouldSaveDraft={shouldSaveDraft}
                 shouldDisplayCountrySelector
                 shouldDisplayStateSelector={isStateAsked(country)}
