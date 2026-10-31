@@ -97,8 +97,8 @@ function KYCWall({
     const reportTransactions = useReportTransactions(iouReport?.reportID);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const anchorRef = useRef<HTMLDivElement | ComponentRef<typeof View>>(null);
-    const transferBalanceButtonRef = useRef<HTMLDivElement | ComponentRef<typeof View> | null>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
+    const transferBalanceButtonRef = useRef<Parameters<typeof getClickedTargetLocation>[0]>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     // Holds the fallback route while the add-payment menu is open. When the user picks "Personal bank account" from the menu,
@@ -143,7 +143,7 @@ function KYCWall({
         if (!transferBalanceButtonRef.current) {
             return;
         }
-        const buttonPosition = getClickedTargetLocation(transferBalanceButtonRef.current as HTMLDivElement);
+        const buttonPosition = getClickedTargetLocation(transferBalanceButtonRef.current);
         const position = getAnchorPosition(buttonPosition);
 
         setPositionAddPaymentMenu(position);
@@ -359,7 +359,7 @@ function KYCWall({
             }
 
             // Use event target as fallback if anchorRef is null for safety
-            const targetElement = anchorRef.current ?? (event?.currentTarget as HTMLDivElement);
+            const targetElement = anchorRef.current ?? event?.currentTarget;
 
             transferBalanceButtonRef.current = targetElement;
 
@@ -399,7 +399,7 @@ function KYCWall({
                     return;
                 }
 
-                const clickedElementLocation = getClickedTargetLocation(targetElement as HTMLDivElement);
+                const clickedElementLocation = getClickedTargetLocation(targetElement);
                 const position = getAnchorPosition(clickedElementLocation);
 
                 setPositionAddPaymentMenu(position);
