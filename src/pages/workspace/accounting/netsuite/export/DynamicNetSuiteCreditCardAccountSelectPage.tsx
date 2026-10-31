@@ -13,6 +13,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getNetSuiteCreditCardAccountOptions} from '@libs/NetSuiteUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
+import {isNonReimbursableCreditCardChargeExport} from '@pages/workspace/accounting/netsuite/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -84,6 +85,7 @@ function DynamicNetSuiteCreditCardAccountSelectPage({policy}: WithPolicyConnecti
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             onBackButtonPress={goBack}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
+            shouldBeBlocked={!isNonReimbursableCreditCardChargeExport(config)}
             pendingAction={settingsPendingAction([currentSettingName], config?.pendingFields)}
             errors={getLatestErrorField(config, currentSettingName)}
             errorRowStyles={[styles.ph5, styles.pv3]}
