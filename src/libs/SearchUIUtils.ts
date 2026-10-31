@@ -2612,8 +2612,8 @@ function createAndOpenSearchTransactionThread({
     const actionReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
     const ownerSelfDMReportID = actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? actionReportID : undefined;
     const isOwnExpense = (item.reportAction?.actorAccountID ?? currentUserAccountID) === currentUserAccountID;
-    const ownSelfDMReportID = findSelfDMReportID() ?? ownerSelfDMReportID;
-    const selfDMReportID = isUnreportedTransaction ? (isOwnExpense ? ownSelfDMReportID : ownerSelfDMReportID) : undefined;
+    const expenseSelfDMReportID = isOwnExpense ? (findSelfDMReportID() ?? ownerSelfDMReportID) : ownerSelfDMReportID;
+    const selfDMReportID = isUnreportedTransaction ? expenseSelfDMReportID : undefined;
     const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
     // Another member's unreported expense can only open in their self DM
     if (isUnreportedTransaction && !selfDMReportID) {
