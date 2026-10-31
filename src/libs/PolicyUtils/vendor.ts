@@ -13,6 +13,10 @@ import type {TransactionCommentVendor} from '@src/types/onyx/Transaction';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+// QBD export fallback vendor. Excluded from the eligible catalog - not a selectable target.
+// Has a trailing period, unlike NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.CREDIT_CARD.
+const QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME = 'Credit Card Misc.';
+
 /**
  * True when the QBO connection is exporting non-reimbursables to a card account, which is the
  * mode that scopes the vendor field on QBO.
@@ -81,6 +85,20 @@ function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * True when a Codat QBD connection is configured to export non-reimbursables as Credit Card Charge.
+ * Strict: missing config, missing `apiProvider`, non-`"codat"`, or a non-CREDIT_CARD_CHARGE export
+ * mode all return false. Legacy non-Codat QBD connections share the `quickbooksDesktop` key but
+ * have no `apiProvider` and must be inactive.
+ */
+function isQuickbooksDesktopVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
+    const config = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.config;
+    return (
+        config?.apiProvider === CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT &&
+        config?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD
+    );
+}
+
+/**
  * Vendor matching feature gate. Returns true when a supported accounting integration is connected
  * with a non-reimbursable export type that scopes the vendor field. Mirrors the per-integration
  * `hasVendorFeature` checks on the PHP side so the App and backend agree on which workspaces see
@@ -96,6 +114,7 @@ function isCertiniaVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
  *   - Business Central configured connection. Beta required
  *   - Campfire has no export destination enum, so a configured connection is enough. GA, so no beta required
  *   - Certinia FFA configured connection. Beta required
+ *   - QBD Codat + CREDIT_CARD_CHARGE export mode. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     if (!policy) {
@@ -111,7 +130,7 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
     ) {
         return true;
     }
-    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy));
+    return isVendorMatchingBetaEnabled && (isBusinessCentralVendorMatchingActive(policy) || isCertiniaVendorMatchingActive(policy) || isQuickbooksDesktopVendorMatchingActive(policy));
 }
 
 /**
@@ -186,6 +205,9 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     if (isCertiniaVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
     }
+    if (isQuickbooksDesktopVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.QBD;
+    }
     return undefined;
 }
 
@@ -253,6 +275,13 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     }
     if (isCertiniaVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors === undefined ? undefined : getCertiniaVendors(policy);
+    }
+    if (isQuickbooksDesktopVendorMatchingActive(policy)) {
+        const vendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.data?.vendors;
+        if (!Array.isArray(vendors)) {
+            return undefined;
+        }
+        return vendors.filter((vendor) => !!vendor.id && vendor.name !== QBD_CREDIT_CARD_DEFAULT_VENDOR_NAME);
     }
     return undefined;
 }
@@ -412,7 +441,15 @@ function findVendorByID(policy: OnyxEntry<Policy>, vendorID: string | undefined)
     if (dualEntryVendor) {
         return dualEntryVendor;
     }
-    return getCertiniaVendors(policy).find((vendor) => vendor.id === vendorID);
+    const certiniaMatch = getCertiniaVendors(policy).find((vendor) => vendor.id === vendorID);
+    if (certiniaMatch) {
+        return certiniaMatch;
+    }
+    const qbdVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.data?.vendors;
+    if (Array.isArray(qbdVendors)) {
+        return qbdVendors.find((vendor) => vendor.id === vendorID);
+    }
+    return undefined;
 }
 
 /**
@@ -488,6 +525,11 @@ function getVendorEmptyState(policy: OnyxEntry<Policy>, translate: LocaleContext
             return {
                 title: translate('workspace.certinia.noVendorsFound'),
                 subtitle: translate('workspace.certinia.noVendorsFoundDescription'),
+            };
+        case CONST.POLICY.CONNECTIONS.NAME.QBD:
+            return {
+                title: translate('workspace.qbd.noVendorsFound'),
+                subtitle: translate('workspace.qbd.noVendorsFoundDescription'),
             };
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
         default: {
@@ -574,6 +616,7 @@ export {
     isBusinessCentralVendorMatchingActive,
     isDualEntryVendorMatchingActive,
     isCertiniaVendorMatchingActive,
+    isQuickbooksDesktopVendorMatchingActive,
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,

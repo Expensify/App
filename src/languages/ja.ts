@@ -5537,6 +5537,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自己負担経費は支払われた時点でエクスポートされます',
                 },
             },
+            noVendorsFound: 'ベンダーが見つかりません',
+            noVendorsFoundDescription: 'QuickBooks Desktop にベンダーを追加して、接続をもう一度同期してください',
         },
         qbo: {
             connectedTo: '接続先',

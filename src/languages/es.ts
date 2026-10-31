@@ -5532,6 +5532,8 @@ ${amount} para ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
                 },
             },
+            noVendorsFound: 'No se encontraron proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en QuickBooks Desktop y sincroniza la conexión de nuevo',
         },
         qbo: {
             connectedTo: 'Conectado a',

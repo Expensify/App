@@ -3630,6 +3630,9 @@ const CONST = {
         IMPORT_ITEMS: 'importItems',
         ACCOUNTING_METHOD: 'accountingMethod',
         FX_EXPENSE_ACCOUNT: 'fxExpenseAccount',
+        API_PROVIDER: {
+            CODAT: 'codat',
+        },
     },
 
     QUICKBOOKS_CONFIG: {
