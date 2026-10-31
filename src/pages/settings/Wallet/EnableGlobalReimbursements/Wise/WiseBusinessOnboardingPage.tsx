@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -20,6 +21,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues} from '@userActions/FormActions';
+import {updateWiseOnboardingAdditionalData} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -35,12 +37,18 @@ import React, {useEffect, useState} from 'react';
 
 import US from './forms/US';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
+import toWiseOnboardingInputs from './toWiseOnboardingInputs';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
 
 const businessAccountSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => ({
     isLoading: !!reimbursementAccount?.isLoading,
     data: reimbursementAccount?.achData ? pick(reimbursementAccount.achData, WISE_BUSINESS_ACCOUNT_KEYS) : undefined,
+});
+
+const pageSaveSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => ({
+    isSaving: !!reimbursementAccount?.isSavingWiseOnboardingPage,
+    error: getLatestErrorMessage(reimbursementAccount),
 });
 
 /** The business details we collect before Wise's own page: the representative, the business, and a confirmation of both */
@@ -52,6 +60,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draft, draftMetadata] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
+    const [pageSave] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: pageSaveSelector});
     const bankAccount = bankAccountList?.[bankAccountID];
 
     const {translate} = useLocalize();
@@ -145,6 +154,10 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             buildRoute={(pageName, action) => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath)}
             shouldReplaceRoute
             onBack={goBackToIntro}
+            onPageSubmit={(page, answers) => updateWiseOnboardingAdditionalData(bankAccountID, page.key, toWiseOnboardingInputs(page, answers))}
+            // Offline, the save is queued and the user moves on, so the form can be filled without a connection
+            isSavingPage={isOffline ? undefined : !!pageSave?.isSaving}
+            pageSaveError={pageSave?.error}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}
             onSubmit={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path))}

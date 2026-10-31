@@ -53,6 +53,12 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     /** Error from sending the answers, shown on the confirmation page */
     submitError?: string;
 
+    /** Whether the page the user left with Next is being saved. A flow that passes it waits for the save before moving on, and stays on the page when the save fails. */
+    isSavingPage?: boolean;
+
+    /** Error from saving a page, shown on the page that was saved */
+    pageSaveError?: string;
+
     /** When the step indicator shows: `auto` from three shown pages on, `stepper` always, `pages` never */
     layout?: DynamicFormLayout;
 
@@ -62,7 +68,7 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
 
 /** Props of every page in the flow: useSubPage's routing props plus the form's data */
 type DynamicFormSubPageProps = SubPageProps &
-    Pick<DynamicFormFlowProps, 'formID' | 'currency' | 'maxFileSize' | 'onRefreshRequirements' | 'confirmationTitle' | 'isSubmitting' | 'submitError'> & {
+    Pick<DynamicFormFlowProps, 'formID' | 'currency' | 'maxFileSize' | 'onRefreshRequirements' | 'confirmationTitle' | 'isSubmitting' | 'submitError' | 'isSavingPage' | 'pageSaveError'> & {
         pages: DynamicFormPage[];
 
         /** Every supported field of the form, which is where a `showWhen` finds its controller */

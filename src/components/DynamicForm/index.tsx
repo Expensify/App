@@ -61,6 +61,8 @@ function DynamicFormFlow({
     onRefreshRequirements,
     isSubmitting,
     submitError,
+    isSavingPage,
+    pageSaveError,
     layout = 'auto',
     hasConfirmation = true,
 }: DynamicFormFlowProps) {
@@ -358,6 +360,8 @@ function DynamicFormFlow({
                     confirmationTitle={confirmationTitle}
                     isSubmitting={isSubmitting}
                     submitError={submitError}
+                    isSavingPage={isSavingPage}
+                    pageSaveError={pageSaveError}
                 />
             )}
         </DynamicFormShell>
