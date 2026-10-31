@@ -11015,7 +11015,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'This year',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'This week',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Last week',
