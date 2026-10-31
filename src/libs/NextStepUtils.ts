@@ -161,7 +161,8 @@ function buildNextStepMessage(
         nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
             ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
             : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
-    return `<next-step>${message}</next-step>`;
+    const autoExportMessage = nextStep.autoExport ? ` ${translate(`nextStep.autoExport.${nextStep.autoExport.messageKey}`)}` : '';
+    return `<next-step>${message}${autoExportMessage}</next-step>`;
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
@@ -375,7 +376,29 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             nextStep = null;
     }
 
-    return nextStep;
+    if (!nextStep || !report?.nextStep?.autoExport || shouldKeepAutoExportTiming(report, predictedNextStatus, reimbursableSpend)) {
+        return nextStep;
+    }
+
+    // Clearing the export timing here keeps it changing together with the rest of the next step instead of after the server responds
+    return {...nextStep, autoExport: null};
+}
+
+/**
+ * Whether the export timing the server last sent still applies once the report moves to the predicted status. It survives anything
+ * that leaves the report waiting for approval, like moving it to the next approver, unapproving it, holds and expense edits, and a
+ * final approval that leaves reimbursable spend waiting for payment.
+ */
+function shouldKeepAutoExportTiming(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<typeof CONST.REPORT.STATUS_NUM>, reimbursableSpend: number): boolean {
+    if (predictedNextStatus === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return true;
+    }
+
+    if (predictedNextStatus === CONST.REPORT.STATUS_NUM.APPROVED) {
+        return report?.nextStep?.autoExport?.messageKey === CONST.NEXT_STEP.AUTO_EXPORT_MESSAGE_KEY.REIMBURSABLE_EXPORTS_WHEN_PAID && reimbursableSpend !== 0;
+    }
+
+    return false;
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled(): ReportNextStep {
