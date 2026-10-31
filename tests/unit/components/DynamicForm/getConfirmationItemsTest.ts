@@ -210,4 +210,100 @@ describe('getConfirmationItems', () => {
         expect(group.name).toBe('');
         expect(group.rows.at(0)).toMatchObject({kind: 'label', title: 'Owners'});
     });
+
+    describe('a link that opts out of a question', () => {
+        const ssnPages: DynamicFormPage[] = [
+            {
+                key: 'representative',
+                title: 'Representative',
+                content: [
+                    {key: 'ssn', type: 'text', required: true, label: 'SSN', showWhen: {key: 'hasNoSSN', equals: ['false']}},
+                    {key: 'hasNoSSN', type: 'boolean', presentation: 'link', required: false, label: "I don't have an SSN"},
+                ],
+            },
+        ];
+
+        it('has no row while it is off', () => {
+            // Given the admin typed an SSN and did not tap the no-SSN link.
+            const values = {ssn: '123451234', hasNoSSN: false};
+
+            // When the confirmation page is built.
+            const [group] = getConfirmationItems(ssnPages, getAllFields(ssnPages), values, translateLocal, jest.fn(), jest.fn());
+
+            // Then only the SSN row is shown, because the SSN already gives the answer.
+            expect(group.rows.map((row) => row.id)).toEqual(['ssn']);
+        });
+
+        it('stands in for the question it hides while it is on', () => {
+            // Given the admin tapped the no-SSN link, so the SSN is hidden.
+            const values = {ssn: '', hasNoSSN: true};
+
+            // When the confirmation page is built.
+            const [group] = getConfirmationItems(ssnPages, getAllFields(ssnPages), values, translateLocal, jest.fn(), jest.fn());
+
+            // Then the SSN row says that the admin has no SSN.
+            expect(group.rows).toEqual([expect.objectContaining({id: 'hasNoSSN', description: 'SSN', title: "I don't have an SSN"})]);
+        });
+
+        describe('when the question it hides is on a page the form skips', () => {
+            const skippedPages: DynamicFormPage[] = [
+                {key: 'residence', title: 'Residence', content: [{key: 'country', type: 'text', required: true, label: 'Country'}]},
+                {key: 'consent', title: 'Consent', content: [{key: 'hasNoSSN', type: 'boolean', presentation: 'link', required: false, label: "I don't have an SSN"}]},
+                {
+                    key: 'usIdentity',
+                    title: 'US identity',
+                    showWhen: {key: 'country', equals: ['US']},
+                    content: [{key: 'ssn', type: 'text', required: true, label: 'SSN', showWhen: {key: 'hasNoSSN', equals: ['false']}}],
+                },
+            ];
+
+            it('keeps its no row while it is off', () => {
+                // Given the admin lives outside the US, so the form never asks for an SSN, and the link is off.
+                const values = {country: 'GB', hasNoSSN: false};
+
+                // When the confirmation page is built.
+                const groups = getConfirmationItems(skippedPages, getAllFields(skippedPages), values, translateLocal, jest.fn(), jest.fn());
+
+                // Then the link keeps its "No" row, because no SSN row is shown in its place.
+                const consentGroup = groups.find((group) => group.id === 'consent');
+                expect(consentGroup?.rows).toEqual([expect.objectContaining({id: 'hasNoSSN', description: "I don't have an SSN", title: translateLocal('common.no')})]);
+            });
+
+            it('keeps its own label while it is on', () => {
+                // Given the admin lives outside the US, so the form never asks for an SSN, and the link is on.
+                const values = {country: 'GB', hasNoSSN: true};
+
+                // When the confirmation page is built.
+                const groups = getConfirmationItems(skippedPages, getAllFields(skippedPages), values, translateLocal, jest.fn(), jest.fn());
+
+                // Then the row is not labeled as the SSN, because the form never asks for one.
+                const consentGroup = groups.find((group) => group.id === 'consent');
+                expect(consentGroup?.rows).toEqual([expect.objectContaining({id: 'hasNoSSN', description: "I don't have an SSN", title: translateLocal('common.yes')})]);
+            });
+        });
+
+        describe('when it opts out of nothing', () => {
+            const linkPages: DynamicFormPage[] = [
+                {key: 'consent', title: 'Consent', content: [{key: 'shouldSkipNewsletter', type: 'boolean', presentation: 'link', required: false, label: 'Skip the newsletter'}]},
+            ];
+
+            it('keeps its yes row while it is on', () => {
+                // Given a link that hides no question is on.
+                // When the confirmation page is built.
+                const [group] = getConfirmationItems(linkPages, getAllFields(linkPages), {shouldSkipNewsletter: true}, translateLocal, jest.fn(), jest.fn());
+
+                // Then the link keeps its own label, because it replaces no question.
+                expect(group.rows).toEqual([expect.objectContaining({id: 'shouldSkipNewsletter', description: 'Skip the newsletter', title: translateLocal('common.yes')})]);
+            });
+
+            it('keeps its no row while it is off', () => {
+                // Given a link that hides no question is off.
+                // When the confirmation page is built.
+                const [group] = getConfirmationItems(linkPages, getAllFields(linkPages), {shouldSkipNewsletter: false}, translateLocal, jest.fn(), jest.fn());
+
+                // Then the link keeps its "No" row, because no other row shows that answer.
+                expect(group.rows).toEqual([expect.objectContaining({id: 'shouldSkipNewsletter', description: 'Skip the newsletter', title: translateLocal('common.no')})]);
+            });
+        });
+    });
 });
