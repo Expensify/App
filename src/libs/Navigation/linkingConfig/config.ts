@@ -959,6 +959,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_REQUEST_LIMIT_INCREASE]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_REQUEST_LIMIT_INCREASE.route,
+                        },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.route,
                         },
