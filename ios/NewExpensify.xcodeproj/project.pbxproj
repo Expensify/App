@@ -54,7 +54,6 @@
 		D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 0D3F9E814828D91464DF9D35 /* PrivacyInfo.xcprivacy */; };
 		DD79042B2792E76D004484B4 /* RCTBootSplash.mm in Sources */ = {isa = PBXBuildFile; fileRef = DD79042A2792E76D004484B4 /* RCTBootSplash.mm */; };
 		DDCB2E57F334C143AC462B43 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D20D83B0E39BA6D21761E72 /* ExpoModulesProvider.swift */; };
-		E5A27B912C7F2FA8002C36BF /* RCTShareActionHandlerModule.m in Sources */ = {isa = PBXBuildFile; fileRef = E5A27B902C7F2FA8002C36BF /* RCTShareActionHandlerModule.m */; };
 		E5A27B9A2C7F427F002C36BF /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A27B992C7F427F002C36BF /* ShareViewController.swift */; };
 		E5A27B9D2C7F427F002C36BF /* Base in Resources */ = {isa = PBXBuildFile; fileRef = E5A27B9C2C7F427F002C36BF /* Base */; };
 		E5A27BA12C7F427F002C36BF /* ShareViewController.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E5A27B972C7F427F002C36BF /* ShareViewController.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -184,8 +183,6 @@
 		DCF33E34FFEC48128CDD41D4 /* ExpensifyMono-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyMono-Bold.otf"; path = "../assets/fonts/native/ExpensifyMono-Bold.otf"; sourceTree = "<group>"; };
 		DD7904292792E76D004484B4 /* RCTBootSplash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RCTBootSplash.h; path = NewExpensify/RCTBootSplash.h; sourceTree = "<group>"; };
 		DD79042A2792E76D004484B4 /* RCTBootSplash.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTBootSplash.mm; path = NewExpensify/RCTBootSplash.mm; sourceTree = "<group>"; };
-		E5A27B8F2C7F2F51002C36BF /* RCTShareActionHandlerModule.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RCTShareActionHandlerModule.h; sourceTree = "<group>"; };
-		E5A27B902C7F2FA8002C36BF /* RCTShareActionHandlerModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RCTShareActionHandlerModule.m; sourceTree = "<group>"; };
 		E5A27B972C7F427F002C36BF /* ShareViewController.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareViewController.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E5A27B992C7F427F002C36BF /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		E5A27B9C2C7F427F002C36BF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
@@ -330,8 +327,6 @@
 			children = (
 				6E13A8052F51A21100B2FA13 /* LiveActivityExtension.entitlements */,
 				47347F002DA56FAC00633001 /* NewExpensify-Bridging-Header.h */,
-				E5A27B8F2C7F2F51002C36BF /* RCTShareActionHandlerModule.h */,
-				E5A27B902C7F2FA8002C36BF /* RCTShareActionHandlerModule.m */,
 				0DFC45922C884D7900B56C91 /* RCTShortcutManagerModule.h */,
 				0DFC45932C884E0A00B56C91 /* RCTShortcutManagerModule.m */,
 				499B0DA92BE2A1C000CABFB0 /* PrivacyInfo.xcprivacy */,
@@ -891,7 +886,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E5A27B912C7F2FA8002C36BF /* RCTShareActionHandlerModule.m in Sources */,
 				18D050E0262400AF000D658B /* BridgingFile.swift in Sources */,
 				0DFC45942C884E0A00B56C91 /* RCTShortcutManagerModule.m in Sources */,
 				47347EFF2DA5664A00633001 /* AppDelegate.swift in Sources */,

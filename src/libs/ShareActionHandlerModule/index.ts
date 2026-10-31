@@ -1,21 +1,8 @@
-import {NativeModules} from 'react-native';
+/** Sharing into the app is only supported by native hosts. */
+import type {ShareActionHandler} from '@expensify/nitro-utils';
 
-const {ShareActionHandler} = NativeModules;
-
-// Type for the content of a share action
-type ShareActionContent = {
-    id: string;
-    content: string;
-    mimeType: string;
-    processedAt: string;
-    aspectRatio: number;
+const ShareActionHandlerModule: Pick<ShareActionHandler, 'processFiles'> = {
+    processFiles: () => Promise.resolve([]),
 };
 
-// Type for the ShareActionHandler module
-type ShareActionHandlerModule = {
-    // Method to process files, which takes a callback function
-    processFiles(callback: (array: ShareActionContent[]) => void): void;
-};
-
-export default ShareActionHandler;
-export type {ShareActionHandlerModule};
+export default ShareActionHandlerModule;

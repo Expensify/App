@@ -11,6 +11,7 @@
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
+#include "HybridShareActionHandlerSpecSwift.hpp"
 #include <NitroModules/NitroDefines.hpp>
 
 namespace margelo::nitro::utils::bridge::swift {
@@ -60,6 +61,30 @@ namespace margelo::nitro::utils::bridge::swift {
     }
     #endif
     ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::function<void(const std::vector<SharedFile>& /* result */)>
+  Func_void_std__vector_SharedFile_ create_Func_void_std__vector_SharedFile_(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void_std__vector_SharedFile_::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const std::vector<SharedFile>& result) mutable -> void {
+      swiftClosure.call(result);
+    };
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridShareActionHandlerSpec>
+  std::shared_ptr<HybridShareActionHandlerSpec> create_std__shared_ptr_HybridShareActionHandlerSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridShareActionHandlerSpec_cxx swiftPart = ExpensifyNitroUtils::HybridShareActionHandlerSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridShareActionHandlerSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridShareActionHandlerSpec_(std__shared_ptr_HybridShareActionHandlerSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridShareActionHandlerSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridShareActionHandlerSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridShareActionHandlerSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridShareActionHandlerSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
 
