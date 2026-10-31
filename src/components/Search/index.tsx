@@ -9,8 +9,10 @@ import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
+import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -457,8 +459,15 @@ function Search({
 
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
     const autoSearchedHashRef = useRef<number | undefined>(undefined);
+    const isInPreloadedTab = useIsInPreloadedTab();
 
     useEffect(() => {
+        // A preloaded tab sends no request while hidden. useSearchPageSetup sends it on first open. This also covers the
+        // migrated-modal and reconnect branches below, which skip the focus check.
+        if (isInPreloadedTab) {
+            return;
+        }
+
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.DYNAMIC_ROOT;
 
@@ -582,6 +591,7 @@ function Search({
 
     const isUnmounted = useRef(false);
     const hasHadFirstLayout = useRef(false);
+    const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
     const navigateToReportsSpanOnMount = useRef(getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS));
     const newNavigateToReportsSpansOnMount = useRef(getNavigateToReportsSpans());
 
@@ -1163,6 +1173,10 @@ function Search({
 
     const onLayoutBase = useCallback(() => {
         hasHadFirstLayout.current = true;
+        // Not visible yet: the submit spans and the pending write wait for the first open, which the focus effect below handles.
+        if (isInPreloadedTab) {
+            return;
+        }
         onDestinationVisible?.(isSearchResultsEmptyRef.current, 'layout');
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
             [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
@@ -1172,7 +1186,7 @@ function Search({
         TransitionTracker.runAfterTransitions({
             callback: () => flushPendingSearchWrite(),
         });
-    }, [onDestinationVisible]);
+    }, [onDestinationVisible, isInPreloadedTab]);
 
     // Deferred layout only needs the base work (no scroll handling, no content-ready signal).
     const onDeferredLayout = onLayoutBase;
@@ -1220,12 +1234,17 @@ function Search({
 
     const onLayoutChart = useCallback(() => {
         hasHadFirstLayout.current = true;
+        // The chart has no onContentReady (that would also dismiss the submit overlay), so it tells a preloaded tab directly.
+        markPreloadedTabContentReady();
+        if (isInPreloadedTab) {
+            return;
+        }
         endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
             [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
         });
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
-    }, []);
+    }, [isInPreloadedTab, markPreloadedTabContentReady]);
 
     // Tracks whether the pending-expense tracking was re-armed on re-focus
     // (subsequent expense creation while Search stays mounted). Used by the
