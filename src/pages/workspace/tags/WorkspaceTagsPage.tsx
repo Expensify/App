@@ -100,9 +100,7 @@ function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefin
     if (!policyTagList) {
         return undefined;
     }
-    return ((policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction))
-        ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
-        : undefined;
+    return (policyTagList.pendingAction ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 }
 
 /** Tag list names can repeat, so add the unique orderWeight to make each multi-level row key unique. */
@@ -171,13 +169,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
 
-    const tagsList = isMultiLevelTags
-        ? policyTagLists.reduce<Record<string, PolicyTagList>>((acc, policyTagList) => {
-              acc[getTagListRowKey(policyTagList)] = policyTagList;
-              return acc;
-          }, {})
-        : policyTagLists?.at(0)?.tags;
-
     const [selectedTagKeys, setSelectedTagKeys] = useState<string[]>([]);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
@@ -194,47 +185,32 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         setSelectedTagKeys((prevSelectedTags) => {
             const newSelectedTags = [];
+            const singleLevelTags = policyTagLists.at(0)?.tags;
 
             for (const tagName of prevSelectedTags) {
-                if (isMultiLevelTags) {
-                    const tagListExists = tagsList?.[tagName];
-                    if (!tagListExists) {
-                        const renamedTagList = Object.entries(tagsList ?? {}).find(([, tagList]) => {
-                            const typedTagList = tagList as {previousTagName?: string};
-                            return typedTagList.previousTagName === tagName;
-                        });
-                        if (renamedTagList) {
-                            newSelectedTags.push(renamedTagList[0]);
-                            continue;
-                        }
-                    }
-
-                    if (tagListExists && tagListExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                        newSelectedTags.push(tagName);
-                    }
-                } else {
-                    const tagExists = tagsList?.[tagName];
-                    if (!tagExists) {
-                        const renamedTag = Object.entries(tagsList ?? {}).find(([, tag]) => {
-                            const typedTag = tag as {previousTagName?: string};
-                            return typedTag.previousTagName === tagName;
-                        });
-                        if (renamedTag) {
-                            newSelectedTags.push(renamedTag[0]);
-                            continue;
-                        }
-                    }
-
-                    if (tagExists && tagExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                        newSelectedTags.push(tagName);
+                const tagExists = singleLevelTags?.[tagName];
+                if (!tagExists) {
+                    const renamedTag = Object.entries(singleLevelTags ?? {}).find(([, tag]) => tag.previousTagName === tagName);
+                    if (renamedTag) {
+                        newSelectedTags.push(renamedTag[0]);
+                        continue;
                     }
                 }
+
+                if (tagExists && tagExists.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedTags.push(tagName);
+                }
+            }
+
+            // Derived tag lists can change identity while the selected keys stay the same.
+            if (newSelectedTags.length === prevSelectedTags.length && newSelectedTags.every((tagName, index) => tagName === prevSelectedTags.at(index))) {
+                return prevSelectedTags;
             }
 
             return newSelectedTags;
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tagsList]);
+    }, [policyTagLists]);
 
     const clearTableSelection = () => {
         setSelectedTagKeys((prevSelectedTagKeys) => (prevSelectedTagKeys.length > 0 ? [] : prevSelectedTagKeys));
