@@ -3488,4 +3488,72 @@ describe('actions/IOU/TrackExpense', () => {
             expect(hasManualDistanceOverride(undefined)).toBe(false);
         });
     });
+
+    describe('getDeleteTrackExpenseInformation last visible action', () => {
+        it("resolves the chat report's last visible action from the deleting user's own visibility", async () => {
+            const CHAT_REPORT_ID = '74001';
+            const WHISPER_TARGET_ACCOUNT_ID = 929;
+
+            const olderComment = {
+                reportActionID: '74002',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-10-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            } as ReportAction;
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = {
+                reportActionID: '74003',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2026-10-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as ReportAction;
+            const deletedTrackAction = {
+                reportActionID: '74004',
+                reportID: CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2026-10-01 08:00:00.000',
+                message: [{type: 'COMMENT', html: '$1.00 expense', text: '$1.00 expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.TRACK, IOUTransactionID: '74005', amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction;
+            const chatReport: Report = {...createRandomReport(74001, CONST.REPORT.CHAT_TYPE.SELF_DM), reportID: CHAT_REPORT_ID};
+
+            // Given a self DM whose newest action, once the tracked expense is deleted, is a whisper aimed at one account only
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+                [deletedTrackAction.reportActionID]: deletedTrackAction,
+            });
+            await waitForBatchedUpdates();
+
+            const getLastVisibleActionCreated = (currentUserAccountID: number) => {
+                // When the delete data is built for the given user
+                const {optimisticData} = getDeleteTrackExpenseInformation({
+                    chatReport,
+                    transactionID: '74005',
+                    reportAction: deletedTrackAction,
+                    isChatReportArchived: false,
+                    currentUserAccountID,
+                    transactionThreadReportActions: undefined,
+                    transactionThread: undefined,
+                });
+                const chatReportUpdate = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`);
+                const value: unknown = chatReportUpdate?.value;
+                if (!value || typeof value !== 'object' || !('lastVisibleActionCreated' in value)) {
+                    return undefined;
+                }
+                return value.lastVisibleActionCreated;
+            };
+
+            // Then the whisper's target sees the whisper as the newest action
+            expect(getLastVisibleActionCreated(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
+
+            // Then anyone else does not see the whisper, so the older comment is tracked instead
+            expect(getLastVisibleActionCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderComment.created);
+        });
+    });
 });

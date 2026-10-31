@@ -42,6 +42,7 @@ import {
     getLastMessageTextForReport,
     getReportAlternateText,
     getWelcomeMessage,
+    resolveLastActionContext,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
 import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
@@ -299,6 +300,40 @@ describe('ReportAlternateTextUtils', () => {
             expect(result).toBe('Mystery Person');
         });
 
+        it("should resolve the last actor from the current user's own whisper visibility", async () => {
+            const REPORT_ID = '75001';
+            const WHISPER_TARGET_ACCOUNT_ID = 939;
+            const report = makeReport({reportID: REPORT_ID});
+            const olderComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {reportActionID: '75002', reportID: REPORT_ID, created: '2024-01-01 10:00:00.000'});
+            /** Newer than `olderComment`, written by Bob, and only the whispered-to account can see it. */
+            const whisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '75003',
+                reportID: REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                actorAccountID: 2,
+                person: [{type: 'TEXT', style: 'strong', text: 'Bob Boron'}],
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+
+            // Given a report whose newest action is a whisper from Bob aimed at one account, and whose older comment is from Alice
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+            });
+            await waitForBatchedUpdates();
+
+            // When the last actor is resolved without a precomputed last action
+            const getActorFor = (currentUserAccountID: number) => getLastActorDisplayNameFromLastVisibleActions(report, null, currentUserAccountID, PERSONAL_DETAILS, false, translateLocal);
+
+            // Then the whisper's target sees Bob as the last actor
+            expect(getActorFor(WHISPER_TARGET_ACCOUNT_ID)).toBe('Bob');
+
+            // Then anyone else cannot see the whisper, so Alice is the last actor
+            expect(getActorFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe('Alice');
+        });
+
         it('should fall back to the passed lastActorDetails when there is no last action', () => {
             const result = getLastActorDisplayNameFromLastVisibleActions(makeReport(), PERSONAL_DETAILS[2] ?? null, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, false, translateLocal);
             expect(result).toBe('Bob');
@@ -484,6 +519,40 @@ describe('ReportAlternateTextUtils', () => {
         });
     });
 
+    describe('resolveLastActionContext', () => {
+        it("resolves the last action from the current user's own whisper visibility", async () => {
+            const REPORT_ID = '77001';
+            const WHISPER_TARGET_ACCOUNT_ID = 959;
+            const report = makeReport({reportID: REPORT_ID});
+            const olderComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {reportActionID: '77002', reportID: REPORT_ID, created: '2024-01-01 10:00:00.000'});
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '77003',
+                reportID: REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+
+            // Given a report whose newest action is a whisper aimed at one account, after an older visible comment
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+            });
+            await waitForBatchedUpdates();
+
+            // When the last action context is resolved for a given user
+            const getLastActionIDFor = (currentUserAccountID: number) => resolveLastActionContext(report, false, undefined, currentUserAccountID).lastAction?.reportActionID;
+
+            // Then the whisper's target gets the whisper as the last action
+            expect(getLastActionIDFor(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.reportActionID);
+
+            // Then anyone else cannot see the whisper, so the older comment is the last action
+            expect(getLastActionIDFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderComment.reportActionID);
+        });
+    });
+
     it.each([
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ARCHIVE_POLICY, 'archived this workspace'],
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNARCHIVE_POLICY, 'unarchived this workspace'],
@@ -516,6 +585,207 @@ describe('ReportAlternateTextUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
+        it("falls back to the parent's last action from the current user's own whisper visibility when the thread's newest action is the expense itself", async () => {
+            const REPORT_ID = '81001';
+            const THREAD_REPORT_ID = '81002';
+            const WHISPER_TARGET_ACCOUNT_ID = 979;
+            const report = makeReport({reportID: REPORT_ID});
+            const olderComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '81003',
+                reportID: REPORT_ID,
+                created: '2024-01-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            });
+            /** Newer than `olderComment` in the parent, and only the whispered-to account can see it. */
+            const parentWhisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '81004',
+                reportID: REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+            /** The thread's newest action is the expense's own IOU CREATE, which the preview skips in favor of the parent's last action. */
+            const threadExpense = makeAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                reportActionID: '81005',
+                reportID: THREAD_REPORT_ID,
+                created: '2024-01-01 13:00:00.000',
+                message: [{type: 'COMMENT', html: '$1.00 expense', text: '$1.00 expense'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: '81006', amount: 100, currency: CONST.CURRENCY.USD},
+            } as Partial<ReportAction>);
+
+            // Given a one-transaction report whose thread ends with the expense, and whose parent ends with a whisper aimed at one account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[olderComment.reportActionID]: olderComment, [parentWhisper.reportActionID]: parentWhisper});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`, {[threadExpense.reportActionID]: threadExpense});
+            await waitForBatchedUpdates();
+
+            // When the last message text is resolved without a precomputed last action
+            const getLastMessageFor = (currentUserAccountID: number) =>
+                getLastMessageTextForReport({
+                    formatPhoneNumber,
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID,
+                    personalDetails: PERSONAL_DETAILS,
+                    translate: translateLocal,
+                    convertToDisplayString,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    oneTransactionThreadReportID: THREAD_REPORT_ID,
+                    rules: undefined,
+                });
+
+            // Then the whisper's target gets the parent's whisper, not the older comment, as the last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID)).not.toBe('Older comment');
+
+            // Then anyone else cannot see the whisper, so the parent's older comment is the last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe('Older comment');
+        });
+
+        it('has no last message for a one-transaction report when its only action is a whisper aimed at somebody else', async () => {
+            const REPORT_ID = '82001';
+            const THREAD_REPORT_ID = '82002';
+            const WHISPER_TARGET_ACCOUNT_ID = 989;
+            const report = makeReport({reportID: REPORT_ID});
+            /** The report's only action, and only the whispered-to account can see it. */
+            const whisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '82003',
+                reportID: REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+
+            // Given a one-transaction report with an empty thread, whose only action is a whisper aimed at one account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+
+            // When the last message text is resolved for an account the whisper does not target
+            const lastMessage = getLastMessageTextForReport({
+                formatPhoneNumber,
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: WHISPER_TARGET_ACCOUNT_ID + 1,
+                personalDetails: PERSONAL_DETAILS,
+                translate: translateLocal,
+                convertToDisplayString,
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                oneTransactionThreadReportID: THREAD_REPORT_ID,
+                rules: undefined,
+            });
+
+            // Then neither the report nor its thread has an action that account can see, so there is no last message
+            expect(lastMessage).toBe('');
+        });
+
+        it("resolves the last message across the transaction thread from the current user's own whisper visibility", async () => {
+            const REPORT_ID = '78001';
+            const THREAD_REPORT_ID = '78002';
+            const WHISPER_TARGET_ACCOUNT_ID = 969;
+            const report = makeReport({reportID: REPORT_ID});
+            const olderComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '78003',
+                reportID: REPORT_ID,
+                created: '2024-01-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            });
+            /** Lives in the one-transaction thread, is newer than `olderComment`, and only the whispered-to account can see it. */
+            const threadWhisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '78004',
+                reportID: THREAD_REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+
+            // Given a one-transaction report whose thread's newest action is a whisper aimed at one account, newer than the parent's comment
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[olderComment.reportActionID]: olderComment});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`, {[threadWhisper.reportActionID]: threadWhisper});
+            await waitForBatchedUpdates();
+
+            // When the last message text is resolved without a precomputed last action
+            const getLastMessageFor = (currentUserAccountID: number) =>
+                getLastMessageTextForReport({
+                    formatPhoneNumber,
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID,
+                    personalDetails: PERSONAL_DETAILS,
+                    translate: translateLocal,
+                    convertToDisplayString,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    oneTransactionThreadReportID: THREAD_REPORT_ID,
+                    rules: undefined,
+                });
+
+            // Then the whisper's target gets the thread's whisper, not the parent's comment, as the last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID)).not.toBe('Older comment');
+
+            // Then anyone else cannot see the whisper, so the parent's comment is the last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe('Older comment');
+        });
+
+        it("resolves the last message from the current user's own whisper visibility", async () => {
+            const REPORT_ID = '76001';
+            const WHISPER_TARGET_ACCOUNT_ID = 949;
+            const report = makeReport({reportID: REPORT_ID});
+            const olderComment = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                reportActionID: '76002',
+                reportID: REPORT_ID,
+                created: '2024-01-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+            });
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '76003',
+                reportID: REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+
+            // Given a report whose newest action is a whisper aimed at one account, after an older visible comment
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+            });
+            await waitForBatchedUpdates();
+
+            // When the last message text is resolved without a precomputed last action
+            const getLastMessageFor = (currentUserAccountID: number) =>
+                getLastMessageTextForReport({
+                    formatPhoneNumber,
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID,
+                    personalDetails: PERSONAL_DETAILS,
+                    translate: translateLocal,
+                    convertToDisplayString,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    rules: undefined,
+                });
+
+            // Then the whisper's target gets the whisper, not the older comment, as the last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID)).not.toBe('Older comment');
+
+            // Then anyone else cannot see the whisper, so the older comment is the last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe('Older comment');
+        });
+
         it('formats an agent prompt update from its original message', () => {
             const report: Report = createRandomReport(0, undefined);
             const agentPromptUpdatedAction: ReportAction = {
