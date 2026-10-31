@@ -2614,9 +2614,15 @@ function createAndOpenSearchTransactionThread({
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
-    const iouReportAction = getIOUActionForReportID(isUnreportedTransaction ? findSelfDMReportID() : item.reportID, item.transactionID);
-    const expenseOwnerAccountID = (iouReportAction ?? item.reportAction)?.actorAccountID;
-    if (isUnreportedTransaction && expenseOwnerAccountID !== currentUserAccountID) {
+    // An unreported expense lives in its owner's self DM, which is not the viewer's when an admin opens a member's expense
+    const actionReportID = item.reportAction?.reportID ? String(item.reportAction.reportID) : undefined;
+    const ownerSelfDMReportID = actionReportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? actionReportID : undefined;
+    const isOwnExpense = (item.reportAction?.actorAccountID ?? currentUserAccountID) === currentUserAccountID;
+    const expenseSelfDMReportID = isOwnExpense ? (findSelfDMReportID() ?? ownerSelfDMReportID) : ownerSelfDMReportID;
+    const selfDMReportID = isUnreportedTransaction ? expenseSelfDMReportID : undefined;
+    const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
+    // Another member's unreported expense can only open in their self DM
+    if (isUnreportedTransaction && !selfDMReportID) {
         return;
     }
 
@@ -2658,6 +2664,7 @@ function createAndOpenSearchTransactionThread({
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
             fullPolicySnapshotLastModified: iouReport?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
+            selfDMReportID,
         });
     }
 

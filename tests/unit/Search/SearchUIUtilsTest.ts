@@ -34,6 +34,7 @@ import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import getTransactionFromTransactionListItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromTransactionListItem';
+import {findSelfDMReportID} from '@src/libs/ReportUtils';
 import {savedSearchIDToSearchKey} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
@@ -14440,12 +14441,12 @@ describe('SearchUIUtils', () => {
         });
 
         test("Should not create a transaction thread in the current user's self DM for another user's unreported expense", () => {
-            // Given an unreported expense owned by another user
+            // Given an unreported expense owned by another user whose self DM is unknown
             const unreportedTransaction = {
                 ...transactionListItem,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 report: undefined,
-                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1},
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1, reportID: undefined},
             };
 
             // When the current user opens the expense from Search
@@ -14458,20 +14459,46 @@ describe('SearchUIUtils', () => {
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
-        test("Should create a transaction thread in the current user's self DM for their own unreported expense", () => {
-            // Given an unreported expense owned by the current user
+        test("Should create a transaction thread in the owner's self DM for another user's unreported expense", () => {
+            // Given an unreported expense whose IOU action Search returns from another user's self DM
             jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const ownerSelfDMReportID = 'owner-self-dm';
             const unreportedTransaction = {
                 ...transactionListItem,
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 report: undefined,
-                reportAction: {...reportAction1, actorAccountID: currentUserAccountID},
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID + 1, reportID: ownerSelfDMReportID},
             };
 
             // When the current user opens the expense from Search
             const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
 
-            // Then the transaction thread is created using the unreported transaction data
+            // Then the transaction thread is created under the owner's self DM instead of the current user's
+            expect(targetReportID).toBe(threadReportID);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    iouReportAction: unreportedTransaction.reportAction,
+                    selfDMReportID: ownerSelfDMReportID,
+                }),
+            );
+        });
+
+        test("Should create a transaction thread in the current user's self DM from Search when it is not loaded locally", () => {
+            // Given the current user's self DM is not in Onyx, and Search returns their own unreported expense's IOU action from that self DM
+            expect(findSelfDMReportID()).toBeUndefined();
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const currentUserSelfDMReportID = 'current-user-self-dm';
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID, reportID: currentUserSelfDMReportID},
+            };
+
+            // When the current user opens the expense from Search
+            const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the transaction thread is still created in their self DM using the unreported transaction data, instead of the click doing nothing
             expect(targetReportID).toBe(threadReportID);
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             expect(createTransactionThreadReport).toHaveBeenCalledWith(
@@ -14480,8 +14507,74 @@ describe('SearchUIUtils', () => {
                     iouReport: undefined,
                     iouReportAction: unreportedTransaction.reportAction,
                     transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                    selfDMReportID: currentUserSelfDMReportID,
                 }),
             );
+        });
+
+        test("Should fall back to the current user's self DM when Search returns the IOU action without its report", async () => {
+            // Given the current user's self DM in Onyx and their own unreported expense whose IOU action has no reportID
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}fallback-self-dm`, {reportID: 'fallback-self-dm', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+            await waitForBatchedUpdates();
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID, reportID: undefined},
+            };
+
+            // When the current user opens the expense from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the thread falls back to their own self DM
+            const expectedSelfDMReportID = findSelfDMReportID();
+            expect(expectedSelfDMReportID).toBeDefined();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID: expectedSelfDMReportID}));
+        });
+
+        test("Should not treat the unreported report ID on the IOU action as the owner's self DM", async () => {
+            // Given the current user's self DM in Onyx and their own unreported expense whose IOU action carries the unreported sentinel as its reportID
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}fallback-self-dm`, {reportID: 'fallback-self-dm', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+            await waitForBatchedUpdates();
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: {...reportAction1, actorAccountID: currentUserAccountID, reportID: CONST.REPORT.UNREPORTED_REPORT_ID},
+            };
+
+            // When the current user opens the expense from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then the thread goes to their real self DM, because report 0 is not a chat and parenting a thread there would leave a bogus report in Onyx
+            const expectedSelfDMReportID = findSelfDMReportID();
+            expect(expectedSelfDMReportID).toBeDefined();
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID: expectedSelfDMReportID}));
+        });
+
+        test("Should reuse the thread already created under another user's self DM instead of creating a new one", async () => {
+            // Given another user's unreported expense whose IOU action in their self DM already points at a thread
+            jest.mocked(createTransactionThreadReport).mockReset();
+            const ownerSelfDMReportID = 'owner-self-dm-reopen';
+            const childReportID = 'owner-thread-789';
+            const ownerAction = {...reportAction1, actorAccountID: currentUserAccountID + 1, reportID: ownerSelfDMReportID};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ownerSelfDMReportID}`, {[ownerAction.reportActionID]: {...ownerAction, childReportID}});
+            await waitForBatchedUpdates();
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: ownerAction,
+            };
+
+            // When it is opened again from Search, whose snapshot row has no thread yet
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, IOUTransactionID: undefined, shouldNavigate: true});
+
+            // Then the existing thread is opened, so a second click doesn't send another OpenReport
+            expect(createTransactionThreadReport).not.toHaveBeenCalled();
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
