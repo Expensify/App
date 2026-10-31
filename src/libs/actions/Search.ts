@@ -1486,7 +1486,8 @@ function search({
                         .catch((error: unknown) => Log.hmmm('[Search] failed to record the counted reports', {error: String(error)}));
                 }
 
-                if (shouldUpdateLastSearchParams) {
+                // A failed request carries no `hasMoreResults`, so saving it would stop pagination for good.
+                if (shouldUpdateLastSearchParams && result?.jsonCode === CONST.JSON_CODE.SUCCESS) {
                     const reports = Object.keys(response?.data ?? {})
                         .filter((key) => key.startsWith(ONYXKEYS.COLLECTION.REPORT))
                         .map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT, ''));

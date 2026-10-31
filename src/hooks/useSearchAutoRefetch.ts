@@ -138,6 +138,7 @@ function useSearchAutoRefetch({
 
             // Transaction Onyx keys are `transactions_<id>` but search results yield bare IDs, so read the ID off the value.
             const addedTransactionIDs: string[] = [];
+            const createdTransactionIDs: string[] = [];
             const currentTransactionIDs: string[] = [];
             for (const [key, transaction] of Object.entries(transactions ?? {})) {
                 const transactionID = transaction?.transactionID;
@@ -147,6 +148,9 @@ function useSearchAutoRefetch({
                 currentTransactionIDs.push(transactionID);
                 if (!previousTransactionsIDsSet.has(key)) {
                     addedTransactionIDs.push(transactionID);
+                    if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                        createdTransactionIDs.push(transactionID);
+                    }
                 }
             }
 
@@ -156,6 +160,16 @@ function useSearchAutoRefetch({
             }
             const existingSearchResultIDsSet = new Set(currentSearchResultIDs);
             const hasAGenuinelyNewID = (isChat ? reportActionsIDs : addedTransactionIDs).some((id) => !existingSearchResultIDsSet.has(id));
+
+            // With an RHP over Search, only an entry the user just created there needs a refetch right away. Opening a report
+            // also writes transactions the results lack (split originals, expenses of reports on pages not loaded yet), and
+            // refetching from offset 0 replaces the snapshot, dropping the pages the report navigation arrows loaded. Defer
+            // everything else until Search is focused again.
+            const hasCreatedNewID = isChat ? hasAGenuinelyNewID : createdTransactionIDs.some((id) => !existingSearchResultIDsSet.has(id));
+            if (!isFocused && !hasCreatedNewID) {
+                hasPendingSearchRef.current = true;
+                return;
+            }
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search

@@ -1,13 +1,19 @@
-import {renderHook} from '@testing-library/react-native';
+import {render, renderHook} from '@testing-library/react-native';
 
-import {isNavigableReportID} from '@components/MoneyRequestReportView/MoneyRequestReportNavigation';
+import MoneyRequestReportNavigation, {isNavigableReportID} from '@components/MoneyRequestReportView/MoneyRequestReportNavigation';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 
 import useFilterPendingDeleteReports from '@hooks/useFilterPendingDeleteReports';
 
-import CONST from '@src/CONST';
+import Navigation from '@navigation/Navigation';
 
-import {useState} from 'react';
+import {saveLastSearchParams} from '@userActions/ReportNavigation';
+import {search} from '@userActions/Search';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useState} from 'react';
 
 /**
  * These tests verify the source-selection and cache logic of MoneyRequestReportNavigation
@@ -34,6 +40,23 @@ const mockUseSearchSections = jest.fn<SearchSectionsResult, []>();
 jest.mock('@hooks/useSearchSections', () => ({
     __esModule: true,
     default: () => mockUseSearchSections(),
+}));
+
+jest.mock('@userActions/Search', () => ({search: jest.fn()}));
+jest.mock('@userActions/ReportNavigation', () => ({saveLastSearchParams: jest.fn()}));
+jest.mock('@navigation/Navigation', () => ({setParams: jest.fn()}));
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
+    useIsFocused: () => true,
+}));
+
+let mockOnNext: (() => void) | undefined;
+jest.mock('@components/PrevNextButtons', () => ({
+    __esModule: true,
+    default: ({onNext}: {onNext: () => void}) => {
+        mockOnNext = onNext;
+        return null;
+    },
 }));
 
 jest.mock('@hooks/useFilterPendingDeleteReports', () => ({
@@ -110,6 +133,10 @@ describe('MoneyRequestReportNavigation', () => {
         mockUseSearchSections.mockReturnValue({allReports: [], isSearchLoading: false, lastSearchQuery: undefined});
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     describe('path selection', () => {
         it('uses fast path (context list) when context has IDs and not loading', () => {
             mockSortedReportIDs = ['1', '2'];
@@ -162,4 +189,137 @@ describe('MoneyRequestReportNavigation', () => {
             expect(result.current.effectiveAllReports).toEqual(['1', '2', '3']);
         });
     });
+
+    describe('next page request', () => {
+        it('skips the write queue when Next crosses the prefetch threshold', () => {
+            // Given the first page of 50 reports is loaded, more results exist, and report 40 is open
+            const reportIDs = Array.from({length: CONST.SEARCH.RESULTS_PAGE_SIZE}, (_, index) => `${index + 1}`);
+            const lastSearchQuery = {
+                queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: 1},
+                offset: 0,
+                hasMoreResults: true,
+                previousLengthOfResults: reportIDs.length,
+            };
+            const snapshot = {data: Object.fromEntries(reportIDs.map((id) => [`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id}])), search: {isLoading: false}};
+            mockSortedReportIDs = reportIDs;
+            mockUseOnyx.mockImplementation((key: string, options?: {selector?: (value: unknown) => unknown}) => {
+                const value = key === ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY ? lastSearchQuery : snapshot;
+                return [options?.selector ? options.selector(value) : value];
+            });
+            const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+                callback(0);
+                return 0;
+            });
+            render(
+                <MoneyRequestReportNavigation
+                    reportID="40"
+                    shouldDisplayNarrowVersion
+                />,
+            );
+
+            // When the user presses Next
+            mockOnNext?.();
+
+            // Then page 2 is requested without waiting for the OpenReport writes each press queues, so Next isn't disabled at report 50 until they drain
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, skipWaitForWrites: true}));
+            requestAnimationFrameSpy.mockRestore();
+        });
+
+        it.each([
+            ['restores the params from before the request when the page fails', undefined, true],
+            ['keeps the params the request saved when the page loads', CONST.JSON_CODE.SUCCESS, false],
+        ])('%s', async (_label, jsonCode, shouldRestore) => {
+            // Given the first page of 50 reports is loaded, more results exist, and report 40 is open
+            const lastSearchQuery = renderNavigationOnFirstPage('40', {offset: 0, hasMoreResults: true}, {offset: 0, hasMoreResults: true});
+            jest.mocked(search).mockReturnValueOnce(Promise.resolve(jsonCode));
+            jest.mocked(saveLastSearchParams).mockClear();
+
+            // When the user presses Next and the page 2 request settles
+            mockOnNext?.();
+            await Promise.resolve();
+
+            // Then a failed request leaves the offset where Next can request page 2 again, and a successful one is left alone
+            if (shouldRestore) {
+                expect(saveLastSearchParams).toHaveBeenCalledWith(lastSearchQuery);
+            } else {
+                expect(saveLastSearchParams).not.toHaveBeenCalled();
+            }
+        });
+
+        it('stays on the last loaded report while the next page is requested', () => {
+            // Given the first page of 50 reports is loaded, more results exist, and the last loaded report is open
+            renderNavigationOnFirstPage(`${CONST.SEARCH.RESULTS_PAGE_SIZE}`, {offset: 0, hasMoreResults: true}, {offset: 0, hasMoreResults: true});
+            jest.mocked(Navigation.setParams).mockClear();
+
+            // When the user presses Next
+            mockOnNext?.();
+
+            // Then page 2 is requested and the user isn't sent back to the first report
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('first page refetch', () => {
+        it('loads the dropped page again when a refetch replaces the snapshot with the first page', () => {
+            // Given Next loaded page 2 (the last one), then Pay refetched the first page, which replaced the snapshot
+            jest.mocked(search).mockClear();
+            jest.mocked(saveLastSearchParams).mockClear();
+            renderNavigationOnFirstPage('40', {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: false}, {offset: 0, hasMoreResults: true});
+
+            // Then page 2 is requested again without a loading state, because each Next press remounts the navigation and it only shows for a report the snapshot holds
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, skipWaitForWrites: true, shouldShowLoading: false}));
+            expect(search).not.toHaveBeenCalledWith(expect.objectContaining({shouldUpdateLastSearchParams: true}));
+            expect(saveLastSearchParams).not.toHaveBeenCalled();
+        });
+
+        it('moves the params back to the first page when loading the dropped page fails', async () => {
+            // Given Next loaded page 2 (the last one), Pay refetched the first page, and loading page 2 again fails
+            jest.mocked(saveLastSearchParams).mockClear();
+            jest.mocked(search).mockReturnValueOnce(Promise.resolve(undefined));
+            const lastSearchQuery = renderNavigationOnFirstPage('40', {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: false}, {offset: 0, hasMoreResults: true});
+
+            // When the request settles
+            await Promise.resolve();
+
+            // Then the params follow the snapshot back to the first page, so Next requests page 2 itself instead of stopping at report 50
+            expect(saveLastSearchParams).toHaveBeenCalledWith({
+                ...lastSearchQuery,
+                offset: 0,
+                hasMoreResults: true,
+                previousLengthOfResults: CONST.SEARCH.RESULTS_PAGE_SIZE,
+                allowPostSearchRecount: false,
+            });
+        });
+    });
 });
+
+/** Renders the navigation for `reportID` with the first page of 50 reports in the snapshot, and returns the saved params it starts from. */
+function renderNavigationOnFirstPage(reportID: string, searchParams: {offset: number; hasMoreResults: boolean}, snapshotSearch: {offset: number; hasMoreResults: boolean}) {
+    const reportIDs = Array.from({length: CONST.SEARCH.RESULTS_PAGE_SIZE}, (_, index) => `${index + 1}`);
+    const lastSearchQuery = {
+        queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: 1},
+        ...searchParams,
+        previousLengthOfResults: reportIDs.length,
+    };
+    const snapshot = {
+        data: Object.fromEntries(reportIDs.map((id) => [`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id}])),
+        search: {isLoading: false, ...snapshotSearch},
+    };
+    mockSortedReportIDs = reportIDs;
+    mockUseOnyx.mockImplementation((key: string, options?: {selector?: (value: unknown) => unknown}) => {
+        const value = key === ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY ? lastSearchQuery : snapshot;
+        return [options?.selector ? options.selector(value) : value];
+    });
+    jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+        callback(0);
+        return 0;
+    });
+    render(
+        <MoneyRequestReportNavigation
+            reportID={reportID}
+            shouldDisplayNarrowVersion
+        />,
+    );
+    return lastSearchQuery;
+}
