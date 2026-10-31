@@ -8324,6 +8324,7 @@ ${reportName}`,
                     selectWorkspace: '选择一个工作区，并将套餐类型更改为',
                 },
                 upgradeWorkspaceWarning: `无法升级工作空间`,
+                createWorkspaceWarning: `无法创建工作区`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: '您的公司已限制创建工作区。请联系管理员获取帮助。',
             },
             hr: {

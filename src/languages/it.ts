@@ -8628,6 +8628,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                     selectWorkspace: 'seleziona uno spazio di lavoro e cambia il tipo di piano in',
                 },
                 upgradeWorkspaceWarning: `Impossibile eseguire l'upgrade dello spazio di lavoro`,
+                createWorkspaceWarning: `Impossibile creare lo spazio di lavoro`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'La tua azienda ha limitato la creazione degli spazi di lavoro. Contatta un amministratore per assistenza.',
             },
             hr: {

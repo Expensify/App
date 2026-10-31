@@ -9,6 +9,7 @@ import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
+import useRestrictedPolicyCreationModal from '@hooks/useRestrictedPolicyCreationModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
@@ -190,6 +191,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
     const personalDetail = useCurrentUserPersonalDetails();
     const activePolicy = useActivePolicy();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const showRestrictedPolicyCreationModal = useRestrictedPolicyCreationModal();
 
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
         selector: validTransactionDraftIDsSelector,
@@ -221,6 +223,7 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
         filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
         firstPolicy: filteredPoliciesInfo?.firstPolicy,
         restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
+        showRestrictedPolicyCreationModal,
     };
     const isSplitExpense = isSplitChildTransaction(trackExpenseTransaction);
     const shouldShowSubmitButtons = !isSplitExpense || !!hasWorkspaceToSubmitTo;
