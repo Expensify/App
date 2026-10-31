@@ -5241,6 +5241,7 @@ const translations = {
             roomType: 'Room type',
             cancellation: 'Cancellation policy',
             cancellationUntil: 'Free cancellation until',
+            hotelLocalTime: "hotel's local time",
             confirmation: 'Confirmation number',
             cancellationPolicies: {
                 unknown: 'Unknown',

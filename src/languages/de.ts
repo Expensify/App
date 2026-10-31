@@ -5061,6 +5061,7 @@ ${amount} für ${merchant} – ${date}`,
             roomType: 'Zimmertyp',
             cancellation: 'Stornierungsrichtlinie',
             cancellationUntil: 'Kostenlose Stornierung bis',
+            hotelLocalTime: 'Ortszeit des Hotels',
             confirmation: 'Bestätigungsnummer',
             cancellationPolicies: {
                 unknown: 'Unbekannt',

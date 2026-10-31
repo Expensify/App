@@ -8,8 +8,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ArrayValues} from 'type-fest';
 
-import {format, subSeconds} from 'date-fns';
-import {fromZonedTime, toZonedTime} from 'date-fns-tz';
 import {SafeString} from 'expensify-common';
 
 import {getMoneyRequestSpendBreakdown} from './ReportUtils';
@@ -241,35 +239,21 @@ function getAirReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem
 }
 
 function getCancellationDeadline(pnrData: HotelPnr): string | undefined {
-    const deadlineUtc = pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
-    const duration = pnrData.room.cancellationPolicy?.durationBeforeArrivalDeadline?.iso8601;
-    const checkIn = pnrData.checkInDateTime?.iso8601;
-    if (deadlineUtc && duration && checkIn) {
-        // 1. Extract the target UTC offset from deadlineUtc (e.g. "-04:00")
-        const match = deadlineUtc.match(/(Z|[+-]\d{2}:\d{2})$/);
-        if (!match) {
-            return pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
-        }
-        const utcOffset = match[1] === 'Z' ? '+00:00' : match[1];
-
-        // 2. Convert the check-in wall-clock time to an absolute UTC instant,
-        //    treating it as being expressed in the target offset timezone.
-        const checkInUtc = fromZonedTime(checkIn, utcOffset);
-
-        // 3. Subtract the duration in UTC-space (preserves wall-clock intent for
-        //    day/hour units; DST transitions are irrelevant for fixed offsets).
-        const deadlineUtcInstant = subSeconds(checkInUtc, parseDurationToSeconds(duration));
-
-        // 4. Convert back to the target offset's wall-clock representation.
-        const deadlineZoned = toZonedTime(deadlineUtcInstant, utcOffset);
-
-        // 5. Format as ISO-8601 with the explicit offset suffix.
-        //    `format` with "yyyy-MM-dd'T'HH:mm:ss" gives the bare local datetime;
-        //    we then append the offset so the result is a proper fixed-offset string.
-        const localPart = format(deadlineZoned, "yyyy-MM-dd'T'HH:mm:ss");
-        return `${localPart}${utcOffset}`;
+    // A deadline would show "Free cancellation until …", which is wrong for a non-refundable room.
+    if (pnrData.room.cancellationPolicy?.policy === CONST.CANCELLATION_POLICY.NON_REFUNDABLE) {
+        return undefined;
     }
-    return pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
+    const deadlineUtc = pnrData.room.cancellationPolicy?.deadlineUtc?.iso8601;
+    // `deadlineUtc` with an offset is the exact deadline Spotnana shows, in the hotel's timezone.
+    if (deadlineUtc && CONST.REGEX.ISO_8601_UTC_OFFSET_SUFFIX.test(deadlineUtc)) {
+        return deadlineUtc;
+    }
+    // `deadline` is usually the hotel's wall-clock time with no offset.
+    const deadline = pnrData.room.cancellationPolicy?.deadline?.iso8601;
+    if (deadline) {
+        return deadline;
+    }
+    return deadlineUtc;
 }
 
 function getHotelReservations(pnr: Pnr, travelers: PnrTraveler[]): ReservationItem[] {
