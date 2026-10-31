@@ -149,14 +149,8 @@ function ThreeDotsMenu({
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
-        if (!getMenuPosition || !isPopupMenuVisible) {
-            return;
-        }
-
-        getMenuPosition?.().then((value) => {
-            setPosition(value);
-        });
-    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
+        updateMenuPosition();
+    }, [windowWidth, windowHeight, shouldSelfPosition, updateMenuPosition]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {
