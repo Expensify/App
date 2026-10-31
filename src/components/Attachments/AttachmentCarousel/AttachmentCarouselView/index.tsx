@@ -99,7 +99,7 @@ function AttachmentCarouselView({
     // Keep the current selection available to viewability callbacks without waiting for a render.
     const activeAttachmentIDRef = useRef(activeAttachmentID);
 
-    const scrollRef = useAnimatedRef<FlatList<Attachment>>();
+    const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
 
     // The modal's safe-area padding can make the carousel narrower than the window.
     // Wait for its actual width before mounting the list so visibility and paging use the same geometry.
