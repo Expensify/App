@@ -464,9 +464,8 @@ describe('useSearchBulkActions - Pay option', () => {
         expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 
-    it('keeps the Pay option when a held expense sits in a report that is not being paid', async () => {
-        // Given "Select all on this page" over a mixed page: report 1 is payable, report 2 is view-only and holds a
-        // held expense. Bulk pay only settles report 1, so report 2's hold must not decide the whole selection.
+    it('hides the Pay option when a held expense sits in any selected report', async () => {
+        // Given two selected reports where only the second one contains a held expense and cannot be paid
         mockSelectedReports = [makeSelectedReport({reportID: '1', canPay: true}), makeSelectedReport({reportID: '2', canPay: false})];
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({reportID: '1'}),
@@ -476,10 +475,12 @@ describe('useSearchBulkActions - Pay option', () => {
         // When the bulk actions hook computes the header dropdown options
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
-        // Then Pay is still offered, because the hold is scoped to the reports that will actually be paid
         await waitFor(() => {
-            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+            expect(result.current.headerButtonsOptions).toBeDefined();
         });
+
+        // Then Pay is hidden, the same way a held expense in any selected report hides Approve
+        expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 
     it('hides the Pay option when a held expense sits in a report that is being paid', async () => {
