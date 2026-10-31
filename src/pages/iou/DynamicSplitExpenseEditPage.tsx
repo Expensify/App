@@ -253,7 +253,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const shouldShowTaxDisabledAlert = !isTaxEnabled && !!splitExpenseDraftTransaction?.taxCode && !isSplitPerDiemRequest && !isSplitTimeRequest;
     const shouldShowTax = isTaxEnabled || shouldShowTaxDisabledAlert;
     const taxRatesDescription = effectivePolicy?.taxRates?.name;
-    const taxRateTitle = getTaxName(effectivePolicy, splitExpenseDraftTransaction);
+    const taxRateTitle = getTaxName(translate, effectivePolicy, splitExpenseDraftTransaction);
 
     const showTaxDisabledAlert = () => {
         showConfirmModal({

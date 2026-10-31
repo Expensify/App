@@ -231,6 +231,7 @@ describe('Merging identical distance expenses without conflicts', () => {
                 MERGE_TRANSACTION_ID,
                 [firstExpense, secondExpense],
                 (a: string, b: string) => a.localeCompare(b),
+                TestHelper.translateLocal,
                 () => 2,
                 [report],
                 false,

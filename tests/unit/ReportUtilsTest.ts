@@ -26913,44 +26913,44 @@ describe('ReportUtils', () => {
 
         it('should return created date for DATE column', () => {
             const transaction = createMockTransaction({created: '2024-01-15'});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.DATE, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.DATE, mockReport, mockPolicy);
             expect(result).toBe('2024-01-15');
         });
 
         it('should return 1 for reimbursable and 0 for non-reimbursable', () => {
             const reimbursable = createMockTransaction({reimbursable: true});
             const nonReimbursable = createMockTransaction({reimbursable: false});
-            expect(getTransactionSortValue(reimbursable, CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, mockReport, mockPolicy)).toBe(1);
-            expect(getTransactionSortValue(nonReimbursable, CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, mockReport, mockPolicy)).toBe(0);
+            expect(getTransactionSortValue(translateLocal, reimbursable, CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, mockReport, mockPolicy)).toBe(1);
+            expect(getTransactionSortValue(translateLocal, nonReimbursable, CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE, mockReport, mockPolicy)).toBe(0);
         });
 
         it('should return empty string for TAX_RATE when policy is undefined', () => {
             const transaction = createMockTransaction({taxCode: 'TAX_CODE_1'});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, mockReport, undefined);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, mockReport, undefined);
             expect(result).toBe('');
         });
 
         it('should return posted date for POSTED column', () => {
             const transaction = createMockTransaction({posted: '20240115'});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
             expect(result).toBe('20240115');
         });
 
         it('should return empty string for POSTED column when posted date is undefined', () => {
             const transaction = createMockTransaction();
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.POSTED, mockReport, mockPolicy);
             expect(result).toBe('');
         });
 
         it('should return merchant for MERCHANT column', () => {
             const transaction = createMockTransaction({merchant: 'Test Merchant'});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, mockReport, mockPolicy);
             expect(result).toBe('Test Merchant');
         });
 
         it('should return category for CATEGORY column', () => {
             const transaction = createMockTransaction({category: 'Travel'});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.CATEGORY, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.CATEGORY, mockReport, mockPolicy);
             expect(result).toBe('Travel');
         });
 
@@ -26965,13 +26965,13 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE, mockReport, mockPolicy, policyCategories)).toBe('6200');
-            expect(getTransactionSortValue(transaction, CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE, mockReport, mockPolicy, policyCategories)).toBe('6200');
+            expect(getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE, mockReport, mockPolicy, policyCategories)).toBe('6200');
+            expect(getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE, mockReport, mockPolicy, policyCategories)).toBe('6200');
         });
 
         it('should return tag for TAG column', () => {
             const transaction = createMockTransaction({tag: 'Project A'});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAG, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.TAG, mockReport, mockPolicy);
             expect(result).toBe('Project A');
         });
 
@@ -26996,15 +26996,15 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
-            expect(getTransactionSortValue(transaction, CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
+            expect(getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
+            expect(getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE, mockReport, mockPolicy, undefined, policyTagLists)).toBe('1234, 5678');
         });
 
         it('should return 1 for billable and 0 for non-billable', () => {
             const billable = createMockTransaction({billable: true});
             const nonBillable = createMockTransaction({billable: false});
-            expect(getTransactionSortValue(billable, CONST.SEARCH.TABLE_COLUMNS.BILLABLE, mockReport, mockPolicy)).toBe(1);
-            expect(getTransactionSortValue(nonBillable, CONST.SEARCH.TABLE_COLUMNS.BILLABLE, mockReport, mockPolicy)).toBe(0);
+            expect(getTransactionSortValue(translateLocal, billable, CONST.SEARCH.TABLE_COLUMNS.BILLABLE, mockReport, mockPolicy)).toBe(1);
+            expect(getTransactionSortValue(translateLocal, nonBillable, CONST.SEARCH.TABLE_COLUMNS.BILLABLE, mockReport, mockPolicy)).toBe(0);
         });
 
         it('should return 1 for an expense on hold and 0 for one that is not', () => {
@@ -27013,8 +27013,8 @@ describe('ReportUtils', () => {
             const unheld = createMockTransaction({comment: {hold: ''}});
 
             // When their held sort values are read
-            const heldSortValue = getTransactionSortValue(held, CONST.SEARCH.TABLE_COLUMNS.HELD, mockReport, mockPolicy);
-            const unheldSortValue = getTransactionSortValue(unheld, CONST.SEARCH.TABLE_COLUMNS.HELD, mockReport, mockPolicy);
+            const heldSortValue = getTransactionSortValue(translateLocal, held, CONST.SEARCH.TABLE_COLUMNS.HELD, mockReport, mockPolicy);
+            const unheldSortValue = getTransactionSortValue(translateLocal, unheld, CONST.SEARCH.TABLE_COLUMNS.HELD, mockReport, mockPolicy);
 
             // Then only the expense on hold sorts as held
             expect(heldSortValue).toBe(1);
@@ -27023,49 +27023,49 @@ describe('ReportUtils', () => {
 
         it('should return amount for TOTAL_AMOUNT column', () => {
             const transaction = createMockTransaction({amount: 5000});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, mockReport, mockPolicy);
             expect(result).toBe(-5000);
         });
 
         it('should return description for DESCRIPTION column', () => {
             const transaction = createMockTransaction({comment: {comment: 'Test description'}});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION, mockReport, mockPolicy);
             expect(result).toBe('Test description');
         });
 
         it('should return exchange rate string for EXCHANGE_RATE column', () => {
             const transaction = createMockTransaction({groupExchangeRate: 1.5, groupCurrency: 'EUR', currency: 'USD'});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE, mockReport, mockPolicy);
             expect(result).toBe('1.5 USD/EUR');
         });
 
         it('should return original amount for ORIGINAL_AMOUNT column', () => {
             const transaction = createMockTransaction({amount: 1000, modifiedAmount: 900, currency: 'EUR'});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, mockReport, mockPolicy);
             expect(typeof result).toBe('number');
         });
 
         it('should return tax amount for TAX_AMOUNT column', () => {
             const transaction = createMockTransaction({taxAmount: 500});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT, mockReport, mockPolicy);
             expect(result).toBe(-500);
         });
 
         it('should return cardID for CARD column', () => {
             const transaction = createMockTransaction({cardID: 12345});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.CARD, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.CARD, mockReport, mockPolicy);
             expect(result).toBe(12345);
         });
 
         it('should return 0 for CARD column when cardID is undefined', () => {
             const transaction = createMockTransaction();
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.CARD, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.CARD, mockReport, mockPolicy);
             expect(result).toBe(0);
         });
 
         it('should return tax name for TAX_RATE when policy has tax rates', () => {
             const transaction = createMockTransaction({taxCode: 'TAX_CODE_1'});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.TAX_RATE, mockReport, mockPolicy);
             expect(result).toBe('Standard Tax (10%)');
         });
 
@@ -27076,26 +27076,26 @@ describe('ReportUtils', () => {
 
         it('should return attendee count for ATTENDEES column', () => {
             const transaction = createMockTransaction({comment: {attendees: mockAttendees}});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.ATTENDEES, mockReport, mockPolicy);
             expect(result).toBe(2);
         });
 
         it('should return amount divided by attendee count for TOTAL_PER_ATTENDEE column', () => {
             const transaction = createMockTransaction({amount: 6000, comment: {attendees: mockAttendees}});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
             expect(result).toBe(-3000);
         });
 
         it('should return 0 for TOTAL_PER_ATTENDEE column when there are no attendees', () => {
             const transaction = createMockTransaction({amount: 6000});
-            const result = getTransactionSortValue(transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, mockReport, mockPolicy);
             expect(result).toBe(0);
         });
 
         it('should return empty string for unknown column', () => {
             const transaction = createMockTransaction();
             // @ts-expect-error -- unknown column intentionally exercises the default branch.
-            const result = getTransactionSortValue(transaction, 'UNKNOWN_COLUMN', mockReport, mockPolicy);
+            const result = getTransactionSortValue(translateLocal, transaction, 'UNKNOWN_COLUMN', mockReport, mockPolicy);
             expect(result).toBe('');
         });
     });
