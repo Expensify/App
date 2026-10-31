@@ -47,6 +47,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -57,6 +58,7 @@ type TaskViewProps = {
 };
 
 function TaskView({report, parentReport, action}: TaskViewProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
@@ -147,16 +149,20 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             {(hovered) => (
                                 <PressableWithSecondaryInteraction
                                     accessible={shouldSplitTaskAccessibilityTargets ? false : undefined}
-                                    onPress={callFunctionIfActionIsAllowed((e) => {
-                                        if (isDisableInteractive) {
-                                            return;
-                                        }
-                                        if (e?.type === 'click') {
-                                            (e.currentTarget as HTMLElement).blur();
-                                        }
+                                    onPress={callFunctionIfActionIsAllowed(
+                                        (e) => {
+                                            if (isDisableInteractive) {
+                                                return;
+                                            }
+                                            if (e?.type === 'click') {
+                                                (e.currentTarget as HTMLElement).blur();
+                                            }
 
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
-                                    })}
+                                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path));
+                                        },
+                                        false,
+                                        session,
+                                    )}
                                     style={({pressed}) => [
                                         styles.ph5,
                                         styles.pv2,
@@ -185,24 +191,28 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                         <View style={[styles.flexRow, styles.flex1]}>
                                                             <Checkbox
                                                                 shouldSelectOnPressEnter
-                                                                onPress={callFunctionIfActionIsAllowed(() => {
-                                                                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
-                                                                    if (isActiveTaskEditRoute(report?.reportID)) {
-                                                                        return;
-                                                                    }
-                                                                    updateTaskCheckboxStateForAccessibility(isCompleted);
-                                                                    if (isCompleted) {
-                                                                        reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
-                                                                    } else {
-                                                                        completeTask(
-                                                                            report,
-                                                                            parentReport?.hasOutstandingChildTask ?? false,
-                                                                            hasOutstandingChildTask,
-                                                                            parentReportAction,
-                                                                            delegateEmail,
-                                                                        );
-                                                                    }
-                                                                })}
+                                                                onPress={callFunctionIfActionIsAllowed(
+                                                                    () => {
+                                                                        // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                                                                        if (isActiveTaskEditRoute(report?.reportID)) {
+                                                                            return;
+                                                                        }
+                                                                        updateTaskCheckboxStateForAccessibility(isCompleted);
+                                                                        if (isCompleted) {
+                                                                            reopenTask(report, parentReport, currentUserPersonalDetails.accountID, delegateEmail);
+                                                                        } else {
+                                                                            completeTask(
+                                                                                report,
+                                                                                parentReport?.hasOutstandingChildTask ?? false,
+                                                                                hasOutstandingChildTask,
+                                                                                parentReportAction,
+                                                                                delegateEmail,
+                                                                            );
+                                                                        }
+                                                                    },
+                                                                    false,
+                                                                    session,
+                                                                )}
                                                                 isChecked={isCompleted}
                                                                 style={styles.taskMenuItemCheckbox}
                                                                 containerSize={24}
@@ -221,7 +231,11 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                                     accessibilityHint={titlePressableAccessibilityHint}
                                                                     accessibilityState={{disabled: isDisableInteractive}}
                                                                     disabled={isDisableInteractive}
-                                                                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)))}
+                                                                    onPress={callFunctionIfActionIsAllowed(
+                                                                        () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_TITLE.path)),
+                                                                        false,
+                                                                        session,
+                                                                    )}
                                                                     style={[styles.flexRow, styles.flex1]}
                                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                                                 >

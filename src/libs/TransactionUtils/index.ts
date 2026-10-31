@@ -65,6 +65,7 @@ import parseDistanceMerchant, {getDistanceMerchantPrefix} from './parseDistanceM
 import {
     calculateTaxAmount,
     getCalculatedTaxAmount,
+    getCategoryTaxCode,
     getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
@@ -2148,6 +2149,7 @@ export {
     getAllSortedTransactions,
     getFormattedPostedDate,
     getPostedDate,
+    getCategoryTaxCode,
     getCategoryTaxDetails,
     isPerDiemRequest,
     isViolationDismissed,

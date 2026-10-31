@@ -65,8 +65,8 @@ Choose how frequently expenses are submitted:
 
 - **Instantly** – Expenses are submitted upon creation.
 - **Daily** – Reports are submitted every evening. Violations are submitted once corrected.
-- **Weekly** – Reports are submitted weekly. Violations are submitted on Sunday after correction.
-- **Twice a month** – Reports are submitted on the 15th and the last day of the month. Violations are submitted at the next applicable date.
+- **Weekly** – Reports are submitted weekly on your selected day. Violations are submitted on the next selected day after correction.
+- **Twice a month** – Reports are submitted on your two selected days of the month. Violations are submitted at the next applicable date.
 - **Monthly** – Reports are submitted once a month on your selected day. Violations are submitted the following month.
 - **By trip** – A report is submitted when no new expenses are added for two full days. A new trip report starts after that.
 - **Manually** – Expenses are automatically added to reports. Reports remain unsubmitted until a member submits them manually.
@@ -135,7 +135,7 @@ This happens if the submitter has set a submission frequency on their Individual
 
 ## What time of day are reports submitted when an automated submission frequency is set?
 
-All automatic report submissions occur in the evening Pacific Time (PT).
+All automatic report submissions occur in the evening, based on the workspace **Timezone** in **Workspaces > [workspace name] > Overview**.
 
 ## Can I automatically create separate reports for each of my credit cards?
 
