@@ -19,6 +19,7 @@ import {
     getReportPreviewMessage,
 } from '@libs/ReportUtils';
 import SidebarUtils, {_buildSortKey, _categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
+import StringUtils from '@libs/StringUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -4533,6 +4534,27 @@ describe('SidebarUtils', () => {
         describe('sortCategorizedReports', () => {
             const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
+            it('should sort folded accented names with the fast sort key', () => {
+                // Given reports whose accented names are folded before their sort keys are compared
+                const categories = {
+                    pinnedAndGBRReports: [
+                        {reportID: '1', displayName: 'Nuevo Budget', sortKey: _buildSortKey('Nuevo Budget')},
+                        {reportID: '2', displayName: 'Ñu Safari', sortKey: _buildSortKey('Ñu Safari')},
+                        {reportID: '3', displayName: 'Zote Report', sortKey: _buildSortKey('Zote Report')},
+                    ],
+                    errorReports: [],
+                    draftReports: [],
+                    nonArchivedReports: [],
+                    archivedReports: [],
+                };
+
+                // When the pinned reports are sorted
+                const result = _sortCategorizedReports(categories, true, mockLocaleCompare);
+
+                // Then the folded key order is used instead of placing Ñ after Z by code point
+                expect(result.pinnedAndGBRReports.map((report) => report.displayName)).toEqual(['Ñu Safari', 'Nuevo Budget', 'Zote Report']);
+            });
+
             it('should sort reports correctly in default mode', () => {
                 // Given the reports are created
                 const categories = {
@@ -4674,13 +4696,48 @@ describe('SidebarUtils', () => {
         });
 
         describe('buildSortKey', () => {
-            it('should sort accented characters by Unicode code point, not locale-aware order', () => {
-                // Given names with accented characters
+            it('should fold accents so accented and plain names share a sort key', () => {
+                // Given names that differ only by an accent
                 const cafeAccented = _buildSortKey('Café');
                 const cafePlain = _buildSortKey('Cafe');
 
-                // Then accented "é" sorts after plain "e" by code point
-                expect(cafeAccented > cafePlain).toBe(true);
+                // Then the accent-folded keys are equal and the comparator can use its locale fallback
+                expect(cafeAccented).toBe(cafePlain);
+            });
+
+            it('should create the same key for composed and decomposed accents', () => {
+                // Given equivalent composed and decomposed Unicode display names
+                const composedName = 'Café';
+                const decomposedName = 'Cafe\u0301';
+
+                // When sort keys are created for both forms
+                const composedKey = _buildSortKey(composedName);
+                const decomposedKey = _buildSortKey(decomposedName);
+
+                // Then the canonical forms produce the same key
+                expect(composedKey).toBe(decomposedKey);
+            });
+
+            it('should use StringUtils accent folding when building the sort key', () => {
+                // Given a display name containing accents
+                const displayName = 'Čeněk';
+
+                // When its sort key is created
+                const sortKey = _buildSortKey(displayName);
+
+                // Then the key uses the shared accent normalization result
+                expect(sortKey).toBe(StringUtils.normalizeAccents(displayName.toLowerCase()));
+            });
+
+            it('should leave unmapped characters unchanged', () => {
+                // Given a display name with a character that does not decompose into a base letter and mark
+                const displayName = 'Øresund';
+
+                // When its sort key is created
+                const sortKey = _buildSortKey(displayName);
+
+                // Then the unmapped character remains in the key
+                expect(sortKey).toBe('øresund');
             });
 
             it('should be case-insensitive', () => {
