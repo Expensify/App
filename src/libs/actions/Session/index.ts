@@ -544,11 +544,16 @@ function signOutAndRedirectToSignIn(
 /**
  * @param callback The callback to execute if the action is allowed
  * @param isAnonymousAction The action is allowed for anonymous or not
+ * @param session The current session, used to check whether the user is anonymous
  * @returns same callback if the action is allowed, otherwise a function that signs out and redirects to sign in
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(callback: TCallback, isAnonymousAction = false): TCallback | (() => void) {
-    if (isAnonymousUser() && !isAnonymousAction) {
+function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => any) | void>(
+    callback: TCallback,
+    isAnonymousAction: boolean,
+    session: OnyxEntry<Session>,
+): TCallback | (() => void) {
+    if (isAnonymousUser(session) && !isAnonymousAction) {
         return () => {
             close(() => {
                 signOutAndRedirectToSignIn();
