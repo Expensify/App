@@ -9,6 +9,7 @@ import Log from '@libs/Log';
 import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {hasJoinWorkspaceTaskParam} from '@libs/Navigation/helpers/isJoinWorkspaceTaskPath';
+import isNativeShareLink from '@libs/Navigation/helpers/isNativeShareLink';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -43,6 +44,7 @@ import Onyx from 'react-native-onyx';
 
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {setPendingNativeShare} from './Share';
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
@@ -503,6 +505,17 @@ function openReportFromDeepLink(
     // The native OAuth callback is consumed by the auth session that opened it. linkingConfig.filter already drops
     // it for signed-in users, but this post-sign-in navigate runs outside react-navigation's linking.
     if (isNativeOAuthCallbackURL(url)) {
+        return;
+    }
+
+    // A native share (`share/root`) received while signed out is parked instead of being replayed below. The generic
+    // replay has no good moment for it: for a brand-new account it either stamps the "finish the setup questions" error
+    // (onboarding already focused) or drops the link (captured before onboarding finished), and for any account it
+    // races OpenApp. useOnboardingFlowRouter opens it once it knows onboarding is not needed, and the onboarding exit
+    // opens it on top of the landing screen otherwise. linkingConfig.filter keeps react-navigation from mounting the
+    // route from a signed-out launch URL for the same reason. See #101425.
+    if (!isAuthenticated && isNativeShareLink(route)) {
+        setPendingNativeShare();
         return;
     }
 

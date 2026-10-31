@@ -1,4 +1,5 @@
 import {canAnonymousUserAccessRoute, isAnonymousUser, waitForUserSignIn} from '@libs/actions/Session';
+import {clearPendingNativeShare, openPendingNativeShare} from '@libs/actions/Share';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
@@ -33,6 +34,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
     default: {
         getRootState: jest.fn(),
+        isReady: jest.fn(() => false),
     },
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -411,11 +413,43 @@ describe('Link.openReportFromDeepLink', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        clearPendingNativeShare();
         await Onyx.clear();
         mockedIsAnonymousUser.mockReturnValue(false);
         mockedWaitForUserSignIn.mockResolvedValue(true);
         mockedNavigation.waitForProtectedRoutes.mockResolvedValue(undefined);
         mockedNavigationRef.getRootState.mockReturnValue(onboardingTaskState);
+    });
+
+    it('parks a native share received while signed out instead of replaying it after sign-in', async () => {
+        // Given the share extension opened the app with the share deep link while nobody was signed in, and the account
+        // that then signs up still needs onboarding (the case where the generic replay would drop the link or stamp the
+        // "finish the setup questions" error)
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+
+        // When the deep link is processed
+        openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, false, undefined, undefined, false, false, 1, {}, {});
+        await waitForBatchedUpdates();
+
+        // Then the generic replay is skipped entirely: nothing is navigated, no onboarding error is set
+        expect(mockedWaitForUserSignIn).not.toHaveBeenCalled();
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockedSetOnboardingErrorMessage).not.toHaveBeenCalled();
+
+        // And the share is parked for the signed-in app to open once it knows onboarding is not in the way
+        expect(openPendingNativeShare()).toBe(true);
+        expect(mockedNavigation.navigate).toHaveBeenCalledWith(ROUTES.SHARE_ROOT, {waitForTransition: true});
+    });
+
+    it('leaves a native share received while signed in to react-navigation', async () => {
+        // Given a signed-in user shares a photo to the app, which react-navigation's linking already routes
+        // When the deep link is processed
+        openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, true, undefined, undefined, false, true, 1, {}, {});
+        await waitForBatchedUpdates();
+
+        // Then nothing is parked, so the share is not opened a second time later on
+        expect(mockedWaitForUserSignIn).toHaveBeenCalled();
+        expect(openPendingNativeShare()).toBe(false);
     });
 
     it('does not show an unfinished-setup error for a completed user on an onboarding task screen', async () => {
