@@ -12803,7 +12803,7 @@ function hasOnlyHeldExpenses(allReportTransactions: Transaction[]): boolean {
  */
 function shouldDisplayThreadReplies(reportAction: OnyxInputOrEntry<ReportAction>, isThreadReportParentAction: boolean, isAgentProcessingInThread = false): boolean {
     const hasReplies = (reportAction?.childVisibleActionCount ?? 0) > 0 && !!reportAction?.childCommenterCount;
-    return (hasReplies || isAgentProcessingInThread) && !isThreadReportParentAction && !isCreatedSupportTicketReportAction(reportAction);
+    return (hasReplies || isAgentProcessingInThread) && !isThreadReportParentAction;
 }
 
 /**

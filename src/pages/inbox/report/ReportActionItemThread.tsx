@@ -9,7 +9,10 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToAndOpenChildReport} from '@libs/actions/Report';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
+import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
+import {isCreatedSupportTicketReportAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +81,16 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
             <View style={[styles.chatItemMessage]}>
                 <PressableWithSecondaryInteraction
                     onPress={() => {
+                        // Open a support ticket the same way its preview card does. The child report path below would
+                        // create an optimistic chat over the ticket when it isn't loaded yet, turning it into a plain chat.
+                        if (isCreatedSupportTicketReportAction(reportAction)) {
+                            const supportTicketReportID = childReport?.reportID ?? reportAction.childReportID;
+                            if (!supportTicketReportID) {
+                                return;
+                            }
+                            Navigation.navigate(getReportRouteForCurrentContext({reportID: supportTicketReportID}));
+                            return;
+                        }
                         const participantsPersonalDetails = getParticipantsPersonalDetails([currentUserAccountID, Number(reportAction.actorAccountID)], personalDetails);
                         navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
                     }}
