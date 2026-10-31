@@ -103,6 +103,7 @@ import {accountIDSelector, isPersonalDetailOptimistic} from '@selectors/Personal
 import {getStableReportSelector} from '@selectors/Report';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {latestCalendlyCallSelector} from '@selectors/ReportNameValuePairs';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {Keyboard, View} from 'react-native';
 
@@ -116,6 +117,7 @@ type HeaderViewProps = {
 };
 
 function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const parentReportAction = useParentReportAction(report, {shouldIgnoreThreadReplies: true});
 
@@ -314,7 +316,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         />
     );
 
-    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID));
+    const join = callFunctionIfActionIsAllowed(() => joinRoom(report, currentUserAccountID), false, session);
 
     const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 

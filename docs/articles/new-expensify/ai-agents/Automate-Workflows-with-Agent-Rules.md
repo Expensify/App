@@ -34,7 +34,7 @@ To create an agent rule:
 2. Select **Rules**.
 3. Select **Add rule**.
 4. Select **Describe agent rule**.
-5. Choose a pre-written rule from the **Suggested** list and select **Next**, or select **Edit** to write your own rule.
+5. Choose a pre-written rule from the **Suggested** list and select **Next**, or select **Custom** to write your own rule.
 6. Review or edit the natural-language description of the behavior you want.
 7. Select **Create rule**.
 

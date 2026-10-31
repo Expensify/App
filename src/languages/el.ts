@@ -3385,6 +3385,7 @@ ${amount} για ${merchant} - ${date}`,
         approverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα ή διαγράψτε αυτή τη ροή εργασίας.',
         defaultWorkflowApproverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα.',
         overLimitApproverNotWorkspaceMember: 'Ο πρόσθετος εγκρίνων για αναφορές πάνω από το όριο δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο πρόσθετο εγκρίνοντα.',
+        overLimitApproverInWorkflow: 'Ο επιπλέον εγκρίνων για αναφορές πάνω από το όριο είναι ήδη εγκρίνων σε αυτή τη ροή εργασίας. Επιλέξτε έναν διαφορετικό επιπλέον εγκρίνοντα.',
         approverCircularReference: (name1: string, name2: string) =>
             `Ο/Η <strong>${name1}</strong> ήδη εγκρίνει αναφορές προς τον/την <strong>${name2}</strong>. Παρακαλούμε επιλέξτε διαφορετικό εγκρίνων για να αποφύγετε έναν κυκλικό κύκλο έγκρισης.`,
         emptyContent: {
@@ -5247,9 +5248,9 @@ ${amount} για ${merchant} - ${date}`,
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
+            title: 'Δεν μπορείτε ακόμη να κάνετε κράτηση ταξιδιού',
             message:
-                'Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σε κάποιον όπου τα ταξίδια είναι ενεργοποιημένα.',
+                'Είστε μέλος ενός χώρου εργασίας με ενεργοποιημένα ταξίδια, αλλά δεν είναι ο προεπιλεγμένος χώρος εργασίας σας. Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σας σε έναν με ενεργοποιημένα ταξίδια.',
         },
     },
     proactiveAppReview: {
@@ -7712,6 +7713,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 continue: 'Συνέχεια χωρίς μέλη',
                 description: 'Η αντιγραφή ροών εργασίας χωρίς μέλη δεν θα αντιγράψει τις ροές εργασίας έγκρισης. Οι ρυθμίσεις υποβολής και πληρωμής θα αντιγραφούν κανονικά.',
             },
+            confirmMembers: {
+                title: 'Αντιγραφή μελών',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Είστε σίγουροι ότι θέλετε να αντικαταστήσετε τα μέλη του ${targetWorkspaceName} με τα μέλη αυτού του χώρου εργασίας;`,
+                    other: `Είστε σίγουροι ότι θέλετε να αντικαταστήσετε τα μέλη ${count} χώρων εργασίας με τα μέλη αυτού του χώρου εργασίας;`,
+                }),
+            },
             upgrade: {
                 title: 'Ορισμένες δυνατότητες απαιτούν πρόγραμμα Control',
                 description: ({workspaceName, features}: {workspaceName: string; features: string}) => `Το ${workspaceName} χρησιμοποιεί ${features}, που απαιτούν πρόγραμμα Control.
@@ -9372,7 +9380,10 @@ ${reportName}`,
                     missingData: 'Η Expensify δεν διαθέτει αυτές τις πληροφορίες.',
                     retroactive: 'Οι κανόνες ισχύουν μόνο για νέα δραστηριότητα.',
                     historyLimit: 'Οι κανόνες δεν μπορούν να ανατρέξουν τόσο πίσω.',
-                    tryThisInstead: 'Δοκιμάστε αυτό αντί για εκείνο',
+                    useSuggestion: 'Χρήση πρότασης',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Δοκιμάστε αντ’ αυτού την παρακάτω πρόταση:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `«${suggestedPrompt}»`,
+                    createAnyway: 'Δημιουργία ούτως ή άλλως',
                 },
             },
             expenseDefaultsTable: {
@@ -10718,6 +10729,7 @@ ${reportName}`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `ενημερώθηκε το «αποτροπή επισήμανσης μη αποζημιώσιμων αναφορών ως πληρωμένες» σε «${newValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}» (προηγουμένως «${oldValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}»)`,
+        addedExpensifyCardFeed: (feedName: string) => `προστέθηκε ροή Κάρτας Expensify «${feedName}»`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
@@ -11030,6 +11042,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδα',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτος',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνο',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνων',
             },
             feed: 'Ροή',
             withdrawalType: {
@@ -11093,6 +11106,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδες',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτη',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνα',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνοντες',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Καμία δαπάνη ακόμη',
@@ -12341,6 +12355,8 @@ ${reportName}`,
                 info: 'Αν θέλετε να συνεχίσετε να χρησιμοποιείτε τον/τους χώρο(ους) εργασίας σας με χρέωση ανά χρήση, είστε έτοιμοι.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Αν θέλετε να αποτρέψετε μελλοντική δραστηριότητα και χρεώσεις, πρέπει να <a href="${workspacesListRoute}">διαγράψετε τον/τους χώρο(ους) εργασίας σας</a>. Σημειώστε ότι, όταν διαγράψετε τον/τους χώρο(ους) εργασίας σας, θα χρεωθείτε για οποιαδήποτε εκκρεμή δραστηριότητα πραγματοποιήθηκε κατά τη διάρκεια του τρέχοντος ημερολογιακού μήνα.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Για να αποτρέψετε μελλοντική δραστηριότητα και χρεώσεις, <a href="${workspacesListRoute}">αρχειοθετήστε όλους τους επί πληρωμή χώρους εργασίας σας</a>. Οι αρχειοθετημένοι χώροι εργασίας με χρεώσιμη δραστηριότητα κατά τη διάρκεια του τρέχοντος μήνα θα εξακολουθήσουν να περιλαμβάνονται στον λογαριασμό σας.`,
             },
             requestSubmitted: {
                 title: 'Το αίτημα υποβλήθηκε',
