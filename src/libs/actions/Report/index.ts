@@ -2621,8 +2621,9 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
  * @param options.shouldDismissModal Whether to dismiss the modal before navigating (defaults to true)
  * @param options.afterTransition Callback to run after the navigate transition completes
  * @param options.sourceReportID The report the user was viewing before this navigation, threaded onto the route (see navigateToConciergeChat)
+ * @param options.sourcePolicyID The workspace page the user was viewing before this navigation, threaded onto the route (see navigateToConciergeChat)
  */
-function navigateToReport(reportID: string | undefined, options?: {shouldDismissModal?: boolean; afterTransition?: () => void; sourceReportID?: string}) {
+function navigateToReport(reportID: string | undefined, options?: {shouldDismissModal?: boolean; afterTransition?: () => void; sourceReportID?: string; sourcePolicyID?: string}) {
     const shouldDismissModal = options?.shouldDismissModal ?? true;
 
     if (shouldDismissModal) {
@@ -2639,7 +2640,7 @@ function navigateToReport(reportID: string | undefined, options?: {shouldDismiss
     // In some cases when RHP modal gets hidden and then we navigate to report Composer focus breaks, wrapping navigation in setTimeout fixes this
     setTimeout(() => {
         Navigation.isNavigationReady().then(() => {
-            const route = ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, undefined, undefined, undefined, options?.sourceReportID);
+            const route = ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, undefined, undefined, undefined, options?.sourceReportID, options?.sourcePolicyID);
             if (options?.afterTransition) {
                 Navigation.navigate(route, {afterTransition: options.afterTransition});
             } else {
@@ -2671,6 +2672,9 @@ type NavigateToAndOpenReportParams = {
     linkToOptions?: LinkToOptions;
     /** The report the user was viewing before this navigation, threaded onto the destination route (see navigateToConciergeChat) */
     sourceReportID?: string;
+
+    /** The workspace page the user was viewing before this navigation, threaded onto the destination route (see navigateToConciergeChat) */
+    sourcePolicyID?: string;
 };
 
 /**
@@ -2692,6 +2696,7 @@ function navigateToAndOpenReport({
     hasReportActions,
     linkToOptions,
     sourceReportID,
+    sourcePolicyID,
 }: NavigateToAndOpenReportParams) {
     const [accountID] = PersonalDetailsUtils.getAccountIDsByLogins([login], personalDetailsByLogin);
     const chat = getChatByParticipants([accountID, currentUserAccountID]);
@@ -2730,7 +2735,7 @@ function navigateToAndOpenReport({
             delegateAccountID,
         });
 
-        navigateToReport(fallbackChat.reportID, {shouldDismissModal, sourceReportID, ...linkToOptions});
+        navigateToReport(fallbackChat.reportID, {shouldDismissModal, sourceReportID, sourcePolicyID, ...linkToOptions});
     };
 
     if (isEmptyObject(chat) || isReportNotFound(chat)) {
@@ -2762,7 +2767,7 @@ function navigateToAndOpenReport({
                 delegateAccountID,
             });
         }
-        navigateToReport(chat.reportID, {shouldDismissModal, sourceReportID, ...linkToOptions});
+        navigateToReport(chat.reportID, {shouldDismissModal, sourceReportID, sourcePolicyID, ...linkToOptions});
         return;
     }
 
@@ -2799,7 +2804,7 @@ function navigateToAndOpenReport({
         conciergeChat,
         delegateAccountID,
     });
-    navigateToReport(chat.reportID, {shouldDismissModal, sourceReportID, ...linkToOptions});
+    navigateToReport(chat.reportID, {shouldDismissModal, sourceReportID, sourcePolicyID, ...linkToOptions});
 }
 
 type NavigateToAndCreateGroupChatParams = {
@@ -4737,6 +4742,9 @@ type NavigateToConciergeChatParams = {
      * the Concierge route so the composer can attach it as sidePanelContext, scoped to this navigation entry.
      */
     sourceReportID?: string;
+
+    /** The workspace page the user was viewing when they opened Concierge from the side-pane button (native), threaded the same way as sourceReportID. */
+    sourcePolicyID?: string;
 };
 
 /**
@@ -4755,6 +4763,7 @@ function navigateToConciergeChat({
     reportActionID,
     conciergePersonalDetails,
     sourceReportID,
+    sourcePolicyID,
 }: NavigateToConciergeChatParams): Promise<void> {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
@@ -4791,6 +4800,7 @@ function navigateToConciergeChat({
                 // Thread the source report here too: on this path the Concierge chat is being found/created, and without it
                 // a first-time user (or any client with no cached CONCIERGE_REPORT_ID) would open Concierge with no context.
                 sourceReportID,
+                sourcePolicyID,
             });
         });
     }
@@ -4803,7 +4813,7 @@ function navigateToConciergeChat({
         }
         return Promise.resolve();
     }
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID, undefined, undefined, undefined, undefined, undefined, sourceReportID), linkToOptions);
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID, undefined, undefined, undefined, undefined, undefined, sourceReportID, sourcePolicyID), linkToOptions);
     return Promise.resolve();
 }
 
