@@ -5137,8 +5137,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             guestAlternateText: '提交可见性受限的报表。',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return '所有者';
                     case CONST.POLICY.ROLE.ADMIN:
                         return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
