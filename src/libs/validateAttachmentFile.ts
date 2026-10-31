@@ -3,6 +3,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ValueOf} from 'type-fest';
 
+import {getErrorMessage} from './ErrorUtils';
 import canConvertDngToJpeg from './fileDownload/canConvertDngToJpeg';
 import {
     appendExtensionFromMimeType,
@@ -17,6 +18,7 @@ import {
 } from './fileDownload/FileUtils';
 import hasDngFileHeader from './fileDownload/hasDngFileHeader';
 import getMimeTypeFromFileHeader from './getMimeTypeFromFileHeader';
+import Log from './Log';
 import snapshotPickedFile from './snapshotPickedFile';
 
 type ValidateAttachmentValidResult = {
@@ -82,10 +84,14 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
     }
 
     const normalizedFile = await normalizeFileObject(fileObject);
-    try {
-        await validateImageForCorruption(normalizedFile);
-    } catch (error) {
-        return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
+    // A File is checked after it is snapshotted below, so the decode reads the stable in-memory copy.
+    if (!(normalizedFile instanceof File)) {
+        try {
+            await validateImageForCorruption(normalizedFile);
+        } catch (error) {
+            Log.warn('[validateAttachmentFile] Image failed to decode', {type: normalizedFile.type, size: normalizedFile.size, error: getErrorMessage(error)});
+            return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
+        }
     }
 
     /**
@@ -115,8 +121,9 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
         // can't invalidate the queued request (see snapshotPickedFile); on native it only cleans the name.
         try {
             updatedFile = await snapshotPickedFile(updatedFile, cleanName, fileType ?? updatedFile.type);
-        } catch {
+        } catch (error) {
             // The backing file was already modified or deleted since it was picked.
+            Log.warn('[validateAttachmentFile] Could not read the picked file', {type: normalizedFile.type, size: normalizedFile.size, error: getErrorMessage(error)});
             return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
         }
         // Read the superseded URI from normalizedFile: snapshotPickedFile may return a fresh File that
@@ -129,6 +136,16 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
             URL.revokeObjectURL(previousUri);
         }
         updatedFile.uri = inputSource;
+
+        try {
+            await validateImageForCorruption(updatedFile);
+        } catch (error) {
+            Log.warn('[validateAttachmentFile] Image failed to decode', {type: updatedFile.type, size: updatedFile.size, error: getErrorMessage(error)});
+            if (inputSource.startsWith('blob:')) {
+                URL.revokeObjectURL(inputSource);
+            }
+            return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED};
+        }
 
         return {isValid: true, file: updatedFile};
     }

@@ -633,6 +633,16 @@ describe('FileUtils', () => {
             expect(result.reason).toBe('attachmentPicker.folderNotAllowedMessage');
         });
 
+        it('should return the generic selection error for an unreadable file instead of the corrupted-file copy', () => {
+            // Given a file that could not be read, e.g. its OS file changed after it was pasted
+            // When the error text is built
+            const result = getFileValidationErrorText(mockTranslate, {error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID});
+
+            // Then it asks the user to try again rather than calling the file corrupted
+            expect(result.title).toBe('attachmentPicker.attachmentError');
+            expect(result.reason).toBe('attachmentPicker.errorWhileSelectingAttachment');
+        });
+
         it('should return empty strings for null validation error', () => {
             const result = getFileValidationErrorText(mockTranslate, null);
 
