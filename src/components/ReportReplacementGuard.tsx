@@ -39,7 +39,7 @@ function ReportReplacementGuard({reportID, children}: ReportReplacementGuardProp
     }, [reportID, replacementReportID]);
 
     if (metadata.status === 'loading' || replacementReportID) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return children;

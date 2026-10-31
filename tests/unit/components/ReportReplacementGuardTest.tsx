@@ -75,6 +75,45 @@ describe('ReportReplacementGuard', () => {
         expect(mockMountContent).toHaveBeenCalledTimes(1);
     });
 
+    it('blocks report handlers when browser Back restores a retired report after a reload', async () => {
+        // Given the surviving report is cached and the old /r/ report retains only its replacement reference
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1200`, {preexistingReportID: '1300'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1300`, {reportID: '1300'});
+        await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        const {rerender} = render(
+            <ReportReplacementGuard reportID="1300">
+                <Content />
+            </ReportReplacementGuard>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(mockMountContent).toHaveBeenCalledTimes(1);
+
+        // When browser Back restores the obsolete report while offline
+        rerender(
+            <ReportReplacementGuard reportID="1200">
+                <Content />
+            </ReportReplacementGuard>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no report fetch/lifecycle content mounts for the obsolete ID before it redirects
+        expect(redirectReplacedReport).toHaveBeenCalledWith('1200', '1300');
+        expect(screen.queryByTestId('report-content')).toBeNull();
+        expect(mockMountContent).toHaveBeenCalledTimes(1);
+
+        // When navigation points back to the survivor
+        rerender(
+            <ReportReplacementGuard reportID="1300">
+                <Content />
+            </ReportReplacementGuard>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then cached content renders without requiring a server response to the obsolete report
+        expect(screen.getByTestId('report-content')).toBeTruthy();
+        expect(mockMountContent).toHaveBeenCalledTimes(2);
+    });
+
     it('follows persisted replacement chains again when history restores the original report', async () => {
         // Given two replacements survive locally while no history-specific mapping is needed
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}900`, {preexistingReportID: '1000'});
