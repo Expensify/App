@@ -172,6 +172,83 @@ describe('MergeTransactionUtils', () => {
         });
     });
 
+    describe('derived merge field values', () => {
+        it('reads real derived taxes, description, false and report identity', () => {
+            // Given a real transaction producer with tax and falsy values that must remain distinct
+            const transaction: Transaction = {
+                ...createRandomTransaction(0),
+                reportID: '',
+                taxCode: 'tax-5',
+                taxAmount: 50,
+                reimbursable: false,
+                comment: {comment: 'Selected description'},
+            };
+            const details = getTransactionDetails(transaction);
+            expect(details).toBeDefined();
+
+            // When the existing accessor receives the actual derived field domain
+            const taxCode = getMergeFieldValue(details, transaction, 'taxCode');
+            const taxAmount = getMergeFieldValue(details, transaction, 'taxAmount');
+
+            // Then tax keys and the existing special cases retain their production values
+            expect(taxCode).toBe('tax-5');
+            expect(taxAmount).toBe(50);
+            expect(getMergeFieldValue(details, transaction, 'description')).toBe('Selected description');
+            expect(getMergeFieldValue(details, transaction, 'reimbursable')).toBe(false);
+            expect(getMergeFieldValue(details, transaction, 'reportID')).toBe('');
+            expect(getMergeFieldValue(undefined, transaction, 'taxCode')).toBe('');
+            expect(getMergeFieldValue(details, undefined, 'taxAmount')).toBe('');
+        });
+
+        it('retains correlated producer updates and explicit nested commuter clearing', () => {
+            // Given a distance merge still carries the previous workspace exclusion
+            const transaction = createRandomDistanceRequestTransaction(0);
+            const mergeTransaction = {
+                ...createRandomMergeTransaction(0),
+                amount: 900,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    quantity: 10,
+                    commuterExclusion: 1,
+                    reimbursableDistance: 9,
+                },
+            };
+
+            // When selecting a destination without an exclusion through the real producer
+            const result = getMergeFieldUpdatedValues({
+                transaction,
+                field: 'reportID',
+                fieldValue: 'new-report',
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                mergeTransaction,
+                destinationPolicy: undefined,
+            });
+            const zero = getMergeFieldUpdatedValues({transaction, field: 'amount', fieldValue: 0, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
+            const noReimbursement = getMergeFieldUpdatedValues({
+                transaction,
+                field: 'reimbursable',
+                fieldValue: false,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                destinationPolicy: undefined,
+            });
+
+            // Then fields keep their own types and null clears only the stale nested fields
+            expect(result).toMatchObject({
+                reportID: 'new-report',
+                amount: 1000,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    quantity: 10,
+                    commuterExclusion: null,
+                    reimbursableDistance: null,
+                },
+            });
+            expect(result.customUnit).not.toHaveProperty('commuterExclusionMethod');
+            expect(zero).toEqual({amount: 0, currency: transaction.currency});
+            expect(noReimbursement).toEqual({reimbursable: false});
+        });
+    });
+
     describe('getMergeFieldTranslationKey', () => {
         it('should return correct translation key for amount field', () => {
             // When we get the translation key for amount field

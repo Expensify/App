@@ -2,7 +2,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 import isDynamicRouteSuffix from './dynamicRoutesUtils/isDynamicRouteSuffix';
 
-type ScreenConfigEntry = string | {path?: string; screens?: Record<string, ScreenConfigEntry>};
+type ScreenConfigEntry = undefined | string | {path?: string; screens?: Record<string, ScreenConfigEntry>};
 
 const navigatorNames = new Set(Object.values(NAVIGATORS) as string[]);
 

@@ -4640,7 +4640,7 @@ const ROUTES = {
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
+        getRoute: (backTo?: string): ReturnType<typeof getUrlWithParams<'onboarding/personal-details', {backTo?: string}>> => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
     },
     ONBOARDING_PRIVATE_DOMAIN: {
         route: 'onboarding/private-domain',
@@ -4651,22 +4651,22 @@ const ROUTES = {
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
+        getRoute: (backTo?: string): ReturnType<typeof getUrlWithParams<'onboarding/employees', {backTo?: string}>> => getUrlWithBackToParam(`onboarding/employees`, backTo),
     },
     ONBOARDING_ACCOUNTING: {
         route: 'onboarding/accounting',
 
-        getRoute: () => 'onboarding/accounting' as const,
+        getRoute: (): ReturnType<typeof getUrlWithParams<'onboarding/accounting', {backTo?: string}>> => 'onboarding/accounting' as const,
     },
     ONBOARDING_INTERESTED_FEATURES: {
         route: 'onboarding/interested-features',
 
-        getRoute: () => 'onboarding/interested-features' as const,
+        getRoute: (): ReturnType<typeof getUrlWithParams<'onboarding/interested-features', {backTo?: string}>> => 'onboarding/interested-features' as const,
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
+        getRoute: (backTo?: string): ReturnType<typeof getUrlWithParams<'onboarding/purpose', {backTo?: string}>> => getUrlWithBackToParam(`onboarding/purpose`, backTo),
     },
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',
@@ -4692,7 +4692,7 @@ const ROUTES = {
         route: 'onboarding/personaltrackcase',
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
+        getRoute: (backTo?: string): ReturnType<typeof getUrlWithParams<'onboarding/personaltrackcase', {backTo?: string}>> => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
     },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',

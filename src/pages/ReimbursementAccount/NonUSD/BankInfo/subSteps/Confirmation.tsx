@@ -19,6 +19,7 @@ import {SafeString} from 'expensify-common';
 import React from 'react';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
+const countryNames = Object.entries(CONST.ALL_COUNTRIES);
 function Confirmation({onNext, onMove, isEditing, corpayFields}: BankInfoSubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -30,10 +31,10 @@ function Confirmation({onNext, onMove, isEditing, corpayFields}: BankInfoSubStep
     const values = getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount);
 
     const summaryItems = (formFields ?? []).map((field) => {
-        let title = SafeString(values[field.id as keyof typeof values]);
+        let title: string | undefined = SafeString(values[inputKeys[field.id]]);
 
         if (field.id === ACCOUNT_HOLDER_COUNTRY) {
-            title = CONST.ALL_COUNTRIES[title as keyof typeof CONST.ALL_COUNTRIES];
+            title = countryNames.find(([code]) => code === title)?.[1];
         }
 
         return {

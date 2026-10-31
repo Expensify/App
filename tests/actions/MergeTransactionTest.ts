@@ -1,11 +1,12 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import * as UpdateMoneyRequest from '@libs/actions/IOU/UpdateMoneyRequest';
 import {areTransactionsEligibleForMerge, getTransactionsForMerging, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMergeFieldUpdatedValues} from '@libs/MergeTransactionUtils';
 import {getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
-import {buildTransactionThread} from '@libs/ReportUtils';
+import {buildTransactionThread, getTransactionDetails} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +21,7 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -32,6 +34,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
@@ -249,6 +252,117 @@ describe('mergeTransactionRequest', () => {
         mockFetch = TestHelper.createGlobalFetchMock();
         global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
+    });
+
+    it.each(['equal', 'changed', 'omitted', 'rollback'] as const)('preserves derived field filtering and real updates for %s taxes', async (scenario) => {
+        // Given real transaction details determine the comparison values before the merge
+        const targetReport = {...createExpenseReport(1), reportID: 'derived-target-report'};
+        const sourceReport = {...createExpenseReport(2), reportID: 'derived-source-report'};
+        const targetTransaction: Transaction = {
+            ...createRandomTransaction(1),
+            transactionID: 'derived-target',
+            reportID: targetReport.reportID,
+            amount: -1000,
+            taxAmount: -50,
+            taxCode: 'old-tax',
+            reimbursable: true,
+            comment: {comment: 'Old description'},
+        };
+        const sourceTransaction: Transaction = {...createRandomTransaction(2), transactionID: 'derived-source', reportID: sourceReport.reportID};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${targetReport.reportID}`, targetReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`, targetTransaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`, sourceTransaction);
+        await waitForBatchedUpdates();
+        const details = getTransactionDetails(targetTransaction);
+        expect(details).toBeDefined();
+        const changed = scenario === 'changed' || scenario === 'rollback';
+        const mergeTransaction = createMock<MergeTransactionType>({
+            targetTransactionID: targetTransaction.transactionID,
+            sourceTransactionID: sourceTransaction.transactionID,
+            reportID: targetReport.reportID,
+            reportName: 'Metadata stays out of derived changes',
+            description: '',
+            amount: 0,
+            reimbursable: false,
+            ...(scenario === 'omitted' ? {} : {taxCode: changed ? 'new-tax' : details?.taxCode, taxAmount: changed ? 0 : details?.taxAmount}),
+        });
+        const mergeTransactionID = 'derived-merge';
+        await Onyx.set(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, mergeTransaction);
+        const update = jest.spyOn(UpdateMoneyRequest, 'getUpdateMoneyRequestParams');
+        mockFetch.pause?.();
+        if (scenario === 'rollback') {
+            mockFetch.fail?.();
+        }
+        try {
+            // When the real action filters values and executes the real update producer
+            mergeTransactionRequest({
+                isVendorMatchingBetaEnabled: false,
+                iouReportOwnerLogin: undefined,
+                mergeTransactionID,
+                mergeTransaction,
+                targetTransaction,
+                sourceTransaction,
+                transactionsOfDeletableReportCollection: {[sourceTransaction.transactionID]: sourceTransaction},
+                sourceIOUActionThreadReport: undefined,
+                targetTransactionThreadReport: {reportID: targetReport.reportID},
+                targetTransactionThreadParentReport: targetReport,
+                reportPolicyTags: undefined,
+                allTransactionViolations: undefined,
+                policy: undefined,
+                policyTags: undefined,
+                policyCategories: undefined,
+                currentUserAccountIDParam: TEST_ACCOUNT_ID,
+                currentUserEmailParam: TEST_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                selfDMReport: undefined,
+                selfDMReportActions: undefined,
+                isTrackIntentUser: false,
+                sourceTransactionThreadReportActions: undefined,
+                sourceIOUAction: undefined,
+                sourceActionIOUReport: undefined,
+                sourceActionChatReport: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the first real update call retains insertion order, falsy values and comment mapping
+            expect(update).toHaveBeenCalledTimes(1);
+            const changes = update.mock.calls.at(0)?.[0].transactionChanges;
+            expect(changes).toBeDefined();
+            expect(Object.keys(changes ?? {})).toEqual(['description', 'amount', 'reimbursable', ...(changed ? ['taxCode', 'taxAmount'] : []), 'comment']);
+            expect(changes).toEqual({description: '', amount: 0, reimbursable: false, ...(changed ? {taxCode: 'new-tax', taxAmount: 0} : {}), comment: ''});
+            const optimistic = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`);
+            expect(optimistic).toBeDefined();
+            expect(optimistic?.modifiedAmount === 0).toBe(true);
+            expect(optimistic?.comment?.comment).toBe('');
+            expect(optimistic?.reimbursable).toBe(false);
+            expect(optimistic?.taxCode).toBe(changed ? 'new-tax' : 'old-tax');
+            expect(changed ? optimistic?.taxAmount === 0 : optimistic?.taxAmount === -50).toBe(true);
+
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+            const stored = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction.transactionID}`);
+            expect(stored).toBeDefined();
+            if (scenario === 'rollback') {
+                expect(stored?.taxCode).toBe('old-tax');
+                expect(stored?.taxAmount).toBe(-50);
+                expect(stored?.comment?.comment).toBe('Old description');
+                expect(stored?.reimbursable).toBe(true);
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`)).toBeDefined();
+            } else {
+                expect(stored?.taxCode).toBe(changed ? 'new-tax' : 'old-tax');
+                expect(changed ? stored?.taxAmount === 0 : stored?.taxAmount === -50).toBe(true);
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction.transactionID}`)).toBeFalsy();
+            }
+        } finally {
+            update.mockRestore();
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+        }
     });
 
     it('should update target transaction with merged values optimistically', async () => {
@@ -2491,6 +2605,119 @@ describe('setMergeTransactionKey', () => {
             category: 'New Category', // Added
             description: 'New Description', // Added
         });
+    });
+
+    it('preserves sparse native merge semantics for null, undefined, arrays and falsy values', async () => {
+        // Given a stored merge has fields that are omitted, cleared and replaced independently
+        const transactionID = 'native-update-categories';
+        const key = `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}` as const;
+        const eligible = createRandomTransaction(0);
+        const oldAttendee = createMock<Attendee>({email: 'old@example.com'});
+        const newAttendee = createMock<Attendee>({email: 'new@example.com'});
+        await Onyx.set(key, {
+            targetTransactionID: transactionID,
+            sourceTransactionID: 'source',
+            merchant: 'Keep merchant',
+            category: 'Keep category',
+            description: 'Old description',
+            amount: 100,
+            reimbursable: true,
+            receipt: {source: 'old-receipt'},
+            attendees: [oldAttendee],
+            eligibleTransactions: [eligible],
+            customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 10, commuterExclusion: 1},
+        });
+        const merge = jest.spyOn(Onyx, 'merge');
+        try {
+            // When one real action forwards the correlated native update unchanged
+            setMergeTransactionKey(transactionID, {
+                category: undefined,
+                description: '',
+                amount: 0,
+                reimbursable: false,
+                receipt: null,
+                attendees: [],
+                customUnit: {quantity: 0, commuterExclusion: null},
+                selectedTransactionByField: {amount: eligible.transactionID},
+            });
+            expect(merge).toHaveBeenCalledTimes(1);
+            await waitForBatchedUpdates();
+
+            // Then omission and undefined retain values while null removes only the named field
+            const stored = await getOnyxValue(key);
+            expect(stored).toBeDefined();
+            expect(stored).toMatchObject({
+                targetTransactionID: transactionID,
+                sourceTransactionID: 'source',
+                merchant: 'Keep merchant',
+                category: 'Keep category',
+                description: '',
+                amount: 0,
+                reimbursable: false,
+                attendees: [],
+                eligibleTransactions: [eligible],
+                customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 0},
+                selectedTransactionByField: {amount: eligible.transactionID},
+            });
+            expect(stored).not.toHaveProperty('receipt');
+            expect(stored?.customUnit).not.toHaveProperty('commuterExclusion');
+        } finally {
+            merge.mockRestore();
+        }
+
+        // When arrays and a previously cleared value are supplied again
+        const replacement = createRandomTransaction(1);
+        setMergeTransactionKey(transactionID, {eligibleTransactions: [replacement], attendees: [newAttendee], receipt: {source: 'new-receipt'}});
+        await waitForBatchedUpdates();
+
+        // Then arrays replace their contents and normal object additions still work
+        const replaced = await getOnyxValue(key);
+        expect(replaced).toBeDefined();
+        expect(replaced?.eligibleTransactions).toEqual([replacement]);
+        expect(replaced?.attendees).toEqual([newAttendee]);
+        expect(replaced?.receipt).toEqual({source: 'new-receipt'});
+        expect(replaced?.merchant).toBe('Keep merchant');
+    });
+
+    it('applies real destination producer nulls without rebuilding the stored merge', async () => {
+        // Given a distance merge contains stale commuter fields from its old workspace
+        const transactionID = 'clear-destination-commuter';
+        const key = `${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}` as const;
+        const transaction = createRandomDistanceRequestTransaction(0);
+        const existing = {
+            ...createRandomMergeTransaction(0),
+            amount: 900,
+            customUnit: {
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                quantity: 10,
+                commuterExclusion: 1,
+                reimbursableDistance: 9,
+                commuterExclusionMethod: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+            },
+        };
+        await Onyx.set(key, existing);
+
+        // When the actual producer selects a destination with no commuter exclusion
+        const update = getMergeFieldUpdatedValues({
+            transaction,
+            field: 'reportID',
+            fieldValue: 'new-report',
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            mergeTransaction: existing,
+            destinationPolicy: undefined,
+        });
+        expect(update.customUnit).toMatchObject({commuterExclusion: null, reimbursableDistance: null, commuterExclusionMethod: null});
+        setMergeTransactionKey(transactionID, update);
+        await waitForBatchedUpdates();
+
+        // Then native Onyx merge removes stale fields while preserving unrelated data
+        const stored = await getOnyxValue(key);
+        expect(stored).toBeDefined();
+        expect(stored?.customUnit).toEqual({name: CONST.CUSTOM_UNITS.NAME_DISTANCE, quantity: 10});
+        expect(stored?.amount).toBe(1000);
+        expect(stored?.reportID).toBe('new-report');
+        expect(stored?.eligibleTransactions).toEqual(existing.eligibleTransactions);
+        expect(stored?.merchant).toBe(existing.merchant);
     });
 
     it('should apply the commuter exclusion to the newly selected distance rather than the previously selected one', async () => {

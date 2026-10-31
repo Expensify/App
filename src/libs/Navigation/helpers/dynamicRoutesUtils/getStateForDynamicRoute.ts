@@ -49,7 +49,7 @@ function getParamsFromQuery(query: string | undefined): Record<string, string> |
  */
 function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): string[] | null {
     for (const [, config] of configEntries) {
-        if (config.path === dynamicRouteName) {
+        if (config?.path === dynamicRouteName) {
             return config.routeNames;
         }
     }
