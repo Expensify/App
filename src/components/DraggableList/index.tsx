@@ -16,7 +16,7 @@ import type {ScrollView as RNScrollView} from 'react-native';
 import {closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {useEffect, useId, useRef} from 'react';
+import React, {useEffect, useId, useRef, useState} from 'react';
 
 import type DraggableListProps from './types';
 
@@ -37,6 +37,7 @@ function DraggableList<T>({
     renderItem,
     keyExtractor,
     onDragEnd: onDragEndCallback,
+    onDragActiveChange,
     onSelectRow,
     isItemDragDisabled,
     isItemDisabled,
@@ -55,6 +56,7 @@ function DraggableList<T>({
 
     // Track if a drag is currently active to avoid dispatching global Escape when not needed
     const isDraggingRef = useRef(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     // Cancel any active keyboard drag when the component unmounts to prevent ghost drag state
     useEffect(() => {
@@ -77,7 +79,7 @@ function DraggableList<T>({
 
     const {focusedIndex: internalFocusedIndex, setFocusedIndex: setInternalFocusedIndex} = useListKeyboardNav({
         containerRef,
-        isActive: hasKeyboardNav,
+        isActive: hasKeyboardNav && !isDragging,
         itemKeys: items,
         disabledIndexes: disabledArrowKeyIndexes,
     });
@@ -86,6 +88,8 @@ function DraggableList<T>({
 
     const onDragStart = (event: DragStartEvent) => {
         isDraggingRef.current = true;
+        setIsDragging(true);
+        onDragActiveChange?.(true);
 
         // A keyboard drag is driven by arrow keys, so forcing a cursor the user isn't holding would be noise.
         if (event.activatorEvent instanceof KeyboardEvent) {
@@ -101,6 +105,8 @@ function DraggableList<T>({
      */
     const onDragEnd = (event: DragEndEvent) => {
         isDraggingRef.current = false;
+        setIsDragging(false);
+        onDragActiveChange?.(false);
         DragCursor.hide();
         const {active, over} = event;
 
@@ -118,6 +124,8 @@ function DraggableList<T>({
 
     const onDragCancel = () => {
         isDraggingRef.current = false;
+        setIsDragging(false);
+        onDragActiveChange?.(false);
         DragCursor.hide();
     };
 

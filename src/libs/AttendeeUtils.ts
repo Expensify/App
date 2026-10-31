@@ -161,3 +161,4 @@ function enrichAndSortAttendees(
 }
 
 export {enrichAndSortAttendees, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};
+export type {AttendeeWithAccountID};

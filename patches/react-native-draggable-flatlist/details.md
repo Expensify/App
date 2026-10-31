@@ -22,3 +22,10 @@
 - Upstream PR/issue: https://github.com/computerjazz/react-native-draggable-flatlist/issues/509
 - E/App issue: [#87362](https://github.com/Expensify/App/issues/87362)
 - PR Introducing Patch: [#90617](https://github.com/Expensify/App/pull/90617)
+
+### [react-native-draggable-flatlist+4.0.3+004+fix-nested-scroll-measurement.patch](react-native-draggable-flatlist+4.0.3+004+fix-nested-scroll-measurement.patch)
+
+- Reason: Measures nested lists relative to the outer scroll view's native ref. Fabric rejects numeric handles, and patch 002 skipped that measurement entirely. The section offset is needed for grouped column drag autoscrolling.
+- Upstream PR/issue: [#544](https://github.com/computerjazz/react-native-draggable-flatlist/pull/544) tracks the original measurement warning.
+- E/App issue: [#101300](https://github.com/Expensify/App/issues/101300)
+- PR Introducing Patch: [#102457](https://github.com/Expensify/App/pull/102457)

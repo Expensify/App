@@ -36,6 +36,8 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        moveUp: 'Nach oben verschieben',
+        moveDown: 'Nach unten verschieben',
         durationDays: ({count}: {count: number}) => ({
             one: `1 Tag`,
             other: `${count} Tage`,
@@ -10694,6 +10696,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             staleResults: {title: 'Aktualisierung erforderlich', subtitle: 'Diese Seite ist veraltet, aktualisieren Sie sie, um die neuesten Inhalte zu sehen', buttonText: 'Aktualisieren'},
         },
         columns: 'Spalten',
+        customizeFields: 'Felder anpassen',
+        columnMoved: ({columnName, position, total}: {columnName: string; position: string; total: string}) => `${columnName} auf Position ${position} von ${total} verschoben`,
         editColumns: 'Spalten bearbeiten',
         resetColumns: 'Spalten zurücksetzen',
         groupColumns: 'Spalten gruppieren',

@@ -26,6 +26,9 @@ function SingleSelectListItem<TItem extends ListItem>({
     canSelectMultiple,
     accessibilityRole,
     onSelectRow,
+    onLongPressRow,
+    accessibilityActions,
+    onAccessibilityAction,
     onDismissError,
     shouldPreventEnterKeySubmit,
     onFocus,
@@ -63,6 +66,9 @@ function SingleSelectListItem<TItem extends ListItem>({
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             onSelectRow={onSelectRow}
+            onLongPressRow={onLongPressRow}
+            accessibilityActions={accessibilityActions}
+            onAccessibilityAction={onAccessibilityAction}
             onDismissError={onDismissError}
             shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             canSelectMultiple={canSelectMultiple}

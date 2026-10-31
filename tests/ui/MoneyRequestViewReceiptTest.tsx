@@ -246,7 +246,7 @@ describe('MoneyRequestView receipt visibility with a wide RHP open', () => {
 
         await waitFor(() => {
             // Anchor on an always-rendered field so the absence below reflects the hidden receipt, not an unrendered view.
-            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+            expect(screen.getByLabelText(/^common\.merchant(,|$)/)).toBeOnTheScreen();
             expect(screen.queryByTestId('money-request-receipt-view')).not.toBeOnTheScreen();
         });
     });
