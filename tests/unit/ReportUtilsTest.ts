@@ -17713,6 +17713,11 @@ describe('ReportUtils', () => {
             expect(result).toBe(mockTranslate('common.done'));
         });
 
+        it('should return "Done" for state 1, status 2, after a payment is canceled on a workspace with optional approval', () => {
+            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED, translate: mockTranslate});
+            expect(result).toBe(mockTranslate('common.done'));
+        });
+
         it('should return "Approved" for state 2, status 3', () => {
             const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED, translate: mockTranslate});
             expect(result).toBe(mockTranslate('iou.approved'));

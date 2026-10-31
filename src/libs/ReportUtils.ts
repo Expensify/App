@@ -15162,6 +15162,14 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * ========================================
  */
 
+/**
+ * Canceling or bouncing a payment on a workspace with optional approval leaves the report Submitted and Closed. Like
+ * Approved and Closed, the report is closed without an approval step and can still be paid.
+ */
+function isClosedReportStatus(stateNum: number, statusNum: number): boolean {
+    return (stateNum === CONST.REPORT.STATE_NUM.APPROVED || stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) && statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
+}
+
 function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}: GetReportStatusParams): string {
     if (isDeleted) {
         return translate('iou.deleted');
@@ -15176,7 +15184,7 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
     if (stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         return translate('common.outstanding');
     }
-    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+    if (isClosedReportStatus(stateNum, statusNum)) {
         return translate('common.done');
     }
     if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
@@ -15229,7 +15237,7 @@ function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, status
     if (stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         return theme.reportStatusBadge.outstanding;
     }
-    if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+    if (isClosedReportStatus(stateNum, statusNum)) {
         return theme.reportStatusBadge.closed;
     }
     if (stateNum === CONST.REPORT.STATE_NUM.APPROVED && statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
