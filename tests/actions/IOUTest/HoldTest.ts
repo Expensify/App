@@ -1,4 +1,5 @@
 import {changeMoneyRequestHoldStatus, getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest} from '@libs/actions/IOU/Hold';
+import * as Hold from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -816,12 +817,14 @@ describe('actions/IOU/Hold', () => {
             jest.mocked(Navigation.navigate).mockClear();
             const heldTransaction = {...transaction, comment: {...transaction.comment, hold: 'holdActionID'}};
 
+            const unholdRequestSpy = jest.spyOn(Hold, 'unholdRequest').mockImplementation(() => undefined);
+
             // When the hold status is changed
             changeMoneyRequestHoldStatus({
                 reportAction: iouAction,
                 iouTransaction: heldTransaction,
-                iouTransactionReport: undefined,
-                reportActionChildReport: undefined,
+                iouTransactionReport: iouReport,
+                reportActionChildReport: transactionThread,
                 policy,
                 isOffline: false,
                 currentUserLogin: RORY_EMAIL,
@@ -832,6 +835,8 @@ describe('actions/IOU/Hold', () => {
                 rules: undefined,
             });
             await waitForBatchedUpdates();
+
+            expect(unholdRequestSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: iouAction.childReportID, transactionReport: iouReport, report: transactionThread}));
 
             // Then an unhold action is added to the transaction thread and no navigation happens
             const threadActions = await getReportActions(transactionThread.reportID);
