@@ -1,7 +1,7 @@
 ---
 title: Create and Use Agents
 description: Create, edit, chat with, Copilot into, and delete personal AI agents that help automate your workflows. New agents are automatically added as full-access Copilots on your account so they can act on your behalf.
-keywords: [Agents, personal agents, custom agents, new agent, AI agent, agent instructions, agent template, build custom agent, create agent, manage agent, Copilot, delegated access, copilot into account, agent copilot permissions, agent edit expenses, agent edit access, new expensify]
+keywords: [Agents, personal agents, custom agents, new agent, AI agent, agent instructions, agent template, build custom agent, create agent, manage agent, Copilot, delegated access, copilot into account, agent copilot permissions, agent edit expenses, agent edit access, workspace agents, new expensify]
 internalScope: Audience is members with access to agents. Covers creating (from scratch or from a template), configuring, managing, chatting with, Copiloting into, and deleting personal agents, and using an agent as a workspace approver. Does not cover agent rules, RuleBot, what each agent template does, or best practices for writing agent instructions.
 retrievalIntent: How do I create and use a personal agent?
 contentType: task
@@ -25,6 +25,8 @@ Expensify also supports agent rules, which are workspace-level AI automations en
 Agents are available for all members, and anyone can create an agent.
 
 **Agents** appears under **Account** with a **Beta** badge. The badge means the feature is still being improved, not that you need access granted.
+
+On the Collect and Control plans, workspace admins and people admins can also create agents for a workspace from **Workspaces > [workspace name] > Agents**.
 
 ---
 
@@ -51,6 +53,15 @@ To learn what each template does, see [Use Agent Templates](/articles/new-expens
 3. Under **Or start with a template:**, find the template you want, then select **Add**.
 4. Review the pre-filled instructions and edit them if needed.
 5. Review the auto-generated profile image and display name. If needed, you can edit these later.
+6. Select **Create agent**.
+
+**To create an agent for a workspace:**
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name] > Agents**.
+2. Select **New agent**.
+3. Select **Build custom agent**, or select **Add** next to a template.
+4. Select **Role** and choose the agent's workspace role.
+5. Select **Write custom instructions** and describe what you want the agent to do.
 6. Select **Create agent**.
 
 After you select **Create agent**, you're taken directly to a direct message (DM) with the new agent, where its welcome message appears once it arrives. The new agent also appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
