@@ -102,6 +102,12 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 if (isEmailAlreadyInApprovers && visibleSelectedApproverEmail !== email) {
                     return null;
                 }
+
+                // Another step's additional approver can't also approve here, or that step's limit would add no one
+                const isOtherStepsAdditionalApprover = approversFromWorkflow?.some((approver, index) => approver?.overLimitForwardsTo === email && index !== approverIndex);
+                if (isMultipleApproversBetaEnabled && isOtherStepsAdditionalApprover && visibleSelectedApproverEmail !== email) {
+                    return null;
+                }
                 if (!isMultipleApproversBetaEnabled && !isDefault && approverIndex === 0 && defaultApprover === email) {
                     return null;
                 }
