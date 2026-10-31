@@ -1,3 +1,5 @@
+import {init as initActiveClientManager} from '@libs/ActiveClientManager';
+
 import type {OnyxInput, OnyxKey} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
@@ -9,6 +11,16 @@ import * as PersistedRequests from '../../src/libs/actions/PersistedRequests';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+jest.mock('@libs/ActiveClientManager', () => jest.requireActual<Record<string, unknown>>('../../src/libs/ActiveClientManager/index.ts'));
+
+async function registerAsFollowerTab() {
+    initActiveClientManager();
+    await waitForBatchedUpdates();
+    const activeClients = await OnyxUtils.get(ONYXKEYS.ACTIVE_CLIENTS);
+    await Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, [...(activeClients ?? []), 'newer-tab']);
+    await waitForBatchedUpdates();
+}
 
 const request: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
     command: 'OpenReport',
@@ -320,6 +332,7 @@ describe('PersistedRequests persistence guarantees', () => {
     });
 
     it('Follower tab should reconcile processed requests from leader via cross-tab callback', async () => {
+        await registerAsFollowerTab();
         PersistedRequests.clear();
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll()).toHaveLength(0);
@@ -369,5 +382,40 @@ describe('PersistedRequests persistence guarantees', () => {
 
         expect(PersistedRequests.getAll()).toHaveLength(2);
         expect(PersistedRequests.getAll().map((r) => r.command)).toEqual(['CommandB', 'CommandC']);
+    });
+
+    it('Follower tab should not write its stale copy back to storage when it merges a request from another tab', async () => {
+        // Given a follower tab that holds two requests
+        await registerAsFollowerTab();
+        PersistedRequests.clear();
+        await waitForBatchedUpdates();
+        const requestA: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+            command: 'CommandA',
+            successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
+            requestIndex: 40,
+        };
+        const requestB: Request<'reportMetadata_3' | 'reportMetadata_4'> = {
+            command: 'CommandB',
+            successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
+            requestIndex: 41,
+        };
+        const requestC: Request<'reportMetadata_5' | 'reportMetadata_6'> = {
+            command: 'CommandC',
+            successData: [{key: 'reportMetadata_5', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_6', onyxMethod: 'merge', value: {}}],
+            requestIndex: 42,
+        };
+        PersistedRequests.save(requestA);
+        PersistedRequests.save(requestB);
+        await waitForBatchedUpdates();
+
+        // When another tab writes a queue where requestA was already sent and requestC was added
+        await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [requestB, requestC]);
+        await waitForBatchedUpdates();
+
+        // Then storage keeps that queue, so the sent requestA is not brought back and sent twice
+        expect(await OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS)).toEqual([requestB, requestC]);
     });
 });
