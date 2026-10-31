@@ -61,6 +61,7 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
+    isExportInProgress,
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
@@ -298,6 +299,10 @@ function isPrimaryPayAction({
 
 function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[], options?: IsExportActionOptions) {
     if (!policy) {
+        return false;
+    }
+
+    if (isExportInProgress(reportActions)) {
         return false;
     }
 

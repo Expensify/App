@@ -14525,6 +14525,51 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
     return lastSuccessfulExportCreated > lastResetCreated;
 }
 
+/**
+ * Whether an export this client started is still running.
+ *
+ * There is no client event meaning "the export finished" - the 200 only means the request was accepted, and the real
+ * outcome arrives later over Pusher - so the state is resolved by comparison at read time
+ * rather than cleared from a callback. Nothing is stored, so no stale flag can strand the button and no other flow
+ * has to remember to clear one.
+ *
+ * Ordered the same way `isExported` orders an export against the actions that reset it: the attempt's own timestamp
+ * is read off the action that started it.
+ */
+function isExportInProgress(reportActions: OnyxEntry<ReportActions> | ReportAction[]): boolean {
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+
+    if (reportActionList.length === 0) {
+        return false;
+    }
+
+    let lastExportStartedCreated = '';
+    let lastExportResolvedCreated = '';
+
+    for (const action of reportActionList) {
+        // One action type covers both halves of an export, and only `pendingAction` separates them: a pending one renders
+        // "started exporting this report to ...", anything else renders a finished export. See getExportIntegrationActionFragments.
+        const isExportIntegration = isExportIntegrationAction(action);
+        if (isExportIntegration && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            // A rejected request leaves its errors on the started action, and nothing will ever answer it
+            if (isEmptyObject(action.errors) && action.created > lastExportStartedCreated) {
+                lastExportStartedCreated = action.created;
+            }
+            continue;
+        }
+
+        // Every outcome ends the attempt, finished exports and reconciled ones included, unlike `hasExportError` which only
+        // counts failures. A pending one is this client's own optimistic action, which says nothing about what the server did.
+        const isOutcome = (isExportIntegration || isIntegrationMessageAction(action)) && !action.pendingAction;
+        // Resetting the approval state invalidates the export the same way it invalidates a finished one in `isExported`.
+        if ((isOutcome || RESET_APPROVAL_ACTION_TYPES.has(action.actionName)) && action.created > lastExportResolvedCreated) {
+            lastExportResolvedCreated = action.created;
+        }
+    }
+
+    return !!lastExportStartedCreated && lastExportResolvedCreated < lastExportStartedCreated;
+}
+
 function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
     if (report?.hasExportError) {
         return true;
@@ -15902,6 +15947,7 @@ export {
     isQueuedForExport,
     hasExpensifyGuidesEmails,
     hasExportError,
+    isExportInProgress,
     hasOnlyNonReimbursableTransactions,
     isCardOnlyReport,
     hasSettledZeroReimbursableSpend,

@@ -85,7 +85,7 @@ import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork} from '@libs/NetworkState';
+import {getDBTimeWithSkew, getIsOffline as isOfflineNetwork, getServerAnchoredDBTime} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
@@ -7060,11 +7060,11 @@ function setGroupDraft(newGroupDraft: Partial<NewGroupChatDraft>) {
 }
 
 function exportToIntegration(reportID: string, connectionName: ConnectionName, policy: OnyxEntry<Policy>) {
-    const action = buildOptimisticExportIntegrationAction(connectionName, false, getExportLabelForConnection(connectionName, policy));
+    // The server stamps the outcome with its own clock, so the start is too, or a device running ahead would sort the outcome first
+    const action = {...buildOptimisticExportIntegrationAction(connectionName, false, getExportLabelForConnection(connectionName, policy)), created: getServerAnchoredDBTime()};
     const optimisticReportActionID = action.reportActionID;
-    const previousExportedValue = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.isExportedToIntegration;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -7072,16 +7072,9 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName, p
                 [optimisticReportActionID]: action,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isExportedToIntegration: true,
-            },
-        },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -7089,13 +7082,6 @@ function exportToIntegration(reportID: string, connectionName: ConnectionName, p
                 [optimisticReportActionID]: {
                     errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                isExportedToIntegration: previousExportedValue,
             },
         },
     ];
