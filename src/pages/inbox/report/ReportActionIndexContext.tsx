@@ -1,10 +1,12 @@
-import type {PropsWithChildren} from 'react';
+import type {Dispatch, PropsWithChildren, SetStateAction} from 'react';
 
-import {createContext} from 'react';
+import {useRecyclingState} from '@legendapp/list/react-native';
+import {createContext, useContext, useState} from 'react';
 
 type ReportActionPosition = {
     index: number;
     isNewest: boolean;
+    isRecycling?: boolean;
 };
 
 /**
@@ -20,9 +22,23 @@ const ReportActionIndexContext = createContext<ReportActionPosition>({index: 0, 
 /** Lets shared list implementations provide their own reliable way to reach the newest action. */
 const ReportActionScrollToNewestContext = createContext<(() => void) | undefined>(undefined);
 
-function ReportActionPositionContextProvider({children, index, isNewest}: PropsWithChildren<ReportActionPosition>) {
-    return <ReportActionIndexContext.Provider value={{index, isNewest}}>{children}</ReportActionIndexContext.Provider>;
+/**
+ * Each list passes the index from its row renderer and marks the last action as newest. The
+ * LegendList caller also sets isRecycling because it can reuse a mounted row for another action.
+ * Descendants use that flag to reset transient state (such as open menus or PDF load errors)
+ * with useRecyclingState instead of carrying it over to the next action in that row.
+ */
+function ReportActionPositionContextProvider({children, index, isNewest, isRecycling}: PropsWithChildren<ReportActionPosition>) {
+    return <ReportActionIndexContext.Provider value={{index, isNewest, isRecycling}}>{children}</ReportActionIndexContext.Provider>;
 }
 
-export {ReportActionPositionContextProvider, ReportActionScrollToNewestContext};
+/** Uses LegendList's recycling-aware state in the main report list and useState in shared, non-recycled lists. */
+function useReportActionItemState<State>(initialState: State | (() => State)): [State, Dispatch<SetStateAction<State>>] {
+    const {isRecycling = false} = useContext(ReportActionIndexContext);
+    const state = useState(initialState);
+    const recyclingState = useRecyclingState(initialState);
+    return isRecycling ? [...recyclingState] : state;
+}
+
+export {ReportActionPositionContextProvider, ReportActionScrollToNewestContext, useReportActionItemState};
 export default ReportActionIndexContext;

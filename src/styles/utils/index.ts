@@ -52,6 +52,7 @@ import getMoneyRequestReportPreviewStyle from './getMoneyRequestReportPreviewSty
 import getNavigationBarType from './getNavigationBarType/index';
 import getNavigationModalCardStyle from './getNavigationModalCardStyles';
 import getSafeAreaInsets from './getSafeAreaInsets';
+import getSearchNarrowHeaderHeight from './getSearchNarrowHeaderHeight';
 import getSuccessReportCardLostIllustrationStyle from './getSuccessReportCardLostIllustrationStyle';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
@@ -1460,6 +1461,7 @@ const staticStyleUtils = {
     positioning,
     searchHeaderDefaultOffset,
     combineStyles,
+    getSearchNarrowHeaderHeight,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
     getAmountInputFontSize,
@@ -2067,6 +2069,10 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 };
                 break;
             }
+            case CONST.SEARCH.TABLE_COLUMNS.START_DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.END_DATE:
+                columnWidth = {...getWidthStyle(variables.w102)};
+                break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
                 columnWidth = {
@@ -2161,6 +2167,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER:
             case CONST.SEARCH.TABLE_COLUMNS.FEED:
             case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
