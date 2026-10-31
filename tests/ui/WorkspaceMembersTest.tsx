@@ -13,6 +13,7 @@ import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import * as Member from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
@@ -1079,6 +1080,38 @@ describe('WorkspaceMembers', () => {
             });
 
             unmount();
+        });
+    });
+
+    describe('Spreadsheet download', () => {
+        it('should download the approvers of each member with multiple approvers', async () => {
+            // Given multiple approvers, where the members spreadsheet lists every approver of each member's workflow
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            });
+            const downloadMembersCSVSpy = jest.spyOn(Member, 'downloadMembersCSV').mockImplementation(() => {});
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            // When the admin downloads the CSV from the page's More menu
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.more')));
+            await waitForBatchedUpdatesWithAct();
+            const downloadMenuItem = screen.getByText(TestHelper.translateLocal('spreadsheet.downloadCSV'));
+            fireEvent.press(downloadMenuItem, {nativeEvent: {}, type: 'press', target: downloadMenuItem, currentTarget: downloadMenuItem});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the download asks for the approvers too
+            await waitFor(() => {
+                expect(downloadMembersCSVSpy).toHaveBeenCalledWith(policy.id, true, expect.any(Function), expect.any(Function));
+            });
+
+            downloadMembersCSVSpy.mockRestore();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
         });
     });
 });

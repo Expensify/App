@@ -27,6 +27,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {canMemberAssignElevatedRole, canMemberAssignRole, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {filterRulesForPolicy} from '@libs/WorkflowUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -34,10 +35,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Rule} from '@src/types/onyx';
 
+import type {OnyxCollection} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type ImportedMembersConfirmationPageProps = PlatformStackScreenProps<
@@ -53,6 +56,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const policyRulesSelector = useCallback((rulesCollection: OnyxCollection<Rule>) => filterRulesForPolicy(rulesCollection, policyID), [policyID]);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: policyRulesSelector});
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
     const role = canMemberAssignRole(policy, currentUserLogin, roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
@@ -110,7 +115,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        const importFinalModal = await importPolicyMembers(policy, membersWithRole, spreadsheet?.shouldShowMemberRolePermissionWarning);
+        const importFinalModal = await importPolicyMembers(policy, membersWithRole, spreadsheet?.shouldShowMemberRolePermissionWarning, rules);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImporting(false);
