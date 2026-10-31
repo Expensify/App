@@ -76,6 +76,7 @@ import {
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
+    isExportInProgress,
     isExported as isExportedUtils,
     isHoldCreator,
     isInvoiceReport as isInvoiceReportUtils,
@@ -1248,9 +1249,10 @@ function getReportAccountingExportActions(
     report: Report,
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
 ): Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>> = [];
-    if (isExportAction(currentUserLogin, report, policy)) {
+    if (isExportAction(currentUserLogin, report, policy) && !isExportInProgress(reportActions)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
