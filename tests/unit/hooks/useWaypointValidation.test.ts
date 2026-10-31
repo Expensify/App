@@ -1,11 +1,11 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useWaypointValidation, {isWaypointEmpty} from '@pages/iou/request/step/IOURequestStepDistance/hooks/useWaypointValidation';
+import useWaypointValidation, {getWaypointValidationErrors, isWaypointEmpty} from '@pages/iou/request/step/IOURequestStepDistance/hooks/useWaypointValidation';
 
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
 jest.mock('@libs/TransactionUtils', () => ({
-    isWaypointNullIsland: (waypoint: Waypoint | undefined) => waypoint?.lat === 0 && waypoint?.lng === 0,
+    isZeroCoordinatesWaypoint: (waypoint: Waypoint | undefined) => waypoint?.lat === 0 && waypoint?.lng === 0,
 }));
 
 const startWaypoint: Waypoint = {keyForList: 'start', address: '1 Main St', lat: 40.7128, lng: -74.006};
@@ -67,5 +67,18 @@ describe('isWaypointEmpty', () => {
 
     it('treats a waypoint with an address as non-empty', () => {
         expect(isWaypointEmpty(startWaypoint)).toBe(false);
+    });
+});
+
+describe('getWaypointValidationErrors', () => {
+    it('returns validation errors for waypoints', () => {
+        const waypoints: WaypointCollection = {waypoint0: startWaypoint, waypoint1: startWaypoint};
+        const validatedWaypoints: WaypointCollection = {waypoint0: startWaypoint};
+        const errors = getWaypointValidationErrors(waypoints, validatedWaypoints);
+
+        expect(errors.nonEmptyWaypointsCount).toBe(2);
+        expect(errors.duplicateWaypointsError).toBe(true);
+        expect(errors.atLeastTwoDifferentWaypointsError).toBe(true);
+        expect(errors.isWaypointsNullIslandError).toBe(false);
     });
 });

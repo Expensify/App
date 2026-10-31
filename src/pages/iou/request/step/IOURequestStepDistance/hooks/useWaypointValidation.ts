@@ -1,4 +1,4 @@
-import {isWaypointNullIsland} from '@libs/TransactionUtils';
+import {isZeroCoordinatesWaypoint} from '@libs/TransactionUtils';
 
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -34,14 +34,19 @@ type UseWaypointValidationResult = {
     atLeastTwoDifferentWaypointsError: boolean;
 };
 
-function useWaypointValidation({waypoints, validatedWaypoints}: UseWaypointValidationParams): UseWaypointValidationResult {
-    const nonEmptyWaypointsCount = Object.keys(waypoints).filter((key) => !isWaypointEmpty(waypoints[key])).length;
-    const isWaypointsNullIslandError = Object.values(waypoints).some(isWaypointNullIsland);
-    const duplicateWaypointsError = nonEmptyWaypointsCount >= 2 && Object.keys(validatedWaypoints).length !== nonEmptyWaypointsCount;
-    const atLeastTwoDifferentWaypointsError = Object.keys(validatedWaypoints).length < 2;
+function getWaypointValidationErrors(waypoints: WaypointCollection | undefined, validatedWaypoints: WaypointCollection): UseWaypointValidationResult {
+    const nonEmptyWaypointsCount = Object.keys(waypoints ?? {}).filter((key) => !isWaypointEmpty(waypoints?.[key])).length;
+    const isWaypointsNullIslandError = Object.values(waypoints ?? {}).some(isZeroCoordinatesWaypoint);
+    const validatedCount = Object.keys(validatedWaypoints).length;
+    const duplicateWaypointsError = !isWaypointsNullIslandError && nonEmptyWaypointsCount >= 2 && validatedCount !== nonEmptyWaypointsCount;
+    const atLeastTwoDifferentWaypointsError = isWaypointsNullIslandError || validatedCount < 2;
 
     return {nonEmptyWaypointsCount, isWaypointsNullIslandError, duplicateWaypointsError, atLeastTwoDifferentWaypointsError};
 }
 
-export {isWaypointEmpty};
+function useWaypointValidation({waypoints, validatedWaypoints}: UseWaypointValidationParams): UseWaypointValidationResult {
+    return getWaypointValidationErrors(waypoints, validatedWaypoints);
+}
+
+export {getWaypointValidationErrors, isWaypointEmpty};
 export default useWaypointValidation;
