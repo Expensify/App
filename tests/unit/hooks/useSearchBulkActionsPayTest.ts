@@ -1,6 +1,7 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
@@ -8,23 +9,30 @@ import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import type * as PayMoneyRequestActions from '@libs/actions/IOU/PayMoneyRequest';
 import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BankAccount} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
+
+import getOnyxValue from '../../utils/getOnyxValue';
 
 // The Pay option is shown only when getPayOption enables it and useBulkPayOptions returns at least one payment option.
 // Both are driven from these module-level flags so each test can toggle them independently.
 let mockShouldEnableBulkPayOption = true;
 let mockBulkPayButtonOptions: Array<Record<string, unknown>> = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
 
+// The real check runs so the tests cover the beta gate and the bank account rules, not just the modal
 jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
     payMoneyRequest: jest.fn(),
     payInvoice: jest.fn(),
-    getBankAccountToSetUpBeforePaying: jest.fn(),
+    getBankAccountToSetUpBeforePaying: jest.requireActual<typeof PayMoneyRequestActions>('@libs/actions/IOU/PayMoneyRequest').getBankAccountToSetUpBeforePaying,
 }));
 
 // On iOS the offline modal is deferred until the payment popover finishes dismissing (via TransitionTracker),
@@ -103,7 +111,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
-        translate: (key: string) => key,
+        translate: (key: string, ...params: unknown[]) => (key === 'walletPage.wiseGlobalReimbursementsBulkPayModal.title' ? `${key}(${params.join(',')})` : key),
         localeCompare: (first: string, second: string) => first && second,
         formatPhoneNumber: (phone: string) => phone,
     }),
@@ -141,14 +149,16 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
 }));
 
+const mockShowConfirmModal = jest.fn((): Promise<{action: ValueOf<typeof ModalActions>}> => Promise.resolve({action: ModalActions.CLOSE}));
 jest.mock('@hooks/useConfirmModal', () => ({
     __esModule: true,
-    default: () => ({showConfirmModal: jest.fn()}),
+    default: () => ({showConfirmModal: mockShowConfirmModal}),
 }));
 
+let mockEnabledBetas = new Set<string>();
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
+    default: () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.has(beta), isBetaEnabledOrUnknown: (beta: string) => mockEnabledBetas.has(beta)}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -659,5 +669,237 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
             expect.objectContaining({reportID: '1', isItemInvoice: false}),
         );
         expect(mockLogInfo).toHaveBeenCalledWith('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount: 0, selectedCount: 1});
+    });
+});
+
+describe('useSearchBulkActions - bulk pay with reports that need global reimbursements', () => {
+    const BANK_ACCOUNT_ID = 99;
+    const ENABLED_BANK_ACCOUNT_ID = 88;
+    const OTHER_BANK_ACCOUNT_ID = 77;
+
+    function makeBankAccount(bankAccountID: number, accountNumber: string, isGlobalReimbursementEnabled: boolean): BankAccount {
+        return {
+            accountData: {
+                bankAccountID,
+                accountNumber,
+                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled},
+            },
+            bankCountry: 'US',
+            bankCurrency: CONST.CURRENCY.USD,
+        };
+    }
+
+    async function seedPolicy(policyID: string, bankAccountID: number) {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, role: CONST.POLICY.ROLE.ADMIN, achAccount: {bankAccountID}});
+    }
+
+    async function seedReport(reportID: string, chatReportID: string, policyID: string, reportName: string) {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID, policyID, reportName});
+    }
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockShouldEnableBulkPayOption = true;
+        mockBulkPayButtonOptions = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
+        mockAreAllMatchingItemsSelected = false;
+        mockEnabledBetas = new Set([CONST.BETAS.WISE_REIMBURSEMENTS]);
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'}), makeSelectedReport({reportID: '3', chatReportID: '4', policyID: 'policy2'})];
+        jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.VBBA);
+
+        // policy1 and policy3 pay from USD business accounts without global reimbursements, policy2 from one that already has them
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+            [BANK_ACCOUNT_ID]: makeBankAccount(BANK_ACCOUNT_ID, 'XXXXXX1234', false),
+            [ENABLED_BANK_ACCOUNT_ID]: makeBankAccount(ENABLED_BANK_ACCOUNT_ID, 'XXXXXX9999', true),
+            [OTHER_BANK_ACCOUNT_ID]: makeBankAccount(OTHER_BANK_ACCOUNT_ID, 'XXXXXX5678', false),
+        });
+        await seedPolicy('policy1', BANK_ACCOUNT_ID);
+        await seedPolicy('policy2', ENABLED_BANK_ACCOUNT_ID);
+        await seedPolicy('policy3', OTHER_BANK_ACCOUNT_ID);
+        await seedReport('1', '2', 'policy1', 'Report needing GR');
+        await seedReport('3', '4', 'policy2', 'Payable report');
+        await seedReport('5', '6', 'policy3', 'Other report needing GR');
+        await seedReport('7', '8', 'policy1', 'Second report needing GR');
+    });
+
+    afterEach(async () => {
+        mockEnabledBetas = new Set();
+        await Onyx.clear();
+    });
+
+    async function selectBulkPay() {
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+        const payOption = getPayOptionFromResult(result.current.headerButtonsOptions);
+        await act(async () => {
+            await payOption?.onSelected?.();
+        });
+    }
+
+    it('pays the other reports and lists the ones that need global reimbursements in a modal', async () => {
+        // Given one selected report paid from an account without global reimbursements and one paid from an account that has them
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then only the second report is paid, because the backend would reject paying the first one
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '3'})}));
+
+        // And a single modal lists the skipped report, so the user knows which reports still need global reimbursements
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: 'walletPage.wiseGlobalReimbursementsBulkPayModal.title(1234)',
+                prompt: `${CONST.DOT_SEPARATOR} Report needing GR`,
+                confirmText: 'walletPage.wiseGlobalReimbursementsIntro.getStarted',
+            }),
+        );
+    });
+
+    it('pays every report and shows no modal when the global reimbursements beta is off', async () => {
+        // Given the same selection, but an admin without the global reimbursements beta
+        mockEnabledBetas = new Set();
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then bulk pay behaves as before the beta, leaving the final call to the backend
+        expect(payMoneyRequest).toHaveBeenCalledTimes(2);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+    });
+
+    it('opens the global reimbursements onboarding when the user picks Get started', async () => {
+        // Given a mixed selection and a user who confirms the modal
+        mockShowConfirmModal.mockReturnValueOnce(Promise.resolve({action: ModalActions.CONFIRM}));
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then the onboarding signal is set for the paying bank account, so the existing intro flow takes over
+        await waitFor(async () => {
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual({
+                bankAccountID: BANK_ACCOUNT_ID,
+                bankCountry: 'US',
+                bankCurrency: CONST.CURRENCY.USD,
+            });
+        });
+    });
+
+    it('does not open the onboarding when the user picks Not now', async () => {
+        // Given a mixed selection and a user who dismisses the modal
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then the onboarding stays closed, because the user chose to set it up later
+        await waitFor(() => {
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        });
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
+    });
+
+    it('lists only the reports of the bank account the modal sets up when several accounts need global reimbursements', async () => {
+        // Given two selected reports paid from two different bank accounts that both need global reimbursements
+        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'}), makeSelectedReport({reportID: '5', chatReportID: '6', policyID: 'policy3'})];
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then nothing is paid, and the modal names the first account and lists only its report, because Get started sets up that account alone
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: 'walletPage.wiseGlobalReimbursementsBulkPayModal.title(1234)',
+                prompt: `${CONST.DOT_SEPARATOR} Report needing GR`,
+            }),
+        );
+    });
+
+    it('lists a report once when several of its expenses are selected', async () => {
+        // Given two selected expenses from a report that needs global reimbursements, and one expense from a payable report
+        mockSelectedReports = [];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction({reportID: '1'}),
+            tx2: makeSelectedTransaction({reportID: '1'}),
+            tx3: makeSelectedTransaction({reportID: '3', policyID: 'policy2'}),
+        };
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then the report appears once in the modal, because it is one report the user has to set up global reimbursements for
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} Report needing GR`}));
+    });
+
+    it('falls back to a generic name for a skipped report without a name', async () => {
+        // Given a skipped report without a name, next to a payable one
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportName: ''});
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then the modal still lists the report, so the list is never empty
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({prompt: `${CONST.DOT_SEPARATOR} common.report`}));
+    });
+
+    it('opens the onboarding directly when the only selected report needs global reimbursements', async () => {
+        // Given a single selected report that needs global reimbursements
+        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'})];
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then nothing is paid and the selection stays, so the user can pay the report after the setup
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+        expect(mockClearSelectedTransactions).not.toHaveBeenCalled();
+
+        // And the onboarding opens without the modal, the same way paying a single report does, with the copy for one report
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual({
+            bankAccountID: BANK_ACCOUNT_ID,
+            bankCountry: 'US',
+            bankCurrency: CONST.CURRENCY.USD,
+            isPayingMultipleReports: false,
+        });
+    });
+
+    it('opens the onboarding directly with the copy for several reports when none of them can be paid', async () => {
+        // Given two selected reports paid from the same bank account that needs global reimbursements
+        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: '2'}), makeSelectedReport({reportID: '7', chatReportID: '8'})];
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then nothing is paid and the onboarding opens without the modal, because there are no paid reports to report on
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+
+        // And the onboarding explains that all the selected reports need it
+        expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, isPayingMultipleReports: true}));
+    });
+
+    it('does not show the modal when no report needs global reimbursements', async () => {
+        // Given a selected report paid from an account that already has global reimbursements
+        mockSelectedReports = [makeSelectedReport({reportID: '3', chatReportID: '4', policyID: 'policy2'})];
+
+        // When the user selects bulk Pay
+        await selectBulkPay();
+
+        // Then the report is paid and no modal interrupts the user
+        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 });
