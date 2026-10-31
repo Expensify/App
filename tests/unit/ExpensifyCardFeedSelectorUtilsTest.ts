@@ -1,4 +1,4 @@
-import {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
+import {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription, isExpensifyCardFeedBackedByArchivedPolicy} from '@libs/ExpensifyCardFeedSelectorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -7,6 +7,7 @@ import type {Card, CardList, Domain, ExpensifyCardSettings, Policy} from '@src/t
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {createRandomExpensifyCard} from '../utils/collections/card';
+import createMock from '../utils/createMock';
 
 const fundID = 5555;
 const policyID = 'policy_other';
@@ -229,5 +230,49 @@ describe('getAdminExpensifyCardFeedEntries', () => {
         const entries = getAdminExpensifyCardFeedEntries(distinctDomainCardSettings, policies, domains, currentUserAccountID);
 
         expect(entries).toHaveLength(2);
+    });
+});
+
+describe('isExpensifyCardFeedBackedByArchivedPolicy', () => {
+    const FUND_ID = 123;
+
+    it('returns true when the fund backs an archived workspace', () => {
+        // Given an archived workspace whose account is the feed's fund
+        const policies: OnyxCollection<Policy> = {
+            [`${ONYXKEYS.COLLECTION.POLICY}p1`]: createMock<Policy>({id: 'p1', policyAccountID: FUND_ID, archivedDate: '2026-10-28 00:00:00.000'}),
+        };
+
+        // When checking the feed
+        const result = isExpensifyCardFeedBackedByArchivedPolicy(FUND_ID, policies);
+
+        // Then it is flagged, because the backend rejects issuing cards on an archived workspace's feed
+        expect(result).toBe(true);
+    });
+
+    it('returns false when the fund backs an active workspace', () => {
+        // Given an active workspace whose account is the feed's fund, next to an unrelated archived workspace
+        const policies: OnyxCollection<Policy> = {
+            [`${ONYXKEYS.COLLECTION.POLICY}p1`]: createMock<Policy>({id: 'p1', policyAccountID: FUND_ID}),
+            [`${ONYXKEYS.COLLECTION.POLICY}p2`]: createMock<Policy>({id: 'p2', policyAccountID: 456, archivedDate: '2026-10-28 00:00:00.000'}),
+        };
+
+        // When checking the feed
+        const result = isExpensifyCardFeedBackedByArchivedPolicy(FUND_ID, policies);
+
+        // Then it isn't flagged, because only the workspace that owns the fund decides whether it can take new cards
+        expect(result).toBe(false);
+    });
+
+    it('returns false when no workspace owns the fund, such as a domain feed', () => {
+        // Given an archived workspace that doesn't own the feed's fund, as with a feed backed by a domain
+        const policies: OnyxCollection<Policy> = {
+            [`${ONYXKEYS.COLLECTION.POLICY}p1`]: createMock<Policy>({id: 'p1', policyAccountID: 456, archivedDate: '2026-10-28 00:00:00.000'}),
+        };
+
+        // When checking the feed
+        const result = isExpensifyCardFeedBackedByArchivedPolicy(FUND_ID, policies);
+
+        // Then it isn't flagged, because a domain feed stays usable when a workspace linked to it is archived
+        expect(result).toBe(false);
     });
 });

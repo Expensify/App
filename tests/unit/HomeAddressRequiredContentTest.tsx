@@ -46,7 +46,12 @@ describe('HomeAddressRequiredContent', () => {
     it('renders the home address link from the report action HTML', () => {
         jest.mocked(getReportActionHtml).mockReturnValue('Add your <a href="https://example.com">home address</a>.');
 
-        render(<HomeAddressRequiredContent action={mockReportAction} />);
+        render(
+            <HomeAddressRequiredContent
+                action={mockReportAction}
+                reportID="1"
+            />,
+        );
 
         expect(mockRenderHTML).toHaveBeenCalledWith('<comment><muted-text>Add your <a href="https://example.com">home address</a>.</muted-text></comment>');
     });
@@ -55,7 +60,12 @@ describe('HomeAddressRequiredContent', () => {
         jest.mocked(getReportActionHtml).mockReturnValue('');
         jest.mocked(getReportActionText).mockReturnValue('Add your home address.');
 
-        render(<HomeAddressRequiredContent action={mockReportAction} />);
+        render(
+            <HomeAddressRequiredContent
+                action={mockReportAction}
+                reportID="1"
+            />,
+        );
 
         expect(mockRenderHTML).toHaveBeenLastCalledWith('<comment><muted-text>Add your home address.</muted-text></comment>');
     });

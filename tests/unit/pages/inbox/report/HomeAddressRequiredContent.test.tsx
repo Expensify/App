@@ -74,6 +74,7 @@ const action = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOME_ADD
 });
 
 const CURRENT_USER_EMAIL = 'member@expensify.com';
+const CHAT_REPORT_ID = 'chatReportID';
 
 describe('HomeAddressRequiredContent', () => {
     beforeAll(() => {
@@ -87,7 +88,12 @@ describe('HomeAddressRequiredContent', () => {
     });
 
     it('hides the add address CTA as soon as the current home address is saved', async () => {
-        render(<HomeAddressRequiredContent action={action} />);
+        render(
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={CHAT_REPORT_ID}
+            />,
+        );
 
         expect(screen.getByText('homePage.timeSensitiveSection.addHomeAddress.cta')).toBeTruthy();
 
@@ -110,7 +116,12 @@ describe('HomeAddressRequiredContent', () => {
         });
 
         // When the prompt renders for a member who has no home address saved
-        render(<HomeAddressRequiredContent action={action} />);
+        render(
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={CHAT_REPORT_ID}
+            />,
+        );
 
         // Then the CTA stays, because such a workspace measures every member's commute from their home
         await waitFor(() => {
@@ -131,7 +142,12 @@ describe('HomeAddressRequiredContent', () => {
         });
 
         // When the prompt renders for a member who has no home address saved
-        render(<HomeAddressRequiredContent action={action} />);
+        render(
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={CHAT_REPORT_ID}
+            />,
+        );
 
         // Then the CTA stays, because their commute is still measured from their home
         await waitFor(() => {
@@ -151,7 +167,12 @@ describe('HomeAddressRequiredContent', () => {
         });
 
         // When the prompt renders
-        render(<HomeAddressRequiredContent action={action} />);
+        render(
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={CHAT_REPORT_ID}
+            />,
+        );
 
         // Then nothing is measured against their home, so there is nothing left to ask them for
         await waitFor(() => {
@@ -169,7 +190,12 @@ describe('HomeAddressRequiredContent', () => {
         });
 
         // When the prompt renders for a member who still has no home address saved
-        render(<HomeAddressRequiredContent action={action} />);
+        render(
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={CHAT_REPORT_ID}
+            />,
+        );
 
         // Then there is nothing left to ask them for, so the CTA is gone
         await waitFor(() => {
@@ -187,7 +213,12 @@ describe('HomeAddressRequiredContent', () => {
         });
 
         // When the prompt renders for a member who has not saved one
-        render(<HomeAddressRequiredContent action={action} />);
+        render(
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={CHAT_REPORT_ID}
+            />,
+        );
 
         // Then they are still asked for it
         await waitFor(() => {
@@ -205,9 +236,54 @@ describe('HomeAddressRequiredContent', () => {
                         resolution: 'done',
                     },
                 }}
+                reportID={CHAT_REPORT_ID}
             />,
         );
 
         expect(screen.queryByText('homePage.timeSensitiveSection.addHomeAddress.cta')).toBeNull();
+    });
+
+    it('hides the CTA when the workspace was archived', async () => {
+        // Given an archived workspace that still measured commutes from the member's home when it was archived
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policyID`, {
+                id: 'policyID',
+                archivedDate: '2026-10-28 00:00:00.000',
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE, isOfficeWorkArrangement: true},
+            });
+        });
+
+        // When the prompt renders for a member who has no home address saved
+        render(
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={CHAT_REPORT_ID}
+            />,
+        );
+
+        // Then the CTA is gone, because the workspace no longer takes expenses that need the address
+        await waitFor(() => {
+            expect(screen.queryByText('homePage.timeSensitiveSection.addHomeAddress.cta')).toBeNull();
+        });
+    });
+
+    it('hides the CTA in a workspace chat archived because its workspace was deleted', async () => {
+        // Given a deleted workspace whose policy is no longer available, and whose workspace chat was archived with it
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${CHAT_REPORT_ID}`, {private_isArchived: '2026-10-28 00:00:00.000'});
+        });
+
+        // When the prompt renders in that chat for a member who has no home address saved
+        render(
+            <HomeAddressRequiredContent
+                action={action}
+                reportID={CHAT_REPORT_ID}
+            />,
+        );
+
+        // Then the CTA is gone, because there is no workspace left to submit distance expenses to
+        await waitFor(() => {
+            expect(screen.queryByText('homePage.timeSensitiveSection.addHomeAddress.cta')).toBeNull();
+        });
     });
 });
