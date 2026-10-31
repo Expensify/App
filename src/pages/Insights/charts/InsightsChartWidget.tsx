@@ -22,7 +22,8 @@ import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
-import {getInsightsGroupByOptions, getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
+import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
+import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
 import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
@@ -31,6 +32,7 @@ import type {SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -51,11 +53,11 @@ type InsightsChartWidgetProps = {
     /** The snapshot stored under the chart's query for the previous period */
     previousPeriodSnapshot: OnyxEntry<SearchResults>;
 
-    /** The chart's query for the average amounts */
-    averageQueryJSON: Readonly<SearchQueryJSON> | undefined;
+    /** Average group total the backend returned for the chart, drawn in the Average compare mode */
+    averageTotal: number | undefined;
 
-    /** The snapshot stored under the chart's query for the average amounts */
-    averageSnapshot: OnyxEntry<SearchResults>;
+    /** Whether GetInsights answered the dashboard's query */
+    isDashboardLoaded: boolean | undefined;
 
     /** Page-level filters every chart on the dashboard is narrowed by */
     filters: InsightsFilters;
@@ -63,8 +65,8 @@ type InsightsChartWidgetProps = {
     /** Called by the retry button to request the dashboard again */
     onRetry: () => void;
 
-    /** Shows a group-by control in the chart's header when set */
-    onGroupByChange?: (groupBy: InsightsFilters['groupBy']) => void;
+    /** Shows a group-by control in the chart's header when set. Stores the time bucket or Running total the control picks. */
+    onGroupByChange?: (update: Partial<InsightsFilters>) => void;
 };
 
 function InsightsChartWidget({
@@ -73,8 +75,8 @@ function InsightsChartWidget({
     snapshot,
     previousPeriodQueryJSON,
     previousPeriodSnapshot,
-    averageQueryJSON,
-    averageSnapshot,
+    averageTotal,
+    isDashboardLoaded,
     filters,
     onRetry,
     onGroupByChange,
@@ -85,27 +87,38 @@ function InsightsChartWidget({
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}, filters);
+    const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}, filters);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
     const isLoading = state === INSIGHTS_CHART_STATE.LOADING;
     const view = comparison && chart.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chart.view;
     const shouldShowTable = view === CONST.SEARCH.VIEW.BAR || view === CONST.SEARCH.VIEW.PIE;
 
     const groupByOptions = getInsightsGroupByOptions(filters.date);
+    const canRunningTotal = isRunningTotalAvailable(filters.date);
+    const shouldShowRunningTotal = filters.groupBy === INSIGHTS_RUNNING_TOTAL_GROUP_BY && canRunningTotal && view === CONST.SEARCH.VIEW.LINE;
 
     const downloadCSV = () => {
         if (!queryJSON || state !== INSIGHTS_CHART_STATE.READY) {
             return;
         }
 
-        const content = buildInsightsChartCSV({data, groupBy, dateRange: getDateFilterRange(queryJSON), currency: filters.groupCurrency, getCurrencyDecimals, translate});
+        const content = buildInsightsChartCSV({
+            data,
+            groupBy,
+            dateFilterStart: getDateFilterRange(queryJSON).start,
+            currency: filters.groupCurrency,
+            getCurrencyDecimals,
+            translate,
+            today: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            shouldShowRunningTotal,
+        });
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
 
     const groupByControl =
-        onGroupByChange && groupByOptions.length > 1 ? (
+        onGroupByChange && (groupByOptions.length > 1 || canRunningTotal) ? (
             <InsightsGroupByDropdown
-                groupBy={getQueryGroupBy(filters)}
+                groupBy={filters.groupBy}
                 options={groupByOptions}
                 onChange={onGroupByChange}
             />
@@ -162,6 +175,7 @@ function InsightsChartWidget({
                         data={data}
                         isLoading={isLoading}
                         comparison={comparison}
+                        shouldShowRunningTotal={shouldShowRunningTotal}
                         chartContainerStyle={cardPaddingHorizontal}
                         shouldShowSinglePointAsBar
                         shouldShowGroupLabels={false}

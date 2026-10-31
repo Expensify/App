@@ -72,7 +72,7 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {isCollectingDepositAccountsSelector} from '@selectors/Policy';
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {CardPressHandlerParams, PaymentMethodPressHandlerParams} from './types';
@@ -171,13 +171,13 @@ function WalletPage() {
     const hasEligibleShareRecipient = hasEligibleBankAccountShareRecipient(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
 
-    const updateShouldShowLoadingSpinner = useCallback(() => {
+    const updateShouldShowLoadingSpinner = () => {
         // In order to prevent a loop, only update state of the spinner if there is a change
         const showLoadingSpinner = isLoadingPaymentMethods ?? false;
         if (showLoadingSpinner !== shouldShowLoadingSpinner) {
             setShouldShowLoadingSpinner(showLoadingSpinner && !network.isOffline);
         }
-    }, [isLoadingPaymentMethods, network.isOffline, shouldShowLoadingSpinner]);
+    };
 
     const debounceSetShouldShowLoadingSpinner = debounce(updateShouldShowLoadingSpinner, CONST.TIMING.SHOW_LOADING_SPINNER_DEBOUNCE_TIME);
 
@@ -312,13 +312,13 @@ function WalletPage() {
             return;
         }
         if (isCollectingDepositAccounts) {
-            Navigation.navigate(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute());
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.getRoute()));
             return;
         }
         openPersonalBankAccountSetupView({});
     };
 
-    const makeDefaultPaymentMethod = useCallback(() => {
+    const makeDefaultPaymentMethod = () => {
         const paymentCardList = fundList ?? {};
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
         const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
@@ -339,22 +339,9 @@ function WalletPage() {
             makeDefaultPaymentMethodPaymentMethods(0, paymentMethod.selectedPaymentMethod.fundID ?? CONST.DEFAULT_NUMBER_ID, previousPaymentMethod, currentPaymentMethod);
         }
         resetSelectedPaymentMethodData();
-    }, [
-        fundList,
-        bankAccountList,
-        styles,
-        translate,
-        paymentMethod.selectedPaymentMethodType,
-        paymentMethod.methodID,
-        paymentMethod.selectedPaymentMethod.bankAccountID,
-        paymentMethod.selectedPaymentMethod.fundID,
-        resetSelectedPaymentMethodData,
-        allPolicies,
-        policyMemberBankAccounts,
-        currentUserAccountID,
-    ]);
+    };
 
-    const deletePaymentMethod = useCallback(() => {
+    const deletePaymentMethod = () => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
         let newBankAccountID: number | undefined;
@@ -400,20 +387,7 @@ function WalletPage() {
             deletePaymentCard(fundID);
         }
         resetSelectedPaymentMethodData();
-    }, [
-        paymentMethod.selectedPaymentMethod.bankAccountID,
-        paymentMethod.selectedPaymentMethod.fundID,
-        paymentMethod.isSelectedPaymentMethodDefault,
-        paymentMethod.selectedPaymentMethodType,
-        paymentMethod.methodID,
-        resetSelectedPaymentMethodData,
-        fundList,
-        bankAccountList,
-        styles,
-        translate,
-        lastUsedPaymentMethods,
-        personalPolicyID,
-    ]);
+    };
 
     /**
      * Navigate to the appropriate page after completing the KYC flow, depending on what initiated it
@@ -425,7 +399,7 @@ function WalletPage() {
     /**
      * Show confirmation modal for deleting a personal card and delete it if confirmed
      */
-    const confirmDeleteCard = useCallback(async () => {
+    const confirmDeleteCard = async () => {
         if (!selectedCard?.cardID) {
             return;
         }
@@ -444,7 +418,7 @@ function WalletPage() {
             deletePersonalCard({cardID: selectedCard.cardID, card: selectedCard, allTransactions, allReports, savedColumnLayout});
         }
         setSelectedCard(undefined);
-    }, [selectedCard, showConfirmModal, translate, allTransactions, allReports, savedColumnLayouts]);
+    };
 
     useEffect(() => {
         // If the user was previously offline, skip debouncing showing the loader
@@ -500,22 +474,19 @@ function WalletPage() {
         />
     );
 
-    const bottomMountItem = useMemo(
-        () => ({
-            text: paymentMethod.formattedSelectedPaymentMethod.title,
-            icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
-            iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
-            iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
-            iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
-            description: paymentMethod.formattedSelectedPaymentMethod.description,
-            wrapperStyle: [styles.mb4, styles.ph5, styles.pt3],
-            interactive: false,
-            displayInDefaultIconColor: true,
-        }),
-        [paymentMethod.formattedSelectedPaymentMethod, styles.mb4, styles.ph5, styles.pt3],
-    );
+    const bottomMountItem = {
+        text: paymentMethod.formattedSelectedPaymentMethod.title,
+        icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
+        iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+        iconWidth: paymentMethod.formattedSelectedPaymentMethod.icon?.iconWidth ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
+        iconStyles: paymentMethod.formattedSelectedPaymentMethod.icon?.iconStyles,
+        description: paymentMethod.formattedSelectedPaymentMethod.description,
+        wrapperStyle: [styles.mb4, styles.ph5, styles.pt3],
+        interactive: false,
+        displayInDefaultIconColor: true,
+    };
 
-    const showDeleteAccountModal = useCallback(async () => {
+    const showDeleteAccountModal = async () => {
         const result = await showConfirmModal({
             title: translate('walletPage.deleteAccount'),
             prompt: translate('walletPage.deleteConfirmation'),
@@ -529,138 +500,113 @@ function WalletPage() {
             return;
         }
         deletePaymentMethod();
-    }, [showConfirmModal, translate, resetSelectedPaymentMethodData, deletePaymentMethod]);
+    };
 
-    const threeDotMenuItems = useMemo(
-        () => [
-            ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
-            ...(shouldShowMakeDefaultButton
-                ? [
-                      {
-                          text: translate('walletPage.setDefaultConfirmation'),
-                          icon: icons.Star,
-                          onSelected: () => {
-                              if (isAccountLocked) {
-                                  closeModal(() => showLockedAccountModal());
-                                  return;
-                              }
-                              makeDefaultPaymentMethod();
-                          },
-                          numberOfLinesTitle: 0,
+    const threeDotMenuItems = [
+        ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
+        ...(shouldShowMakeDefaultButton
+            ? [
+                  {
+                      text: translate('walletPage.setDefaultConfirmation'),
+                      icon: icons.Star,
+                      onSelected: () => {
+                          if (isAccountLocked) {
+                              closeModal(() => showLockedAccountModal());
+                              return;
+                          }
+                          makeDefaultPaymentMethod();
                       },
-                  ]
-                : []),
-            ...(shouldShowEnableGlobalReimbursementsButton
-                ? [
-                      {
-                          text: translate('common.enableGlobalReimbursements'),
-                          icon: icons.Globe,
-                          onSelected: () => {
-                              if (isAccountLocked) {
-                                  closeModal(() => showLockedAccountModal());
-                                  return;
-                              }
-                              if (isWiseGlobalReimbursementsEnabled) {
-                                  closeModal(() =>
-                                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
-                                  );
-                                  return;
-                              }
+                      numberOfLinesTitle: 0,
+                  },
+              ]
+            : []),
+        ...(shouldShowEnableGlobalReimbursementsButton
+            ? [
+                  {
+                      text: translate('common.enableGlobalReimbursements'),
+                      icon: icons.Globe,
+                      onSelected: () => {
+                          if (isAccountLocked) {
+                              closeModal(() => showLockedAccountModal());
+                              return;
+                          }
+                          if (isWiseGlobalReimbursementsEnabled) {
                               closeModal(() =>
-                                  Navigation.navigate(
-                                      ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
-                                          paymentMethod.selectedPaymentMethod.bankAccountID,
-                                          CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
-                                      ),
-                                  ),
+                                  Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID))),
                               );
-                          },
+                              return;
+                          }
+                          closeModal(() =>
+                              Navigation.navigate(
+                                  ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
+                                      paymentMethod.selectedPaymentMethod.bankAccountID,
+                                      CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                                  ),
+                              ),
+                          );
                       },
-                  ]
-                : []),
-            ...(shouldShowEditNicknameButton
-                ? [
-                      {
-                          text: translate('walletPage.editNickname'),
-                          icon: icons.Pencil,
-                          onSelected: () => {
-                              if (isAccountLocked) {
-                                  closeModal(() => showLockedAccountModal());
-                                  return;
-                              }
-                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
-                          },
+                  },
+              ]
+            : []),
+        ...(shouldShowEditNicknameButton
+            ? [
+                  {
+                      text: translate('walletPage.editNickname'),
+                      icon: icons.Pencil,
+                      onSelected: () => {
+                          if (isAccountLocked) {
+                              closeModal(() => showLockedAccountModal());
+                              return;
+                          }
+                          closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_EDIT_BANK_ACCOUNT_NICKNAME.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
                       },
-                  ]
-                : []),
-            ...(shouldShowShareButton && hasEligibleShareRecipient
-                ? [
-                      {
-                          text: translate('common.share'),
-                          icon: icons.UserPlus,
-                          onSelected: () => {
-                              if (isAccountLocked) {
-                                  closeModal(() => showLockedAccountModal());
-                                  return;
-                              }
-                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
-                          },
+                  },
+              ]
+            : []),
+        ...(shouldShowShareButton && hasEligibleShareRecipient
+            ? [
+                  {
+                      text: translate('common.share'),
+                      icon: icons.UserPlus,
+                      onSelected: () => {
+                          if (isAccountLocked) {
+                              closeModal(() => showLockedAccountModal());
+                              return;
+                          }
+                          closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
                       },
-                  ]
-                : []),
-            ...(shouldShowUnshareButton
-                ? [
-                      {
-                          text: translate('common.unshare'),
-                          icon: icons.UserMinus,
-                          onSelected: () => {
-                              if (isAccountLocked) {
-                                  closeModal(() => showLockedAccountModal());
-                                  return;
-                              }
-                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
-                          },
+                  },
+              ]
+            : []),
+        ...(shouldShowUnshareButton
+            ? [
+                  {
+                      text: translate('common.unshare'),
+                      icon: icons.UserMinus,
+                      onSelected: () => {
+                          if (isAccountLocked) {
+                              closeModal(() => showLockedAccountModal());
+                              return;
+                          }
+                          closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
                       },
-                  ]
-                : []),
-            {
-                text: translate('common.delete'),
-                icon: icons.Trashcan,
-                onSelected: () => {
-                    if (isAccountLocked) {
-                        closeModal(() => showLockedAccountModal());
-                        return;
-                    }
-                    closeModal(() => {
-                        showDeleteAccountModal();
-                    });
-                },
+                  },
+              ]
+            : []),
+        {
+            text: translate('common.delete'),
+            icon: icons.Trashcan,
+            onSelected: () => {
+                if (isAccountLocked) {
+                    closeModal(() => showLockedAccountModal());
+                    return;
+                }
+                closeModal(() => {
+                    showDeleteAccountModal();
+                });
             },
-        ],
-        [
-            shouldUseNarrowLayout,
-            bottomMountItem,
-            shouldShowMakeDefaultButton,
-            translate,
-            icons.Star,
-            icons.UserPlus,
-            icons.UserMinus,
-            icons.Trashcan,
-            icons.Globe,
-            icons.Pencil,
-            shouldShowEditNicknameButton,
-            shouldShowShareButton,
-            hasEligibleShareRecipient,
-            shouldShowUnshareButton,
-            shouldShowEnableGlobalReimbursementsButton,
-            isWiseGlobalReimbursementsEnabled,
-            isAccountLocked,
-            makeDefaultPaymentMethod,
-            showLockedAccountModal,
-            paymentMethod.selectedPaymentMethod.bankAccountID,
-            showDeleteAccountModal,
-        ],
-    );
+        },
+    ];
 
     const onAddPersonalCardPress = () => {
         if (!paidGroupPolicy && Object.keys(personalCardList).length >= 2) {
@@ -705,55 +651,53 @@ function WalletPage() {
         Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
     };
 
-    const cardThreeDotsMenuItems = useMemo(() => {
-        const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
-        return [
-            ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
-            {
-                text: translate('workspace.common.viewTransactions'),
-                icon: icons.MoneySearch,
-                onSelected: () => {
-                    closeModal(() => {
-                        Navigation.navigate(
-                            ROUTES.SEARCH_ROOT.getRoute({
-                                query: buildCannedSearchQuery({
-                                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                                    cardID: String(paymentMethod.methodID),
-                                }),
-                                searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+    const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
+    const cardThreeDotsMenuItems = [
+        ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
+        {
+            text: translate('workspace.common.viewTransactions'),
+            icon: icons.MoneySearch,
+            onSelected: () => {
+                closeModal(() => {
+                    Navigation.navigate(
+                        ROUTES.SEARCH_ROOT.getRoute({
+                            query: buildCannedSearchQuery({
+                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                cardID: String(paymentMethod.methodID),
                             }),
-                        );
-                    });
-                },
+                            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+                        }),
+                    );
+                });
             },
-            ...(shouldShowCSVImportItems
-                ? [
-                      {
-                          text: translate('spreadsheet.importSpreadsheet'),
-                          icon: icons.Table,
-                          onSelected: () => {
-                              closeModal(() => {
-                                  Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
-                              });
-                          },
+        },
+        ...(shouldShowCSVImportItems
+            ? [
+                  {
+                      text: translate('spreadsheet.importSpreadsheet'),
+                      icon: icons.Table,
+                      onSelected: () => {
+                          closeModal(() => {
+                              Navigation.navigate(ROUTES.SETTINGS_WALLET_IMPORT_TRANSACTIONS_SPREADSHEET.getRoute(Number(paymentMethod.methodID)));
+                          });
                       },
-                  ]
-                : []),
-            ...(shouldShowCSVImportItems
-                ? [
-                      {
-                          text: translate('common.delete'),
-                          icon: icons.Trashcan,
-                          onSelected: () => {
-                              closeModal(() => {
-                                  confirmDeleteCard();
-                              });
-                          },
+                  },
+              ]
+            : []),
+        ...(shouldShowCSVImportItems
+            ? [
+                  {
+                      text: translate('common.delete'),
+                      icon: icons.Trashcan,
+                      onSelected: () => {
+                          closeModal(() => {
+                              confirmDeleteCard();
+                          });
                       },
-                  ]
-                : []),
-        ];
-    }, [bottomMountItem, confirmDeleteCard, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
+                  },
+              ]
+            : []),
+    ];
 
     if (isAppLoadPending) {
         return (

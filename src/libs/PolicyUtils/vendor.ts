@@ -115,10 +115,23 @@ function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled
 }
 
 /**
- * Search spans every workspace at once, so the vendor column is offered when any workspace has the vendor feature.
+ * Search spans every workspace at once, so the vendor filter and column are offered when any workspace has the vendor feature.
  */
 function hasVendorFeatureOnAnyPolicy(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
     return Object.values(policies ?? {}).some((policy) => hasVendorFeature(policy, isVendorMatchingBetaEnabled));
+}
+
+/**
+ * IDs of the workspaces that have the vendor feature, so the Search vendor filter only offers their vendor lists.
+ */
+function getVendorFeaturePolicyIDs(policies: OnyxCollection<Policy>, isVendorMatchingBetaEnabled: boolean): string[] {
+    const policyIDs: string[] = [];
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.id && hasVendorFeature(policy, isVendorMatchingBetaEnabled)) {
+            policyIDs.push(policy.id);
+        }
+    }
+    return policyIDs;
 }
 
 /**
@@ -256,17 +269,63 @@ function getMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] {
 
 /**
  * Sorts vendors alphabetically by name using the provided localeCompare.
- * Uses vendor id as a stable tie-breaker when names match.
+ * Uses vendor id or externalID as a stable tie-breaker when names match.
  * Non-mutating: returns a new sorted array.
  */
-function sortVendors<TVendor extends {id: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
+function sortVendors<TVendor extends {id?: string; externalID?: string; name: string}>(vendors: TVendor[], localeCompare: LocaleContextProps['localeCompare']): TVendor[] {
     return [...vendors].sort((a, b) => {
         const nameComparison = localeCompare(a.name ?? '', b.name ?? '');
         if (nameComparison !== 0) {
             return nameComparison;
         }
-        return localeCompare(a.id, b.id);
+        const keyA = a.id ?? a.externalID;
+        const keyB = b.id ?? b.externalID;
+        if (!keyA || !keyB) {
+            return 0;
+        }
+        return localeCompare(keyA, keyB);
     });
+}
+
+/**
+ * Resolves the configured default vendor ID for the active integration that supports vendor enablement.
+ * Returns undefined if no default vendor is configured or if the integration does not have an active default fallback.
+ */
+function getDefaultVendorID(policy: OnyxEntry<Policy>, origin?: ConnectionName): string | undefined {
+    const integrationOrigin = origin ?? getActiveVendorMatchingIntegration(policy);
+    if (!policy?.connections || !integrationOrigin) {
+        return undefined;
+    }
+
+    if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.QBO) {
+        const qboConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.QBO]?.config;
+        if (qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD) {
+            return qboConfig.nonReimbursableCreditCardDefaultVendor ?? undefined;
+        }
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT) {
+        const intacctConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]?.config;
+        return intacctConfig?.export?.nonReimbursableCreditCardChargeDefaultVendor ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.XERO) {
+        const xeroConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.XERO]?.config;
+        return xeroConfig?.defaultVendor ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.RILLET) {
+        const rilletConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config;
+        return rilletConfig?.export?.defaultVendorID ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY) {
+        const dualentryConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config;
+        return dualentryConfig?.export?.defaultVendorID ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE) {
+        const campfireConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]?.config;
+        return campfireConfig?.export?.defaultVendorID ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+        const businessCentralConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.config;
+        return businessCentralConfig?.export?.defaultVendorID ?? undefined;
+    } else if (integrationOrigin === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
+        const certiniaConfig = policy.connections[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config;
+        return certiniaConfig?.export?.vendorAccount ?? undefined;
+    }
+
+    return undefined;
 }
 
 /**
@@ -502,6 +561,7 @@ export {
     getActiveVendorMatchingIntegration,
     getMatchingVendorByID,
     getMatchingVendors,
+    getDefaultVendorID,
     sortVendors,
     getVendorEmptyState,
     getVendorRuleDisplayValue,
@@ -517,5 +577,6 @@ export {
     isXeroVendorMatchingActive,
     hasVendorFeature,
     hasVendorFeatureOnAnyPolicy,
+    getVendorFeaturePolicyIDs,
     isMatchingVendorListLoaded,
 };
