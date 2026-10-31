@@ -446,7 +446,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/SetDefaultContactMethodConfirmValidateCodePage').default,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PriorityModePage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/PolicyAccountingPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/WorkspaceConnectionsPage').default,
     [SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsAccountingPage').default,
     [SCREENS.WORKSPACE.CONNECTIONS_HR]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsHRPage').default,
     [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsRecruitingPage').default,

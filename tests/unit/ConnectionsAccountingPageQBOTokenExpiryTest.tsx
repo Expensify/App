@@ -8,7 +8,6 @@ import type TextComponent from '@components/Text';
 
 import DateUtils from '@libs/DateUtils';
 
-import PolicyAccountingPage from '@pages/workspace/accounting/PolicyAccountingPage';
 import ConnectionsAccountingPage from '@pages/workspace/connections/ConnectionsAccountingPage';
 
 import CONST from '@src/CONST';
@@ -112,8 +111,6 @@ jest.mock('@hooks/usePolicyFeatureWriteAccess', () => ({
 // mocked to an identity wrapper above, so the component under test takes `policy` directly.
 // The Accounting page and the Connections accounting panel share the connected integration's logic, so both are covered.
 const PAGES_UNDER_TEST = [
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the HOC that would inject `policy` is mocked out, so it is passed as a prop here
-    {pageName: 'PolicyAccountingPage', PageUnderTest: PolicyAccountingPage as unknown as React.ComponentType<{policy: Policy}>},
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the HOC that would inject `policy` is mocked out, so it is passed as a prop here
     {pageName: 'ConnectionsAccountingPage', PageUnderTest: ConnectionsAccountingPage as unknown as React.ComponentType<{policy: Policy}>},
 ];

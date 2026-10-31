@@ -14,8 +14,8 @@ let mockCanWrite = true;
 let mockConnectedIntegration: ConnectionName | undefined;
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, datetimeToRelative: () => '', getLocalDateFromDatetime: jest.fn()}));
-jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: () => false}));
-jest.mock('@hooks/useIsUnifiedConnectionsBetaEnabled', () => () => true);
+let mockEnabledBetas: string[] = [];
+jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.includes(beta)}));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => ({})}));
@@ -50,6 +50,7 @@ describe('useAccountingConnectionListings', () => {
         jest.clearAllMocks();
         mockCanWrite = true;
         mockConnectedIntegration = undefined;
+        mockEnabledBetas = [];
     });
 
     it('should start the connect flow for a workspace with no accounting integration', () => {
@@ -102,5 +103,28 @@ describe('useAccountingConnectionListings', () => {
 
         // Then QuickBooks Online carries a healthy status, so it shows in the connected section with Configure
         expect(qbo?.status?.isBroken).toBe(false);
+    });
+    it.each([{enabledBetas: []}, {enabledBetas: ['campfire']}])('should offer Campfire with beta enrollment $enabledBetas', ({enabledBetas}) => {
+        // Given a workspace with no accounting connection
+        mockEnabledBetas = enabledBetas;
+
+        // When the accounting listings are built
+        const campfire = findListing(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE);
+
+        // Then Campfire is offered, because it no longer needs a beta, and Business Central stays hidden without its beta
+        expect(campfire).toBeDefined();
+        expect(findListing(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL)).toBeUndefined();
+    });
+
+    it('should offer Business Central alongside Campfire to a workspace in the Business Central beta', () => {
+        // Given a workspace enrolled in the Business Central beta
+        mockEnabledBetas = [CONST.BETAS.BUSINESS_CENTRAL];
+
+        // When the accounting listings are built
+        const businessCentral = findListing(CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL);
+
+        // Then both integrations are available
+        expect(businessCentral).toBeDefined();
+        expect(findListing(CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE)).toBeDefined();
     });
 });

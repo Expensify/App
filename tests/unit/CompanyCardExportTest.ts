@@ -99,7 +99,7 @@ function createCard(nvpExportAccount?: string): Card {
 
 const translate: LocaleContextProps['translate'] = translateLocal;
 const themeStyles = createMock<ThemeStyles>({});
-const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(MOCK_POLICY_ID);
+const basePath = ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(MOCK_POLICY_ID);
 
 describe('getExportMenuItem - QBD credit card account resolution', () => {
     it('resolves account by ID when NVP contains a QBD ListID (Classic-saved)', () => {
