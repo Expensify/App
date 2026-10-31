@@ -39,7 +39,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getReimbursementChoice, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getReimbursementChoice, isPolicyAdmin, isSubmitPolicy, shouldWarnBeforeDisablingPayments} from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -292,6 +292,31 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     };
     const bankAccountMenuItem = <MenuItem {...bankAccountMenuItemProps} />;
 
+    const updateReimbursementChoice = (isEnabled: boolean) => {
+        let newReimbursementChoice;
+        if (!isEnabled) {
+            newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+        } else if ((!isBankAccountFullySetup && !bankAccountConnectedToWorkspace) || !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
+            newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+        } else {
+            newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+        }
+
+        const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
+        setWorkspaceReimbursement({
+            policyID,
+            currentAchAccount: policy?.achAccount,
+            currentReimbursementChoice: policy?.reimbursementChoice,
+            reimbursementChoice: newReimbursementChoice,
+            reimburserEmail: newReimburserEmail ?? '',
+            bankAccountID: policy?.achAccount?.bankAccountID,
+            accountNumber: policy?.achAccount?.accountNumber,
+            addressName: policy?.achAccount?.addressName,
+            bankName: policy?.achAccount?.bankName,
+            state: policy?.achAccount?.state,
+        });
+    };
+
     const reimbursementCountryNames = Object.keys(policy?.reimbursement?.countries ?? {})
         .filter((countryISO): countryISO is Country => countryISO in CONST.ALL_COUNTRIES)
         .map((countryISO) => translate(`allCountries.${countryISO}`))
@@ -311,28 +336,22 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.alias, workflowsBackTo));
                     return;
                 }
-                let newReimbursementChoice;
-                if (!isEnabled) {
-                    newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
-                } else if ((!isBankAccountFullySetup && !bankAccountConnectedToWorkspace) || !isCurrencySupportedForDirectReimbursement(policy?.outputCurrency ?? '')) {
-                    newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-                } else {
-                    newReimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
+                if (!isEnabled && shouldWarnBeforeDisablingPayments(policy)) {
+                    showConfirmModal({
+                        title: translate('workflowsPage.disablePaymentsTitle'),
+                        prompt: translate('workflowsPage.disablePaymentsPrompt'),
+                        confirmText: translate('common.confirm'),
+                        cancelText: translate('common.cancel'),
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        updateReimbursementChoice(false);
+                    });
+                    return;
                 }
-
-                const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-                setWorkspaceReimbursement({
-                    policyID,
-                    currentAchAccount: policy?.achAccount,
-                    currentReimbursementChoice: policy?.reimbursementChoice,
-                    reimbursementChoice: newReimbursementChoice,
-                    reimburserEmail: newReimburserEmail ?? '',
-                    bankAccountID: policy?.achAccount?.bankAccountID,
-                    accountNumber: policy?.achAccount?.accountNumber,
-                    addressName: policy?.achAccount?.addressName,
-                    bankName: policy?.achAccount?.bankName,
-                    state: policy?.achAccount?.state,
-                });
+                updateReimbursementChoice(isEnabled);
             }}
             subMenuItems={
                 <>
