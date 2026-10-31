@@ -48,8 +48,8 @@ function MiniReportActionContextMenuProvider({children}: MiniReportActionContext
                 return false;
             }
             if (owner?.token !== token) {
-                // A prepared row can disappear before its slot commits, so never leave its actions in the previous row.
-                container.remove();
+                // Keep the containing block until the next slot commits, without exposing a canceled preparation.
+                container.style.visibility = 'hidden';
                 ownerRef.current = {token, hasInteraction: false};
             }
             const generation = generationRef.current;
@@ -79,6 +79,7 @@ function MiniReportActionContextMenuProvider({children}: MiniReportActionContext
                     // The portal destination stays the same object, so moving it does not remount Base.
                     host.appendChild(container);
                 }
+                container.style.visibility = '';
                 return true;
             },
             detach: (token) => {

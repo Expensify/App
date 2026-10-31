@@ -122,7 +122,7 @@ describe('MiniReportActionContextMenuProvider', () => {
         expect(firstHost.querySelector('button')).toBeNull();
     });
 
-    it('does not render a prepared target in the previous row when its slot never attaches', () => {
+    it('does not show a prepared target before its own slot attaches', () => {
         // Given a row kept mounted by a reaction picker, its slot can outlive the next hover's preparation.
         const firstToken = {current: null};
         const secondToken = {current: null};
@@ -137,8 +137,18 @@ describe('MiniReportActionContextMenuProvider', () => {
             controller.prepare(secondProps);
         });
 
-        // Then neither row displays the prepared menu until its own slot actually attaches.
-        expect(firstHost.querySelector('button')).toBeNull();
+        // Then the prepared menu is either detached or hidden until its own slot actually attaches.
+        const previousButton = firstHost.querySelector('button');
+        if (previousButton) {
+            expect(getComputedStyle(previousButton).visibility).toBe('hidden');
+        }
         expect(secondHost.querySelector('button')).toBeNull();
+
+        act(() => {
+            controller.attach(secondToken, secondHost, secondProps);
+        });
+        const nextButton = secondHost.querySelector('button');
+        expect(nextButton?.textContent).toBe('2');
+        expect(nextButton ? getComputedStyle(nextButton).visibility : undefined).toBe('visible');
     });
 });
