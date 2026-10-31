@@ -544,6 +544,84 @@ describe('useSidebarOrderedReports', () => {
         expect(callForReport2?.[0]?.updatedReportsKeys).toEqual([`${ONYXKEYS.COLLECTION.REPORT}2`]);
     });
 
+    describe('one-transaction thread changes', () => {
+        const expenseReportID = '1';
+        const threadReportID = '2';
+
+        const createExpenseReportAttributes = (oneTransactionThreadReportID: string | undefined): ReportAttributes => ({
+            reportName: 'Expense Report',
+            isEmpty: false,
+            brickRoadStatus: undefined,
+            requiresAttention: false,
+            reportErrors: {},
+            oneTransactionThreadReportID,
+        });
+
+        // Renders the LHN with a read expense report and its transaction thread, neither of which is displayed.
+        const renderWithHiddenExpenseReport = async (oneTransactionThreadReportID: string | undefined) => {
+            const otherReports = createMockReports({
+                report3: {reportName: 'Chat A'},
+            });
+            mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue({[`${ONYXKEYS.COLLECTION.REPORT}3`]: otherReports['3']});
+            mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports: reports}) => reports);
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}3`, otherReports['3']);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {
+                    reportID: expenseReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastVisibleActionCreated: '2024-01-01 10:00:00',
+                    lastReadTime: '2024-01-01 10:00:00',
+                } as Report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
+                    reportID: threadReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: expenseReportID,
+                    parentReportActionID: '100',
+                    lastVisibleActionCreated: '2024-01-01 10:00:00',
+                    lastReadTime: '2024-01-01 10:00:00',
+                } as Report);
+                await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[expenseReportID]: createExpenseReportAttributes(oneTransactionThreadReportID)}, locale: 'en'});
+            });
+
+            renderHook(() => useSidebarOrderedReports(), {
+                wrapper: TestWrapper,
+            });
+            await waitForBatchedUpdatesWithAct();
+            mockSidebarUtils.updateReportsToDisplayInLHN.mockClear();
+        };
+
+        const getUpdatedReportsKeys = () => mockSidebarUtils.updateReportsToDisplayInLHN.mock.calls.flatMap((call) => call[0]?.updatedReportsKeys ?? []);
+
+        it('should recheck the expense report when only its one-transaction thread changes', async () => {
+            // Given a single-expense report whose transaction thread is hidden from the LHN in favor of the expense report
+            await renderWithHiddenExpenseReport(threadReportID);
+
+            // When a new comment lands on the transaction thread, which changes the thread but not the expense report
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {lastVisibleActionCreated: '2024-01-02 10:00:00'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the expense report is rechecked too, because its unread state in Focus mode depends on the thread
+            expect(getUpdatedReportsKeys()).toEqual(expect.arrayContaining([`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]));
+        });
+
+        it('should not recheck the parent when a thread that is not its one-transaction thread changes', async () => {
+            // Given a report with a child thread that is not its one-transaction thread (e.g. a report with several expenses)
+            await renderWithHiddenExpenseReport(undefined);
+
+            // When a new comment lands on the child thread
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {lastVisibleActionCreated: '2024-01-02 10:00:00'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the thread is rechecked, since the parent's LHN state does not depend on it
+            expect(getUpdatedReportsKeys()).toEqual([`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`]);
+        });
+    });
+
     describe('reportAttributes changes', () => {
         const createReportAttributes = (attributes: Partial<ReportAttributes> = {}): ReportAttributes => ({
             reportName: 'Chat',
