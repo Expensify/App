@@ -8,7 +8,8 @@ import type ImageViewProps from './types';
 function ImageView({attachmentID, isAuthTokenRequired = false, url, style, zoomRange = DEFAULT_ZOOM_RANGE, onError}: ImageViewProps) {
     return (
         <Lightbox
-            key={url}
+            // eslint-disable-next-line @typescript-eslint/no-base-to-string -- Preserve React's existing plain object and array key collisions.
+            key={typeof url === 'string' || typeof url === 'number' ? url : String(url)}
             attachmentID={attachmentID}
             uri={url}
             zoomRange={zoomRange}
