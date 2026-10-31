@@ -15,8 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
-import type Animated from 'react-native-reanimated';
-
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
@@ -26,19 +24,6 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // mock PortalStateContext
 jest.mock('@gorhom/portal');
-
-jest.mock('react-native-reanimated', () => ({
-    ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
-    useAnimatedRef: jest.fn(),
-    LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
-    Keyframe: jest.fn().mockImplementation(() => ({
-        duration: jest.fn().mockReturnThis(),
-        delay: jest.fn().mockReturnThis(),
-        easing: jest.fn().mockReturnThis(),
-        withCallback: jest.fn().mockReturnThis(),
-    })),
-    makeShareableCloneRecursive: jest.fn,
-}));
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),

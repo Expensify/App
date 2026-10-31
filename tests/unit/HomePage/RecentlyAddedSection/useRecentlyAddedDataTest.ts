@@ -11,6 +11,7 @@
  *     then shows the snapshot copy once it lands - without dropping or duplicating the row
  *   - keeps a deleted expense hidden after the delete succeeds but while the snapshot still lists it, and brings it
  *     back if the delete fails
+ *   - prefers live report data over stale snapshot report data
  */
 import {renderHook} from '@testing-library/react-native';
 
@@ -176,6 +177,15 @@ function setupLocalTransactions(transactions: Transaction[]) {
     onyxData[ONYXKEYS.COLLECTION.TRANSACTION] = collection;
 }
 
+/** Seeds the local `report_` collection (mirrors the optimistic parent reports written alongside new expenses). */
+function setupLocalReports(reports: Report[]) {
+    const collection: Record<string, Report> = {};
+    for (const report of reports) {
+        collection[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
+    }
+    onyxData[ONYXKEYS.COLLECTION.REPORT] = collection;
+}
+
 function resultTransactionIDs(transactions: RecentlyAddedExpense[]): string[] {
     return transactions.map((t) => t.transactionID);
 }
@@ -280,6 +290,59 @@ describe('useRecentlyAddedData — current-user scope', () => {
     });
 });
 
+describe('useRecentlyAddedData — live report updates', () => {
+    it('uses the live report status when the Search snapshot is stale', () => {
+        // Given Home loaded an open report from Search and the live report initially matches it
+        setupSnapshot([makeTransaction({transactionID: 'settled', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        setupLocalReports([makeReport('report_owned', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.OPEN})]);
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+
+        // When the live report is reimbursed without refreshing the Search snapshot
+        setupLocalReports([makeReport('report_owned', ACCOUNT_ID, {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED})]);
+        rerender({});
+
+        // Then the row receives the current settled status instead of the stale snapshot status
+        expect(result.current.transactions.at(0)?.report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+    });
+
+    it('uses the current report after a failed scan is moved during an offline payment', () => {
+        // Given Search still places a failed scan on the original report while the optimistic payment has moved it to a new report
+        setupSnapshot(
+            [
+                makeTransaction({
+                    transactionID: 'failedScan',
+                    inserted: '2026-06-01 10:00:00',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                    amount: 0,
+                }),
+            ],
+            [makeReport('report_owned', ACCOUNT_ID, {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN})],
+        );
+        setupLocalTransactions([
+            makeTransaction({
+                transactionID: 'failedScan',
+                reportID: 'report_unpaid',
+                inserted: '2026-06-01 10:00:00',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                amount: 0,
+            }),
+        ]);
+        setupLocalReports([
+            makeReport('report_owned', ACCOUNT_ID, {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED}),
+            makeReport('report_unpaid', ACCOUNT_ID, {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN}),
+        ]);
+
+        // When Recently Added resolves the expense while the Search snapshot is stale
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        // Then the row stays associated with the new unpaid report instead of inheriting the settled status of the original report
+        expect(result.current.transactions.at(0)?.reportID).toBe('report_unpaid');
+        expect(result.current.transactions.at(0)?.report?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+    });
+});
+
 describe('useRecentlyAddedData — unreported expenses', () => {
     it('includes the current user unreported expenses even though they have no parent report', () => {
         setupSnapshot(
@@ -314,6 +377,20 @@ describe('useRecentlyAddedData — locally pending (offline-created) expenses', 
         const {result} = renderHook(() => useRecentlyAddedData());
 
         expect(result.current.transactions.at(0)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    });
+
+    it('excludes a locally-pending expense whose local parent report is owned by another account (e.g. sent money)', () => {
+        // Sending money (Pay someone) optimistically creates the expense on an IOU report owned by the recipient.
+        setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
+        setupLocalReports([makeReport('report_owned', ACCOUNT_ID), makeReport('report_sent', OTHER_ACCOUNT_ID, {managerID: ACCOUNT_ID})]);
+        setupLocalTransactions([
+            makeTransaction({transactionID: 'mine', reportID: 'report_owned', inserted: '2026-06-02 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+            makeTransaction({transactionID: 'sent', reportID: 'report_sent', inserted: '2026-06-03 10:00:00', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+        ]);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['mine']);
     });
 
     it('does not duplicate an expense present in both the snapshot and the local collection', () => {

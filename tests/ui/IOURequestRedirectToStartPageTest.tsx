@@ -24,6 +24,7 @@ import Onyx from 'react-native-onyx';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@libs/API');
 jest.mock('@userActions/Tab');
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
@@ -39,6 +40,8 @@ jest.mock('react-native-tab-view', () => ({
 
 jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
+    useCameraDevices: jest.fn(() => []),
+    usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
 }));
 
 // Stands in for the module-level navigation-ready promise so each test can decide whether the NavigationContainer

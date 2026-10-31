@@ -1,12 +1,17 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useOnyx from '@hooks/useOnyx';
+
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -31,7 +36,7 @@ type BusinessTypePickerProps = {
 };
 
 function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputChange, label, onBlur}: BusinessTypePickerProps) {
-    const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
 
     const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -57,20 +62,24 @@ function BusinessTypePicker({errorText = '', value = '', wrapperStyle, onInputCh
     };
 
     const title = value ? translate(`businessInfoStep.incorporationType.${value as IncorporationType}`) : '';
-    const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
-        <View>
-            <MenuItemWithTopDescription
-                shouldShowRightIcon
-                title={title}
-                description={label}
-                descriptionTextStyle={descStyle}
-                onPress={showPickerModal}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-                wrapperStyle={wrapperStyle}
-            />
+        <View style={wrapperStyle}>
+            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(showPickerModal, false, session)}>
+                <MenuItemField.Row
+                    name={label}
+                    value={title}
+                >
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    <MenuItem.Chevron />
+                </MenuItemField.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={errorText}
+                    />
+                )}
+            </MenuItem.Root>
             <BusinessTypeSelectorModal
                 isVisible={isPickerVisible}
                 currentBusinessType={value}

@@ -8,8 +8,8 @@ import {putOnHold} from '@libs/actions/IOU/Hold';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
+import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
@@ -33,7 +33,8 @@ import Onyx from 'react-native-onyx';
 import {createCashCard} from 'tests/utils/collections/card';
 import createRandomReportAction from 'tests/utils/collections/reportActions';
 
-import {changeTransactionsReport as changeTransactionsReportAction, clearError} from '../../src/libs/actions/Transaction';
+import {changeTransactionsReport as changeTransactionsReportAction, clearError, undeleteTransactions as undeleteTransactionsAction} from '../../src/libs/actions/Transaction';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDs, setActiveTransactionIDs} from '../../src/libs/actions/TransactionThreadNavigation';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
@@ -127,6 +128,10 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -575,6 +580,100 @@ describe('actions/Transaction', () => {
             expect(updatedThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
         });
 
+        describe('carousel cleanup', () => {
+            const carouselPolicy: Policy = {...createRandomPolicy(90, CONST.POLICY.TYPE.TEAM, 'Carousel Workspace'), id: 'policy-for-carousel'};
+            const sourceReport: Report = {...createRandomReport(91), reportID: '91', type: CONST.REPORT.TYPE.EXPENSE, policyID: carouselPolicy.id, ownerAccountID: CARLOS_ACCOUNT_ID};
+            const destinationReport: Report = {...createRandomReport(92), reportID: '92', type: CONST.REPORT.TYPE.EXPENSE, policyID: carouselPolicy.id, ownerAccountID: CARLOS_ACCOUNT_ID};
+            const buildTransaction = (transactionID: string): Transaction => ({
+                transactionID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: ''},
+                reportID: sourceReport.reportID,
+            });
+            const transactionIDs = ['carousel-transaction-1', 'carousel-transaction-2', 'carousel-transaction-3'];
+
+            const moveFirstTransactionToDestination = async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${carouselPolicy.id}`, carouselPolicy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceReport.reportID}`, sourceReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`, destinationReport);
+                for (const transactionID of transactionIDs) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, buildTransaction(transactionID));
+                }
+                await waitForBatchedUpdates();
+
+                let allTransactions: OnyxCollection<Transaction>;
+                let allReports: OnyxCollection<Report>;
+                await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+                await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+
+                changeTransactionsReport({
+                    isVendorMatchingBetaEnabled: false,
+                    transactionIDs: [transactionIDs.at(0) ?? ''],
+                    isASAPSubmitBetaEnabled: false,
+                    accountID: CARLOS_ACCOUNT_ID,
+                    email: CARLOS_EMAIL,
+                    newReport: destinationReport,
+                    policy: carouselPolicy,
+                    allTransactions,
+                    policyTagList: {},
+                    transactionViolations: {},
+                    reports: allReports,
+                    isTrackIntentUser: false,
+                    cardList: undefined,
+                });
+                await waitForBatchedUpdates();
+            };
+
+            beforeEach(() => clearActiveTransactionIDs().then(waitForBatchedUpdates));
+
+            it('removes a moved expense from a carousel seeded from the report it left', async () => {
+                // Given a carousel seeded by opening an expense row in the source report, which is how the report's arrows get their list
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.reportRow(sourceReport.reportID)});
+                await waitForBatchedUpdates();
+
+                // When one of the report's expenses is moved to another report
+                await moveFirstTransactionToDestination();
+
+                // Then the moved expense is gone from the carousel, so the arrows only page through the expenses still in the report
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
+            });
+
+            it('does not write the carousel back when the move fails', async () => {
+                // Given a carousel seeded by opening an expense row in the source report
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.reportRow(sourceReport.reportID)});
+                await waitForBatchedUpdates();
+
+                // When one of the report's expenses is moved but the request fails, which returns the expense to the report
+                const mockFetch = getGlobalFetchMock();
+                mockFetch.fail();
+                global.fetch = mockFetch;
+                await moveFirstTransactionToDestination();
+
+                // Then the failure leaves the carousel alone, because by the time it lands the screen that owned the list
+                // may already have cleared it, and writing it back would leave an orphaned list that nothing clears
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs.slice(1));
+            });
+
+            it('leaves a carousel seeded from another source untouched', async () => {
+                // Given a carousel seeded from search results, which legitimately spans several reports
+                await setActiveTransactionIDs(transactionIDs, {source: CAROUSEL_SOURCE.search(12345)});
+                await waitForBatchedUpdates();
+
+                // When one of the expenses is moved to another report
+                await moveFirstTransactionToDestination();
+
+                // Then the search carousel keeps every expense, since the moved one still matches the search
+                const carouselTransactionIDs = await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
+                expect(carouselTransactionIDs).toEqual(transactionIDs);
+            });
+        });
+
         it('recomputes a distance expense amount/merchant/currency from the destination workspace rate when moved', async () => {
             // Given a destination workspace whose default distance rate is defined in GBP (200/mi)
             const policyID = generatePolicyID();
@@ -666,6 +765,79 @@ describe('actions/Transaction', () => {
             expect(updated?.modifiedCurrency).toBe('GBP');
             expect(Math.abs(Number(updated?.modifiedAmount ?? 0))).toBe(2000);
             expect(updated?.modifiedMerchant).toContain('mi');
+        });
+
+        it('does not save Search row display fields on the moved transaction', async () => {
+            // Given an unreported expense selected from Search, which hands over the whole row item with its display-only fields
+            const policyID = generatePolicyID();
+            const mockPolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: policyID, outputCurrency: CONST.CURRENCY.USD, pendingAction: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, mockPolicy);
+
+            const transactionID = 'txn-search-row-move';
+            const transaction: Transaction = {
+                transactionID,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Original merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            const searchRowItem = {
+                ...transaction,
+                formattedMerchant: 'Original merchant',
+                formattedFrom: 'Rory',
+                formattedTo: '',
+                formattedTotal: 1000,
+                date: transaction.created,
+                keyForList: transactionID,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                from: {accountID: RORY_ACCOUNT_ID},
+                to: {accountID: CARLOS_ACCOUNT_ID},
+            } as Transaction;
+
+            const expenseReport = {
+                reportID: 'dest-expense-report-search-row',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                chatReportID: 'dest-chat-report-search-row',
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When the row is moved to the report
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                newReport: expenseReport,
+                policy: mockPolicy,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: searchRowItem},
+                policyTagList: undefined,
+                transactionViolations: {},
+                reports: undefined,
+                isTrackIntentUser: false,
+                cardList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the transaction is moved without the row's display fields, so a later merchant edit isn't shadowed by a stale formattedMerchant
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updated?.reportID).toBe(expenseReport.reportID);
+            expect(updated?.merchant).toBe('Original merchant');
+            expect(updated).not.toHaveProperty('formattedMerchant');
+            expect(updated).not.toHaveProperty('formattedFrom');
+            expect(updated).not.toHaveProperty('formattedTotal');
+            expect(updated).not.toHaveProperty('date');
+            expect(updated).not.toHaveProperty('keyForList');
+            expect(updated).not.toHaveProperty('action');
+            expect(updated).not.toHaveProperty('from');
+            expect(updated).not.toHaveProperty('to');
         });
 
         describe('unheldTotal', () => {
@@ -1094,6 +1266,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1280,6 +1453,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1480,6 +1654,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: undefined,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1726,6 +1901,7 @@ describe('actions/Transaction', () => {
                     rules: undefined,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
+                    reportDrafts: {},
                     allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
@@ -1817,6 +1993,126 @@ describe('actions/Transaction', () => {
                     expect(split2CommentActions.length).toBeGreaterThanOrEqual(1);
                 }
             });
+        });
+    });
+
+    describe('undeleteTransactions', () => {
+        const ADMIN_ACCOUNT_ID = CARLOS_ACCOUNT_ID;
+        const ADMIN_EMAIL = CARLOS_EMAIL;
+        const MEMBER_ACCOUNT_ID = RORY_ACCOUNT_ID;
+        const MEMBER_EMAIL = RORY_EMAIL;
+        const trashedExpenseID = 'trashed-member-expense';
+        const transactionThreadReportID = '601';
+        const memberChatReportID = '602';
+
+        const buildTrashedMemberExpense = async () => {
+            const memberChat: Report = {...createRandomReport(602, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: memberChatReportID, ownerAccountID: MEMBER_ACCOUNT_ID};
+            const transactionThread: Report = {
+                ...createRandomReport(601),
+                reportID: transactionThreadReportID,
+                parentReportID: memberChatReportID,
+                parentReportActionID: 'iou-action-for-trashed',
+                ownerAccountID: MEMBER_ACCOUNT_ID,
+            };
+            const iouAction: ReportAction = {
+                ...buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 2584,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participants: [{accountID: MEMBER_ACCOUNT_ID, login: MEMBER_EMAIL}],
+                    transactionID: trashedExpenseID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                }),
+                reportID: memberChatReportID,
+                childReportID: transactionThreadReportID,
+                actorAccountID: MEMBER_ACCOUNT_ID,
+                reportActionID: 'iou-action-for-trashed',
+            };
+            const trashedExpense: Transaction = {
+                transactionID: trashedExpenseID,
+                amount: -2584,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'Third Party Merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: '', liabilityType: 'corporate'},
+                reportID: CONST.REPORT.TRASH_REPORT_ID,
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${memberChatReportID}`, memberChat);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberChatReportID}`, {[iouAction.reportActionID]: iouAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${trashedExpenseID}`, trashedExpense);
+            await waitForBatchedUpdates();
+        };
+
+        const triggerUndelete = async () => {
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+            const transactions = Object.values(allTransactions ?? {}).filter((t): t is Transaction => t?.transactionID === trashedExpenseID);
+
+            undeleteTransactionsAction({
+                transactionIDs: [trashedExpenseID],
+                transactions,
+                isASAPSubmitBetaEnabled: false,
+                accountID: ADMIN_ACCOUNT_ID,
+                email: ADMIN_EMAIL,
+                policy: undefined,
+                policyTagList: {},
+                allTransactionViolation: {},
+                reports: allReports,
+                rules: undefined,
+                cardList: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                selfDMReportActions: undefined,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                isVendorMatchingBetaEnabled: false,
+            });
+            await waitForBatchedUpdates();
+        };
+
+        it('writes an UNDELETED_TRANSACTION action attributed to the admin on the transaction thread', async () => {
+            // Given an expense owned by a member that is sitting in the trash
+            await buildTrashedMemberExpense();
+
+            // When the admin undeletes it
+            await triggerUndelete();
+
+            // Then an UNDELETED_TRANSACTION action lands on a transaction-thread report with the admin as the actor
+            // The deleted-expense branch of getChangeTransactionsReportOnyxData builds a fresh optimistic thread, so look across every REPORT_ACTIONS collection rather than guessing its reportID
+            let undeletedAction: ReportAction | undefined;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                callback: (allReportActions) => {
+                    for (const actionsForReport of Object.values(allReportActions ?? {})) {
+                        const found = Object.values(actionsForReport ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION);
+                        if (found) {
+                            undeletedAction = found;
+                            return;
+                        }
+                    }
+                },
+            });
+            expect(undeletedAction).toBeDefined();
+            expect(undeletedAction?.actorAccountID).toBe(ADMIN_ACCOUNT_ID);
+        });
+
+        it('restores the transaction optimistically from trash to unreported', async () => {
+            // Given a trashed member expense
+            await buildTrashedMemberExpense();
+
+            // When the admin undeletes it
+            await triggerUndelete();
+
+            // Then the transaction is immediately out of trash
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${trashedExpenseID}`);
+            expect(transaction?.reportID).not.toBe(CONST.REPORT.TRASH_REPORT_ID);
         });
     });
 });

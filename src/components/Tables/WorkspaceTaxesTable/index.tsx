@@ -11,6 +11,8 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
 import React from 'react';
@@ -156,6 +158,7 @@ export default function WorkspaceTaxesTable({taxes, selectionEnabled, selectedKe
     return (
         <Table
             shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_TAXES}
             data={taxes}
             initialSortColumn="name"
             narrowLayoutSortColumn="name"

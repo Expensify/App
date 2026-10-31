@@ -1,25 +1,31 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLoadDepositAccountSetup from '@hooks/useLoadDepositAccountSetup';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {getBankAccountFields, hasLocalBankAccountFields} from '@libs/BankAccountFields';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/CollectDepositAccountForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {createIsInternationalCountrySelector} from '@selectors/Policy';
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 import type CustomSubPageProps from './types';
 
@@ -40,6 +46,7 @@ const pages = [
 
 function CollectDepositAccount() {
     const {translate} = useLocalize();
+    const styles = useThemeStyles();
     const isLoadingCountries = useLoadDepositAccountSetup();
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM_DRAFT);
 
@@ -49,21 +56,23 @@ function CollectDepositAccount() {
 
     const fieldsType = !isInternationalCountry && hasLocalBankAccountFields(bankCountry) ? CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL : CONST.BANK_ACCOUNT.FIELDS_TYPE.INTERNATIONAL;
     const fieldsMap = getBankAccountFields(bankCountry, formValues[INPUT_IDS.BANK_CURRENCY] ?? '', fieldsType);
+    const basePath = useDynamicBackPath(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.path);
 
     const goBack = () => {
         clearDraftValues(ONYXKEYS.FORMS.COLLECT_DEPOSIT_ACCOUNT_FORM);
-        Navigation.goBack(ROUTES.SETTINGS_WALLET);
+        Navigation.goBack(basePath);
     };
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomSubPageProps>({
         pages,
         startFrom: STEP_INDEXES.COUNTRY_SELECTOR,
         onFinished: goBack,
-        buildRoute: (pageName, action) => ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute(pageName, action),
+        buildRoute: (pageName, action) => createDynamicRoute(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.getRoute(pageName, action), basePath),
+        shouldReplaceRoute: true,
     });
 
     const goBackToConfirmPage = () => {
-        Navigation.goBack(ROUTES.SETTINGS_COLLECT_DEPOSIT_ACCOUNT.getRoute(PAGE_NAME.CONFIRM, undefined));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.getRoute(PAGE_NAME.CONFIRM, undefined), basePath), {forceReplace: true});
     };
 
     const handleNextPage = () => {
@@ -109,22 +118,28 @@ function CollectDepositAccount() {
             shouldEnableMaxHeight
             testID="CollectDepositAccount"
         >
-            <HeaderWithBackButtonAndTitle
-                title={translate('bankAccount.addBankAccount')}
-                onBackButtonPress={handleBackButtonPress}
-            />
-            {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
-                <FullScreenLoadingIndicator />
-            ) : (
-                <CurrentPage
-                    isEditing={isEditing}
-                    onNext={handleNextPage}
-                    onMove={moveTo}
-                    formValues={formValues}
-                    fieldsMap={fieldsMap}
-                    fieldsType={fieldsType}
-                />
-            )}
+            <CollapsibleHeaderOnKeyboardGroup>
+                <CollapsibleHeaderOnKeyboardGroupMember>
+                    <HeaderWithBackButtonAndTitle
+                        title={translate('bankAccount.addBankAccount')}
+                        onBackButtonPress={handleBackButtonPress}
+                    />
+                </CollapsibleHeaderOnKeyboardGroupMember>
+                {isRedirecting || shouldReturnToCountryStep || (isLoadingCountries && pageIndex !== STEP_INDEXES.COUNTRY_SELECTOR) ? (
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </View>
+                ) : (
+                    <CurrentPage
+                        isEditing={isEditing}
+                        onNext={handleNextPage}
+                        onMove={moveTo}
+                        formValues={formValues}
+                        fieldsMap={fieldsMap}
+                        fieldsType={fieldsType}
+                    />
+                )}
+            </CollapsibleHeaderOnKeyboardGroup>
         </ScreenWrapper>
     );
 }

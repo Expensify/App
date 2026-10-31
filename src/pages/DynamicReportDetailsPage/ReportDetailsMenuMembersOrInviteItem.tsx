@@ -1,4 +1,6 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
+import Text from '@components/Text';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -8,9 +10,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
+import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, isPolicyGuest} from '@libs/PolicyUtils';
 import {
     getParticipantsList,
+    isAnnounceRoom as isAnnounceRoomUtil,
     isChatThread as isChatThreadUtil,
     isConciergeChatReport,
     isDefaultRoom as isDefaultRoomUtil,
@@ -21,11 +24,14 @@ import {
     isUserCreatedPolicyRoom as isUserCreatedPolicyRoomUtil,
 } from '@libs/ReportUtils';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type ReportDetailsMenuMembersOrInviteItemProps = {
@@ -34,6 +40,7 @@ type ReportDetailsMenuMembersOrInviteItemProps = {
 
 function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembersOrInviteItemProps) {
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users']);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -54,6 +61,7 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     const isChatThread = isChatThreadUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isGroupChat = isGroupChatUtil(report);
+    const isGuestAnnounceRoom = isPolicyGuest(policy) && isAnnounceRoomUtil(report);
     const shouldOpenRoomMembersPage = isUserCreatedPolicyRoom || isChatThread || (isPolicyExpenseChat && isPolicyAdmin);
     const participants = getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
 
@@ -72,6 +80,7 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
     // - The report is not a user created room with participants to show i.e. DM, Group Chat, etc
     // - The report is a user created room and the room and the current user is a workspace member i.e. non-workspace members should not see this option.
     if (
+        !isGuestAnnounceRoom &&
         (isGroupChat ||
             (isDefaultRoom && isChatThread && isPolicyEmployee) ||
             (!isUserCreatedPolicyRoom && participants.length) ||
@@ -81,34 +90,44 @@ function ReportDetailsMenuMembersOrInviteItem({reportID}: ReportDetailsMenuMembe
         activeChatMembers.length > 0
     ) {
         return (
-            <MenuItem
-                title={translate('common.members')}
-                subtitle={activeChatMembers.length}
-                icon={expensifyIcons.Users}
-                onPress={() => {
-                    if (shouldOpenRoomMembersPage) {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
-                    } else {
-                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
-                    }
-                }}
-                isAnonymousAction={false}
-                shouldShowRightIcon
-                subtitleStyle={[styles.ph2]}
-            />
+            <MenuItem.Root
+                onPress={callFunctionIfActionIsAllowed(
+                    () => {
+                        if (shouldOpenRoomMembersPage) {
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_MEMBERS.path));
+                        } else {
+                            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
+                        }
+                    },
+                    false,
+                    session,
+                )}
+                accessibilityLabel={translate('common.members')}
+            >
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <MenuItem.Icon src={expensifyIcons.Users} />
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{translate('common.members')}</MenuItem.Title>
+                    </MenuItem.Content>
+                    <MenuItem.Trailing>
+                        <Text style={[styles.textLabelSupporting, styles.mr1]}>{activeChatMembers.length}</Text>
+                        <MenuItem.Chevron />
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+            </MenuItem.Root>
         );
     }
 
-    if ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee)) {
+    if (!isGuestAnnounceRoom && ((isUserCreatedPolicyRoom && (!participants.length || !isPolicyEmployee)) || ((isDefaultRoom || isPolicyExpenseChat) && isChatThread && !isPolicyEmployee))) {
         return (
-            <MenuItem
+            <MenuItemNavigation
                 title={translate('common.invite')}
                 icon={expensifyIcons.Users}
                 onPress={() => {
                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ROOM_INVITE.path));
                 }}
-                isAnonymousAction={false}
-                shouldShowRightIcon
             />
         );
     }

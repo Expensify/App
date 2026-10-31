@@ -1,6 +1,5 @@
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
 
@@ -47,25 +46,28 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
     return (
         <>
             <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{Str.recapitalize(reservation.start.longName ?? '')}</Text>
-            <MenuItemWithTopDescription
-                description={translate('common.address')}
-                title={StringUtils.removeDoubleQuotes(reservation.start.address)}
-                numberOfLinesTitle={2}
-                pressableTestID={CONST.RESERVATION_ADDRESS_TEST_ID}
-                copyValue={reservation.start.address}
-                copyable
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={translate('travel.hotelDetails.checkIn')}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{checkInDate.date}</Text>}
-                interactive={false}
-            />
-            <MenuItemWithTopDescription
-                description={translate('travel.hotelDetails.checkOut')}
-                titleComponent={<Text style={[styles.textLarge, styles.textHeadlineH2]}>{checkOutDate.date}</Text>}
-                interactive={false}
-            />
+            <MenuItemField
+                name={translate('common.address')}
+                value={StringUtils.removeDoubleQuotes(reservation.start.address)}
+                numberOfLinesValue={2}
+                testID={CONST.RESERVATION_ADDRESS_TEST_ID}
+            >
+                {!!reservation.start.address && <MenuItem.Copy value={reservation.start.address} />}
+            </MenuItemField>
+            <MenuItem.Root accessibilityLabel={`${translate('travel.hotelDetails.checkIn')} ${checkInDate.date}`}>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.hotelDetails.checkIn')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{checkInDate.date}</Text>
+                    </MenuItemField.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
+            <MenuItem.Root accessibilityLabel={`${translate('travel.hotelDetails.checkOut')} ${checkOutDate.date}`}>
+                <MenuItem.Row>
+                    <MenuItemField.Content name={translate('travel.hotelDetails.checkOut')}>
+                        <Text style={[styles.textLarge, styles.textHeadlineH2]}>{checkOutDate.date}</Text>
+                    </MenuItemField.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
 
             {!!reservation.roomClass && (
                 <MenuItemField
@@ -89,24 +91,22 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
                 </MenuItemField>
             )}
             {!!displayName && (
-                <MenuItemWithTopDescription
-                    description={translate('travel.hotelDetails.guest')}
-                    descriptionTextStyle={styles.fontSizeLabel}
-                    interactive={false}
-                    accessibilityLabel={`${translate('travel.hotelDetails.guest')} ${displayName}`}
-                    titleComponent={
-                        <UserPills
-                            users={[
-                                {
-                                    avatar: personalDetails?.avatar,
-                                    displayName,
-                                    accountID: personalDetails?.accountID,
-                                    email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
-                                },
-                            ]}
-                        />
-                    }
-                />
+                <MenuItem.Root accessibilityLabel={`${translate('travel.hotelDetails.guest')} ${displayName}`}>
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('travel.hotelDetails.guest')}>
+                            <UserPills
+                                users={[
+                                    {
+                                        avatar: personalDetails?.avatar,
+                                        displayName,
+                                        accountID: personalDetails?.accountID,
+                                        email: personalDetails?.login ?? reservation.travelerPersonalInfo?.email,
+                                    },
+                                ]}
+                            />
+                        </MenuItemField.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             )}
         </>
     );

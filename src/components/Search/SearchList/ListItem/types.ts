@@ -20,9 +20,9 @@ import type {
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
+    SearchApproverGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
@@ -31,9 +31,12 @@ import type {
     SearchMerchantGroup,
     SearchMonthGroup,
     SearchQuarterGroup,
+    SearchReport,
     SearchTagGroup,
     SearchTask,
+    SearchTransaction,
     SearchTransactionAction,
+    SearchTrip,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
     SearchYearGroup,
@@ -72,7 +75,7 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     };
 
 type TransactionListItemType = ListItem &
-    Transaction & {
+    SearchTransaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
@@ -81,6 +84,9 @@ type TransactionListItemType = ListItem &
 
         /** The date the report was approved */
         approved?: string;
+
+        /** The date the report was paid */
+        paid?: string;
 
         /** The date the report was posted */
         posted?: string;
@@ -145,6 +151,11 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYearApproved: boolean;
 
+        /** Whether we should show the year for the paid date.
+         * This is true if at least one transaction in the dataset belongs to a report paid in past years
+         */
+        shouldShowYearPaid?: boolean;
+
         /** Whether we should show the year for the posted date.
          * This is true if at least one transaction in the dataset was posted in past years
          */
@@ -172,9 +183,6 @@ type TransactionListItemType = ListItem &
 
         /** The name of the file used for a receipt */
         filename?: string;
-
-        /** Attendees in the transaction */
-        attendees?: Attendee[];
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
@@ -231,7 +239,7 @@ type TransactionGroupListItemType = ListItem & {
 
 type ExpenseReportListItemType = TransactionReportGroupListItemType;
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
         /** The personal details of the user requesting money */
         from: PersonalDetails;
 
@@ -258,6 +266,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
         firstApproved?: string;
+
+        /** The date the report was paid (created date of the latest payment report action that was not cancelled) */
+        paid?: string;
 
         firstApproverAvatar?: AvatarSource;
 
@@ -301,6 +312,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was exported in past years
          */
         shouldShowYearExported: boolean;
+
+        /**
+         * Whether we should show the year for the paid date.
+         * This is true if at least one report in the dataset was paid in past years
+         */
+        shouldShowYearPaid?: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
@@ -391,6 +408,26 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
+type TripListItemType = ListItem &
+    SearchTrip & {
+        /** The personal details of the traveler */
+        traveler: PersonalDetails;
+
+        /** Final and formatted "traveler" value used for displaying and sorting */
+        formattedTraveler: string;
+
+        /** The trip room's name, used as the trip name */
+        tripName: string;
+
+        /** Key used internally by React */
+        keyForList: string;
+    };
+
+type TripListItemProps = ListItemProps<TripListItemType> & {
+    /** Columns to show */
+    columns?: SearchColumnType[];
+};
+
 type ReportActionListItemType = ListItem &
     ReportAction & {
         /** The personal details of the user posting comment */
@@ -408,7 +445,7 @@ type ReportActionListItemType = ListItem &
         reportName: string;
     };
 
-type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType | TripListItemType;
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
@@ -428,8 +465,11 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
 type TransactionDayGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.DAY} & SearchDayGroup & {
         formattedDay: string;
 
-        /** Compact "day" value used where space is tight, e.g. chart axis labels */
+        /** Compact "day" value used where space is tight, e.g. bar chart axis labels, adding the year when the groups span several years */
         shortFormattedDay: string;
+
+        /** Day label for line chart axes, e.g. "Aug 15", adding the year only outside the current year */
+        lineChartFormattedDay: string;
     };
 
 type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
@@ -444,6 +484,9 @@ type TransactionMonthGroupListItemType = TransactionGroupListItemType & {grouped
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
+
+        /** Value used for sorting the "withdrawal status" column */
+        settlementStatusRank?: number;
 
         /** Whether any withdrawn date in the current results belongs to a past year */
         shouldShowYearWithdrawn?: boolean;
@@ -467,8 +510,11 @@ type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
         formattedWeek: string;
 
-        /** Compact "week" value used where space is tight, e.g. chart axis labels */
+        /** Compact week range used where space is tight, e.g. bar chart axis labels, adding the year when the groups span several years */
         shortFormattedWeek: string;
+
+        /** Week start label for line chart axes, e.g. "Sep 6", adding the year only outside the current year */
+        lineChartFormattedWeek: string;
     };
 
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
@@ -483,6 +529,12 @@ type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {group
         shortFormattedQuarter: string;
 
         sortKey: number;
+    };
+
+type TransactionApproverGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.APPROVER} & PersonalDetails &
+    SearchApproverGroup & {
+        /** Final and formatted approver name used for displaying and sorting */
+        formattedApprover?: string;
     };
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -557,6 +609,7 @@ type GroupHeaderItemType =
     | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
+    | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
@@ -602,6 +655,8 @@ export type {
     SearchListItem,
     TaskListItemProps,
     TaskListItemType,
+    TripListItemProps,
+    TripListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionCardGroupListItemType,
@@ -614,6 +669,7 @@ export type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
     TransactionQuarterGroupListItemType,
+    TransactionApproverGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

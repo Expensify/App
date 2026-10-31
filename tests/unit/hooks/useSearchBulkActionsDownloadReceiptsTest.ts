@@ -8,6 +8,7 @@ import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
 import {exportReceiptsToZip} from '@libs/actions/Export';
+import type * as SearchActions from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,12 +32,20 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    // The hook and shouldShowDeleteOption resolve report actions through this helper, so the real implementation has to stay available
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
@@ -344,7 +353,7 @@ describe('useSearchBulkActions - Download receipts', () => {
             });
 
             expect(exportReceiptsToZip).not.toHaveBeenCalled();
-            expect(result.current.isOfflineModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         });
     });
 
@@ -451,7 +460,7 @@ describe('useSearchBulkActions - Download receipts', () => {
             });
 
             expect(exportReceiptsToZip).not.toHaveBeenCalled();
-            expect(result.current.isOfflineModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         });
     });
 });

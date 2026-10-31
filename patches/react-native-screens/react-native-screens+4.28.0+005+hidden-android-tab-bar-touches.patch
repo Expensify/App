@@ -1,0 +1,14 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+@@ -36,6 +36,10 @@
+         isTabBarHidden: Boolean,
+     ) {
+         bottomNavigationView.isVisible = !isTabBarHidden
++        // A GONE child keeps the bounds it had while visible, and React Native's TouchTargetHelper does not check
++        // visibility, so the hidden bar would take touches meant for the React views drawn there. The touch target search
++        // skips a child with a non-invertible transform, so the hidden bar is scaled to zero, which leaves its layout as is.
++        bottomNavigationView.scaleY = if (isTabBarHidden) 0f else 1f
+         bottomNavigationView.setBackgroundColor(
+             tabBarAppearance?.tabBarBackgroundColor
+                 ?: resolveColorAttr(context, R.attr.colorSurfaceContainer),

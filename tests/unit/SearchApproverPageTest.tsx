@@ -2,6 +2,7 @@ import {render} from '@testing-library/react-native';
 
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
@@ -105,7 +106,9 @@ describe('SearchApproverPage', () => {
     it('resolves candidate approver names through the translate function from useLocalize', async () => {
         render(
             <OnyxListItemProvider>
-                <SearchAddApproverPage />
+                <PersonalDetailsByLoginProvider>
+                    <SearchAddApproverPage />
+                </PersonalDetailsByLoginProvider>
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdates();
@@ -117,7 +120,9 @@ describe('SearchApproverPage', () => {
     it('renders the bulk reassignment picker with eligible workspace members', async () => {
         render(
             <OnyxListItemProvider>
-                <SearchReassignApproverPage />
+                <PersonalDetailsByLoginProvider>
+                    <SearchReassignApproverPage />
+                </PersonalDetailsByLoginProvider>
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdates();
@@ -143,7 +148,9 @@ describe('SearchApproverPage', () => {
 
         render(
             <OnyxListItemProvider>
-                <SearchReassignApproverPage />
+                <PersonalDetailsByLoginProvider>
+                    <SearchReassignApproverPage />
+                </PersonalDetailsByLoginProvider>
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdates();
@@ -168,7 +175,9 @@ describe('SearchApproverPage', () => {
 
         render(
             <OnyxListItemProvider>
-                <SearchReassignApproverPage />
+                <PersonalDetailsByLoginProvider>
+                    <SearchReassignApproverPage />
+                </PersonalDetailsByLoginProvider>
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdates();
@@ -182,7 +191,9 @@ describe('SearchApproverPage', () => {
 
         render(
             <OnyxListItemProvider>
-                <SearchReassignApproverPage />
+                <PersonalDetailsByLoginProvider>
+                    <SearchReassignApproverPage />
+                </PersonalDetailsByLoginProvider>
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdates();

@@ -18,6 +18,7 @@ import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
+    canDuplicateExpenseIntoSourceReport,
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
@@ -139,6 +140,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(requestParentReportAction);
+    const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
 
     // Global collections
     const [personalDetails] = useAllPersonalDetails();
@@ -176,6 +178,20 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+
+    // Duplicate expense target: the viewed report when it can accept the copy, otherwise the default workspace chat
+    const canDuplicateIntoSourceReport = canDuplicateExpenseIntoSourceReport({
+        sourceReport: moneyRequestReport,
+        chatReport,
+        policy,
+        currentUserLogin: currentUserLogin ?? '',
+        isSourceReportArchived: isArchivedReport,
+        isChatReportArchived,
+        isASAPSubmitBetaEnabled,
+        rules,
+    });
+    const duplicateTargetPolicy = canDuplicateIntoSourceReport ? policy : defaultExpensePolicy;
+    const duplicateTargetReport = canDuplicateIntoSourceReport ? moneyRequestReport : activePolicyExpenseChat;
 
     // Duplicate detection
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
@@ -227,7 +243,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Duplicate expense: unsupported / shouldClose flags
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
-    const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
+    const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && duplicateTargetPolicy?.id !== policy?.id;
     const isDistanceExpenseUnsupportedForDuplicating = !!(
         isDistanceRequest(transaction) &&
         (isArchivedReport || isChatReportArchived || (activePolicyExpenseChat && (isDM(chatReport) || isSelfDM(chatReport))))
@@ -236,6 +252,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         isDistanceExpenseUnsupportedForDuplicating ||
         isPerDiemRequestOnNonDefaultWorkspace ||
         hasCustomUnitOutOfPolicyViolation ||
+        canDuplicateIntoSourceReport ||
         activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
 
     const handleDuplicateReset = () => {
@@ -246,10 +263,10 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     };
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState(handleDuplicateReset);
 
-    const targetPolicyTags = defaultExpensePolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${defaultExpensePolicy.id}`] ?? {}) : {};
+    const targetPolicyTags = duplicateTargetPolicy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${duplicateTargetPolicy.id}`] ?? {}) : {};
 
-    const policyTagList = useMoneyRequestPolicyTagsForReport({report: activePolicyExpenseChat, currentUserAccountID: accountID});
-    const participants = getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID);
+    const policyTagList = useMoneyRequestPolicyTagsForReport({report: duplicateTargetReport, currentUserAccountID: accountID});
+    const participants = getMoneyRequestParticipantsFromReport(duplicateTargetReport, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
@@ -258,7 +275,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         }
         const optimisticChatReportID = generateReportID();
         const optimisticIOUReportID = generateReportID();
-        const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
+        const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${duplicateTargetPolicy?.id}`] ?? {};
 
         for (const item of transactionList) {
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
@@ -277,9 +294,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 isSelfTourViewed,
                 customUnitPolicyID: policy?.id,
-                targetPolicy: defaultExpensePolicy ?? undefined,
+                targetPolicy: duplicateTargetPolicy ?? undefined,
                 targetPolicyCategories: activePolicyCategories,
-                targetReport: activePolicyExpenseChat,
+                targetReport: duplicateTargetReport,
                 existingTransactionDraft,
                 personalDetails,
                 recentWaypoints,
@@ -373,9 +390,9 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             iconFill: isDuplicateActive ? undefined : theme.icon,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
-                if (defaultExpensePolicy && shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                if (duplicateTargetPolicy && shouldRestrictUserBillableActions(duplicateTargetPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
                     onDuplicateReset?.();
-                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(defaultExpensePolicy.id));
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(duplicateTargetPolicy.id));
                     return;
                 }
 
@@ -568,6 +585,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                             isChatIOUReportArchived,
                             getCurrencyDecimals,
                             false,
+                            chatIOUReportActions,
                         );
                         const deleteNavigateBackUrl = goBackRoute ?? backTo ?? Navigation.getActiveRoute();
                         setDeleteTransactionNavigateBackUrl(deleteNavigateBackUrl);
@@ -604,7 +622,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
                 const result = await showConfirmModalAfterMoreMenuDismiss(showConfirmModal, {
                     title: translate('iou.deleteReport', {count: 1}),
-                    prompt: translate('iou.deleteReportConfirmation', {count: 1}),
+                    prompt: moneyRequestReport?.type === CONST.REPORT.TYPE.EXPENSE ? translate('iou.deleteExpenseReportConfirmation') : translate('iou.deleteReportConfirmation', {count: 1}),
                     confirmText: translate('common.delete'),
                     cancelText: translate('common.cancel'),
                     buttonVariant: CONST.BUTTON_VARIANT.DANGER,

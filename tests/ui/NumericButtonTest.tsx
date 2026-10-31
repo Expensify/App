@@ -103,7 +103,10 @@ describe('Numeric buttons', () => {
     ])('%s.FlipButton', (name, NumericComponent) => {
         const FLIP_TEST_ID = 'flip-button';
 
-        const renderFlipButton = ({allowNegative = true, value = '12', isDisabled = false} = {}, onInputChange = jest.fn()) => {
+        const renderFlipButton = (
+            {allowNegative = true, value = '12', isDisabled = false, shouldShowLabel}: {allowNegative?: boolean; value?: string; isDisabled?: boolean; shouldShowLabel?: boolean} = {},
+            onInputChange = jest.fn(),
+        ) => {
             renderWithProviders(
                 <NumericComponent
                     value={value}
@@ -112,6 +115,7 @@ describe('Numeric buttons', () => {
                 >
                     <NumericComponent.FlipButton
                         isDisabled={isDisabled}
+                        shouldShowLabel={shouldShowLabel}
                         testID={FLIP_TEST_ID}
                     />
                 </NumericComponent>,
@@ -121,10 +125,25 @@ describe('Numeric buttons', () => {
         };
 
         it('renders the button when negative values are allowed', async () => {
+            // Given a numeric input that allows negative values
+            // When the flip button is rendered
             renderFlipButton();
             await waitForBatchedUpdatesWithAct();
 
+            // Then the flip button is rendered with its accessible name and text label
             expect(screen.getByTestId(FLIP_TEST_ID)).toHaveAccessibleName('Flip');
+            expect(screen.getByText('Flip')).toBeOnTheScreen();
+        });
+
+        it('hides the text label when shouldShowLabel is false, keeping the accessible name', async () => {
+            // Given a numeric flip button configured not to display its text label
+            // When the component is rendered
+            renderFlipButton({shouldShowLabel: false});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the text label is hidden from the UI to save space, but the accessible name is preserved
+            expect(screen.getByTestId(FLIP_TEST_ID)).toHaveAccessibleName('Flip');
+            expect(screen.queryByText('Flip')).not.toBeOnTheScreen();
         });
 
         it('does not render when negative values are not allowed', async () => {
@@ -200,9 +219,8 @@ describe('Numeric buttons', () => {
                     value="12"
                     onInputChange={onInputChange}
                     allowNegative
+                    actions={<NumericInput.FlipButton testID={FLIP_TEST_ID} />}
                 >
-                    <NumericInput.FlipButton testID={FLIP_TEST_ID} />
-                    <NumericInput.MinusSign />
                     <NumericInput.TextInput testID={INPUT_TEST_ID} />
                 </NumericInput>,
             );

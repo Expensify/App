@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector, useTapGesture} from 'react-native-gesture-handler';
 
 import {useComposerEditState, useComposerSendState, useComposerState} from './ComposerContext';
 import SubmitDraftButton from './SubmitDraftButton';
@@ -26,12 +26,13 @@ function ComposerSendButton() {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const Tap = Gesture.Tap()
-        .enabled(!isSendDisabled)
-        .onEnd(() => {
+    const tapGesture = useTapGesture({
+        enabled: !isSendDisabled,
+        runOnJS: true,
+        onDeactivate: () => {
             submitDraftAndClearComposer();
-        })
-        .runOnJS(true);
+        },
+    });
 
     const label = translate(isEditingInComposer ? 'common.saveChanges' : 'common.send');
     const icon = isEditingInComposer ? icons.Checkmark : icons.Send;
@@ -46,7 +47,7 @@ function ComposerSendButton() {
                 // A new GestureDetector instance must be created when switching from a large screen to a small screen
                 // if not, the GestureDetector may not function correctly.
                 key={`send-button-${isSmallScreenWidth ? 'small-screen' : 'normal-screen'}`}
-                gesture={Tap}
+                gesture={tapGesture}
             >
                 <View
                     // In order to make buttons accessible, we have to wrap children in a View with accessible and accessibilityRole="button" props based on the docs: https://docs.swmansion.com/react-native-gesture-handler/docs/components/buttons/
