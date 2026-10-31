@@ -36,7 +36,8 @@ type AddressPageProps = {
      */
     shouldRequireZip?: boolean;
 
-    defaultCountry?: Country;
+    /** Raw IP-derived default used only when the saved country is nullish at mount. */
+    defaultCountry?: string;
 } & BackToParams;
 
 function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo, defaultCountry, shouldRequireZip}: AddressPageProps) {
