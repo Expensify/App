@@ -6,12 +6,15 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {generateHexadecimalValue} from '@libs/NumberUtils';
 
+import type {OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {IntroSelected} from '@src/types/onyx';
 import type {CreatableWorkspaceType, CustomUnit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -115,6 +118,57 @@ function buildOptimisticDistanceRateCustomUnits(currencyParam: string | undefine
     };
 }
 
+type NewWorkspaceWorkflowsOptions = {
+    /** If the workspace type is submit */
+    isSubmitWorkspace: boolean;
+
+    /** Explicit pick from the workspace creation feature map, when the flow offers one */
+    workflowsFeatureEnabled?: boolean;
+
+    /** The account level onboarding choice, which the server prefers over this creation's choice */
+    introSelectedChoice?: OnboardingPurpose;
+
+    /** The choice passed for this creation, only used when the account has no persisted choice */
+    engagementChoice?: OnboardingPurpose;
+};
+
+/** Onboarding choices the server ships the Workflows feature enabled for */
+function isWorkflowsOnboardingChoice(choice: OnboardingPurpose): boolean {
+    return choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || choice === CONST.ONBOARDING_CHOICES.EMPLOYER || choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+}
+
+/**
+ * Mirrors how the server resolves the Workflows feature for a new workspace: an explicit feature map pick wins,
+ * then submit workspaces, then the account's onboarding choice falling back to this creation's choice.
+ */
+function shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace, workflowsFeatureEnabled, introSelectedChoice, engagementChoice}: NewWorkspaceWorkflowsOptions): boolean {
+    if (workflowsFeatureEnabled !== undefined) {
+        return workflowsFeatureEnabled;
+    }
+    if (isSubmitWorkspace) {
+        return true;
+    }
+    // The account's choice wins whenever it is set, otherwise we fall back to the choice made for this creation
+    if (introSelectedChoice) {
+        return isWorkflowsOnboardingChoice(introSelectedChoice);
+    }
+    return !engagementChoice || isWorkflowsOnboardingChoice(engagementChoice);
+}
+
+function getApprovalModeForNewWorkspace(
+    isSubmitWorkspace: boolean,
+    shouldEnableWorkflowsByDefault: boolean,
+    engagementChoice?: OnboardingPurpose,
+): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+    if (isSubmitWorkspace) {
+        return CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    }
+    if (shouldEnableWorkflowsByDefault && engagementChoice !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+        return CONST.POLICY.APPROVAL_MODE.BASIC;
+    }
+    return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+}
+
 type CreateDraftInitialWorkspaceParams = {
     introSelected: OnyxEntry<IntroSelected>;
     workspaceName: string;
@@ -146,6 +200,7 @@ function createDraftInitialWorkspace({
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const isWorkflowFeatureEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace: type === CONST.POLICY.TYPE.SUBMIT, introSelectedChoice: introSelected?.choice});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS>> = [
         {
@@ -187,7 +242,7 @@ function createDraftInitialWorkspace({
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
+                areWorkflowsEnabled: isWorkflowFeatureEnabled,
                 defaultBillable: false,
                 defaultReimbursable: true,
                 disabledFields: {defaultBillable: true, reimbursable: false},
@@ -200,4 +255,13 @@ function createDraftInitialWorkspace({
 }
 
 export type {PolicyOwner};
-export {buildOptimisticDistanceRateCustomUnits, createDraftInitialWorkspace, generateCustomUnitID, generateDefaultWorkspaceName, generatePolicyID, getDisplayNameForWorkspace};
+export {
+    buildOptimisticDistanceRateCustomUnits,
+    createDraftInitialWorkspace,
+    generateCustomUnitID,
+    generateDefaultWorkspaceName,
+    generatePolicyID,
+    getApprovalModeForNewWorkspace,
+    getDisplayNameForWorkspace,
+    shouldEnableWorkflowsByDefaultForNewWorkspace,
+};

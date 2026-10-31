@@ -190,7 +190,9 @@ import {
     generateCustomUnitID,
     generateDefaultWorkspaceName,
     generatePolicyID,
+    getApprovalModeForNewWorkspace,
     getDisplayNameForWorkspace,
+    shouldEnableWorkflowsByDefaultForNewWorkspace,
 } from './PolicyDraft';
 
 type ReportCreationData = Record<
@@ -2752,20 +2754,6 @@ function getRoleForCallerOnNewPolicy(isSubmitWorkspace: boolean, makeMeAdmin: bo
     return CONST.POLICY.ROLE.ADMIN;
 }
 
-function getApprovalModeForNewWorkspace(
-    isSubmitWorkspace: boolean,
-    shouldEnableWorkflowsByDefault: boolean,
-    engagementChoice?: OnboardingPurpose,
-): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
-    if (isSubmitWorkspace) {
-        return CONST.POLICY.APPROVAL_MODE.ADVANCED;
-    }
-    if (shouldEnableWorkflowsByDefault && engagementChoice !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        return CONST.POLICY.APPROVAL_MODE.BASIC;
-    }
-    return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-}
-
 /**
  * Builds the default title report field (`fieldList`) used when seeding a new policy.
  */
@@ -2866,6 +2854,12 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
         isTrackOnboardingChoice(engagementChoice);
+    const isWorkflowFeatureEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({
+        isSubmitWorkspace,
+        workflowsFeatureEnabled: featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED)?.enabled,
+        introSelectedChoice: introSelected?.choice,
+        engagementChoice,
+    });
     const shouldSetCreatedPolicyAsActive = !activePolicy?.id || activePolicy?.type === CONST.POLICY.TYPE.PERSONAL;
 
     // Determine workspace type based on selected features or user reported integration
@@ -2912,6 +2906,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
                 },
+                areWorkflowsEnabled: isWorkflowFeatureEnabled,
                 reimbursementChoice:
                     isTrackOnboardingChoice(engagementChoice) || type === CONST.POLICY.TYPE.SUBMIT
                         ? CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO
@@ -2922,7 +2917,6 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 areCompanyCardsEnabled: !isSubmitWorkspace,
                 areTagsEnabled: isSubmitWorkspace,
                 areDistanceRatesEnabled,
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
                 areConnectionsEnabled: false,
                 areExpensifyCardsEnabled: false,
@@ -3403,6 +3397,7 @@ function createDraftWorkspace({
     } else if (shouldEnableWorkflowsByDefault) {
         draftApprovalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
     }
+    const isWorkflowFeatureEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace, introSelectedChoice: introSelected?.choice});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT>> = [
         {
@@ -3425,9 +3420,9 @@ function createDraftWorkspace({
                     enabled: !shouldEnableWorkflowsByDefault && !isSubmitWorkspace,
                 },
                 approvalMode: draftApprovalMode,
+                areWorkflowsEnabled: isWorkflowFeatureEnabled,
                 customUnits,
                 areCategoriesEnabled: true,
-                areWorkflowsEnabled: shouldEnableWorkflowsByDefault || isSubmitWorkspace,
                 areCompanyCardsEnabled: true,
                 areTagsEnabled: isSubmitWorkspace,
                 areDistanceRatesEnabled: isSubmitWorkspace,
