@@ -4722,6 +4722,26 @@ const ROUTES = {
         route: 'workspaces/:policyID/accounting/zoho-books/import',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/import` as const,
     },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_EXPORT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_PREFERRED_EXPORTER: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/preferred-exporter',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/preferred-exporter` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_VENDOR_BILL_DATE: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/vendor-bill-date',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/vendor-bill-date` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_DEFAULT_COMPANY_CARD_VENDOR: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/default-company-card-vendor',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/default-company-card-vendor` as const,
+    },
+    POLICY_ACCOUNTING_ZOHO_BOOKS_COMPANY_CARD_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/zoho-books/export/company-card-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/export/company-card-account` as const,
+    },
     POLICY_ACCOUNTING_ZOHO_BOOKS_EXISTING_CONNECTIONS: {
         route: 'workspaces/:policyID/accounting/zoho-books/existing-connections',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/zoho-books/existing-connections` as const,
