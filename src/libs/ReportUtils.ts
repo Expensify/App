@@ -5085,9 +5085,18 @@ function getLastVisibleMessage(
     reportID: string | undefined,
     isReportArchived: boolean | undefined,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+    // Optional while some callers (e.g. generateIsEmptyReport) still omit currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
+    currentUserAccountID?: number,
 ): LastVisibleMessage {
     const report = getReportOrDraftReport(reportID);
-    const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
+    const lastVisibleAction = getLastVisibleActionReportActionsUtils(
+        reportID,
+        canUserPerformWriteAction(report, isReportArchived),
+        actionsToMerge,
+        undefined,
+        undefined,
+        currentUserAccountID,
+    );
 
     // For Chat Report with deleted parent actions, let us fetch the correct message
     if (isDeletedParentAction(lastVisibleAction) && !isEmptyObject(report) && isChatReport(report)) {
@@ -5098,7 +5107,7 @@ function getLastVisibleMessage(
     }
 
     // Fetch the last visible message for report represented by reportID and based on actions to merge.
-    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
+    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge, undefined, undefined, currentUserAccountID);
 }
 
 /**
@@ -14324,17 +14333,24 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * @param canUserPerformWriteActionInReport
  * @returns containing the calculated message preview data of the report
  */
-function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge?: ReportActions) {
+function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge: ReportActions | undefined, currentUserAccountID: number) {
     let result: Partial<Report> = {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
 
-    const {lastMessageText = ''} = getLastVisibleMessage(reportID, isReportArchived, actionsToMerge);
+    const {lastMessageText = ''} = getLastVisibleMessage(reportID, isReportArchived, actionsToMerge, currentUserAccountID);
 
     if (lastMessageText) {
         const report = getReport(reportID, deprecatedAllReports);
-        const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
+        const lastVisibleAction = getLastVisibleActionReportActionsUtils(
+            reportID,
+            canUserPerformWriteAction(report, isReportArchived),
+            actionsToMerge,
+            undefined,
+            undefined,
+            currentUserAccountID,
+        );
         const lastVisibleActionCreated = lastVisibleAction?.created;
         const lastActorAccountID = lastVisibleAction?.actorAccountID;
         result = {

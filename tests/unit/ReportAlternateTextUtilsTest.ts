@@ -516,6 +516,47 @@ describe('ReportAlternateTextUtils', () => {
     });
 
     describe('getLastMessageTextForReport', () => {
+        it("resolves a closed report's fallback last message from the current user's own whisper visibility", async () => {
+            const REPORT_ID = '83001';
+            const WHISPER_TARGET_ACCOUNT_ID = 959;
+            const report = makeReport({reportID: REPORT_ID, lastActionType: CONST.REPORT.ACTIONS.TYPE.CLOSED});
+            /** The report's only action, and only the whispered-to account can see it. */
+            const whisper = makeAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
+                reportActionID: '83002',
+                reportID: REPORT_ID,
+                created: '2024-01-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as Partial<ReportAction>);
+
+            // Given a non-archived report whose last action was closing it, and whose only action is a whisper aimed at one account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[whisper.reportActionID]: whisper});
+            await waitForBatchedUpdates();
+
+            // When the last message text is resolved without a precomputed last action
+            const getLastMessageFor = (currentUserAccountID: number) =>
+                getLastMessageTextForReport({
+                    dateFnsLocale: undefined,
+                    conciergeReportID: undefined,
+                    currentUserAccountID,
+                    personalDetails: PERSONAL_DETAILS,
+                    translate: translateLocal,
+                    convertToDisplayString,
+                    report,
+                    lastActorDetails: null,
+                    isReportArchived: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    rules: undefined,
+                });
+
+            // Then the whisper's target sees the whisper as the fallback last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID)).toBe('changed the amount');
+
+            // Then anyone else cannot see the whisper, so there is no last message
+            expect(getLastMessageFor(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe('');
+        });
+
         it('formats an agent prompt update from its original message', () => {
             const report: Report = createRandomReport(0, undefined);
             const agentPromptUpdatedAction: ReportAction = {
