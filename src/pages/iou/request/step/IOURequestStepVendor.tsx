@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateMoneyRequestVendor} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {openPolicyVendorsPage} from '@libs/actions/Policy/Vendor';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {withClearRow} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getVendorEmptyState, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
@@ -108,15 +109,20 @@ function IOURequestStepVendor({
 
     const trimmedSearch = searchValue.trim().toLowerCase();
     const selectedVendorID = draftVendor ? draftVendor.value : currentVendorID;
-    const enabledRows: VendorListItem[] = sortedEnabledVendors
-        .filter((vendor) => !trimmedSearch || vendor.name.toLowerCase().includes(trimmedSearch))
-        .map((vendor) => ({
-            value: vendor.externalID,
-            text: vendor.name,
-            keyForList: vendor.externalID,
-            isSelected: vendor.externalID === selectedVendorID,
-            searchText: vendor.name,
-        }));
+
+    // Build the full enabled-vendor list first so the pin is decided on the whole list, not the filtered subset.
+    const enabledRows: VendorListItem[] = sortedEnabledVendors.map((vendor) => ({
+        value: vendor.externalID,
+        text: vendor.name,
+        keyForList: vendor.externalID,
+        isSelected: vendor.externalID === selectedVendorID,
+        searchText: vendor.name,
+    }));
+
+    // Pin the vendor selected when the page opened to the top of the full list, then filter, so it stays first both in the full list and in search results (filtering a pre-ordered list keeps the pinned row on top). No-ops for short lists.
+    const orderedEnabledRows = moveInitialSelectionToTop(enabledRows, initialVendorID ? [initialVendorID] : []);
+    const isSelectionPinnedToTop = !!initialVendorID && orderedEnabledRows.at(0)?.value === initialVendorID;
+    const filteredEnabledRows = trimmedSearch ? orderedEnabledRows.filter((row) => (row.text ?? '').toLowerCase().includes(trimmedSearch)) : orderedEnabledRows;
 
     const disabledCurrentVendorRow: VendorListItem | undefined =
         !trimmedSearch && isCurrentVendorDisabled
@@ -130,26 +136,18 @@ function IOURequestStepVendor({
               }
             : undefined;
 
+    const noneRow: VendorListItem = {
+        value: '',
+        text: translate('common.none'),
+        keyForList: 'clear-vendor',
+        isSelected: draftVendor?.keyForList === 'clear-vendor',
+        searchText: '',
+    };
     const shouldShowNoneRow = !!currentVendorID && !trimmedSearch;
 
-    const unorderedData: VendorListItem[] = [
-        ...(shouldShowNoneRow
-            ? [
-                  {
-                      value: '',
-                      text: translate('common.none'),
-                      keyForList: 'clear-vendor',
-                      isSelected: draftVendor?.keyForList === 'clear-vendor',
-                      searchText: '',
-                  },
-              ]
-            : []),
-        ...(disabledCurrentVendorRow ? [disabledCurrentVendorRow] : []),
-        ...enabledRows,
-    ];
-
-    // Pin the vendor selected when the page opened to the top of the list, so on a long searchable list the current choice stays visible above the keyboard instead of hiding in its alphabetical position. The "None"/disabled rows are only present when not searching, so a pinned selection sits above them. No-ops for short lists.
-    const data: VendorListItem[] = moveInitialSelectionToTop(unorderedData, initialVendorID ? [initialVendorID] : []);
+    // Keep the disabled current vendor (when present) just above the enabled rows, then place the "None" clear row directly below the pinned selection (or at the top when nothing is pinned). None/disabled rows are hidden during search.
+    const rowsWithDisabledVendor = disabledCurrentVendorRow ? [disabledCurrentVendorRow, ...filteredEnabledRows] : filteredEnabledRows;
+    const data: VendorListItem[] = shouldShowNoneRow ? withClearRow(rowsWithDisabledVendor, noneRow, isSelectionPinnedToTop) : rowsWithDisabledVendor;
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction) || !isFeatureAvailable || isReimbursable || isInvoice;
 
@@ -237,7 +235,6 @@ function IOURequestStepVendor({
                             onChangeText: setSearchValue,
                             headerMessage,
                         }}
-                        initiallyFocusedItemKey={data.find((item) => item.isSelected)?.keyForList}
                         shouldScrollToFocusedIndexOnMount={false}
                         ListItem={SingleSelectListItem}
                         listEmptyContent={listEmptyContent}

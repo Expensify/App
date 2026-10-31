@@ -4,13 +4,16 @@ import SelectionList from '@components/SelectionList';
 
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
-import type {Vendor} from '@src/types/onyx/Policy';
+import type PolicyVendors from '@src/types/onyx/PolicyVendor';
 
 import type {ComponentType} from 'react';
 
 import React from 'react';
 
 import createMock from '../../../../../utils/createMock';
+
+// Vendors the page reads from the policyVendors_ Onyx collection; set per test before rendering.
+const mockState: {policyVendors?: PolicyVendors} = {};
 
 // The page is wrapped in data-fetching HOCs and a transition wrapper; make them pass-through so we can render the
 // inner component directly and inspect the props it hands to SelectionList.
@@ -49,9 +52,15 @@ jest.mock('@hooks/useDelegateAccountID', () => ({
     default: () => undefined,
 }));
 
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: false}),
+}));
+
+// Return the mocked vendors for the policyVendors_ collection and nothing for the other reads.
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
-    default: () => [undefined],
+    default: (key: string) => (typeof key === 'string' && key.startsWith('policyVendors_') ? [mockState.policyVendors] : [undefined]),
 }));
 
 jest.mock('@hooks/useShowNotFoundPageInIOUStep', () => ({
@@ -59,7 +68,6 @@ jest.mock('@hooks/useShowNotFoundPageInIOUStep', () => ({
     default: () => false,
 }));
 
-const mockGetMatchingVendors = jest.fn(() => [] as Vendor[]);
 jest.mock('@hooks/usePolicyForTransaction', () => ({
     __esModule: true,
     default: () => ({policy: {id: '1'}}),
@@ -67,11 +75,13 @@ jest.mock('@hooks/usePolicyForTransaction', () => ({
 
 // Only the vendor helpers the page uses are mocked; sortVendors sorts by name like the real one.
 jest.mock('@libs/PolicyUtils', () => ({
-    getMatchingVendors: () => mockGetMatchingVendors(),
     hasVendorFeature: () => true,
     getVendorEmptyState: () => ({title: '', subtitle: ''}),
-    isXeroActiveMatchingSource: () => false,
-    sortVendors: (vendors: Vendor[]) => [...vendors].sort((a, b) => a.name.localeCompare(b.name)),
+    sortVendors: (vendors: Array<{name: string}>) => [...vendors].sort((a, b) => a.name.localeCompare(b.name)),
+}));
+
+jest.mock('@libs/actions/Policy/Vendor', () => ({
+    openPolicyVendorsPage: jest.fn(),
 }));
 
 jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({
@@ -95,11 +105,12 @@ const getListProps = () => {
     return props;
 };
 
-const buildVendors = (count: number): Vendor[] =>
-    Array.from({length: count}, (_, index) => {
-        const label = String(index + 1).padStart(2, '0');
-        return {id: `v${label}`, name: `Vendor ${label}`, currency: '', email: ''};
-    });
+const buildPolicyVendors = (count: number): PolicyVendors =>
+    Array.from({length: count}).reduce<PolicyVendors>((acc, _unused, index) => {
+        const id = `v${String(index + 1).padStart(2, '0')}`;
+        acc[id] = {externalID: id, name: `Vendor ${String(index + 1).padStart(2, '0')}`, enabled: true};
+        return acc;
+    }, {});
 
 const renderPicker = (currentVendorID?: string) =>
     render(
@@ -113,11 +124,12 @@ const renderPicker = (currentVendorID?: string) =>
 describe('IOURequestStepVendor', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockState.policyVendors = undefined;
     });
 
     it('pins the currently selected vendor to the top of a long list, above the "None" row', () => {
-        // Given a long searchable list (>= item-limit threshold) whose selected vendor sits in the middle
-        mockGetMatchingVendors.mockReturnValue(buildVendors(13));
+        // Given a long list (>= item-limit threshold) whose selected vendor sits in the middle
+        mockState.policyVendors = buildPolicyVendors(13);
 
         // When the picker opens with vendor 07 selected
         renderPicker('v07');
@@ -130,22 +142,40 @@ describe('IOURequestStepVendor', () => {
         expect(data.at(2)?.keyForList).toBe('v01');
     });
 
-    it('focuses the selected vendor without scrolling to it on mount', () => {
+    it('keeps the selected vendor pinned at the top of the search results', () => {
+        // Given a long list that opened with vendor 07 selected (pinned to the top)
+        mockState.policyVendors = buildPolicyVendors(13);
+        renderPicker('v07');
+
+        // When a search matches the selected vendor along with others
+        act(() => {
+            getListProps().textInputOptions?.onChangeText?.('Vendor 0');
+        });
+
+        // Then the selected vendor stays first in the filtered results (pinning happens before filtering)...
+        const {data} = getListProps();
+        expect(data.at(0)?.keyForList).toBe('v07');
+        // ...and the "None" clear row is hidden while searching
+        expect(data.some((item) => item.keyForList === 'clear-vendor')).toBe(false);
+    });
+
+    it('does not set an initial focus key, so staging a selection never auto-scrolls the list', () => {
         // Given a long list with a mid-list selection
-        mockGetMatchingVendors.mockReturnValue(buildVendors(13));
+        mockState.policyVendors = buildPolicyVendors(13);
 
         // When the picker opens
         renderPicker('v07');
 
-        // Then the selected vendor is the initially focused row, but mount-scroll is disabled so the pinned top stays in view
+        // Then no focus key is passed (the selection is already pinned to the top) and mount-scroll is disabled,
+        // so tapping a row to stage it does not scroll the list to the tapped item
         const {initiallyFocusedItemKey, shouldScrollToFocusedIndexOnMount} = getListProps();
-        expect(initiallyFocusedItemKey).toBe('v07');
+        expect(initiallyFocusedItemKey).toBeUndefined();
         expect(shouldScrollToFocusedIndexOnMount).toBe(false);
     });
 
     it('does not reorder a list below the item-limit threshold', () => {
         // Given a short list (< item-limit threshold) with a mid-list selection
-        mockGetMatchingVendors.mockReturnValue(buildVendors(5));
+        mockState.policyVendors = buildPolicyVendors(5);
 
         // When the picker opens with vendor 03 selected
         renderPicker('v03');
@@ -159,10 +189,10 @@ describe('IOURequestStepVendor', () => {
 
     it('hides the "None" row while searching', () => {
         // Given an open picker with a selected vendor
-        mockGetMatchingVendors.mockReturnValue(buildVendors(13));
+        mockState.policyVendors = buildPolicyVendors(13);
         renderPicker('v07');
 
-        // When the user searches for a specific vendor
+        // When the user searches for a single specific vendor
         act(() => {
             getListProps().textInputOptions?.onChangeText?.('Vendor 09');
         });
