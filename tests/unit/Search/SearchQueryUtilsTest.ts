@@ -3506,6 +3506,66 @@ describe('SearchQueryUtils', () => {
             // Then the group currency doesn't count as a change
             expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(false);
         });
+
+        it('returns false when a saved year to date search is applied again as this year', () => {
+            // Given a saved search on the deprecated year to date preset, which the date picker shows as this year
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense date:year-to-date');
+
+            // When the unchanged date filter is applied, which writes this year back into the query
+            const currentQueryJSON = buildSearchQueryJSON('type:expense date:this-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the saved search isn't treated as edited, so Reset and Save stay hidden
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when a saved year to date search is changed to another date preset', () => {
+            // Given a saved search on the deprecated year to date preset
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense date:year-to-date');
+
+            // When a different preset is applied
+            const currentQueryJSON = buildSearchQueryJSON('type:expense date:last-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the change still counts, so Reset and Save appear
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns false when a saved year to date report field date search is applied again as this year', () => {
+            // Given a saved search on a report field date using the deprecated year to date preset, which the date picker shows as this year
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense report-field-trip-date:year-to-date');
+
+            // When the unchanged report field filter is applied, which writes this year back into the query
+            const currentQueryJSON = buildSearchQueryJSON('type:expense report-field-trip-date:this-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the saved search isn't treated as edited, so Reset and Save stay hidden
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when a saved negated report field search on year to date is changed to this year', () => {
+            // Given a saved search excluding the year to date text from a report field, which the filter form keeps as text
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense -report-field-trip-date:year-to-date');
+
+            // When the excluded text is changed to this year
+            const currentQueryJSON = buildSearchQueryJSON('type:expense -report-field-trip-date:this-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the change still counts, so Reset and Save appear
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
     });
 
     describe('normalizeDatePresetsInQuery', () => {
