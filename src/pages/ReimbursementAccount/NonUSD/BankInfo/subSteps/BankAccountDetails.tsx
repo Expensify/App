@@ -16,7 +16,7 @@ import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
-import sortBankInformationFields from '@pages/ReimbursementAccount/NonUSD/utils/sortBankInformationFields';
+import putBankAddressBeforeBankCity from '@pages/ReimbursementAccount/NonUSD/utils/putBankAddressBeforeBankCity';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,7 +41,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const bankAccountDetailsFields = corpayFields?.formFields
-        ? sortBankInformationFields(corpayFields.formFields.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)))
+        ? putBankAddressBeforeBankCity(corpayFields.formFields.filter((field) => !field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)))
         : undefined;
 
     const subStepKeys: Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm> = {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>;

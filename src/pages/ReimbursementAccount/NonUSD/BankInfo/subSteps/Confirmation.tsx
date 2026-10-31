@@ -10,7 +10,7 @@ import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
-import sortBankInformationFields from '@pages/ReimbursementAccount/NonUSD/utils/sortBankInformationFields';
+import putBankAddressBeforeBankCity from '@pages/ReimbursementAccount/NonUSD/utils/putBankAddressBeforeBankCity';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,7 +27,7 @@ function Confirmation({onNext, onMove, isEditing, corpayFields}: BankInfoSubStep
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
-    const formFields = corpayFields?.formFields ? sortBankInformationFields(corpayFields.formFields) : undefined;
+    const formFields = corpayFields?.formFields ? putBankAddressBeforeBankCity(corpayFields.formFields) : undefined;
     const values = getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount);
 
     const summaryItems = (formFields ?? []).map((field) => {
