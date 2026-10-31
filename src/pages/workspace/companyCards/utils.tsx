@@ -348,10 +348,11 @@ function getPolicyCardExportSettings(
                         description,
                         exportPageLink,
                         shouldShowMenuItem: true,
-                        exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT,
+                        // Journal entries and credit card charges keep separate card-level mappings, so selecting an account under one export type never overwrites the other
+                        exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
                         accountSelection: {
                             type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
-                            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT,
+                            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
                             accounts: normalizeAccounts(getNetSuiteCreditCardAccounts(policy)),
                             defaultLabel: defaultAccount,
                             workspaceDefaultAccountID: config?.creditCardAccount,

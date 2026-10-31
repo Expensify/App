@@ -535,13 +535,14 @@ describe('getExportMenuItem - NetSuite', () => {
                 },
             },
         });
-        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_ACCOUNT, 'ns-cc-2');
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT, 'ns-cc-2');
 
         // When the company card export menu item is resolved
         const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.NETSUITE, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         // Then the card resolves against credit card accounts only, so the menu shows the matching credit card account and offers every credit card account instead of the full payable list
         expect(result?.shouldShowMenuItem).toBe(true);
+        expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT);
         expect(result?.title).toBe('Team Card');
         expect(result?.data).toHaveLength(3);
     });

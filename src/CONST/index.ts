@@ -5970,6 +5970,11 @@ const CONST = {
             NVP_NETSUITE_EXPORT_ACCOUNT: 'netsuite_export_payable_account',
 
             /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT: 'netsuite_export_credit_card_account',
+
+            /**
              * Name of Card NVP for NetSuite custom vendors
              */
             NVP_NETSUITE_EXPORT_VENDOR: 'netsuite_export_vendor',
@@ -6035,6 +6040,11 @@ const CONST = {
              * Name of Card NVP for NetSuite custom export accounts
              */
             NVP_NETSUITE_EXPORT_ACCOUNT_POLICY_ID: 'netsuite_export_payable_account_policy_id',
+
+            /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT_POLICY_ID: 'netsuite_export_credit_card_account_policy_id',
 
             /**
              * Name of Card NVP for NetSuite custom vendors
