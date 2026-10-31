@@ -1,6 +1,7 @@
 import {PromotedActions} from '@components/PromotedActionsBar';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {generateAccountID} from '@libs/UserUtils';
 
 import {navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 
@@ -36,6 +37,8 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
+            accountID: 42,
             login: 'test@example.com',
             currentUserAccountID: 1,
             personalDetails: {},
@@ -49,7 +52,8 @@ describe('PromotedActions.message', () => {
 
         expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
             isSupportalSession: false,
-            userLogins: ['test@example.com'],
+            login: 'test@example.com',
+            personalDetailsByLogin: {},
             personalDetails: {},
             currentUserAccountID: 1,
             introSelected,
@@ -61,11 +65,37 @@ describe('PromotedActions.message', () => {
         });
     });
 
+    it('should still open the chat by login when the generated accountID of the login is 0', () => {
+        // Given an invited user whose login hashes to a generated accountID of 0, which is falsy
+        const login = 'zsjfzqo@example.com';
+        const action = PromotedActions.message({
+            isSupportalSession: false,
+            conciergeChat: undefined,
+            personalDetailsByLogin: {},
+            accountID: generateAccountID(login),
+            login,
+            currentUserAccountID: 1,
+            personalDetails: {},
+            introSelected: undefined,
+            isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
+            hasReportActions: false,
+        });
+
+        // When the message action is selected
+        action.onSelected();
+
+        // Then the chat is still opened by login, instead of the falsy accountID blocking it
+        expect(generateAccountID(login)).toBe(0);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(expect.objectContaining({login}));
+    });
+
     it('should pass introSelected to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
         const introSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             currentUserAccountID: 1,
             personalDetails: {},
@@ -84,6 +114,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             currentUserAccountID: 1,
             personalDetails: {},
@@ -102,6 +133,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             reportID: 'report123',
             currentUserAccountID: 1,
             personalDetails: {},
@@ -123,6 +155,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             personalDetails: {},
             login: 'test@example.com',
@@ -137,7 +170,8 @@ describe('PromotedActions.message', () => {
 
         expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith({
             isSupportalSession: false,
-            userLogins: ['test@example.com'],
+            login: 'test@example.com',
+            personalDetailsByLogin: {},
             personalDetails: {},
             currentUserAccountID: 1,
             introSelected,
@@ -155,6 +189,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             accountID: 42,
             currentUserAccountID: 1,
             introSelected,
@@ -174,6 +209,8 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
+            accountID: 42,
             login: 'test@example.com',
             currentUserAccountID: 1,
             personalDetails: {},
@@ -192,6 +229,7 @@ describe('PromotedActions.message', () => {
         const action = PromotedActions.message({
             isSupportalSession: false,
             conciergeChat: undefined,
+            personalDetailsByLogin: {},
             reportID: 'selfReport123',
             accountID: 1,
             currentUserAccountID: 1,

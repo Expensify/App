@@ -87,6 +87,7 @@ autocompleteKey "key"
       / total
       / tag
       / category
+      / vendor
       / to
       / taxRate
       / from
@@ -140,6 +141,7 @@ autocompleteKey "key"
       / submitterUserID
       / submitterPayrollID
       / orderDealNumbers
+      / approver
       / reportFieldDynamic
       / columns
       / limit

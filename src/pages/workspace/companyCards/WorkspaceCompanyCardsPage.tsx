@@ -1,10 +1,10 @@
-import DecisionModal from '@components/DecisionModal';
 import WorkspaceCompanyCardsTable from '@components/Tables/WorkspaceCompanyCardsTable';
 import type {WorkspaceCompanyCardsTableHandle} from '@components/Tables/WorkspaceCompanyCardsTable';
 
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -32,7 +32,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 
 type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
@@ -121,20 +121,27 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         loadPolicyCompanyCardsPageEvent();
     }, []);
 
-    const loadPolicyCompanyCardsFeed = useCallback(() => {
+    const loadPolicyCompanyCardsFeed = () => {
         if (isLoading || !bankName || isFeedPending || isOffline) {
             return;
         }
 
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, bankName, translate);
-    }, [bankName, domainOrWorkspaceAccountID, isFeedPending, isLoading, policyID, translate, isOffline]);
+    };
 
     useEffect(() => {
         loadPolicyCompanyCardsFeed();
     }, [loadPolicyCompanyCardsFeed]);
 
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
-    const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, setShouldShowOfflineModal});
+    const {showDecisionModal} = useDecisionModal();
+    const showOfflineModal = () => {
+        showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+    const {assignCard, isAssigningCardDisabled} = useAssignCard({feedName, policyID, onOfflineAssign: showOfflineModal});
     const canWriteCompanyCards = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
     const isSelectionModeEnabled = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
 
@@ -179,16 +186,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
                     onReloadFeed={loadPolicyCompanyCardsFeed}
                 />
             </WorkspacePageWithSections>
-
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={shouldUseNarrowLayout}
-                onSecondOptionSubmit={() => setShouldShowOfflineModal(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={shouldShowOfflineModal}
-                onClose={() => setShouldShowOfflineModal(false)}
-            />
         </AccessOrNotFoundWrapper>
     );
 }
