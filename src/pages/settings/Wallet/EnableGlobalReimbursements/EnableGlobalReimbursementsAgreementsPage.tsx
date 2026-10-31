@@ -32,12 +32,12 @@ function EnableGlobalReimbursementsAgreementsPage({route}: EnableGlobalReimburse
     const [bankAccountCurrency = ''] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]?.bankCurrency});
     const currency = route.params?.bankCurrency ?? bankAccountCurrency;
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
-    const defaultValues: Record<keyof typeof inputIDs, boolean> = Object.fromEntries(
-        Object.keys(inputIDs).map((key) => {
-            const typedKey = key as keyof typeof inputIDs;
-            return [typedKey, enableGlobalReimbursementsDraft?.[typedKey] ?? false];
-        }),
-    ) as Record<keyof typeof inputIDs, boolean>;
+    const defaultValues: Record<keyof typeof inputIDs, boolean> = {
+        provideTruthfulInformation: enableGlobalReimbursementsDraft?.[inputIDs.provideTruthfulInformation] ?? false,
+        agreeToTermsAndConditions: enableGlobalReimbursementsDraft?.[inputIDs.agreeToTermsAndConditions] ?? false,
+        consentToPrivacyNotice: enableGlobalReimbursementsDraft?.[inputIDs.consentToPrivacyNotice] ?? false,
+        authorizedToBindClientToAgreement: enableGlobalReimbursementsDraft?.[inputIDs.authorizedToBindClientToAgreement] ?? false,
+    };
     const bankStatementDefaultValue = enableGlobalReimbursementsDraft?.[INPUT_IDS.BANK_STATEMENT] ?? [];
 
     const persistedRouteParams = {
