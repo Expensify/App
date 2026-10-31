@@ -1,10 +1,12 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalBankAccount} from '@src/types/onyx';
@@ -15,6 +17,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import React from 'react';
 
 import InternationalDepositAccountContent from './InternationalDepositAccountContent';
+import WiseDepositAccountContent from './WiseDepositAccountContent';
 
 type InternationalDepositAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.ADD_BANK_ACCOUNT>;
 
@@ -28,6 +31,11 @@ function InternationalDepositAccount({route}: InternationalDepositAccountProps) 
     const [country, countryMetadata] = useOnyx(ONYXKEYS.COUNTRY);
     const [isAccountLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: isLoadingPersonalBankAccountSelector});
     const backTo = route.params?.backTo;
+    const {isBetaEnabled} = usePermissions();
+
+    if (isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS)) {
+        return <WiseDepositAccountContent backTo={backTo} />;
+    }
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
 

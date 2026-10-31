@@ -1683,6 +1683,7 @@ type WriteCommandParameters = {
 const READ_COMMANDS = {
     GET_DEFAULT_P2P_MILEAGE_RATE: 'GetDefaultP2PMileageRate',
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
+    GET_WISE_BANK_ACCOUNT_FIELDS: 'GetWiseBankAccountFields',
     CONNECT_POLICY_TO_QUICKBOOKS_ONLINE: 'ConnectPolicyToQuickbooksOnline',
     CONNECT_POLICY_TO_XERO: 'ConnectPolicyToXero',
     CONNECT_POLICY_TO_NETSUITE_OAUTH: 'ConnectPolicyToNetSuiteOAuth',
@@ -1849,6 +1850,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_OLDER_ACTIONS]: Parameters.GetOlderActionsParams;
     [READ_COMMANDS.GET_NEWER_ACTIONS]: Parameters.GetNewerActionsParams;
     [READ_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
+    [READ_COMMANDS.GET_WISE_BANK_ACCOUNT_FIELDS]: Parameters.GetWiseBankAccountFieldsParams;
     [READ_COMMANDS.EXPAND_URL_PREVIEW]: Parameters.ExpandURLPreviewParams;
     [READ_COMMANDS.GET_REPORT_PRIVATE_NOTE]: Parameters.GetReportPrivateNoteParams;
     [READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE]: Parameters.OpenRoomMembersPageParams;

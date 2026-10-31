@@ -16,6 +16,7 @@
                 "config/repack/**/*.{js,mjs,ts}",
                 ".github/scripts/**/*.ts",
                 "tests/tooling/**/*.ts",
+                "tests/data/wise/printWiseBankAccountFields.ts",
                 ".github/actions/javascript/**/*.ts",
                 "tests/globals.d.ts",
                 ".storybook/**/*.{js,ts,tsx}",

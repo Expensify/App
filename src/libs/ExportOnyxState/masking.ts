@@ -403,6 +403,7 @@ const safeOnyxKeys = new Set<string>([
     ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
     ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE,
     ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID,
+    ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS,
 ]);
 
 // ============================================================
