@@ -15,6 +15,7 @@ import {setDraftValues} from '@libs/actions/FormActions';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {hasCircularReferences} from '@libs/Formula';
 import Navigation from '@libs/Navigation/Navigation';
+import {getReportFieldsWithoutFailedAdds} from '@libs/ReportUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {getExistingReportFieldByName, getReportFieldsForTarget, getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue} from '@libs/WorkspaceReportFieldUtils';
 
@@ -56,6 +57,8 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
 
     const reportTypeForTarget = isInvoiceField ? CONST.REPORT.TYPE.INVOICE : CONST.REPORT.TYPE.EXPENSE;
     const fieldTarget = isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
+    // Fields that failed to be created are left out, so the user can retry with the same name without dismissing the error first.
+    const fieldList = getReportFieldsWithoutFailedAdds(policy?.fieldList, policy?.errorFields);
 
     const policyReportIDsSelector = (reports: OnyxCollection<Report>) =>
         Object.values(reports ?? {})
@@ -83,7 +86,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
     };
 
     const getExistingFieldNameError = (name: string) => {
-        const existingField = getExistingReportFieldByName(policy?.fieldList, name);
+        const existingField = getExistingReportFieldByName(fieldList, name);
         if (!existingField) {
             return undefined;
         }
@@ -117,7 +120,7 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
 
         if (
             (type === CONST.REPORT_FIELD_TYPES.TEXT || type === CONST.REPORT_FIELD_TYPES.FORMULA) &&
-            hasCircularReferences(formInitialValue, name, getReportFieldsForTarget(policy?.fieldList, fieldTarget))
+            hasCircularReferences(formInitialValue, name, getReportFieldsForTarget(fieldList, fieldTarget))
         ) {
             errors[INPUT_IDS.INITIAL_VALUE] = translate('workspace.reportFields.circularReferenceError');
         }

@@ -16,15 +16,17 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
+import {getReportFieldKey, isFailedReportFieldAdd} from '@libs/ReportUtils';
 import {getReportFieldTypeTranslationKey, isReportFieldImportedFromIntegration} from '@libs/WorkspaceReportFieldUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
+import {clearReportFieldErrors, setInitialCreateReportFieldsForm} from '@userActions/Policy/ReportField';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -32,7 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, PolicyConnectionName} from '@src/types/onyx';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -46,7 +48,9 @@ type FieldListValue = NonNullable<Policy['fieldList']>[string];
 
 type FieldListItem = {
     fieldID: string;
+    errors: Errors;
     isDisabled: boolean;
+    isFailedAdd: boolean;
     keyForList: string;
     pendingAction?: PendingAction;
     rightLabel: string;
@@ -117,6 +121,7 @@ function WorkspaceFieldsSection({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const fieldList = policy?.fieldList;
+    const errorFields = policy?.errorFields;
     const hasImportedField = Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field, policy));
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
@@ -135,17 +140,24 @@ function WorkspaceFieldsSection({
         : Object.values(fieldList)
               .filter(fieldFilter)
               .sort((a, b) => localeCompare(a.name, b.name))
-              .map((field) => ({
-                  text: field.name,
-                  keyForList: String(field.fieldID),
-                  fieldID: field.fieldID,
-                  pendingAction: field.pendingAction,
-                  isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                  rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
-              }));
+              .map((field) => {
+                  const fieldKey = getReportFieldKey(field.fieldID);
+
+                  return {
+                      text: field.name,
+                      keyForList: String(field.fieldID),
+                      fieldID: field.fieldID,
+                      pendingAction: field.pendingAction,
+                      errors: getLatestErrorField({errorFields: errorFields?.fieldList?.[fieldKey] ?? {}}, 'defaultValue'),
+                      isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      isFailedAdd: isFailedReportFieldAdd(field, errorFields),
+                      rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
+                  };
+              });
 
     const navigateToFieldSettings = (item: FieldListItem) => {
-        if (!canWrite) {
+        // A field that failed to be created doesn't exist on the server, so its settings can't be saved. The user dismisses the error instead.
+        if (!canWrite || item.isFailedAdd) {
             return;
         }
 
@@ -153,14 +165,20 @@ function WorkspaceFieldsSection({
     };
 
     const renderItem = ({item}: ListRenderItemInfo<FieldListItem>) => (
-        <OfflineWithFeedback pendingAction={item.pendingAction}>
+        <OfflineWithFeedback
+            pendingAction={item.pendingAction}
+            errors={item.errors}
+            errorRowStyles={cardPaddingHorizontal}
+            errorRowTextStyles={styles.mv2}
+            onClose={() => clearReportFieldErrors(policy, item.fieldID)}
+        >
             <MenuItem
                 style={cardPaddingHorizontal}
                 onPress={() => navigateToFieldSettings(item)}
                 description={item.text}
                 disabled={item.isDisabled}
-                shouldShowRightIcon={!item.isDisabled && canWrite}
-                interactive={!item.isDisabled && canWrite}
+                shouldShowRightIcon={!item.isDisabled && !item.isFailedAdd && canWrite}
+                interactive={!item.isDisabled && !item.isFailedAdd && canWrite}
                 rightLabel={item.rightLabel}
                 descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
             />

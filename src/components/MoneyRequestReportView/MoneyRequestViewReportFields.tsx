@@ -18,6 +18,7 @@ import {
     getFieldViolationTranslation,
     getReportFieldKey,
     getReportFieldMaps,
+    getReportFieldsWithoutFailedAdds,
     isReportFieldDisabledForUser,
     isReportFieldTargetMatchingReport,
     shouldDisplayReportFields as shouldDisplayReportFieldsUtils,
@@ -97,7 +98,7 @@ function ReportFieldView(
                     value={reportField.fieldValue}
                     isDisabled={reportField.isFieldDisabled}
                     errorText={reportField.violationTranslation}
-                    fieldList={policy?.fieldList}
+                    fieldList={getReportFieldsWithoutFailedAdds(policy?.fieldList, policy?.errorFields)}
                     onSaveValue={(value) => onSaveValue(reportField, value)}
                     onDelete={
                         reportField.isFieldDeletable
@@ -140,7 +141,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
         deleteReportField(report.reportID, report.fieldList?.[reportField.fieldKey] ?? reportField);
     };
 
-    const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs);
+    const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {}, reportNameValuePairs, policy?.errorFields);
     const fields = Object.values(fieldsByName);
     const sortedPolicyReportFields: EnrichedPolicyReportField[] = fields
         .filter((field) => isReportFieldTargetMatchingReport(report, field))

@@ -88,7 +88,7 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
     );
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
-        const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
+        const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}), policy?.errorFields);
         return fields.find((reportField) => isReportFieldOfTypeTitle(reportField));
     })();
     const fieldKey = getReportFieldKey(titleField?.fieldID);
