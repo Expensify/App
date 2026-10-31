@@ -1,3 +1,5 @@
+import {useSession} from '@components/OnyxListItemProvider';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -13,14 +15,15 @@ import Reanimated, {Easing, useAnimatedStyle, useSharedValue, withTiming} from '
 
 import type BackgroundImageProps from './types';
 
-// Metro registers this native SVG as a numeric asset for Expo Image.
+// The native bundler registers this SVG as a numeric asset for Expo Image.
 const MobileBackgroundImage = require<number>('@assets/images/home-background--mobile.svg');
 
 function BackgroundImage({width}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
-    const isAnonymous = isAnonymousUser();
+    const session = useSession();
+    const isAnonymous = isAnonymousUser(session);
 
     const opacity = useSharedValue(0);
     const animatedStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));

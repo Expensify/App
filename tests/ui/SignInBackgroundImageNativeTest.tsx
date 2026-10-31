@@ -1,5 +1,7 @@
 import {act, render, screen} from '@testing-library/react-native';
 
+import {useSession} from '@components/OnyxListItemProvider';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -10,6 +12,7 @@ import BackgroundImage from '@pages/signin/SignInPageLayout/BackgroundImage/inde
 
 import CONST from '@src/CONST';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+import type {Session} from '@src/types/onyx';
 
 import type {Image} from 'expo-image';
 import type {ComponentProps} from 'react';
@@ -24,8 +27,9 @@ import createMock from '../utils/createMock';
 
 const mockRenderBackgroundImage = jest.fn<React.JSX.Element, [ComponentProps<typeof Image>]>(() => <View testID="native-sign-in-background" />);
 
-// A positive registry ID models Metro's native asset contract below the real component.
+// A positive registry ID models the native bundler's asset contract below the real component.
 jest.mock('@assets/images/home-background--mobile.svg', () => 7);
+jest.mock('@components/OnyxListItemProvider', () => ({useSession: jest.fn<ReturnType<typeof useSession>, Parameters<typeof useSession>>()}));
 jest.mock('@hooks/useStyleUtils', () => jest.fn<ReturnType<typeof useStyleUtils>, Parameters<typeof useStyleUtils>>());
 jest.mock('@hooks/useThemeStyles', () => jest.fn<ReturnType<typeof useThemeStyles>, Parameters<typeof useThemeStyles>>());
 jest.mock('@libs/actions/Session', () => ({isAnonymousUser: jest.fn<ReturnType<typeof isAnonymousUser>, Parameters<typeof isAnonymousUser>>()}));
@@ -64,11 +68,15 @@ const backgroundStyleUtils = createMock<ReturnType<typeof useStyleUtils>>({
     }),
 });
 
+const anonymousSession = createMock<Session>({authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+const signedInSession = createMock<Session>({authToken: 'signed-in'});
+
 describe('native sign-in background', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(useThemeStyles).mockReturnValue(backgroundStyles);
         jest.mocked(useStyleUtils).mockReturnValue(backgroundStyleUtils);
+        jest.mocked(useSession).mockReturnValue(anonymousSession);
         jest.mocked(isAnonymousUser).mockReturnValue(true);
         jest.mocked(useSplashScreenState).mockReturnValue({splashScreenState: CONST.BOOT_SPLASH_STATE.HIDDEN});
         jest.mocked(TransitionTracker.runAfterTransitions).mockReturnValue({cancel: cancelBackgroundTransition});
@@ -79,6 +87,7 @@ describe('native sign-in background', () => {
         const background = render(<BackgroundImage width={320} />);
         expect(background.toJSON()).toBeNull();
         expect(mockRenderBackgroundImage).not.toHaveBeenCalled();
+        expect(isAnonymousUser).toHaveBeenCalledWith(anonymousSession);
         expect(TransitionTracker.runAfterTransitions).toHaveBeenCalledTimes(1);
         const transition = jest.mocked(TransitionTracker.runAfterTransitions).mock.calls.at(0)?.[0];
         if (!transition) {
@@ -152,19 +161,20 @@ describe('native sign-in background', () => {
 
     it('cancels pending anonymous work and keeps its effect tied to the original mount', () => {
         // Given an anonymous mount with a pending callback, session rerenders must not replace its handle.
+        jest.mocked(isAnonymousUser).mockImplementation((session) => session === anonymousSession);
         const background = render(<BackgroundImage width={320} />);
         expect(background.toJSON()).toBeNull();
 
-        // When the mock changes in both directions, OXC retains its cached session read for this mount.
-        // Width changes exercise rerenders without remounting or completing the pending transition.
-        jest.mocked(isAnonymousUser).mockReturnValue(false);
+        // When the session signs in, the gate opens without waiting for the pending transition.
+        jest.mocked(useSession).mockReturnValue(signedInSession);
         background.rerender(<BackgroundImage width={640} />);
-        expect(background.toJSON()).toBeNull();
-        expect(mockRenderBackgroundImage).not.toHaveBeenCalled();
-        jest.mocked(isAnonymousUser).mockReturnValue(true);
+        expect(screen.getByTestId('native-sign-in-background')).toBeTruthy();
+
+        // When it becomes anonymous again, the gate closes and the mount-only effect schedules nothing new.
+        jest.mocked(useSession).mockReturnValue(anonymousSession);
         background.rerender(<BackgroundImage width={0} />);
         expect(background.toJSON()).toBeNull();
-        expect(isAnonymousUser).toHaveBeenCalledTimes(1);
+        expect(isAnonymousUser).toHaveBeenLastCalledWith(anonymousSession);
         expect(TransitionTracker.runAfterTransitions).toHaveBeenCalledTimes(1);
         expect(cancelBackgroundTransition).not.toHaveBeenCalled();
         background.unmount();
@@ -175,16 +185,21 @@ describe('native sign-in background', () => {
 
     it('does not start transition work when a signed-in mount later becomes anonymous', () => {
         // Given a signed-in mount, its mount-only effect has no anonymous transition handle.
-        jest.mocked(isAnonymousUser).mockReturnValue(false);
+        jest.mocked(isAnonymousUser).mockImplementation((session) => session === anonymousSession);
+        jest.mocked(useSession).mockReturnValue(signedInSession);
         const background = render(<BackgroundImage width={320} />);
         expect(screen.getByTestId('native-sign-in-background')).toBeTruthy();
 
-        // When the mock becomes anonymous, the compiled session read still belongs to the signed-in mount.
-        jest.mocked(isAnonymousUser).mockReturnValue(true);
+        // When the session becomes anonymous, the gate closes because no transition ever completed.
+        jest.mocked(useSession).mockReturnValue(anonymousSession);
+        background.rerender(<BackgroundImage width={640} />);
+        expect(background.toJSON()).toBeNull();
+
+        // When it signs in again, the image returns at its new width.
+        jest.mocked(useSession).mockReturnValue(signedInSession);
         background.rerender(<BackgroundImage width={640} />);
         expect(screen.getByTestId('native-sign-in-background')).toBeTruthy();
         expect(background.root).toHaveStyle({width: 640});
-        expect(isAnonymousUser).toHaveBeenCalledTimes(1);
 
         // Then the live splash hook can still close and reopen rendering without creating transition work.
         jest.mocked(useSplashScreenState).mockReturnValue({splashScreenState: CONST.BOOT_SPLASH_STATE.VISIBLE});
