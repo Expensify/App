@@ -194,6 +194,9 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProp
 
         shouldUseScrollView?: boolean;
 
+        /** Bounds web and Android form content to its viewport so an expanding editor cannot enlarge its own height limit. iOS keeps intrinsic scrolling for keyboard-reduced layouts. */
+        shouldConstrainWebContentHeight?: boolean;
+
         /** Container styles */
         style?: StyleProp<ViewStyle>;
 

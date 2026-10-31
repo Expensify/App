@@ -1,3 +1,4 @@
+import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -38,7 +39,7 @@ function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSIFY_CARD_NAME.path);
 
     const {translate} = useLocalize();
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef} = useAutoFocusInput(true);
     const styles = useThemeStyles();
 
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
@@ -82,24 +83,32 @@ function DynamicExpensifyCardNamePage({route}: DynamicExpensifyCardNamePageProps
                     onBackButtonPress={goBack}
                 />
                 <FormProvider
+                    shouldConstrainWebContentHeight
+                    submitFlexEnabled={false}
                     formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM}
                     submitButtonText={translate('common.save')}
-                    onSubmit={submit}
+                    onSubmit={(values) => submit({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
                     style={[styles.flex1, styles.mh5]}
                     enabledWhenOffline
-                    validate={validate}
+                    validate={(values) => validate({...values, [INPUT_IDS.NAME]: StringUtils.lineBreaksToSpaces(values[INPUT_IDS.NAME])})}
                     shouldHideFixErrorsAlert
                 >
-                    <InputWrapper
-                        InputComponent={TextInput}
-                        inputID={INPUT_IDS.NAME}
-                        label={translate('workspace.card.issueNewCard.cardName')}
-                        hint={translate('workspace.card.issueNewCard.giveItNameInstruction')}
-                        aria-label={translate('workspace.card.issueNewCard.cardName')}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={card?.nameValuePairs?.cardTitle}
-                        ref={inputCallbackRef}
-                    />
+                    <AutoGrowHeightInputContainer shouldKeepMinimumHeight>
+                        {(maxAutoGrowHeight) => (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.card.issueNewCard.cardName')}
+                                hint={translate('workspace.card.issueNewCard.giveItNameInstruction')}
+                                aria-label={translate('workspace.card.issueNewCard.cardName')}
+                                role={CONST.ROLE.PRESENTATION}
+                                defaultValue={card?.nameValuePairs?.cardTitle}
+                                ref={inputCallbackRef}
+                                maxAutoGrowHeight={maxAutoGrowHeight}
+                                autoGrowSingleLine
+                            />
+                        )}
+                    </AutoGrowHeightInputContainer>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
