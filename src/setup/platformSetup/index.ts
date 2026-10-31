@@ -1,3 +1,4 @@
+import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
 import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
@@ -59,6 +60,13 @@ const webUpdater = (): PlatformSpecificUpdater => ({
 });
 
 export default function () {
+    // The worker has already handled this navigation. Later navigations should keep the normal offline timeout.
+    const url = new URL(window.location.href);
+    if (url.searchParams.has(APP_UPDATE_QUERY_PARAM)) {
+        url.searchParams.delete(APP_UPDATE_QUERY_PARAM);
+        window.history.replaceState(window.history.state, '', url.href);
+    }
+
     // Initialize Cache API
     CacheAPI.init();
 
@@ -74,10 +82,10 @@ export default function () {
     // Start current date updater
     DateUtils.startCurrentDateUpdater();
 
-    // Service worker is only emitted in production builds (GenerateSW is skipped in dev).
+    // Service worker is only emitted in production builds (InjectManifest is skipped in dev).
     if (Config.IS_IN_PRODUCTION && 'serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+            navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'}).catch((error) => {
                 // Soft-fail: app must continue working even if SW registration fails (Safari Private mode, etc.).
                 // eslint-disable-next-line no-console
                 console.warn('[SW] registration failed', error);

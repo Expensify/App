@@ -1,3 +1,5 @@
+import {APP_UPDATE_QUERY_PARAM, getAppUpdateURL} from '@libs/AppUpdateURL';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -7,7 +9,7 @@ import pkg from '../../package.json';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Factory mocks share these functions across the isolated module registries each test loads.
-const mockClearWorkboxRecoveryCaches = jest.fn(() => Promise.resolve());
+const mockClearWorkboxRecoveryCaches = jest.fn(() => new Promise<void>(() => {}));
 jest.mock('@libs/clearWorkboxRecoveryCaches', () => ({
     __esModule: true,
     default: () => mockClearWorkboxRecoveryCaches(),
@@ -39,13 +41,14 @@ function loadWebUpdateRequired(): UpdateRequiredModule {
 }
 
 describe('UpdateRequired (web)', () => {
-    const reloadMock = jest.fn();
+    const replaceMock = jest.fn();
+    const currentURL = 'https://new.expensify.com/r/123?existing=value#details';
     const originalLocation = window.location;
 
     beforeAll(() => {
         Object.defineProperty(window, 'location', {
             configurable: true,
-            value: {reload: reloadMock},
+            value: {href: currentURL, replace: replaceMock},
         });
     });
 
@@ -62,17 +65,18 @@ describe('UpdateRequired (web)', () => {
         sessionStorage.clear();
     });
 
-    it('clears the cache and reloads on the first 426 instead of showing the Update Required screen', async () => {
-        // Given a web app that has not tried reloading for a 426 yet
+    it('reloads immediately on the first 426 without waiting for service worker cleanup', async () => {
+        // Given a web app that has not tried reloading and service worker cleanup that would never settle
         const {alertUser} = loadWebUpdateRequired();
 
         // When a request gets a 426
         alertUser();
+        expect(replaceMock).toHaveBeenCalledTimes(1);
         await waitForBatchedUpdates();
 
-        // Then the cache is cleared and the page reloads, because the stale bundle can only be replaced by a reload
-        expect(mockClearWorkboxRecoveryCaches).toHaveBeenCalledTimes(1);
-        expect(reloadMock).toHaveBeenCalledTimes(1);
+        // Then navigation can load fresh HTML immediately, preserving the worker and its offline assets
+        expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+        expect(replaceMock).toHaveBeenCalledWith(getAppUpdateURL(currentURL));
         expect(mockOnyxSet).not.toHaveBeenCalled();
     });
 
@@ -86,7 +90,7 @@ describe('UpdateRequired (web)', () => {
         await waitForBatchedUpdates();
 
         // Then only one reload is triggered and the Update Required screen is not shown
-        expect(reloadMock).toHaveBeenCalledTimes(1);
+        expect(replaceMock).toHaveBeenCalledTimes(1);
         expect(mockLogAlert).not.toHaveBeenCalled();
     });
 
@@ -100,7 +104,7 @@ describe('UpdateRequired (web)', () => {
         await waitForBatchedUpdates();
 
         // Then it stops reloading to avoid a loop, shows the Update Required screen, and alerts because the reload didn't get a new bundle
-        expect(reloadMock).not.toHaveBeenCalled();
+        expect(replaceMock).not.toHaveBeenCalled();
         expect(mockLogAlert).toHaveBeenCalledTimes(1);
         expect(mockOnyxSet).toHaveBeenCalledWith(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED, true);
     });
@@ -129,8 +133,8 @@ describe('UpdateRequired (web)', () => {
         alertUser();
         await waitForBatchedUpdates();
 
-        // Then it gets its own cache clear and reload instead of going straight to the Update Required screen
-        expect(reloadMock).toHaveBeenCalledTimes(1);
+        // Then it gets its own reload instead of going straight to the Update Required screen
+        expect(replaceMock).toHaveBeenCalledTimes(1);
         expect(mockLogAlert).not.toHaveBeenCalled();
         expect(sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.UPDATE_REQUIRED_RELOADED_VERSION)).toBe(pkg.version);
     });
@@ -147,7 +151,31 @@ describe('UpdateRequired (web)', () => {
         await waitForBatchedUpdates();
 
         // Then it does not reload, since without a record every reload would get a 426 and reload again forever
-        expect(reloadMock).not.toHaveBeenCalled();
+        expect(replaceMock).not.toHaveBeenCalled();
         expect(mockOnyxSet).toHaveBeenCalledWith(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED, true);
+    });
+
+    it('reloads immediately when the user presses Refresh, without clearing offline assets', () => {
+        // Given the web upgrade action and service worker cleanup that would never settle
+        const {default: updateApp} = jest.requireActual<{default: (isProduction: boolean) => void}>('../../src/libs/actions/AppUpdate/updateApp/index.ts');
+
+        // When the user presses Refresh
+        updateApp(true);
+
+        // Then the navigation starts without waiting for an installation or destroying the offline cache
+        expect(replaceMock).toHaveBeenCalledWith(getAppUpdateURL(currentURL));
+        expect(mockClearWorkboxRecoveryCaches).not.toHaveBeenCalled();
+    });
+
+    it('marks upgrade navigations without losing the route, query parameters, or fragment', () => {
+        // Given the user is viewing a deep link with existing parameters and a fragment
+        // When an upgrade reload is requested twice
+        const url = new URL(getAppUpdateURL(getAppUpdateURL(currentURL)));
+
+        // Then the marker is added once and the original destination is preserved
+        expect(url.pathname).toBe('/r/123');
+        expect(url.searchParams.get('existing')).toBe('value');
+        expect(url.hash).toBe('#details');
+        expect(url.searchParams.getAll(APP_UPDATE_QUERY_PARAM)).toEqual(['true']);
     });
 });

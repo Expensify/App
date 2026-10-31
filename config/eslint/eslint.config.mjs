@@ -821,6 +821,17 @@ const config = defineConfig([
     },
 
     {
+        files: ['web/service-worker.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tsconfig.worker.json'),
+                projectService: false,
+            },
+            globals: globals.serviceworker,
+        },
+    },
+
+    {
         files: ['tests/tooling/**/*.ts'],
         rules: {
             // bun-types declares `expect(...).resolves`/`.rejects` matchers as returning `void` even though Bun's
