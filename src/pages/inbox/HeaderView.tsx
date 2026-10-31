@@ -13,6 +13,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
+import TalkToHumanButton from '@components/TalkToHumanButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -267,32 +268,28 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         accountGuideDetails?.email !== CONST.EMAIL.CONCIERGE &&
         introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL;
 
-    // Show the "Book a call" button in the 1:1 DM with the assigned support person, or in the Concierge chat
-    const getBookCallVisibility = (supportAccountID: number | undefined, calendarLink: string | undefined) => {
-        const canBookCall = !!supportAccountID && !!calendarLink;
-        return {
-            inDM: canBookCall && isOneOnOneChat(report) && !!report?.participants?.[supportAccountID] && !!canUserPerformWriteAction(report, isReportArchived) && !isChatThread,
-            inConcierge: canBookCall && isConciergeChat,
-        };
-    };
+    const shouldShowBookCallInDM = (supportAccountID: number | undefined, calendarLink: string | undefined) =>
+        !!supportAccountID &&
+        !!calendarLink &&
+        isOneOnOneChat(report) &&
+        !!report?.participants?.[supportAccountID] &&
+        !!canUserPerformWriteAction(report, isReportArchived) &&
+        !isChatThread;
 
-    const bookCallVisibility = {
-        accountManager: getBookCallVisibility(accountManagerAccountID, bookCallDetails?.accountManagerCalendarLink),
-        partnerManager: getBookCallVisibility(partnerManagerAccountID, bookCallDetails?.partnerManagerCalendarLink),
-        guide: getBookCallVisibility(isGuideEligibleForBooking ? guideAccountID : undefined, accountGuideDetails?.calendarLink),
-    };
-
-    const shouldShowAccountManagerBookCall = bookCallVisibility.accountManager.inDM || bookCallVisibility.accountManager.inConcierge;
-    const shouldShowPartnerManagerBookCall = bookCallVisibility.partnerManager.inDM || bookCallVisibility.partnerManager.inConcierge;
-    const shouldShowGuideBookCall = bookCallVisibility.guide.inDM || bookCallVisibility.guide.inConcierge;
+    const shouldShowAccountManagerBookCall = shouldShowBookCallInDM(accountManagerAccountID, bookCallDetails?.accountManagerCalendarLink);
+    const shouldShowPartnerManagerBookCall = shouldShowBookCallInDM(partnerManagerAccountID, bookCallDetails?.partnerManagerCalendarLink);
+    const shouldShowGuideBookCall = shouldShowBookCallInDM(isGuideEligibleForBooking ? guideAccountID : undefined, accountGuideDetails?.calendarLink);
     const shouldShowSupportTicketBookCall = isSupportTicketReport && !!report?.supportTicketCalendarLink && isPaidPolicyAdmin;
 
     const shouldShowBookCall = shouldShowAccountManagerBookCall || shouldShowPartnerManagerBookCall || shouldShowGuideBookCall || shouldShowSupportTicketBookCall;
 
-    // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
-    const shouldStackBookCall = shouldUseNarrowLayout || isInSidePanel;
+    const shouldShowTalkToHuman = isConciergeChat;
+    const shouldShowCallAction = shouldShowTalkToHuman || shouldShowBookCall;
 
-    // A single 1:1 chat can only match one of these roles, and in Concierge only one button is shown at a time, so precedence (account manager, then partner manager, then guide) resolves any overlap
+    // Render the button full width below the header whenever the available space is narrow, which includes the side panel (e.g. Concierge third-panel)
+    const shouldStackCallAction = shouldUseNarrowLayout || isInSidePanel;
+
+    // A single 1:1 chat can only match one of these roles, so precedence (account manager, then partner manager, then guide) resolves any overlap
     let bookCallCalendarLink: string | undefined;
     let bookCallAvatarAccountID: number | undefined;
     if (shouldShowSupportTicketBookCall) {
@@ -300,16 +297,15 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         bookCallAvatarAccountID = report?.managerID;
     } else if (shouldShowAccountManagerBookCall) {
         bookCallCalendarLink = bookCallDetails?.accountManagerCalendarLink;
-        bookCallAvatarAccountID = bookCallVisibility.accountManager.inConcierge ? accountManagerAccountID : undefined;
     } else if (shouldShowPartnerManagerBookCall) {
         bookCallCalendarLink = bookCallDetails?.partnerManagerCalendarLink;
-        bookCallAvatarAccountID = bookCallVisibility.partnerManager.inConcierge ? partnerManagerAccountID : undefined;
     } else if (shouldShowGuideBookCall) {
         bookCallCalendarLink = accountGuideDetails?.calendarLink;
-        bookCallAvatarAccountID = bookCallVisibility.guide.inConcierge ? guideAccountID : undefined;
     }
 
-    const bookCallButton = (
+    const callActionButton = shouldShowTalkToHuman ? (
+        <TalkToHumanButton />
+    ) : (
         <BookCallButton
             calendarLink={bookCallCalendarLink ?? ''}
             avatarAccountID={bookCallAvatarAccountID}
@@ -382,6 +378,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !shouldMirrorSidePanelHeader;
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !shouldMirrorSidePanelHeader;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !shouldMirrorSidePanelHeader;
+    const shouldGroupConciergeActions = shouldShowTalkToHuman && shouldStackCallAction && shouldShowOnBoardingHelpDropdownButton && !shouldShowEarlyDiscountBanner;
     const hasActiveScheduledCall = !!latestScheduledCall && !isScheduledCallPast && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
     // Not gated on !shouldUseNarrowLayout like the side-panel case: isInNarrowPaneModal makes
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
@@ -525,9 +522,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
                                     {!isInSidePanel && isConciergeThread && !shouldUseNarrowLayout && newConciergeChatButton}
-                                    {shouldShowBookCall && !shouldStackBookCall && bookCallButton}
+                                    {shouldShowCallAction && !shouldStackCallAction && callActionButton}
                                     {shouldShowOnBoardingHelpDropdownButton && !shouldUseNarrowLayout && onboardingHelpDropdownButton}
-                                    {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
+                                    {!shouldUseNarrowLayout && !isConciergeChat && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
                                             pressable
                                             success={!hasActiveScheduledCall}
@@ -561,12 +558,18 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
                 {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newConciergeChatButton}</View>}
-                {shouldShowBookCall && shouldStackBookCall && <View style={[styles.ph5, styles.pb3]}>{bookCallButton}</View>}
+                {shouldGroupConciergeActions && (
+                    <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.ph5, styles.pb3]}>
+                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.mw100]}>{callActionButton}</View>
+                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.mw100]}>{onboardingHelpDropdownButton}</View>
+                    </View>
+                )}
+                {shouldShowCallAction && shouldStackCallAction && !shouldGroupConciergeActions && <View style={[styles.ph5, styles.pb3]}>{callActionButton}</View>}
                 <View style={shouldShowOnBoardingHelpDropdownButton && [styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph5]}>
-                    {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && (
+                    {!shouldShowEarlyDiscountBanner && shouldShowOnBoardingHelpDropdownButton && shouldUseNarrowLayout && !shouldGroupConciergeActions && (
                         <View style={[styles.flex1, styles.pb3]}>{onboardingHelpDropdownButton}</View>
                     )}
-                    {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
+                    {!isLoading && !isConciergeChat && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                         <FreeTrial
                             pressable
                             addSpacing
