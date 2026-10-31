@@ -2582,6 +2582,16 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: 'アカウントを自分自身と統合することはできません。',
         },
+        mergeAdminApprovalRequested: {
+            heading: '管理者の承認待ち',
+            description: 'この2つのアカウントの統合を承認するよう、ドメイン管理者にメールを送信しました。承認が得られ次第、アカウントは統合されます。',
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>アカウントは <strong>${email}</strong> に統合されました。</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description: 'この統合リンクは無効か期限切れです。ドメインの技術担当者としてサインインしていることを確認するか、ユーザーに再度統合を依頼するよう伝えてください。',
+        },
         mergeFailureGenericHeading: 'アカウントを統合できません',
     },
     lockAccountPage: {

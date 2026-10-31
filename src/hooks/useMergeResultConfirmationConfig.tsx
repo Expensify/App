@@ -8,6 +8,7 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import Navigation from '@libs/Navigation/Navigation';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import {closeReactNativeApp} from '@userActions/HybridApp';
@@ -146,6 +147,25 @@ function useMergeResultConfirmationConfig({result, login}: {result: ValueOf<type
             descriptionComponent: (
                 <ConfirmationPage.Description style={styles.textSupporting}>{translate('mergeAccountsPage.mergeFailureSelfMerge.description')}</ConfirmationPage.Description>
             ),
+        },
+        [CONST.MERGE_ACCOUNT_RESULTS.ADMIN_APPROVAL_REQUESTED]: {
+            heading: translate('mergeAccountsPage.mergeAdminApprovalRequested.heading'),
+            descriptionComponent: (
+                <ConfirmationPage.Description style={styles.textSupporting}>{translate('mergeAccountsPage.mergeAdminApprovalRequested.description')}</ConfirmationPage.Description>
+            ),
+        },
+        [CONST.MERGE_ACCOUNT_RESULTS.ADMIN_APPROVAL_SUCCESS]: {
+            heading: translate('mergeAccountsPage.mergeSuccess.accountsMerged'),
+            descriptionComponent: <DescriptionHTML html={translate('mergeAccountsPage.mergeAdminApprovalSuccess.description', login)} />,
+            illustration: LottieAnimations.Fireworks,
+            illustrationStyle: {width: 150, height: 150},
+            onButtonPress: () => Navigation.dismissModal(),
+        },
+        [CONST.MERGE_ACCOUNT_RESULTS.ADMIN_APPROVAL_FAILED]: {
+            descriptionComponent: (
+                <ConfirmationPage.Description style={styles.textSupporting}>{translate('mergeAccountsPage.mergeAdminApprovalFailed.description')}</ConfirmationPage.Description>
+            ),
+            onButtonPress: () => Navigation.dismissModal(),
         },
     };
 

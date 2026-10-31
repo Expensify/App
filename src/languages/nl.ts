@@ -2599,6 +2599,18 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: 'Je kunt een account niet met zichzelf samenvoegen.',
         },
+        mergeAdminApprovalRequested: {
+            heading: 'Wachten op goedkeuring van beheerder',
+            description:
+                'We hebben je domeinbeheerder gemaild om te bevestigen dat deze twee accounts samengevoegd kunnen worden. Je accounts worden samengevoegd zodra zij groen licht geven.',
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>De accounts zijn samengevoegd in <strong>${email}</strong>.</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description:
+                'Deze samenvoeglink is ongeldig of verlopen. Zorg ervoor dat je bent ingelogd als de technische contactpersoon van het domein, of vraag de gebruiker om de samenvoeging opnieuw aan te vragen.',
+        },
         mergeFailureGenericHeading: 'Kan accounts niet samenvoegen',
     },
     lockAccountPage: {

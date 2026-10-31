@@ -2640,6 +2640,17 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: 'Nie można scalić konta samo ze sobą.',
         },
+        mergeAdminApprovalRequested: {
+            heading: 'Oczekiwanie na zatwierdzenie administratora',
+            description: 'Wysłaliśmy e-mail do administratora Twojej domeny z prośbą o potwierdzenie, że można połączyć te dwa konta. Twoje konta zostaną połączone, gdy tylko wyrazi zgodę.',
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>Konta zostały połączone w <strong>${email}</strong>.</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description:
+                'Ten link do połączenia jest nieprawidłowy lub wygasł. Upewnij się, że jesteś zalogowany jako kontakt techniczny domeny, lub poproś użytkownika o ponowne złożenie prośby o połączenie.',
+        },
         mergeFailureGenericHeading: 'Nie można połączyć kont',
     },
     lockAccountPage: {

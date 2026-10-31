@@ -2613,6 +2613,18 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: 'Vous ne pouvez pas fusionner un compte avec lui-même.',
         },
+        mergeAdminApprovalRequested: {
+            heading: "En attente de l'approbation de l'administrateur",
+            description:
+                "Nous avons envoyé un e-mail à l'administrateur de votre domaine pour confirmer la fusion de ces deux comptes. Vos comptes seront fusionnés dès qu'il aura donné son feu vert.",
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>Les comptes ont été fusionnés dans <strong>${email}</strong>.</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description:
+                "Ce lien de fusion n'est pas valide ou a expiré. Assurez-vous d'être connecté en tant que contact technique du domaine, ou demandez à l'utilisateur de refaire la demande de fusion.",
+        },
         mergeFailureGenericHeading: 'Impossible de fusionner les comptes',
     },
     lockAccountPage: {

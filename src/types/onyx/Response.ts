@@ -97,6 +97,12 @@ type Response<TKey extends OnyxKey> = {
     accountID?: number;
     email?: string;
 
+    /** Email of the account that was merged from, returned by MergeAccountWithSAML */
+    oldAccountEmail?: string;
+
+    /** Email of the account that was merged into, returned by MergeAccountWithSAML */
+    newAccountEmail?: string;
+
     /** If there is older data to load for pagination commands */
     hasOlderActions?: boolean;
 
