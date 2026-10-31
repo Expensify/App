@@ -34,6 +34,7 @@ import {
     getCardsByCardholderName,
     getCardSettings,
     getCommercialFeedCardDescription,
+    getQueuedExpensifyCardSettlement,
     getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
@@ -5775,5 +5776,32 @@ describe('canResolveTransactionCard', () => {
 
         // Then it cannot, since a move the backend refuses costs the whole batch
         expect(canResolve).toBe(false);
+    });
+});
+
+describe('getQueuedExpensifyCardSettlement', () => {
+    it('reads a full settlement queued as the string the backend sends, and as the boolean older clients stored', () => {
+        // Given the manual billing value the backend sends for a full settlement, and the boolean shape it used to have
+        // When both are read
+        // Then both count as a queued full settlement
+        expect(getQueuedExpensifyCardSettlement('true')).toEqual({isQueued: true, isPartial: false});
+        expect(getQueuedExpensifyCardSettlement(true)).toEqual({isQueued: true, isPartial: false});
+    });
+
+    it('treats an empty or false value as nothing queued', () => {
+        // Given the values present when nothing is queued, including the "false" string that a truthiness check would misread
+        // When they are read
+        // Then nothing is queued
+        expect(getQueuedExpensifyCardSettlement(undefined)).toEqual({isQueued: false, isPartial: false});
+        expect(getQueuedExpensifyCardSettlement('')).toEqual({isQueued: false, isPartial: false});
+        expect(getQueuedExpensifyCardSettlement(false)).toEqual({isQueued: false, isPartial: false});
+        expect(getQueuedExpensifyCardSettlement('false')).toEqual({isQueued: false, isPartial: false});
+    });
+
+    it('reads a queued partial settlement with its amount', () => {
+        // Given the object the backend sends for a queued partial settlement
+        // When it is read
+        // Then it is queued, partial, and carries the amount that will be billed
+        expect(getQueuedExpensifyCardSettlement({type: 'partial', amount: 400, requestedAmount: 350, feedCountry: CONST.COUNTRY.US})).toEqual({isQueued: true, isPartial: true, amount: 400});
     });
 });

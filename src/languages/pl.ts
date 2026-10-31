@@ -6877,11 +6877,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             limit: 'Limit',
             currentBalance: 'Bieżące saldo',
             currentBalanceDescription: 'Bieżące saldo to suma wszystkich zaksięgowanych transakcji Kartą Expensify, które miały miejsce od ostatniej daty rozliczenia.',
-            balanceWillBeSettledOn: (settlementDate: string) => `Saldo zostanie rozliczone w dniu ${settlementDate}`,
             settleBalance: 'Ureguluj saldo',
-            settleBalanceConfirmationTitle: 'Uregulować saldo?',
-            settleBalanceConfirmationPrompt:
-                'Spowoduje to uregulowanie bieżącego salda w następnym dniu roboczym. Po pomyślnym zakończeniu kwota zostanie ponownie dodana do pozostałego limitu.',
             cardLimit: 'Limit karty',
             remaining: 'Pozostało',
             remainingLimit: 'Pozostały limit',
@@ -6952,6 +6948,26 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             csvColumnLimit: 'Limit',
             noCardFeedsAvailable: 'Brak dostępnych kanałów kart',
             noCardFeedsAvailableDescription: 'Dla tego obszaru roboczego nie ma dostępnych żadnych kanałów kart.',
+            fullBalanceWillBeSettledOn: (settlementDate: string) => `Całe saldo zostanie rozliczone w dniu ${settlementDate}`,
+            partialBalanceWillBeSettledOn: (amount: string, settlementDate: string) => `${amount} zostanie rozliczona ${settlementDate}`,
+            settleBalanceDescription: 'Wybierz, jaką część swojego bieżącego salda chcesz spłacić w następny dzień roboczy.',
+            settleCurrentBalance: 'Spłać bieżące saldo',
+            settlePartialBalance: 'Spłać część salda',
+            settlePartialBalanceAmount: 'Kwota do rozliczenia',
+            settleBalanceAmountAboveMaximum: (maximum: string) => `Wpisz kwotę do ${maximum}`,
+            settleFullBalanceConfirmation: 'To spłaci twoje bieżące saldo w następny dzień roboczy. Po pomyślnej realizacji kwota zostanie dodana z powrotem do twojego dostępnego limitu.',
+            settlePartialBalanceConfirmation: (amount: string) =>
+                `Kwota ${amount} zostanie rozliczona w następnym dniu roboczym. Po pomyślnym zakończeniu transakcji kwota ta zostanie dodana z powrotem do twojego pozostałego limitu.`,
+            settlePartialBalanceRounded: (requestedAmount: string, roundedAmount: string) =>
+                `Zaokrągliliśmy ${requestedAmount} w górę do ${roundedAmount}, żeby rozliczenie pasowało do pełnych transakcji.`,
+            settlePartialBalanceExact: 'Zaokrąglenie nie było potrzebne, ta kwota odpowiada pełnym transakcjom.',
+            settlePartialBalanceEverything: 'To obejmuje wszystko, co można teraz rozliczyć.',
+            settleBalanceError: 'Nie udało się dodać rozliczenia do kolejki. Spróbuj ponownie.',
+            settleBalanceFailedSettlementError: 'Nie możesz rozliczyć częściowego salda, dopóki poprzednie rozliczenie nie powiedzie się.',
+            settleBalanceAlreadyQueuedError: 'Rozliczenie jest już w kolejce dla tego obszaru roboczego.',
+            settlementFrequencyPartialWarningTitle: 'Przełączyć na dzienne rozliczanie?',
+            settlementFrequencyPartialWarningPrompt: (amount: string) =>
+                `Ustawiłeś w kolejce częściowe rozliczenie na kwotę ${amount}. Przejście na codzienne rozliczanie spowoduje rozliczenie całego salda przy następnym dziennym uruchomieniu.`,
         },
         categories: {
             deleteCategories: 'Usuń kategorie',

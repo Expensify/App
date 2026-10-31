@@ -6850,11 +6850,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             limit: 'Limiet',
             currentBalance: 'Huidige saldo',
             currentBalanceDescription: 'Het huidige saldo is de som van alle geboekte Expensify Kaart-transacties die hebben plaatsgevonden sinds de laatste afwikkelingsdatum.',
-            balanceWillBeSettledOn: (settlementDate: string) => `Saldo wordt vereffend op ${settlementDate}`,
             settleBalance: 'Saldo vereffenen',
-            settleBalanceConfirmationTitle: 'Saldo vereffenen?',
-            settleBalanceConfirmationPrompt:
-                'Hiermee wordt je huidige saldo op de volgende werkdag vereffend. Zodra dit is gelukt, wordt het bedrag weer aan je resterende limiet toegevoegd.',
             cardLimit: 'Kaartlimiet',
             remaining: 'Resterend',
             remainingLimit: 'Resterende limiet',
@@ -6926,6 +6922,26 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             csvColumnLimit: 'Limiet',
             noCardFeedsAvailable: 'Geen kaartfeeds beschikbaar',
             noCardFeedsAvailableDescription: 'Er zijn geen kaartfeeds beschikbaar voor deze workspace.',
+            fullBalanceWillBeSettledOn: (settlementDate: string) => `Volledig saldo wordt verrekend op ${settlementDate}`,
+            partialBalanceWillBeSettledOn: (amount: string, settlementDate: string) => `${amount} wordt verrekend op ${settlementDate}`,
+            settleBalanceDescription: 'Kies hoeveel van je huidige saldo je op de volgende werkdag wilt aflossen.',
+            settleCurrentBalance: 'Huidig saldo vereffenen',
+            settlePartialBalance: 'Deel van saldo vereffenen',
+            settlePartialBalanceAmount: 'Bedrag om te vereffenen',
+            settleBalanceAmountAboveMaximum: (maximum: string) => `Voer een bedrag in tot maximaal ${maximum}`,
+            settleFullBalanceConfirmation: 'Dit zal je huidige saldo op de volgende werkdag vereffenen. Zodra dit is gelukt, wordt het bedrag weer bij je resterende limiet opgeteld.',
+            settlePartialBalanceConfirmation: (amount: string) =>
+                `Dit verwerkt ${amount} op de volgende werkdag. Zodra dit is gelukt, wordt het bedrag weer toegevoegd aan je resterende limiet.`,
+            settlePartialBalanceRounded: (requestedAmount: string, roundedAmount: string) =>
+                `We hebben ${requestedAmount} naar boven afgerond op ${roundedAmount}, zodat de afrekening overeenkomt met hele transacties.`,
+            settlePartialBalanceExact: 'Afronden was niet nodig, dit bedrag komt overeen met volledige transacties.',
+            settlePartialBalanceEverything: 'Dit dekt alles wat nu kan worden vereffend.',
+            settleBalanceError: 'We konden de afwikkeling niet in de wachtrij zetten. Probeer het opnieuw.',
+            settleBalanceFailedSettlementError: 'Je kunt geen gedeeltelijk saldo afrekenen zolang een eerdere afrekening is mislukt.',
+            settleBalanceAlreadyQueuedError: 'Er staat al een vereffening in de wachtrij voor deze werkruimte.',
+            settlementFrequencyPartialWarningTitle: 'Overschakelen naar dagelijkse afwikkeling?',
+            settlementFrequencyPartialWarningPrompt: (amount: string) =>
+                `Je hebt een gedeeltelijke aflossing van ${amount} in de wachtrij gezet. Als je overschakelt naar dagelijkse aflossing, wordt je volledige saldo in de volgende dagelijkse run vereffend.`,
         },
         categories: {
             deleteCategories: 'Categorieën verwijderen',

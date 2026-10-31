@@ -4,6 +4,8 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getQueuedExpensifyCardSettlement} from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettingsBase} from '@src/types/onyx';
@@ -26,7 +28,7 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
     const defaultFundID = useDefaultFundID(policyID);
 
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);
-    const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;
+    const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || getQueuedExpensifyCardSettlement(cardManualBilling).isQueued;
 
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
     if (!isLessThanMediumScreen) {

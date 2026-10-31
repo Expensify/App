@@ -6911,11 +6911,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             limit: 'Limite',
             currentBalance: 'Solde actuel',
             currentBalanceDescription: 'Le solde actuel est la somme de toutes les transactions Carte Expensify comptabilisées depuis la dernière date de règlement.',
-            balanceWillBeSettledOn: (settlementDate: string) => `Le solde sera réglé le ${settlementDate}`,
             settleBalance: 'Régler le solde',
-            settleBalanceConfirmationTitle: 'Régler le solde ?',
-            settleBalanceConfirmationPrompt:
-                'Cela réglera votre solde actuel le prochain jour ouvrable. Une fois l’opération réussie, le montant sera de nouveau ajouté à votre limite restante.',
             cardLimit: 'Plafond de carte',
             remaining: 'Restant',
             remainingLimit: 'Plafond restant',
@@ -6989,6 +6985,27 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             csvColumnLimit: 'Limite',
             noCardFeedsAvailable: 'Aucun flux de carte disponible',
             noCardFeedsAvailableDescription: 'Aucun flux de carte n’est disponible pour cet espace de travail.',
+            fullBalanceWillBeSettledOn: (settlementDate: string) => `Le solde total sera réglé le ${settlementDate}`,
+            partialBalanceWillBeSettledOn: (amount: string, settlementDate: string) => `${amount} sera réglé le ${settlementDate}`,
+            settleBalanceDescription: 'Choisissez le montant de votre solde actuel à régler le prochain jour ouvrable.',
+            settleCurrentBalance: 'Régler le solde actuel',
+            settlePartialBalance: 'Régler une partie du solde',
+            settlePartialBalanceAmount: 'Montant à régler',
+            settleBalanceAmountAboveMaximum: (maximum: string) => `Saisissez un montant jusqu’à ${maximum}`,
+            settleFullBalanceConfirmation:
+                'Cela réglera votre solde actuel le jour ouvrable suivant. Une fois l’opération effectuée avec succès, le montant sera réintégré à votre limite restante.',
+            settlePartialBalanceConfirmation: (amount: string) =>
+                `Ce montant de ${amount} sera réglé le prochain jour ouvrable. Une fois l'opération réussie, le montant sera rajouté à votre plafond restant.`,
+            settlePartialBalanceRounded: (requestedAmount: string, roundedAmount: string) =>
+                `Nous avons arrondi ${requestedAmount} à ${roundedAmount} pour que le règlement corresponde à des transactions entières.`,
+            settlePartialBalanceExact: 'Aucun arrondissement n’a été nécessaire, ce montant correspond à des transactions entières.',
+            settlePartialBalanceEverything: 'Cela couvre tout ce qui peut être réglé maintenant.',
+            settleBalanceError: 'Nous n’avons pas pu mettre le règlement en file d’attente. Veuillez réessayer.',
+            settleBalanceFailedSettlementError: 'Vous ne pouvez pas régler un solde partiel tant qu’un règlement précédent a échoué.',
+            settleBalanceAlreadyQueuedError: 'Un règlement est déjà en attente pour cet espace de travail.',
+            settlementFrequencyPartialWarningTitle: 'Passer au règlement quotidien ?',
+            settlementFrequencyPartialWarningPrompt: (amount: string) =>
+                `Vous avez mis en file d’attente un règlement partiel de ${amount}. Passer au règlement quotidien réglera plutôt votre solde total lors de la prochaine exécution quotidienne.`,
         },
         categories: {
             deleteCategories: 'Supprimer des catégories',

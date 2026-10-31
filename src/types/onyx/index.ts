@@ -109,8 +109,10 @@ import type EnableGlobalReimbursementsModal from './EnableGlobalReimbursementsMo
 import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardLoadingState from './ExpensifyCardLoadingState';
+import type ExpensifyCardManualBilling from './ExpensifyCardManualBilling';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type {ExpensifyCardSettingsBase, NestedExpensifyCardSettings} from './ExpensifyCardSettings';
+import type ExpensifyCardSettlementPreview from './ExpensifyCardSettlementPreview';
 import type ExpensifyCardStatement from './ExpensifyCardStatement';
 import type ExportDownload from './ExportDownload';
 import type ExportTemplate from './ExportTemplate';
@@ -306,7 +308,9 @@ export type {
     CopyPolicySettings,
     WorkspaceCardsList,
     ExpenseRule,
+    ExpensifyCardManualBilling,
     ExpensifyCardSettings,
+    ExpensifyCardSettlementPreview,
     ExpensifyCardSettingsBase,
     NestedExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,

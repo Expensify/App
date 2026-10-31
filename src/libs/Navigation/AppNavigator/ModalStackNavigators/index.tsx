@@ -1159,6 +1159,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/DynamicWorkspaceSettlementAccountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementFrequencyPage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTLE_BALANCE]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettleBalancePage').default,
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTLE_BALANCE_CONFIRMATION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettleBalanceConfirmationPage').default,
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelBillingSettlementAccountPage').default,
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelBillingSettlementFrequencyPage').default,
     [SCREENS.WORKSPACE.TRAVEL_SETTINGS_MONTHLY_LIMIT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelBillingMonthlyLimitPage').default,

@@ -479,6 +479,8 @@ const WORKSPACE_TO_RHP: Partial<Record<keyof WorkspaceSplitNavigatorParamList, s
         // DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT is deliberately NOT listed here. It is a dynamic route that also opens from the card reconciliation account page,
         // so pinning it to Expensify Card would force Expensify Card underneath after a refresh even when opened from Accounting. Leaving it out lets the base path decide.
         SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY,
+        SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTLE_BALANCE,
+        SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTLE_BALANCE_CONFIRMATION,
         SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED,
         SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL,
         SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_SELECTION,

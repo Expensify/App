@@ -74,6 +74,7 @@ export type {NetSuiteTokenInputForm} from './NetSuiteTokenInputForm';
 export type {NetSuiteCustomFormIDForm} from './NetSuiteCustomFormIDForm';
 export type {SearchAdvancedFiltersForm} from './SearchAdvancedFiltersForm';
 export type {EditExpensifyCardLimitForm} from './EditExpensifyCardLimitForm';
+export type {SettleExpensifyCardBalanceForm} from './SettleExpensifyCardBalanceForm';
 export type {EditTravelBillingMonthlyLimitForm} from './EditTravelBillingMonthlyLimitForm';
 export type {TravelLegalEntityTaxIDForm} from './TravelLegalEntityTaxIDForm';
 export type {default as TextPickerModalForm} from './TextPickerModalForm';

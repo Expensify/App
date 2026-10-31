@@ -4130,6 +4130,14 @@ const ROUTES = {
         route: 'workspaces/:policyID/expensify-card/settings/frequency',
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/settings/frequency` as const,
     },
+    WORKSPACE_EXPENSIFY_CARD_SETTLE_BALANCE: {
+        route: 'workspaces/:policyID/expensify-card/settle-balance',
+        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/settle-balance` as const,
+    },
+    WORKSPACE_EXPENSIFY_CARD_SETTLE_BALANCE_CONFIRMATION: {
+        route: 'workspaces/:policyID/expensify-card/settle-balance/confirm',
+        getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/settle-balance/confirm` as const,
+    },
     WORKSPACE_COMPANY_CARDS_SETTINGS: {
         route: 'workspaces/:policyID/company-cards/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/settings` as const,

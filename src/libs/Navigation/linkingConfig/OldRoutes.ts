@@ -171,6 +171,7 @@ const oldRoutes: Record<string, string> = {
     '/workspaces/*/expensify-card/choose-bank-account*': '/workspaces/$1/expensify-card/choose-bank-account$2',
     '/workspaces/*/expensify-card/select-feed*': '/workspaces/$1/expensify-card/select-feed$2',
     '/workspaces/*/expensify-card/issue-new*': '/workspaces/$1/expensify-card/issue-new$2',
+    '/workspaces/*/expensify-card/settle-balance*': '/workspaces/$1/expensify-card/settle-balance$2',
     '/workspaces/*/expensify-card/*/work-email': '/workspaces/$1/expensify-card/$2/work-email',
     '/workspaces/*/expensify-card/*/verify-work-email': '/workspaces/$1/expensify-card/$2/verify-work-email',
     '/workspaces/*/expensify-card/*': '/workspaces/$1/expensify-card/card-details/$2',

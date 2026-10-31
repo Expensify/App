@@ -7007,10 +7007,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             currentBalance: 'Τρέχον υπόλοιπο',
             currentBalanceDescription:
                 'Το τρέχον υπόλοιπο είναι το άθροισμα όλων των καταχωρημένων συναλλαγών της Κάρτας Expensify που έχουν πραγματοποιηθεί από την ημερομηνία της τελευταίας εκκαθάρισης.',
-            balanceWillBeSettledOn: (settlementDate: string) => `Το υπόλοιπο θα διακανονιστεί στις ${settlementDate}`,
             settleBalance: 'Εξόφληση υπολοίπου',
-            settleBalanceConfirmationTitle: 'Εξόφληση υπολοίπου;',
-            settleBalanceConfirmationPrompt: 'Αυτό θα εξοφλήσει το τρέχον υπόλοιπό σας την επόμενη εργάσιμη ημέρα. Μόλις ολοκληρωθεί, το ποσό θα προστεθεί ξανά στο υπόλοιπο όριό σας.',
             cardLimit: 'Όριο κάρτας',
             remainingLimit: 'Υπόλοιπο ορίου',
             requestLimitIncrease: 'Αίτημα αύξησης ορίου',
@@ -7085,6 +7082,27 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             remaining: 'Υπόλοιπο',
             noCardFeedsAvailable: 'Δεν υπάρχουν διαθέσιμες ροές καρτών',
             noCardFeedsAvailableDescription: 'Δεν υπάρχουν διαθέσιμες ροές καρτών για αυτόν τον χώρο εργασίας.',
+            fullBalanceWillBeSettledOn: (settlementDate: string) => `Το πλήρες υπόλοιπο θα εξοφληθεί στις ${settlementDate}`,
+            partialBalanceWillBeSettledOn: (amount: string, settlementDate: string) => `${amount} θα εκκαθαριστεί στις ${settlementDate}`,
+            settleBalanceDescription: 'Επιλέξτε πόσο από το τρέχον υπόλοιπό σας θα εξοφλήσετε την επόμενη εργάσιμη ημέρα.',
+            settleCurrentBalance: 'Εξοφλήστε το τρέχον υπόλοιπο',
+            settlePartialBalance: 'Εξόφληση μερικού υπολοίπου',
+            settlePartialBalanceAmount: 'Ποσό προς εκκαθάριση',
+            settleBalanceAmountAboveMaximum: (maximum: string) => `Εισαγάγετε ένα ποσό έως ${maximum}`,
+            settleFullBalanceConfirmation:
+                'Αυτό θα εξοφλήσει το τρέχον υπόλοιπό σας την επόμενη εργάσιμη ημέρα. Μόλις ολοκληρωθεί με επιτυχία, το ποσό θα προστεθεί ξανά στο διαθέσιμο όριό σας.',
+            settlePartialBalanceConfirmation: (amount: string) =>
+                `Αυτό θα τακτοποιήσει ${amount} την επόμενη εργάσιμη ημέρα. Μόλις ολοκληρωθεί με επιτυχία, το ποσό θα προστεθεί ξανά στο υπόλοιπο ορίου σας.`,
+            settlePartialBalanceRounded: (requestedAmount: string, roundedAmount: string) =>
+                `Στρογγυλοποιήσαμε το ποσό ${requestedAmount} προς τα πάνω σε ${roundedAmount} ώστε ο διακανονισμός να αντιστοιχεί σε ακέραιες συναλλαγές.`,
+            settlePartialBalanceExact: 'Δεν απαιτήθηκε στρογγυλοποίηση, αυτό το ποσό αντιστοιχεί σε ολόκληρες συναλλαγές.',
+            settlePartialBalanceEverything: 'Αυτό καλύπτει όλα όσα μπορούν να τακτοποιηθούν τώρα.',
+            settleBalanceError: 'Δεν μπορέσαμε να προγραμματίσουμε τον διακανονισμό. Παρακαλούμε δοκιμάστε ξανά.',
+            settleBalanceFailedSettlementError: 'Δεν μπορείτε να εξοφλήσετε μερικό υπόλοιπο όσο μια προηγούμενη εκκαθάριση έχει αποτύχει.',
+            settleBalanceAlreadyQueuedError: 'Μια τακτοποίηση είναι ήδη σε αναμονή για αυτόν τον χώρο εργασίας.',
+            settlementFrequencyPartialWarningTitle: 'Αλλαγή σε ημερήσιο διακανονισμό;',
+            settlementFrequencyPartialWarningPrompt: (amount: string) =>
+                `Έχετε προγραμματίσει μια μερική εκκαθάριση ποσού ${amount}. Αν αλλάξετε σε ημερήσια εκκαθάριση, το πλήρες υπόλοιπό σας θα εκκαθαριστεί στην επόμενη ημερήσια εκτέλεση.`,
         },
         categories: {
             deleteCategories: 'Διαγραφή κατηγοριών',

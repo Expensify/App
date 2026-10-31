@@ -1,16 +1,20 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
-import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings, getQueuedExpensifyCardSettlement} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -36,7 +40,13 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
+    const {showConfirmModal} = useConfirmModal();
+    const {convertToDisplayString} = useCurrencyListActions();
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
+
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${defaultFundID}`);
+    const queuedSettlement = getQueuedExpensifyCardSettlement(cardManualBilling);
     const programKey = getCardProgramKey(cardSettings);
     const settings = getCardSettings(cardSettings, programKey);
 
@@ -77,10 +87,33 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
         Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS.getRoute(policyID));
     };
 
+    const confirmSettlementFrequency = () => {
+        // Daily settlement has no notion of a partial amount, so a queued partial settlement turns into a full one on the next run
+        const isSwitchingToDailyWithQueuedPartialSettlement =
+            currentFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY && selectedFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && queuedSettlement.isPartial;
+        if (!isSwitchingToDailyWithQueuedPartialSettlement) {
+            saveSettlementFrequency();
+            return;
+        }
+        showConfirmModal({
+            title: translate('workspace.expensifyCard.settlementFrequencyPartialWarningTitle'),
+            prompt: translate('workspace.expensifyCard.settlementFrequencyPartialWarningPrompt', convertToDisplayString(queuedSettlement.amount, currency)),
+            confirmText: translate('common.save'),
+            cancelText: translate('common.cancel'),
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+            shouldEnableNewFocusManagement: true,
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            saveSettlementFrequency();
+        });
+    };
+
     const confirmButtonOptions = {
         showButton: true,
         text: translate('common.save'),
-        onConfirm: saveSettlementFrequency,
+        onConfirm: confirmSettlementFrequency,
         isDisabled: currentFrequency === selectedFrequency,
     };
 

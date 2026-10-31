@@ -6856,11 +6856,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             limit: 'Limite',
             currentBalance: 'Saldo attuale',
             currentBalanceDescription: 'Il saldo attuale è la somma di tutte le transazioni contabilizzate della Carta Expensify che si sono verificate dalla data dell’ultima liquidazione.',
-            balanceWillBeSettledOn: (settlementDate: string) => `Il saldo sarà regolato il ${settlementDate}`,
             settleBalance: 'Saldo da saldare',
-            settleBalanceConfirmationTitle: 'Saldare il saldo?',
-            settleBalanceConfirmationPrompt:
-                'Questa operazione salderà il tuo saldo attuale il giorno lavorativo successivo. Una volta completata, l’importo verrà aggiunto nuovamente al tuo limite rimanente.',
             cardLimit: 'Limite carta',
             remaining: 'Rimanente',
             remainingLimit: 'Limite rimanente',
@@ -6934,6 +6930,27 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             csvColumnLimit: 'Limite',
             noCardFeedsAvailable: 'Nessun feed carta disponibile',
             noCardFeedsAvailableDescription: 'Non sono disponibili flussi di carte per questo spazio di lavoro.',
+            fullBalanceWillBeSettledOn: (settlementDate: string) => `L’intero saldo sarà saldato il ${settlementDate}`,
+            partialBalanceWillBeSettledOn: (amount: string, settlementDate: string) => `${amount} verrà saldato il ${settlementDate}`,
+            settleBalanceDescription: 'Scegli quanto del tuo saldo attuale saldare il prossimo giorno lavorativo.',
+            settleCurrentBalance: 'Saldo attuale da regolare',
+            settlePartialBalance: 'Regola saldo parziale',
+            settlePartialBalanceAmount: 'Importo da saldare',
+            settleBalanceAmountAboveMaximum: (maximum: string) => `Inserisci un importo fino a ${maximum}`,
+            settleFullBalanceConfirmation:
+                'Questo estinguerà il tuo saldo attuale nel giorno lavorativo successivo. Una volta completata l’operazione, l’importo verrà riaggiunto al tuo limite residuo.',
+            settlePartialBalanceConfirmation: (amount: string) =>
+                `Questo salderà ${amount} il giorno lavorativo successivo. Una volta riuscita l’operazione, l’importo verrà aggiunto nuovamente al tuo limite residuo.`,
+            settlePartialBalanceRounded: (requestedAmount: string, roundedAmount: string) =>
+                `Abbiamo arrotondato ${requestedAmount} a ${roundedAmount} così che il saldo corrisponda a transazioni intere.`,
+            settlePartialBalanceExact: 'Non è stato necessario alcun arrotondamento, questo importo corrisponde interamente alle transazioni.',
+            settlePartialBalanceEverything: 'Questo copre tutto ciò che può essere saldato in questo momento.',
+            settleBalanceError: 'Non siamo riusciti a mettere in coda il regolamento. Riprova.',
+            settleBalanceFailedSettlementError: 'Non puoi saldare un saldo parziale mentre una precedente chiusura è non riuscita.',
+            settleBalanceAlreadyQueuedError: 'Una liquidazione è già in coda per questo spazio di lavoro.',
+            settlementFrequencyPartialWarningTitle: 'Passare alla liquidazione giornaliera?',
+            settlementFrequencyPartialWarningPrompt: (amount: string) =>
+                `Hai messo in coda un regolamento parziale di ${amount}. Passando al regolamento giornaliero, il tuo saldo completo verrà regolato nella prossima esecuzione giornaliera.`,
         },
         categories: {
             deleteCategories: 'Elimina categorie',

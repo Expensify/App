@@ -962,6 +962,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY.route,
                         },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTLE_BALANCE]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTLE_BALANCE.route,
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTLE_BALANCE_CONFIRMATION]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTLE_BALANCE_CONFIRMATION.route,
+                        },
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path,
 
                         [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path,

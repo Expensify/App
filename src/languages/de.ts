@@ -6905,11 +6905,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             limit: 'Limit',
             currentBalance: 'Aktueller Kontostand',
             currentBalanceDescription: 'Der aktuelle Saldo ist die Summe aller verbuchten Expensify Karte-Transaktionen, die seit dem letzten Abrechnungsdatum erfolgt sind.',
-            balanceWillBeSettledOn: (settlementDate: string) => `Der Saldo wird am ${settlementDate} ausgeglichen.`,
             settleBalance: 'Saldo ausgleichen',
-            settleBalanceConfirmationTitle: 'Saldo ausgleichen?',
-            settleBalanceConfirmationPrompt:
-                'Dadurch wird dein aktueller Saldo am nächsten Werktag ausgeglichen. Nach erfolgreicher Abwicklung wird der Betrag deinem verbleibenden Limit wieder gutgeschrieben.',
             cardLimit: 'Kartenlimit',
             remaining: 'Verbleibend',
             remainingLimit: 'Verbleibendes Limit',
@@ -6982,6 +6978,27 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             csvColumnLimit: 'Limit',
             noCardFeedsAvailable: 'Keine Kartenfeeds verfügbar',
             noCardFeedsAvailableDescription: 'Für diesen Workspace sind keine Kartenfeeds verfügbar.',
+            fullBalanceWillBeSettledOn: (settlementDate: string) => `Der vollständige Saldo wird am ${settlementDate} ausgeglichen`,
+            partialBalanceWillBeSettledOn: (amount: string, settlementDate: string) => `${amount} wird am ${settlementDate} ausgeglichen`,
+            settleBalanceDescription: 'Wählen Sie, wie viel von Ihrem aktuellen Guthaben Sie am nächsten Werktag ausgleichen möchten.',
+            settleCurrentBalance: 'Aktuellen Saldo ausgleichen',
+            settlePartialBalance: 'Teilbetrag ausgleichen',
+            settlePartialBalanceAmount: 'Zu begleichender Betrag',
+            settleBalanceAmountAboveMaximum: (maximum: string) => `Geben Sie einen Betrag bis zu ${maximum} ein`,
+            settleFullBalanceConfirmation:
+                'Dadurch wird Ihr aktueller Saldo am nächsten Geschäftstag ausgeglichen. Nach erfolgreicher Ausführung wird der Betrag wieder zu Ihrem verbleibenden Limit hinzugefügt.',
+            settlePartialBalanceConfirmation: (amount: string) =>
+                `Dies wird ${amount} am nächsten Werktag ausgleichen. Sobald dies erfolgreich war, wird der Betrag wieder zu Ihrem verbleibenden Limit hinzugefügt.`,
+            settlePartialBalanceRounded: (requestedAmount: string, roundedAmount: string) =>
+                `Wir haben ${requestedAmount} auf ${roundedAmount} aufgerundet, damit der Ausgleich ganzen Transaktionen entspricht.`,
+            settlePartialBalanceExact: 'Es war keine Rundung erforderlich, dieser Betrag entspricht vollständigen Transaktionen.',
+            settlePartialBalanceEverything: 'Dies umfasst alles, was im Moment beglichen werden kann.',
+            settleBalanceError: 'Wir konnten die Abrechnung nicht in die Warteschlange stellen. Bitte versuchen Sie es erneut.',
+            settleBalanceFailedSettlementError: 'Sie können einen Teilbetrag nicht ausgleichen, solange eine vorherige Abrechnung fehlgeschlagen ist.',
+            settleBalanceAlreadyQueuedError: 'Für diesen Workspace ist bereits eine Abrechnung in der Warteschlange.',
+            settlementFrequencyPartialWarningTitle: 'Zur täglichen Abrechnung wechseln?',
+            settlementFrequencyPartialWarningPrompt: (amount: string) =>
+                `Sie haben eine Teilabrechnung über ${amount} eingereiht. Wenn Sie zur täglichen Abrechnung wechseln, wird Ihr gesamter Saldo stattdessen beim nächsten täglichen Lauf abgerechnet.`,
         },
         categories: {
             deleteCategories: 'Kategorien löschen',
