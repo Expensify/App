@@ -1,7 +1,9 @@
+import useActionAvatar from '@components/Avatar/connected/useActionAvatar';
+import DiagonalAvatars from '@components/Avatar/layouts/DiagonalAvatars';
+import SingleAvatar from '@components/Avatar/layouts/SingleAvatar';
+import SubscriptAvatar from '@components/Avatar/layouts/SubscriptAvatar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
-import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -80,12 +82,21 @@ function ReportActionItemSingle({
     const {translate, dateFnsLocale} = useLocalize();
     const isOnSearch = useIsOnSearch();
 
-    const {avatarType, avatars, details, source, reportPreviewSenderID} = useReportActionAvatars({report: potentialIOUReport ?? report, action, shouldUseRealActor: isOnSearch});
-
-    const reportID = source.chatReport?.reportID;
-    const iouReportID = source.iouReport?.reportID;
-
-    const [primaryAvatar, secondaryAvatar] = avatars;
+    const {
+        avatarType,
+        layout,
+        primaryAvatar,
+        secondaryAvatar,
+        accountID,
+        actorPersonalDetails,
+        actedForAccountID,
+        isWorkspaceActor,
+        shouldDisplayAllActors,
+        actorHint,
+        reportPreviewSenderID,
+        chatReportID,
+        iouReportID,
+    } = useActionAvatar({action, report: potentialIOUReport ?? report, shouldUseRealActor: isOnSearch});
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
     const mainAccountID = delegateAccountID ? (reportPreviewSenderID ?? potentialIOUReport?.ownerAccountID ?? action?.childOwnerAccountID) : undefined;
@@ -93,7 +104,7 @@ function ReportActionItemSingle({
 
     const hasVacationDelegate = !!getVacationer(action) || !!getManagerOnVacation(action);
 
-    const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar.name}` : primaryAvatar.name;
+    const headingText = avatarType === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE ? `${primaryAvatar.name} & ${secondaryAvatar?.name ?? ''}` : primaryAvatar.name;
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
@@ -108,11 +119,11 @@ function ReportActionItemSingle({
         : action?.person;
 
     const showActorDetails = () => {
-        if (details.isWorkspaceActor) {
-            showWorkspaceDetails(reportID);
+        if (isWorkspaceActor) {
+            showWorkspaceDetails(chatReportID);
         } else {
             // Show participants page IOU report preview
-            if (iouReportID && details.shouldDisplayAllActors) {
+            if (iouReportID && shouldDisplayAllActors) {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS.path));
                 return;
             }
@@ -120,9 +131,9 @@ function ReportActionItemSingle({
         }
     };
 
-    const optimisticCheckAccountID = delegateAccountID ? Number(delegateAccountID) : (details.accountID ?? CONST.DEFAULT_NUMBER_ID);
+    const optimisticCheckAccountID = delegateAccountID ? Number(delegateAccountID) : accountID;
     const [isOptimistic] = usePersonalDetail(optimisticCheckAccountID, isPersonalDetailOptimistic);
-    const shouldDisableDetailPage = CONST.RESTRICTED_ACCOUNT_IDS.includes(details.accountID ?? CONST.DEFAULT_NUMBER_ID) || (!details.isWorkspaceActor && !!isOptimistic);
+    const shouldDisableDetailPage = CONST.RESTRICTED_ACCOUNT_IDS.includes(accountID) || (!isWorkspaceActor && !!isOptimistic);
 
     const getBackgroundColor = () => {
         if (isActive) {
@@ -134,16 +145,44 @@ function ReportActionItemSingle({
         return theme.sidebar;
     };
 
+    let avatarElement = (
+        <SingleAvatar
+            avatar={primaryAvatar}
+            size={CONST.AVATAR_SIZE.DEFAULT}
+            containerStyles={styles.actionAvatar}
+        />
+    );
+    if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT) {
+        avatarElement = (
+            <SubscriptAvatar
+                primaryAvatar={primaryAvatar}
+                secondaryAvatar={secondaryAvatar}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+                containerStyle={styles.mr0}
+                backdropColor={getBackgroundColor()}
+            />
+        );
+    } else if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL && secondaryAvatar) {
+        avatarElement = (
+            <DiagonalAvatars
+                size={CONST.AVATAR_SIZE.DEFAULT}
+                icons={[primaryAvatar, secondaryAvatar]}
+                isInReportAction
+                backdropColor={getBackgroundColor()}
+            />
+        );
+    }
+
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
-    const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
+    const hasEmojiStatus = !shouldDisplayAllActors && actorPersonalDetails?.status?.emojiCode;
     const formattedDate = DateUtils.getStatusUntilDate(
         translate,
         dateFnsLocale,
-        details.status?.clearAfter ?? '',
-        details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
+        actorPersonalDetails?.status?.clearAfter ?? '',
+        actorPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected,
         currentSelectedTimezone,
     );
-    const statusText = details.status?.text ?? '';
+    const statusText = actorPersonalDetails?.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
     return (
@@ -154,22 +193,11 @@ function ReportActionItemSingle({
                 onPressOut={ControlSelection.unblock}
                 onPress={showActorDetails}
                 disabled={shouldDisableDetailPage}
-                accessibilityLabel={details.actorHint}
+                accessibilityLabel={actorHint}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON}
             >
-                <OfflineWithFeedback pendingAction={details.pendingFields?.avatar ?? undefined}>
-                    <ReportActionAvatars
-                        singleAvatarContainerStyle={styles.actionAvatar}
-                        subscriptAvatarContainerStyle={styles.mr0}
-                        backdropColor={getBackgroundColor()}
-                        isInReportAction
-                        reportID={iouReportID}
-                        chatReportID={source.iouReport?.chatReportID ?? reportID}
-                        action={action}
-                        shouldUseRealActor={isOnSearch}
-                    />
-                </OfflineWithFeedback>
+                <OfflineWithFeedback pendingAction={actorPersonalDetails?.pendingFields?.avatar ?? undefined}>{avatarElement}</OfflineWithFeedback>
             </PressableWithoutFeedback>
             <View style={[styles.chatItemRight]}>
                 {showHeader ? (
@@ -180,7 +208,7 @@ function ReportActionItemSingle({
                             onPressOut={ControlSelection.unblock}
                             onPress={showActorDetails}
                             disabled={shouldDisableDetailPage}
-                            accessibilityLabel={details.actorHint}
+                            accessibilityLabel={actorHint}
                             role={CONST.ROLE.BUTTON}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_SINGLE_ACTOR_BUTTON}
                         >
@@ -188,7 +216,7 @@ function ReportActionItemSingle({
                                 <ReportActionItemFragment
                                     // eslint-disable-next-line react/no-array-index-key
                                     key={`person-${action?.reportActionID}-${index}`}
-                                    accountID={Number(details.delegateAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
+                                    accountID={Number(actedForAccountID ?? primaryAvatar.id ?? CONST.DEFAULT_NUMBER_ID)}
                                     fragment={{...fragment, type: fragment.type ?? '', text: fragment.text ?? ''}}
                                     delegateAccountID={delegateAccountID}
                                     isSingleLine
@@ -203,7 +231,7 @@ function ReportActionItemSingle({
                                 <Text
                                     style={styles.userReportStatusEmoji}
                                     numberOfLines={1}
-                                >{`${details.status?.emojiCode}`}</Text>
+                                >{`${actorPersonalDetails?.status?.emojiCode}`}</Text>
                             </Tooltip>
                         )}
                         <ReportActionItemDate created={action?.created ?? ''} />
@@ -212,7 +240,7 @@ function ReportActionItemSingle({
                 {!!delegateAccountID && (
                     <DelegateOnBehalfOfText
                         mainAccountID={mainAccountID}
-                        fallbackLogin={details.login}
+                        fallbackLogin={actorPersonalDetails?.login}
                     />
                 )}
                 {!!humanAgentAccountID && <HumanAgentAssistedByText action={action} />}

@@ -101,6 +101,56 @@ describe('ReportActionItemSingle', () => {
         });
     });
 
+    describe('when the action is an IOU report preview', () => {
+        const OWNER_ACCOUNT_ID = 11;
+        const MANAGER_ACCOUNT_ID = 12;
+        const dm: Report = {reportID: '700', type: CONST.REPORT.TYPE.CHAT};
+        const iouReport: Report = {
+            reportID: '701',
+            type: CONST.REPORT.TYPE.IOU,
+            chatReportID: '700',
+            parentReportID: '700',
+            parentReportActionID: '702',
+            ownerAccountID: OWNER_ACCOUNT_ID,
+            managerID: MANAGER_ACCOUNT_ID,
+        };
+        const reportPreview = {
+            reportActionID: '702',
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            actorAccountID: OWNER_ACCOUNT_ID,
+            created: '2024-01-01 00:00:00',
+            childReportID: '701',
+            originalMessage: {linkedReportID: '701'},
+        } as ReportAction;
+
+        it('names both the manager and the owner when the report has no single sender', async () => {
+            // Given an IOU report both people added expenses to, previewed in their DM
+            await act(async () => {
+                await Promise.all([
+                    Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false),
+                    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                        [OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: 'owner@test.com', displayName: 'Owner Person'},
+                        [MANAGER_ACCOUNT_ID]: {accountID: MANAGER_ACCOUNT_ID, login: 'manager@test.com', displayName: 'Manager Person'},
+                    }),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${dm.reportID}`, dm),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${dm.reportID}`, {[reportPreview.reportActionID]: reportPreview}),
+                ]);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When its preview row renders
+            LHNTestUtils.getDefaultRenderedReportActionItemSingle(dm, reportPreview, undefined, iouReport);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the header names both people and the avatars sit diagonally
+            await waitFor(() => {
+                expect(screen.getByText('Manager Person & Owner Person')).toBeOnTheScreen();
+            });
+            expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeOnTheScreen();
+        });
+    });
+
     describe('moderation flagging', () => {
         const CHILD_TEST_ID = 'children-under-flagged-wrapper';
 
