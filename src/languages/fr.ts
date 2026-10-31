@@ -10775,7 +10775,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Depuis le début de l’année',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Cette année',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '12 derniers mois',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Cette semaine',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Semaine dernière',

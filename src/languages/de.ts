@@ -10748,7 +10748,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nie',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Diesen Monat',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Laufendes Jahr',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Dieses Jahr',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Letzte 12 Monate',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Diese Woche',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Letzte Woche',
