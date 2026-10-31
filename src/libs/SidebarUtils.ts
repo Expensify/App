@@ -53,6 +53,7 @@ import {
     getParticipantsAccountIDsForDisplay,
     getPendingDeleteMemberAccountIDs,
     getReceiptUploadErrorReason,
+    getReportLastVisibleActionCreated,
     getReportMetadata,
     getReportNotificationPreference,
     getReportParticipantsTitle,
@@ -351,7 +352,7 @@ function getReportsToDisplayInLHN({
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const oneTransactionThreadReport = getOneTransactionThreadReportForLHN(report, reports, reportAttributes);
             const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
-            const lastVisibleActionCreatedForInboxTab = getLastVisibleActionCreatedForInboxTab(report, oneTransactionThreadReport);
+            const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             reportsToDisplay[reportID] =
                 requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport
                     ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab}
@@ -447,7 +448,7 @@ function updateReportsToDisplayInLHN({
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
             const oneTransactionThreadReport = getOneTransactionThreadReportForLHN(report, reports, reportAttributes);
             const isUnreadReport = getIsUnreadReportForInboxTab(report, oneTransactionThreadReport, isReportArchived, reportAttributes?.[report?.reportID]?.isEmpty);
-            const lastVisibleActionCreatedForInboxTab = getLastVisibleActionCreatedForInboxTab(report, oneTransactionThreadReport);
+            const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             const hasFlags = requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport;
             const existingEntry = displayedReports[reportID];
 
@@ -1043,15 +1044,6 @@ function getOneTransactionThreadReportForLHN(report: Report, reports: OnyxCollec
         return undefined;
     }
     return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-}
-
-/** Gets the newest visible message time of a report, counting its hidden one-transaction thread, where comments on a single-expense report land. */
-function getLastVisibleActionCreatedForInboxTab(report: Report, oneTransactionThreadReport: OnyxEntry<Report>): string | undefined {
-    const threadLastVisibleActionCreated = oneTransactionThreadReport?.lastVisibleActionCreated;
-    if (!threadLastVisibleActionCreated || (report.lastVisibleActionCreated ?? '') >= threadLastVisibleActionCreated) {
-        return report.lastVisibleActionCreated;
-    }
-    return threadLastVisibleActionCreated;
 }
 
 /** Whether a report belongs in the "To-do" Inbox tab: it has an outstanding GBR (requiresAttention) or RBR (errors). */

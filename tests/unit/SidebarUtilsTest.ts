@@ -4735,6 +4735,73 @@ describe('SidebarUtils', () => {
                 expect(result).not.toBe(displayedReports);
                 expect(result['0']).toBeUndefined();
             });
+
+            it('should update a single-expense report entry when only its transaction thread gets a newer message', () => {
+                // Given an unread single-expense report shown in the LHN, whose hidden transaction thread just got a newer comment.
+                // The entry is the same object as the report in the collection and its flags stay the same (hasErrorsOtherThanFailedReceipt is
+                // left unset, as shouldDisplayReportInLHN returns it only for reports with errors), so only the thread's message time differs.
+                const oldThreadLastVisibleActionCreated = '2025-01-20 12:00:00.000';
+                const newThreadLastVisibleActionCreated = '2025-01-20 13:00:00.000';
+                const expenseReport: ReportsToDisplayInLHN[string] = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastReadTime: '2025-01-20 10:00:00.000',
+                    lastVisibleActionCreated: '2025-01-20 11:00:00.000',
+                    lastActorAccountID: 18921695,
+                    requiresAttention: false,
+                    isUnreadReport: true,
+                    lastVisibleActionCreatedForInboxTab: oldThreadLastVisibleActionCreated,
+                };
+                const transactionThread: Report = {
+                    ...createRandomReport(2, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: expenseReport.reportID,
+                    lastReadTime: '2025-01-20 10:00:00.000',
+                    lastVisibleActionCreated: newThreadLastVisibleActionCreated,
+                    lastActorAccountID: 18921695,
+                };
+                const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+                const displayedReports: ReportsToDisplayInLHN = {[expenseReportKey]: expenseReport};
+                const reports: OnyxCollection<Report> = {
+                    [expenseReportKey]: expenseReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                };
+                const reportAttributes: ReportAttributesDerivedValue['reports'] = {
+                    [expenseReport.reportID]: {
+                        reportName: '',
+                        isEmpty: false,
+                        brickRoadStatus: undefined,
+                        requiresAttention: false,
+                        reportErrors: {},
+                        oneTransactionThreadReportID: transactionThread.reportID,
+                    },
+                };
+
+                // When the expense report is rechecked because its transaction thread changed
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: [expenseReportKey],
+                    currentReportId: expenseReport.reportID,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    draftComments: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+
+                // Then the entry is replaced with the thread's newer message time, so the Inbox tab stale-unread check counts the new comment
+                expect(result).not.toBe(displayedReports);
+                expect(result[expenseReportKey]?.isUnreadReport).toBe(true);
+                expect(result[expenseReportKey]?.lastVisibleActionCreatedForInboxTab).toBe(newThreadLastVisibleActionCreated);
+            });
         });
 
         describe('getReportsToDisplayInLHN', () => {
