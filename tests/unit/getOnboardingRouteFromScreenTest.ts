@@ -84,8 +84,10 @@ describe('onboarding route boundaries', () => {
         try {
             if (kind === 'absent') {
                 Reflect.deleteProperty(normalizedConfigs, screen);
+            } else if (kind === 'undefined') {
+                Reflect.set(normalizedConfigs, screen, undefined);
             } else {
-                normalizedConfigs[screen] = kind === 'undefined' ? undefined : {...original, path: ''};
+                normalizedConfigs[screen] = {...original, path: ''};
             }
 
             // When a typed fallback base exists but the normalized path is unavailable

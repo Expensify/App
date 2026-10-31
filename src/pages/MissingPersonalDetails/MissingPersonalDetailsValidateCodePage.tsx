@@ -37,7 +37,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {getSubPageValues} from './utils';
 
@@ -54,7 +54,7 @@ function MissingPersonalDetailsValidateCodePage({
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
-    const targetCardSelector = useCallback((cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined), [cardID]);
+    const targetCardSelector = (cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined);
     const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
     const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
 
@@ -94,27 +94,24 @@ function MissingPersonalDetailsValidateCodePage({
         clearPersonalDetailsErrors();
     };
 
-    const values = useMemo(() => normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
+    const values = normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
 
-    const handleSubmitForm = useCallback(
-        (validateCode: string) => {
-            if (isVirtualCard) {
-                setPersonalDetailsAndRevealExpensifyCard(buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode), Number(cardID), validateCode)
-                    .then((details) => {
-                        setRevealedVirtualCardDetails(cardID, details);
-                        clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
-                        Navigation.closeRHPFlow();
-                        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
-                    })
-                    .catch((error: TranslationPaths) => {
-                        setRevealCardError(getMicroSecondOnyxErrorWithTranslationKey(error));
-                    });
-                return;
-            }
-            updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
-        },
-        [countryCode, values, isVirtualCard, cardID],
-    );
+    const handleSubmitForm = (validateCode: string) => {
+        if (isVirtualCard) {
+            setPersonalDetailsAndRevealExpensifyCard(buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode), Number(cardID), validateCode)
+                .then((details) => {
+                    setRevealedVirtualCardDetails(cardID, details);
+                    clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
+                    Navigation.closeRHPFlow();
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID), ROUTES.SETTINGS_WALLET));
+                })
+                .catch((error: TranslationPaths) => {
+                    setRevealCardError(getMicroSecondOnyxErrorWithTranslationKey(error));
+                });
+            return;
+        }
+        updatePersonalDetailsAndShipExpensifyCards(values, validateCode, countryCode);
+    };
 
     // The validate code generated here must carry the reasonCode of the command handleSubmitForm will
     // call: virtual cards verify via SetPersonalDetailsAndRevealExpensifyCard (reveal_card_details)

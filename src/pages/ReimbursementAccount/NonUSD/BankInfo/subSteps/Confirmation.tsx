@@ -16,7 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 import {SafeString} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const countryNames = Object.entries(CONST.ALL_COUNTRIES);
@@ -28,33 +28,29 @@ function Confirmation({onNext, onMove, isEditing, corpayFields}: BankInfoSubStep
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const formFields = corpayFields?.formFields;
-    const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
+    const values = getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount);
 
-    const summaryItems = useMemo(
-        () =>
-            (formFields ?? []).map((field) => {
-                let title: string | undefined = SafeString(values[inputKeys[field.id]]);
+    const summaryItems = (formFields ?? []).map((field) => {
+        let title: string | undefined = SafeString(values[inputKeys[field.id]]);
 
-                if (field.id === ACCOUNT_HOLDER_COUNTRY) {
-                    title = countryNames.find(([code]) => code === title)?.[1];
+        if (field.id === ACCOUNT_HOLDER_COUNTRY) {
+            title = countryNames.find(([code]) => code === title)?.[1];
+        }
+
+        return {
+            id: field.id,
+            description: field.label,
+            title,
+            shouldShowRightIcon: true,
+            onPress: () => {
+                if (!field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)) {
+                    onMove(0);
+                } else {
+                    onMove(1);
                 }
-
-                return {
-                    id: field.id,
-                    description: field.label,
-                    title,
-                    shouldShowRightIcon: true,
-                    onPress: () => {
-                        if (!field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX)) {
-                            onMove(0);
-                        } else {
-                            onMove(1);
-                        }
-                    },
-                };
-            }),
-        [formFields, inputKeys, onMove, values],
-    );
+            },
+        };
+    });
 
     if (corpayFields?.isLoading) {
         return (
