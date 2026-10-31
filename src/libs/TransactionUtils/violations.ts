@@ -461,6 +461,9 @@ function hasViolation(
             violation.type === CONST.VIOLATION_TYPES.VIOLATION &&
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
             (violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION || !isIOUReport(iouReport)) &&
+            // The futureDate violation is re-evaluated against the current date, the same way shouldShowViolation does,
+            // so a hidden futureDate violation doesn't block submitting under strict rules.
+            (violation.name !== CONST.VIOLATIONS.FUTURE_DATE || DateUtils.isTransactionDateFuture(getCreated(transaction))) &&
             !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, iouReport, iouReportOwnerLogin, policy),
     );
 }
