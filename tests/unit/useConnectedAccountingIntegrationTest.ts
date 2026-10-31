@@ -228,5 +228,18 @@ describe('useConnectedAccountingIntegration', () => {
             // Then the subsidiary row is hidden, since switching the subsidiary cannot fix invalid credentials
             expect(descriptions).not.toContain('workspace.netsuite.subsidiary');
         });
+
+        it('should keep the Zoho Books organization row when the last sync failed with an authentication error', () => {
+            // Given a workspace connected to Zoho Books with two organizations whose last sync failed because the credentials are no longer valid
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+            mockSynchronizationError = 'Authentication failed';
+            mockIsAuthenticationError = true;
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(zohoBooksPolicy);
+
+            // Then the organization row is still shown, since the authentication rule leaves Zoho Books' existing behavior unchanged
+            expect(descriptions).toContain('workspace.zohoBooks.organization');
+        });
     });
 });
