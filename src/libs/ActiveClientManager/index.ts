@@ -1,4 +1,6 @@
 import {setModalVisibility} from '@libs/actions/Modal';
+import Log from '@libs/Log';
+import {setActiveTab} from '@libs/LogContext';
 
 import {setActiveClients} from '@userActions/ActiveClients';
 
@@ -49,6 +51,8 @@ Onyx.connectWithoutView({
         if (removed) {
             setActiveClients(activeClients);
         }
+
+        logActiveClientsChange();
     },
 });
 
@@ -73,6 +77,16 @@ const isClientTheLeader: IsClientTheLeader = () => {
 
     return lastActiveClient === clientID;
 };
+
+function logActiveClientsChange() {
+    setActiveTab({clientID, isLeader: isClientTheLeader()});
+
+    Log.info('[ActiveClientManager] Active clients changed', false, {
+        activeClientCount: activeClients.length,
+        leaderClientID: activeClients.at(-1) ?? 'null',
+        isThisClientLeader: isClientTheLeader(),
+    });
+}
 
 const cleanUpClientId = () => {
     isPromotingNewLeader = isClientTheLeader();

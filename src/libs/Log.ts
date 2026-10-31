@@ -9,6 +9,7 @@ import AppLogs from 'react-native-app-logs';
 import pkg from '../../package.json';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
+import {addLogContext} from './LogContext';
 import MainQueueStore from './Network/MainQueueStore';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
@@ -109,7 +110,13 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 
 // Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
 // callback methods are passed in here so we can decouple the logging library from the logging methods.
-const Log = new Logger({
+class ContextualLogger extends Logger {
+    add(...[message, ...rest]: Parameters<Logger['add']>) {
+        super.add(addLogContext(message), ...rest);
+    }
+}
+
+const Log = new ContextualLogger({
     serverLoggingCallback,
     clientLoggingCallback: (message, extraData) => {
         console.debug(message, extraData);
@@ -118,6 +125,7 @@ const Log = new Logger({
     isDebug: true,
     getContextEmail: getCurrentUserEmail,
 });
+
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 // eslint-disable-next-line no-restricted-properties
