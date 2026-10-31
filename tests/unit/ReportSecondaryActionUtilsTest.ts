@@ -118,6 +118,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/approvals'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/payments'),
     ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/expensifyTeam'),
     isPreferredExporter: jest.fn().mockReturnValue(true),
     hasAccountingConnections: jest.fn().mockReturnValue(true),
     isPolicyAdmin: jest.fn().mockReturnValue(true),
@@ -125,7 +126,8 @@ jest.mock('@libs/PolicyUtils', () => ({
     isPolicyAuditor: (...args: Parameters<typeof PolicyUtils.isPolicyAuditor>) => jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAuditor(...args),
     getValidConnectedIntegration: jest.fn().mockReturnValue('netsuite'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
-    isGroupPolicy: jest.fn().mockReturnValue(true),
+    // Answer from the policy type so tests can opt out with a personal policy, even when getTransactionDetails also reaches this mock
+    isGroupPolicy: jest.fn((policy?: Policy) => policy?.type !== 'personal'),
 }));
 
 describe('getSecondaryAction', () => {
@@ -6079,6 +6081,7 @@ describe('getSecondaryTransactionThreadActions', () => {
     });
 
     it('does not include the SPLIT option for a personal policy', async () => {
+        // Given a submitted expense report on a personal policy, where splitting is not allowed even for an admin
         const report = createMock<Report>({
             reportID: REPORT_ID,
             policyID: POLICY_ID,
@@ -6106,11 +6109,11 @@ describe('getSecondaryTransactionThreadActions', () => {
             },
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isGroupPolicy).mockReturnValueOnce(false);
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
+        // When the secondary actions for the transaction thread are computed
         const result = getSecondaryTransactionThreadActions({
             currentUserLogin: EMPLOYEE_EMAIL,
             currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -6124,6 +6127,8 @@ describe('getSecondaryTransactionThreadActions', () => {
             rules: undefined,
             cardList: undefined,
         });
+
+        // Then SPLIT is not offered, because only group policies support splitting expenses
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 

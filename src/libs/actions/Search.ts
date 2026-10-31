@@ -68,9 +68,8 @@ import {
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import {isReportEntry, savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {getExpenseReportIDs, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
@@ -1319,6 +1318,17 @@ function getBackendQueryJSON(queryJSON: Readonly<SearchQueryJSON>) {
           }
         : queryJSONWithoutFlatFilters;
     return {backendQueryJSON, limit};
+}
+
+/** The IDs of the expense reports in search data */
+function getExpenseReportIDs(data: SearchResults['data']): Record<string, boolean> {
+    const reportIDs: Record<string, boolean> = {};
+    for (const key of Object.keys(data)) {
+        if (isReportEntry(key) && isExpenseReport(data[key])) {
+            reportIDs[key.replace(ONYXKEYS.COLLECTION.REPORT, '')] = true;
+        }
+    }
+    return reportIDs;
 }
 
 function search({
@@ -2776,6 +2786,7 @@ export {
     getExportTemplates,
     getReportType,
     getTotalFormattedAmount,
+    getExpenseReportIDs,
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
     handlePreventSearchAPI,

@@ -28,8 +28,8 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
+import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
-import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
