@@ -834,9 +834,10 @@ describe('actions/IOU/Hold', () => {
                 delegateAccountID: undefined,
                 rules: undefined,
             });
-            await waitForBatchedUpdates();
 
             expect(unholdRequestSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: iouAction.childReportID, transactionReport: iouReport, report: transactionThread}));
+
+            await waitForBatchedUpdates();
 
             // Then an unhold action is added to the transaction thread and no navigation happens
             const threadActions = await getReportActions(transactionThread.reportID);
