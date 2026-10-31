@@ -718,6 +718,18 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('footerCurrency:eur');
         });
 
+        test('maps a typed year to date preset to this year', () => {
+            // Given a typed query on the deprecated year to date preset
+            const userQuery = 'type:expense date:year-to-date';
+
+            // When the typed query is rebuilt before it's submitted
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            // Then it uses this year, so the URL matches what the date picker shows and a saved search stores
+            expect(result).toContain(`date:${CONST.SEARCH.DATE_PRESETS.THIS_YEAR}`);
+            expect(result).not.toContain(CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE);
+        });
+
         test('rebuilds a single value containing a comma as one value', () => {
             expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant*:"Globex,Ltd"`);
             expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant*:"Globex,Ltd"`);

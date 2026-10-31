@@ -964,13 +964,9 @@ function getQueryHashWithoutFilters(query: SearchQueryJSON, exclude: ReadonlySet
     const flatFilters = query.flatFilters
         .map((filter) => {
             const filterKey = filter.key;
-            const isDateFilter = (DATE_FILTER_KEYS as readonly string[]).includes(filterKey);
-            const isReportField = filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX);
-            const filters = cloneDeep(filter.filters).map((queryFilter) => {
-                // The filter form reads equal-to report field values as dates and negated ones as text
-                const canBeDatePreset = isDateFilter || (isReportField && queryFilter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-                return canBeDatePreset ? {...queryFilter, value: normalizeDatePreset(queryFilter.value.toString())} : queryFilter;
-            });
+            const filters = cloneDeep(filter.filters).map((queryFilter) =>
+                canFilterValueBeDatePreset(filterKey, queryFilter.operator) ? {...queryFilter, value: normalizeDatePreset(queryFilter.value.toString())} : queryFilter,
+            );
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
@@ -1094,6 +1090,25 @@ function normalizeDatePreset(date: string): string {
 }
 
 /**
+ * Whether a filter value can hold a date preset. The filter form reads equal-to report field values as dates and negated ones as text.
+ */
+function canFilterValueBeDatePreset(filterKey: string, operator: ASTNode['operator']) {
+    return (
+        (DATE_FILTER_KEYS as readonly string[]).includes(filterKey) || (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX) && operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
+    );
+}
+
+/**
+ * Maps the deprecated Year to date preset to This year in a filter value that can hold a date preset
+ */
+function normalizeDatePresetFilterValue(filterKey: SyntaxFilterKey, filterValue: string | string[], operator: ASTNode['operator']): string | string[] {
+    if (!canFilterValueBeDatePreset(filterKey, operator)) {
+        return filterValue;
+    }
+    return Array.isArray(filterValue) ? filterValue.map(normalizeDatePreset) : normalizeDatePreset(filterValue);
+}
+
+/**
  * Maps the deprecated Year to date preset to This year in a query, so a search saved with it opens and saves with This year
  */
 function normalizeDatePresetsInQuery(query: SearchQueryString): SearchQueryString {
@@ -1103,17 +1118,7 @@ function normalizeDatePresetsInQuery(query: SearchQueryString): SearchQueryStrin
         return query;
     }
 
-    const normalizedQueryJSON = traverseAndUpdatedQuery(queryJSON, (filterKey, filterValue, operator) => {
-        // The filter form reads equal-to report field values as dates and negated ones as text
-        const isDateFilter =
-            (DATE_FILTER_KEYS as readonly string[]).includes(filterKey) ||
-            (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX) && operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-        if (!isDateFilter) {
-            return filterValue;
-        }
-        return Array.isArray(filterValue) ? filterValue.map(normalizeDatePreset) : normalizeDatePreset(filterValue);
-    });
-    return buildSearchQueryString(normalizedQueryJSON);
+    return buildSearchQueryString(traverseAndUpdatedQuery(queryJSON, normalizeDatePresetFilterValue));
 }
 
 /**
@@ -2811,6 +2816,7 @@ function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString,
 /**
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
+ * The deprecated Year to date preset is mapped to This year
  */
 function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     const queryJSON = buildSearchQueryJSON(query);
@@ -2820,7 +2826,8 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         return;
     }
 
-    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion, policies);
+    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[], operator: ASTNode['operator']) =>
+        normalizeDatePresetFilterValue(left, getUpdatedFilterValue(left, right, shouldSkipAmountConversion, policies), operator);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
     const rawFilterList = getRawFilterListFromQuery(query);
     const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
