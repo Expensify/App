@@ -12618,8 +12618,14 @@ const translations = {
         },
     },
     productMarketingWindow: {
-        heading: 'Connect Expensify to Claude',
-        body: 'Search, analyze, and summarize expense data directly in Claude.',
+        member: {
+            heading: 'Mileage on cruise control',
+            body: "Jump straight to your frequent trips and fix a trip's stop location without starting over.",
+        },
+        admin: {
+            heading: 'Mileage handled automatically',
+            body: 'Mileage rates that keep themselves current, plus total control over how trips get logged.',
+        },
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

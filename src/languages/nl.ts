@@ -12252,8 +12252,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
     },
     productMarketingWindow: {
-        heading: 'Verbind Expensify met Claude',
-        body: 'Zoek, analyseer en vat uitgavengegevens direct samen in Claude.',
+        member: {
+            heading: 'Kilometers op de automatische piloot',
+            body: 'Ga direct naar je veelgebruikte ritten en corrigeer de locatie van een stop zonder opnieuw te beginnen.',
+        },
+        admin: {
+            heading: 'Kilometers automatisch geregeld',
+            body: 'Kilometertarieven die zichzelf actueel houden, plus volledige controle over hoe ritten worden vastgelegd.',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',

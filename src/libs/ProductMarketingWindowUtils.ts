@@ -1,4 +1,4 @@
-import September2026PromoImage from '@assets/images/september2026-promo.png';
+import October2026PromoImage from '@assets/images/october2026-promo.png';
 
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 
@@ -21,7 +21,7 @@ type ProductMarketingAnnouncementVisual =
 
 type ProductMarketingAnnouncementUpdateKey = ValueOf<typeof CONST.MARKETING_WINDOW_UPDATE_KEYS>;
 
-/** A single product marketing announcement, shown to every user. All content is authored by marketing per release. */
+/** A single product marketing announcement, resolved for the user's role. All content is authored by marketing per release. */
 type ProductMarketingAnnouncement = {
     /** Stable key for this product update. A later update must use a new key. */
     updateKey: ProductMarketingAnnouncementUpdateKey;
@@ -43,18 +43,22 @@ type ProductMarketingAnnouncement = {
 };
 
 /**
- * The single active product marketing announcement, or null when no window should be shown.
+ * Returns the single active product marketing announcement for the user's role, or null when no window should be shown.
  * Only one announcement can be active at a time — there is no stacking or queueing. When the active
  * announcement is dismissed, nothing is shown until a later release replaces it with a new update key.
+ * Admins (admin on at least one workspace) see the admin variant, everyone else sees the member variant. Both variants
+ * share the same update key so dismissing one also dismisses the other if the user's role changes.
  */
-const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null = {
-    updateKey: CONST.MARKETING_WINDOW_UPDATE_KEYS.PRODUCT_UPDATE_SEPTEMBER_2026,
-    visual: {type: 'image', source: September2026PromoImage},
-    heading: 'productMarketingWindow.heading',
-    body: 'productMarketingWindow.body',
-    ctaLabel: 'common.learnMore',
-    ctaUrl: CONST.CLAUDE_MCP_HELP_URL,
-};
+function getActiveProductMarketingAnnouncement(isAdmin: boolean): ProductMarketingAnnouncement | null {
+    return {
+        updateKey: CONST.MARKETING_WINDOW_UPDATE_KEYS.PRODUCT_UPDATE_OCTOBER_2026,
+        visual: {type: 'image', source: October2026PromoImage},
+        heading: isAdmin ? 'productMarketingWindow.admin.heading' : 'productMarketingWindow.member.heading',
+        body: isAdmin ? 'productMarketingWindow.admin.body' : 'productMarketingWindow.member.body',
+        ctaLabel: 'common.learnMore',
+        ctaUrl: isAdmin ? CONST.DISTANCE_RATES_AUTO_UPDATE_HELP_URL : CONST.DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL,
+    };
+}
 
 /**
  * Whether the given announcement was already dismissed by the user.
@@ -67,5 +71,5 @@ function isProductMarketingAnnouncementDismissed(announcement: ProductMarketingA
     return isAnnouncementDismissed || isStale;
 }
 
-export {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed};
+export {getActiveProductMarketingAnnouncement, isProductMarketingAnnouncementDismissed};
 export type {ProductMarketingAnnouncement};

@@ -11811,8 +11811,14 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        heading: '将 Expensify 连接到 Claude',
-        body: '直接在 Claude 中搜索、分析和总结费用数据。',
+        member: {
+            heading: '里程记录，轻松自动',
+            body: '直接跳转到常用行程，无需重新开始即可修正行程的停靠地点。',
+        },
+        admin: {
+            heading: '里程自动处理',
+            body: '里程费率自动保持最新，并可全面控制行程的记录方式。',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>从<strong>这里</strong>开始！</tooltip>',
