@@ -152,6 +152,83 @@ function getReceiptScanFailedIOUActionDataSelector(
 const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
+/**
+ * Keeps only the fields `clearAllRelatedReportActionErrors` reads when walking related report actions.
+ * Nested fields (`errors`, `message`, `originalMessage`) are copied by reference so equality checks on the
+ * projected result short-circuit and unrelated action updates (reactions, read receipts, person data, ...)
+ * neither re-render the subscriber nor pay a deep comparison.
+ */
+function reportActionErrorFieldsSelector(reportAction: OnyxEntry<ReportAction>): OnyxEntry<ReportAction> {
+    return (
+        reportAction && {
+            reportActionID: reportAction.reportActionID,
+            actionName: reportAction.actionName,
+            created: reportAction.created,
+            pendingAction: reportAction.pendingAction,
+            isOptimisticAction: reportAction.isOptimisticAction,
+            childReportID: reportAction.childReportID,
+            errors: reportAction.errors,
+            message: reportAction.message,
+            // Copying the deprecated originalMessage field is intentional. The projection must preserve the raw
+            // data so downstream helpers can resolve it through getOriginalMessage.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            originalMessage: reportAction.originalMessage,
+        }
+    );
+}
+
+function projectReportActionsErrorFields(actions: ReportActions): ReportActions {
+    const projectedActions: ReportActions = {};
+    for (const [reportActionID, reportAction] of Object.entries(actions)) {
+        const projectedAction = reportActionErrorFieldsSelector(reportAction);
+        if (projectedAction) {
+            projectedActions[reportActionID] = projectedAction;
+        }
+    }
+    return projectedActions;
+}
+
+/**
+ * Creates a selector returning the report actions `clearAllRelatedReportActionErrors` walks, narrowed to the fields it
+ * reads: the actions of every report in `reportIDs` (the report whose error is dismissed, its ancestors and the original
+ * report holding the dismissed action), plus the threads below `childRootReportID` that hang off actions with errors.
+ * The walk returns early from an action without errors, so following only errored actions downward is exact.
+ * Only those keys are looked up, so a write to an unrelated report action neither maps the whole collection nor pays
+ * a deep comparison over it.
+ */
+function relatedReportActionsErrorFieldsSelector(reportIDs: Array<string | undefined>, childRootReportID: string | undefined) {
+    return function selectRelatedReportActionsErrorFields(reportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportActions> {
+        const result: OnyxCollection<ReportActions> = {};
+        const visitedReportIDs = new Set<string>();
+        const collect = (reportID: string | undefined, shouldFollowErroredThreads: boolean) => {
+            // The visited set also terminates the walk when thread links form a cycle
+            if (!reportID || visitedReportIDs.has(reportID)) {
+                return;
+            }
+            visitedReportIDs.add(reportID);
+            const actions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            if (!actions) {
+                return;
+            }
+            result[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = projectReportActionsErrorFields(actions);
+            if (!shouldFollowErroredThreads) {
+                return;
+            }
+            for (const action of Object.values(actions)) {
+                if (action.childReportID && Object.keys(action.errors ?? {}).length > 0) {
+                    collect(action.childReportID, true);
+                }
+            }
+        };
+        // The child root is usually also one of `reportIDs`, so descend from it before the plain lookups mark it visited
+        collect(childRootReportID, true);
+        for (const reportID of reportIDs) {
+            collect(reportID, false);
+        }
+        return result;
+    };
+}
+
 /** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
 const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
     authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
@@ -195,6 +272,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
+    relatedReportActionsErrorFieldsSelector,
     forwardedSinceLastSubmitReportIDsSelector,
     transactionThreadReportIDSelector,
     getParentReportActionWithoutThreadRepliesSelector,
