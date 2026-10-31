@@ -5,24 +5,23 @@ import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useMoneyReportHeaderEducationalModals from '@hooks/useMoneyReportHeaderEducationalModals';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportPDFDownloadModal from '@hooks/useReportPDFDownloadModal';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
-import {canIOUBePaid as canIOUBePaidAction, getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
+import getHoldMenuAmounts from '@libs/HoldMenuUtils';
+import {canIOUBePaid as canIOUBePaidAction} from '@libs/ReportUtils';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
 
-import React, {useRef, useState} from 'react';
+import React from 'react';
 
 import type {HoldMenuParams} from './MoneyReportHeaderModalsContext';
 
 import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
 import {MoneyReportTransactionThreadProvider} from './MoneyReportTransactionThreadContext';
-import ReportPDFDownloadModal from './ReportPDFDownloadModal';
 
 type MoneyReportHeaderModalsProps = {
     reportID: string | undefined;
@@ -41,11 +40,6 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
 /** Rendered inside the transaction thread provider because the educational modals' follow-up actions need the transaction thread */
 function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderModalsProps) {
-    // PDF modal state
-    const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
-    // Callback invoked when the PDF modal is dismissed while still generating (e.g. Submit via PDF retracts the submit).
-    const onPDFCancelRef = useRef<(() => void) | undefined>(undefined);
-
     // Fetch data from IDs
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -63,47 +57,35 @@ function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderM
     const onlyShowPayElsewhere =
         !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, currentUserLogin ?? '', accountID, undefined, true, isChatReportArchived);
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton, transactions, convertToDisplayString);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
-    const transactionIDs = transactions.map((t) => t.transactionID);
 
     // Imperative modals
     const {showHoldMenu} = useHoldMenuModal();
     const {showOfflineModal, showDownloadErrorModal} = useAlertModals();
+    const {showReportPDFDownloadModal} = useReportPDFDownloadModal();
     const {openHoldEducational, openRejectModal} = useMoneyReportHeaderEducationalModals(moneyRequestReport?.reportID);
 
-    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> => {
-        const open = () =>
+    // Wait one frame so the current touch animation finishes before the modal opens
+    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams) => {
+        requestAnimationFrame(() => {
             showHoldMenu({
                 reportID: moneyRequestReport?.reportID,
                 chatReportID: chatReport?.reportID,
                 requestType,
                 paymentType,
                 methodID,
-                nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
-                fullAmount,
-                hasNonHeldExpenses: !hasOnlyHeldExpenses,
-                transactionCount: transactionIDs.length,
+                ...getHoldMenuAmounts(moneyRequestReport, shouldShowPayButton, transactions, convertToDisplayString),
                 onConfirm,
             });
-
-        // On iOS, defer by one frame so the current touch animation finishes before the modal opens
-        if (getPlatform() === CONST.PLATFORM.IOS) {
-            return new Promise<void>((resolve) => {
-                requestAnimationFrame(() => {
-                    open().then(() => resolve());
-                });
-            });
-        }
-
-        return open().then(() => {});
+        });
     };
 
     const contextValue = {
         openHoldMenu,
-        openPDFDownload: (options?: {onCancel?: () => void}) => {
-            onPDFCancelRef.current = options?.onCancel;
-            setIsPDFModalVisible(true);
+        openPDFDownload: () => {
+            if (!moneyRequestReport?.reportID) {
+                return Promise.resolve(undefined);
+            }
+            return showReportPDFDownloadModal({reportID: moneyRequestReport.reportID});
         },
         openHoldEducational,
         openRejectModal,
@@ -111,18 +93,7 @@ function MoneyReportHeaderModalsContent({reportID, children}: MoneyReportHeaderM
         showDownloadErrorModal,
     };
 
-    return (
-        <MoneyReportHeaderModalsContext.Provider value={contextValue}>
-            {children}
-
-            <ReportPDFDownloadModal
-                reportID={moneyRequestReport?.reportID}
-                isVisible={isPDFModalVisible}
-                onClose={() => setIsPDFModalVisible(false)}
-                onCancel={() => onPDFCancelRef.current?.()}
-            />
-        </MoneyReportHeaderModalsContext.Provider>
-    );
+    return <MoneyReportHeaderModalsContext.Provider value={contextValue}>{children}</MoneyReportHeaderModalsContext.Provider>;
 }
 
 export default MoneyReportHeaderModals;

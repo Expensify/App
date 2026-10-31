@@ -18,7 +18,7 @@ import type {Merge} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 import reconcileScanTransactionThreads from './IOU/reconcileScanTransactionThreads';
-import {getCurrentFlushPromise, queueOnyxUpdates} from './QueuedOnyxUpdates';
+import {getCurrentFlushPromise, isEmpty as isQueuedOnyxUpdatesEmpty, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
 // callback were triggered it would lead to duplicate processing of server updates.
@@ -123,7 +123,13 @@ function applyScanResponse<TKey extends OnyxKey>(request: Request<TKey>, respons
     return Onyx.update(updates).then(() => response);
 }
 
-function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>, lastUpdateID: number, scanReplacement?: ReturnType<typeof getScanReportReplacement>) {
+function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
+    request: Request<TKey>,
+    response: Response<TKey>,
+    lastUpdateID: number,
+    scanReplacement?: ReturnType<typeof getScanReportReplacement>,
+    shouldQueueUpdates = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE,
+) {
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     const replacement = scanReplacement ?? getScanReportReplacement(request, response);
     // Only confirmed replacement must outrun live receipt movement. Ordinary scan responses stay deferred
@@ -133,12 +139,12 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(request: Request<TKey>, res
     }
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = request?.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE ? queueOnyxUpdates : Onyx.update;
+    const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = shouldQueueUpdates ? queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
-    const shouldGuardDeferredScan = isEligibleScanResponse(request, response) && request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE;
+    const shouldGuardDeferredScan = isEligibleScanResponse(request, response) && shouldQueueUpdates;
     let onyxDataUpdatePromise: Promise<unknown> = Promise.resolve();
     if (response.onyxData) {
         if (shouldGuardDeferredScan) {
@@ -350,12 +356,17 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
 
     if (type === CONST.ONYX_UPDATE_TYPES.HTTPS && request && response) {
         const scanReplacement = getScanReportReplacement(request, response);
-        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), scanReplacement);
+        // A catch-up response newer than the staged WRITE updates joins them in the queue, so the deferred flush applies
+        // them in server order instead of rewinding keys the catch-up already moved forward.
+        const shouldQueueBehindStagedWrites = isCatchUpRequest && !isQueuedOnyxUpdatesEmpty() && Number(lastUpdateID) >= lastUpdateIDPendingWriteFlush;
+        const shouldQueueUpdates =
+            (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE || shouldQueueBehindStagedWrites) && !isImmediateScanResponse(request, response, scanReplacement);
+        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), scanReplacement, shouldQueueUpdates);
 
         // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
         // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:
         // SequentialQueue only flushes after this promise settles, so awaiting the flush here would deadlock.
-        if (request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE && !isImmediateScanResponse(request, response, scanReplacement)) {
+        if (shouldQueueUpdates) {
             if (shouldAdvanceLastUpdateID) {
                 lastUpdateIDPendingWriteFlush = Math.max(lastUpdateIDPendingWriteFlush, Number(lastUpdateID));
             }

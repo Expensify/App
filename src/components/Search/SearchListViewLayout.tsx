@@ -1,9 +1,21 @@
+import ColumnResizeContext from '@components/Table/columnResize/ColumnResizeContext';
+import ColumnResizeScope from '@components/Table/columnResize/ColumnResizeScope';
+import useColumnResize from '@components/Table/columnResize/useColumnResize';
+import useStoredColumnWidths from '@components/Table/columnResize/useStoredColumnWidths';
+
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {GetReportTableColumnStylesParams} from '@styles/utils';
+import {canMeasureText} from '@libs/measureTextWidth';
+import {getSearchColumnResizingID} from '@libs/SearchUIUtils';
 
+import type {GetReportTableColumnStylesParams} from '@styles/utils';
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import type {CardList, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
+import type {StoredTableColumnWidths} from '@src/types/onyx/TableColumnWidths';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -62,12 +74,15 @@ type SearchListViewLayoutProps = {
     children: React.ReactNode;
 };
 
-/**
- * The shared chrome around every Search list view: the horizontal table scroller and the keyboard/safe-area
- * aware container. Purely presentational, each view composes its own header, list, and long-press menu as
- * children so view-specific blocks and list props (grouping, footers) stay with the view.
- */
-function SearchListViewLayout({
+type SearchListViewLayoutContentProps = SearchListViewLayoutProps & {
+    /** `undefined` when the table can't resize its columns. */
+    columnResizingID: string | undefined;
+
+    /** `undefined` until the first drag, and when the table can't resize its columns. */
+    storedTableColumnWidths: StoredTableColumnWidths | undefined;
+};
+
+function SearchListViewLayoutContent({
     columns,
     type,
     isActionColumnWide,
@@ -81,14 +96,16 @@ function SearchListViewLayout({
     nonPersonalAndWorkspaceCards,
     policyCategories,
     policyTags,
+    columnResizingID,
+    storedTableColumnWidths,
     children,
-}: SearchListViewLayoutProps) {
+}: SearchListViewLayoutContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
     const {tableWidthRef, tableWidth, onTableLayout} = useSearchTableWidth();
 
-    const columnWidths = useSearchColumnWidths({
+    const {columnWidths, resizableLayout} = useSearchColumnWidths({
         columns,
         data: data ?? [],
         tableWidth,
@@ -96,7 +113,25 @@ function SearchListViewLayout({
         isEnabled: isHeaderVisible && !!data,
         columnSizeOptions,
         measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags},
+        isColumnResizingEnabled: !!columnResizingID,
+        storedTableColumnWidths,
     });
+
+    // Passed before the table is measured, so the scope element mounts once and never remounts the rows.
+    // Edges only start dragging once a layout exists.
+    const columnResize = useColumnResize({
+        columnResizingID,
+        ...resizableLayout,
+        columnGap: variables.searchTableColumnGap,
+    });
+
+    const resizableColumnWidths: Partial<Record<SearchColumnType, number>> = {};
+
+    for (const column of columns) {
+        if (resizableLayout?.resizableColumnKeys.includes(column)) {
+            resizableColumnWidths[column] = resizableLayout.resolvedColumnWidths[column];
+        }
+    }
 
     // The scroller decides whether to scroll by summing what each column refuses to shrink below, which it otherwise has
     // to estimate. Every minimum it can be told exactly is resolved here instead: a dynamic column measured its own, and
@@ -116,7 +151,7 @@ function SearchListViewLayout({
     const sizedColumns = new Set(columns);
 
     // What each column would rather have than its minimum. Only the dynamic columns differ between the two: everything
-    // else is pinned to one width, so it wants exactly what it is never squeezed below.
+    // else is held at one width, so it wants exactly what it is never squeezed below.
     const columnContentWidths: Partial<Record<SearchColumnType, number>> = {};
 
     for (const column of columns) {
@@ -149,21 +184,70 @@ function SearchListViewLayout({
                 columnWidths={columnWidths}
                 sizedColumns={sizedColumns}
                 columnOptions={columnSizeOptions}
+                resizableColumnWidths={resizableLayout ? resizableColumnWidths : undefined}
             >
-                <HorizontalTableScroll
-                    columns={columns}
-                    type={type}
-                    isActionColumnWide={isActionColumnWide}
-                    isHeaderVisible={isHeaderVisible}
-                    dataKey={dataKey}
-                    columnMinWidths={isSizingColumns ? columnMinWidths : undefined}
-                    columnContentWidths={isSizingColumns ? columnContentWidths : undefined}
-                    availableWidth={isSizingColumns ? tableWidth : undefined}
-                >
-                    <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>
-                </HorizontalTableScroll>
+                <ColumnResizeContext.Provider value={columnResize}>
+                    {/* Wraps the scroller too, so one width write resizes its content along with the header and rows. */}
+                    <ColumnResizeScope onScopeElement={columnResize?.setScopeElement}>
+                        <HorizontalTableScroll
+                            columns={columns}
+                            type={type}
+                            isActionColumnWide={isActionColumnWide}
+                            isHeaderVisible={isHeaderVisible}
+                            dataKey={dataKey}
+                            columnMinWidths={isSizingColumns ? columnMinWidths : undefined}
+                            columnContentWidths={isSizingColumns ? columnContentWidths : undefined}
+                            availableWidth={isSizingColumns ? tableWidth : undefined}
+                            resizableScrollWidth={resizableLayout?.scrollWidth}
+                        >
+                            <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>{children}</View>
+                        </HorizontalTableScroll>
+                    </ColumnResizeScope>
+                </ColumnResizeContext.Provider>
             </SearchColumnWidthsProvider>
         </View>
+    );
+}
+
+function SearchListViewLayoutWithStoredColumnWidths(props: Omit<SearchListViewLayoutContentProps, 'storedTableColumnWidths'> & {columnResizingID: string}) {
+    const storedTableColumnWidths = useStoredColumnWidths(props.columnResizingID);
+
+    return (
+        <SearchListViewLayoutContent
+            {...props}
+            storedTableColumnWidths={storedTableColumnWidths}
+        />
+    );
+}
+
+/**
+ * The shared chrome around every Search list view: the horizontal table scroller and the keyboard/safe-area
+ * aware container. Purely presentational, each view composes its own header, list, and long-press menu as
+ * children so view-specific blocks and list props (grouping, footers) stay with the view.
+ */
+function SearchListViewLayout(props: SearchListViewLayoutProps) {
+    const {isBetaEnabled} = usePermissions();
+
+    // Saved widths are replayed by content sizing, so only tables that size from their rows can resize.
+    // The header is left out so crossing the wide breakpoint doesn't remount the list.
+    const canResizeColumns = !!props.data && canMeasureText() && isBetaEnabled(CONST.BETAS.RESIZABLE_TABLE_COLUMNS);
+
+    // Only tables that can resize subscribe to stored widths.
+    if (!canResizeColumns) {
+        return (
+            <SearchListViewLayoutContent
+                {...props}
+                columnResizingID={undefined}
+                storedTableColumnWidths={undefined}
+            />
+        );
+    }
+
+    return (
+        <SearchListViewLayoutWithStoredColumnWidths
+            {...props}
+            columnResizingID={getSearchColumnResizingID(props.type)}
+        />
     );
 }
 
