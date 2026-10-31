@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {openTravelDotLink} from '@libs/openTravelDotLink';
+import shouldEnableAttachmentModalKeyboardAvoidance from '@libs/shouldEnableAttachmentModalKeyboardAvoidance';
 import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
 
 import CONST from '@src/CONST';
@@ -46,7 +47,18 @@ import PDFPasswordForm from './PDFPasswordForm';
 const LOADING_THUMBNAIL_HEIGHT = 250;
 const LOADING_THUMBNAIL_WIDTH = 250;
 
-function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused, onScaleChanged, sourceURL, onLoadError, isUsedAsChatAttachment}: PDFViewNativeProps) {
+function PDFView({
+    onToggleKeyboard,
+    onLoadComplete,
+    fileName,
+    onPress,
+    isFocused,
+    onScaleChanged,
+    sourceURL,
+    onLoadError,
+    isUsedAsChatAttachment,
+    isUsedInAttachmentModal,
+}: PDFViewNativeProps) {
     const [shouldRequestPassword, setShouldRequestPassword] = useState(false);
     const [shouldAttemptPDFLoad, setShouldAttemptPDFLoad] = useState(true);
     const [shouldShowLoadingIndicator, setShouldShowLoadingIndicator] = useState(true);
@@ -61,6 +73,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
     const {insets} = useSafeAreaPaddings();
+    const shouldAvoidPasswordKeyboard = !!isUsedInAttachmentModal && !shouldEnableAttachmentModalKeyboardAvoidance;
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
@@ -193,7 +206,11 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                     />
                 )}
                 {shouldRequestPassword && (
-                    <KeyboardAvoidingView style={themeStyles.flex1}>
+                    <KeyboardAvoidingView
+                        style={themeStyles.flex1}
+                        behavior={shouldAvoidPasswordKeyboard ? 'padding' : undefined}
+                        automaticOffset={shouldAvoidPasswordKeyboard}
+                    >
                         <PDFPasswordForm
                             isFocused={!!isFocused}
                             onSubmit={attemptPDFLoadWithPassword}

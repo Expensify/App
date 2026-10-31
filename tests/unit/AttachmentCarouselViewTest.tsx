@@ -1,5 +1,5 @@
 /** Exercises the web carousel's viewability, focus, arrow bounds and shared gesture ref through its real component. */
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import type AttachmentCarouselViewComponent from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView/index';
 import type AttachmentCarouselViewProps from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView/types';
@@ -57,7 +57,18 @@ jest.mock('react-native-reanimated', () => {
     const animated = jest.requireActual<typeof Reanimated>('react-native-reanimated/mock');
     return {
         ...animated,
-        default: {...animated.default, FlatList: (props: FlatListProps<Attachment>) => mockFlatList(props)},
+        default: {
+            ...animated.default,
+            FlatList: (props: FlatListProps<Attachment>) => mockFlatList(props),
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Mirror the carousel wrapper so its list props can be inspected.
+            createAnimatedComponent: (...args: Parameters<typeof animated.default.createAnimatedComponent>) => {
+                if (args[0] === jest.requireActual<{FlatList: typeof FlatList}>('react-native').FlatList) {
+                    return (props: FlatListProps<Attachment>) => mockFlatList(props);
+                }
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- Preserve the mock factory for components other than the carousel.
+                return animated.default.createAnimatedComponent(...args);
+            },
+        },
         useAnimatedRef: () => mockScrollRef,
     };
 });
@@ -84,6 +95,7 @@ function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}) {
         ...overrides,
     };
     const view = render(<AttachmentCarouselView {...props} />);
+    fireEvent(screen.getByTestId('attachment-carousel'), 'layout', {nativeEvent: {layout: {width: 390, height: 700, x: 0, y: 0}}});
     return {props, ...view};
 }
 
@@ -189,8 +201,9 @@ describe('AttachmentCarouselView web', () => {
         expect(onNavigate.mock.calls.at(0)?.at(0)).toBe(second);
     });
 
-    it('clears focus for empty tokens and navigates a null-index token without changing page or focus', () => {
-        // Given a real callback installed by the web target
+    it('preserves focus when viewability has no indexed attachment during a resize', () => {
+        // Given a focused attachment and the web FlatList viewability callback
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
         const {props} = renderCarousel();
         const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
         expect(viewability).toBeDefined();
@@ -199,16 +212,104 @@ describe('AttachmentCarouselView web', () => {
         }
         const attachment: Attachment = {source: 'second.png'};
 
-        // When a token has no index, navigation still receives it, then an empty token set clears focus
+        // When resizing temporarily reports an attachment without an index or no visible attachments
         act(() => viewability({viewableItems: [{item: attachment, key: 'second', index: null, isViewable: true}], changed: []}));
-        expect(props.onNavigate).toHaveBeenCalledWith(attachment);
-        expect(props.setPage).not.toHaveBeenCalled();
-        expect(screen.getByText('first.png:true')).toBeOnTheScreen();
         act(() => viewability({viewableItems: [], changed: []}));
 
-        // Then empty input removes active focus without another navigation
-        expect(screen.getByText('first.png:false')).toBeOnTheScreen();
-        expect(props.onNavigate).toHaveBeenCalledTimes(1);
+        // Then the selected attachment stays focused without dismissing the keyboard or navigating
+        expect(screen.getByText('first.png:true')).toBeOnTheScreen();
+        expect(dismiss).not.toHaveBeenCalled();
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        dismiss.mockRestore();
+    });
+
+    it('sizes cells and realigns to the measured carousel width, including landscape safe areas', () => {
+        // Given a carousel whose window is wider than the space available inside the modal
+        renderCarousel({page: 1});
+        mockScrollToIndex.mockClear();
+
+        // When the actual carousel becomes 748px wide during rotation
+        fireEvent(screen.getByTestId('attachment-carousel'), 'layout', {nativeEvent: {layout: {width: 748, height: 214, x: 0, y: 0}}});
+        const list = mockFlatList.mock.calls.at(-1)?.[0];
+
+        // Then page offsets use that width and the same selected page is realigned without animation
+        expect(list?.getItemLayout?.(null, 1)).toEqual({length: 748, offset: 748, index: 1});
+        expect(mockScrollToIndex).toHaveBeenCalledWith({index: 1, animated: false});
+    });
+
+    it('retains the list and selected attachment through a transient zero-width layout', () => {
+        // Given a measured carousel with an active PDF
+        const {props} = renderCarousel({source: 'protected.pdf', attachments: [{source: 'protected.pdf'}]});
+        const calls = mockFlatList.mock.calls.length;
+        mockScrollToIndex.mockClear();
+
+        // When a temporary layout reports no available width
+        fireEvent(screen.getByTestId('attachment-carousel'), 'layout', {nativeEvent: {layout: {width: 0, height: 214, x: 0, y: 0}}});
+
+        // Then the list is retained without losing PDF focus or resetting scroll position
+        expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
+        expect(mockFlatList.mock.calls).toHaveLength(calls);
+        expect(mockScrollToIndex).not.toHaveBeenCalled();
+        expect(props.onNavigate).not.toHaveBeenCalled();
+    });
+
+    it('retains the selected attachment when Safari exposes two old-width cells during rotation', () => {
+        // Given the protected PDF is selected after another attachment
+        const previous: Attachment = {source: 'previous.png'};
+        const pdf: Attachment = {source: 'protected.pdf'};
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+        const {props} = renderCarousel({page: 1, source: pdf.source, attachments: [previous, pdf]});
+        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
+
+        // When Safari widens the viewport before updating cell widths, both items are fully visible
+        act(() =>
+            viewability?.({
+                viewableItems: [
+                    {item: previous, key: 'previous', index: 0, isViewable: true},
+                    {item: pdf, key: 'pdf', index: 1, isViewable: true},
+                ],
+                changed: [],
+            }),
+        );
+
+        // Then the selected PDF keeps focus and its keyboard is not dismissed
+        expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
+        expect(dismiss).not.toHaveBeenCalled();
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        dismiss.mockRestore();
+    });
+
+    it('navigates from a middle PDF to either neighbor and restores its focus on return', () => {
+        // Given a protected PDF between two attachments, with cells sized to the carousel
+        const previous: Attachment = {source: 'previous.png'};
+        const pdf: Attachment = {source: 'protected.pdf'};
+        const next: Attachment = {source: 'next.png'};
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+        const {props} = renderCarousel({page: 1, source: pdf.source, attachments: [previous, pdf, next]});
+        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
+        if (!viewability) {
+            throw new Error('Expected the carousel viewability callback');
+        }
+
+        // When genuine swipes cross empty visibility intervals to each neighbor and back
+        for (const [index, item] of [
+            [0, previous],
+            [1, pdf],
+            [2, next],
+            [1, pdf],
+        ] as const) {
+            act(() => viewability({viewableItems: [], changed: []}));
+            act(() => viewability({viewableItems: [{item, index, key: String(index), isViewable: true}], changed: []}));
+        }
+
+        // Then every actual page change navigates, and returning restores the PDF's focused viewer
+        expect(jest.mocked(props.setPage).mock.calls).toEqual([[0], [1], [2], [1]]);
+        expect(props.onNavigate).toHaveBeenCalledTimes(4);
+        expect(dismiss).toHaveBeenCalledTimes(4);
+        expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
+        dismiss.mockRestore();
     });
 
     it('returns before keyboard, page or navigation effects during fullscreen', () => {
