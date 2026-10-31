@@ -1094,6 +1094,29 @@ function normalizeDatePreset(date: string): string {
 }
 
 /**
+ * Maps the deprecated Year to date preset to This year in a query, so a search saved with it opens and saves with This year
+ */
+function normalizeDatePresetsInQuery(query: SearchQueryString): SearchQueryString {
+    const queryJSON = query ? buildSearchQueryJSON(query) : undefined;
+    const hasYearToDate = queryJSON?.flatFilters.some((filter) => filter.filters.some((queryFilter) => queryFilter.value === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE));
+    if (!queryJSON || !hasYearToDate) {
+        return query;
+    }
+
+    const normalizedQueryJSON = traverseAndUpdatedQuery(queryJSON, (filterKey, filterValue, operator) => {
+        // The filter form reads equal-to report field values as dates and negated ones as text
+        const isDateFilter =
+            (DATE_FILTER_KEYS as readonly string[]).includes(filterKey) ||
+            (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX) && operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        if (!isDateFilter) {
+            return filterValue;
+        }
+        return Array.isArray(filterValue) ? filterValue.map(normalizeDatePreset) : normalizeDatePreset(filterValue);
+    });
+    return buildSearchQueryString(normalizedQueryJSON);
+}
+
+/**
  * Returns whether a given search filter is supported in a given search data type
  */
 function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes) {
@@ -2748,7 +2771,10 @@ const sortOptionsWithEmptyValue = (a: string, b: string, localeCompare: LocaleCo
 /**
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
-function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>, computeNodeValue: (left: SyntaxFilterKey, right: string | string[]) => string | string[]) {
+function traverseAndUpdatedQuery(
+    queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>,
+    computeNodeValue: (left: SyntaxFilterKey, right: string | string[], operator: ASTNode['operator']) => string | string[],
+) {
     const standardQuery = cloneDeep(queryJSON) as SearchQueryJSON;
     const filters = standardQuery.filters;
     const traverse = (node: ASTNode) => {
@@ -2764,7 +2790,7 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
 
         if (typeof node.left !== 'object' && (Array.isArray(node.right) || typeof node.right === 'string')) {
             // eslint-disable-next-line no-param-reassign
-            node.right = computeNodeValue(node.left, node.right);
+            node.right = computeNodeValue(node.left, node.right, node.operator);
         }
     };
 
@@ -3282,6 +3308,7 @@ export {
     isSearchQuerySavable,
     isSearchDatePreset,
     normalizeDatePreset,
+    normalizeDatePresetsInQuery,
     getDateRangeForPreset,
     getDateFilterRange,
     isSearchBeforeViolationsSnapshotStarted,
