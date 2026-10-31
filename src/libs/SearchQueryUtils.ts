@@ -1257,8 +1257,65 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
     });
 }
 
+function getDisplayDefaultQueryJSON(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
+    return defaultQueryJSON ?? buildSearchQueryJSON(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${currentQueryJSON.type}`);
+}
+
+function buildQueryStringWithResetDisplay(currentQueryJSON: SearchQueryJSON, searchDefaultQueryJSON: SearchQueryJSON | undefined) {
+    const defaultQueryJSON = getDisplayDefaultQueryJSON(currentQueryJSON, searchDefaultQueryJSON);
+    if (!defaultQueryJSON) {
+        return buildSearchQueryString(currentQueryJSON);
+    }
+
+    const defaultGroupCurrencyFilters = defaultQueryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY);
+    const keptFilters = currentQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY);
+
+    return buildSearchQueryString({
+        ...currentQueryJSON,
+        sortBy: defaultQueryJSON.sortBy,
+        sortOrder: defaultQueryJSON.sortOrder,
+        groupBy: defaultQueryJSON.groupBy,
+        view: defaultQueryJSON.view,
+        isViewExplicitlySet: defaultQueryJSON.isViewExplicitlySet,
+        rawFilterList: undefined,
+        limit: defaultQueryJSON.limit,
+        columns: defaultQueryJSON.columns,
+        flatFilters: [...keptFilters, ...defaultGroupCurrencyFilters],
+    });
+}
+
 function hasFiltersChangedFromDefault(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON, ignoredFilterKeys: ReadonlySet<SearchFilterKey> = NON_FILTER_CHIP_KEYS) {
     return getQueryHashWithoutFilters(currentQueryJSON, ignoredFilterKeys) !== getQueryHashWithoutFilters(defaultQueryJSON, ignoredFilterKeys);
+}
+
+function getGroupCurrencyValue(queryJSON: SearchQueryJSON) {
+    return getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY).value?.at(0);
+}
+
+function getColumnsValue(queryJSON: SearchQueryJSON) {
+    return [queryJSON.columns ?? []].flat().join(',');
+}
+
+function getChangedDisplayOptionsCount(currentQueryJSON: SearchQueryJSON | undefined, searchDefaultQueryJSON: SearchQueryJSON | undefined): number {
+    if (!currentQueryJSON) {
+        return 0;
+    }
+
+    const defaultQueryJSON = getDisplayDefaultQueryJSON(currentQueryJSON, searchDefaultQueryJSON);
+    if (!defaultQueryJSON) {
+        return 0;
+    }
+
+    const changedOptions = [
+        currentQueryJSON.sortBy !== defaultQueryJSON.sortBy || currentQueryJSON.sortOrder !== defaultQueryJSON.sortOrder,
+        currentQueryJSON.groupBy !== defaultQueryJSON.groupBy,
+        currentQueryJSON.view !== defaultQueryJSON.view,
+        currentQueryJSON.limit !== defaultQueryJSON.limit,
+        getGroupCurrencyValue(currentQueryJSON) !== getGroupCurrencyValue(defaultQueryJSON),
+        getColumnsValue(currentQueryJSON) !== getColumnsValue(defaultQueryJSON),
+    ];
+
+    return changedOptions.filter(Boolean).length;
 }
 
 function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, defaultQueryJSON: SearchQueryJSON | undefined) {
@@ -1272,7 +1329,7 @@ function isSearchQuerySavable(currentQueryJSON: SearchQueryJSON | undefined, def
         return true;
     }
 
-    return hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, NON_SAVABLE_FILTER_KEYS);
+    return hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, NON_SAVABLE_FILTER_KEYS) || getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON) > 0;
 }
 
 function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | undefined {
@@ -3272,6 +3329,7 @@ export {
     getQueryWithFooterSelection,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
+    getChangedDisplayOptionsCount,
     isSearchDatePreset,
     getDateRangeForPreset,
     getDateFilterRange,
@@ -3280,6 +3338,7 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildQueryStringWithResetFilters,
+    buildQueryStringWithResetDisplay,
     buildUserReadableQueryString,
     buildFilterValuesString,
     getDisplayQueryFiltersForKey,

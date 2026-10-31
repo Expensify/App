@@ -10811,6 +10811,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         display: {
             label: 'Wyświetl',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Wyświetl (${count})` : 'Wyświetl'),
             sortBy: 'Sortuj według',
             sortOrder: 'Kolejność sortowania',
             groupBy: 'Grupuj według',

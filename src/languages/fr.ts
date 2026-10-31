@@ -10895,6 +10895,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         display: {
             label: 'Affichage',
+            labelWithCount: ({count}: {count: number}) => (count > 0 ? `Affichage (${count})` : 'Affichage'),
             sortBy: 'Trier par',
             sortOrder: 'Ordre de tri',
             groupBy: 'Regrouper par',
