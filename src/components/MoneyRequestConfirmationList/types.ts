@@ -23,6 +23,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the page participant picker is open. */
     isParticipantPickerVisible?: boolean;
 
+    /** Whether the Share Submit flow can edit its participant without setting isFromGlobalCreate. */
+    shouldAllowParticipantEdit?: boolean;
+
     /** The payment method the SettlementButton chose. */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 

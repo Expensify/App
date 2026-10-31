@@ -2,6 +2,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import {enableConfirmationFocusTracking, notifyConfirmationScreenFocused} from '@components/MoneyRequestConfirmationList/focusManager';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -80,7 +81,26 @@ import useShareFileSizeValidation from './useShareFileSizeValidation';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SUBMIT_DETAILS>;
 
+function getDestinationKey(policyID: string | undefined, reportID: string | undefined): string | undefined {
+    if (policyID && policyID !== CONST.POLICY.ID_FAKE) {
+        return `policy:${policyID}`;
+    }
+    if (reportID) {
+        return `report:${reportID}`;
+    }
+    return undefined;
+}
+
+function getDefaultBillableForDestination(isPolicyExpenseChat: boolean, isCreatingTrackExpense: boolean, policyDefaultBillable: boolean | undefined): boolean {
+    if (!isPolicyExpenseChat && !isCreatingTrackExpense) {
+        return false;
+    }
+
+    return !!policyDefaultBillable;
+}
+
 function SubmitDetailsPage({
+    navigation,
     route: {
         params: {reportOrAccountID},
     },
@@ -97,6 +117,14 @@ function SubmitDetailsPage({
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${draftReportID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
+    useEffect(() => enableConfirmationFocusTracking(transaction?.transactionID), [transaction?.transactionID]);
+    useEffect(
+        () =>
+            navigation.addListener('focus', () => {
+                notifyConfirmationScreenFocused(transaction?.transactionID);
+            }),
+        [navigation, transaction?.transactionID],
+    );
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionReport?.reportID)}`);
     const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
@@ -193,6 +221,25 @@ function SubmitDetailsPage({
     // Latch the currency rather than reading it live: clearing the amount resets `isAmountSet` while the picked
     // currency stays on the draft, so a live read would let the next re-seed swap it for the policy's currency.
     const enteredCurrencyRef = useRef<string | undefined>(undefined);
+    const hasCapturedInitialDestinationRef = useRef(false);
+    const lastHandledDestinationKeyRef = useRef<string | undefined>(undefined);
+    const transactionDestinationPolicyID = transaction?.participants?.at(0)?.policyID;
+    const transactionDestinationReportID = transaction?.participants?.at(0)?.reportID;
+    const shouldPreserveSelectedReport = !!transaction?.reportID && !!report?.policyID && transactionDestinationPolicyID === report.policyID;
+    const reportIDForInitialization = shouldPreserveSelectedReport ? (transaction?.reportID ?? reportOrAccountID) : reportOrAccountID;
+    const draftDestinationPolicyID = transactionDestinationPolicyID ?? transactionReport?.policyID;
+    const draftDestinationReportID = transactionDestinationReportID ?? transaction?.reportID;
+    const draftDestinationKey = getDestinationKey(draftDestinationPolicyID, draftDestinationReportID);
+    const destinationKey = getDestinationKey(report?.policyID, routeReportID);
+
+    // Capture the first resolved draft destination before handling subsequent destination changes.
+    useEffect(() => {
+        if (!draftDestinationKey || hasCapturedInitialDestinationRef.current) {
+            return;
+        }
+        lastHandledDestinationKeyRef.current = draftDestinationKey;
+        hasCapturedInitialDestinationRef.current = true;
+    }, [draftDestinationKey]);
 
     useEffect(() => {
         if (transaction?.isAmountSet && transaction.currency) {
@@ -200,7 +247,9 @@ function SubmitDetailsPage({
         }
 
         initMoneyRequest({
-            reportID: reportOrAccountID,
+            // Preserve a Report-field selection when reopening confirmation for the same workspace. A selection from
+            // another workspace is not valid for this destination, so initialize from the destination route instead.
+            reportID: reportIDForInitialization,
             policy,
             personalPolicy,
             currentIouRequestType: transaction?.iouRequestType,
@@ -216,7 +265,7 @@ function SubmitDetailsPage({
         setMoneyRequestParticipantsFromReport(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, report, currentUserPersonalDetails.accountID);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
-        reportOrAccountID,
+        reportIDForInitialization,
         policy,
         personalPolicy,
         report,
@@ -239,11 +288,11 @@ function SubmitDetailsPage({
 
     // Seed the draft so isScanRequest() returns true (enables compact mode + receipt rendering).
     useEffect(() => {
-        if (!sharedFileSource) {
+        if (!sharedFileSource || transaction?.receipt?.source) {
             return;
         }
         setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, sharedFileSource, sharedFileName, true, sharedFileType);
-    }, [sharedFileSource, sharedFileName, sharedFileType]);
+    }, [sharedFileSource, sharedFileName, sharedFileType, transaction?.receipt?.source]);
 
     // Prefer the draft receipt (reflects Replace/Crop) for both display and upload — keeps them in sync.
     const currentReceiptSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : sharedFileSource;
@@ -279,16 +328,21 @@ function SubmitDetailsPage({
     const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
     const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
     const isCreatingTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const isDestinationPolicyReady = isPolicyExpenseChat ? !!policy?.id && policy.id === report?.policyID : !isCreatingTrackExpense || !!policy?.id;
 
-    const defaultBillable = !!policy?.defaultBillable;
+    // Personal destinations do not inherit workspace defaults. `policy` can briefly refer to the previous workspace
+    // while transaction participants update, so reading it for a P2P destination would leak a stale billable value.
+    const defaultBillable = getDefaultBillableForDestination(isPolicyExpenseChat, isCreatingTrackExpense, policy?.defaultBillable);
+    const defaultReimbursable = getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: !!isPolicyExpenseChat, isCreatingTrackExpense});
     useEffect(() => {
+        if (!hasCapturedInitialDestinationRef.current || !destinationKey || lastHandledDestinationKeyRef.current === destinationKey || !report?.reportID || !isDestinationPolicyReady) {
+            return;
+        }
+        lastHandledDestinationKeyRef.current = destinationKey;
+
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultBillable);
-    }, [defaultBillable]);
-
-    useEffect(() => {
-        const defaultReimbursable = getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: !!isPolicyExpenseChat, isCreatingTrackExpense});
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
-    }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
+    }, [defaultBillable, defaultReimbursable, destinationKey, isDestinationPolicyReady, report?.reportID]);
 
     const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
@@ -705,8 +759,11 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
-                        onOpenParticipantPicker={() => {}}
+                        shouldAllowParticipantEdit={iouType === CONST.IOU.TYPE.SUBMIT}
+                        onOpenParticipantPicker={() => {
+                            cleanupPreMount();
+                            Navigation.goBack();
+                        }}
                         iouType={iouType}
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}
@@ -749,3 +806,5 @@ function SubmitDetailsPage({
 }
 
 export default SubmitDetailsPage;
+
+export {getDefaultBillableForDestination, getDestinationKey};
