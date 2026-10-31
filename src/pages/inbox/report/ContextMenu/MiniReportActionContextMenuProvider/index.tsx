@@ -4,7 +4,7 @@ import type {MiniReportActionContextMenuController, MiniReportActionContextMenuT
 import {MiniReportActionContextMenuContext} from '@pages/inbox/report/ContextMenu/MiniReportActionContextMenuContext';
 
 import {shallowEqual} from 'fast-equals';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 
 import type MiniReportActionContextMenuProviderProps from './types';
@@ -18,6 +18,7 @@ type MenuOwner = {
 type MenuTarget = {
     props: MiniReportActionContextMenuProps;
     generation: number;
+    token: MiniReportActionContextMenuToken;
 };
 
 function MiniReportActionContextMenuProvider({children}: MiniReportActionContextMenuProviderProps) {
@@ -30,6 +31,7 @@ function MiniReportActionContextMenuProvider({children}: MiniReportActionContext
     const [target, setTarget] = useState<MenuTarget>();
     const requestedTargetRef = useRef<MenuTarget | undefined>(undefined);
     const ownerRef = useRef<MenuOwner | undefined>(undefined);
+    const attachedTokenRef = useRef<MiniReportActionContextMenuToken | undefined>(undefined);
     const generationRef = useRef(0);
     const localOwnersRef = useRef(new Set<MiniReportActionContextMenuToken>());
 
@@ -48,15 +50,13 @@ function MiniReportActionContextMenuProvider({children}: MiniReportActionContext
                 return false;
             }
             if (owner?.token !== token) {
-                // Keep the containing block until the next slot commits, without exposing a canceled preparation.
-                container.style.visibility = 'hidden';
                 ownerRef.current = {token, hasInteraction: false};
             }
             const generation = generationRef.current;
             const previous = requestedTargetRef.current;
             // The slot attaches during layout after hover already queued these props; do not schedule another commit.
-            if (previous?.generation !== generation || !shallowEqual(previous.props, props)) {
-                const next = {props, generation};
+            if (previous?.token !== token || previous.generation !== generation || !shallowEqual(previous.props, props)) {
+                const next = {props, generation, token};
                 requestedTargetRef.current = next;
                 setTarget(next);
             }
@@ -79,7 +79,7 @@ function MiniReportActionContextMenuProvider({children}: MiniReportActionContext
                     // The portal destination stays the same object, so moving it does not remount Base.
                     host.appendChild(container);
                 }
-                container.style.visibility = '';
+                attachedTokenRef.current = token;
                 return true;
             },
             detach: (token) => {
@@ -97,9 +97,22 @@ function MiniReportActionContextMenuProvider({children}: MiniReportActionContext
                 ownerRef.current = undefined;
                 // Detaching hides an ordinary hover menu without re-rendering its expensive data subscriptions.
                 container.remove();
+                attachedTokenRef.current = undefined;
             },
         };
     });
+
+    const targetToken = target?.token;
+
+    useLayoutEffect(() => {
+        // Child slots can queue a target during this commit. Validate their latest request before paint,
+        // without interrupting the containing block of a completed attachment.
+        if (attachedTokenRef.current === requestedTargetRef.current?.token) {
+            return;
+        }
+        container.remove();
+        attachedTokenRef.current = undefined;
+    }, [container, targetToken]);
 
     useEffect(() => {
         const preserveInteractionOwner = () => {

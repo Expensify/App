@@ -151,4 +151,30 @@ describe('MiniReportActionContextMenuProvider', () => {
         expect(nextButton?.textContent).toBe('2');
         expect(nextButton ? getComputedStyle(nextButton).visibility : undefined).toBe('visible');
     });
+
+    it('does not detach a slot that attaches during the provider initial layout', () => {
+        // Given an already active row, its first slot can attach before the provider has rendered a target.
+        const token = {current: null};
+        const props = {reportID: '1', originalReportID: '1', reportActionID: '1', anchor: token, isVisible: true};
+        function InitiallyVisibleSlot() {
+            const value = useMiniReportActionContextMenuController();
+            useLayoutEffect(() => {
+                value?.attach(token, firstHost, props);
+                return () => value?.detach(token);
+            }, [value]);
+            return null;
+        }
+
+        // When child layout queues the first target, the parent's committed state still has no target.
+        act(() => {
+            root.render(
+                <MiniReportActionContextMenuProvider key="initial-slot">
+                    <InitiallyVisibleSlot />
+                </MiniReportActionContextMenuProvider>,
+            );
+        });
+
+        // Then the parent's validation preserves the actual attachment instead of trusting stale render state.
+        expect(firstHost.querySelector('button')?.textContent).toBe('1');
+    });
 });
