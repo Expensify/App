@@ -2,8 +2,17 @@ import {renderHook} from '@testing-library/react-native';
 
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 
+import {isMobileChrome} from '@libs/Browser';
+import type * as Browser from '@libs/Browser';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import SelectionScraper from '@libs/SelectionScraper';
+
+import CONST from '@src/CONST';
+
+jest.mock('@libs/Browser', () => ({
+    ...jest.requireActual<typeof Browser>('@libs/Browser'),
+    isMobileChrome: jest.fn(),
+}));
 
 jest.mock('@libs/Clipboard/getClipboardText', () => ({
     __esModule: true,
@@ -19,11 +28,106 @@ jest.mock('@libs/SelectionScraper', () => ({
 
 const mockGetClipboardText = jest.mocked(getClipboardText);
 const mockGetCurrentSelection = jest.mocked(SelectionScraper.getCurrentSelection);
+const mockIsMobileChrome = jest.mocked(isMobileChrome);
 
 describe('useCopySelectionEvent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockIsMobileChrome.mockReturnValue(false);
         window.getSelection()?.removeAllRanges();
+    });
+
+    it('keeps the original copyable text anchor when Android Chrome moves it to an empty layout element', () => {
+        // Given a selection from Amount to another field on Android Chrome
+        mockIsMobileChrome.mockReturnValue(true);
+        const overlay = document.createElement('div');
+        const header = document.createElement('div');
+        header.textContent = 'Expense Report 2026-10-03';
+        const row = document.createElement('div');
+        row.setAttribute(`data-${CONST.COPYABLE_ROW_ELEMENT}`, 'true');
+        const amount = document.createElement('span');
+        amount.setAttribute(`data-${CONST.COPYABLE_TEXT_ELEMENT}`, 'true');
+        amount.textContent = 'TJS 10.00';
+        const merchant = document.createElement('span');
+        merchant.setAttribute(`data-${CONST.COPYABLE_TEXT_ELEMENT}`, 'true');
+        merchant.textContent = 'Merchant';
+        row.append(amount, merchant);
+        document.body.append(overlay, header, row);
+        const selection = window.getSelection();
+        const amountText = amount.firstChild;
+        const merchantText = merchant.firstChild;
+        if (!selection || !amountText || !merchantText) {
+            throw new Error('Selection fixture was not created');
+        }
+        const {unmount} = renderHook(() => useCopySelectionEvent());
+        selection.setBaseAndExtent(amountText, 4, merchantText, merchantText.textContent?.length ?? 0);
+        document.dispatchEvent(new Event('selectionchange'));
+
+        // When Chrome moves the anchor to an empty element above the report header
+        selection.setBaseAndExtent(overlay, 0, merchantText, merchantText.textContent?.length ?? 0);
+        document.dispatchEvent(new Event('selectionchange'));
+
+        // Then the selection still starts at Amount and excludes the header
+        expect(selection.anchorNode).toBe(amountText);
+        expect(selection.anchorOffset).toBe(4);
+        expect(selection.toString()).not.toContain(header.textContent);
+        unmount();
+        overlay.remove();
+        header.remove();
+        row.remove();
+    });
+
+    it('does not change selections that began outside copyable text', () => {
+        // Given a selection that started in a report header on Android Chrome
+        mockIsMobileChrome.mockReturnValue(true);
+        const header = document.createElement('div');
+        header.textContent = 'Expense Report 2026-10-03';
+        const row = document.createElement('div');
+        row.setAttribute(`data-${CONST.COPYABLE_ROW_ELEMENT}`, 'true');
+        row.textContent = 'TJS 10.00';
+        document.body.append(header, row);
+        const selection = window.getSelection();
+        if (!selection || !header.firstChild || !row.firstChild) {
+            throw new Error('Selection fixture was not created');
+        }
+        const {unmount} = renderHook(() => useCopySelectionEvent());
+
+        // When the selection extends into the report row
+        selection.setBaseAndExtent(header.firstChild, 0, row.firstChild, 3);
+        document.dispatchEvent(new Event('selectionchange'));
+
+        // Then the header remains the intentional selection start
+        expect(selection.anchorNode).toBe(header.firstChild);
+        unmount();
+        header.remove();
+        row.remove();
+    });
+
+    it('does not change selections from copyable text outside a marked row', () => {
+        // Given standalone copyable text on Android Chrome
+        mockIsMobileChrome.mockReturnValue(true);
+        const overlay = document.createElement('div');
+        const text = document.createElement('span');
+        text.setAttribute(`data-${CONST.COPYABLE_TEXT_ELEMENT}`, 'true');
+        text.textContent = 'Standalone text';
+        document.body.append(overlay, text);
+        const selection = window.getSelection();
+        if (!selection || !text.firstChild) {
+            throw new Error('Selection fixture was not created');
+        }
+        const {unmount} = renderHook(() => useCopySelectionEvent());
+        selection.setBaseAndExtent(text.firstChild, 0, text.firstChild, 5);
+        document.dispatchEvent(new Event('selectionchange'));
+
+        // When the browser moves the anchor to a blank element
+        selection.setBaseAndExtent(overlay, 0, text.firstChild, 5);
+        document.dispatchEvent(new Event('selectionchange'));
+
+        // Then this row-specific recovery leaves the selection alone
+        expect(selection.anchorNode).toBe(overlay);
+        unmount();
+        overlay.remove();
+        text.remove();
     });
 
     const dispatchCopyEvent = (target: Document | HTMLElement = document) => {
