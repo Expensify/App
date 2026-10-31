@@ -91,7 +91,9 @@ function SearchPage({route}: SearchPageProps) {
         searchResults = {...currentSearchResults, data: {}};
     } else if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
-    } else if (isSorting) {
+    } else if (isSorting && isSearchDataLoaded(lastNonEmptySearchResults, currentSearchQueryJSON)) {
+        // Only a sort-only change can reuse the previous results. Any other change (group by, view) needs a fresh snapshot,
+        // and handing Search data from another query makes it render the empty state until the response lands.
         searchResults = lastNonEmptySearchResults;
     }
 
@@ -121,15 +123,16 @@ function SearchPage({route}: SearchPageProps) {
         [route.key],
     );
 
-    const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
+    // search() writes the loading flag under `search`, so read it there or isSorting never turns off.
+    const prevIsLoading = usePrevious(currentSearchResults?.search?.isLoading);
 
     useEffect(() => {
-        if (!isSorting || !prevIsLoading || currentSearchResults?.isLoading) {
+        if (!isSorting || !prevIsLoading || currentSearchResults?.search?.isLoading) {
             return;
         }
 
         setIsSorting(false);
-    }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
+    }, [currentSearchResults?.search?.isLoading, isSorting, prevIsLoading]);
 
     const [lastResolvedSearch, setLastResolvedSearch] = useState<{queryJSON: SearchQueryJSON; searchResults: SearchResults} | undefined>(undefined);
 
