@@ -3010,6 +3010,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: '请接受所有条款以继续。',
             },
         },
+        wiseSetupInProgress: {message: '全球报销设置进行中。', continue: '继续。'},
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',
             subtitle: '按当地货币向全球成员付款。',

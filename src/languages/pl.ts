@@ -3145,6 +3145,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: 'Zaakceptuj wszystkie warunki, aby kontynuować.',
             },
         },
+        wiseSetupInProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.', continue: 'Kontynuuj.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',
             subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',

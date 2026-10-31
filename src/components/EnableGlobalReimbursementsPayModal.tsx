@@ -3,7 +3,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
+import {canContinueWiseOnboarding} from '@libs/BankAccountUtils';
 import {getEnableGlobalReimbursementsBusinessNavigationRoute, getWiseGlobalReimbursementsIntroNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
+import navigateToWiseGlobalReimbursements from '@libs/Navigation/helpers/navigateToWiseGlobalReimbursements';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearEnableGlobalReimbursementsModal} from '@userActions/App';
@@ -12,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type EnableGlobalReimbursementsModal from '@src/types/onyx/EnableGlobalReimbursementsModal';
 
+import {wiseBusinessOnboardingDraftBankAccountIDSelector} from '@selectors/WiseBusinessOnboardingForm';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import {useLockedAccountActions, useLockedAccountState} from './LockedAccountModalProvider';
@@ -20,6 +23,8 @@ import {ModalActions} from './Modal/Global/ModalContext';
 function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
     const [enableGlobalReimbursementsModal] = useOnyx(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [wiseOnboardingDraftBankAccountID] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {selector: wiseBusinessOnboardingDraftBankAccountIDSelector});
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -37,7 +42,11 @@ function EnableGlobalReimbursementsPayModal() {
             if (isAccountLocked) {
                 showLockedAccountModal();
             } else {
-                Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal), {skipMatchingFullScreenRoute: true});
+                navigateToWiseGlobalReimbursements(
+                    getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal),
+                    canContinueWiseOnboarding(bankAccountList?.[modalData.bankAccountID], wiseOnboardingDraftBankAccountID),
+                    {skipMatchingFullScreenRoute: true},
+                );
             }
             clearEnableGlobalReimbursementsModal();
             return;

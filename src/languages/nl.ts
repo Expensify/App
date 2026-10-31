@@ -3109,6 +3109,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: 'Accepteer alle voorwaarden om door te gaan.',
             },
         },
+        wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', continue: 'Doorgaan.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
