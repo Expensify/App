@@ -1,29 +1,52 @@
-import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-import moveMiniToolbarFocusWithArrowKey from '@libs/moveContextMenuFocusWithArrowKey';
+import {useMiniReportActionContextMenuController} from '@pages/inbox/report/ContextMenu/MiniReportActionContextMenuContext';
 
-import BaseReportActionContextMenu from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
+import viewRef from '@src/types/utils/viewRef';
 
-import CONST from '@src/CONST';
-
-import React from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type MiniReportActionContextMenuProps from './types';
 
-function MiniReportActionContextMenu({displayAsGroup = false, ...rest}: MiniReportActionContextMenuProps) {
-    const StyleUtils = useStyleUtils();
+import MiniReportActionContextMenuContent from './MiniReportActionContextMenuContent';
+
+function MiniReportActionContextMenu(props: MiniReportActionContextMenuProps) {
+    const controller = useMiniReportActionContextMenuController();
+    const styles = useThemeStyles();
+    const hostRef = useRef<View | HTMLDivElement | null>(null);
+    const token = props.anchor;
+    const [shouldUseLocalMenu, setShouldUseLocalMenu] = useState(false);
+
+    useLayoutEffect(() => {
+        const host = hostRef.current;
+        if (!controller || !token || !host || !('appendChild' in host)) {
+            return;
+        }
+        // The portal's DOM must follow this row before paint, including when its action props change.
+        setShouldUseLocalMenu(!controller.attach(token, host, props));
+    }, [controller, token, props]);
+
+    useLayoutEffect(
+        () => () => {
+            if (!token) {
+                return;
+            }
+            controller?.detach(token);
+        },
+        [controller, token],
+    );
+
+    if (!controller || !token) {
+        return <MiniReportActionContextMenuContent {...props} />;
+    }
 
     return (
         <View
-            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(displayAsGroup)}
-            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: rest.isVisible ?? false}}
-            onKeyDown={moveMiniToolbarFocusWithArrowKey}
+            ref={viewRef(hostRef)}
+            style={styles.dContents}
         >
-            <BaseReportActionContextMenu
-                isMini
-                {...rest}
-            />
+            {shouldUseLocalMenu && <MiniReportActionContextMenuContent {...props} />}
         </View>
     );
 }

@@ -103,6 +103,7 @@ import {Keyboard, View} from 'react-native';
 import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
+import {useMiniReportActionContextMenuController} from './ContextMenu/MiniReportActionContextMenuContext';
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
@@ -256,6 +257,7 @@ function ReportActionItem({
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
     const popoverAnchorRef = useRef<ComponentRef<typeof View>>(null);
+    const miniContextMenuController = useMiniReportActionContextMenuController();
 
     useExpandedSystemMessageFocus(action.reportActionID, popoverAnchorRef, onExpandedSystemMessageReady);
     const downloadedPreviews = useRef<{reportActionID: string; urls: string[]}>({reportActionID: action.reportActionID, urls: []});
@@ -498,6 +500,18 @@ function ReportActionItem({
         onShowContextMenu: handleShowContextMenu,
     };
 
+    const miniContextMenuProps = {
+        reportID,
+        reportActionID: action.reportActionID,
+        anchor: popoverAnchorRef,
+        originalReportID,
+        displayAsGroup,
+        disabledActions,
+        isThreadReportParentAction,
+        checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+        setIsEmojiPickerActive,
+    };
+
     const createdTransactionID = isMoneyRequestAction(parentReportActionForTransactionThread) ? getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : undefined;
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !isHarvestCreatedExpenseReport) {
@@ -598,10 +612,14 @@ function ReportActionItem({
                     >
                         <Hoverable
                             shouldHandleScroll
+                            shouldUseNativeHoverEvents={!!miniContextMenuController}
                             isDisabled={hasDraft}
                             shouldFreezeCapture={isPaymentMethodPopoverActive}
                             onHoverIn={() => {
                                 setIsReportActionActive(false);
+                                if (shouldDisplayContextMenuValue && !hasDraft && !hasActionErrors) {
+                                    miniContextMenuController?.prepare({...miniContextMenuProps, isVisible: true});
+                                }
                             }}
                             onHoverOut={() => {
                                 setIsReportActionActive(!!isReportActionLinked);
@@ -617,16 +635,8 @@ function ReportActionItem({
                                         )}
                                         {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && !hasDraft && !hasActionErrors && (
                                             <MiniReportActionContextMenu
-                                                reportID={reportID}
-                                                reportActionID={action.reportActionID}
-                                                anchor={popoverAnchorRef}
-                                                originalReportID={originalReportID}
-                                                displayAsGroup={displayAsGroup}
-                                                disabledActions={disabledActions}
+                                                {...miniContextMenuProps}
                                                 isVisible={hovered}
-                                                isThreadReportParentAction={isThreadReportParentAction}
-                                                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                                                setIsEmojiPickerActive={setIsEmojiPickerActive}
                                             />
                                         )}
                                         <View
