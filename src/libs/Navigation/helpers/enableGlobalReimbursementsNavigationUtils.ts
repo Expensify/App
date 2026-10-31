@@ -5,6 +5,7 @@ import Log from '@libs/Log';
 
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
 import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
@@ -24,9 +25,13 @@ const ENABLE_GLOBAL_REIMBURSEMENTS_SUFFIX_PATTERNS = new Set<string>([
     DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path,
     DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_AGREEMENTS.path,
     DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_SIGN.path,
+    DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path,
 ]);
 
-const ENABLE_GLOBAL_REIMBURSEMENTS_PATH_PREFIX = DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path.split('/').at(0) ?? '';
+const ENABLE_GLOBAL_REIMBURSEMENTS_PATH_PREFIXES = [
+    DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.path.split('/').at(0) ?? '',
+    DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path.split('/').at(0) ?? '',
+];
 
 function getDynamicBasePathFromNavigationPath(path: string | undefined): string {
     if (!path) {
@@ -50,17 +55,23 @@ function getEnableGlobalReimbursementsRootBackPath(dynamicBasePath: string): Rou
 
 const ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.entryScreens);
 
-function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string): boolean {
+const WISE_GLOBAL_REIMBURSEMENTS_INTRO_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.entryScreens);
+
+// The wallet and workspace workflows are excluded because they are banner entry points, and the wallet is also the fallback when a pay signal arrives elsewhere
+const BANNER_ONLY_ENTRY_SCREENS = new Set<string>([SCREENS.SETTINGS.WALLET.ROOT, SCREENS.WORKSPACE.WORKFLOWS]);
+const PAY_REPORT_ENTRY_SCREENS = new Set<string>(DYNAMIC_ROUTES.ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.entryScreens.filter((screen) => !BANNER_ONLY_ENTRY_SCREENS.has(screen)));
+
+function shouldUseDynamicEnableGlobalReimbursementsBase(basePath: string, entryScreens: Set<string> = ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS): boolean {
     const pathWithoutQuery = basePath.split('?').at(0) ?? '';
 
-    if (!pathWithoutQuery || pathWithoutQuery.includes(ENABLE_GLOBAL_REIMBURSEMENTS_PATH_PREFIX)) {
+    if (!pathWithoutQuery || ENABLE_GLOBAL_REIMBURSEMENTS_PATH_PREFIXES.some((prefix) => pathWithoutQuery.includes(prefix))) {
         return false;
     }
 
     try {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- path parsed to verify focused route name against entry screens
         const focusedRouteName = findFocusedRouteWithOnyxTabGuard(getStateFromPath(pathWithoutQuery as Route) ?? {})?.name;
-        if (focusedRouteName && ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS.has(focusedRouteName)) {
+        if (focusedRouteName && entryScreens.has(focusedRouteName)) {
             return true;
         }
     } catch (error) {
@@ -86,10 +97,28 @@ function getEnableGlobalReimbursementsBusinessNavigationRoute(
     return ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(bankAccountID, subPage, undefined, params);
 }
 
+function getWiseGlobalReimbursementsIntroNavigationRoute(bankAccountID: number, navigationPathAtSignal?: string): Route {
+    const basePath = navigationPathAtSignal ? getDynamicBasePathFromNavigationPath(navigationPathAtSignal) : undefined;
+    const introRoute = DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID);
+
+    if (basePath && shouldUseDynamicEnableGlobalReimbursementsBase(basePath, WISE_GLOBAL_REIMBURSEMENTS_INTRO_ENTRY_SCREENS)) {
+        return createDynamicRoute(introRoute, basePath);
+    }
+
+    return createDynamicRoute(introRoute, ROUTES.SETTINGS_WALLET);
+}
+
+/** Whether the intro was opened over a report or search screen, which means the admin got there by paying a report */
+function isWiseGlobalReimbursementsIntroOverPayReportScreen(introBackPath: string): boolean {
+    return shouldUseDynamicEnableGlobalReimbursementsBase(introBackPath, PAY_REPORT_ENTRY_SCREENS);
+}
+
 export type {EnableGlobalReimbursementsRouteParams};
 export {
     getDynamicBasePathFromNavigationPath,
     getEnableGlobalReimbursementsBusinessNavigationRoute,
     getEnableGlobalReimbursementsRootBackPath,
+    getWiseGlobalReimbursementsIntroNavigationRoute,
+    isWiseGlobalReimbursementsIntroOverPayReportScreen,
     shouldUseDynamicEnableGlobalReimbursementsBase,
 };

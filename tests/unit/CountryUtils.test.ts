@@ -1,4 +1,4 @@
-import {getCountryCode, normalizeCountryCode} from '@libs/CountryUtils';
+import {getCountryCode, normalizeCountryCode, resolveStateCode} from '@libs/CountryUtils';
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 
 import type {Country} from '@src/CONST';
@@ -271,5 +271,24 @@ describe('CountryUtils', () => {
         expect(optionalAddressResult).toEqual(optionalAddress);
         expect(unionResult).toEqual(requiredUnion);
         expect(optionalUnionResult).toEqual(optionalUnion);
+    });
+
+    describe('resolveStateCode', () => {
+        it('turns a full US state name into its code, whatever the case', () => {
+            // Given a stored address that names its state in full
+            // When the state is resolved for the state picker
+            // Then the picker gets the 2-letter code it lists states by
+            expect(resolveStateCode('California')).toBe('CA');
+            expect(resolveStateCode('new york')).toBe('NY');
+        });
+
+        it('keeps a code, an empty value and a name it does not know as they are', () => {
+            // Given states that are already codes, missing, or unknown
+            // When they are resolved
+            // Then they come back unchanged, so the caller decides what to do with an unknown name
+            expect(resolveStateCode('TX')).toBe('TX');
+            expect(resolveStateCode('')).toBe('');
+            expect(resolveStateCode('Ontario')).toBe('Ontario');
+        });
     });
 });

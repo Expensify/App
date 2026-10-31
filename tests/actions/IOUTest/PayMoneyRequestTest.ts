@@ -19,7 +19,7 @@ import DateUtils from '@src/libs/DateUtils';
 import Navigation from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, Policy, Report, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, IntroSelected, Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -267,6 +267,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     const iouReportTransactions = await getReportTransactionsFromOnyx(iouReport.reportID);
                     payMoneyRequest({
                         bankAccountList: undefined,
+                        isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -495,6 +496,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
                         bankAccountList: undefined,
+                        isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
@@ -679,6 +681,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
                         bankAccountList: undefined,
+                        isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: 'ACH',
@@ -739,6 +742,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const chatReportPolicy = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
                 bankAccountList: undefined,
+                isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -842,6 +846,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             mockFetch?.fail?.();
             payMoneyRequest({
                 bankAccountList: undefined,
+                isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -889,6 +894,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
                 payMoneyRequest({
                     bankAccountList: undefined,
+                    isWiseReimbursementsBetaEnabled: false,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -945,6 +951,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 // When paying with the account provided by the caller.
                 payMoneyRequest({
                     bankAccountList: {[bankAccountID]: {bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US, accountData: {accountNumber: 'XXXX9876'}}},
+                    isWiseReimbursementsBetaEnabled: false,
                     methodID: bankAccountID,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
@@ -1064,6 +1071,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     };
                     payMoneyRequest({
                         bankAccountList: undefined,
+                        isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1166,6 +1174,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             const newExpenseReportID = payMoneyRequest({
                 bankAccountList: undefined,
+                isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1277,6 +1286,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const pay = (expenseReport: Report, iouReportTransactions: Transaction[]) =>
                 payMoneyRequest({
                     bankAccountList: undefined,
+                    isWiseReimbursementsBetaEnabled: false,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     chatReport,
                     iouReport: expenseReport,
@@ -1367,6 +1377,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const chatReportPolicyTrueTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
                 bankAccountList: undefined,
+                isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1424,6 +1435,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const chatReportPolicyFalseTour = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
                 bankAccountList: undefined,
+                isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1601,6 +1613,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             payMoneyRequest({
                 bankAccountList: undefined,
+                isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1677,6 +1690,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             payMoneyRequest({
                 bankAccountList: undefined,
+                isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1743,6 +1757,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             payMoneyRequest({
                 bankAccountList: undefined,
+                isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -1788,6 +1803,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const chatReportPolicyAmountZero = chatReportPolicyFromChat(chatReport);
             payMoneyRequest({
                 bankAccountList: undefined,
+                isWiseReimbursementsBetaEnabled: false,
                 isASAPSubmitBetaEnabled: false,
                 conciergeChat: undefined,
                 paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -2230,6 +2246,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                     payMoneyRequest({
                         bankAccountList: undefined,
+                        isWiseReimbursementsBetaEnabled: false,
                         isASAPSubmitBetaEnabled: false,
                         conciergeChat: undefined,
                         paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -2744,6 +2761,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const iouReportTransactions = await getReportTransactionsFromOnyx(expenseReport.reportID);
                 payMoneyRequest({
                     bankAccountList: undefined,
+                    isWiseReimbursementsBetaEnabled: false,
                     isASAPSubmitBetaEnabled: false,
                     conciergeChat: undefined,
                     paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -3115,6 +3133,97 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     introSelected,
                 }),
             );
+        });
+    });
+
+    describe('global reimbursements onboarding before paying', () => {
+        const BANK_ACCOUNT_ID = 9053192;
+
+        function buildBankAccountList(isGlobalReimbursementEnabled: boolean): BankAccountList {
+            return {
+                [BANK_ACCOUNT_ID]: {
+                    bankCurrency: CONST.CURRENCY.USD,
+                    bankCountry: CONST.COUNTRY.US,
+                    accountData: {
+                        bankAccountID: BANK_ACCOUNT_ID,
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled},
+                    },
+                },
+            };
+        }
+
+        function payWithBusinessBankAccount(bankAccountList: BankAccountList, isWiseReimbursementsBetaEnabled: boolean) {
+            const chatReport = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            const expenseReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                chatReportID: chatReport.reportID,
+                total: -100,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            payMoneyRequest({
+                bankAccountList,
+                isWiseReimbursementsBetaEnabled,
+                isASAPSubmitBetaEnabled: false,
+                conciergeChat: undefined,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                chatReport,
+                iouReport: expenseReport,
+                iouReportTransactions: [],
+                introSelected: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserLogin: RORY_EMAIL,
+                isSelfTourViewed: false,
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                chatReportPolicy: undefined,
+                methodID: BANK_ACCOUNT_ID,
+                chatReportActions: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+            });
+        }
+
+        it('opens the onboarding instead of paying when the business bank account is not set up for global reimbursements', async () => {
+            // Given an admin in the Wise beta paying from a USD business account that has not enabled global reimbursements
+            const writeSpy = jest.spyOn(APIActions, 'write');
+
+            // When they pay a report with it
+            payWithBusinessBankAccount(buildBankAccountList(false), true);
+            await waitForBatchedUpdates();
+
+            // Then no payment is sent, because the backend would reject it, and the onboarding signal is raised right away instead
+            expect(writeSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual({
+                bankAccountID: BANK_ACCOUNT_ID,
+                bankCountry: CONST.COUNTRY.US,
+                bankCurrency: CONST.CURRENCY.USD,
+            });
+        });
+
+        it.each([
+            ['the admin is not in the Wise beta', false, false],
+            ['the account already has global reimbursements enabled', true, true],
+        ])('pays as usual when %s', async (_label, isWiseReimbursementsBetaEnabled, isGlobalReimbursementEnabled) => {
+            // Given an admin whose payment the backend accepts from this account
+            const writeSpy = jest.spyOn(APIActions, 'write');
+
+            // When they pay a report with it
+            payWithBusinessBankAccount(buildBankAccountList(isGlobalReimbursementEnabled), isWiseReimbursementsBetaEnabled);
+            await waitForBatchedUpdates();
+
+            // Then the payment is sent and no onboarding opens
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.PAY_MONEY_REQUEST, expect.anything(), expect.anything());
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toBeUndefined();
         });
     });
 });

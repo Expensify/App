@@ -19,7 +19,7 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type AddressPageProps = {
@@ -65,36 +65,33 @@ function AddressPage({title, address, updateAddress, isLoadingApp = true, backTo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [address?.state, address?.country, address?.city, address?.zip]);
 
-    const handleAddressChange = useCallback(
-        (value: unknown, key: unknown) => {
-            const addressPart = value as string;
-            const addressPartKey = key as keyof Address;
+    const handleAddressChange = (value: unknown, key: unknown) => {
+        const addressPart = value as string;
+        const addressPartKey = key as keyof Address;
 
-            if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
-                setCurrentCountry(addressPart as Country | '');
-                setState('');
-                setCity('');
-                setZipcode('');
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.STATE) {
-                setState(addressPart);
-                setCity('');
-                setZipcode('');
-                return;
-            }
-            if (addressPartKey === INPUT_IDS.CITY) {
-                setCity(addressPart);
-                setZipcode('');
-                return;
-            }
-            setZipcode(addressPart);
-        },
-        [currentCountry],
-    );
+        if (addressPartKey !== INPUT_IDS.COUNTRY && addressPartKey !== INPUT_IDS.STATE && addressPartKey !== INPUT_IDS.CITY && addressPartKey !== INPUT_IDS.ZIP_POST_CODE) {
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.COUNTRY && addressPart !== currentCountry) {
+            setCurrentCountry(addressPart as Country | '');
+            setState('');
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.STATE) {
+            setState(addressPart);
+            setCity('');
+            setZipcode('');
+            return;
+        }
+        if (addressPartKey === INPUT_IDS.CITY) {
+            setCity(addressPart);
+            setZipcode('');
+            return;
+        }
+        setZipcode(addressPart);
+    };
 
     return (
         <ScreenWrapper

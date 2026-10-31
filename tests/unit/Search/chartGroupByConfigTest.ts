@@ -37,6 +37,16 @@ describe('chartGroupByConfig', () => {
                 icon: 'Users',
             },
             {
+                item: createMock<Extract<GroupedItem, {groupedBy: typeof CONST.SEARCH.GROUP_BY.APPROVER}>>({
+                    groupedBy: CONST.SEARCH.GROUP_BY.APPROVER,
+                    accountID: 42,
+                    formattedApprover: 'Approver',
+                }),
+                label: 'Approver',
+                query: 'approver:42',
+                icon: 'Users',
+            },
+            {
                 item: createMock<Extract<GroupedItem, {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD}>>({
                     groupedBy: CONST.SEARCH.GROUP_BY.CARD,
                     accountID: 42,
@@ -159,8 +169,8 @@ describe('chartGroupByConfig', () => {
         for (const {item, label, query, icon, shortLabel, lineLabel, steps, range} of cases) {
             const config = CHART_GROUP_BY_CONFIG[item.groupedBy];
 
-            // Then all eleven entries retain the exact filters, labels, date bounds and optional fallbacks.
-            expect(getChartFilterQuery(item)).toBe(query);
+            // Then every entry retains the exact filters, labels, date bounds and optional fallbacks.
+            expect(getChartFilterQuery(item, item.groupedBy)).toBe(query);
             expect(config.getLabel(item)).toBe(label);
             expect(config.titleIconName).toBe(icon);
             expect(config.getShortLabel?.(item)).toBe(shortLabel);
@@ -208,7 +218,21 @@ describe('chartGroupByConfig', () => {
         expect(CHART_GROUP_BY_CONFIG.category.getFilterQuery(card)).toBe('category:"undefined"');
         expect(CHART_GROUP_BY_CONFIG.year.getFilterQuery(month)).toBe('date>=2024-01-01 date<=2024-12-31');
         expect(CHART_GROUP_BY_CONFIG.year.getFilterQuery(quarter)).toBe('date>=2023-01-01 date<=2023-12-31');
-        expect(getChartFilterQuery(quarter)).toBe('date>=2023-01-01 date<=2023-03-31');
+        expect(getChartFilterQuery(quarter, CONST.SEARCH.GROUP_BY.QUARTER)).toBe('date>=2023-01-01 date<=2023-03-31');
+    });
+
+    it('filters by the chart grouping when a row keeps a grouping of its own', () => {
+        // Given an expense report row, whose groupedBy has no chart config, and a card row in a time chart.
+        const reportRow = Object.assign(createMock<GroupedItem>({}), {groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+        const card = createMock<Extract<GroupedItem, {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD}>>({groupedBy: CONST.SEARCH.GROUP_BY.CARD, accountID: 42});
+
+        // When a chart bar is pressed for these rows.
+        // Then the report row uses the chart's filter instead of throwing, and a time chart adds no filter without its own fields.
+        expect(getChartFilterQuery(reportRow, CONST.SEARCH.GROUP_BY.FROM)).toBe('from:undefined');
+        expect(getChartFilterQuery(reportRow, CONST.SEARCH.GROUP_BY.WEEK)).toBe('');
+        expect(getChartFilterQuery(card, CONST.SEARCH.GROUP_BY.MONTH)).toBe('');
+        expect(getChartFilterQuery(card, CONST.SEARCH.GROUP_BY.QUARTER)).toBe('');
+        expect(getChartFilterQuery(card, CONST.SEARCH.GROUP_BY.YEAR)).toBe('');
     });
 
     it('requires the actual time fields at the four time-filter call boundaries', () => {

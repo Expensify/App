@@ -128,21 +128,29 @@ const CHART_GROUP_BY_CONFIG: {[TGroupBy in SearchGroupBy]: ChartGroupByConfig<Ch
         },
         getDateRange: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? DateUtils.getQuarterDateRange(item.year, item.quarter) : undefined),
     },
+    [CONST.SEARCH.GROUP_BY.APPROVER]: {
+        titleIconName: 'Users',
+        getLabel: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ? (item.formattedApprover ?? '') : ''),
+        getFilterQuery: (item: GroupedItem) => (item.groupedBy === CONST.SEARCH.GROUP_BY.APPROVER ? `${CONST.SEARCH.GROUP_BY.APPROVER}:${item.accountID}` : ''),
+    },
 };
 
-/** Dispatches rows produced with the same grouping as the chart query. */
-function getChartFilterQuery(item: GroupedItem): string {
-    switch (item.groupedBy) {
+/**
+ * Dispatches on the chart's grouping, because a row's own `groupedBy` can differ: expense report rows keep theirs in any chart.
+ * A time chart filters only its own rows, so any other row has no filter.
+ */
+function getChartFilterQuery(item: GroupedItem, groupBy: SearchGroupBy): string {
+    switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.WEEK:
-            return CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.WEEK].getFilterQuery(item);
+            return item.groupedBy === CONST.SEARCH.GROUP_BY.WEEK ? CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.WEEK].getFilterQuery(item) : '';
         case CONST.SEARCH.GROUP_BY.MONTH:
-            return CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getFilterQuery(item);
+            return item.groupedBy === CONST.SEARCH.GROUP_BY.MONTH ? CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MONTH].getFilterQuery(item) : '';
         case CONST.SEARCH.GROUP_BY.QUARTER:
-            return CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getFilterQuery(item);
+            return item.groupedBy === CONST.SEARCH.GROUP_BY.QUARTER ? CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.QUARTER].getFilterQuery(item) : '';
         case CONST.SEARCH.GROUP_BY.YEAR:
-            return CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.YEAR].getFilterQuery(item);
+            return item.groupedBy === CONST.SEARCH.GROUP_BY.YEAR ? CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.YEAR].getFilterQuery(item) : '';
         default:
-            return CHART_GROUP_BY_CONFIG[item.groupedBy].getFilterQuery(item);
+            return CHART_GROUP_BY_CONFIG[groupBy].getFilterQuery(item);
     }
 }
 
