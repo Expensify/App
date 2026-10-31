@@ -178,6 +178,7 @@ function useDistanceSubmission({
                 receipt: isManualDistanceRequest || isOdometerDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
                 odometerStart: isOdometerDistanceRequest ? transaction.comment?.odometerStart : undefined,
                 odometerEnd: isOdometerDistanceRequest ? transaction.comment?.odometerEnd : undefined,
+                odometerUnit: isOdometerDistanceRequest ? (transaction.comment?.odometerUnit ?? undefined) : undefined,
                 isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                 distanceRequestType: getDistanceRequestType(transaction),

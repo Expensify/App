@@ -653,6 +653,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         originalTransactionID: undefined,
         odometerStart: transaction.comment?.odometerStart ?? undefined,
         odometerEnd: transaction.comment?.odometerEnd ?? undefined,
+        odometerUnit: transaction.comment?.odometerUnit ?? undefined,
         receipt: undefined,
         source: undefined,
         waypoints,

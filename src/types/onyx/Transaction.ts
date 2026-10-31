@@ -135,6 +135,9 @@ type Comment = {
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
 
+    /** Distance unit the odometer readings were entered in, which can differ from customUnit.distanceUnit after the rate changes */
+    odometerUnit?: Unit | null;
+
     /** Both image fields are needed only locally because server receives only one merged image as receipt */
     /** Odometer start image (File object with uri on web, URI string on native) */
     odometerStartImage?: FileObject | string;

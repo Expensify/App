@@ -1336,6 +1336,42 @@ describe('actions/IOU/TrackExpense', () => {
             expect(fallbackReportActions).toBeUndefined();
         });
 
+        it('sends the unit the odometer readings were entered in, so the backend can convert them to the rate unit', async () => {
+            // Given a selfDM report and an odometer expense whose readings were entered in km
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-odometer-unit',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When the expense is tracked
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {
+                    amount: 1500,
+                    distance: 2.49,
+                    odometerStart: 2,
+                    odometerEnd: 6,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                }),
+                existingTransaction: {
+                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                    reportID: selfDMReport.reportID,
+                    amount: 1500,
+                    currency: 'USD',
+                    created: '',
+                    merchant: '',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                    comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then the TrackExpense request carries the readings' unit alongside the readings
+            const requestBody = TestHelper.getFetchMockCalls(WRITE_COMMANDS.TRACK_EXPENSE).at(0)?.[1]?.body;
+            const requestParams = requestBody instanceof FormData ? Object.fromEntries(requestBody) : {};
+            expect(requestParams).toEqual(expect.objectContaining({odometerStart: '2', odometerEnd: '6', odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}));
+        });
+
         it('should create optimistic transaction with correct amount and currency', async () => {
             // Given a selfDM report and transaction data
             const selfDMReport: Report = {
