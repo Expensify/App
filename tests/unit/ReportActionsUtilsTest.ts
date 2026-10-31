@@ -2871,6 +2871,44 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('isImportantForCurrentUser', () => {
+        const currentUserAccountID = 1;
+        const otherAccountID = 2;
+        const buildAction = (originalMessage: Record<string, unknown>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '1',
+                actorAccountID: 3,
+                created: '2026-10-06',
+                message: [],
+                originalMessage,
+            }) as ReportAction;
+
+        it('returns true when currentUserAccountID is in importantForAccountIDs', () => {
+            const action = buildAction({importantForAccountIDs: [currentUserAccountID, otherAccountID]});
+            expect(ReportActionsUtils.isImportantForCurrentUser(action, currentUserAccountID)).toBe(true);
+        });
+
+        it('returns false when currentUserAccountID is not in importantForAccountIDs', () => {
+            const action = buildAction({importantForAccountIDs: [otherAccountID]});
+            expect(ReportActionsUtils.isImportantForCurrentUser(action, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns false when importantForAccountIDs is an empty array', () => {
+            const action = buildAction({importantForAccountIDs: []});
+            expect(ReportActionsUtils.isImportantForCurrentUser(action, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns false when importantForAccountIDs is absent from the originalMessage', () => {
+            const action = buildAction({});
+            expect(ReportActionsUtils.isImportantForCurrentUser(action, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns false for an undefined reportAction', () => {
+            expect(ReportActionsUtils.isImportantForCurrentUser(undefined, currentUserAccountID)).toBe(false);
+        });
+    });
+
     describe('doesReportHaveVisibleActions', () => {
         const reportID = 'report_1';
         const visibleComment: ReportAction = {
