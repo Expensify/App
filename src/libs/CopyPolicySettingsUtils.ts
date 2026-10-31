@@ -9,7 +9,7 @@ import type {Part} from './actions/Policy/CopyPolicySettings';
 
 import {isAuthenticationError} from './actions/connections';
 import {PART_TO_POLICY_FEATURE} from './actions/Policy/CopyPolicySettings';
-import {canPolicyAccessFeature, isCollectPolicy, isInvoiceFieldsEnabled, isTimeTrackingEnabled, isWorkspaceProvisionedForTravel} from './PolicyUtils';
+import {canPolicyAccessFeature, isCollectPolicy, isInvoiceFieldsEnabled, isTimeTrackingEnabled} from './PolicyUtils';
 
 type FeatureRow = {
     part: Part;
@@ -264,7 +264,12 @@ function isCurrencyBlockedByTargetBA(source: Policy | undefined, targets: Readon
  * alongside workflows so the "currency" Part runs first and aligns the currencies (App#92397).
  */
 function needsCurrencyForWorkflows(source: Policy | undefined, targets: ReadonlyArray<Policy | undefined>): boolean {
-    return !!source && policyHasWithdrawalAccount(source) && targets.some((target) => hasDifferentCurrency(source, target) && !policyHasWithdrawalAccount(target));
+    return (
+        !!source &&
+        // Auth remaps reimbursement banking only when the source has a saved bank account ID.
+        (source.achAccount?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) > CONST.DEFAULT_NUMBER_ID &&
+        targets.some((target) => hasDifferentCurrency(source, target) && !policyHasWithdrawalAccount(target))
+    );
 }
 
 /**
@@ -383,14 +388,13 @@ function getTimeTrackingCopySettingsDescription(policy: Policy | undefined, tran
     return translate('common.enabled');
 }
 
-/**
- * Whether the source workspace already has a Spotnana entity. Copying travel from a provisioned
- * source re-provisions each target (the backend creates a fresh entity), which requires accepting
- * Expensify Travel terms - so the confirm screen must capture consent in this case. Mirrors the
- * provisioning check in BookTravelButton.
- */
-function isSourceProvisionedForTravel(policy: Policy | undefined): boolean {
-    return isWorkspaceProvisionedForTravel(policy?.travelSettings);
+/** Matches Auth's entity check; full policy loads include the saved travel settings. */
+function hasTravelEntity(policy: Policy | undefined): boolean {
+    return !!policy?.travelSettings?.spotnanaEntityID;
+}
+
+function shouldRequireTravelTerms(policy: Policy | undefined, parts: readonly Part[]): boolean {
+    return parts.includes('travel') && hasTravelEntity(policy);
 }
 
 export {
@@ -405,7 +409,8 @@ export {
     needsCurrencyForWorkflows,
     isCopyPolicySettingsPartEnabledOnSource,
     getTimeTrackingCopySettingsDescription,
-    isSourceProvisionedForTravel,
+    hasTravelEntity,
+    shouldRequireTravelTerms,
     getReceiptPartnersCopySettingsDescription,
     getCollectTargetsToUpgrade,
     shouldShowCopyPolicySettingsUpgradeStep,

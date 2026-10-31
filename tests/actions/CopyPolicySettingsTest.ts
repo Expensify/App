@@ -66,6 +66,10 @@ function makeSourcePolicy(overrides: Partial<Policy> = {}): Policy {
         eReceipts: true,
         preventSelfApproval: true,
         preventPayoutNonReimbursableReports: true,
+        isReceiptVisibilityPublic: true,
+        requireMapOrGPS: true,
+        mccGroup: {dining: {category: 'Meals', groupID: 'dining'}},
+        exportLayouts: {sourceLayout: {name: 'Source layout', templateName: 'sourceLayout', type: 'csv', policyID: SOURCE_POLICY_ID, description: ''}},
         ...overrides,
     };
 }
@@ -159,9 +163,9 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 ['overview', ['address', 'description']],
                 ['currency', ['outputCurrency']],
                 ['members', ['employeeList']],
-                ['reports', ['fieldList', 'areReportFieldsEnabled']],
+                ['reports', ['fieldList', 'areReportFieldsEnabled', 'exportLayouts']],
                 ['accounting', ['connections', 'areConnectionsEnabled']],
-                ['categories', ['areCategoriesEnabled']],
+                ['categories', ['areCategoriesEnabled', 'mccGroup']],
                 ['tags', ['areTagsEnabled']],
                 ['taxes', ['tax', 'taxRates']],
                 ['workflows', ['areWorkflowsEnabled', 'autoReportingFrequency', 'autoReporting', 'autoReportingOffset', 'harvesting', 'approvalMode', 'autoApproval', 'reimbursementChoice']],
@@ -181,9 +185,10 @@ describe('actions/Policy/CopyPolicySettings', () => {
                         'preventPayoutNonReimbursableReports',
                         'shouldShowAutoApprovalOptions',
                         'shouldShowAutoReimbursementLimitOption',
+                        'isReceiptVisibilityPublic',
                     ],
                 ],
-                ['distanceRates', ['areDistanceRatesEnabled']],
+                ['distanceRates', ['areDistanceRatesEnabled', 'requireMapOrGPS']],
                 ['perDiem', ['arePerDiemRatesEnabled']],
                 ['invoices', ['areInvoicesEnabled', 'areInvoiceFieldsEnabled', 'invoice', 'fieldList']],
                 ['travel', ['isTravelEnabled']],
@@ -204,6 +209,84 @@ describe('actions/Policy/CopyPolicySettings', () => {
                     expect(policy?.[field]).toEqual(sourcePolicy[field]);
                 }
                 expect(policy?.pendingFields).toEqual(expect.objectContaining(Object.fromEntries(expectedFields.map((field) => [field, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]))));
+            });
+
+            it('copies only invoice markup and preserves the target invoicing identity', () => {
+                // Given workspaces with separate invoicing identities.
+                const sourcePolicy = makeSourcePolicy({invoice: {markUp: 25, companyName: 'Source', bankAccount: {stripeConnectAccountID: 'source-stripe'}}});
+                const targetPolicy = makeTargetPolicy({invoice: {markUp: 5, companyName: 'Target', bankAccount: {stripeConnectAccountID: 'target-stripe'}}});
+                // When invoice settings are copied.
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['invoices'], {}, {}, {});
+                // Then only markup changes, because billing identity belongs to the target.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toEqual({...targetPolicy.invoice, markUp: 25});
+            });
+
+            it('removes target invoice markup when the source has none', () => {
+                // Given a source without markup and a target with its own invoicing identity.
+                const source = makeSourcePolicy({invoice: {companyName: 'Source'}});
+                const target = makeTargetPolicy({invoice: {markUp: 10, companyName: 'Target'}});
+
+                // When Invoices is copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['invoices'], {}, {}, {});
+
+                // Then markup is removed while the target identity is retained, as Auth does.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toEqual({companyName: 'Target'});
+            });
+
+            it('does not create invoice settings when neither workspace has markup or invoice settings', () => {
+                // Given no invoice settings on either workspace.
+                const source = makeSourcePolicy({invoice: undefined});
+                const target = makeTargetPolicy({invoice: undefined});
+
+                // When Invoices is copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['invoices'], {}, {}, {});
+
+                // Then no empty invoice object is fabricated.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toBeUndefined();
+            });
+
+            it('does not create invoice settings from source identity alone', () => {
+                // Given a source identity without markup and an unconfigured target.
+                const source = makeSourcePolicy({invoice: {companyName: 'Source'}});
+                const target = makeTargetPolicy({invoice: undefined});
+
+                // When Invoices is copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['invoices'], {}, {}, {});
+
+                // Then the target remains unconfigured, matching Auth's invoice copy.
+                expect(getOptimisticPolicy(optimisticData)?.invoice).toBeUndefined();
+            });
+
+            it('leaves government-rate flags to the server eligibility check', () => {
+                // Given source government rates that may be invalid for the target currency or unit.
+                const source = makeSourcePolicy({shouldAutoUpdateGovernmentDistanceRates: true, autoUpdateGovernmentRateCountry: 'FR'});
+                const target = makeTargetPolicy({shouldAutoUpdateGovernmentDistanceRates: false, autoUpdateGovernmentRateCountry: 'DE'});
+
+                // When Distance rates is copied optimistically.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['distanceRates'], {}, {}, {});
+                const copied = getOptimisticPolicy(optimisticData);
+
+                // Then source eligibility flags are not copied or marked pending before Auth resolves them.
+                expect(copied?.shouldAutoUpdateGovernmentDistanceRates).toBe(false);
+                expect(copied?.autoUpdateGovernmentRateCountry).toBe('DE');
+                expect(copied?.pendingFields?.shouldAutoUpdateGovernmentDistanceRates).toBeUndefined();
+                expect(copied?.pendingFields?.autoUpdateGovernmentRateCountry).toBeUndefined();
+            });
+
+            it('keeps bulk-copy progress untouched when copying into a new policy', () => {
+                // Given a new destination with no bulk-copy operation to track.
+                const source = makeSourcePolicy();
+                const target = makeTargetPolicy();
+
+                // When the shared copier builds duplicate settings.
+                const {optimisticData, successData, failureData} = buildCopyPolicySettingsData(source, [target], ['timeTracking', 'receiptPartners'], {}, {}, {}, false, true);
+                // Then every lifecycle leaves the existing bulk-copy state alone.
+                expect(failureData.some((update) => update.key === POLICY_KEY)).toBe(false);
+                for (const update of [...optimisticData, ...successData, ...failureData]) {
+                    expect(update.key).not.toBe(ONYXKEYS.COPY_POLICY_SETTINGS);
+                    expect(update.key).not.toBe(ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS);
+                    expect(update.key).not.toBe(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`);
+                }
             });
 
             it('retains target values for unrelated fields', () => {
@@ -295,7 +378,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 expect(policy?.travelSettings?.hasAcceptedTerms).toBe(false);
             });
 
-            it('leaves target travelSettings untouched when the source has no autoAddTripName preference', () => {
+            it('uses the default autoAddTripName preference when the source has none', () => {
+                // Given no source preference and a target that has trip names disabled.
                 const sourcePolicy = makeSourcePolicy({
                     travelSettings: {
                         spotnanaCompanyID: 'SOURCE_COMPANY',
@@ -311,10 +395,12 @@ describe('actions/Policy/CopyPolicySettings', () => {
                 };
                 const targetPolicy = makeTargetPolicy({travelSettings: targetTravelSettings});
 
+                // When Travel settings are copied without an explicit preference.
                 const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['travel'], {}, {}, {});
                 const policy = getOptimisticPolicy(optimisticData);
 
-                expect(policy?.travelSettings).toEqual(targetTravelSettings);
+                // Then Auth's default is applied while the target keeps its own Travel identity.
+                expect(policy?.travelSettings).toEqual({...targetTravelSettings, autoAddTripName: true});
             });
 
             it('copies autoAddTripName to a not-yet-provisioned target without fabricating identity fields', () => {

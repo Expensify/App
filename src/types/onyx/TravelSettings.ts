@@ -17,6 +17,9 @@ type WorkspaceTravelSettings = {
     /** The UUID that spotnana provides us when we create a "company" in their system. Absent until the workspace is provisioned. */
     spotnanaCompanyID?: string;
 
+    /** The policy entity used for Travel bookings. */
+    spotnanaEntityID?: string;
+
     /** The UUID of the associated Spotnana Entity. Absent until the workspace is provisioned. */
     associatedTravelDomainAccountID?: string;
 

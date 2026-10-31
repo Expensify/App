@@ -7,14 +7,16 @@ type DuplicateWorkspaceParams = {
     parts: string;
     announceChatReportID: string;
     adminsChatReportID: string;
-    welcomeNote: string;
     expenseChatReportID: string;
     adminsCreatedReportActionID: string;
     expenseCreatedReportActionID: string;
-    announceChatReportActionID: string;
+    announceCreatedReportActionID: string;
     perDiemCustomUnitID: string;
     distanceCustomUnitID: string;
     customUnitRateID: string;
+    optimisticRateIDs?: string;
+    currency: string;
+    hasAcceptedTravelTerms: boolean;
     file?: FileObject;
 };
 

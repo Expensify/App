@@ -9,6 +9,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
 import {askToJoinPolicy, joinAccessiblePolicy} from '@src/libs/actions/Policy/Member';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -390,11 +391,15 @@ describe('actions/Policy', () => {
         });
 
         it('duplicate workspace', async () => {
+            // Given source settings that must stay independent from the new workspace.
             mockFetch?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy = {
                 ...createRandomPolicy(10, CONST.POLICY.TYPE.PERSONAL),
                 employeeList: {},
+                areWorkflowsEnabled: true,
+                areDistanceRatesEnabled: true,
+                arePerDiemRatesEnabled: true,
                 areInvoicesEnabled: true,
                 invoice: {
                     companyName: 'Source company',
@@ -419,28 +424,16 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: true,
-                    reports: true,
-                    connections: true,
-                    categories: true,
-                    tags: true,
-                    taxes: true,
-                    perDiem: true,
-                    reimbursements: true,
-                    expenses: true,
-                    distance: true,
-                    invoices: true,
-                    exportLayouts: true,
-                },
+                parts: ['members', 'reports', 'accounting', 'categories', 'tags', 'taxes', 'perDiem', 'rules', 'distanceRates', 'invoices', 'workflows'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
 
+            // When the selected settings are duplicated.
             Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
-            let policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+            let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
@@ -450,24 +443,26 @@ describe('actions/Policy', () => {
                 });
             });
 
+            // Then the duplicate reflects the selected settings without changing its source.
             expect(policy?.id).toBe(policyID);
 
             // check if policy was created with correct values
             expect(policy?.id).toBe(policyID);
             expect(policy?.name).toBe(POLICY_NAME);
             expect(policy?.type).toBe(fakePolicy.type);
-            expect(policy?.role).toBe(fakePolicy.role);
-            expect(policy?.owner).toBe(fakePolicy.owner);
+            expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(policy?.owner).toBe(ESH_EMAIL);
             expect(policy?.areWorkflowsEnabled).toBe(true);
             expect(policy?.areDistanceRatesEnabled).toBe(true);
             expect(policy?.areInvoicesEnabled).toBe(true);
             // The invoicing details are provisioned per workspace, so they must not be copied from the source policy
-            expect(policy?.invoice).toBeUndefined();
+            expect(policy?.invoice?.companyName).toBeUndefined();
+            expect(policy?.invoice?.bankAccount).toBeUndefined();
             expect(policy?.arePerDiemRatesEnabled).toBe(true);
             expect(policy?.approvalMode).toBe(fakePolicy.approvalMode);
             expect(policy?.approver).toBe(fakePolicy.approver);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policy?.employeeList).toEqual(fakePolicy.employeeList);
+            expect(policy?.employeeList).toEqual(expect.objectContaining({[ESH_EMAIL]: expect.objectContaining({role: CONST.POLICY.ROLE.ADMIN})}));
             expect(policy?.mccGroup).toBe(fakePolicy.mccGroup);
             expect(policy?.requiresCategory).toBe(fakePolicy.requiresCategory);
 
@@ -549,7 +544,7 @@ describe('actions/Policy', () => {
 
             policy = await new Promise((resolve) => {
                 const connection = Onyx.connect({
-                    key: ONYXKEYS.COLLECTION.POLICY,
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                     callback: (workspace) => {
                         Onyx.disconnect(connection);
                         resolve(workspace);
@@ -595,9 +590,208 @@ describe('actions/Policy', () => {
             }
         });
 
+        it('duplicate workspace keeps copied categories after success without recreating defaults', async () => {
+            // Given a source whose categories replace every creation default.
+            const source = createRandomPolicy(30, CONST.POLICY.TYPE.TEAM);
+            const categories = {Custom: {name: 'Custom', enabled: true}};
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When Categories is copied and the request succeeds.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Copied categories',
+                welcomeNote: '',
+                localCurrency: 'USD',
+                parts: ['categories'],
+                policyCategories: categories,
+                personalDetailsByLogins: {},
+            });
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then success feedback must not restore the deleted default names.
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual(categories);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`))?.pendingFields?.name).toBeUndefined();
+        });
+
+        it('duplicate workspace applies matching category rules to creation defaults while offline', async () => {
+            // Given a source rule on a category that exists in a new workspace.
+            const source = createRandomPolicy(31, CONST.POLICY.TYPE.TEAM);
+            const categoryName = CONST.POLICY.DEFAULT_CATEGORIES.ADVERTISING;
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When Rules is copied without replacing Categories.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Copied category rules',
+                welcomeNote: '',
+                localCurrency: 'USD',
+                parts: ['rules'],
+                policyCategories: {[categoryName]: {name: categoryName, enabled: true, areCommentsRequired: true, maxExpenseAmount: 5000}},
+                personalDetailsByLogins: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then matching rules are visible before the server responds.
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`);
+            expect(categories?.[categoryName]).toEqual(expect.objectContaining({name: categoryName, enabled: true, areCommentsRequired: true, maxExpenseAmount: 5000}));
+        });
+
+        it('duplicate workspace omits pending deletions from copied settings while offline', async () => {
+            // Given source settings already removed locally but still queued for deletion.
+            const pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const source: PolicyType = {
+                ...createRandomPolicy(32, CONST.POLICY.TYPE.TEAM),
+                employeeList: {[EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER, pendingAction}},
+                fieldList: {
+                    deleted: {
+                        fieldID: 'deleted',
+                        name: 'Deleted',
+                        type: 'text',
+                        target: 'expense',
+                        pendingAction,
+                        defaultValue: '',
+                        orderWeight: 0,
+                        deletable: true,
+                        values: [],
+                        keys: [],
+                        externalIDs: [],
+                        disabledOptions: [],
+                        isTax: false,
+                    },
+                },
+                taxRates: {name: 'Tax', defaultExternalID: '', defaultValue: '', foreignTaxDefault: '', taxes: {deleted: {name: 'Deleted', value: '10%', pendingAction}}},
+            };
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When those setting groups are copied to a new workspace.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Filtered settings',
+                welcomeNote: '',
+                localCurrency: 'USD',
+                parts: ['members', 'reports', 'accounting', 'taxes', 'categories', 'tags'],
+                policyCategories: {Deleted: {name: 'Deleted', enabled: true, pendingAction}, Kept: {name: 'Kept', enabled: true}},
+                policyTags: {
+                    Deleted: {name: 'Deleted', required: false, orderWeight: 0, tags: {}, pendingAction},
+                    Kept: {name: 'Kept', required: false, orderWeight: 1, tags: {Deleted: {name: 'Deleted', enabled: true, pendingAction}, Kept: {name: 'Kept', enabled: true}}},
+                },
+                personalDetailsByLogins: {},
+            });
+            await waitForBatchedUpdates();
+
+            // Then only surviving records appear, and the source remains unchanged.
+            const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`);
+            expect(duplicate?.employeeList?.[EMPLOYEE_EMAIL]).toBeUndefined();
+            expect(duplicate?.employeeList?.[ESH_EMAIL]).toBeDefined();
+            expect(duplicate?.fieldList).toEqual({});
+            expect(duplicate?.taxRates?.taxes).toEqual({});
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual({Kept: {name: 'Kept', enabled: true}});
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`)).toEqual({
+                Kept: {name: 'Kept', required: false, orderWeight: 1, tags: {Kept: {name: 'Kept', enabled: true}}},
+            });
+            expect(source.employeeList?.[EMPLOYEE_EMAIL]?.pendingAction).toBe(pendingAction);
+        });
+
+        it('duplicate workspace retains backend creation defaults before the response', () => {
+            // Given a source with defaults that must not leak into an empty selection.
+            const source = {...createRandomPolicy(33, CONST.POLICY.TYPE.TEAM), requiresCategory: false, defaultBillable: true, defaultReimbursable: false};
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When no setting groups are copied.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Default workspace',
+                welcomeNote: '',
+                localCurrency: 'USD',
+                parts: [],
+                personalDetailsByLogins: {},
+            });
+            return waitForBatchedUpdates().then(() => {
+                // Then the destination has its own admins room, title formula, and backend defaults offline.
+                return getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`).then((duplicate) => {
+                    expect(duplicate).toEqual(
+                        expect.objectContaining({
+                            requiresCategory: true,
+                            defaultBillable: false,
+                            defaultReimbursable: true,
+                            disabledFields: {defaultBillable: true, reimbursable: false},
+                            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+                        }),
+                    );
+                    expect(typeof duplicate?.created).toBe('string');
+                    expect(duplicate?.mccGroup).toBeDefined();
+                    expect(duplicate?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.defaultValue).toBe(CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN);
+                    expect(duplicate?.chatReportIDAdmins).toBeTruthy();
+                    return getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${duplicate?.chatReportIDAdmins}`).then((adminsChat) => {
+                        expect(adminsChat?.policyID).toBe(targetPolicyID);
+                    });
+                });
+            });
+        });
+
+        it('duplicate workspace preserves the creator approval chain when copying members and workflows', () => {
+            // Given a creator whose source approval chain points at other members.
+            const source = {
+                ...createRandomPolicy(34, CONST.POLICY.TYPE.TEAM),
+                employeeList: {
+                    [ESH_EMAIL]: {email: ESH_EMAIL, role: CONST.POLICY.ROLE.USER, submitsTo: EMPLOYEE_EMAIL, forwardsTo: TEST_EMAIL},
+                    [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                    [TEST_EMAIL]: {email: TEST_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const targetPolicyID = Policy.generatePolicyID();
+            mockFetch.pause();
+
+            // When members and workflows are copied together.
+            Policy.duplicateWorkspace(source, {
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                currentUserEmail: ESH_EMAIL,
+                policyID: source.id,
+                targetPolicyID,
+                policyName: 'Approval chain',
+                welcomeNote: '',
+                localCurrency: 'USD',
+                parts: ['members', 'workflows'],
+                personalDetailsByLogins: {},
+            });
+            return waitForBatchedUpdates().then(() => {
+                // Then Auth's owner rule is mirrored: retain the approval chain and keep the creator an admin.
+                return getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`).then((duplicate) => {
+                    expect(duplicate?.employeeList?.[ESH_EMAIL]).toEqual(expect.objectContaining({role: CONST.POLICY.ROLE.ADMIN, submitsTo: EMPLOYEE_EMAIL, forwardsTo: TEST_EMAIL}));
+                });
+            });
+        });
+
         it('duplicate workspace disabled options', async () => {
+            // Given source settings that must stay independent from the new workspace.
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            const fakePolicy = createRandomPolicy(12, CONST.POLICY.TYPE.TEAM);
+            const fakePolicy = {
+                ...createRandomPolicy(12, CONST.POLICY.TYPE.TEAM),
+                customRules: 'Source rules',
+                autoApproval: {limit: 12345},
+                achAccount: {bankAccountID: 123, accountNumber: '1234', routingNumber: '123456789', addressName: 'Test', bankName: 'Test bank', reimburser: 'test@example.com'},
+                receiptPartners: {enabled: true},
+                units: {time: {enabled: true, rate: 90}},
+            };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
 
@@ -610,24 +804,12 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: true,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: ['members'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
 
+            // When the selected settings are duplicated.
             Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
@@ -641,20 +823,31 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // When these parts are disabled, the corresponding policy settings should be false
+            // Then the duplicate reflects the selected settings without changing its source.
             expect(policy?.areWorkflowsEnabled).toBe(false);
             expect(policy?.areDistanceRatesEnabled).toBe(false);
             expect(policy?.areInvoicesEnabled).toBe(false);
             expect(policy?.arePerDiemRatesEnabled).toBe(false);
+            expect(policy?.customRules).toBeUndefined();
+            expect(policy?.autoApproval).toBeUndefined();
+            expect(policy?.achAccount).toBeUndefined();
+            expect(policy?.receiptPartners).toBeUndefined();
+            expect(policy?.units?.time).toEqual({enabled: false, rate: 50});
         });
 
         it('duplicate workspace with overview, travel, and codingRules options', async () => {
+            // Given source settings that must stay independent from the new workspace.
             const basePolicy = createRandomPolicy(15, CONST.POLICY.TYPE.TEAM);
             const fakePolicy: PolicyType = {
                 ...basePolicy,
                 outputCurrency: 'EUR',
                 address: {addressStreet: '1 Main Street', city: 'Paris', country: 'FR', state: '', zipCode: '75001'},
                 isTravelEnabled: true,
+                travelSettings: {spotnanaEntityID: 'source-entity', spotnanaCompanyID: 'source-company', hasAcceptedTerms: true, autoAddTripName: false},
+                units: {time: {enabled: true, rate: 75}},
+                receiptPartners: {enabled: true, uber: {enabled: true, organizationID: 'source-org', organizationName: 'Source org'}},
+                areInvoicesEnabled: true,
+                invoice: {markUp: 20, companyName: 'Source company', bankAccount: {stripeConnectAccountID: 'source-stripe'}},
                 tax: {trackingEnabled: true},
             };
             const sourceRule: Rule = {
@@ -664,8 +857,7 @@ describe('actions/Policy', () => {
                 filters: {left: CONST.RULES.EXPENSE_DEFAULT.FIELD.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
                 actions: indexMap({name: CONST.RULES.ACTIONS.SET, field: CONST.RULES.EXPENSE_DEFAULT.FIELD.CATEGORY, value: 'Travel'}),
             };
-            // The copies are optimistic only - they are dropped once the server responds with its own rule IDs,
-            // so the request stays paused while they are asserted.
+            // Keep optimistic rules visible until assertions finish.
             mockFetch?.pause?.();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
@@ -679,29 +871,17 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: true,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                    overview: true,
-                    travel: true,
-                    codingRules: true,
-                },
+                parts: ['taxes', 'overview', 'currency', 'travel', 'codingRules', 'timeTracking', 'receiptPartners', 'invoices'] satisfies Part[],
                 localCurrency: 'USD',
                 rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
                 personalDetailsByLogins: {},
             };
 
-            Policy.duplicateWorkspace(fakePolicy, options);
+            // When the selected settings are duplicated with explicit Travel consent.
+            const params = Policy.duplicateWorkspace(fakePolicy, {...options, hasAcceptedTravelTerms: true});
+            // Then the duplicate reflects the selected settings without changing its source.
+            expect(params.hasAcceptedTravelTerms).toBe(true);
+            expect(params.currency).toBe('USD');
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -718,9 +898,11 @@ describe('actions/Policy', () => {
             expect(policy?.address).toEqual(fakePolicy.address);
             expect(policy?.isTravelEnabled).toBe(true);
             expect(policy?.tax).toEqual(fakePolicy.tax);
+            expect(policy?.travelSettings).toEqual({autoAddTripName: false});
+            expect(policy?.units?.time).toEqual({enabled: true, rate: 75});
+            expect(policy?.receiptPartners?.uber?.organizationID).toBe('source-org');
+            expect(policy?.invoice).toEqual({markUp: 20});
 
-            // Merchant rules are copied into the rules collection as new rules scoped to the duplicate,
-            // rather than onto the duplicated policy object.
             const duplicatedRules = Object.values((await getRulesCollection()) ?? {}).filter((rule) => rule?.scopeID === policyID);
             expect(duplicatedRules).toHaveLength(1);
             expect(duplicatedRules.at(0)).toMatchObject({
@@ -737,7 +919,7 @@ describe('actions/Policy', () => {
         });
 
         it('duplicate workspace without the rules and codingRules options copies no merchant rules', async () => {
-            // Given a source workspace with a merchant rule
+            // Given source settings that must stay independent from the new workspace.
             const fakePolicy = createRandomPolicy(16, CONST.POLICY.TYPE.CORPORATE);
             const sourceRule: Rule = {
                 scope: CONST.RULES.SCOPE.POLICY,
@@ -753,7 +935,7 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
 
-            // When the workspace is duplicated with both the Rules and Merchant rules options unselected
+            // When the selected settings are duplicated.
             Policy.duplicateWorkspace(fakePolicy, {
                 currentUserAccountID: ESH_ACCOUNT_ID,
                 currentUserEmail: ESH_EMAIL,
@@ -762,28 +944,14 @@ describe('actions/Policy', () => {
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
                 personalDetailsByLogins: {},
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                    codingRules: false,
-                },
+                parts: [] satisfies Part[],
                 localCurrency: 'USD',
                 rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
             });
             await waitForBatchedUpdates();
 
-            // Then no merchant rule is scoped to the duplicate and the Rules feature stays off, because the admin chose not to copy either
             const duplicatedRules = Object.values((await getRulesCollection()) ?? {}).filter((rule) => rule?.scopeID === policyID);
+            // Then the duplicate reflects the selected settings without changing its source.
             expect(duplicatedRules).toHaveLength(0);
             const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(policy?.areRulesEnabled).toBe(false);
@@ -793,6 +961,7 @@ describe('actions/Policy', () => {
         });
 
         it('duplicate workspace with 3+ members creates optimistic announce chat using currentUserAccountID', async () => {
+            // Given source settings that must stay independent from the new workspace.
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const basePolicy = createRandomPolicy(16, CONST.POLICY.TYPE.TEAM);
             const memberAEmail = 'member-a@expensifail.com';
@@ -825,25 +994,14 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Welcome to the workspace',
-                parts: {
-                    people: true,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: ['members'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins,
             };
 
-            Policy.duplicateWorkspace(fakePolicy, options);
+            mockFetch.pause();
+            // When Members is copied by the caller creating the new workspace.
+            const params = Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
             const allReports: OnyxCollection<Report> = await new Promise((resolve) => {
@@ -858,13 +1016,27 @@ describe('actions/Policy', () => {
 
             // With 3 employees copied to the duplicate policy, the optimistic #announce room should be created
             const announceChat = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE);
+            // Then the duplicate reflects the selected settings without changing its source.
             expect(announceChat).toBeTruthy();
+            const announceActions = await new Promise<Record<string, ReportAction> | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.announceChatReportID}`,
+                    callback: (actions) => {
+                        Onyx.disconnect(connection);
+                        resolve(actions);
+                    },
+                });
+            });
+            expect(announceActions?.[params.announceCreatedReportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
             expect(announceChat?.writeCapability).toBe(CONST.REPORT.WRITE_CAPABILITIES.ADMINS);
             // Participants of the optimistic announce room should include every duplicated employee
             expect(Object.keys(announceChat?.participants ?? {}).length).toBe(3);
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
         });
 
         it('duplicate workspace with a file uses its uri and name on the policy avatar', async () => {
+            // Given source settings that must stay independent from the new workspace.
             const fakePolicy = createRandomPolicy(17, CONST.POLICY.TYPE.TEAM);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             await waitForBatchedUpdates();
@@ -879,24 +1051,12 @@ describe('actions/Policy', () => {
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
                 file,
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: [] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
 
+            // When the selected settings are duplicated.
             Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
@@ -910,6 +1070,7 @@ describe('actions/Policy', () => {
                 });
             });
 
+            // Then the duplicate reflects the selected settings without changing its source.
             expect(policy?.avatarURL).toBe(file.uri);
             expect(policy?.originalFileName).toBe(file.name);
         });
@@ -928,20 +1089,7 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: [] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
@@ -965,6 +1113,7 @@ describe('actions/Policy', () => {
         });
 
         it('duplicate workspace propagates the caller currentUserEmail to the expense chat CREATED report action message', async () => {
+            // Given source settings that must stay independent from the new workspace.
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy = createRandomPolicy(18, CONST.POLICY.TYPE.TEAM);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
@@ -979,24 +1128,12 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: false,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: [] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
 
+            // When the selected settings are duplicated.
             Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
@@ -1011,6 +1148,7 @@ describe('actions/Policy', () => {
             });
 
             const expenseChat = Object.values(allReports ?? {}).find((report) => report?.policyID === policyID && report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            // Then the duplicate reflects the selected settings without changing its source.
             expect(expenseChat).toBeTruthy();
 
             const reportActions: OnyxCollection<ReportActions> = await new Promise((resolve) => {
@@ -1030,7 +1168,9 @@ describe('actions/Policy', () => {
             expect(messages?.at(0)?.text).toBe(callerEmail);
         });
 
-        it('duplicate workspace with distance rates clones all source rates in optimistic data with the default rebound to the API-known rate ID', async () => {
+        it('duplicate workspace with distance rates gives every rate a new ID and sends the map to the server', async () => {
+            // Given source settings that must stay independent from the new workspace.
+            const apiWriteSpy = jest.spyOn(APIModule, 'write');
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
 
             const sourceDistanceUnitID = 'srcDistUnit';
@@ -1038,6 +1178,7 @@ describe('actions/Policy', () => {
             const sourceExtraRateID = 'srcExtraRate';
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(19, CONST.POLICY.TYPE.TEAM),
+                areDistanceRatesEnabled: true,
                 customUnits: {
                     [sourceDistanceUnitID]: {
                         customUnitID: sourceDistanceUnitID,
@@ -1062,28 +1203,15 @@ describe('actions/Policy', () => {
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
                 welcomeNote: 'Join my policy',
-                parts: {
-                    people: false,
-                    reports: false,
-                    connections: false,
-                    categories: false,
-                    tags: false,
-                    taxes: false,
-                    perDiem: false,
-                    reimbursements: false,
-                    expenses: false,
-                    distance: true,
-                    invoices: false,
-                    exportLayouts: false,
-                },
+                parts: ['distanceRates'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
             };
 
-            // Pause the API call so successData (which clears the optimistic source rate IDs) does not
-            // run yet — this lets us inspect the optimistic state the user sees offline.
+            // Inspect optimistic rates before the server response.
             mockFetch.pause();
-            Policy.duplicateWorkspace(fakePolicy, options);
+
+            const params = Policy.duplicateWorkspace(fakePolicy, options);
             await waitForBatchedUpdates();
 
             const duplicatePolicy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -1096,40 +1224,34 @@ describe('actions/Policy', () => {
                 });
             });
 
+            // Then the duplicate reflects the selected settings without changing its source.
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                'DuplicatePolicyWithSettings',
+                expect.objectContaining({parts: JSON.stringify(['distanceRates']), optimisticRateIDs: params.optimisticRateIDs}),
+                expect.any(Object),
+            );
             expect(duplicatePolicy?.areDistanceRatesEnabled).toBe(true);
             const distanceUnit = Object.values(duplicatePolicy?.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
             if (!distanceUnit) {
                 throw new Error('Expected duplicated distance unit');
             }
-            // The duplicated unit's customUnitID should differ from the source's (fresh ID).
-            expect(distanceUnit.customUnitID).not.toBe(sourceDistanceUnitID);
-            // Both rates should be present in optimistic data: the extra rate keeps its source ID,
-            // and the default is rebound to a fresh API-known customUnitRateID.
-            const rateKeys = Object.keys(distanceUnit.rates);
-            expect(rateKeys).toContain(sourceExtraRateID);
-            expect(rateKeys).not.toContain(sourceDefaultRateID);
-            expect(rateKeys).toHaveLength(2);
-            // The Default Rate should be the one picked by getDefaultDistanceRate (lowest enabled index).
-            const defaultRate = Object.values(distanceUnit.rates)
-                .filter((rate) => rate.enabled !== false)
-                .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
-                .at(0);
-            expect(defaultRate?.name).toBe('Default Rate');
-            expect(defaultRate?.rate).toBe(72.5);
-            // The default rate's customUnitRateID matches its dictionary key (rebound).
-            expect(defaultRate?.customUnitRateID).not.toBe(sourceDefaultRateID);
-            const defaultRateID = defaultRate?.customUnitRateID;
-            if (!defaultRateID) {
-                throw new Error('Expected default rate to have a customUnitRateID');
-            }
-            expect(distanceUnit.rates[defaultRateID]).toBe(defaultRate);
 
-            // Resume the mocked fetch so the API call resolves; the duplicated workspace's optimistic
-            // rates remain visible until a Pusher response (not mocked here) repopulates them with
-            // the server's rate set. We rely on the server preserving the source's non-default rate
-            // IDs in the duplicate, so the optimistic state and the eventual server state line up.
+            expect(distanceUnit.customUnitID).not.toBe(sourceDistanceUnitID);
+
+            const rates = Object.values(distanceUnit.rates);
+            const newDefaultRateID = rates.find((rate) => rate.name === 'Default Rate')?.customUnitRateID;
+            const newExtraRateID = rates.find((rate) => rate.name === 'Extra Rate')?.customUnitRateID;
+            expect(rates).toHaveLength(2);
+            expect(newDefaultRateID).not.toBe(sourceDefaultRateID);
+            expect(newExtraRateID).not.toBe(sourceExtraRateID);
+            if (!params.optimisticRateIDs) {
+                throw new Error('Expected duplicated distance rate IDs');
+            }
+            expect(JSON.parse(params.optimisticRateIDs)).toEqual({[sourceDefaultRateID]: newDefaultRateID, [sourceExtraRateID]: newExtraRateID});
+
             await mockFetch.resume?.();
             await waitForBatchedUpdates();
+            apiWriteSpy.mockRestore();
         });
 
         it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
