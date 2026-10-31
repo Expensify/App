@@ -1,5 +1,6 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import {ChartCaptureContext} from '@components/Charts/context/ChartCaptureContext';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabRootScrollViewMarker from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -28,11 +29,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import viewRef from '@src/types/utils/viewRef';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
 import {View} from 'react-native';
 
+import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
@@ -46,6 +49,7 @@ import InsightsTabSelector from './InsightsTabSelector';
 import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
+import useInsightsExport from './useInsightsExport';
 import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
@@ -63,9 +67,10 @@ type InsightsDashboardContentProps = {
 
     /** Changes how the headline chart aggregates: the time bucket, or Running total */
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
+    captureRef: InsightsCaptureRef;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange, captureRef}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
@@ -99,24 +104,36 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             },
         } as const;
         return (
-            <FullPageErrorView
-                shouldShow
-                onButtonPress={onRetry}
-                {...failureViewByState[state]}
-            />
+            <View
+                ref={viewRef(captureRef)}
+                collapsable={false}
+                style={styles.flex1}
+            >
+                <FullPageErrorView
+                    shouldShow
+                    onButtonPress={onRetry}
+                    {...failureViewByState[state]}
+                />
+            </View>
         );
     }
 
     if (state === INSIGHTS_DASHBOARD_STATE.OFFLINE) {
         return (
-            <BlockingView
-                icon={icons.OfflineCloud}
-                iconColor={theme.offline}
-                title={translate('common.youAppearToBeOffline')}
-                subtitle={translate('common.thisFeatureRequiresInternet')}
-                addBottomSafeAreaPadding
-                addOfflineIndicatorBottomSafeAreaPadding
-            />
+            <View
+                ref={viewRef(captureRef)}
+                collapsable={false}
+                style={styles.flex1}
+            >
+                <BlockingView
+                    icon={icons.OfflineCloud}
+                    iconColor={theme.offline}
+                    title={translate('common.youAppearToBeOffline')}
+                    subtitle={translate('common.thisFeatureRequiresInternet')}
+                    addBottomSafeAreaPadding
+                    addOfflineIndicatorBottomSafeAreaPadding
+                />
+            </View>
         );
     }
 
@@ -127,7 +144,13 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     {...scrollProps}
                     addBottomSafeAreaPadding
                 >
-                    {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
+                    <View
+                        ref={viewRef(captureRef)}
+                        collapsable={false}
+                        style={styles.flexGrow1}
+                    >
+                        {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
+                    </View>
                 </ScrollView>
             </TabRootScrollViewMarker>
         );
@@ -144,8 +167,13 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 {...scrollProps}
                 addBottomSafeAreaPadding
+                removeClippedSubviews={false}
             >
-                <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
+                <View
+                    ref={viewRef(captureRef)}
+                    collapsable={false}
+                    style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}
+                >
                     <InsightsChartWidget
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
@@ -199,6 +227,13 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const {login} = useCurrentUserPersonalDetails();
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
+    const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
+    const updateFilters = (update: Partial<InsightsFilters>) => {
+        if (isExporting) {
+            return;
+        }
+        setFilters(update);
+    };
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
@@ -259,45 +294,57 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             <InsightsPageControls
                 filters={filters}
                 defaultFilters={defaultFilters}
-                onChange={setFilters}
+                onChange={updateFilters}
+                captureRef={controlsRef}
+                onExport={exportDashboard}
+                isExporting={isExporting}
+                isExportDisabled={!isResolved || state === INSIGHTS_DASHBOARD_STATE.LOADING || isChartLoading}
             />
         ) : null;
 
     return (
-        <ScreenWrapper
-            shouldShowOfflineIndicatorInWideScreen
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            {...tabRootScreenWrapperProps}
-            testID="InsightsPage"
-        >
-            <TopBar
-                breadcrumbLabel={translate('common.insights')}
-                shouldDisplayHelpButton
-            />
-            {shouldUseNarrowLayout ? (
-                <>
-                    {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
-                    {pageControls}
-                </>
-            ) : (
-                (!!tabSelector || !!pageControls) && (
-                    <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
-                        <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                            {tabSelector}
-                            {pageControls}
+        <ChartCaptureContext.Provider value={captureContext}>
+            <ScreenWrapper
+                shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
+                {...tabRootScreenWrapperProps}
+                testID="InsightsPage"
+            >
+                <View
+                    ref={viewRef(headerRef)}
+                    collapsable={false}
+                >
+                    <TopBar
+                        breadcrumbLabel={translate('common.insights')}
+                        shouldDisplayHelpButton
+                    />
+                </View>
+                {shouldUseNarrowLayout ? (
+                    <>
+                        {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
+                        {pageControls}
+                    </>
+                ) : (
+                    (!!tabSelector || !!pageControls) && (
+                        <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
+                            <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                {tabSelector}
+                                {pageControls}
+                            </View>
                         </View>
-                    </View>
-                )
-            )}
-            <InsightsDashboardContent
-                state={state}
-                headlineChart={headlineChart}
-                supportingCharts={supportingCharts}
-                filters={filters}
-                onRetry={requestDashboard}
-                onGroupByChange={setFilters}
-            />
-        </ScreenWrapper>
+                    )
+                )}
+                <InsightsDashboardContent
+                    state={state}
+                    headlineChart={headlineChart}
+                    supportingCharts={supportingCharts}
+                    filters={filters}
+                    onRetry={requestDashboard}
+                    onGroupByChange={updateFilters}
+                    captureRef={contentRef}
+                />
+            </ScreenWrapper>
+        </ChartCaptureContext.Provider>
     );
 }
 

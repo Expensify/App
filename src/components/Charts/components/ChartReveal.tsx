@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import {useReportChartCaptureLoading} from '@components/Charts/context/ChartCaptureContext';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,6 +60,7 @@ function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children
     const [loadState, setLoadState] = useState<ChartLoadState | null>(null);
     const [hasReportedLoading, setHasReportedLoading] = useState(false);
     const [isRevealed, setIsRevealed] = useState(false);
+    const [isFullyVisible, setIsFullyVisible] = useState(false);
     const opacity = useSharedValue(0);
     const fadeStyle = useAnimatedStyle(() => ({opacity: opacity.get()}));
 
@@ -70,6 +72,7 @@ function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children
 
     const isChartLoading = isLoading || !!loadState?.isLoading;
     const isReady = !!loadState && !isChartLoading && isCardMeasured;
+    const isCaptureTracked = useReportChartCaptureLoading(!isReady || !isFullyVisible);
 
     // A chart that mounts with everything in memory waits only for its card's first layout to report the width,
     // so it shows no spinner and fades in at once. Only a chart that has shown the spinner holds it until Skia has drawn.
@@ -83,6 +86,9 @@ function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children
     if (!isReady && isRevealed) {
         setIsRevealed(false);
     }
+    if (!isReady && isFullyVisible) {
+        setIsFullyVisible(false);
+    }
     if (isReady && !shouldHold && !isRevealed) {
         setIsRevealed(true);
     }
@@ -95,8 +101,16 @@ function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children
 
         // Read here so that the worklet below captures a number rather than all of CONST
         const duration = CONST.ANIMATED_TRANSITION;
+        const markChartFullyVisible = (finished?: boolean) => {
+            'worklet';
+
+            if (!finished) {
+                return;
+            }
+            scheduleOnRN(setIsFullyVisible, true);
+        };
         if (!shouldHold) {
-            opacity.set(withTiming(1, {duration}));
+            opacity.set(withTiming(1, {duration}, isCaptureTracked ? markChartFullyVisible : undefined));
             return;
         }
 
@@ -110,7 +124,7 @@ function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children
                     holdFrameID.set(requestAnimationFrame(countFrame));
                     return;
                 }
-                opacity.set(withTiming(1, {duration}));
+                opacity.set(withTiming(1, {duration}, isCaptureTracked ? markChartFullyVisible : undefined));
                 scheduleOnRN(setIsRevealed, true);
             };
             holdFrameID.set(requestAnimationFrame(countFrame));
@@ -123,7 +137,7 @@ function ChartReveal({isLoading = false, loadingHeight, isCardMeasured, children
                 cancelAnimationFrame(holdFrameID.get());
             });
         };
-    }, [isReady, shouldHold, opacity, holdFrameID]);
+    }, [isReady, shouldHold, opacity, holdFrameID, isCaptureTracked]);
 
     return (
         <ChartLoadingContext.Provider value={setLoadState}>
