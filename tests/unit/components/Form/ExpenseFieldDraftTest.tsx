@@ -48,7 +48,16 @@ type RegisteredFieldProps = {
 
 function RegisteredField({inputID, value, updateDraft}: RegisteredFieldProps) {
     const {registerInput} = useContext(FormContext);
-    const input = registerInput(inputID, false, {valueType: 'string', value, onValueChange: updateDraft});
+    const input = registerInput(inputID, false, {
+        valueType: 'string',
+        value,
+        onValueChange: (nextValue) => {
+            if (typeof nextValue !== 'string') {
+                return;
+            }
+            updateDraft(nextValue);
+        },
+    });
     return (
         <TextInput
             testID="expense-field"

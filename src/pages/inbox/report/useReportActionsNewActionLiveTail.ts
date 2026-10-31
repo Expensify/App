@@ -62,7 +62,7 @@ type LiveTailJumpStage = 'idle' | 'open_report' | 'await_scroll' | 'await_prune'
 /**
  * Owns subscribe-to-new-action scrolling, live-tail jump (openReport → scroll → prune), and the
  * deferred scroll + pagination prune after layout. Uses useEffectEvent for the Pusher subscription handler so it
- * always sees the latest props without mirror refs. The layout-time prune step uses useCallback so callers can invoke
+ * always sees the latest props without mirror refs. The layout-time prune step is exposed so callers can invoke
  * it from list `onLayout` outside this hook.
  */
 function useReportActionsNewActionLiveTail({
@@ -95,13 +95,13 @@ function useReportActionsNewActionLiveTail({
     const pendingPreviewScrollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
-    const cancelPendingPreviewScroll = useCallback(() => {
+    const cancelPendingPreviewScroll = () => {
         if (pendingPreviewScrollRef.current === null) {
             return;
         }
         clearTimeout(pendingPreviewScrollRef.current);
         pendingPreviewScrollRef.current = null;
-    }, []);
+    };
 
     const scrollToCurrentPreviewPosition = useEffectEvent((actionID: string, targetReportID: string) => {
         if (reportID !== targetReportID || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
