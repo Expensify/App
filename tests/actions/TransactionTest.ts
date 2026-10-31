@@ -4,7 +4,6 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useOnyx from '@hooks/useOnyx';
 
-import {getCurrentUserPersonalDetails} from '@libs/actions/IOU';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -165,15 +164,18 @@ const getTransactionAndExpenseReports = (reportID: string) => {
     return {transactionReport, expenseReport};
 };
 
-OnyxUpdateManager();
-describe('actions/Transaction', () => {
-    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
-        ...createPersonalDetails(RORY_ACCOUNT_ID),
-        login: RORY_EMAIL,
-        email: RORY_EMAIL,
-        displayName: RORY_EMAIL,
+function createCurrentUserPersonalDetails(email: string, accountID: number): CurrentUserPersonalDetails {
+    return {
+        ...createPersonalDetails(accountID),
+        login: email,
+        email,
+        displayName: email,
         avatar: 'https://example.com/avatar.jpg',
     };
+}
+OnyxUpdateManager();
+describe('actions/Transaction', () => {
+    const currentUserPersonalDetails: CurrentUserPersonalDetails = createCurrentUserPersonalDetails(RORY_EMAIL, RORY_ACCOUNT_ID);
 
     beforeAll(() => {
         Onyx.init({
@@ -635,6 +637,7 @@ describe('actions/Transaction', () => {
                     isASAPSubmitBetaEnabled: false,
                     accountID: CARLOS_ACCOUNT_ID,
                     email: CARLOS_EMAIL,
+                    currentUserPersonalDetails: createCurrentUserPersonalDetails(CARLOS_EMAIL, CARLOS_ACCOUNT_ID),
                     newReport: destinationReport,
                     policy: carouselPolicy,
                     allTransactions,
@@ -835,6 +838,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: RORY_ACCOUNT_ID,
                 email: RORY_EMAIL,
+                currentUserPersonalDetails,
                 newReport: expenseReport,
                 policy: mockPolicy,
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: searchRowItem},
@@ -2082,6 +2086,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: ADMIN_ACCOUNT_ID,
                 email: ADMIN_EMAIL,
+                currentUserPersonalDetails: createCurrentUserPersonalDetails(ADMIN_EMAIL, ADMIN_ACCOUNT_ID),
                 policy: undefined,
                 policyTagList: {},
                 allTransactionViolation: {},
