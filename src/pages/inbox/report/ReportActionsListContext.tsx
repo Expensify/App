@@ -59,8 +59,6 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
         oldestUnreadReportAction,
         isSingleExpenseReport,
         isMissingReportActions,
-        isConciergeHiddenHistory,
-        showConciergeSidePanelWelcome,
         derivedIsEmptyReport,
     } = readinessSignals;
 
@@ -92,22 +90,16 @@ function computeReportActionsSkeletonState(readinessSignals: ReportActionsReadin
 
     const shouldShowSkeletonForAppLoad = !!isLoadingApp && !isOffline;
 
-    // Show skeleton for the Concierge side panel until report data has been loaded
-    // at least once. Before the first openReport response, hasOlderActions is
-    // unreliable, so we can't determine whether to show the greeting or onboarding
-    // messages. The skeleton avoids flashing wrong content.
-    const shouldShowSkeletonForConciergePanel = isConciergeHiddenHistory && !hasOnceLoadedReportActions && !isOffline;
-
     // When opening a linked message online, wait for the first load before rendering the list: the batch of
     // actions that arrives right after the initial load shifts the list and breaks the anchor to the linked action.
     const shouldShowSkeletonForLinkedMessageLoad = !!reportActionIDFromRoute && !isOffline && !hasOnceLoadedReportActions && isReportLoadPending;
 
-    const shouldShowInitialSkeleton = shouldShowSkeletonForConciergePanel || shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad || shouldShowSkeletonForLinkedMessageLoad;
+    const shouldShowInitialSkeleton = shouldShowSkeletonForInitialLoad || shouldShowSkeletonForAppLoad || shouldShowSkeletonForLinkedMessageLoad;
 
     const hasDerivedValueTimingIssue = reportActionsLength > 0 && isMissingReportActions;
 
     const shouldShowLoadingSkeleton = isLoadingOnyxValue(reportResult) || !report || !isReportReady || shouldShowInitialSkeleton;
-    const shouldShowDerivedTimingSkeleton = (hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions)) && !showConciergeSidePanelWelcome;
+    const shouldShowDerivedTimingSkeleton = hasDerivedValueTimingIssue || (!isReportTransactionThread && isMissingReportActions);
 
     return {
         shouldShowLoadingSkeleton,

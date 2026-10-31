@@ -3,7 +3,6 @@ import Visibility from '@libs/Visibility';
 
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -38,10 +37,6 @@ type UseUnreadMarkerParams = {
 
     /** Whether report actions have loaded at least once; once true, the pagination anchor is ignored in favor of the scan */
     hasOnceLoadedReportActions: boolean;
-
-    /** Concierge hidden-history boundary: actions created before this were revealed/loaded from history,
-     * not received live, so they are never treated as read-on-arrival */
-    newMessageBoundaryTime?: string | null;
 };
 
 type UseUnreadMarkerResult = {
@@ -63,7 +58,6 @@ function useUnreadMarker({
     oldestUnreadReportActionID,
     isScrolledOverThreshold,
     hasOnceLoadedReportActions,
-    newMessageBoundaryTime,
 }: UseUnreadMarkerParams): UseUnreadMarkerResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
@@ -144,7 +138,6 @@ function useUnreadMarker({
         prevUnreadMarkerReportActionID,
         manuallyMarkedUnreadReportActionID,
         hasWindowFocus: Visibility.hasFocus(),
-        newMessageBoundaryTime,
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.
@@ -157,16 +150,12 @@ function useUnreadMarker({
 
     // When the user reads a new message as it arrives, advance the watermark so that only actions
     // arriving after it count as unread. Only push when the newest visible `created` has advanced:
-    // a bulk history reveal (Concierge "Show history") also scans to a null marker, and pushing then
-    // would move the watermark past the unread message and permanently hide the New divider. The
-    // synthetic greeting is not a valid push target either, because its `created` tracks
-    // report.lastReadTime and would drag the watermark to "now".
-    const isRealAction = (action: OnyxTypes.ReportAction) => action.reportActionID !== CONST.CONCIERGE_GREETING_ACTION_ID;
+    // a bulk history reveal (Concierge "View chat history") also scans to a null marker, and pushing then
+    // would move the watermark past the unread message and permanently hide the New divider.
     const newestVisibleReportActionCreated = sortedVisibleReportActions.at(isReversed ? -1 : 0)?.created ?? '';
     const prevNewestVisibleReportActionCreated = usePrevious(newestVisibleReportActionCreated);
-    const mostRecentReportActionCreated = (isReversed ? sortedVisibleReportActions.findLast(isRealAction) : sortedVisibleReportActions.find(isRealAction))?.created ?? '';
-    if (!isAnonymousUser && !unreadMarkerReportActionID && mostRecentReportActionCreated > unreadMarkerTime && newestVisibleReportActionCreated > prevNewestVisibleReportActionCreated) {
-        setUnreadMarkerTime(mostRecentReportActionCreated);
+    if (!isAnonymousUser && !unreadMarkerReportActionID && newestVisibleReportActionCreated > unreadMarkerTime && newestVisibleReportActionCreated > prevNewestVisibleReportActionCreated) {
+        setUnreadMarkerTime(newestVisibleReportActionCreated);
     }
 
     return {

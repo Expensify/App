@@ -29,7 +29,6 @@ import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages
 import {ReportActionPositionContextProvider} from '@pages/inbox/report/ReportActionIndexContext';
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
-import ShowPreviousMessagesButton from '@pages/inbox/report/ShowPreviousMessagesButton';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,21 +64,9 @@ function useReportActionsListRenderItem({
     isDraftPendingCompletion,
     unreadMarkerReportActionID,
     linkedReportActionID,
-    onShowPreviousMessages,
 }: UseReportActionsListRenderItemParams) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {
-        report,
-        hasNewerActions,
-        transactionThreadReport,
-        parentReportActionForTransactionThread,
-        parentReportAction,
-        isConciergeHiddenHistory,
-        showFullHistory,
-        hasPreviousMessages,
-        persistedReportActionIDs,
-    } = useReportActionsListState();
-    const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
+    const {report, hasNewerActions, transactionThreadReport, parentReportActionForTransactionThread, parentReportAction, persistedReportActionIDs} = useReportActionsListState();
 
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
@@ -181,15 +168,6 @@ function useReportActionsListRenderItem({
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
                         shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
-                    />
-                )}
-                {!!reportStable?.reportID && (
-                    <ShowPreviousMessagesButton
-                        reportID={reportStable.reportID}
-                        actionType={reportAction.actionName}
-                        hasPreviousMessages={!!hasPreviousMessages}
-                        showFullHistory={!showHiddenHistory}
-                        onPress={onShowPreviousMessages}
                     />
                 )}
             </ReportActionPositionContextProvider>

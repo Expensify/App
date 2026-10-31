@@ -7936,26 +7936,6 @@ function buildOptimisticAddCommentReportAction({
     };
 }
 
-type BuildConciergeGreetingReportActionParams = {
-    reportID: string | undefined;
-    greetingText: string;
-    created: string;
-};
-
-function buildConciergeGreetingReportAction({reportID, greetingText, created}: BuildConciergeGreetingReportActionParams): ReportAction {
-    return {
-        reportActionID: String(CONST.CONCIERGE_GREETING_ACTION_ID),
-        reportID,
-        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
-        person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
-        created,
-        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: greetingText, text: greetingText}],
-        originalMessage: {html: greetingText, whisperedTo: []},
-        shouldShow: true,
-    } as ReportAction;
-}
-
 /**
  * update optimistic parent reportAction when a comment is added or remove in the child report
  * @param parentReportAction - Parent report action of the child report
@@ -15569,7 +15549,6 @@ function canMergeReports(
 export {
     areAllRequestsBeingSmartScanned,
     getAllPolicyExpenseChatReportActions,
-    buildConciergeGreetingReportAction,
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
     buildOptimisticCreatedReportForUnapprovedAction,

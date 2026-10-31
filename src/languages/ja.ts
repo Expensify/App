@@ -509,8 +509,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
         concierge: {
-            greeting: 'こんにちは、どのようにお手伝いできますか？',
-            showHistory: '履歴を表示',
             subtitle: 'あなた専用のAIアシスタント',
             welcomeDescription: 'Conciergeは質問への回答や経費の更新などを行えます。',
             viewChatHistory: 'チャット履歴を表示',
