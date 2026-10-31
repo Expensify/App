@@ -114,6 +114,35 @@ function getEnabledCategoriesCount(policyCategories: PolicyCategories | undefine
     return Object.values(policyCategories).filter((policyCategory) => policyCategory.enabled).length;
 }
 
+/**
+ * Returns the names of the enabled categories the member can use: those visible to everyone, or to the member explicitly.
+ */
+function getMemberVisibleCategoryNames(policyCategories: PolicyCategories | undefined, accountID: number): string[] {
+    return Object.values(policyCategories ?? {})
+        .filter((policyCategory) => policyCategory.enabled && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]))
+        .map((policyCategory) => policyCategory.name);
+}
+
+/**
+ * Returns the members who can use at least one of the categories being disabled but no other enabled category, so
+ * disabling them would leave these members with nothing to choose from.
+ */
+function getMembersWithoutVisibleCategories(policyCategories: PolicyCategories | undefined, categoryNamesToDisable: string[], memberAccountIDs: number[]): number[] {
+    const categoriesToDisable = new Set(categoryNamesToDisable);
+    const remainingCategories: PolicyCategories = {};
+    for (const [categoryName, category] of Object.entries(policyCategories ?? {})) {
+        if (!categoriesToDisable.has(categoryName)) {
+            remainingCategories[categoryName] = category;
+        }
+    }
+
+    return memberAccountIDs.filter((accountID) => {
+        // A member who can't use any of these categories loses nothing when they're disabled.
+        const losesACategory = getMemberVisibleCategoryNames(policyCategories, accountID).some((categoryName) => categoriesToDisable.has(categoryName));
+        return losesACategory && getMemberVisibleCategoryNames(remainingCategories, accountID).length === 0;
+    });
+}
+
 function isCategoryMissing(category: string | undefined): boolean {
     if (!category) {
         return true;
@@ -309,6 +338,8 @@ export {
     getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
+    getMemberVisibleCategoryNames,
+    getMembersWithoutVisibleCategories,
     isCategoryMissing,
     isCategoryDescriptionRequired,
     getCategoryDescriptionHint,

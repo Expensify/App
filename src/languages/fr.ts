@@ -7033,6 +7033,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Impossible de supprimer ou de désactiver toutes les catégories',
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'Impossible de désactiver la catégorie',
+                description:
+                    "Chaque membre doit pouvoir choisir au moins une catégorie, et ces membres ne peuvent utiliser que celle-ci. Donnez-leur d'abord accès à une autre catégorie, puis réessayez.",
+                bulkDescription:
+                    "Chaque membre doit pouvoir choisir au moins une catégorie, et ces membres ne peuvent utiliser que ces catégories. Donnez-leur d'abord accès à une autre catégorie, puis réessayez.",
+                andMore: ({count}: {count: number}) => `et ${count} de plus`,
+            },
         },
         moreFeatures: {
             subtitle:
@@ -7772,6 +7780,16 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             },
             officeLocation: 'Lieu de bureau',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Visibilité des catégories',
+            allCategories: 'Toutes les catégories',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 catégorie',
+                other: `${count} catégories`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Les membres doivent avoir au moins une catégorie',
+                description: 'Sélectionnez au moins une catégorie que ce membre peut utiliser.',
+            },
             changeOfficeLocation: 'Modifier le lieu de travail',
             changeWorkArrangement: 'Modifier l’organisation du travail',
             changeRole: 'Modifier le rôle',

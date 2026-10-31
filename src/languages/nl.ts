@@ -6970,6 +6970,14 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Kan niet alle categorieën verwijderen of uitschakelen',
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'Kan categorie niet uitschakelen',
+                description:
+                    'Elk lid heeft minstens één categorie nodig om uit te kiezen, en deze leden kunnen alleen deze gebruiken. Geef ze eerst toegang tot een andere categorie en probeer het dan opnieuw.',
+                bulkDescription:
+                    'Elk lid heeft minstens één categorie nodig om uit te kiezen, en deze leden kunnen alleen deze categorieën gebruiken. Geef ze eerst toegang tot een andere categorie en probeer het dan opnieuw.',
+                andMore: ({count}: {count: number}) => `en nog ${count}`,
+            },
         },
         moreFeatures: {
             subtitle: 'Gebruik de schakelaars hieronder om meer functies in te schakelen terwijl je groeit. Elke functie verschijnt in het navigatiemenu voor verdere aanpassing.',
@@ -7691,6 +7699,16 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             },
             officeLocation: 'Kantoorlocatie',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Zichtbaarheid van categorieën',
+            allCategories: 'Alle categorieën',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 categorie',
+                other: `${count} categorieën`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Leden moeten ten minste één categorie hebben',
+                description: 'Selecteer ten minste één categorie die dit lid kan gebruiken.',
+            },
             changeOfficeLocation: 'Locatie kantoor wijzigen',
             changeWorkArrangement: 'Werkregeling wijzigen',
             changeRole: 'Rol wijzigen',

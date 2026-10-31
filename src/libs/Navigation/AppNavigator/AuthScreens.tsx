@@ -6,6 +6,7 @@ import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
+import MembersNeedCategoryModal from '@components/MembersNeedCategoryModal';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
@@ -438,6 +439,7 @@ function AuthScreens() {
                     <SearchRouterModal />
                     <OpenAppFailureModal />
                     <EnableGlobalReimbursementsPayModal />
+                    <MembersNeedCategoryModal />
                     <PriorityModeController />
                 </ComposeProviders>
             </DelegatorConnectGuard>

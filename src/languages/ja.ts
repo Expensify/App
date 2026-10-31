@@ -6891,6 +6891,14 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'すべてのカテゴリを削除または無効にすることはできません',
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'カテゴリーを無効にできません',
+                description:
+                    'すべてのメンバーには選択できるカテゴリーが少なくとも1つ必要ですが、これらのメンバーはこのカテゴリーしか使用できません。先に別のカテゴリーへのアクセス権を付与してから、もう一度お試しください。',
+                bulkDescription:
+                    'すべてのメンバーには選択できるカテゴリーが少なくとも1つ必要ですが、これらのメンバーはこれらのカテゴリーしか使用できません。先に別のカテゴリーへのアクセス権を付与してから、もう一度お試しください。',
+                andMore: ({count}: {count: number}) => `他${count}人`,
+            },
         },
         moreFeatures: {
             subtitle: 'ビジネスの成長に合わせて、下の切り替えスイッチでさらに多くの機能を有効にしましょう。各機能はナビゲーションメニューに表示され、さらにカスタマイズできます。',
@@ -7609,6 +7617,16 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             },
             officeLocation: 'オフィス所在地',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name}（${address}）`,
+            categoryVisibility: 'カテゴリーの表示設定',
+            allCategories: 'すべてのカテゴリー',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1件のカテゴリー',
+                other: `${count}件のカテゴリー`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'メンバーには少なくとも1つのカテゴリーが必要です',
+                description: 'このメンバーが使用できるカテゴリーを少なくとも1つ選択してください。',
+            },
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
             changeRole: 'ロールを変更',

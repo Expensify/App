@@ -71,6 +71,11 @@ type Response<TKey extends OnyxKey> = {
     /** Commands data */
     data?: Data;
 
+    /** Details sent with a failure, such as the members SetWorkspaceCategoriesEnabled would leave without a category they can use */
+    additionalData?: {
+        accountIDs?: number[];
+    };
+
     /** Used to pass error type for error handling purposes */
     type?: string;
 

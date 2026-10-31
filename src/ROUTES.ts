@@ -3940,6 +3940,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/:accountID/role',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/role` as const,
     },
+    WORKSPACE_MEMBER_DETAILS_CATEGORY_VISIBILITY: {
+        route: 'workspaces/:policyID/members/:accountID/category-visibility',
+        getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/category-visibility` as const,
+    },
     WORKSPACE_MEMBER_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/:accountID/work-arrangement',
         getRoute: (policyID: string, accountID: number) => `workspaces/${policyID}/members/${accountID}/work-arrangement` as const,

@@ -17,6 +17,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useMembersNeedCategoryModal from '@hooks/useMembersNeedCategoryModal';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +30,7 @@ import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
-import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
+import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -67,6 +68,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const {convertToDisplayString} = useCurrencyListActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan', 'Plus', 'Bolt']);
     const {showConfirmModal} = useConfirmModal();
+    const {policyMemberAccountIDs, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
     const policyData = usePolicyData(policyID);
     const {policy, categories: policyCategories} = policyData;
     const {canWrite: canWriteCategories, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
@@ -146,6 +148,13 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         if (shouldPreventDisableOrDelete) {
             showCannotDeleteOrDisableLastCategoryModal();
             return;
+        }
+        if (!value) {
+            const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [policyCategory.name], policyMemberAccountIDs);
+            if (membersWithoutVisibleCategories.length > 0) {
+                showMembersNeedCategoryModal(membersWithoutVisibleCategories, 1);
+                return;
+            }
         }
         setWorkspaceCategoryEnabled({
             isVendorMatchingBetaEnabled,

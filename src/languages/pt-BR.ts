@@ -6975,6 +6975,14 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 title: 'Não é possível excluir ou desativar todas as categorias',
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'Não é possível desativar a categoria',
+                description:
+                    'Todo membro precisa de pelo menos uma categoria para escolher, e esses membros só podem usar esta. Dê a eles acesso a outra categoria primeiro e tente novamente.',
+                bulkDescription:
+                    'Todo membro precisa de pelo menos uma categoria para escolher, e esses membros só podem usar estas categorias. Dê a eles acesso a outra categoria primeiro e tente novamente.',
+                andMore: ({count}: {count: number}) => `e mais ${count}`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use as chaves abaixo para ativar mais recursos conforme você cresce. Cada recurso aparecerá no menu de navegação para personalização adicional.',
@@ -7701,6 +7709,16 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             },
             officeLocation: 'Local do escritório',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Visibilidade de categorias',
+            allCategories: 'Todas as categorias',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 categoria',
+                other: `${count} categorias`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Os membros devem ter pelo menos uma categoria',
+                description: 'Selecione pelo menos uma categoria que este membro possa usar.',
+            },
             changeOfficeLocation: 'Alterar local do escritório',
             changeWorkArrangement: 'Alterar regime de trabalho',
             changeRole: 'Alterar função',
