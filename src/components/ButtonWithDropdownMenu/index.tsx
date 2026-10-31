@@ -4,6 +4,7 @@ import InlineIcon from '@components/Icon/InlineIcon';
 import PopoverMenu from '@components/PopoverMenu';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -363,25 +364,34 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                       // The row is the toggle and the only focus target, so it owns the switch role and state.
                                       role: CONST.ROLE.SWITCH,
                                       accessibilityState: {checked: item.switchProps.isOn, disabled: isSwitchDisabled},
+                                      // The tooltip is web-only, so fold its reason into the row's accessible name for native and screen reader users.
+                                      accessibilityLabel: item.tooltipText ? `${item.text}, ${item.tooltipText}` : undefined,
                                       // Mirror the disabled state so the row (and Enter) can't flip a disabled toggle.
                                       disabled: isSwitchDisabled,
                                       shouldGreyOutWhenDisabled: false,
                                       shouldRemoveHoverBackground: !!isSwitchDisabled,
                                       // Decorative Switch: isNested lets it animate without double-toggling, focusable={false} keeps the row the only tab stop, and the wrapper is aria-hidden.
+                                      // The tooltip wraps the Switch (not the whole row) so it's centered above the lock, per design. It wraps the View so it has a child that forwards a ref to measure.
                                       rightComponent: (
-                                          <View
-                                              style={styles.justifyContentCenter}
-                                              aria-hidden
-                                              accessibilityElementsHidden
-                                              importantForAccessibility="no-hide-descendants"
+                                          <Tooltip
+                                              text={item.tooltipText}
+                                              shouldRender={!!item.tooltipText}
+                                              shouldTeleportPortalToModalLayer
                                           >
-                                              <Switch
-                                                  {...item.switchProps}
-                                                  isNested
-                                                  shouldAnimateOnExternalChange
-                                                  focusable={false}
-                                              />
-                                          </View>
+                                              <View
+                                                  style={styles.justifyContentCenter}
+                                                  aria-hidden
+                                                  accessibilityElementsHidden
+                                                  importantForAccessibility="no-hide-descendants"
+                                              >
+                                                  <Switch
+                                                      {...item.switchProps}
+                                                      isNested
+                                                      shouldAnimateOnExternalChange
+                                                      focusable={false}
+                                                  />
+                                              </View>
+                                          </Tooltip>
                                       ),
                                   }
                                 : {}),

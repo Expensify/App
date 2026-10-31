@@ -6970,6 +6970,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 title: 'Kan niet alle categorieën verwijderen of uitschakelen',
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
+            enableAtLeastOneCategory: 'Schakel minimaal één categorie in.',
         },
         moreFeatures: {
             subtitle: 'Gebruik de schakelaars hieronder om meer functies in te schakelen terwijl je groeit. Elke functie verschijnt in het navigatiemenu voor verdere aanpassing.',

@@ -7439,6 +7439,7 @@ const translations = {
             requiresCategory: 'Members must categorize all expenses',
             autoCategorizeNewExpenses: 'Auto-categorize new expenses',
             showCategoryGLCodes: 'Show GL codes when categorizing expenses',
+            enableAtLeastOneCategory: 'Please enable at least one category.',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {

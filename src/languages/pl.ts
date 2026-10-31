@@ -6996,6 +6996,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie można usunąć ani wyłączyć wszystkich kategorii',
                 description: `Co najmniej jedna kategoria musi pozostać włączona, ponieważ w Twoim workspace wymagane są kategorie.`,
             },
+            enableAtLeastOneCategory: 'Włącz co najmniej jedną kategorię.',
         },
         moreFeatures: {
             subtitle: 'Użyj poniższych przełączników, aby włączać kolejne funkcje w miarę rozwoju. Każda funkcja pojawi się w menu nawigacji, gdzie będzie można ją dalej dostosować.',

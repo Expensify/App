@@ -7026,6 +7026,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Es können nicht alle Kategorien gelöscht oder deaktiviert werden',
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
+            enableAtLeastOneCategory: 'Bitte aktivieren Sie mindestens eine Kategorie.',
         },
         moreFeatures: {
             subtitle: 'Verwende die Schalter unten, um beim Wachsen weitere Funktionen zu aktivieren. Jede Funktion wird im Navigationsmenü angezeigt, wo du sie weiter anpassen kannst.',

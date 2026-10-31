@@ -6978,6 +6978,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Impossibile eliminare o disattivare tutte le categorie',
                 description: `Almeno una categoria deve rimanere abilitata perché il tuo spazio di lavoro richiede le categorie.`,
             },
+            enableAtLeastOneCategory: 'Abilita almeno una categoria.',
         },
         moreFeatures: {
             subtitle:
