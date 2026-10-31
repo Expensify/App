@@ -205,6 +205,11 @@ function canMemberAssignRole(policy: OnyxInputOrEntry<Policy>, login: string, ro
         return false;
     }
 
+    // Approve-only role assignment is temporarily disabled.
+    if (role === CONST.POLICY.ROLE.APPROVE_ONLY) {
+        return false;
+    }
+
     const isCorporatePolicy = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     if (isControlPolicyOnlyRole(role) && !isCorporatePolicy) {
         return false;

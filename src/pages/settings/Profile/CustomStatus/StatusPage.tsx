@@ -5,8 +5,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -37,7 +38,7 @@ import INPUT_IDS from '@src/types/form/SettingsStatusSetForm';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 const initialEmoji = '💬';
@@ -73,37 +74,32 @@ function StatusPage() {
     const defaultEmoji = draftEmojiCode || currentUserEmojiCode;
     const defaultText = draftText || currentUserStatusText;
 
-    const customClearAfter = useMemo(() => {
-        const dataToShow = draftClearAfter || currentUserClearAfter;
-        return DateUtils.getLocalizedTimePeriodDescription(translate, dateFnsLocale, dataToShow);
-    }, [draftClearAfter, currentUserClearAfter, translate, dateFnsLocale]);
+    const dataToShow = draftClearAfter || currentUserClearAfter;
+    const customClearAfter = DateUtils.getLocalizedTimePeriodDescription(translate, dateFnsLocale, dataToShow);
 
-    const isValidClearAfterDate = useCallback(() => {
+    const isValidClearAfterDate = () => {
         const clearAfterTime = draftClearAfter || currentUserClearAfter;
         if (clearAfterTime === CONST.CUSTOM_STATUS_TYPES.NEVER || clearAfterTime === '') {
             return true;
         }
 
         return DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
-    }, [draftClearAfter, currentUserClearAfter]);
+    };
 
-    const updateStatus = useCallback(
-        ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
-            const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
-            const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
-            if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
-                setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
-                return;
-            }
-            updateCustomStatus(currentUserPersonalDetails.accountID, {
-                text: statusText,
-                emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
-                clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
-            });
-            Navigation.goBack(undefined, {afterTransition: () => clearDraftCustomStatus()});
-        },
-        [currentUserClearAfter, draftClearAfter, isValidClearAfterDate, currentUserPersonalDetails.accountID],
-    );
+    const updateStatus = ({emojiCode, statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>) => {
+        const clearAfterTime = draftClearAfter || currentUserClearAfter || CONST.CUSTOM_STATUS_TYPES.NEVER;
+        const isValid = DateUtils.isTimeAtLeastOneMinuteInFuture({dateTimeString: clearAfterTime});
+        if (!isValid && clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER) {
+            setBrickRoadIndicator(isValidClearAfterDate() ? undefined : CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            return;
+        }
+        updateCustomStatus(currentUserPersonalDetails.accountID, {
+            text: statusText,
+            emojiCode: !emojiCode && statusText ? initialEmoji : emojiCode,
+            clearAfter: clearAfterTime !== CONST.CUSTOM_STATUS_TYPES.NEVER ? clearAfterTime : '',
+        });
+        Navigation.goBack(undefined, {afterTransition: () => clearDraftCustomStatus()});
+    };
 
     const clearStatus = () => {
         clearCustomStatus(currentUserPersonalDetails.accountID);
@@ -129,36 +125,30 @@ function StatusPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const validateForm = useCallback(
-        ({statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
-            if (brickRoadIndicator) {
-                return {clearAfter: ''};
-            }
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> = {};
-            if (statusText.length > CONST.STATUS_TEXT_MAX_LENGTH) {
-                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', statusText.length, CONST.STATUS_TEXT_MAX_LENGTH);
-            }
-            return errors;
-        },
-        [brickRoadIndicator, translate],
-    );
+    const validateForm = ({statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
+        if (brickRoadIndicator) {
+            return {clearAfter: ''};
+        }
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> = {};
+        if (statusText.length > CONST.STATUS_TEXT_MAX_LENGTH) {
+            errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', statusText.length, CONST.STATUS_TEXT_MAX_LENGTH);
+        }
+        return errors;
+    };
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
-    const saveButton = useMemo(
-        () => (
-            <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                size={CONST.BUTTON_SIZE.LARGE}
-                style={styles.w100}
-                onPress={() => formRef.current?.submit()}
-                isLoading={isFormLoading}
-            >
-                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
-                <Button.Text>{translate('statusPage.save')}</Button.Text>
-            </Button>
-        ),
-        [translate, isFormLoading, styles.w100],
+    const saveButton = (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.LARGE}
+            style={styles.w100}
+            onPress={() => formRef.current?.submit()}
+            isLoading={isFormLoading}
+        >
+            <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+            <Button.Text>{translate('statusPage.save')}</Button.Text>
+        </Button>
     );
 
     return (
@@ -217,13 +207,13 @@ function StatusPage() {
                             defaultValue={defaultText}
                         />
                     </View>
-                    <MenuItemWithTopDescription
-                        title={customClearAfter}
-                        description={translate('statusPage.clearAfter')}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('statusPage.clearAfter')}
+                        value={customClearAfter}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
-                        brickRoadIndicator={brickRoadIndicator}
-                    />
+                    >
+                        {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
+                    </MenuItemField>
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItemAction
                             title={translate('statusPage.clearStatus')}
