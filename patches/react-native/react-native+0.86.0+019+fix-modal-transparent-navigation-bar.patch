@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt
-index f36a1e3..7edb8fe 100644
+index f36a1e3..a51299b 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/modal/ReactModalHostView.kt
 @@ -18,6 +18,7 @@ import android.os.Build
@@ -10,22 +10,29 @@ index f36a1e3..7edb8fe 100644
  import android.view.ViewGroup
  import android.view.ViewStructure
  import android.view.WindowManager
-@@ -343,6 +344,8 @@ public class ReactModalHostView(context: ThemedReactContext) :
+@@ -343,6 +344,13 @@ public class ReactModalHostView(context: ThemedReactContext) :
      if (currentActivity?.isFinishing == false) {
        newDialog.show()
        updateSystemAppearance()
-+      // Activity and dialog insets can settle after attach; re-sync so nav icon style matches.
-+      window.decorView.post { updateSystemAppearance() }
++      // The activity and dialog insets can settle after attach, so sync the bar icons again.
++      window.decorView.post {
++        // The modal can dismiss or recreate its dialog before this runs.
++        if (dialog === newDialog) {
++          updateSystemAppearance()
++        }
++      }
        window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
        (context as ThemedReactContext).onExtraWindowCreate(window)
      }
-@@ -392,7 +395,16 @@ public class ReactModalHostView(context: ThemedReactContext) :
+@@ -392,7 +400,18 @@ public class ReactModalHostView(context: ThemedReactContext) :
  
        // Navigation bar cannot be translucent without status bar being translucent too
        if (navigationBarTranslucent) {
 -        dialogWindow.enableEdgeToEdge()
-+        // Do not set nav icon appearance from UI mode here; it overrides the activity and is
-+        // re-applied every updateProperties() while the dialog is open without showOrUpdate().
++        // Do not derive the bar icons from the UI mode here: it would override the activity's
++        // icons, and updateProperties() re-runs on every prop update while the dialog is open
++        // without going through show(), which is why updateSystemAppearance() is called again
++        // at the end of this method.
 +        dialogWindow.enableEdgeToEdge(applyNavigationBarIconAppearanceFromUiMode = false)
 +        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 +          dialogWindow.isStatusBarContrastEnforced = activityWindow.isStatusBarContrastEnforced
@@ -37,7 +44,7 @@ index f36a1e3..7edb8fe 100644
        } else {
          dialogWindow.disableEdgeToEdge()
          dialogWindow.setStatusBarTranslucency(statusBarTranslucent)
-@@ -413,6 +425,10 @@ public class ReactModalHostView(context: ThemedReactContext) :
+@@ -413,6 +432,10 @@ public class ReactModalHostView(context: ThemedReactContext) :
        // window manager
        FLog.e(TAG, "ReactModalHostView: error while setting window flags: ", e.message)
      }
@@ -48,7 +55,7 @@ index f36a1e3..7edb8fe 100644
    }
  
    /**
-@@ -439,8 +455,21 @@ public class ReactModalHostView(context: ThemedReactContext) :
+@@ -439,8 +462,21 @@ public class ReactModalHostView(context: ThemedReactContext) :
              WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
        }
  

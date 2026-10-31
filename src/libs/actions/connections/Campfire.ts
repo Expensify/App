@@ -17,9 +17,9 @@ import type {
     UpdateCampfireSyncExpensifyCardSettlementsParams,
     UpdateCampfireSyncReimbursedReportsParams,
     UpdateCampfireSyncTaxRatesParams,
-    UpdateCampfireSyncTravelInvoicingSettlementsParams,
-    UpdateCampfireTravelInvoicingPayableAccountParams,
-    UpdateCampfireTravelInvoicingSettlementsAccountParams,
+    UpdateCampfireSyncTravelBillingSettlementsParams,
+    UpdateCampfireTravelBillingPayableAccountParams,
+    UpdateCampfireTravelBillingSettlementsAccountParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -729,53 +729,49 @@ function updateCampfireSettlementsAccount(
     write(WRITE_COMMANDS.UPDATE_CAMPFIRE_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateCampfireSyncTravelInvoicingSettlements(
-    policyID: string,
-    enabled: CampfireSync['syncTravelInvoicingSettlements'],
-    oldEnabled?: CampfireSync['syncTravelInvoicingSettlements'],
-) {
+function updateCampfireSyncTravelBillingSettlements(policyID: string, enabled: CampfireSync['syncTravelInvoicingSettlements'], oldEnabled?: CampfireSync['syncTravelInvoicingSettlements']) {
     const onyxData = prepareCampfireSyncOnyxData(policyID, CONST.CAMPFIRE_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS, enabled, oldEnabled ?? null);
-    const parameters: UpdateCampfireSyncTravelInvoicingSettlementsParams = {
+    const parameters: UpdateCampfireSyncTravelBillingSettlementsParams = {
         policyID,
         enabled,
     };
-    write(WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TRAVEL_INVOICING_SETTLEMENTS, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_CAMPFIRE_SYNC_TRAVEL_BILLING_SETTLEMENTS, parameters, onyxData);
 }
 
-function updateCampfireTravelInvoicingSettlementsAccount(
+function updateCampfireTravelBillingSettlementsAccount(
     policyID: string,
-    travelInvoicingSettlementsBankAccountID: CampfireSync['travelInvoicingSettlementsBankAccountID'],
-    oldTravelInvoicingSettlementsBankAccountID?: CampfireSync['travelInvoicingSettlementsBankAccountID'],
+    travelBillingSettlementsBankAccountID: CampfireSync['travelInvoicingSettlementsBankAccountID'],
+    oldTravelBillingSettlementsBankAccountID?: CampfireSync['travelInvoicingSettlementsBankAccountID'],
 ) {
     const onyxData = prepareCampfireSyncOnyxData(
         policyID,
         CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
-        travelInvoicingSettlementsBankAccountID,
-        oldTravelInvoicingSettlementsBankAccountID ?? null,
+        travelBillingSettlementsBankAccountID,
+        oldTravelBillingSettlementsBankAccountID ?? null,
     );
-    const parameters: UpdateCampfireTravelInvoicingSettlementsAccountParams = {
+    const parameters: UpdateCampfireTravelBillingSettlementsAccountParams = {
         policyID,
-        travelInvoicingSettlementsBankAccountID,
+        travelBillingSettlementsBankAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT, parameters, onyxData);
 }
 
-function updateCampfireTravelInvoicingPayableAccount(
+function updateCampfireTravelBillingPayableAccount(
     policyID: string,
-    travelInvoicingPayableAccountID: CampfireExport['travelInvoicingPayableAccountID'],
-    oldTravelInvoicingPayableAccountID?: CampfireExport['travelInvoicingPayableAccountID'],
+    travelBillingPayableAccountID: CampfireExport['travelInvoicingPayableAccountID'],
+    oldTravelBillingPayableAccountID?: CampfireExport['travelInvoicingPayableAccountID'],
 ) {
     const onyxData = prepareCampfireExportOnyxData(
         policyID,
         CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT_ID,
-        travelInvoicingPayableAccountID,
-        oldTravelInvoicingPayableAccountID ?? null,
+        travelBillingPayableAccountID,
+        oldTravelBillingPayableAccountID ?? null,
     );
-    const parameters: UpdateCampfireTravelInvoicingPayableAccountParams = {
+    const parameters: UpdateCampfireTravelBillingPayableAccountParams = {
         policyID,
-        travelInvoicingPayableAccountID,
+        travelBillingPayableAccountID,
     };
-    write(WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    write(WRITE_COMMANDS.UPDATE_CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
 function updateCampfireExportToMultipleAccounts(policyID: string, enabled: CampfireExport['exportToMultipleAccounts'], oldEnabled?: CampfireExport['exportToMultipleAccounts']) {
@@ -819,9 +815,9 @@ export {
     updateCampfireBillPaymentAccount,
     updateCampfireSyncExpensifyCardSettlements,
     updateCampfireSettlementsAccount,
-    updateCampfireSyncTravelInvoicingSettlements,
-    updateCampfireTravelInvoicingSettlementsAccount,
-    updateCampfireTravelInvoicingPayableAccount,
+    updateCampfireSyncTravelBillingSettlements,
+    updateCampfireTravelBillingSettlementsAccount,
+    updateCampfireTravelBillingPayableAccount,
     updateCampfireExportToMultipleAccounts,
     updateCampfireCardProgramAccount,
 };

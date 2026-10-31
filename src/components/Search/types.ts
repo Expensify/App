@@ -28,6 +28,7 @@ import type {
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionApproverGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -184,6 +185,7 @@ type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>
@@ -194,7 +196,8 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER>;
 
 type SearchQueryContextValue = {
     currentSearchHash: number;
@@ -476,7 +479,8 @@ type GroupedItem =
     | TransactionMonthGroupListItemType
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
-    | TransactionQuarterGroupListItemType;
+    | TransactionQuarterGroupListItemType
+    | TransactionApproverGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */

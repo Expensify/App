@@ -10,7 +10,6 @@ import type {DownloadAttachmentCallback} from '@pages/media/AttachmentModalScree
 
 import CONST from '@src/CONST';
 
-import {useCallback} from 'react';
 import {Keyboard} from 'react-native';
 
 type UseDownloadAttachmentProps = {
@@ -26,25 +25,22 @@ function useDownloadAttachment({isAuthTokenRequired, type, draftTransactionID}: 
     /**
      * Download the currently viewed attachment.
      */
-    const downloadAttachment = useCallback<DownloadAttachmentCallback>(
-        ({source, file}) => {
-            let sourceURL = source;
-            if (isAuthTokenRequired && typeof sourceURL === 'string') {
-                sourceURL = addEncryptedAuthTokenToURL(sourceURL, encryptedAuthToken);
-            }
+    const downloadAttachment: DownloadAttachmentCallback = ({source, file}) => {
+        let sourceURL = source;
+        if (isAuthTokenRequired && typeof sourceURL === 'string') {
+            sourceURL = addEncryptedAuthTokenToURL(sourceURL, encryptedAuthToken);
+        }
 
-            if (typeof sourceURL === 'string') {
-                const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
-                const shouldUnlink = !draftTransactionID;
-                fileDownload(translate, sourceURL, fileName ?? '', undefined, undefined, undefined, undefined, undefined, shouldUnlink);
-            }
+        if (typeof sourceURL === 'string') {
+            const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
+            const shouldUnlink = !draftTransactionID;
+            fileDownload(translate, sourceURL, fileName ?? '', undefined, undefined, undefined, undefined, undefined, shouldUnlink);
+        }
 
-            // At ios, if the keyboard is open while opening the attachment, then after downloading
-            // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
-            Keyboard.dismiss();
-        },
-        [isAuthTokenRequired, type, draftTransactionID, translate, encryptedAuthToken],
-    );
+        // At ios, if the keyboard is open while opening the attachment, then after downloading
+        // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
+        Keyboard.dismiss();
+    };
 
     return downloadAttachment;
 }

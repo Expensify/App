@@ -24,6 +24,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {useState} from 'react';
 
 function useScanActions() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -43,7 +44,7 @@ function useScanActions() {
     const startScan = () => {
         interceptAnonymousUser(() => {
             startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, true);
-        });
+        }, session);
     };
 
     const policyChatPolicyID = policyChatForActivePolicy?.policyID;
@@ -63,7 +64,7 @@ function useScanActions() {
             const quickActionReportID = policyChatReportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatReportID, undefined, true);
-        });
+        }, session);
     };
 
     return {startScan, startQuickScan};

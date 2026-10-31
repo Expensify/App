@@ -40,8 +40,13 @@ function useSelectionListShortcuts<TItem extends ListItem>({
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.CTRL_ENTER,
         (e) => {
+            const focusedOption = getFocusedOption();
+            if (focusedOption && confirmButtonOptions?.onConfirmFocusedOption) {
+                confirmButtonOptions.onConfirmFocusedOption(focusedOption);
+                return;
+            }
             if (confirmButtonOptions?.onConfirm) {
-                confirmButtonOptions.onConfirm(e, getFocusedOption());
+                confirmButtonOptions.onConfirm(e);
                 return;
             }
             selectFocusedItem();
