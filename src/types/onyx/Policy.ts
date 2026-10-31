@@ -1177,8 +1177,8 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Credit card account used when exporting company card expenses as credit card charges */
         creditCardAccount?: string;
 
-        /** OAuth2 REST connections set authType to oauth2. SOAP connections omit this field. */
-        authType?: string;
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
 
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
