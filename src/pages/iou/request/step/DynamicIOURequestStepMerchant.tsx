@@ -10,6 +10,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useExpenseFieldDraft from '@hooks/useExpenseFieldDraft';
 import useLocalize from '@hooks/useLocalize';
 import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useNetwork from '@hooks/useNetwork';
@@ -84,7 +85,7 @@ function DynamicIOURequestStepMerchant({
     const merchant = getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = isInvalidMerchantValue(merchant);
     const initialMerchant = isEmptyMerchant ? '' : merchant;
-    const [currentMerchant, setCurrentMerchant] = useState(initialMerchant);
+    const [currentMerchant, updateMerchantDraft] = useExpenseFieldDraft(transactionID, initialMerchant ?? '');
     const [isSaved, setIsSaved] = useState(false);
     const [isDiscardModalVisible, setIsDiscardModalVisible] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -109,10 +110,6 @@ function DynamicIOURequestStepMerchant({
         }
 
         return errors;
-    };
-
-    const updateMerchantRef = (value: string) => {
-        setCurrentMerchant(value);
     };
 
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
@@ -210,8 +207,8 @@ function DynamicIOURequestStepMerchant({
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
                         name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
-                        defaultValue={initialMerchant}
-                        onValueChange={updateMerchantRef}
+                        value={currentMerchant}
+                        onValueChange={updateMerchantDraft}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}
