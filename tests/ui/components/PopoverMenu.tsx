@@ -5,6 +5,9 @@ import PopoverMenu, {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKe
 import useNoopPopoverMenuFocusManagement from '@components/PopoverMenu/usePopoverMenuFocusManagement/noop';
 import ScrollView from '@components/ScrollView';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useActiveElementRole from '@hooks/useActiveElementRole';
+
 import getPlatform from '@libs/getPlatform';
 import {getShouldSuppressBackgroundInputFocus} from '@libs/ModalFocusManager';
 
@@ -25,13 +28,30 @@ type MockMeasuredPopoverProps = PropsWithChildren<{
     outerStyle?: unknown;
 }>;
 
+type MockFocusableMenuItemProps = {
+    title: string;
+    pressableTestID?: string;
+    onPress?: (event: GestureResponderEvent) => void;
+    focused?: boolean;
+    shouldSyncFocus?: boolean;
+};
+
 type RestoreFocusType = PopoverMenuProps['restoreFocusType'];
 
 const mockPopoverWithMeasuredContent = jest.fn<void, [MockMeasuredPopoverProps]>();
 const mockClose = jest.fn<void, [(() => void | Promise<void>) | undefined, boolean | undefined, boolean | undefined]>();
 const mockGetPlatform = jest.mocked(getPlatform);
+const mockUseAccessibilityAnnouncement = jest.mocked(useAccessibilityAnnouncement);
+const mockUseActiveElementRole = jest.mocked(useActiveElementRole);
+const mockKeyboardShortcuts = new Map<string, {callback: () => void; isActive: boolean}>();
+const mockFocusableMenuItem = jest.fn<void, [MockFocusableMenuItemProps]>();
 
 jest.mock('@libs/getPlatform');
+jest.mock('@hooks/useAccessibilityAnnouncement');
+jest.mock('@hooks/useActiveElementRole');
+jest.mock('@hooks/useKeyboardShortcut', () => (shortcut: {shortcutKey: string}, callback: () => void, config: {isActive?: boolean} = {}) => {
+    mockKeyboardShortcuts.set(shortcut.shortcutKey, {callback, isActive: config.isActive ?? true});
+});
 
 describe('PopoverMenu utils', () => {
     const menuItems: PopoverMenuItem[] = [
@@ -186,15 +206,19 @@ jest.mock('@components/FocusableMenuItem', () => {
 
     return {
         __esModule: true,
-        default: (props: {title: string; pressableTestID?: string; onPress?: (event: GestureResponderEvent) => void}) => (
-            <Pressable
-                testID={props.pressableTestID}
-                onPress={props.onPress}
-                accessibilityLabel="Pressable"
-            >
-                <Text>{props.title}</Text>
-            </Pressable>
-        ),
+        default: (props: MockFocusableMenuItemProps) => {
+            mockFocusableMenuItem(props);
+            return (
+                <Pressable
+                    testID={props.pressableTestID}
+                    onPress={props.onPress}
+                    accessibilityLabel="Pressable"
+                    accessibilityState={{selected: props.focused}}
+                >
+                    <Text>{props.title}</Text>
+                </Pressable>
+            );
+        },
     };
 });
 
@@ -367,6 +391,11 @@ describe('PopoverMenu integration — optional search', () => {
 
     beforeEach(() => {
         mockPopoverWithMeasuredContent.mockClear();
+        mockUseAccessibilityAnnouncement.mockClear();
+        mockUseActiveElementRole.mockReturnValue(null);
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
+        mockKeyboardShortcuts.clear();
+        mockFocusableMenuItem.mockClear();
     });
 
     it('keeps existing popovers keyboard-neutral when search is disabled', () => {
@@ -403,6 +432,129 @@ describe('PopoverMenu integration — optional search', () => {
         expect(mockPopoverWithMeasuredContent.mock.calls.at(-1)?.[0].avoidKeyboard).toBe(true);
         expect(renderResult.UNSAFE_getByType(ScrollView).props.keyboardShouldPersistTaps).toBe('always');
         expect(renderResult.UNSAFE_getByType(ScrollView).props.scrollEventThrottle).toBe(16);
+    });
+
+    it('shows the visually focused row while keeping focus synchronized to the search input', () => {
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                shouldShowRadioButton
+                menuItems={[{text: 'Item 1'}, {text: 'Item 2'}]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        fireEvent(screen.getByLabelText('Find a member'), 'focus');
+        const arrowDownShortcut = mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+        expect(arrowDownShortcut?.isActive).toBe(true);
+        act(() => arrowDownShortcut?.callback());
+
+        const focusedItemProps = mockFocusableMenuItem.mock.calls.find(([props]) => props.focused)?.[0];
+        expect(focusedItemProps).toEqual(expect.objectContaining({title: 'Item 1', shouldSyncFocus: false}));
+    });
+
+    it('announces an arrow-focused row while the search input retains focus', () => {
+        // Given a searchable popover with the search input focused
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={[{text: 'Account name', description: 'account@example.com'}]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+        fireEvent(screen.getByLabelText('Find a member'), 'focus');
+
+        // When Arrow Down visually focuses the first result
+        const arrowDownShortcut = mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+        act(() => arrowDownShortcut?.callback());
+
+        // Then the account is announced without moving focus away from the search input
+        expect(mockUseAccessibilityAnnouncement).toHaveBeenLastCalledWith('Account name, account@example.com', true, {
+            shouldAnnounceOnNative: false,
+            shouldAnnounceOnWeb: true,
+            announcementKey: 1,
+            politeness: 'polite',
+        });
+        const focusedItemProps = mockFocusableMenuItem.mock.calls.find(([props]) => props.focused)?.[0];
+        expect(focusedItemProps).toEqual(expect.objectContaining({title: 'Account name', shouldSyncFocus: false}));
+    });
+
+    it('does not announce a logical row when the search input is not focused', () => {
+        // Given a searchable popover whose search input does not have focus
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={[{text: 'Account name', description: 'account@example.com'}]}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // When Arrow Down focuses a row through the ordinary menu navigation path
+        const arrowDownShortcut = mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
+        act(() => arrowDownShortcut?.callback());
+
+        // Then no live announcement is emitted because real row focus provides the accessibility feedback
+        expect(mockUseAccessibilityAnnouncement).toHaveBeenLastCalledWith('', false, {
+            shouldAnnounceOnNative: false,
+            shouldAnnounceOnWeb: true,
+            announcementKey: 0,
+            politeness: 'polite',
+        });
+    });
+
+    it('lets a focused interactive control handle Enter in a searchable popover', () => {
+        // Given a searchable popover whose Clear button or account row has actual focus
+        mockUseActiveElementRole.mockReturnValue(CONST.ROLE.BUTTON);
+
+        // When the popover registers its Enter shortcut
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={[{text: 'Item'}]}
+                searchInputOptions={{label: 'Find a member', value: 'query', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // Then the popover shortcut is inactive so Enter reaches the focused control
+        expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.isActive).toBe(false);
+    });
+
+    it('preserves the existing Enter shortcut behavior for non-searchable popovers', () => {
+        // Given a non-searchable popover with a focused interactive element
+        mockUseActiveElementRole.mockReturnValue(CONST.ROLE.BUTTON);
+
+        // When the popover registers its Enter shortcut
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={[{text: 'Item'}]}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // Then the existing non-search popover behavior remains unchanged
+        expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.isActive).toBe(true);
     });
 });
 
