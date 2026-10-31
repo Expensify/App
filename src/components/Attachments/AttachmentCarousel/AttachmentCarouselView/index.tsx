@@ -19,11 +19,11 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type {ListRenderItemInfo} from 'react-native';
+import type {CellRendererProps, ListRenderItemInfo} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 
-import React, {useLayoutEffect, useRef, useState} from 'react';
-import {Keyboard, PixelRatio, View} from 'react-native';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 
@@ -36,6 +36,28 @@ const viewabilityConfig = {
 };
 
 const MIN_FLING_VELOCITY = 500;
+// Animate the standard list without replacing its web cell focus handling.
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Animated.FlatList drops the cell focus callback required to retain the password form.
+const AnimatedAttachmentList = Animated.createAnimatedComponent(FlatList<Attachment>);
+
+// react-native-web's View drops onFocusCapture. Bridge the callback so VirtualizedList
+// keeps the focused PDF cell mounted while the carousel is resized.
+function AttachmentCarouselCell({children, style, onLayout, onFocusCapture}: CellRendererProps<Attachment>) {
+    return (
+        <View
+            style={style}
+            onLayout={onLayout}
+            onFocus={(event) => {
+                if (!(event.nativeEvent instanceof FocusEvent)) {
+                    return;
+                }
+                onFocusCapture?.(event.nativeEvent);
+            }}
+        >
+            {children}
+        </View>
+    );
+}
 
 type DeviceAwareGestureDetectorProps = {
     canUseTouchScreen: boolean;
@@ -77,14 +99,19 @@ function AttachmentCarouselView({
     // Keep the current selection available to viewability callbacks without waiting for a render.
     const activeAttachmentIDRef = useRef(activeAttachmentID);
 
-    const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
+    const scrollRef = useAnimatedRef<FlatList<Attachment>>();
 
     // The modal's safe-area padding can make the carousel narrower than the window.
     // Wait for its actual width before mounting the list so visibility and paging use the same geometry.
     const [cellWidth, setCellWidth] = useState(0);
+    const onNavigateRef = useRef(onNavigate);
+    useEffect(() => {
+        onNavigateRef.current = onNavigate;
+    }, [onNavigate]);
 
-    /** Updates the page state when the user navigates between attachments */
-    const updatePage = ({viewableItems}: UpdatePageProps) => {
+    // FlatList requires this callback to keep the same identity for the lifetime of the list.
+    // A lazy state initializer creates it once without useCallback, which is handled by the React Compiler.
+    const [updatePage] = useState<(props: UpdatePageProps) => void>(() => ({viewableItems}: UpdatePageProps) => {
         if (isFullScreenRef.current) {
             return;
         }
@@ -112,10 +139,8 @@ function AttachmentCarouselView({
         setPage(entry.index);
         setActiveAttachmentID(nextAttachmentID);
 
-        if (onNavigate) {
-            onNavigate(item);
-        }
-    };
+        onNavigateRef.current?.(item);
+    });
 
     /** Increments or decrements the index to get another selected item, returning whether the carousel moved */
     const cycleThroughAttachments = (deltaSlide: number) => {
@@ -230,7 +255,7 @@ function AttachmentCarouselView({
                 if (width <= 0) {
                     return;
                 }
-                setCellWidth(width);
+                setCellWidth((previousWidth) => (previousWidth === width ? previousWidth : width));
             }}
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
@@ -260,7 +285,7 @@ function AttachmentCarouselView({
                                     canUseTouchScreen={canUseTouchScreen}
                                     gesture={pan}
                                 >
-                                    <Animated.FlatList
+                                    <AnimatedAttachmentList
                                         keyboardShouldPersistTaps="handled"
                                         horizontal
                                         showsHorizontalScrollIndicator={false}
@@ -272,6 +297,7 @@ function AttachmentCarouselView({
                                         initialNumToRender={3}
                                         windowSize={5}
                                         maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
+                                        CellRendererComponent={AttachmentCarouselCell}
                                         data={attachments}
                                         renderItem={renderItem}
                                         getItemLayout={getItemLayout}
