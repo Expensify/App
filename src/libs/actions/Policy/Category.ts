@@ -1991,7 +1991,7 @@ function setPolicyMemberCategoryVisibility(
 
     const parameters: SetPolicyMemberCategoryVisibilityParams = {
         policyID,
-        accountIDs: JSON.stringify(accountIDs),
+        accountIDList: JSON.stringify(accountIDs),
         categories: JSON.stringify(categories),
     };
 
