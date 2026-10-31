@@ -1,3 +1,6 @@
+/**
+ * Adds client context to every log message, e.g. which browser tab wrote it.
+ */
 import type AddLogContext from './types';
 
 type ActiveTab = {clientID: string; isLeader: boolean};
