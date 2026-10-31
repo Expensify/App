@@ -1,5 +1,6 @@
 import {DialogLabelProvider, useDialogLabelData} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import RHPResizeHandle from '@components/RHPResizeHandle';
 import {expandedRHPProgress, thirdOverlayProgress, useWideRHPActions, useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
@@ -20,6 +21,7 @@ import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperW
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 import getSidePanelRHPShrink from '@libs/Navigation/helpers/getSidePanelRHPShrink';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -54,7 +56,6 @@ import {Animated, DeviceEventEmitter, View} from 'react-native';
 import getRHPFrameStyle from './getRHPFrameStyle';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
 import RHPOverlay from './Overlay/RHPOverlay';
-import RHPResizeHandle from './RHPResizeHandle';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
@@ -217,7 +218,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     }
 
     // Where the focused card starts, measured from the right window edge and from the left.
-    const tertiaryOverlayColumn = Animated.add(sidePanelOffset.current, Animated.add(focusedRHPWidth, 2 * variables.rhpFloatingCardBorderWidth + variables.rhpFloatingCardMargin));
+    const tertiaryOverlayColumn = Animated.add(sidePanelOffset.current, Animated.add(focusedRHPWidth, RHP_FLOATING_CARD_INSET));
     const tertiaryOverlayCardBandLeft = Animated.subtract(windowWidth, tertiaryOverlayColumn);
     const tertiaryOverlayVerticalGapInset = windowHeight - variables.rhpFloatingCardMargin;
 
@@ -227,7 +228,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0 || shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderSecondaryOverlayForRHPOnSuperWideRHP);
 
     const {width: resizableSingleRHPWidth} = useSingleRHPWidth();
-    const singleRHPWidthScopeRef = useRef<HTMLElement | null>(null);
     const frameStyle = getRHPFrameStyle({styles, animatedWidth, singleRHPWidth: resizableSingleRHPWidth, shouldUseNarrowLayout, shouldUseCenteredFrame});
     const isResizableSingleRHP = useIsResizableSingleRHP();
     const stackContentStyle = styles.singleRHPStackBox(isResizableSingleRHP);
@@ -295,7 +295,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
 
     return (
         <NarrowPaneContextProvider>
-            <NoDropZone ref={singleRHPWidthScopeRef}>
+            <NoDropZone>
                 {!shouldUseNarrowLayout && (
                     <RHPOverlay
                         positionLeftValue={overlayPositionLeft}
@@ -608,7 +608,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         />
                     </>
                 )}
-                {isResizableSingleRHP && <RHPResizeHandle scopeRef={singleRHPWidthScopeRef} />}
+                {isResizableSingleRHP && <RHPResizeHandle />}
             </NoDropZone>
         </NarrowPaneContextProvider>
     );

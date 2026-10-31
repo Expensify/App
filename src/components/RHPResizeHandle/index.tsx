@@ -17,11 +17,6 @@ import type {RefObject} from 'react';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-type RHPResizeHandleProps = {
-    /** Holds the live width mid-drag. Contains the RHP cards and this handle, which all read it. */
-    scopeRef: RefObject<HTMLElement | null>;
-};
-
 type Drag = {
     startClientX: number;
 
@@ -35,6 +30,9 @@ type Drag = {
 };
 
 const SNAP: DraggedSizeSnap = {to: variables.rhpWidth, threshold: CONST.RHP_RESIZE.SNAP_THRESHOLD};
+
+/** The RHP and a modal stacked on it each mount a handle over the one live width, so an idle handle must not clear it while the other drags. */
+let lastDragRef: RefObject<Drag | null> | null = null;
 
 // DOM `div` styles, which the React Native style system can't type.
 const HANDLE_STYLE: React.CSSProperties = {
@@ -57,7 +55,7 @@ const LINE_STYLE: React.CSSProperties = {
  * Drags the single RHP card's left edge. A sibling of the card rather than a child, because the card clips its overflow,
  * and rendered after the overlay so it wins hit-testing over the scrim that closes the RHP.
  */
-function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
+function RHPResizeHandle() {
     const styles = useThemeStyles();
     const {width, min, max} = useSingleRHPWidth();
     const [isHovered, setIsHovered] = useState(false);
@@ -92,7 +90,7 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
                 return;
             }
 
-            writeLiveSingleRHPWidth(scopeRef.current, liveWidth);
+            writeLiveSingleRHPWidth(liveWidth);
             setLineSnapped(liveWidth === SNAP.to);
             // eslint-disable-next-line no-param-reassign -- the drag is the ref's own object, read back when the drag ends
             drag.liveWidth = liveWidth;
@@ -108,7 +106,7 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
 
             // Nothing gets saved, so no render follows to clear the live width.
             if (liveWidth === undefined || liveWidth === width) {
-                clearLiveSingleRHPWidth(scopeRef.current);
+                clearLiveSingleRHPWidth();
                 return;
             }
 
@@ -123,18 +121,15 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
 
     // React now renders the saved width as the fallback, so drop the live one before paint. A window resize mid-drag leaves it to the drag.
     useLayoutEffect(() => {
-        if (dragRef.current) {
+        if (lastDragRef?.current) {
             return;
         }
 
-        clearLiveSingleRHPWidth(scopeRef.current);
-    }, [width, scopeRef]);
+        clearLiveSingleRHPWidth();
+    }, [width]);
 
-    // The scope outlives the handle, so unmounting before the save renders would otherwise pin the cards at the live width.
-    useEffect(() => {
-        const scope = scopeRef.current;
-        return () => clearLiveSingleRHPWidth(scope);
-    }, [scopeRef]);
+    // The document outlives the handle, so unmounting before the save renders would otherwise pin the cards at the live width.
+    useEffect(() => clearLiveSingleRHPWidth, []);
 
     return (
         <View style={styles.rhpResizeHandle(width)}>
@@ -147,6 +142,7 @@ function RHPResizeHandle({scopeRef}: RHPResizeHandleProps) {
                     if (!pointerDrag.startDrag(event, () => ({startClientX: event.clientX, startWidth: width, hasMovedPointer: false}))) {
                         return;
                     }
+                    lastDragRef = dragRef;
                     setIsDragging(true);
                 }}
                 {...pointerDrag.handlers}
