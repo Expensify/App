@@ -1,4 +1,6 @@
 import SearchSelectAllMenu from '@components/Search/SearchList/SearchSelectAllMenu';
+import {useColumnResizeController} from '@components/Table/columnResize/ColumnResizeContext';
+import {TABLE_ROW_DATA_SET} from '@components/Table/columnResize/columnWidthExpressions';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -56,6 +58,7 @@ function SelectionTopBar({
     SearchTableHeader,
 }: SelectionTopBarProps) {
     const styles = useThemeStyles();
+    const columnResize = useColumnResizeController();
 
     return (
         <View
@@ -63,17 +66,25 @@ function SelectionTopBar({
                 styles.searchListHeaderContainerStyle,
                 isLargeScreenWidth ? [styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.mh5] : styles.listTableHeader,
                 isLargeScreenWidth && shouldSplitGroups && styles.searchListHeaderTableStickyOverlap,
+                // Resize lines hang below the column header, so keep them above the rows. Without one there are no handles.
+                !!columnResize && !!SearchTableHeader && styles.zIndex1,
+                // The headings span the row's full height, so the checkbox carries the vertical padding instead.
+                !!SearchTableHeader && [styles.pv0, styles.pb0],
             ]}
+            // The resize line starts at the row with this marker.
+            dataSet={columnResize ? TABLE_ROW_DATA_SET : undefined}
         >
             {canSelectMultiple && (
-                <SearchSelectAllMenu
-                    isSelectAllChecked={isSelectAllChecked}
-                    isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    shouldShowTextButton={selectAllButtonVisible}
-                    onAllCheckboxPress={onAllCheckboxPress}
-                />
+                <View style={!!SearchTableHeader && styles.pv2}>
+                    <SearchSelectAllMenu
+                        isSelectAllChecked={isSelectAllChecked}
+                        isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
+                        selectedItemsLength={selectedItemsLength}
+                        totalItems={totalItems}
+                        shouldShowTextButton={selectAllButtonVisible}
+                        onAllCheckboxPress={onAllCheckboxPress}
+                    />
+                </View>
             )}
 
             {SearchTableHeader}

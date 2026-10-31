@@ -3214,6 +3214,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         approverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人或删除此工作流程。',
         defaultWorkflowApproverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人。',
         overLimitApproverNotWorkspaceMember: '超出限额报告的额外审批人已不再是工作区成员。请选择新的额外审批人。',
+        overLimitApproverInWorkflow: '此限额以上报表的额外审批人已是此工作流中的审批人。请选择其他额外审批人。',
         approverCircularReference: (name1: string, name2: string) => `<strong>${name1}</strong> 已经将报表提交给 <strong>${name2}</strong> 审批。请选择其他审批人以避免形成循环审批流程。`,
         emptyContent: {
             title: '没有可显示的成员',
@@ -5005,7 +5006,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             hotelBlockCard:
                 '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
         },
-        defaultWorkspaceTravelDisabled: {title: '差旅功能未启用', message: '如需预订，请在您的默认工作区中启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。'},
+        defaultWorkspaceTravelDisabled: {
+            title: '你目前还不能预订行程',
+            message: '您是已启用差旅功能的工作区成员，但该工作区不是您的默认工作区。要预订，请在您的默认工作区启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。',
+        },
     },
     workspace: {
         common: {
@@ -7277,6 +7281,14 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 continue: '继续且无成员',
                 description: '在不包含成员的情况下复制工作流时，将不会复制审批工作流。但提交和付款设置仍会被复制。',
             },
+            confirmMembers: {
+                title: '复制成员',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？`,
+                    // Chinese has no "one" plural category, so handle the single-workspace case here
+                    other: count === 1 ? `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？` : `确定要用此工作区的成员替换 ${count} 个工作区的成员吗？`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: '正在复制中…',
                 copyInProgressDescription: '你可以选择等待流程完成，或者由 Concierge 在完成后通知你。',
@@ -8895,7 +8907,10 @@ ${reportName}`,
                     missingData: 'Expensify 没有该信息。',
                     retroactive: '规则仅适用于新活动。',
                     historyLimit: '规则无法追溯到那么久以前。',
-                    tryThisInstead: '试试这个',
+                    useSuggestion: '使用建议',
+                    explanationWithSuggestion: (explanation: string) => `${explanation}请改为尝试下面的建议：`,
+                    quotedSuggestion: (suggestedPrompt: string) => `“${suggestedPrompt}”`,
+                    createAnyway: '仍然创建',
                 },
             },
             expenseDefaultsTable: {
@@ -10075,6 +10090,7 @@ ${reportName}`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `已将“防止将不可报销报表标记为已支付”更新为“${newValue === 'true' ? '已启用' : '已禁用'}”（之前为“${oldValue === 'true' ? '已启用' : '已禁用'}”）`,
+        addedExpensifyCardFeed: (feedName: string) => `已添加“${feedName}”Expensify 卡交易明细馈送`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',
@@ -10344,6 +10360,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: '周',
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年份',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
             },
             feed: '动态',
             withdrawalType: {
@@ -10397,6 +10414,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: '周',
             [CONST.SEARCH.GROUP_BY.YEAR]: '年',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
         },
         moneyRequestReport: {emptyStateTitle: '暂时没有报销费用', accessPlaceHolder: '展开查看详情'},
         noCategory: '无类别',
@@ -11604,6 +11622,8 @@ ${reportName}`,
                 info: '如果你想按次付费继续使用你的工作区，你就都准备好了。',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `如果你想阻止未来的活动和收费，你必须<a href="${workspacesListRoute}">删除你的工作区</a>。请注意，当你删除工作区时，你将被收取在当前日历月内产生的所有未结活动费用。`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `若要防止今后的活动和收费，请<a href="${workspacesListRoute}">将所有付费工作区归档</a>。本月内有可计费活动的已归档工作区仍会计入您的账单。`,
             },
             requestSubmitted: {
                 title: '请求已提交',

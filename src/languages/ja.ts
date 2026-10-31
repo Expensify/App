@@ -3289,6 +3289,7 @@ ${date} の ${merchant} への ${amount}`,
         approverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択するか、このワークフローを削除してください。',
         defaultWorkflowApproverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択してください。',
         overLimitApproverNotWorkspaceMember: '上限を超えるレポートの追加承認者は、ワークスペースのメンバーではなくなりました。新しい追加承認者を選択してください。',
+        overLimitApproverInWorkflow: '上限を超えるレポートの追加承認者として選択されたユーザーは、このワークフロー内ですでに承認者になっています。別の追加承認者を選択してください。',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> はすでに <strong>${name2}</strong> にレポートを承認しています。ワークフローが循環しないよう、別の承認者を選択してください。`,
         emptyContent: {
@@ -5118,8 +5119,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
         },
         defaultWorkspaceTravelDisabled: {
-            title: '出張機能は有効になっていません',
-            message: '予約するには、デフォルトのワークスペースで出張機能を有効にするか、出張機能が有効になっているワークスペースをデフォルトとして設定してください。',
+            title: 'まだ旅行を予約できません',
+            message:
+                '現在、出張機能が有効なワークスペースのメンバーですが、そのワークスペースはデフォルトではありません。予約するには、デフォルトのワークスペースで出張機能を有効にするか、デフォルトのワークスペースを出張機能が有効なワークスペースに変更してください。',
         },
     },
     workspace: {
@@ -7450,6 +7452,17 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 continue: 'メンバーなしで続行',
                 description: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
             },
+            confirmMembers: {
+                title: 'メンバーをコピー',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                    // Japanese has no "one" plural category, so handle the single-workspace case here
+                    other:
+                        count === 1
+                            ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
+                            : `${count}個のワークスペースのメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'コピーを実行中です...',
                 copyInProgressDescription: '処理が完了するまで待つこともできますし、完了したら Concierge からお知らせすることもできます。',
@@ -9114,7 +9127,10 @@ ${reportName}`,
                     missingData: 'Expensify はその情報を持っていません。',
                     retroactive: 'ルールは新しいアクティビティにのみ適用されます。',
                     historyLimit: 'ルールはそれほど前までさかのぼることができません。',
-                    tryThisInstead: '代わりにこちらをお試しください',
+                    useSuggestion: '提案を使用',
+                    explanationWithSuggestion: (explanation: string) => `${explanation}代わりに以下の提案をお試しください：`,
+                    quotedSuggestion: (suggestedPrompt: string) => `「${suggestedPrompt}」`,
+                    createAnyway: 'このまま作成',
                 },
             },
             expenseDefaultsTable: {
@@ -10333,6 +10349,7 @@ ${reportName}`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
+        addedExpensifyCardFeed: (feedName: string) => `「${feedName}」Expensify カードフィードを追加しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10612,6 +10629,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: '週',
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -10665,6 +10683,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: '週数',
             [CONST.SEARCH.GROUP_BY.YEAR]: '年数',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
         },
         moneyRequestReport: {emptyStateTitle: 'まだ経費がありません', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',
@@ -11896,6 +11915,8 @@ ${reportName}`,
                 info: 'ワークスペースを従量課金制で使い続けたい場合は、これで準備完了です。',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `今後のアクティビティや請求を防ぎたい場合は、<a href="${workspacesListRoute}">ワークスペースを削除</a>する必要があります。ワークスペースを削除すると、当月中に発生した未精算のアクティビティについて請求が行われることにご注意ください。`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `今後のアクティビティや請求を防ぐには、<a href="${workspacesListRoute}">すべての有料ワークスペースをアーカイブしてください</a>。今月中に課金対象のアクティビティがあるアーカイブ済みワークスペースは、引き続きご請求に含まれます。`,
             },
             requestSubmitted: {
                 title: 'リクエストを送信しました',
