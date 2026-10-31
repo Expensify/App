@@ -37,6 +37,7 @@ import {
     buildQueryStringWithResetFilters,
     getQueryHashWithoutFilters,
     getQueryWithUpdatedValues,
+    getQueryWithPreservedSort,
     getRangeBoundariesFromFormValue,
     getRoutes,
     getSearchRootParamsFromRootState,
@@ -752,12 +753,26 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 hello test`);
         });
 
-        test('returns query with updated groupBy', () => {
-            const userQuery = 'from:12345 groupBy:reports';
+        test('ignores unsupported groupBy and preserves other filters', () => {
+            // Given a saved expense query with a From filter and an unsupported grouping
+            const userQuery = 'type:expense from:12345 group-by: reports';
 
+            // When the router normalizes the submitted query
             const result = getQueryWithUpdatedValues(userQuery);
 
-            expect(result).toEqual(`${defaultQuery} groupBy:reports from:12345`);
+            // Then the unsupported grouping is omitted and the From filter remains
+            expect(result).toEqual(`${defaultQuery} from:12345`);
+        });
+
+        test('keeps a supported groupBy when followed by an unsupported groupBy', () => {
+            // Given a query with a valid grouping followed by an unsupported grouping
+            const userQuery = 'type:expense from:12345 group-by:merchant group-by:reports';
+
+            // When the router normalizes the submitted query
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            // Then the valid grouping and From filter remain applied
+            expect(result).toEqual('type:expense sortBy:groupMerchant sortOrder:asc groupBy:merchant from:12345');
         });
 
         test('returns query with updated view', () => {
@@ -3312,7 +3327,7 @@ describe('SearchQueryUtils', () => {
             expect(isDefaultExpenses('type:expense footerTotal:billable footerCurrency:EUR')).toBe(true);
             expect(isDefaultExpenses('type:expense footerTotal:billable category:Travel')).toBe(false);
             expect(isDefaultExpenseReports('type:expense-report footerCount:expenses')).toBe(true);
-            expect(isDefaultExpenseReports('type:expense-report groupBy:report')).toBe(false);
+            expect(isDefaultExpenseReports('type:expense-report groupBy:merchant')).toBe(false);
         });
 
         it('keeps every footer selection out of the recent and similar search hashes, since none of them changes a result', () => {
@@ -4097,6 +4112,82 @@ describe('SearchQueryUtils', () => {
             const result = buildFilterValuesString(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, []);
 
             expect(result).toBe('');
+        });
+    });
+
+    describe('getQueryWithPreservedSort', () => {
+        test.each([
+            ['amount ascending', 'sortBy:amount sortOrder:asc', 'type:expense from:123 merchant:Coffee', 'amount', 'asc'],
+            ['amount descending', 'sortBy:amount sortOrder:desc', 'type:expense from:123 merchant:Coffee', 'amount', 'desc'],
+            ['unsupported grouping ascending', 'sortBy:amount sortOrder:asc', 'type:expense from:123 group-by:reports', 'amount', 'asc'],
+            ['unsupported grouping descending', 'sortBy:amount sortOrder:desc', 'type:expense from:123 group-by:reports', 'amount', 'desc'],
+            ['default sorting', 'sortBy:date sortOrder:desc', 'type:expense from:123 merchant:Coffee', 'date', 'desc'],
+            ['explicit sort column', 'sortBy:amount sortOrder:asc', 'type:expense from:123 sort-by:date', 'date', 'desc'],
+            ['explicit sort direction', 'sortBy:amount sortOrder:desc', 'type:expense from:123 sort-order:asc', 'date', 'asc'],
+            ['both explicit sort fields', 'sortBy:amount sortOrder:desc', 'type:expense from:123 sort-by:date sort-order:asc', 'date', 'asc'],
+            ['changed search type', 'sortBy:amount sortOrder:asc', 'type:expense-report from:123', 'date', 'desc'],
+            ['added grouping', 'sortBy:amount sortOrder:desc', 'type:expense from:123 group-by:category', 'groupCategory', 'asc'],
+            ['removed grouping', 'groupBy:category sortBy:groupCategory sortOrder:asc', 'type:expense from:123', 'date', 'desc'],
+            ['changed grouping', 'groupBy:category sortBy:groupCategory sortOrder:asc', 'type:expense from:123 group-by:month', 'groupmonth', 'desc'],
+            ['line view', 'groupBy:month view:table sortBy:groupmonth sortOrder:desc', 'type:expense from:123 group-by:month view:line', 'groupmonth', 'asc'],
+            ['table view', 'groupBy:month view:line sortBy:groupmonth sortOrder:asc', 'type:expense from:123 group-by:month view:table', 'groupmonth', 'desc'],
+            ['bar view', 'groupBy:month view:table sortBy:amount sortOrder:asc', 'type:expense from:123 group-by:month view:bar', 'amount', 'asc'],
+            ['unchanged grouping', 'groupBy:category sortBy:amount sortOrder:desc', 'type:expense from:123 group-by:category merchant:Coffee', 'amount', 'desc'],
+        ])('handles %s when editing a saved query', (_scenario, previousSort, rawQuery, sortBy, sortOrder) => {
+            // Given a saved query and edited input whose normalization supplies default sort fields
+            const previousQuery = buildSearchQueryJSON(`type:expense from:123 ${previousSort}`);
+            const normalizedQuery = getQueryWithUpdatedValues(rawQuery);
+            if (!previousQuery || !normalizedQuery) {
+                throw new Error('Invalid test query');
+            }
+
+            // When the saved sorting is considered after normalizing the edited input
+            const result = getQueryWithPreservedSort(normalizedQuery, previousQuery, rawQuery);
+            const parsedResult = buildSearchQueryJSON(result);
+
+            // Then sorting follows explicit input and grouping/view rules without losing the From filter
+            expect(parsedResult).toMatchObject({sortBy, sortOrder});
+            expect(parsedResult?.flatFilters).toEqual(buildSearchQueryJSON(normalizedQuery)?.flatFilters);
+            expect(parsedResult?.flatFilters).toEqual(expect.arrayContaining([expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM})]));
+        });
+
+        test('leaves the submitted query unchanged when parsing fails', () => {
+            // Given a valid saved query and a parser failure for the replacement query
+            const previousQuery = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:asc');
+            if (!previousQuery) {
+                throw new Error('Invalid test query');
+            }
+            const parser = jest.requireMock<{parse: jest.Mock}>('@libs/SearchParser/searchParser');
+            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+            parser.parse.mockImplementationOnce(() => {
+                throw new Error('Unable to parse edited query');
+            });
+
+            try {
+                // When sort preservation cannot interpret the replacement query
+                const query = 'type:expense merchant:unparseable-sort-preservation';
+                const result = getQueryWithPreservedSort(query, previousQuery, query);
+
+                // Then it leaves error handling to the caller without replacing the submitted query
+                expect(result).toBe(query);
+                expect(consoleError).toHaveBeenCalled();
+            } finally {
+                consoleError.mockRestore();
+            }
+        });
+
+        test.each(['', '   '])('uses defaults when the input is cleared to %j', (rawQuery) => {
+            // Given a saved Amount sort and an empty replacement search
+            const previousQuery = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:asc');
+            if (!previousQuery) {
+                throw new Error('Invalid test query');
+            }
+
+            // When the input is cleared instead of editing its filters
+            const result = getQueryWithPreservedSort(defaultQuery, previousQuery, rawQuery);
+
+            // Then the fresh search keeps its defaults rather than inheriting saved sorting
+            expect(result).toBe(defaultQuery);
         });
     });
 
