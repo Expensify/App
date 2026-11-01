@@ -2,14 +2,14 @@
 
 import {file} from 'bun';
 /**
- * Fails the lint run when a new inline `eslint-disable` or `eslint` config comment silences one of
+ * Fails the lint run when a new inline `eslint-disable`, `oxlint-disable` or `eslint` config comment silences one of
  * the Onyx lint bans in `BANNED_RULES` (see `onyxLintBypass.ts`). Every ban there is a normal lint
  * rule, so oxlint honors an inline comment that turns it off. This script reads the source itself and
  * reports directives that name the ban, blanket directives over a real banned use, and config comments
  * that name the ban. For the OnyxUtils ban a named directive or config comment counts only when the
  * file has a runtime import. The script runs outside oxlint, so no disable comment can turn it off.
  *
- * A bypass needs an `eslint` comment and the ban's search terms in the same file, so git grep first
+ * A bypass needs an `eslint` or `oxlint` comment and the ban's search terms in the same file, so git grep first
  * narrows the targets to files that contain all of them. The terms are separate words rather than
  * `Onyx.connect`, because git grep matches one line at a time and would miss a call split across lines
  * or spaced as `Onyx . connect(`. Extra matches such as `Onyx.connectWithoutView` are harmless, since
@@ -28,11 +28,11 @@ import {BANNED_RULES, collectDisableDirectivesFromSource, findForbiddenSeatbeltR
 
 const projectRoot = path.resolve(import.meta.dir, '..');
 
-/** Repo-relative paths of the files under `targets` that contain every search term. An empty `targets` searches the whole repo. */
+/** Repo-relative paths of the files under `targets` that match every search term, each an extended regex. An empty `targets` searches the whole repo. */
 function findCandidateFiles(targets: string[], searchTerms: string[]): string[] {
     const pathSpecs = targets.length > 0 ? targets : ['.'];
     try {
-        const output = execFileSync('git', ['grep', '-lI', '--all-match', '--untracked', '--no-recurse-submodules', ...searchTerms.flatMap((term) => ['-e', term]), '--', ...pathSpecs], {
+        const output = execFileSync('git', ['grep', '-lIE', '--all-match', '--untracked', '--no-recurse-submodules', ...searchTerms.flatMap((term) => ['-e', term]), '--', ...pathSpecs], {
             cwd: projectRoot,
             encoding: 'utf8',
         });
