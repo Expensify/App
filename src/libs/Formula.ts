@@ -874,7 +874,8 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
 
     switch (frequency) {
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY: {
-            // The offset counts Sunday as 7 while getDay counts it as 0, which the modulo reconciles
+            // The period is the 7 days ending on the next submission day, so it starts 6 days before that day.
+            // The offset counts Sunday as 7 while getDay counts it as 0, which the modulo reconciles.
             const {offset: submissionWeekday} = getAutoReportingOffsetsForFrequency(frequency, {offset});
             const daysUntilSubmission = (Number(submissionWeekday) - getDay(currentDate) + 7) % 7;
             endDate = endOfDay(addDays(currentDate, daysUntilSubmission));
