@@ -420,7 +420,7 @@ function IOURequestStepDistanceOdometer({
             if (isEditingSplit && transaction) {
                 setDraftSplitTransaction(
                     transaction.transactionID,
-                    splitDraftTransaction ?? transaction,
+                    currentTransaction,
                     {
                         distance: calculatedDistance,
                         odometerStart: start,

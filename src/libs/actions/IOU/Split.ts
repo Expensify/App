@@ -1322,6 +1322,13 @@ function resetSplitShares(
     setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, currentUserAccountID, getCurrencyDecimals, isDraft);
 }
 
+/**
+ * Merges `transactionChanges` into a transaction and stores the result as the split draft.
+ *
+ * `splitTransactionDraft` must be the transaction the changes should start from: the existing split draft when there
+ * is one, otherwise the saved transaction (see `useSplitDraftBaseTransaction`). This function does not fall back on
+ * its own, and passing `undefined` merges `null`, which clears the draft.
+ */
 function setDraftSplitTransaction(
     transactionID: string | undefined,
     splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
