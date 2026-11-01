@@ -6290,8 +6290,20 @@ const translations = {
                     },
                 },
             },
+            creditCardAccount: 'Credit card account',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? "We'll use this account for cards that don't have their own export account."
+                    : "Choose a default account. We'll use it for cards that don't have their own export account.",
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? "We'll use this vendor for expenses that don't have a vendor." : "Choose a default vendor. We'll use it for expenses that don't have a vendor.",
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Credit card charges',
+                        nonReimbursableDescription: 'Company card expenses will export as individual credit card charges in NetSuite, dated with each purchase.',
+                        legacyTaxHelper: "Credit card charges don't support NetSuite legacy tax. If you use legacy tax, choose another export type.",
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Expense reports',
                         reimbursableDescription: 'Out-of-pocket expenses will export as expense reports to NetSuite.',

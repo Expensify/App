@@ -6042,8 +6042,20 @@ ${amount} voor ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Creditcardrekening',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'We gebruiken deze rekening voor kaarten die geen eigen exportrekening hebben.'
+                    : 'Kies een standaardrekening. We gebruiken deze voor kaarten die geen eigen exportrekening hebben.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'We gebruiken deze leverancier voor uitgaven zonder leverancier.' : 'Kies een standaardleverancier. We gebruiken deze voor uitgaven zonder leverancier.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Creditcardkosten',
+                        nonReimbursableDescription: 'Uitgaven van bedrijfskaarten worden geëxporteerd naar NetSuite als afzonderlijke creditcardkosten, gedateerd met elke aankoop.',
+                        legacyTaxHelper: 'Creditcardkosten ondersteunen geen NetSuite legacy tax. Als je legacy tax gebruikt, kies dan een ander exporttype.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Onkostendeclaraties',
                         reimbursableDescription: 'Uit eigen zak betaalde onkosten worden als onkostendeclaraties geëxporteerd naar NetSuite.',

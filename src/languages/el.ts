@@ -6162,8 +6162,22 @@ ${amount} για ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Λογαριασμός πιστωτικής κάρτας',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον λογαριασμό για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο λογαριασμό. Θα τον χρησιμοποιήσουμε για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον προμηθευτή για έξοδα χωρίς προμηθευτή.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή. Θα τον χρησιμοποιήσουμε για έξοδα χωρίς προμηθευτή.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Χρεώσεις πιστωτικής κάρτας',
+                        nonReimbursableDescription: 'Τα έξοδα εταιρικής κάρτας θα εξαχθούν στο NetSuite ως μεμονωμένες χρεώσεις πιστωτικής κάρτας, με την ημερομηνία κάθε αγοράς.',
+                        legacyTaxHelper: 'Οι χρεώσεις πιστωτικής κάρτας δεν υποστηρίζουν το NetSuite legacy tax. Αν χρησιμοποιείτε legacy tax, επιλέξτε άλλον τύπο εξαγωγής.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Αναφορές εξόδων',
                         reimbursableDescription: 'Τα έξοδα από ίδιους πόρους θα εξαχθούν ως αναφορές εξόδων στο NetSuite.',
