@@ -5548,10 +5548,12 @@ function formatTransactionViolationNames(violationNames: Set<string>, translate?
         violationNames.delete(CONST.VIOLATIONS.RECEIPT_REQUIRED);
     }
 
-    const names = Array.from(violationNames);
-    const labels = translate ? names.map((name) => getViolationDisplayName(name, translate)) : names;
+    // Labels are de-duplicated because different names can share one (cashExpenseWithNoReceipt and receiptRequired).
+    const labels = translate ? new Set(Array.from(violationNames, (name) => getViolationDisplayName(name, translate))) : violationNames;
     const collator = getCollator(IntlStore.getCurrentLocale());
-    return labels.sort((first, second) => collator.compare(first, second)).join(', ');
+    return Array.from(labels)
+        .sort((first, second) => collator.compare(first, second))
+        .join(', ');
 }
 
 function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
@@ -5579,7 +5581,7 @@ function collectApprovedViolationNamesForTransaction(violationNames: Set<string>
 /**
  * Collects a transaction's submitted violations from its report's submit actions.
  * A report can be submitted more than once, so this aggregates across every submit action,
- * dedupes by violation name, and returns a comma-separated display string.
+ * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
  * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),
@@ -5598,7 +5600,7 @@ function getSubmittedViolationsForTransaction(reportActions: OnyxTypes.ReportAct
 /**
  * Collects a transaction's approved violations from its report's approved and forwarded actions.
  * A report can be approved or forwarded more than once, so this aggregates across every matching action,
- * dedupes by violation name, and returns a comma-separated display string.
+ * dedupes by violation messages, and returns a comma-separated display string.
  * When `translate` is provided, violation identifiers are converted to localized short labels.
  *
  * Itemized receipt required supersedes receipt required (same rule as `filterReceiptViolations`),
