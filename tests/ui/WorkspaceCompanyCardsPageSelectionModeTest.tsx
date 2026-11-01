@@ -138,19 +138,16 @@ jest.mock('@pages/workspace/WorkspacePageWithSections', () => {
     return ({
         children,
         headerText,
-        icon,
         onBackButtonPress,
         shouldUseHeadlineHeader,
     }: {
         children: React.ReactNode;
         headerText: string;
-        icon?: unknown;
         onBackButtonPress: () => void;
         shouldUseHeadlineHeader?: boolean;
     }) => (
         <View>
             <Text testID="WorkspaceCompanyCardsPageHeader">{headerText}</Text>
-            {icon !== undefined && <View testID="WorkspaceCompanyCardsPageIcon" />}
             <Text testID="WorkspaceCompanyCardsPageHeadlineMode">{String(shouldUseHeadlineHeader)}</Text>
             <Pressable
                 testID="WorkspaceCompanyCardsPageBackButton"
@@ -210,7 +207,6 @@ describe('WorkspaceCompanyCardsPage selection mode', () => {
         render(getWorkspaceCompanyCardsPage());
 
         expect(screen.getByText('common.selectMultiple')).toBeTruthy();
-        expect(screen.queryByTestId('WorkspaceCompanyCardsPageIcon')).toBeNull();
         expect(screen.getByText('false')).toBeTruthy();
         expect(mockTableProps.current?.isSelectionModeEnabled).toBe(true);
     });
@@ -221,7 +217,6 @@ describe('WorkspaceCompanyCardsPage selection mode', () => {
         render(getWorkspaceCompanyCardsPage());
 
         expect(screen.getByText('workspace.common.companyCards')).toBeTruthy();
-        expect(screen.queryByTestId('WorkspaceCompanyCardsPageIcon')).toBeNull();
         expect(screen.getByText('true')).toBeTruthy();
         expect(mockTableProps.current?.isSelectionModeEnabled).toBe(false);
     });

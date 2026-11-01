@@ -5,10 +5,9 @@
  * - `Header.BackButton` (optional)
  * - `Header.Icon` (optional) — mutually exclusive with `Header.AvatarWithDisplayName`
  * - `Header.Title` or `Header.AvatarWithDisplayName` — pick one, not both
- * - `Header.Right`, wrapping the trailing zone:
- *   - `Header.Actions` for custom children and/or `Header.DownloadButton`
- *   - `Header.ThreeDotsMenu` (or a single `Header.IconButton` for a one-off action)
- *   - `Header.CloseButton`
+ * - `Header.CustomActions` for custom children and/or `Header.DownloadButton`
+ * - `Header.ThreeDotsMenu` (or a single `Header.IconButton` for a one-off action)
+ * - `Header.CloseButton`
  *
  * @example
  * ```tsx
@@ -18,14 +17,12 @@
  *   <Header.BackButton onPress={goBack} />
  *   <Header.Icon src={icon} />
  *   <Header.Title title={title} />
- *   <Header.Right>
- *     <Header.Actions>
- *       <ResetLink />
- *       <Header.DownloadButton onPress={onDownload} />
- *     </Header.Actions>
- *     <Header.ThreeDotsMenu items={menuItems} />
- *     <Header.CloseButton onPress={onClose} />
- *   </Header.Right>
+ *   <Header.CustomActions>
+ *     <ResetLink />
+ *     <Header.DownloadButton onPress={onDownload} />
+ *   </Header.CustomActions>
+ *   <Header.ThreeDotsMenu items={menuItems} />
+ *   <Header.CloseButton onPress={onClose} />
  * </Header>
  * ```
  *
@@ -35,15 +32,12 @@
  * <Header>
  *   <Header.BackButton onPress={goBack} />
  *   <Header.AvatarWithDisplayName report={report} />
- *   <Header.Right>
- *     <Header.IconButton onPress={onPress} iconSrc={icon} tooltipText={text} />
- *   </Header.Right>
+ *   <Header.IconButton onPress={onPress} iconSrc={icon} tooltipText={text} />
  * </Header>
  * ```
  */
 import HeaderComponent from './Header';
-import HeaderActions from './layout/HeaderActions';
-import HeaderRight from './layout/HeaderRight';
+import HeaderCustomActions from './layout/HeaderCustomActions';
 import HeaderAvatarWithDisplayName from './primitives/HeaderAvatarWithDisplayName';
 import HeaderBackButton from './primitives/HeaderBackButton';
 import HeaderCloseButton from './primitives/HeaderCloseButton';
@@ -58,8 +52,7 @@ function HeaderBase(props: React.ComponentProps<typeof HeaderComponent>) {
 }
 
 const Header = Object.assign(HeaderBase, {
-    Actions: HeaderActions,
-    Right: HeaderRight,
+    CustomActions: HeaderCustomActions,
     AvatarWithDisplayName: HeaderAvatarWithDisplayName,
     BackButton: HeaderBackButton,
     CloseButton: HeaderCloseButton,

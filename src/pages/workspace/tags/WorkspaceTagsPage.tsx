@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -784,11 +784,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader={!selectionModeHeader}
+                <HeaderCentralPane
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -805,7 +803,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
                 {(!hasVisibleTags || isLoading) && headerContent}
                 {isLoading && (
