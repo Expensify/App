@@ -38,8 +38,14 @@ const translations: TranslationDeepObject<typeof en> = {
     billPay: {
         bill: 'Te betalen factuur',
         bills: 'Te betalen facturen',
+        createBill: 'Te betalen factuur maken',
+        vendorEmail: 'E-mailadres leverancier',
+        attachPDF: 'PDF bijvoegen',
         markAsPaid: 'Markeren als betaald',
         paymentFailed: 'We konden deze factuur niet betalen. Probeer het opnieuw.',
+        createFailed: 'We konden deze factuur niet maken. Probeer het opnieuw.',
+        primaryContactHint: (domain) =>
+            `De primaire contactpersoon is het aanspreekpunt voor ${domain} en ontvangt facturen die naar het factuuradres van dit domein ${domain}@expensify.cash worden gestuurd.`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

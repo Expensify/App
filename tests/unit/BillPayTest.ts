@@ -4,7 +4,7 @@ import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {canRejectReportAction, getReimbursementQueuedActionMessage} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, isFilterSupported} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchSuggestionUtils';
-import {getDisplayValue, getSections, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {createTypeMenuSections, getDisplayValue, getSections, getTypeOptions, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -211,6 +211,36 @@ describe('Bill Pay', () => {
         },
     );
 
+    it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
+        'omits Ready to pay from Bills navigation when workspace payments are disabled with %s',
+        (reimbursementChoice) => {
+            // Given Bills content in a workspace with payments disabled.
+            const params = {
+                currentUserEmail: email,
+                currentUserAccountID: accountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: {...policy, reimbursementChoice}},
+                savedSearches: undefined,
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: undefined,
+                isTrackIntentUser: false,
+                hasBills: true,
+            };
+
+            // When the menu builds the suggested searches from the workspace settings.
+            const disabledSection = createTypeMenuSections(params).find((section) => section.translationPath === 'billPay.bills');
+
+            // Then Bills and Needs approval remain available, while Ready to pay requires payments enabled.
+            expect(disabledSection?.menuItems.map((item) => item.key)).toEqual([CONST.SEARCH.SEARCH_KEYS.BILLS, CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]);
+            const enabledSection = createTypeMenuSections({...params, policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}}).find(
+                (section) => section.translationPath === 'billPay.bills',
+            );
+            expect(enabledSection?.menuItems.map((item) => item.key)).toContain(CONST.SEARCH.SEARCH_KEYS.BILLS_PAY);
+        },
+    );
+
     it('includes received standalone invoices without requiring a room', () => {
         const invoice: Report = {...bill, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: 456};
         expect(isBillPayReport(invoice, accountID)).toBe(true);
@@ -225,9 +255,16 @@ describe('Bill Pay', () => {
         expect(canPayBill(invoice, undefined, accountID, email)).toBe(true);
     });
 
-    it('shows Bill as the applied Type filter', () => {
+    it('offers Bill in the Type filter only to users who see Spend > Bills', () => {
         const translateEN = <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) => translate(CONST.LOCALES.EN, key, ...parameters);
 
+        // Given the same workspaces, the Type options differ only by whether the user has bills.
+        const withBills = getTypeOptions(translateEN, {}, email, true);
+        const withoutBills = getTypeOptions(translateEN, {}, email, false);
+
+        // Then only the user with bills sees the Bill option, and the applied filter reads Bill.
+        expect(withBills).toContainEqual({text: 'Bill', value: CONST.SEARCH.DATA_TYPES.BILL});
+        expect(withoutBills.map((option) => option.value)).not.toContain(CONST.SEARCH.DATA_TYPES.BILL);
         expect(getDisplayValue(FILTER_KEYS.TYPE, {type: CONST.SEARCH.DATA_TYPES.BILL}, CONST.SEARCH.DATA_TYPES.BILL, translateEN, (a, b) => a.localeCompare(b))).toBe('Bill');
     });
 

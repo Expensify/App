@@ -12,6 +12,7 @@ import {View} from 'react-native';
 
 import FABButtons from './FABPopoverContent/FABButtons';
 import FABPopoverMenu from './FABPopoverContent/FABPopoverMenu';
+import CreateBillMenuItem from './FABPopoverContent/menuItems/CreateBillMenuItem';
 import CreateReportMenuItem from './FABPopoverContent/menuItems/CreateReportMenuItem';
 import ExpenseMenuItem from './FABPopoverContent/menuItems/ExpenseMenuItem';
 import InvoiceMenuItem from './FABPopoverContent/menuItems/InvoiceMenuItem';
@@ -75,6 +76,7 @@ function FloatingActionButtonAndPopover() {
                 <ExpenseMenuItem reportID={reportID} />
                 <CreateReportMenuItem />
                 <TrackDistanceMenuItem reportID={reportID} />
+                <CreateBillMenuItem />
                 <NewChatMenuItem />
                 <InvoiceMenuItem reportID={reportID} />
                 <TravelMenuItem />
