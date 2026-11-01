@@ -369,7 +369,31 @@ describe('ReportActionsList (body)', () => {
         mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory: false, isHistoryCollapsedByUser: false});
         mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn(), collapseHistory: jest.fn()});
 
-        mockUseOnyx.mockImplementation(getMockOnyxValue);
+        mockUseOnyx.mockImplementation((key: string, options) => {
+            // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
+            // which reads these queue keys through selectors that resolve to a boolean. Returning that boolean
+            // directly mirrors what useOnyx yields once the selector runs. The legacy IS_LOADING_APP flag is kept
+            // in the fixture for any component still reading it directly.
+            if (key === ONYXKEYS.IS_LOADING_APP || key === ONYXKEYS.PERSISTED_REQUESTS || key === ONYXKEYS.PERSISTED_ONGOING_REQUESTS) {
+                return [false, {status: 'loaded'}];
+            }
+            if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
+                return [false, {status: 'loaded'}];
+            }
+            if (key.includes('reportLoadingState')) {
+                return [getMockReportLoadingState(options?.selector), {status: 'loaded'}];
+            }
+            if (key.includes('reportActions')) {
+                return [[], {status: 'loaded'}];
+            }
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`) {
+                return [mockReport, {status: 'loaded'}];
+            }
+            if (key.includes('report')) {
+                return [undefined, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
     });
 
     afterEach(async () => {

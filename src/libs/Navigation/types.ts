@@ -1342,11 +1342,13 @@ type TabNavigatorParamList = {
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: NavigatorScreenParams<SettingsSplitNavigatorParamList>;
     [NAVIGATORS.WORKSPACE_NAVIGATOR]: NavigatorScreenParams<WorkspaceNavigatorParamList>;
+    [SCREENS.MORE]: undefined;
     [SCREENS.INSIGHTS]:
         | {
               dashboardID: string;
           }
         | undefined;
+    [SCREENS.ASK_CONCIERGE]: undefined;
 };
 
 type SharedScreensParamList = {
@@ -1710,6 +1712,8 @@ type FullScreenName =
     | typeof NAVIGATORS.TAB_NAVIGATOR
     | typeof SCREENS.HOME
     | typeof SCREENS.INSIGHTS
+    | typeof SCREENS.ASK_CONCIERGE
+    | typeof SCREENS.MORE
     | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
 
 type WorkspaceNavigatorRouteName = keyof WorkspaceNavigatorParamList;

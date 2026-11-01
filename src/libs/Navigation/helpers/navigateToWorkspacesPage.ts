@@ -37,7 +37,7 @@ type Params = {
 const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain, lastWorkspacesTabNavigatorRoute, lastTabNavigatorRoute}: Params) => {
     const rootState = navigationRef.getRootState();
     const focusedRoute = rootState ? findFocusedRoute(rootState) : undefined;
-    const isOnWorkspacesList = focusedRoute?.name === SCREENS.WORKSPACES_LIST;
+    const isOnWorkspacesList = focusedRoute?.name === SCREENS.WORKSPACES_LIST || focusedRoute?.name === SCREENS.DOMAINS_LIST;
 
     if (!lastTabNavigatorRoute || isOnWorkspacesList) {
         // Not in a main workspace navigation context or the workspaces list page is already displayed, so do nothing.
@@ -50,7 +50,7 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
     const activeTabName = getActiveTabName(lastTabNavigatorRoute as Parameters<typeof getActiveTabName>[0]);
     if (activeTabName === NAVIGATORS.WORKSPACE_NAVIGATOR && isWorkspaceOrDomainOnTop) {
         // Already inside a workspace or domain: go back to the list.
-        Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
+        Navigation.goBack(lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? ROUTES.DOMAINS_LIST.getRoute() : ROUTES.WORKSPACES_LIST.route);
         return;
     }
 
@@ -109,6 +109,16 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
                 jumpToWorkspacesTab(existingTabNavStateKey);
                 return;
             }
+        }
+
+        // The list's Domains tab was the last thing open: restore that tab rather than Workspaces.
+        if (lastWorkspacesTabNavigatorRoute.name === SCREENS.DOMAINS_LIST) {
+            if (existingTabNavStateKey) {
+                jumpToWorkspacesTab(existingTabNavStateKey);
+                return;
+            }
+            Navigation.navigate(ROUTES.DOMAINS_LIST.getRoute());
+            return;
         }
 
         // Domain route found: try to restore last domain screen.

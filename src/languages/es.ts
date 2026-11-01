@@ -2347,6 +2347,7 @@ const translations: TranslationDeepObject<typeof en> = {
             profileTrace: 'Traza de ejecución',
             results: 'Resultados',
             testingPreferences: 'Preferencias para Tests',
+            showExtraNavItems: 'Mostrar elementos de navegación extra',
             server: 'Servidor',
             servers: {
                 production: {label: 'Producción', description: 'El entorno en vivo que ven los usuarios reales'},
@@ -3560,6 +3561,12 @@ ${amount} para ${merchant} - ${date}`,
         title: '¡Bienvenido al modo #focus!',
         prompt: (priorityModePageUrl: string) =>
             `Mantente al tanto de todo viendo solo los chats no leídos o los chats que necesitan tu atención. No te preocupes, puedes cambiarlo en cualquier momento en los <a href="${priorityModePageUrl}">ajustes</a>.`,
+    },
+    morePage: {
+        accountingDescription: 'Exportaciones, devengos, extractos y conciliación',
+        savedSearchesDescription: 'Vuelve a una búsqueda que guardaste',
+        insightsDescription: 'Descubre a dónde va tu gasto',
+        workspacesDescription: 'Gestiona tus espacios de trabajo y dominios',
     },
     inboxTabs: {
         all: 'Todo',
@@ -10460,6 +10467,10 @@ ${reportName}`,
         tabs: {
             expenseReports: 'Informes de gastos',
             reports: 'Informes',
+            allExpenses: 'Todos los gastos',
+            allReports: 'Todos los informes',
+            myReports: 'Mis informes',
+            myExpenses: 'Mis gastos',
             expenses: 'Gastos',
             submit: 'Borradores',
             approve: 'Necesita aprobación',

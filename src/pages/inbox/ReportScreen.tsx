@@ -16,6 +16,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 
+import ConciergeHistoryOverlay from '@pages/AskConcierge/ConciergeHistoryOverlay';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -127,6 +129,9 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                     <ReportNavigateAwayHandler />
                                 </>
                             )}
+                            {/* Slides in over the whole screen, header included, where there is no room for the
+                                thread list beside the chat. Renders nothing while closed. */}
+                            <ConciergeHistoryOverlay />
                             <ReportNotFoundGuard>
                                 <LinkedActionNotFoundGuard>
                                     <ReportDragAndDropProvider>

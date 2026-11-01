@@ -21,11 +21,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
+import {clearLastVisitedMoreDestination, setLastVisitedInsightsDashboard} from '@libs/MoreDestinationHistory';
+import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {InsightsDashboardID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -67,14 +70,14 @@ type InsightsDashboardContentProps = {
 
 function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
-    const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
-    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], {
+    // The dashboard applies the gutter to the cards alone, so the filter pills above them can run edge to edge.
+    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, styles.pb5], {
         hasBottomSafeAreaPadding: true,
         hasOfflineIndicatorPadding: true,
         fillsVisibleArea: isEmptyState,
@@ -226,6 +229,11 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket and the eligible charts are listed because the hash leaves them out, so changing them triggers a refetch while a pure Running total toggle does not.
     }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
 
+    // Remember the dashboard so the More menu can return the user to it.
+    useEffect(() => {
+        setLastVisitedInsightsDashboard(dashboardID);
+    }, [dashboardID]);
+
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
@@ -272,6 +280,15 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         >
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
+                // Insights has no tab of its own on narrow layouts - it is reached through More.
+                onBackButtonPress={
+                    shouldUseNarrowLayout
+                        ? () => {
+                              clearLastVisitedMoreDestination();
+                              Navigation.navigate(ROUTES.MORE);
+                          }
+                        : undefined
+                }
                 shouldDisplayHelpButton
             />
             {shouldUseNarrowLayout ? (

@@ -2472,6 +2472,7 @@ const translations: TranslationDeepObject<typeof en> = {
             profileTrace: 'Śledzenie profilu',
             results: 'Wyniki',
             testingPreferences: 'Preferencje testowe',
+            showExtraNavItems: 'Pokaż dodatkowe elementy nawigacji',
             server: 'Serwer',
             servers: {
                 production: {label: 'Produkcja', description: 'Środowisko produkcyjne, które widzą prawdziwi użytkownicy'},
@@ -3691,6 +3692,12 @@ ${amount} dla ${merchant} - ${date}`,
         title: 'Witaj w trybie #focus!',
         prompt: (priorityModePageUrl: string) =>
             `Bądź na bieżąco, widząc tylko nieprzeczytane czaty lub czaty wymagające twojej uwagi. Spokojnie, możesz to zmienić w dowolnym momencie w <a href="${priorityModePageUrl}">ustawieniach</a>.`,
+    },
+    morePage: {
+        accountingDescription: 'Eksporty, rozliczenia międzyokresowe, wyciągi i uzgodnienia',
+        savedSearchesDescription: 'Wróć do zapisanego wyszukiwania',
+        insightsDescription: 'Zobacz, na co idą Twoje wydatki',
+        workspacesDescription: 'Zarządzaj przestrzeniami roboczymi i domenami',
     },
     inboxTabs: {
         all: 'Wszystko',
@@ -10896,6 +10903,10 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         tabs: {
             expenseReports: 'Raporty wydatków',
             reports: 'Raporty',
+            allExpenses: 'Wszystkie wydatki',
+            allReports: 'Wszystkie raporty',
+            myReports: 'Moje raporty',
+            myExpenses: 'Moje wydatki',
             expenses: 'Wydatki',
             submit: 'Szkice',
             approve: 'Wymaga zatwierdzenia',

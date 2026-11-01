@@ -9,11 +9,11 @@ import useThemeStyles from './useThemeStyles';
  *
  * `undefined` where the header scrolls as part of the list's content (mweb landscape) instead of floating above it.
  */
-function useSearchListContentContainerStyle(hasFilterBars: boolean): ViewStyle | undefined {
+function useSearchListContentContainerStyle(hasFilterBars: boolean, isTabRowHidden = false): ViewStyle | undefined {
     const styles = useThemeStyles();
     const shouldScrollMainHeader = useIsMobileWebLandscape();
 
-    return shouldScrollMainHeader ? undefined : styles.searchListContentContainerStyles(hasFilterBars);
+    return shouldScrollMainHeader ? undefined : styles.searchListContentContainerStyles(hasFilterBars, isTabRowHidden);
 }
 
 export default useSearchListContentContainerStyle;

@@ -77,11 +77,15 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
     }
 }
 
+// At this many characters a workspace name no longer fits the header on one line at the headline size.
+const LONG_POLICY_NAME_LENGTH = 15;
+
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
-    const tabRootScrollProps = useTabRootScrollProps(styles.flexColumn);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    // The bottom padding clears the floating scan button, which only floats over the list on narrow layouts.
+    const tabRootScrollProps = useTabRootScrollProps([styles.flexColumn, shouldUseNarrowLayout && styles.pb14]);
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
@@ -135,6 +139,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     ]);
 
     const policyName = policy?.name ?? '';
+    const isPolicyNameLong = policyName.length >= LONG_POLICY_NAME_LENGTH;
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const shouldShowRBR = shouldShowRbrForWorkspaceAccountID[workspaceAccountID];
 
@@ -284,10 +289,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 <HeaderWithBackButton
                     title={policyName}
                     shouldUseHeadlineHeader
-                    titleStyles={styles.noWrap}
+                    titleStyles={isPolicyNameLong ? styles.headerTitleWrapped : styles.noWrap}
+                    numberOfTitleLines={isPolicyNameLong ? 2 : 1}
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
-                    policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
+                    policyAvatarSize={CONST.AVATAR_SIZE.XX_SMALL}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                     shouldDisplayAccountButton
                 />
@@ -334,6 +340,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                         highlighted={!!item?.highlighted}
                                         focused={getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName))}
+                                        shouldUseNavigationRowStyles
                                         role={CONST.ROLE.TAB}
                                         badgeText={item.badgeTranslationKey ? translate(item.badgeTranslationKey) : item.badgeText}
                                         shouldIconUseAutoWidthStyle

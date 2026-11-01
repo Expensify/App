@@ -19,7 +19,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shouldHidePayAction} from '@libs/ReportActionsUtils';
-import {isArchivedReport, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {isArchivedReport, isChatThread, shouldShowMarkAsDone} from '@libs/ReportUtils';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 
@@ -257,7 +257,8 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
                     renderItem={renderItem}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    // An inverted list pads its visual top with paddingBottom. A thread opens on its first message, so it needs far less of it.
+                    contentContainerStyle={[styles.chatContentScrollView, isChatThread(report) && styles.pb2]}
                     ListHeaderComponent={listHeaderComponent}
                     ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     ListFooterComponent={listFooterComponent}

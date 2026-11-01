@@ -2357,6 +2357,7 @@ const translations: TranslationDeepObject<typeof en> = {
             profileTrace: '性能追踪',
             results: '结果',
             testingPreferences: '测试偏好',
+            showExtraNavItems: '显示额外的导航项',
             server: '服务器',
             servers: {
                 production: {label: '生产', description: '真实用户所使用的线上环境'},
@@ -3536,6 +3537,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     focusModeUpdateModal: {
         title: '欢迎使用 #focus 模式！',
         prompt: (priorityModePageUrl: string) => `通过只查看未读聊天或需要你关注的聊天，随时掌握最新进展。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此项。`,
+    },
+    morePage: {
+        accountingDescription: '导出、应计、对账单和对账',
+        savedSearchesDescription: '返回已保存的搜索',
+        insightsDescription: '查看支出去向',
+        workspacesDescription: '管理您的工作区和域',
     },
     inboxTabs: {
         all: '全部',
@@ -10470,6 +10477,10 @@ ${reportName}`,
         tabs: {
             expenseReports: '报销报告',
             reports: '报表',
+            allExpenses: '所有报销费用',
+            allReports: '所有报表',
+            myReports: '我的报表',
+            myExpenses: '我的报销费用',
             expenses: '报销费用',
             submit: '草稿',
             approve: '待审批',

@@ -24,10 +24,11 @@ import useTodoCounts from '@hooks/useTodoCounts';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import {savedSearchIDToSearchKey, searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {getValidLastQuery} from '@libs/SearchQueryUtils';
 import {getItemBadgeText, getLastSearchQuery, getOverflowMenu, SAVED_SEARCH_FALLBACK_ICON_NAME, SAVED_SEARCH_ICON_NAMES, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
+import {getGroupedSearchTranslationPath, getSpendGroupKeys, shouldHideSpendTabRow} from '@libs/SpendNavigationGroups';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -74,6 +75,7 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
                     contentContainerStyles={pageGutter}
                     tabs={tabs}
                     activeTabKey={activeTabKey}
+                    shouldHugContent
                     onActiveTabPress={onActiveTabPress}
                     onTabPress={onTabPressContent}
                     onLongTabPress={onLongTabPress}
@@ -181,7 +183,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         } else {
             for (const item of section.menuItems) {
                 const badgeText = getItemBadgeText(item.key, reportCounts);
-                const title = translate(item.translationPath);
+                const title = translate(getGroupedSearchTranslationPath(item.key, item.translationPath));
 
                 tabItems.push({
                     key: item.key,
@@ -195,6 +197,19 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
             }
         }
     }
+
+    // Reports and Accounting each own a group of searches. When the current search belongs to one, the tab row shows
+    // only that group, matching the children the wide navigation reveals under the same parent.
+    // Saved searches form their own group, keyed by prefix rather than a fixed list.
+    const isSavedSearchActive = !!searchKeyToSavedSearchID(currentSearchKey);
+    const activeGroupKeys = getSpendGroupKeys(currentSearchKey);
+    let visibleTabItems = tabItems;
+    if (isSavedSearchActive) {
+        visibleTabItems = tabItems.filter((tab) => !!searchKeyToSavedSearchID(tab.key));
+    } else if (activeGroupKeys) {
+        visibleTabItems = tabItems.filter((tab) => activeGroupKeys.some((key) => key === tab.key));
+    }
+    const shouldHideTabs = shouldHideSpendTabRow(currentSearchKey);
 
     const popoverMenuItems = savedSearchToModifyKey ? (savedSearchesPopoverMenuItems?.[savedSearchToModifyKey] ?? []) : [];
     const shouldShowSavedSearchPopover = savedSearchToModifyKey && popoverMenuItems.length > 0;
@@ -232,9 +247,13 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         setSavedSearchToModifyKey(tabKey);
     };
 
+    if (shouldHideTabs) {
+        return null;
+    }
+
     return (
         <SearchTypeMenuNarrowContent
-            tabs={tabItems}
+            tabs={visibleTabItems}
             activeTabKey={currentSearchKey}
             onActiveTabPress={handleActiveTabPress}
             onTabPress={handleTabPress}

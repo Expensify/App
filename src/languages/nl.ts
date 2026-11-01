@@ -2435,6 +2435,7 @@ const translations: TranslationDeepObject<typeof en> = {
             profileTrace: 'Profieltracering',
             results: 'Resultaten',
             testingPreferences: 'Testvoorkeuren',
+            showExtraNavItems: 'Extra navigatie-items tonen',
             server: 'Server',
             servers: {
                 production: {label: 'Productie', description: 'De live-omgeving die echte gebruikers zien'},
@@ -3661,6 +3662,12 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Welkom in #focus-modus!',
         prompt: (priorityModePageUrl: string) =>
             `Blijf op de hoogte door alleen ongelezen chats of chats te zien die je aandacht nodig hebben. Geen zorgen, je kunt dit op elk moment wijzigen in de <a href="${priorityModePageUrl}">instellingen</a>.`,
+    },
+    morePage: {
+        accountingDescription: 'Exports, overlopende posten, afschriften en reconciliatie',
+        savedSearchesDescription: 'Ga terug naar een opgeslagen zoekopdracht',
+        insightsDescription: 'Zie waar je uitgaven naartoe gaan',
+        workspacesDescription: 'Beheer je werkruimtes en domeinen',
     },
     inboxTabs: {
         all: 'Alles',
@@ -10874,6 +10881,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         tabs: {
             expenseReports: 'Declaraties',
             reports: 'Rapporten',
+            allExpenses: 'Alle declaraties',
+            allReports: 'Alle rapporten',
+            myReports: 'Mijn rapporten',
+            myExpenses: 'Mijn declaraties',
             expenses: 'Declaraties',
             submit: 'Concepten',
             approve: 'Moet worden goedgekeurd',
