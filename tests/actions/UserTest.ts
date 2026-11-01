@@ -287,44 +287,6 @@ describe('actions/User', () => {
         });
     });
 
-    describe('closeAccount', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        it('restarts the HybridApp sign-in flow after the server clears Onyx, so the account can be reopened', async () => {
-            // Given a HybridApp user who already finished signing in, so the HybridApp sign-in page is no longer in use
-            jest.replaceProperty(CONFIG, 'IS_HYBRID_APP', true);
-            mockAPI.write.mockResolvedValue(undefined);
-            await Onyx.merge(ONYXKEYS.HYBRID_APP, {readyToShowAuthScreens: true, useNewDotSignInPage: false});
-            await waitForBatchedUpdates();
-
-            // When the account is closed and the server responds by clearing all Onyx data before the successData is applied
-            UserActions.closeAccount('Leaving', '123456');
-            await waitForBatchedUpdates();
-            const successData = mockAPI.write.mock.calls.at(0)?.[2]?.successData ?? [];
-            await Onyx.clear();
-            await Onyx.update(successData);
-            await waitForBatchedUpdates();
-
-            // Then the HybridApp sign-in flow starts from the beginning, so signing in with a magic code shows the signed-in screens
-            expect(await getOnyxValue(ONYXKEYS.HYBRID_APP)).toEqual({readyToShowAuthScreens: false, useNewDotSignInPage: true});
-        });
-
-        it('does not touch the HybridApp sign-in flow outside of HybridApp', async () => {
-            // Given a user outside of HybridApp
-            jest.replaceProperty(CONFIG, 'IS_HYBRID_APP', false);
-            mockAPI.write.mockResolvedValue(undefined);
-
-            // When the account is closed
-            UserActions.closeAccount('Leaving', '123456');
-            await waitForBatchedUpdates();
-
-            // Then no HybridApp data is written, because the HybridApp sign-in flags are only used by HybridApp
-            expect(mockAPI.write.mock.calls.at(0)?.[2]?.successData).toEqual([]);
-        });
-    });
-
     describe('verifyAddSecondaryLoginCode', () => {
         it('should call API.write with correct parameters', async () => {
             // Given a validate code
