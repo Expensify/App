@@ -84,6 +84,7 @@ import {
     canMergeReports,
     canModifyHoldStatus,
     canRejectReportAction,
+    canRemoveSupportTicketParticipant,
     canRequestMoney,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
@@ -15087,6 +15088,42 @@ describe('ReportUtils', () => {
             // Then passing the matching accountID returns true and a different one returns false
             expect(isActionCreator(reportAction, 999)).toBe(true);
             expect(isActionCreator(reportAction, 1000)).toBe(false);
+        });
+    });
+
+    describe('canRemoveSupportTicketParticipant', () => {
+        const customerAccountID = 80001;
+        const repAccountID = 80002;
+        const inviteeAccountID = 80003;
+        const supportTicket: Report = {
+            ...createRandomReport(80208, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('only lets the assigned rep remove invitees', () => {
+            // Given an open ticket where the customer and assigned rep must remain participants
+            // When removal is checked for the rep, customer, and invitee
+            // Then only the rep can remove an invitee, and neither protected participant can be removed
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, inviteeAccountID)).toBe(true);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, customerAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, inviteeAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, repAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, undefined, inviteeAccountID)).toBe(false);
+        });
+
+        it('blocks removal on closed or archived tickets', () => {
+            // Given a resolved ticket whose participants should remain available after reopening
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When the assigned rep views a closed or archived ticket
+            // Then removal is unavailable even though they are still assigned to it
+            expect(canRemoveSupportTicketParticipant(closedTicket, false, repAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, true, repAccountID, inviteeAccountID)).toBe(false);
         });
     });
 

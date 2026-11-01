@@ -1941,6 +1941,20 @@ function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<P
     return isCurrentUserSubmitter(report, currentUserAccountID) || isPolicyAdminPolicyUtils(policy);
 }
 
+/** Whether the assigned support rep can remove a participant from an open ticket. */
+function canRemoveSupportTicketParticipant(report: OnyxEntry<Report>, isReportArchived: boolean, currentUserAccountID: number | undefined, targetAccountID: number): boolean {
+    return (
+        isSupportTicket(report) &&
+        !isReportArchived &&
+        report?.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
+        report.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
+        !!currentUserAccountID &&
+        report.managerID === currentUserAccountID &&
+        targetAccountID !== report.ownerAccountID &&
+        targetAccountID !== report.managerID
+    );
+}
+
 /**
  * Only returns true if this is the Expensify DM report.
  *
@@ -15794,6 +15808,7 @@ export {
     pushTransactionAutoSelectionsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
+    canRemoveSupportTicketParticipant,
     isPayBlocked,
     hasReportBeenRejectedToSubmitter,
     hasReportBeenReopened,
