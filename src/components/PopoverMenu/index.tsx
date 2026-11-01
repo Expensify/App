@@ -424,7 +424,10 @@ function BasePopoverMenu({
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const isSearchEnabled = !!searchInputOptions;
     const activeElementRole = useActiveElementRole();
-    const isInteractiveElementFocused = isSearchEnabled && !!activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].some((role) => role === activeElementRole);
+    // Menus that do not synchronize focusedIndex can otherwise select a stale item when a different row has actual focus.
+    const shouldFocusedControlHandleEnter = isSearchEnabled || !shouldUpdateFocusedIndex;
+    const isInteractiveElementFocused =
+        shouldFocusedControlHandleEnter && !!activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].some((role) => role === activeElementRole);
     const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
     const [arrowFocusedItemAnnouncement, setArrowFocusedItemAnnouncement] = useState({message: '', key: 0});
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);

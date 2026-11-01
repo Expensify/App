@@ -556,6 +556,27 @@ describe('PopoverMenu integration — optional search', () => {
         // Then the existing non-search popover behavior remains unchanged
         expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.isActive).toBe(true);
     });
+
+    it('lets a focused row handle Enter when its non-searchable popover does not synchronize the focused index', () => {
+        // Given an account-switcher-style popover where actual row focus does not update the logical focused index
+        mockUseActiveElementRole.mockReturnValue(CONST.ROLE.BUTTON);
+
+        // When the popover registers its Enter shortcut
+        render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                shouldUpdateFocusedIndex={false}
+                menuItems={[{text: 'Item'}]}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        // Then the popover shortcut is inactive so Enter selects the row that has actual focus
+        expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.isActive).toBe(false);
+    });
 });
 
 describe('PopoverMenu integration — focus policy and close lifecycle', () => {
