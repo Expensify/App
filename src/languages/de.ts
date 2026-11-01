@@ -7010,6 +7010,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             updateFailureMessage: 'Beim Aktualisieren der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             createFailureMessage: 'Beim Erstellen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             addCategory: 'Kategorie hinzufügen',
+            createCategoryFromSearch: (categoryName: string) => `Kategorie „${categoryName}“ erstellen`,
             editCategory: 'Kategorie bearbeiten',
             editCategories: 'Kategorien bearbeiten',
             findCategory: 'Kategorie finden',

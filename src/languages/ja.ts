@@ -6875,6 +6875,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             updateFailureMessage: 'カテゴリの更新中にエラーが発生しました。もう一度お試しください。',
             createFailureMessage: 'カテゴリの作成中にエラーが発生しました。もう一度お試しください。',
             addCategory: 'カテゴリを追加',
+            createCategoryFromSearch: (categoryName: string) => `カテゴリ「${categoryName}」を作成`,
             editCategory: 'カテゴリーを編集',
             editCategories: 'カテゴリを編集',
             findCategory: 'カテゴリを検索',
