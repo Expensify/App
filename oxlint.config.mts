@@ -76,6 +76,16 @@ const restrictedImportPatterns = [
     {group: ['@styles/theme/themes/**'], message: 'Do not import themes directly. Please use the `useTheme` hook instead.'},
     {group: ['@styles/utils/**', '!@styles/utils/FontUtils', '!@styles/utils/types'], message: 'Do not import style util functions directly. Please use the `useStyleUtils` hook instead.'},
     {group: ['@styles/theme/illustrations/themes/**'], message: 'Do not import theme illustrations directly. Please use the `useThemeIllustrations` hook instead.'},
+    {
+        group: ['**/NumberWithSymbolForm'],
+        importNames: ['default'],
+        message: 'NumberWithSymbolForm is deprecated. Use AmountFormField or KeypadAmountEditor instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md.',
+    },
+    {
+        group: ['**/MoneyRequestAmountInput'],
+        importNames: ['default'],
+        message: 'MoneyRequestAmountInput is deprecated. Use AmountFormField or KeypadAmountEditor instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md.',
+    },
 ];
 
 const typescriptRestrictedImportPatterns = [

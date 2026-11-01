@@ -7263,6 +7263,7 @@ const CONST = {
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
     EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT: 56,
+    /** @deprecated Position symbol declaratively via JSX order in KeypadAmountEditor or prefixCharacter in AmountFormField.Input. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
     TEXT_INPUT_SYMBOL_POSITION: {
         PREFIX: 'prefix',
         SUFFIX: 'suffix',
