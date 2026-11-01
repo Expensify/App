@@ -4187,6 +4187,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         subtitle: `すべてのデータを読み込むことができませんでした。問題を確認する通知を受け取り、現在調査しています。この状態が続く場合は、次にご連絡ください:`,
         refreshAndTryAgain: '更新して、もう一度お試しください',
     },
+    cloudflareChallengeModal: {
+        title: 'セキュリティチェック',
+        body: 'Expensifyはセキュリティチェックを使用してボットを防止しています。続行するにはチェックを完了してください。',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `${login} に SMS メッセージを送信できないため、一時的に利用を停止しました。次の手順で番号の確認を行ってください。`,
         validationSuccess: '電話番号が認証されました！下をクリックして、新しいセキュリティサインインコードを送信します。',

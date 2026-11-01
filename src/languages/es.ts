@@ -12616,6 +12616,10 @@ ${reportName}`,
         subtitle: `No hemos podido cargar todos sus datos. Hemos sido notificados y estamos investigando el problema. Si esto persiste, por favor comuníquese con`,
         refreshAndTryAgain: 'Actualizar e intentar de nuevo',
     },
+    cloudflareChallengeModal: {
+        title: 'Control de seguridad',
+        body: 'Expensify usa un control de seguridad para detener bots. Complete el control para continuar.',
+    },
     domain: {
         notVerified: 'No verificado',
         retry: 'Reintentar',

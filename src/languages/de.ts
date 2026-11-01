@@ -4244,6 +4244,10 @@ ${amount} für ${merchant} – ${date}`,
         subtitle: `Wir konnten nicht alle Ihre Daten laden. Wir wurden benachrichtigt und prüfen das Problem. Wenn es weiterhin besteht, wenden Sie sich bitte an`,
         refreshAndTryAgain: 'Aktualisieren und erneut versuchen',
     },
+    cloudflareChallengeModal: {
+        title: 'Sicherheitsprüfung',
+        body: 'Expensify verwendet eine Sicherheitsprüfung, um Bots zu stoppen. Bitte schließen Sie die Prüfung ab, um fortzufahren.',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) =>
             `Wir konnten SMS-Nachrichten nicht an ${login} zustellen und haben es daher vorübergehend deaktiviert. Bitte versuche, deine Nummer zu bestätigen:`,

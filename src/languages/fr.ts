@@ -4251,6 +4251,10 @@ ${amount} pour ${merchant} - ${date}`,
         subtitle: `Nous n’avons pas pu charger toutes vos données. Nous en avons été informés et examinons le problème. Si cela persiste, veuillez contacter`,
         refreshAndTryAgain: 'Actualisez et réessayez',
     },
+    cloudflareChallengeModal: {
+        title: 'Contrôle de sécurité',
+        body: 'Expensify utilise un contrôle de sécurité pour bloquer les robots. Veuillez compléter le contrôle pour continuer.',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `Nous n’avons pas pu envoyer de SMS à ${login}, nous l’avons donc suspendu temporairement. Veuillez essayer de valider votre numéro :`,
         validationSuccess: 'Votre numéro a été validé ! Cliquez ci-dessous pour envoyer un nouveau code de sécurité de connexion.',

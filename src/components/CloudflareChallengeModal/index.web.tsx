@@ -97,14 +97,16 @@ function CloudflareChallengeModal() {
             isVisible={isCloudflareChallengeModalOpen}
             onClose={rejectCloudflareChallenge}
         >
-            <HeaderTitle>
-                <HeaderTitle.Text style={[styles.mb2]}>{translate('cloudflareChallengeModal.title')}</HeaderTitle.Text>
-            </HeaderTitle>
-            <Text style={[styles.mb4]}>{translate('cloudflareChallengeModal.body')}</Text>
-            <View
-                ref={viewRef(widgetContainerRef)}
-                style={[styles.w100]}
-            />
+            <View style={[styles.p5]}>
+                <HeaderTitle>
+                    <HeaderTitle.Text style={[styles.mb2]}>{translate('cloudflareChallengeModal.title')}</HeaderTitle.Text>
+                </HeaderTitle>
+                <Text style={[styles.mb4]}>{translate('cloudflareChallengeModal.body')}</Text>
+                <View
+                    ref={viewRef(widgetContainerRef)}
+                    style={[styles.w100]}
+                />
+            </View>
         </Modal>
     );
 }

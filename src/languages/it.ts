@@ -4225,6 +4225,10 @@ ${amount} per ${merchant} - ${date}`,
         subtitle: `Non siamo riusciti a caricare tutti i tuoi dati. Siamo stati informati e stiamo esaminando il problema. Se persiste, contatta`,
         refreshAndTryAgain: 'Aggiorna e riprova',
     },
+    cloudflareChallengeModal: {
+        title: 'Controllo di sicurezza',
+        body: 'Expensify usa un controllo di sicurezza per fermare i bot. Completa il controllo per continuare.',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) =>
             `Non siamo riusciti a recapitare i messaggi SMS a ${login}, quindi lo abbiamo sospeso temporaneamente. Prova a convalidare il tuo numero:`,
