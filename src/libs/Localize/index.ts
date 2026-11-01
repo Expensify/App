@@ -10,6 +10,8 @@ import type {Locale} from '@src/types/onyx';
 
 import * as RNLocalize from 'react-native-localize';
 
+type CountryTranslationPath = `allCountries.${string}`;
+
 // Note: these Intl instances are created lazily, per locale, rather than at the top level of the file. Two reasons:
 // Intl is polyfilled, so touching it upon import would run before the polyfill is installed and barf; and an Intl
 // instance resolves its locale at construction, so one built before that locale's polyfill data has loaded is stuck
@@ -34,7 +36,7 @@ const memoizedCreatePluralRules = memoize(createPluralRules);
  * phrase and stores the translated value in the cache and returns
  * the translated value.
  */
-function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, phraseKey: TKey, ...parameters: TranslationParameters<TKey>): string | null {
+function getTranslatedPhrase<TKey extends TranslationPaths>(language: Locale, phraseKey: TKey | CountryTranslationPath, ...parameters: TranslationParameters<TKey>): string | null {
     const translatedPhrase = IntlStore.get(phraseKey, language);
 
     if (translatedPhrase) {
@@ -95,7 +97,7 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
  * @param [locale] eg 'en', 'es'
  * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TPath extends TranslationPaths>(locale: Locale | undefined, path: TPath, ...parameters: TranslationParameters<TPath>): string {
+function translatePhrase<TPath extends TranslationPaths>(locale: Locale | undefined, path: TPath | CountryTranslationPath, ...parameters: TranslationParameters<TPath>): string {
     if (!locale) {
         // If no language is provided, return the path as is
         return Array.isArray(path) ? path.join('.') : path;
@@ -114,6 +116,16 @@ function translate<TPath extends TranslationPaths>(locale: Locale | undefined, p
         return phraseString;
     }
     throw new Error(`${path} was not found in the ${locale} locale`);
+}
+
+/** Translates finite phrase keys with their original parameter contract. */
+function translate<TPath extends TranslationPaths>(locale: Locale | undefined, path: TPath, ...parameters: TranslationParameters<TPath>): string {
+    return translatePhrase(locale, path, ...parameters);
+}
+
+/** Keeps persisted country strings on the same locale, cache and missing-key path as other translations. */
+function translateCountry(locale: Locale | undefined, country: string): string {
+    return translatePhrase(locale, `allCountries.${country}`);
 }
 
 /**
@@ -173,4 +185,4 @@ function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestLanguageTag(Object.values(CONST.LOCALES))?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};
+export {translate, translateCountry, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};

@@ -1,7 +1,8 @@
 import {putOnHold} from '@libs/actions/IOU/Hold';
-import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import * as PolicyActions from '@libs/actions/Policy/Policy';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {notifyNewAction} from '@libs/actions/Report/reportActionSubscribers';
 import * as APIActions from '@libs/API';
@@ -37,7 +38,16 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, getRequiredOnyxUpdate, getRequiredWriteCall, translateLocal} from '../../utils/TestHelper';
+import {
+    createGlobalFetchMock,
+    formatPhoneNumber,
+    getCurrencyDecimalsLocal,
+    getOnyxData,
+    getRequiredOnyxUpdate,
+    getRequiredOnyxUpdates,
+    getRequiredWriteCall,
+    translateLocal,
+} from '../../utils/TestHelper';
 import {readProperty, requireRecordArrayProperty, requireStringProperty} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -125,7 +135,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
     beforeEach(() => {
         jest.clearAllTimers();
         mockFetch = createGlobalFetchMock();
-        global.fetch = mockFetch;
+        globalThis.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -2791,6 +2801,128 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
     });
 
+    describe('invoice workspace company size', () => {
+        const introVariants: IntroSelected[] = [...Object.values(CONST.ONBOARDING_COMPANY_SIZE).map((companySize) => ({companySize})), {}, {companySize: undefined}];
+
+        const previousPolicy = createMock<Policy>({id: 'previous-policy', role: CONST.POLICY.ROLE.USER, type: CONST.POLICY.TYPE.TEAM});
+        const workspaceCases = introVariants.flatMap((introSelected) => [
+            {introSelected, activePolicy: undefined},
+            {introSelected, activePolicy: previousPolicy},
+        ]);
+
+        it.each(workspaceCases)('forwards $introSelected.companySize through the real invoice workspace builder with $activePolicy', async ({introSelected, activePolicy}) => {
+            // Given an individual invoice receiver without an eligible payer workspace.
+            await Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+            const chatReport = createMock<Report>({
+                reportID: 'invoice-room',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: CARLOS_ACCOUNT_ID},
+            });
+            const invoiceReport = createMock<Report>({
+                reportID: 'invoice-report',
+                type: CONST.REPORT.TYPE.INVOICE,
+                ownerAccountID: RORY_ACCOUNT_ID,
+                currency: CONST.CURRENCY.USD,
+                total: 100,
+                nonReimbursableTotal: 0,
+            });
+            const args: Parameters<typeof payInvoice>[0] = {
+                paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                invoiceReport,
+                // This workspace-forwarding case does not exercise per-transaction unhold or violation updates.
+                invoiceReportTransactions: [],
+                introSelected,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                currentUserLocalCurrency: CONST.CURRENCY.USD,
+                payAsBusiness: true,
+                activePolicy,
+                conciergeChat: undefined,
+                isASAPSubmitBetaEnabled: false,
+                isSelfTourViewed: false,
+                defaultWorkspaceName: 'Invoice workspace',
+                chatReportActions: undefined,
+                shouldPlaySuccessSound: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                bankAccountList: undefined,
+                rules: undefined,
+            };
+            const builderSpy = jest.spyOn(PolicyActions, 'buildPolicyData');
+            const writeSpy = jest.spyOn(APIActions, 'write').mockResolvedValue(undefined);
+
+            try {
+                // When the exported invoice action executes, the builder spy calls through without a replacement.
+                payInvoice(args);
+
+                // Then every current/legacy size and both absence shapes reach the actual builder unchanged.
+                expect(builderSpy).toHaveBeenCalledTimes(1);
+                expect(builderSpy.mock.calls.at(0)?.[0]).toEqual(expect.objectContaining({companySize: introSelected.companySize, introSelected}));
+                const builderResult = builderSpy.mock.results.at(0);
+                if (!builderResult || builderResult.type !== 'return') {
+                    throw new Error('Expected the real invoice workspace builder to return.');
+                }
+                const built = builderResult.value;
+                expect(built.params.companySize).toBe(introSelected.companySize);
+                const [command, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls);
+                expect(command).toBe(WRITE_COMMANDS.PAY_INVOICE);
+                expect(params).toEqual(
+                    expect.objectContaining({
+                        reportID: invoiceReport.reportID,
+                        payAsBusiness: true,
+                        policyID: built.params.policyID,
+                        policyName: 'Invoice workspace',
+                        ownerEmail: CARLOS_EMAIL,
+                        adminsChatReportID: built.params.adminsChatReportID,
+                        expenseChatReportID: built.params.expenseChatReportID,
+                        customUnitID: built.params.customUnitID,
+                        customUnitRateID: built.params.customUnitRateID,
+                    }),
+                );
+                expect(params).not.toHaveProperty('companySize');
+                expect(params).not.toHaveProperty('guidedSetupData');
+                const activeOptimistic = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: built.params.policyID};
+                const activeFailure = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicy?.id ?? null};
+                const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
+                const failureData = getRequiredOnyxUpdates(onyxData, 'failureData');
+                const successData = getRequiredOnyxUpdates(onyxData, 'successData');
+                expect(optimisticData.slice(0, (built.optimisticData?.length ?? 0) + 1)).toEqual([...(built.optimisticData ?? []), activeOptimistic]);
+                expect(failureData.slice(0, (built.failureData?.length ?? 0) + 1)).toEqual([...(built.failureData ?? []), activeFailure]);
+                expect(successData.slice(0, built.successData?.length ?? 0)).toEqual(built.successData ?? []);
+                expect(getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.POLICY}${built.params.policyID}`, Onyx.METHOD.SET, true).value).toEqual(
+                    expect.objectContaining({id: built.params.policyID, name: 'Invoice workspace'}),
+                );
+                expect(onyxData.failureData).toEqual(expect.arrayContaining([activeFailure]));
+                expect(onyxData.successData).toEqual(expect.arrayContaining(built.successData ?? []));
+
+                // When business payment is disabled, the same invoice does not create a workspace.
+                builderSpy.mockClear();
+                writeSpy.mockClear();
+                payInvoice({...args, payAsBusiness: false});
+                expect(builderSpy).not.toHaveBeenCalled();
+                expect(getRequiredWriteCall(writeSpy.mock.calls)[0]).toBe(WRITE_COMMANDS.PAY_INVOICE);
+
+                // Then an existing eligible admin workspace also bypasses creation and remains the payer.
+                writeSpy.mockClear();
+                payInvoice({...args, activePolicy: createMock<Policy>({id: 'eligible-policy', role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM})});
+                expect(builderSpy).not.toHaveBeenCalled();
+                const [existingCommand, existingParams, existingData] = getRequiredWriteCall(writeSpy.mock.calls);
+                expect(existingCommand).toBe(WRITE_COMMANDS.PAY_INVOICE);
+                expect(existingParams).not.toHaveProperty('policyID');
+                expect(getRequiredOnyxUpdate(existingData, 'optimisticData', `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, Onyx.METHOD.MERGE, true).value).toEqual(
+                    expect.objectContaining({invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: 'eligible-policy'}}),
+                );
+            } finally {
+                builderSpy.mockRestore();
+                writeSpy.mockRestore();
+            }
+        });
+    });
+
     describe('completePaymentOnboarding', () => {
         let completeOnboardingSpy: jest.SpyInstance;
 
@@ -2812,6 +2944,22 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
         afterEach(() => {
             completeOnboardingSpy.mockRestore();
+        });
+
+        it.each([...Object.values(CONST.ONBOARDING_COMPANY_SIZE), undefined])('preserves company size %s at the onboarding seam', (companySize) => {
+            // Given a real invite selection for every current and retained legacy company-size constant.
+            const introSelected: IntroSelected = {
+                choice: CONST.ONBOARDING_CHOICES.SUBMIT,
+                inviteType: CONST.ONBOARDING_INVITE_TYPES.IOU,
+                companySize,
+            };
+
+            // When the real onboarding gate passes an IOU payment through.
+            completePaymentOnboarding(CONST.PAYMENT_SELECTED.BBA, introSelected, false, CARLOS_ACCOUNT_ID, undefined, undefined);
+
+            // Then no range is filtered or defaulted, including explicit absence.
+            expect(completeOnboardingSpy).toHaveBeenCalledTimes(1);
+            expect(completeOnboardingSpy).toHaveBeenCalledWith(expect.objectContaining({companySize, introSelected, engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}));
         });
 
         it('should not call completeOnboarding when introSelected is undefined', () => {
