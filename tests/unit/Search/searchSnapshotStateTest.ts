@@ -1,5 +1,6 @@
 import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 
@@ -11,6 +12,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../../utils/getOnyxValue';
+import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API', () => ({
@@ -197,6 +199,77 @@ describe('search snapshot terminal state', () => {
         expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
     });
 
+    it.each([
+        [CONST.SEARCH.QUERY_ERROR.TOO_MANY_KEYWORDS, 'search.searchResults.tooManyKeywords'],
+        [CONST.SEARCH.QUERY_ERROR.INVALID_REPORT_ID, 'search.searchResults.invalidReportID'],
+        [CONST.SEARCH.QUERY_ERROR.UNSUPPORTED_FILTER, 'search.searchResults.unsupportedFilter'],
+        [CONST.SEARCH.QUERY_ERROR.INVALID_QUERY, 'errorPage.wrongTypeSubtitle'],
+    ] as const)('keeps the localized reason for rejected search %s', async (UUID, translationKey) => {
+        // Given a query rejected by the server with a recognized validation error
+        const queryJSON = getQueryJSON();
+        jest.mocked(makeRequestWithSideEffects).mockImplementationOnce(async (_command, _parameters, onyxData) => {
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await Onyx.update(onyxData?.failureData ?? []);
+            await Onyx.update(onyxData?.finallyData ?? []);
+            return {jsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY, UUID};
+        });
+
+        // When the failed response is saved
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        // Then the persisted error contains the specific message displayed by Search
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(getLatestErrorMessage(snapshot)).toBe(translateLocal(translationKey));
+        expect(snapshot?.search?.errorTranslationKey).toBe(translationKey);
+        expect(snapshot?.search?.responseJsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+    });
+
+    it.each([
+        ['type:expense groupBy:reports action:submit from:12345', 'search.searchResults.unsupportedGrouping'],
+        ['type:expense status:drafts reportID:0', 'search.searchResults.invalidReportID'],
+        ['type:expense is:unreported', 'search.searchResults.unsupportedFilter'],
+        [`type:expense-report ${Array.from({length: 77}, (_, index) => `R00${String(index).padStart(9, '0')}`).join(' ')}`, 'search.searchResults.tooManyKeywords'],
+    ] as const)('rejects invalid query %s before sending it', async (inputQuery, translationKey) => {
+        // Given a raw query with one of the validation failures seen in production
+        const queryJSON = buildSearchQueryJSON(inputQuery);
+        if (!queryJSON) {
+            throw new Error('Query JSON should be defined for test setup');
+        }
+
+        // When the user submits the query
+        const jsonCode = await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+
+        // Then the page settles with an actionable error without making an API request
+        const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
+        expect(makeRequestWithSideEffects).not.toHaveBeenCalled();
+        expect(jsonCode).toBe(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+        expect(snapshot?.search?.state).toBe(CONST.SEARCH.SNAPSHOT_STATE.LOADED);
+        expect(snapshot?.search?.isLoading).toBe(false);
+        expect(getLatestErrorMessage(snapshot)).toBe(translateLocal(translationKey));
+        expect(snapshot?.search?.errorTranslationKey).toBe(translationKey);
+    });
+
+    it.each([
+        Array.from({length: CONST.SEARCH.MAX_KEYWORD_TOKENS}, (_, index) => `word${index}`).join(' '),
+        'type:expense status:unreported',
+        'type:expense groupBy:category',
+        'type:chat is:unread',
+    ])('sends supported query %s to the server', async (inputQuery) => {
+        // Given a supported query, including the keyword boundary and suggested alternatives
+        const queryJSON = buildSearchQueryJSON(inputQuery);
+        if (!queryJSON) {
+            throw new Error('Query JSON should be defined for test setup');
+        }
+
+        // When the user submits the query
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+
+        // Then validation allows the server to perform the search
+        expect(makeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+    });
+
     it('does not write a response code in failureData', async () => {
         // Given a request whose failureData has been applied
         const queryJSON = getQueryJSON();
@@ -246,7 +319,9 @@ describe('search snapshot terminal state', () => {
 
     it('clears a previously persisted jsonCode when a new request starts', async () => {
         const queryJSON = getQueryJSON();
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY}});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {
+            search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey: 'search.searchResults.tooManyKeywords'},
+        });
 
         await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
         const {optimisticData} = getCapturedSearchOnyxData();
@@ -255,6 +330,7 @@ describe('search snapshot terminal state', () => {
 
         const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const);
         expect(snapshot?.search?.responseJsonCode).toBeUndefined();
+        expect(snapshot?.search?.errorTranslationKey).toBeUndefined();
     });
 
     it('deduplicates concurrent requests for the same hash and offset', async () => {

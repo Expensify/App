@@ -28,7 +28,7 @@ import type {
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, getSearchErrorMessage} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
@@ -69,7 +69,7 @@ import {
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, getSearchQueryError, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getExpenseReportIDs, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -858,7 +858,7 @@ function getOnyxLoadingData(
             value: {
                 errors: null,
                 // The code explains the errors it was stored with, so the two have to be cleared together.
-                search: {responseJsonCode: null},
+                search: {responseJsonCode: null, errorTranslationKey: null},
             },
         },
     ];
@@ -1365,6 +1365,23 @@ function search({
         return;
     }
 
+    const queryError = getSearchQueryError(queryJSON);
+    if (queryError) {
+        const {optimisticData, finallyData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
+        return Onyx.update([
+            ...(optimisticData ?? []),
+            ...(finallyData ?? []),
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`,
+                value: {
+                    search: {responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey: queryError},
+                    errors: getMicroSecondOnyxErrorWithTranslationKey(queryError),
+                },
+            },
+        ]).then(() => CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+    }
+
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
     const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
@@ -1472,9 +1489,11 @@ function search({
                 // survives a reload, and the error view needs it to tell an invalid query apart from a retryable one.
                 if (result !== undefined && result.jsonCode !== CONST.JSON_CODE.SUCCESS) {
                     const responseJsonCode = typeof result.jsonCode === 'number' ? result.jsonCode : CONST.JSON_CODE.NO_RESPONSE;
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`, {search: {responseJsonCode}}).catch((error: unknown) =>
-                        Log.hmmm('[Search] failed to store the search response code', {error: String(error)}),
-                    );
+                    const errorTranslationKey = responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY ? getSearchErrorMessage(result) : undefined;
+                    Onyx.merge(snapshotKey, {
+                        search: {responseJsonCode, errorTranslationKey},
+                        ...(errorTranslationKey && {errors: getMicroSecondOnyxErrorWithTranslationKey(errorTranslationKey)}),
+                    }).catch((error: unknown) => Log.hmmm('[Search] failed to store the search response code', {error: String(error)}));
                 }
 
                 // Record the reports this to-do response held. Totals bring a fresh count, so they restart the record.

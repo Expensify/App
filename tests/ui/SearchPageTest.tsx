@@ -377,7 +377,7 @@ describe('SearchPageNarrow', () => {
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
     // so the persisted code is the only thing left that can tell the two failure kinds apart.
-    const setFailedSnapshot = (responseJsonCode: number | undefined) =>
+    const setFailedSnapshot = (responseJsonCode: number | undefined, errorTranslationKey?: SearchResults['search']['errorTranslationKey']) =>
         act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
                 errors: {error: 'Something went wrong'},
@@ -389,12 +389,16 @@ describe('SearchPageNarrow', () => {
                     hasMoreResults: false,
                     state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
                     responseJsonCode,
+                    errorTranslationKey,
                 },
             });
         });
 
-    it('hides the retry button on a fresh mount when the persisted response marks the query invalid', async () => {
-        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+    it.each([
+        [undefined, "That search isn't valid. Try adjusting your search criteria."],
+        ['search.searchResults.tooManyKeywords', 'Your search has too many keywords. Use 50 or fewer keywords and try again.'],
+    ] as const)('hides the retry button on a fresh mount when the persisted response marks the query invalid (%s)', async (errorTranslationKey, expectedMessage) => {
+        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY, errorTranslationKey);
 
         renderPage();
 
@@ -402,7 +406,7 @@ describe('SearchPageNarrow', () => {
             jest.runAllTimers();
         });
 
-        expect(screen.getByText("That search isn't valid. Try adjusting your search criteria.")).toBeTruthy();
+        expect(screen.getByText(expectedMessage)).toBeTruthy();
         expect(screen.queryByText('Try again')).toBeNull();
     });
 
