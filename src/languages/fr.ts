@@ -10703,6 +10703,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 title: 'Aucune dépense à payer',
                 subtitle: 'Félicitations ! Vous avez franchi la ligne d’arrivée.',
             },
+            emptyRejectedResults: {
+                title: 'Aucune dépense rejetée',
+                subtitle: 'Rien à corriger. Beau travail !',
+            },
             emptyExportResults: {
                 title: 'Aucune dépense à exporter',
                 subtitle: 'Il est temps de se détendre, beau travail.',
@@ -10984,6 +10988,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             submit: 'Brouillons',
             approve: 'Nécessite une approbation',
             pay: 'Prêt à payer',
+            rejected: 'Rejeté',
             accounting: 'Comptabilité',
             export: 'En attente d’exportation',
             unapprovedCash: 'Provisions de trésorerie',

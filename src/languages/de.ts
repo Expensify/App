@@ -10676,6 +10676,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title: 'Keine zu bezahlenden Ausgaben',
                 subtitle: 'Glückwunsch! Du hast die Ziellinie überquert.',
             },
+            emptyRejectedResults: {
+                title: 'Keine abgelehnten Ausgaben',
+                subtitle: 'Nichts zu korrigieren. Gute Arbeit!',
+            },
             emptyExportResults: {
                 title: 'Keine Spesen zum Exportieren',
                 subtitle: 'Zeit, es ruhig angehen zu lassen – gute Arbeit.',
@@ -10957,6 +10961,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             submit: 'Entwürfe',
             approve: 'Genehmigung erforderlich',
             pay: 'Zahlungsbereit',
+            rejected: 'Abgelehnt',
             accounting: 'Buchhaltung',
             export: 'Export ausstehend',
             unapprovedCash: 'Kassenabgrenzungen',
