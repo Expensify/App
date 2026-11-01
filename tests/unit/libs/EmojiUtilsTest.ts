@@ -67,6 +67,24 @@ jest.mock('@assets/emojis', () => ({
 }));
 
 describe('processFrequentlyUsedEmojis', () => {
+    it.each([
+        {description: 'an empty object', value: {}},
+        {description: 'an object with numeric keys', value: Object.fromEntries([['0', {name: 'grinning_face', count: 1, lastUpdatedAt: 1000}]])},
+        {description: 'a boolean', value: true},
+        {description: 'a number', value: 42},
+        {description: 'a string', value: 'invalid emoji history'},
+    ])('should return an empty array when stored emoji history is $description', ({value}) => {
+        // Given persisted emoji history can violate its declared array type at runtime.
+        const invalidEmojiList = value;
+
+        // When the emoji picker processes that history during render.
+        // @ts-expect-error Malformed persisted data deliberately violates the declared array type.
+        const result = processFrequentlyUsedEmojis(invalidEmojiList);
+
+        // Then invalid history must not crash the picker or create frequent emoji entries.
+        expect(result).toEqual([]);
+    });
+
     it('should return empty array when input is undefined', () => {
         const result = processFrequentlyUsedEmojis(undefined);
         expect(result).toEqual([]);
