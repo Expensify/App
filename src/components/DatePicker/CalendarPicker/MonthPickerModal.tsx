@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+import {usePopoverActions} from '@components/PopoverProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -11,8 +12,10 @@ import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
 
+import type {View} from 'react-native';
+
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 import type CalendarPickerListItem from './types';
@@ -41,6 +44,8 @@ type MonthPickerModalProps = {
 function MonthPickerModal({isVisible, currentMonth, minMonth, maxMonth, onMonthChange, onClose, shouldEnableBackdropInNarrowPane = false}: MonthPickerModalProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
+    const {setActivePopoverExtraAnchorRef} = usePopoverActions();
+    const contentRef = useRef<View>(null);
     const [searchText, setSearchText] = useState('');
     // The rows are built here from numbers, so the compiler can cache them across the calendar's re-renders.
     const months: CalendarPickerListItem[] = DateUtils.getMonthNames(dateFnsLocale).map((month, index) => ({
@@ -50,6 +55,16 @@ function MonthPickerModal({isVisible, currentMonth, minMonth, maxMonth, onMonthC
         isSelected: index === currentMonth,
         isDisabled: index < minMonth || index > maxMonth,
     }));
+
+    useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+
+        // This modal is rendered above the calendar rather than inside it, so a press on a month counts as a press
+        // outside the calendar popover and would dismiss it. Registering the content keeps the calendar open.
+        setActivePopoverExtraAnchorRef(contentRef);
+    }, [isVisible, setActivePopoverExtraAnchorRef]);
 
     const filteredMonths = searchText === '' ? months : months.filter((month) => month.text?.toLowerCase().includes(searchText.toLowerCase()));
     const headerMessage = !filteredMonths.length ? translate('common.noResultsFound') : '';
@@ -82,6 +97,7 @@ function MonthPickerModal({isVisible, currentMonth, minMonth, maxMonth, onMonthC
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
+                ref={contentRef}
                 style={[styles.pb0]}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding

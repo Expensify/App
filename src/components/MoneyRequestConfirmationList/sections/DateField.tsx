@@ -50,7 +50,7 @@ type DateFieldProps = {
 
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, onDateValidationErrorChange} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -78,13 +78,20 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     // Opening the calendar blurs the input, so the open picker stands in for focus here. The hint goes once the user
     // takes the field over, by opening the picker or by entering any of the three fields.
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-    const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen && !hasAnyManuallyEnteredScanField(dateState);
+    // A date the field cannot read is never handed over, so nothing about the transaction says the user has started
+    // filling this one in. The field reporting an error of its own is the only sign those digits are on screen.
+    const [hasUnusableDateEntry, setHasUnusableDateEntry] = useState(false);
+    const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen && !hasUnusableDateEntry && !hasAnyManuallyEnteredScanField(dateState);
 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
 
     // A draft always carries a date, so on a partially filled Scan the all-or-nothing rule stands in for `createdMissing`.
     const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually, isPolicyExpenseChat) ? !dateState?.isCreatedSet : createdMissing;
     const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateRequiredMissing ? translate('common.error.fieldRequired') : '';
+
+    // The field holds back an entry it cannot read as a date, so it is the only thing that knows one is there. Pressing
+    // Create is what raises it, which is why the message is shown from the form error rather than as the user types.
+    const invalidDateErrorText = formError === 'common.error.dateInvalid' ? translate('common.error.dateInvalid') : '';
 
     const handleDateChange = (newDate: string) => {
         if (!transactionID) {
@@ -141,11 +148,15 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     onInputChange={handleDateChange}
                     disabled={didConfirm}
-                    errorText={inlineDateErrorText || dateErrorText}
+                    errorText={inlineDateErrorText || invalidDateErrorText || dateErrorText}
+                    onValidationErrorChange={(error) => {
+                        setHasUnusableDateEntry(!!error);
+                        onDateValidationErrorChange?.(!!error);
+                    }}
                     shouldDeferShowUntilPositioned
                     // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
                     // component whenever the clear button can appear, which it can't without a value to clear.
-                    shouldHideClearButton={shouldShowEmptyDate}
+                    shouldHideClearButton={shouldShowEmptyDate && !hasUnusableDateEntry}
                     rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                     // The calendar icon and the hint share the right-hand side, so the field shows one or the other.
                     // The icon comes back once the user opens the picker, the same way the amount field's buttons do.

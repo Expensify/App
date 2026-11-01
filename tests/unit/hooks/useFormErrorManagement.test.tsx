@@ -49,6 +49,7 @@ const baseParams: Params = {
     isDistanceRequest: false,
     shouldShowDate: false,
     isReadOnly: false,
+    hasDateValidationError: false,
 };
 
 // A manual draft the user never typed a merchant into: `initMoneyRequest` seeds it with the "Expense" placeholder.
@@ -118,6 +119,41 @@ describe('useFormErrorManagement', () => {
         // Matching list clears
         act(() => result.current.clearFormErrors(['iou.error.invalidMerchant']));
         expect(result.current.formError).toBe('');
+    });
+
+    describe('clearing the date error once the entry reads as a date again', () => {
+        it('clears the error the field raised on submit', async () => {
+            // Given a date field reporting an entry it could not read, and a submit that raised the error for it
+            const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
+                wrapper: Wrapper,
+                initialProps: {...baseParams, shouldShowDate: true, hasDateValidationError: true},
+            });
+            act(() => result.current.setFormError('common.error.dateInvalid'));
+            expect(result.current.formError).toBe('common.error.dateInvalid');
+
+            // When the user corrects the date and the field stops reporting
+            rerender({...baseParams, shouldShowDate: true, hasDateValidationError: false});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the error goes on its own, without waiting for another submit
+            expect(result.current.formError).toBe('');
+        });
+
+        it('leaves an error it did not raise alone', async () => {
+            // Given some other error on screen while the date reads fine
+            const {result, rerender} = renderHook((props: Params) => useFormErrorManagement(props), {
+                wrapper: Wrapper,
+                initialProps: {...baseParams, shouldShowDate: true, hasDateValidationError: true},
+            });
+            act(() => result.current.setFormError('iou.error.invalidMerchant'));
+
+            // When the date stops reporting
+            rerender({...baseParams, shouldShowDate: true, hasDateValidationError: false});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the merchant error stays, since the date was never what it was about
+            expect(result.current.formError).toBe('iou.error.invalidMerchant');
+        });
     });
 
     it('errorMessage returns routeError when present', () => {

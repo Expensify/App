@@ -144,6 +144,25 @@ describe('CalendarPicker', () => {
         expect(screen.getByText(currentDate.getFullYear().toString())).toBeTruthy();
     });
 
+    test('opens on the nearest date it can offer when the field holds one outside the range', () => {
+        // Given a field that only accepts dates up to 2008, holding a date well past that, which validation reports
+        const minDate = new Date(1926, 8, 27);
+        const maxDate = new Date(2008, 8, 27);
+
+        // When the calendar opens, as it does again every time it is reopened
+        render(
+            <CalendarPicker
+                value={new Date(2222, 0, 2)}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        // Then it shows the last month it offers, rather than a year with no day that could be picked
+        expect(screen.getByText(monthNames.at(8) ?? '')).toBeTruthy();
+        expect(screen.getByText('2008')).toBeTruthy();
+    });
+
     test('clicking next month arrow updates the displayed month', () => {
         // Given a picker showing the current month, with bounds a year either side of today so the test doesn't depend on the date it runs
         const minDate = subYears(new Date(), 1);
@@ -717,6 +736,223 @@ describe('CalendarPicker', () => {
 
         // Then the calendar shows 2027, so the list is a shortcut for the year arrows
         expect(within(screen.getByTestId('currentYearText')).getByText('2027')).toBeTruthy();
+    });
+
+    test('selecting a year reports the date it lands on without ending the selection', () => {
+        const onSelectedMock = jest.fn();
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value={new Date(2025, 5, 15)}
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                onSelected={onSelectedMock}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2027'));
+
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2027-06-15');
+        expect(onSelectedMock).not.toHaveBeenCalled();
+    });
+
+    test('selecting a month reports the date it lands on without ending the selection', () => {
+        const onSelectedMock = jest.fn();
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value={new Date(2025, 5, 15)}
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                onSelected={onSelectedMock}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentMonthButton'));
+        fireEvent.press(within(screen.getByTestId('MonthPickerModal')).getByTestId('month-option-8'));
+
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2025-09-15');
+        expect(onSelectedMock).not.toHaveBeenCalled();
+    });
+
+    test('selecting a month keeps the day inside it', () => {
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value={new Date(2025, 0, 31)}
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentMonthButton'));
+        fireEvent.press(within(screen.getByTestId('MonthPickerModal')).getByTestId('month-option-1'));
+
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2025-02-28');
+    });
+
+    test('selecting a non leap year from February 29 keeps the day inside February', () => {
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value={new Date(2024, 1, 29)}
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2025'));
+
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2025-02-28');
+    });
+
+    test('a year selection that would overshoot the maximum reports the date the view is held to', () => {
+        // Given a field whose newest allowed date is part way through the year being picked
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value={new Date(2007, 11, 25)}
+                minDate={new Date(2000, 0, 1)}
+                maxDate={new Date(2008, 9, 16)}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        // When that year is picked, carrying December along with it
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2008'));
+
+        // Then the date reported is pulled into range, so the field cannot end up showing a date the view refuses to
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2008-10-16');
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(9) ?? '')).toBeTruthy();
+    });
+
+    test('a year selection that would undershoot the minimum reports the date the view is held to', () => {
+        // Given a field whose oldest allowed date is part way through the year being picked
+        const onMonthOrYearSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value={new Date(2009, 0, 5)}
+                minDate={new Date(2008, 9, 16)}
+                maxDate={new Date(2020, 11, 31)}
+                onMonthOrYearSelected={onMonthOrYearSelectedMock}
+            />,
+        );
+
+        // When that year is picked, carrying January along with it
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2008'));
+
+        // Then the date reported is pulled up to the bound the view settles on
+        expect(onMonthOrYearSelectedMock).toHaveBeenCalledWith('2008-10-16');
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(9) ?? '')).toBeTruthy();
+    });
+
+    test('the view follows a date the caller asserts', () => {
+        // Given a calendar told which month to show, which is how it follows a date being typed
+        const {rerender} = render(
+            <CalendarPicker
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                viewDate={new Date(2025, 5, 1)}
+                viewDateVersion={1}
+            />,
+        );
+        expect(within(screen.getByTestId('currentYearText')).getByText('2025')).toBeTruthy();
+
+        // When another month is asserted
+        rerender(
+            <CalendarPicker
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                viewDate={new Date(2027, 2, 1)}
+                viewDateVersion={2}
+            />,
+        );
+
+        // Then the calendar moves to it without waiting for a press
+        expect(within(screen.getByTestId('currentYearText')).getByText('2027')).toBeTruthy();
+        expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(2) ?? '')).toBeTruthy();
+    });
+
+    test('the view stays put while the count does not move', () => {
+        // Given a calendar showing a month it was asked for
+        const {rerender} = render(
+            <CalendarPicker
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                viewDate={new Date(2025, 5, 1)}
+                viewDateVersion={1}
+            />,
+        );
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2029'));
+        expect(within(screen.getByTestId('currentYearText')).getByText('2029')).toBeTruthy();
+
+        // When a render arrives carrying the same request as before
+        rerender(
+            <CalendarPicker
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                viewDate={new Date(2025, 5, 1)}
+                viewDateVersion={1}
+            />,
+        );
+
+        // Then where the user moved to is left alone, since the request was already answered
+        expect(within(screen.getByTestId('currentYearText')).getByText('2029')).toBeTruthy();
+    });
+
+    test('the view answers a repeated month when the count moves', () => {
+        // Given a calendar the user has moved away from the month it was asked for
+        const {rerender} = render(
+            <CalendarPicker
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                viewDate={new Date(2025, 5, 1)}
+                viewDateVersion={1}
+            />,
+        );
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2029'));
+        expect(within(screen.getByTestId('currentYearText')).getByText('2029')).toBeTruthy();
+
+        // When the same month is asserted again under a new count, as retyping it does
+        rerender(
+            <CalendarPicker
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                viewDate={new Date(2025, 5, 1)}
+                viewDateVersion={2}
+            />,
+        );
+
+        // Then the calendar goes back to it, which is why the count carries the request rather than the date alone
+        expect(within(screen.getByTestId('currentYearText')).getByText('2025')).toBeTruthy();
+    });
+
+    test('a month or year selection only moves the view when the caller does not ask to be told', () => {
+        const onSelectedMock = jest.fn();
+        render(
+            <CalendarPicker
+                value={new Date(2025, 5, 15)}
+                minDate={new Date(2020, 0, 1)}
+                maxDate={new Date(2030, 11, 31)}
+                onSelected={onSelectedMock}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(within(screen.getByTestId('YearPickerModal')).getByTestId('year-option-2027'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2027')).toBeTruthy();
+        expect(onSelectedMock).not.toHaveBeenCalled();
     });
 
     test('picking a year from February 29 shows February of a year without it', () => {
