@@ -12014,6 +12014,7 @@ const translations = {
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicates you don't keep will be held for the submitter to delete.`,
+        confirmDuplicatesRemovedInfo: `The duplicates you don't keep will be removed.`,
         cannotMergeDuplicates: 'You can only merge expenses on draft or outstanding reports. Retract it and try again.',
         hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',

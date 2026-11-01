@@ -11704,6 +11704,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         keepThisOne: 'Diesen behalten',
         confirmDetails: `Bestätige die Details, die du behältst`,
         confirmDuplicatesInfo: `Die Duplikate, die du nicht behältst, werden für die einreichende Person zur Löschung zurückgehalten.`,
+        confirmDuplicatesRemovedInfo: `Die Duplikate, die du nicht behältst, werden entfernt.`,
         hold: 'Diese Ausgabe wurde zurückgestellt',
         resolvedDuplicates: 'Duplikat behoben',
         companyCardRequired: 'Firmenkartenkäufe erforderlich',
