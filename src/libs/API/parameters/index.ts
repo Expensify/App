@@ -473,6 +473,8 @@ export type {default as SearchParams} from './Search';
 export type {default as GetTransactionsConvertedAmountParams} from './GetTransactionsConvertedAmount';
 export type {default as SendInvoiceParams} from './SendInvoiceParams';
 export type {default as PayInvoiceParams} from './PayInvoiceParams';
+export type {default as ReimburseReportParams} from './ReimburseReportParams';
+export type {default as MarkReimbursedParams} from './MarkReimbursedParams';
 export type {default as MarkAsCashParams} from './MarkAsCashParams';
 export type {default as MergeDuplicatesParams} from './MergeDuplicatesParams';
 export type {default as MergeTransactionParams} from './MergeTransactionParams';

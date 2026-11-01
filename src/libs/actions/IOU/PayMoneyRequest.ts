@@ -622,7 +622,7 @@ function cancelSendMoneyPayment(iouReport: OnyxTypes.Report, chatReport: OnyxTyp
 
 function cancelPayment(
     expenseReport: OnyxEntry<OnyxTypes.Report>,
-    chatReport: OnyxTypes.Report,
+    chatReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     isASAPSubmitBetaEnabled: boolean,
     currentUserAccountIDParam: number,
@@ -640,6 +640,10 @@ function cancelPayment(
     // report state and lets the backend return the held funds. Other IOU reports (e.g. a money request paid
     // elsewhere) keep using the standard path below.
     if (isIOUReport(expenseReport) && expenseReport.isWaitingOnBankAccount) {
+        if (!chatReport) {
+            return;
+        }
+
         cancelSendMoneyPayment(expenseReport, chatReport, currentUserAccountIDParam);
         return;
     }
@@ -673,7 +677,7 @@ function cancelPayment(
         isTrackIntentUser,
         rules,
     });
-    const iouReportActions = getAllReportActions(chatReport.iouReportID);
+    const iouReportActions = chatReport?.iouReportID ? getAllReportActions(chatReport.iouReportID) : {};
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
     const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
     const expenseCreatedAction = Object.values(expenseReportActions).find((action) => isCreatedAction(action));
@@ -686,14 +690,6 @@ function cancelPayment(
                     ...(optimisticReportAction as OnyxTypes.ReportAction),
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {
-                // The report created later will become the iouReportID of the chat report
-                iouReportID: (iouCreatedAction?.created ?? '') > (expenseCreatedAction?.created ?? '') ? chatReport?.iouReportID : expenseReport.reportID,
             },
         },
         {
@@ -716,6 +712,17 @@ function cancelPayment(
             },
         },
     ];
+
+    if (chatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                // The report created later will become the iouReportID of the chat report
+                iouReportID: (iouCreatedAction?.created ?? '') > (expenseCreatedAction?.created ?? '') ? chatReport.iouReportID : expenseReport.reportID,
+            },
+        });
+    }
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
@@ -752,6 +759,7 @@ function cancelPayment(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
+                stateNum: expenseReport.stateNum,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
                 canCancelReimbursement: expenseReport.canCancelReimbursement,
@@ -816,7 +824,7 @@ function cancelPayment(
         WRITE_COMMANDS.CANCEL_PAYMENT,
         {
             iouReportID: expenseReport.reportID,
-            chatReportID: chatReport.reportID,
+            ...(chatReport ? {chatReportID: chatReport.reportID} : {}),
             managerAccountID: expenseReport.managerID ?? CONST.DEFAULT_NUMBER_ID,
             reportActionID: optimisticReportAction.reportActionID,
         },

@@ -1,3 +1,4 @@
+import BillPaymentButton from '@components/BillPaymentButton';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
+import {isBillReport} from '@libs/BillPayUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {canIOUBePaid, getReimbursableTotal, isArchivedReport, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
@@ -203,6 +205,16 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             rules,
         });
     };
+
+    if (isBillReport(iouReport) || isInvoiceReport(iouReport)) {
+        return (
+            <BillPaymentButton
+                report={iouReport}
+                isDisabled={shouldDisablePointerEvents}
+                searchHash={hash}
+            />
+        );
+    }
 
     return (
         <SearchScopeProvider isOnSearch={false}>
