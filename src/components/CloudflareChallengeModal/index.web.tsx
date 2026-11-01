@@ -20,21 +20,29 @@ let turnstileScriptLoadPromise: Promise<void> | undefined;
 
 /**
  * Loads the Turnstile script once. Explicit rendering keeps control over when and where the widget appears, so the
- * modal opens before any third-party code runs.
+ * modal opens before any third-party code runs. A failed load is dropped from the cache so the next challenged
+ * request can try again instead of inheriting the rejection.
  */
 function loadTurnstileScript(): Promise<void> {
     if (turnstileScriptLoadPromise) {
         return turnstileScriptLoadPromise;
     }
-    turnstileScriptLoadPromise = new Promise<void>((resolve, reject) => {
+    const scriptLoadPromise = new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
         script.src = `${CONST.CLOUDFLARE_CHALLENGE.TURNSTILE.SCRIPT_URL}?render=explicit`;
         script.async = true;
         script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load the Turnstile script'));
+        script.onerror = () => {
+            script.remove();
+            reject(new Error('Failed to load the Turnstile script'));
+        };
         document.head.appendChild(script);
     });
-    return turnstileScriptLoadPromise;
+    scriptLoadPromise.catch(() => {
+        turnstileScriptLoadPromise = undefined;
+    });
+    turnstileScriptLoadPromise = scriptLoadPromise;
+    return scriptLoadPromise;
 }
 
 /**

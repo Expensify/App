@@ -12,6 +12,10 @@ import Onyx from 'react-native-onyx';
 
 let challengeResolution: ReturnType<typeof Promise.withResolvers<void>> | undefined;
 
+// Cloudflare keeps challenging requests until the cf_clearance cookie rides along, so once the check passes every
+// later request must send cookies. The flag lives for the session, because the cookie itself expires.
+let hasClearedChallenge = false;
+
 // The modal lives in GlobalModals, which mounts once navigation is ready. Requests challenged before that cannot show
 // the widget, so they fail instead of waiting for a promise nothing would ever resolve.
 let isChallengeModalMounted = false;
@@ -40,8 +44,14 @@ function rejectCloudflareChallenge() {
     challengeResolution = undefined;
 }
 
-/** Resolves the pending challenge after the user passes the Turnstile check. */
+/** The credentials mode new requests should use, based on whether a challenge was cleared this session. */
+function getRequestCredentials(): RequestCredentials {
+    return hasClearedChallenge ? 'same-origin' : 'omit';
+}
+
+/** Resolves the challenge every waiting request shares, because one passed check clears the rule for all of them. */
 function resolveCloudflareChallenge() {
+    hasClearedChallenge = true;
     setIsCloudflareChallengeModalOpen(false);
     challengeResolution?.resolve();
     challengeResolution = undefined;
@@ -65,4 +75,4 @@ function requestCloudflareChallengeResolution(): Promise<void> {
     return challengeResolution.promise;
 }
 
-export {rejectCloudflareChallenge, requestCloudflareChallengeResolution, resolveCloudflareChallenge, setIsChallengeModalMounted};
+export {getRequestCredentials, rejectCloudflareChallenge, requestCloudflareChallengeResolution, resolveCloudflareChallenge, setIsChallengeModalMounted};

@@ -11,7 +11,7 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-import {requestCloudflareChallengeResolution} from './actions/CloudflareChallenge';
+import {getRequestCredentials, requestCloudflareChallengeResolution} from './actions/CloudflareChallenge';
 import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
@@ -86,7 +86,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
     body: FormData | null = null,
     abortSignal: AbortSignal | undefined = undefined,
     shouldSkipPrefetch = false,
-    credentials: NonNullable<Parameters<typeof nitroFetch>[1]>['credentials'] = 'omit',
+    credentials: NonNullable<Parameters<typeof nitroFetch>[1]>['credentials'] = getRequestCredentials(),
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
