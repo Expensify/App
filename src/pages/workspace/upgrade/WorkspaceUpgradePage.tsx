@@ -192,7 +192,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
                 // Connections upgrades for HR and passes itself as the page to return to
-                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
