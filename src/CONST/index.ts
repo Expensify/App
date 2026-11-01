@@ -10366,6 +10366,7 @@ const CONST = {
         },
         INSIGHTS: {
             CONTROL_DATE: 'Insights-ControlDate',
+            CONTROL_EXPORT: 'Insights-ControlExport',
             CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
