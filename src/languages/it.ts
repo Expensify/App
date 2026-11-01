@@ -5162,8 +5162,9 @@ ${amount} per ${merchant} - ${date}`,
                 'Sapevi che puoi prenotare e gestire viaggi di gruppo come questo direttamente in Expensify? Evita lo stress la prossima volta e prova il nostro strumento <a href="https://help.expensify.com/travel/hubs/event-management/">Eventi di viaggio</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Viaggi non abilitato',
-            message: 'Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
+            title: 'Non puoi ancora prenotare viaggi',
+            message:
+                'Sei membro di uno spazio di lavoro con viaggi abilitati, ma non è il tuo spazio di lavoro predefinito. Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
         },
     },
     workspace: {
@@ -10784,6 +10785,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimana',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Anno',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvatore',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10843,6 +10845,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Settimane',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Anni',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestri',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvatori',
         },
         moneyRequestReport: {emptyStateTitle: 'Nessuna spesa ancora', accessPlaceHolder: 'Apri per i dettagli'},
         noCategory: 'Nessuna categoria',
@@ -12092,6 +12095,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 info: 'Se vuoi continuare a usare il tuo workspace (o i tuoi workspace) con pagamento a consumo, è tutto pronto.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Se desideri evitare attività e addebiti futuri, devi <a href="${workspacesListRoute}">eliminare il tuo spazio di lavoro (o i tuoi spazi di lavoro)</a>. Tieni presente che, quando elimini il tuo spazio di lavoro (o i tuoi spazi di lavoro), ti verrà addebitata qualsiasi attività in sospeso sostenuta durante il mese di calendario in corso.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Per evitare attività e addebiti futuri, <a href="${workspacesListRoute}">archivia tutti i tuoi workspace a pagamento</a>. I workspace archiviati con attività fatturabile durante il mese in corso saranno comunque inclusi nella tua fattura.`,
             },
             requestSubmitted: {
                 title: 'Richiesta inviata',

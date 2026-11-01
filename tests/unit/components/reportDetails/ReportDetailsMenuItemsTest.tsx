@@ -24,11 +24,12 @@ import {createRandomReport} from '../../../utils/collections/reports';
 import createMock from '../../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@components/MenuItem', () => {
+// Every row, preset or composed, draws its title through this leaf, so it marks one row per title
+jest.mock('@components/MenuItem/leaves/content/MenuItemTitle', () => {
     const {Text} = jest.requireActual<Record<string, React.FC<Record<string, unknown>>>>('react-native');
     return {
         __esModule: true,
-        default: ({title}: {title: string}) => <Text testID="menuRow">{title}</Text>,
+        default: ({children}: {children: string}) => <Text testID="menuRow">{children}</Text>,
     };
 });
 jest.mock('@hooks/useOnyx', () => {
