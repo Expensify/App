@@ -87,7 +87,10 @@ const server = http.createServer((request: IncomingMessage, response: ServerResp
     });
 });
 
-server.listen(9000, () => {
+// WEB_PROXY_PORT frees the default when another local service already holds it.
+const port = Number(process.env.WEB_PROXY_PORT ?? 9000);
+
+server.listen(port, () => {
     /* eslint-disable-next-line no-console */
-    console.log('Proxy server listening at http://localhost:9000');
+    console.log(`Proxy server listening at http://localhost:${port}`);
 });

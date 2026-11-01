@@ -50,7 +50,8 @@ export default defineConfig(async ({command}) => {
 
     const port = await portfinder.getPortPromise({port: BASE_PORT});
     // Check if the USE_WEB_PROXY variable has been provided and rewrite any requests to the local proxy server
-    const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: ['/api', '/staging', '/chat-attachments', '/receipts'], target: 'http://[::1]:9000'}];
+    const webProxyPort = process.env.WEB_PROXY_PORT ?? '9000';
+    const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: ['/api', '/staging', '/chat-attachments', '/receipts'], target: `http://[::1]:${webProxyPort}`}];
 
     const commonRspackTool = common.tools?.rspack;
 
