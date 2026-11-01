@@ -51,6 +51,7 @@ import {
     isActionOfType,
     isCreatedTaskReportAction,
     isDeletedParentAction as isDeletedParentActionUtils,
+    getVisibleReportActionErrors,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
@@ -439,10 +440,13 @@ function ReportActionItem({
 
     const disabledActions = !canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : [];
 
-    const hasActionErrors = !isEmptyValueObject(action.errors);
+    // An invisible error must not disable the action, or the preview loses its context menu for no reason.
+    const visibleActionErrors = getVisibleReportActionErrors(action);
+
+    const hasActionErrors = !isEmptyValueObject(visibleActionErrors);
 
     // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
-    const hasOnlyReceiptErrors = hasActionErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
+    const hasOnlyReceiptErrors = hasActionErrors && Object.values(visibleActionErrors ?? {}).every((error) => error === null || isReceiptError(error));
 
     const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
 
@@ -647,7 +651,7 @@ function ReportActionItem({
                                                     hasDraft ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
-                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
+                                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField({errors: visibleActionErrors} as OnyxDataWithErrors) : {}}
                                                 errorRowStyles={styles.ml10}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough

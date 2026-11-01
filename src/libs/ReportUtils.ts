@@ -220,6 +220,7 @@ import {
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
+    getVisibleReportActionErrors,
     isDeletedParentAction,
     isDynamicExternalWorkflowApproveFailedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
@@ -11182,8 +11183,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     let reportAction: OnyxEntry<ReportAction>;
 
     for (const action of reportActionsArray) {
-        if (action && !isEmptyValueObject(action.errors)) {
-            Object.assign(reportActionErrors, action.errors);
+        const actionErrors = getVisibleReportActionErrors(action);
+        if (action && !isEmptyValueObject(actionErrors)) {
+            Object.assign(reportActionErrors, actionErrors);
 
             if (!reportAction) {
                 reportAction = action;
