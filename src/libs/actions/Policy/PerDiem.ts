@@ -219,6 +219,7 @@ function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDelete
             }
         }
     }
+    // Auth clears every destination when deleteAllRates is set, so filtered selections must use targeted mutations instead.
     const shouldDeleteAllRates = subRateCount > 0 && selectedSubRateCount === subRateCount;
     if (shouldDeleteAllRates) {
         const firstSelectedSubRate = subRatesToBeDeleted.at(0);
