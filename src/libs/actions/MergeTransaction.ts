@@ -364,6 +364,7 @@ function getOnyxTargetTransactionData({
             transactionID: targetTransaction.transactionID,
             transaction: targetTransaction,
             transactionThread: targetTransactionThreadReport,
+            transactionThreadParentReport: targetTransactionThreadParentReport,
             transactionChanges: filteredTransactionChanges,
             policy,
             delegateAccountID,
