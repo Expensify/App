@@ -19,6 +19,7 @@ import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import {isDistanceRequest} from '@libs/TransactionUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -29,7 +30,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TupleToUnion} from 'type-fest';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -99,25 +100,28 @@ function DistanceRequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.trackDistance'),
     };
 
-    const transactionRequestType = useMemo(() => {
-        if (!transaction?.iouRequestType) {
-            // The tab navigator renders whichever tab was last selected, so the draft has to be typed from that
-            // same value. Preferring the last-created distance type instead rebuilds the draft as Odometer under
-            // a visible Map tab, leaving it without waypoints so tapping one opens the "Not here" page.
-            const rememberedRequestType = selectedTab ?? lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+    // A draft left by another flow (e.g. a Manual expense before a home-screen shortcut) keeps its non-distance type,
+    // and the reset skips a type that already matches. Ignore it so the reset retypes the draft as distance.
+    const draftRequestType = isDistanceRequest(transaction) ? transaction?.iouRequestType : undefined;
 
-            // Both of those values are remembered from a previous expense, so they go stale once the destination
-            // starts requiring map or GPS. Typing the draft from a tab that is no longer rendered would leave it
-            // as Manual or Odometer under a visible Map tab, which later steps then reject.
-            if (shouldHideManualAndOdometerTabs && (rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)) {
-                return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-            }
+    let transactionRequestType;
+    if (!draftRequestType) {
+        // The tab navigator renders whichever tab was last selected, so the draft has to be typed from that
+        // same value. Preferring the last-created distance type instead rebuilds the draft as Odometer under
+        // a visible Map tab, leaving it without waypoints so tapping one opens the "Not here" page.
+        const rememberedRequestType = selectedTab ?? lastDistanceExpenseType ?? CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
 
-            return rememberedRequestType;
+        // Both of those values are remembered from a previous expense, so they go stale once the destination
+        // starts requiring map or GPS. Typing the draft from a tab that is no longer rendered would leave it
+        // as Manual or Odometer under a visible Map tab, which later steps then reject.
+        if (shouldHideManualAndOdometerTabs && (rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || rememberedRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER)) {
+            transactionRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
+        } else {
+            transactionRequestType = rememberedRequestType;
         }
-
-        return transaction.iouRequestType;
-    }, [transaction?.iouRequestType, selectedTab, lastDistanceExpenseType, shouldHideManualAndOdometerTabs]);
+    } else {
+        transactionRequestType = draftRequestType;
+    }
 
     const resetIOUTypeIfChanged = useResetIOUType({
         reportID,
@@ -142,9 +146,7 @@ function DistanceRequestStartPage({
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
 
-    const focusTrapContainerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
-    }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
+    const focusTrapContainerElements = [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
 
     return (
         <AccessOrNotFoundWrapper

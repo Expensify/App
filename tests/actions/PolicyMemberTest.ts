@@ -213,6 +213,64 @@ describe('actions/PolicyMember', () => {
                 });
             });
         });
+
+        it('does not set errors in failureData when changing role to approve-only', () => {
+            const member1 = 'member1@test.com';
+            const member2 = 'member2@test.com';
+            const fakePolicy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
+                employeeList: {
+                    [member1]: {
+                        email: member1,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                    [member2]: {
+                        email: member2,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+
+            const approveOnlyData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1, member2], [1, 2], CONST.POLICY.ROLE.APPROVE_ONLY);
+            expect(approveOnlyData.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                        value: expect.objectContaining({
+                            employeeList: {
+                                [member1]: {
+                                    email: member1,
+                                    role: CONST.POLICY.ROLE.USER,
+                                    pendingAction: null,
+                                },
+                                [member2]: {
+                                    email: member2,
+                                    role: CONST.POLICY.ROLE.USER,
+                                    pendingAction: null,
+                                },
+                            },
+                        }),
+                    }),
+                ]),
+            );
+
+            const adminData = Member.buildUpdateWorkspaceMembersRoleOnyxData(fakePolicy, [member1], [1], CONST.POLICY.ROLE.ADMIN);
+            expect(adminData.failureData).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                        value: expect.objectContaining({
+                            employeeList: expect.objectContaining({
+                                [member1]: expect.objectContaining({
+                                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    errors: TestHelper.anyObject,
+                                }),
+                            }),
+                        }),
+                    }),
+                ]),
+            );
+        });
     });
     describe('requestWorkspaceOwnerChange', () => {
         it('Change the workspace`s owner', async () => {

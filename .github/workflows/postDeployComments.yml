@@ -110,6 +110,7 @@ jobs:
           MOBILE_EXPENSIFY_PR_LIST: ${{ steps.getPullRequestList.outputs.MOBILE_EXPENSIFY_PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ inputs.env == 'production' }}
           DEPLOY_VERSION: ${{ inputs.version }}
+          PREVIOUS_TAG: ${{ steps.getPullRequestList.outputs.PREVIOUS_TAG }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ inputs.android }}
           IOS: ${{ inputs.ios }}
