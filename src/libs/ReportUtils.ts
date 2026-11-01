@@ -13129,6 +13129,17 @@ function canJoinChat(
  * Whether the user can leave a report
  */
 function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, isAnonymousUser: boolean, isReportArchived = false): boolean {
+    if (isSupportTicket(report)) {
+        return (
+            !isReportArchived &&
+            report?.stateNum === CONST.REPORT.STATE_NUM.OPEN &&
+            report.statusNum === CONST.REPORT.STATUS_NUM.OPEN &&
+            !!currentUserAccountID &&
+            report.ownerAccountID !== currentUserAccountID &&
+            report.managerID !== currentUserAccountID
+        );
+    }
+
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }

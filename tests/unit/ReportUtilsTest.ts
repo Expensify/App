@@ -6489,6 +6489,41 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canLeaveChat on support tickets', () => {
+        const customerAccountID = 100;
+        const repAccountID = 200;
+        const inviteeAccountID = 300;
+        const supportTicket: Report = {
+            ...createRandomReport(80209, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            participants: buildParticipantsFromAccountIDs([customerAccountID, repAccountID, inviteeAccountID]),
+        };
+
+        it('only lets invited participants leave', () => {
+            // Given an open ticket where the customer and assigned rep must stay
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(supportTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, repAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, undefined, false)).toBe(false);
+        });
+
+        it('blocks leaving closed or archived tickets', () => {
+            // Given a resolved ticket whose invitees should remain participants after reopening
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When an invitee opens a closed or archived ticket
+            // Then leaving is unavailable
+            expect(canLeaveChat(closedTicket, undefined, inviteeAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false, true)).toBe(false);
+        });
+    });
+
     describe('canLeaveChat uses explicit currentUserAccountID', () => {
         it('should use the passed currentUserAccountID for IOU owner/manager check instead of the Onyx session value', () => {
             const ownerAccountID = 100;
