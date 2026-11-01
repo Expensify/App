@@ -52,7 +52,6 @@ const CSV_TEMPLATE_CONTENT = [
 // cspell:enable
 
 function ImportFromFileStep() {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
