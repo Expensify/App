@@ -56,15 +56,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    | 'transactions'
-    | 'allTransactionViolation'
-    | 'personalPolicyOutputCurrency'
-    | 'selfDMReportActions'
-    | 'delegateAccountID'
-    | 'getCurrencyDecimals'
-    | 'getCurrencySymbol'
-    | 'rules'
-    | 'currentUserPersonalDetails'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -85,13 +77,7 @@ function isChangeTransactionsReportParams(value: unknown): value is ChangeTransa
 }
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
-function changeTransactionsReport({
-    allTransactions,
-    transactionIDs,
-    transactionViolations = {},
-    personalPolicyOutputCurrency,
-    ...rest
-}: LegacyChangeTransactionsReportProps & {currentUserPersonalDetails: CurrentUserPersonalDetails}) {
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
     changeTransactionsReportAction({
         transactionIDs,
@@ -1641,12 +1627,14 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
+            const passedCurrentUserPersonalDetails: CurrentUserPersonalDetails = {...currentUserPersonalDetails, displayName: 'Passed User'};
+
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
                 accountID: CURRENT_USER_ID,
                 email: 'test@example.com',
-                currentUserPersonalDetails,
+                currentUserPersonalDetails: passedCurrentUserPersonalDetails,
                 newReport: undefined,
                 policy: undefined,
                 allTransactions: {
@@ -1676,7 +1664,7 @@ describe('Transaction', () => {
                 const value = update.value as {data?: Record<string, unknown>} | undefined;
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const personalDetails = value?.data?.[ONYXKEYS.PERSONAL_DETAILS_LIST] as Record<string, {displayName?: string}> | undefined;
-                return personalDetails?.[CURRENT_USER_ID]?.displayName === 'Current User';
+                return personalDetails?.[CURRENT_USER_ID]?.displayName === passedCurrentUserPersonalDetails.displayName;
             });
             expect(hasPersonalDetails).toBe(true);
 

@@ -45,15 +45,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    | 'transactions'
-    | 'allTransactionViolation'
-    | 'personalPolicyOutputCurrency'
-    | 'selfDMReportActions'
-    | 'delegateAccountID'
-    | 'getCurrencyDecimals'
-    | 'getCurrencySymbol'
-    | 'rules'
-    | 'currentUserPersonalDetails'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals' | 'getCurrencySymbol' | 'rules'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -62,14 +54,7 @@ type LegacyChangeTransactionsReportProps = Omit<
     isTrackIntentUser: boolean | undefined;
 };
 
-function changeTransactionsReport({
-    allTransactions,
-    transactionIDs,
-    transactionViolations,
-    personalPolicyOutputCurrency,
-    selfDMReportActions,
-    ...rest
-}: LegacyChangeTransactionsReportProps & {currentUserPersonalDetails: CurrentUserPersonalDetails}) {
+function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations, personalPolicyOutputCurrency, selfDMReportActions, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
     changeTransactionsReportAction({
         transactionIDs,
@@ -360,7 +345,7 @@ describe('actions/Transaction', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: result.current.report,
-                currentUserPersonalDetails,
+                currentUserPersonalDetails: createCurrentUserPersonalDetails(CARLOS_EMAIL, CARLOS_ACCOUNT_ID),
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
@@ -471,7 +456,7 @@ describe('actions/Transaction', () => {
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
                 newReport: destinationReport,
-                currentUserPersonalDetails,
+                currentUserPersonalDetails: createCurrentUserPersonalDetails(CARLOS_EMAIL, CARLOS_ACCOUNT_ID),
                 policy: movePolicy,
                 allTransactions,
                 policyTagList: {},
@@ -573,7 +558,7 @@ describe('actions/Transaction', () => {
                 isASAPSubmitBetaEnabled: false,
                 accountID: CARLOS_ACCOUNT_ID,
                 email: CARLOS_EMAIL,
-                currentUserPersonalDetails,
+                currentUserPersonalDetails: createCurrentUserPersonalDetails(CARLOS_EMAIL, CARLOS_ACCOUNT_ID),
                 newReport: destinationReport,
                 policy: movePolicy,
                 allTransactions,
