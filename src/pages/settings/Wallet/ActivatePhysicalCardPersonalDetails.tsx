@@ -8,13 +8,17 @@ import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWith
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {activatePhysicalExpensifyCard} from '@libs/actions/Card';
+import {clearCardListErrors, setPersonalDetailsAndActivateExpensifyCard} from '@libs/actions/Card';
 import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/PersonalDetails';
+import {requestValidateCodeAction} from '@libs/actions/User';
+import type {ActivatePhysicalCardPersonalDetails as PersonalDetailsToSave} from '@libs/API/parameters/SetPersonalDetailsAndActivateExpensifyCardParams';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
@@ -28,7 +32,8 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Card} from '@src/types/onyx';
 
 import {subYears} from 'date-fns';
-import React from 'react';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type ActivatePhysicalCardPersonalDetailsProps = {
@@ -49,6 +54,8 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const primaryLogin = usePrimaryContactMethod();
+    const [personalDetailsToSave, setPersonalDetailsToSave] = useState<PersonalDetailsToSave>();
 
     const personalDetailsValues = getNormalizedSubPageValues(privatePersonalDetails);
     const shippingAddress = card.nameValuePairs?.shippingAddress;
@@ -84,8 +91,25 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
         const {legalFirstName, legalLastName, ...personalDetails} = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
-        activatePhysicalExpensifyCard(lastFourDigits, card.cardID, personalDetails);
+        setPersonalDetailsToSave(personalDetails);
     };
+
+    if (personalDetailsToSave) {
+        return (
+            <ValidateCodeActionContent
+                title={translate('cardPage.validateCardTitle')}
+                descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
+                sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS})}
+                validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS}
+                validateCodeActionErrorField={CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD}
+                handleSubmitForm={(validateCode) => setPersonalDetailsAndActivateExpensifyCard(lastFourDigits, card.cardID, personalDetailsToSave, validateCode)}
+                validateError={card.errors ?? undefined}
+                clearError={() => clearCardListErrors(card.cardID)}
+                onClose={() => setPersonalDetailsToSave(undefined)}
+                isLoading={card.isLoading}
+            />
+        );
+    }
 
     return (
         <ScreenWrapper
