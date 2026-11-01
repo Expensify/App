@@ -8,6 +8,9 @@ type ConciergePendingFollowupList = {
 
     /** Whether the skeleton should be visually hidden (e.g., user is offline) */
     hidden?: boolean;
+
+    /** The reportActionID of the user's question that started this turn */
+    questionReportActionID?: string;
 };
 
 export default ConciergePendingFollowupList;

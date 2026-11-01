@@ -138,6 +138,121 @@ describe('useShouldSuppressConciergeIndicators', () => {
         });
     });
 
+    describe('newer user turn during the followup-list window', () => {
+        const QUESTION_ID = '90';
+        const NEWER_MESSAGE_ID = '95';
+        const REPLY_ID = REPORT_ACTION_ID;
+        const LATER_CONCIERGE_ID = '101';
+        const CONCIERGE_ACCOUNT_ID = CONST.ACCOUNT_ID.CONCIERGE;
+
+        async function seedFollowupTurn(actions: Record<string, ReportAction>, questionReportActionID?: string) {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, actions);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.CONCIERGE_PENDING_FOLLOWUP_LIST}${REPORT_ID}`, {
+                reportActionID: REPLY_ID,
+                createdAt: Date.now(),
+                questionReportActionID,
+            });
+            await waitForBatchedUpdates();
+        }
+
+        it('stops suppressing once the user sends a message after the question, even though the reply is future-stamped newest', async () => {
+            // Given a followup turn whose pregenerated reply is stamped 4s after the question, and a
+            // second user message sent inside that window (so it sorts before the reply)
+            await seedFollowupTurn(
+                {
+                    [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                    [NEWER_MESSAGE_ID]: buildAction({reportActionID: NEWER_MESSAGE_ID, created: '2026-06-29 10:00:02.000'}),
+                    [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+                },
+                QUESTION_ID,
+            );
+
+            // When the indicators are evaluated for that report
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            // Then the skeleton window no longer hides the indicators, since that message is a turn of its own
+            await waitFor(() => {
+                expect(result.current).toBe(false);
+            });
+        });
+
+        it('keeps suppressing while only the question exists', async () => {
+            // Given a followup turn with no user message after the question
+            await seedFollowupTurn(
+                {
+                    [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                    [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+                },
+                QUESTION_ID,
+            );
+
+            // When the indicators are evaluated for that report
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            // Then the skeleton window still hides them, because no newer user turn exists
+            await waitFor(() => {
+                expect(result.current).toBe(true);
+            });
+        });
+
+        it('keeps suppressing when the only newer action is from Concierge', async () => {
+            // Given a followup turn where only Concierge commented after the question
+            await seedFollowupTurn(
+                {
+                    [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                    [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+                    [LATER_CONCIERGE_ID]: buildAction({reportActionID: LATER_CONCIERGE_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:05.000'}),
+                },
+                QUESTION_ID,
+            );
+
+            // When the indicators are evaluated for that report
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            // Then the skeleton window still hides them, because no newer user turn exists
+            await waitFor(() => {
+                expect(result.current).toBe(true);
+            });
+        });
+
+        it('keeps suppressing when the only newer comment is from someone other than the asker', async () => {
+            // Given a followup turn where another agent commented after the question, but the asker did not
+            await seedFollowupTurn(
+                {
+                    [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                    [NEWER_MESSAGE_ID]: buildAction({reportActionID: NEWER_MESSAGE_ID, actorAccountID: OTHER_ACCOUNT_ID, created: '2026-06-29 10:00:02.000'}),
+                    [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+                },
+                QUESTION_ID,
+            );
+
+            // When the indicators are evaluated for that report
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            // Then the skeleton window still hides them, because only the asker starts a new turn
+            await waitFor(() => {
+                expect(result.current).toBe(true);
+            });
+        });
+
+        it('keeps suppressing when the pending flag predates questionReportActionID', async () => {
+            // Given a flag persisted by an older client, with no question anchor to compare against
+            await seedFollowupTurn({
+                [QUESTION_ID]: buildAction({reportActionID: QUESTION_ID, created: '2026-06-29 10:00:00.000'}),
+                [NEWER_MESSAGE_ID]: buildAction({reportActionID: NEWER_MESSAGE_ID, created: '2026-06-29 10:00:02.000'}),
+                [REPLY_ID]: buildAction({reportActionID: REPLY_ID, actorAccountID: CONCIERGE_ACCOUNT_ID, created: '2026-06-29 10:00:04.000'}),
+            });
+
+            // When the indicators are evaluated for that report
+            const {result} = renderHook(() => useShouldSuppressConciergeIndicators(REPORT_ID));
+
+            // Then behavior falls back to the pre-anchor suppression instead of guessing
+            await waitFor(() => {
+                expect(result.current).toBe(true);
+            });
+        });
+    });
+
     it('suppresses indicators in the main Concierge chat even with messages in it', async () => {
         // Given the main Concierge chat with a Concierge reply in it
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, REPORT_ID);
