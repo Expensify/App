@@ -694,9 +694,13 @@ describe('CustomFormula', () => {
             });
             const context = createMockContext(policy);
 
-            // When computing the period, then it ends on the next Monday and starts the day after the previous one, as the backend does
-            expect(compute('{report:autoreporting:start}', context)).toBe(expectedStart);
-            expect(compute('{report:autoreporting:end}', context)).toBe(expectedEnd);
+            // When computing the period
+            const start = compute('{report:autoreporting:start}', context);
+            const end = compute('{report:autoreporting:end}', context);
+
+            // Then it ends on the next Monday and starts the day after the previous one, as the backend does
+            expect(start).toBe(expectedStart);
+            expect(end).toBe(expectedEnd);
         });
 
         test('should compute semi-monthly dates with a submission day past the end of a short month', () => {
