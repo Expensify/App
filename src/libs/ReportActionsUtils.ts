@@ -730,7 +730,7 @@ function getSystemMessageDisplayState(
         displayReportActions.push(reportAction);
     };
 
-    for (let index = 0; index < chronologicalActions.length;) {
+    for (let index = 0; index < chronologicalActions.length; ) {
         const reportAction = chronologicalActions.at(index);
         if (!reportAction) {
             index++;
